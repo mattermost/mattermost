@@ -2222,42 +2222,78 @@ func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 	})
 
-	// Create a private channel
-	channel := th.CreatePrivateChannel(t, th.BasicTeam)
+	t.Run("membership-policy channel is rejected", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
 
-	// Create a policy with the same ID as the channel
-	channelPolicy := &model.AccessControlPolicy{
-		Type:     model.AccessControlPolicyTypeChannel,
-		ID:       channel.Id, // Use the channel ID directly
-		Name:     "Test Channel Policy",
-		Revision: 1,
-		Version:  model.AccessControlPolicyVersionV0_2,
-		Rules: []model.AccessControlPolicyRule{
-			{
-				Actions:    []string{"view", "join_channel"},
-				Expression: "user.attributes.program == \"test-program\"",
+		channelPolicy := &model.AccessControlPolicy{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ID:       channel.Id,
+			Name:     "Test Channel Policy",
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: "user.attributes.program == \"test-program\"",
+				},
 			},
-		},
-	}
+		}
 
-	// Save the channel policy
-	channelPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
-	require.NoError(t, err)
-	require.NotNil(t, channelPolicy)
+		channelPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+		require.NoError(t, err)
+		require.NotNil(t, channelPolicy)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channel.Id)
+		})
 
-	// Attempt to invite guests to the policy-enforced channel
-	guestsInvite := &model.GuestsInvite{
-		Emails:   []string{"guest@example.com"},
-		Channels: []string{channel.Id},
-		Message:  "test message",
-	}
+		guestsInvite := &model.GuestsInvite{
+			Emails:   []string{"guest@example.com"},
+			Channels: []string{channel.Id},
+			Message:  "test message",
+		}
 
-	// Call the function we want to test
-	_, _, _, appErr := th.App.prepareInviteGuestsToChannels(th.BasicTeam.Id, guestsInvite, th.BasicUser.Id)
+		_, _, _, appErr := th.App.prepareInviteGuestsToChannels(th.Context, th.BasicTeam.Id, guestsInvite, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.team.invite_guests.policy_enforced_channel.app_error", appErr.Id)
+	})
 
-	// Verify that the appropriate error is returned
-	require.NotNil(t, appErr)
-	require.Equal(t, "api.team.invite_guests.policy_enforced_channel.app_error", appErr.Id)
+	t.Run("permission-only-policy channel is NOT rejected (bug fix)", func(t *testing.T) {
+		// Channel carrying ONLY a permission policy (e.g.
+		// upload_file_attachment) reports policy_enforced=true but has no
+		// membership action. The guest-invite gate now consults
+		// PolicyActions[membership] specifically and must accept the
+		// invite — failing this assertion means the bug has regressed.
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+		channelPolicy := &model.AccessControlPolicy{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ID:       channel.Id,
+			Name:     "Permission Only Policy",
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+					Expression: "user.attributes.program == \"test-program\"",
+				},
+			},
+		}
+
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channel.Id)
+		})
+
+		guestsInvite := &model.GuestsInvite{
+			Emails:   []string{"guest@example.com"},
+			Channels: []string{channel.Id},
+			Message:  "test message",
+		}
+
+		_, _, _, appErr := th.App.prepareInviteGuestsToChannels(th.Context, th.BasicTeam.Id, guestsInvite, th.BasicUser.Id)
+		require.Nil(t, appErr, "guest invite must succeed for a permission-only-policy channel")
+	})
 }
 
 func TestTeamSendEvents(t *testing.T) {
