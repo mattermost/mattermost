@@ -218,7 +218,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                     {' '}
                     {invitableMessagePart}
                     <a
-                        className='PostBody_addWikiLink'
+                        className='PostBody_addChannelMemberLink'
                         onClick={this.handleAddChannelMember}
                     >
                         {link}

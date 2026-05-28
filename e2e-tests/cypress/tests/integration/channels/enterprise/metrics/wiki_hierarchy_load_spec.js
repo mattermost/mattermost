@@ -11,6 +11,7 @@
 // Group: @channels @enterprise @metrics @wiki @performance
 
 describe('Wiki > Page Hierarchy Load Performance', () => {
+    let testTeam;
     let testChannel;
     let testWiki;
     let hierarchyPages = [];
@@ -26,7 +27,8 @@ describe('Wiki > Page Hierarchy Load Performance', () => {
         });
 
         // # Create test team and channel
-        cy.apiInitSetup().then(({channel}) => {
+        cy.apiInitSetup().then(({team, channel}) => {
+            testTeam = team;
             testChannel = channel;
 
             // # Grant wiki (channel properties) and page permissions
@@ -43,7 +45,7 @@ describe('Wiki > Page Hierarchy Load Performance', () => {
             });
 
             // # Create wiki
-            cy.apiCreateWiki(testChannel.id, 'Hierarchy Test Wiki', 'Testing hierarchy load performance').then(({wiki}) => {
+            cy.apiCreateWiki(team.id, 'Hierarchy Test Wiki', 'Testing hierarchy load performance').then(({wiki}) => {
                 testWiki = wiki;
             });
         });
@@ -211,7 +213,7 @@ describe('Wiki > Page Hierarchy Load Performance', () => {
 
     it('MM-T5015 - Empty wiki hierarchy should load very quickly', () => {
         // # Create a new empty wiki
-        cy.apiCreateWiki(testChannel.id, 'Empty Wiki', 'For testing empty hierarchy load').then(({wiki}) => {
+        cy.apiCreateWiki(testTeam.id, 'Empty Wiki', 'For testing empty hierarchy load').then(({wiki}) => {
             // # Load pages from empty wiki
             cy.apiGetWikiPages(wiki.id).then(({pages, duration}) => {
                 // * Verify no pages exist

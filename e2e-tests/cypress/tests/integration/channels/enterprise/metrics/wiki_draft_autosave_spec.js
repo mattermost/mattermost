@@ -26,7 +26,7 @@ describe('Wiki > Page Draft Autosave Performance', () => {
         });
 
         // # Create test team and channel
-        cy.apiInitSetup().then(({channel}) => {
+        cy.apiInitSetup().then(({team, channel}) => {
             testChannel = channel;
 
             // # Grant wiki (channel properties) and page permissions
@@ -43,7 +43,7 @@ describe('Wiki > Page Draft Autosave Performance', () => {
             });
 
             // # Create wiki
-            cy.apiCreateWiki(testChannel.id, 'Draft Test Wiki', 'Testing draft autosave performance').then(({wiki}) => {
+            cy.apiCreateWiki(team.id, 'Draft Test Wiki', 'Testing draft autosave performance').then(({wiki}) => {
                 testWiki = wiki;
 
                 // # Create a test page

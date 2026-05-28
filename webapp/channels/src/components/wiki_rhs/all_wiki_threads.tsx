@@ -229,7 +229,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
             <ResolutionFilterBar
                 value={resolutionFilter}
                 onChange={setResolutionFilter}
-                ariaLabel={formatMessage({id: 'wiki.comments.filter_label', defaultMessage: 'Filter threads'})}
+                ariaLabel={formatMessage({id: 'wiki.threads.filter_label', defaultMessage: 'Filter threads'})}
             />
             {filteredPageThreads.length === 0 && (
                 <div

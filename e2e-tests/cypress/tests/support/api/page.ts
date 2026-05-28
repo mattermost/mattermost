@@ -11,24 +11,24 @@ import {getRandomId} from '../../utils';
 // *****************************************************************************
 
 /**
- * Create a wiki for a channel.
- * @param {string} channelId - The channel ID
+ * Create a wiki in a team.
+ * @param {string} teamId - The team ID
  * @param {string} title - Wiki title
  * @param {string} description - Wiki description (optional)
  * @returns {any} `out.wiki` as wiki object
  *
  * @example
- *   cy.apiCreateWiki(channelId, 'Test Wiki').then(({wiki}) => {
+ *   cy.apiCreateWiki(teamId, 'Test Wiki').then(({wiki}) => {
  *       // do something with wiki
  *   });
  */
-function apiCreateWiki(channelId: string, title: string, description = ''): ChainableT<{wiki: any}> {
+function apiCreateWiki(teamId: string, title: string, description = ''): ChainableT<{wiki: any}> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/wikis',
         method: 'POST',
         body: {
-            channel_id: channelId,
+            team_id: teamId,
             title,
             description,
         },
@@ -285,7 +285,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         interface Chainable {
-            apiCreateWiki(channelId: string, title: string, description?: string): ChainableT<{wiki: any}>;
+            apiCreateWiki(teamId: string, title: string, description?: string): ChainableT<{wiki: any}>;
             apiCreatePage(wikiId: string, title: string, content: string, pageParentId?: string): ChainableT<{page: any}>;
             apiCreatePageHierarchy(wikiId: string, depth?: number, childrenPerLevel?: number): ChainableT<{pages: any[]; rootPage: any}>;
             apiSavePageDraft(wikiId: string, pageId: string, content: string, title?: string): ChainableT<{draft: any}>;

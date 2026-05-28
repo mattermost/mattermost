@@ -26,7 +26,7 @@ describe('Wiki > Page Load Performance', () => {
         });
 
         // # Create test team and channel
-        cy.apiInitSetup().then(({channel}) => {
+        cy.apiInitSetup().then(({team, channel}) => {
             testChannel = channel;
 
             // # Grant wiki (channel properties) and page permissions
@@ -43,7 +43,7 @@ describe('Wiki > Page Load Performance', () => {
             });
 
             // # Create wiki
-            cy.apiCreateWiki(testChannel.id, 'Performance Test Wiki', 'Testing page load performance').then(({wiki}) => {
+            cy.apiCreateWiki(team.id, 'Performance Test Wiki', 'Testing page load performance').then(({wiki}) => {
                 testWiki = wiki;
 
                 // # Create multiple pages for testing using recursive approach

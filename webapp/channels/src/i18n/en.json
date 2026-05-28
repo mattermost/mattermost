@@ -7937,6 +7937,7 @@
   "wiki.renderError.message": "An error occurred while loading this page.",
   "wiki.renderError.retry": "Retry",
   "wiki.renderError.retryLabel": "Retry loading this page",
+  "wiki.threads.filter_label": "Filter threads",
   "wiki.untitled_page": "Untitled",
   "wiki.untitled_page_full": "Untitled page",
   "workspace_limits.archived_file.archived": "This file is archived",
