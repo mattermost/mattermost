@@ -472,9 +472,15 @@
         - properties
       summary: Get property values for a target
       description: >
-        Get all property values for a specific target within a group.
+        Get all property values for a specific target within a group. Uses cursor-based pagination.
         The `template` object type cannot have values and will return 400.
         The `system` object type must use the dedicated `/api/v4/properties/groups/{group_name}/system/values` endpoint and will return 400 on this route.
+
+
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstoned rows.
+
+
+        **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`.
       operationId: GetPropertyValues
       parameters:
         - name: group_name
@@ -495,6 +501,15 @@
           required: true
           schema:
             type: string
+        - name: since
+          in: query
+          description: >
+            Unix timestamp in milliseconds. When greater than 0, returns only
+            values with `update_at` strictly greater than this value, including
+            tombstones.
+          schema:
+            type: integer
+            format: int64
         - name: cursor_id
           in: query
           description: The ID of the last property value from the previous page, for cursor-based pagination.
@@ -502,7 +517,19 @@
             type: string
         - name: cursor_create_at
           in: query
-          description: The create_at timestamp of the last property value from the previous page. Must be provided together with cursor_id.
+          description: >
+            The `create_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            absent. Mutually exclusive with `cursor_update_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_update_at
+          in: query
+          description: >
+            The `update_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            present. Mutually exclusive with `cursor_create_at`.
           schema:
             type: integer
             format: int64
@@ -598,6 +625,12 @@
         within a group. System-scoped values are readable by any authenticated
         user. This endpoint is the dedicated route for `system` object type;
         the `{object_type}/values/{target_id}` route returns 400 for `system`.
+
+
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstones.
+
+
+        **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`.
       operationId: GetSystemPropertyValues
       parameters:
         - name: group_name
@@ -606,6 +639,15 @@
           required: true
           schema:
             type: string
+        - name: since
+          in: query
+          description: >
+            Unix timestamp in milliseconds. When greater than 0, returns only
+            values with `update_at` strictly greater than this value, including
+            tombstones.
+          schema:
+            type: integer
+            format: int64
         - name: cursor_id
           in: query
           description: The ID of the last property value from the previous page, for cursor-based pagination.
@@ -613,7 +655,19 @@
             type: string
         - name: cursor_create_at
           in: query
-          description: The create_at timestamp of the last property value from the previous page. Must be provided together with cursor_id.
+          description: >
+            The `create_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            absent. Mutually exclusive with `cursor_update_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_update_at
+          in: query
+          description: >
+            The `update_at` timestamp of the last property value from the
+            previous page. Required alongside `cursor_id` when `since` is
+            present. Mutually exclusive with `cursor_create_at`.
           schema:
             type: integer
             format: int64
