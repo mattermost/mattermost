@@ -415,7 +415,6 @@ func (a *App) MaskSimulationPolicyLiteralsForCaller(rctx request.CTX, resp *mode
 		cpaGroupID:     resolver.cpaGroupID,
 		rctxWithCaller: resolver.rctxWithCaller,
 		callerID:       callerID,
-		fieldsByName:   map[string]*model.PropertyField{},
 		resolver:       resolver,
 	}
 
@@ -434,17 +433,13 @@ func (a *App) MaskSimulationPolicyLiteralsForCaller(rctx request.CTX, resp *mode
 }
 
 // simulationMaskContext is the per-request mask cache shared across
-// every expression in a single simulate response. The CPA group ID
-// and the request context (with callerID embedded so the property
-// service applies per-caller read access control) are stable for the
-// life of the call; fieldsByName grows lazily as new field names are
-// encountered, so each unique field is fetched at most once even
-// across hundreds of tree nodes.
+// every expression in a single simulate response. resolver caches
+// MaskingFieldInfo per field name so each unique field is resolved
+// at most once across the entire trace.
 type simulationMaskContext struct {
 	cpaGroupID     string
 	rctxWithCaller request.CTX
 	callerID       string
-	fieldsByName   map[string]*model.PropertyField
 	resolver       model.MaskingFieldResolver
 }
 
@@ -575,56 +570,30 @@ func (a *App) maskSimulationEvaluationTree(node *model.PolicySimulationEvaluatio
 	}
 }
 
-// maskLeafActualValue replaces `node.ActualValue` with the masked
-// token whenever the caller is not allowed to see that value for
-// the leaf's underlying CPA field. Skips when the attribute path is
-// not a user-attribute reference (e.g. function-call leaves with a
-// non-attribute LHS). Fails closed by masking when the field can't
-// be resolved.
+// maskLeafActualValue replaces node.ActualValue with the masked token when the
+// caller cannot see that value. Uses mc.resolver so field info is cached across
+// all leaves in the trace — no per-leaf DB calls. Fails closed on resolver error.
 func (a *App) maskLeafActualValue(node *model.PolicySimulationEvaluationNode, mc *simulationMaskContext) {
 	fieldName := extractFieldName(node.Attribute)
 	if fieldName == "" {
 		return
 	}
-	field, ok := mc.fieldsByName[fieldName]
-	if !ok {
-		fetched, appErr := a.GetPropertyFieldByName(mc.rctxWithCaller, mc.cpaGroupID, "", fieldName)
-		if appErr != nil {
-			node.ActualValue = maskedTokenValue
-			return
-		}
-		mc.fieldsByName[fieldName] = fetched
-		field = fetched
-	}
-	if !a.callerCanSeeFieldValue(field, node.ActualValue, mc) {
+	info, err := mc.resolver.Resolve(fieldName)
+	if err != nil {
 		node.ActualValue = maskedTokenValue
+		return
 	}
-}
-
-// callerCanSeeFieldValue reports whether the caller is allowed to
-// see `value` for `field` under AVM semantics. Mirrors the per-
-// access-mode logic that maskConditionValuesWithToken applies to
-// rule literals so the simulator's user-data surfaces (ActualValue)
-// stay in lockstep with the rule-literal surfaces (ExpectedValue /
-// Expression). Unknown access modes fail closed to "not visible"
-// so a new mode added later doesn't silently bypass the masker.
-func (a *App) callerCanSeeFieldValue(field *model.PropertyField, value string, mc *simulationMaskContext) bool {
-	switch field.GetAccessMode() {
-	case model.PropertyAccessModePublic:
-		return true
-	case model.PropertyAccessModeSourceOnly:
-		return false
-	case model.PropertyAccessModeSharedOnly:
-		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
-			visibleNames = extractVisibleOptionNames(field)
-		} else {
-			visibleNames = a.getCallerTextValues(mc.rctxWithCaller, mc.callerID, field, mc.cpaGroupID)
+	switch info.Access {
+	case model.MaskingFieldAccessPublic:
+		// visible as-is
+	case model.MaskingFieldAccessSourceOnly:
+		node.ActualValue = maskedTokenValue
+	case model.MaskingFieldAccessSharedOnly:
+		if _, visible := info.VisibleValues[node.ActualValue]; !visible {
+			node.ActualValue = maskedTokenValue
 		}
-		_, visible := visibleNames[value]
-		return visible
 	default:
-		return false
+		node.ActualValue = maskedTokenValue
 	}
 }
 

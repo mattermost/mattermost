@@ -977,6 +977,7 @@ func TestMaskSimulationPolicyLiteralsForCaller_SourceOnly(t *testing.T) {
 	assert.Contains(t, m.EvaluationTree.Expression, maskedTokenValue)
 	assert.Equal(t, maskedTokenValue, m.EvaluationTree.ExpectedValue)
 	assert.Equal(t, maskedTokenValue, m.EvaluationTree.ActualValue)
+	mockACS.AssertExpectations(t)
 }
 
 // TestMaskSimulationPolicyLiteralsForCaller_PublicFieldPassesThrough
@@ -1044,6 +1045,7 @@ func TestMaskSimulationPolicyLiteralsForCaller_PublicFieldPassesThrough(t *testi
 		"public field leaf ActualValue must pass through unchanged")
 	assert.NotContains(t, blame.EvaluationTree.Expression, maskedTokenValue,
 		"public field leaf Expression must not gain a sentinel")
+	mockACS.AssertExpectations(t)
 }
 
 // TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpected
@@ -1116,7 +1118,6 @@ func TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpecte
 		cpaGroupID:     groupID,
 		rctxWithCaller: RequestContextWithCallerID(rctx, callerID),
 		callerID:       callerID,
-		fieldsByName:   map[string]*model.PropertyField{},
 		resolver:       mcResolver,
 	}
 
@@ -1160,6 +1161,7 @@ func TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpecte
 	// different value.
 	assert.Equal(t, maskedTokenValue, leaf.ActualValue,
 		"shared_only ActualValue the caller doesn't hold must mask, even when ExpectedValue is visible")
+	mockACS.AssertExpectations(t)
 }
 
 // TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved
@@ -1252,4 +1254,5 @@ func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T)
 	// tree root, so it must inherit the same preserved structure
 	// and the same absence of literal leaks.
 	assert.Equal(t, blame.EvaluationTree.Expression, blame.Expression)
+	mockACS.AssertExpectations(t)
 }

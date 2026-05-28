@@ -1701,6 +1701,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		stored := newPolicy(th.BasicChannel.Id)
 		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), stored.ID).Return(stored, nil)
 		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(unknownFieldAST, nil).Maybe()
+		mockACS.On("MaskExpressionForCaller", mock.Anything, sensitiveExpr, mock.Anything).Return(expectedMaskedExpr, true, nil).Maybe()
 
 		result, resp, err := th.SystemAdminClient.GetAccessControlPolicy(context.Background(), stored.ID)
 		require.NoError(t, err)
