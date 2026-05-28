@@ -41,6 +41,12 @@ name: "docs/needed - Open Docs PR"
 on:
   pull_request:
     types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process (manual trigger for testing)'
+        required: true
+        type: string
  
 # One run at a time per dev PR prevents a race if the label bounces quickly.
 # cancel-in-progress is false because a mid-run cancellation can leave the
@@ -48,21 +54,23 @@ on:
 # Queuing is safer; the idempotency checks in each step handle duplicates.
 concurrency:
   group: >-
-    docs-needed-${{ github.repository }}-${{ github.event.pull_request.number }}
+    docs-needed-${{ github.repository }}-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: false
  
 jobs:
   open-docs-pr:
     name: >-
       Open docs PR for
-      ${{ github.repository }}#${{ github.event.pull_request.number }}
+      ${{ github.repository }}#${{ github.event.pull_request.number || inputs.pr_number }}
     runs-on: ubuntu-latest
     # Fork guard: only run on PRs opened from within this repo, not forks.
     # Draft guard: skip draft PRs - apply Docs/Needed when the PR is ready.
+    # workflow_dispatch bypasses both guards for manual testing.
     if: |
-      github.event.label.name == 'Docs/Needed' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.draft == false
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'Docs/Needed' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.draft == false)
     permissions:
       contents: read
       pull-requests: write
@@ -91,10 +99,43 @@ jobs:
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           repositories: docs
  
+      # 0b. Resolve PR data — normalises pull_request event fields and
+      #     workflow_dispatch inputs into one set of outputs so all subsequent
+      #     steps are trigger-agnostic. For workflow_dispatch the PR is fetched
+      #     by number from this repo using the built-in GITHUB_TOKEN.
+      - name: Resolve PR data
+        id: pr-data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_MILESTONE_NUMBER: ${{ github.event.pull_request.milestone.number }}
+          EVENT_MILESTONE_TITLE: ${{ github.event.pull_request.milestone.title }}
+          EVENT_MILESTONE_DUE: ${{ github.event.pull_request.milestone.due_on }}
+          EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
+          EVENT_PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            DATA=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$INPUT_PR_NUMBER")
+            echo "pr_number=$INPUT_PR_NUMBER"                                  >> "$GITHUB_OUTPUT"
+            echo "milestone_number=$(echo "$DATA" | jq -r '.milestone.number // ""')" >> "$GITHUB_OUTPUT"
+            echo "milestone_title=$(echo "$DATA"  | jq -r '.milestone.title  // ""')" >> "$GITHUB_OUTPUT"
+            echo "milestone_due=$(echo "$DATA"    | jq -r '.milestone.due_on // ""')" >> "$GITHUB_OUTPUT"
+            echo "pr_title=$(echo "$DATA"         | jq -r '.title')"          >> "$GITHUB_OUTPUT"
+            echo "pr_author=$(echo "$DATA"        | jq -r '.user.login')"     >> "$GITHUB_OUTPUT"
+          else
+            echo "pr_number=$EVENT_PR_NUMBER"           >> "$GITHUB_OUTPUT"
+            echo "milestone_number=$EVENT_MILESTONE_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "milestone_title=$EVENT_MILESTONE_TITLE"   >> "$GITHUB_OUTPUT"
+            echo "milestone_due=$EVENT_MILESTONE_DUE"       >> "$GITHUB_OUTPUT"
+            echo "pr_title=$EVENT_PR_TITLE"             >> "$GITHUB_OUTPUT"
+            echo "pr_author=$EVENT_PR_AUTHOR"           >> "$GITHUB_OUTPUT"
+          fi
+ 
       # 1. Guard: milestone is required
       - name: Require milestone
         env:
-          MILESTONE: ${{ github.event.pull_request.milestone.number }}
+          MILESTONE: ${{ steps.pr-data.outputs.milestone_number }}
         run: |
           if [ -z "$MILESTONE" ]; then
             echo "::error title=Missing milestone::Set a milestone on this PR before applying Docs/Needed."
@@ -105,11 +146,11 @@ jobs:
       - name: Set variables
         id: vars
         env:
-          MILESTONE_TITLE: ${{ github.event.pull_request.milestone.title }}
-          MILESTONE_NUMBER: ${{ github.event.pull_request.milestone.number }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          MILESTONE_TITLE: ${{ steps.pr-data.outputs.milestone_title }}
+          MILESTONE_NUMBER: ${{ steps.pr-data.outputs.milestone_number }}
+          PR_NUMBER: ${{ steps.pr-data.outputs.pr_number }}
+          PR_TITLE: ${{ steps.pr-data.outputs.pr_title }}
+          PR_AUTHOR: ${{ steps.pr-data.outputs.pr_author }}
           SOURCE_REPO: ${{ github.repository }}
         run: |
           REPO_NAME="${SOURCE_REPO##*/}"
@@ -138,7 +179,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.read-token.outputs.token }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
-          MILESTONE_DUE: ${{ github.event.pull_request.milestone.due_on }}
+          MILESTONE_DUE: ${{ steps.pr-data.outputs.milestone_due }}
           REPO_NAME: ${{ steps.vars.outputs.repo_name }}
         run: |
           derive_branch_from_title() {
