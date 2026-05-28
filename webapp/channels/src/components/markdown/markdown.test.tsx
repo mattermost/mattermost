@@ -141,7 +141,7 @@ describe('components/Markdown', () => {
                 );
 
                 const list = document.querySelector('ol.markdown__list');
-                expect(list).toBeDefined();
+                expect(list).not.toBeNull();
 
                 expect(getComputedStyle(list!)).toMatchObject({
 
