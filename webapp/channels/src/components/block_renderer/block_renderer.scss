@@ -1,16 +1,16 @@
 // Interactive Messages (mm_blocks) layout — buttons/selects use global .btn / .form-control.
 
-$mm-blocks-border-strong: rgba(var(--center-channel-color-rgb), 0.16);
-$mm-blocks-border-subtle: rgba(var(--center-channel-color-rgb), 0.12);
+$mm-blocks-border-strong: rgba(var(--center-channel-color-rgb), 0.12);
+$mm-blocks-border-subtle: rgba(var(--center-channel-color-rgb), 0.08);
 $mm-blocks-surface-subtle: rgba(var(--center-channel-color-rgb), 0.04);
 $mm-blocks-text-muted: rgba(var(--center-channel-color-rgb), 0.75);
 
 $mm-blocks-accent-colors: (
     default: rgba(var(--button-bg-rgb), 0.32),
-    primary: var(--button-bg),
-    good: var(--online-indicator),
-    warning: var(--away-indicator),
-    danger: var(--dnd-indicator),
+    primary: rgb(var(--button-bg-rgb)),
+    good: rgb(var(--semantic-color-success)),
+    warning: rgb(var(--semantic-color-warning)),
+    danger: rgb(var(--semantic-color-danger)),
 );
 
 $mm-blocks-container-gaps: (
@@ -23,8 +23,8 @@ $mm-blocks-container-gaps: (
 
 $mm-blocks-container-max-heights: (
     small: 160px,
-    medium: 280px,
-    large: 420px,
+    medium: 240px,
+    large: 320px,
 );
 @mixin mm-blocks-capped-width {
     width: 100%;
@@ -38,6 +38,7 @@ $mm-blocks-container-max-heights: (
     min-height: 0;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 8px;
 
     // Reset the margin on the first paragraph of a text block.
     // Removes the style added by bootstrap.
@@ -52,8 +53,15 @@ $mm-blocks-container-max-heights: (
     button {
         align-self: flex-start;
 
+        //override global .btn padding and font size:
+        &.btn {
+            height: 36px;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
         .LoadingSpinner .spinner {
-            margin-right: 5px;
+            margin-right: 0px;
         }
     }
 
@@ -91,6 +99,7 @@ $mm-blocks-container-max-heights: (
                 border-right: 1px solid $mm-blocks-border-strong;
                 border-bottom: 1px solid $mm-blocks-border-strong;
                 box-shadow: var(--elevation-1);
+                background-color: var(--center-channel-bg);
             }
         }
 
@@ -100,16 +109,9 @@ $mm-blocks-container-max-heights: (
 
             padding: 16px;
             border: 1px solid $mm-blocks-border-strong;
+            background-color: var(--center-channel-bg);
             border-radius: var(--radius-s);
             box-shadow: var(--elevation-1);
-        }
-
-        // Framed containers nested inside another framed container (accent and/or border).
-        &--accent .mm-blocks-container--accent,
-        &--accent .mm-blocks-container--border,
-        &--border .mm-blocks-container--accent,
-        &--border .mm-blocks-container--border {
-            padding: 12px;
         }
 
         &--bg-gray {
@@ -148,6 +150,7 @@ $mm-blocks-container-max-heights: (
                 max-height: $height;
                 flex-shrink: 0;
                 overflow-y: auto;
+                scrollbar-width: thin;
             }
         }
     }
@@ -164,17 +167,50 @@ $mm-blocks-container-max-heights: (
     // `AutocompleteSelector` / `SuggestionBox` use `.select-suggestion-container`, which has global
     // `margin: 8px 8px 0 0` (_select.scss). Drop that for mm_blocks dropdowns so height matches siblings.
     .mm-blocks-select {
+        width: 100%;
+        max-width: 22rem;
+        min-width: 0;
+        height: 36px;
+
         .select-suggestion-container {
             margin: 0;
+            width: 100%;
 
             &::after {
-                left: 20rem;
+                top: 9px;
+                right: 12px;
+                font-size: 18px;
+            }
+
+            .form-control {
+                width: 100%;
+                padding: 8px 24px 8px 12px;
+                height: 36px;
+                text-overflow: ellipsis;
+                font-size: 14px;
+                border-radius: var(--radius-s);
+                
+                &:hover {
+                    border-color: rgba(var(--center-channel-color-rgb), 0.48);
+                }
+
+                &::placeholder {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    opacity: 1;
+                    text-overflow: ellipsis;
+                }
             }
         }
 
-        .form-control {
-            width: 22rem;
-            text-overflow: ellipsis;
+        .suggestion-list__content {
+            padding: 8px 0;
+
+            .suggestion-list__item {
+                &:hover,
+                &.suggestion--selected {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                }
+            }
         }
     }
 
@@ -193,50 +229,50 @@ $mm-blocks-container-max-heights: (
     // Legacy attachment action colors (`ActionButton` STATUS_COLORS).
     .mm-blocks-button--good,
     .mm-blocks-button--success {
-        background-color: rgba(51, 153, 112, 0.08) !important;
-        color: #339970 !important;
+        background-color: rgba(var(--semantic-color-success), 0.08) !important;
+        color: rgb(var(--semantic-color-success)) !important;
 
         &:hover:not(:disabled),
         &:focus:not(:disabled) {
-            background-color: rgba(51, 153, 112, 0.12) !important;
-            color: #339970 !important;
+            background-color: rgba(var(--semantic-color-success), 0.12) !important;
+            color: rgb(var(--semantic-color-success)) !important;
         }
 
         &:active:not(:disabled) {
-            background-color: rgba(51, 153, 112, 0.16) !important;
+            background-color: rgba(var(--semantic-color-success), 0.16) !important;
         }
     }
 
     .mm-blocks-button--warning {
-        background-color: rgba(204, 143, 0, 0.08) !important;
-        color: #CC8F00 !important;
+        background-color: rgba(var(--semantic-color-warning), 0.08) !important;
+        color: rgb(var(--semantic-color-warning)) !important;
 
         &:hover:not(:disabled),
         &:focus:not(:disabled) {
-            background-color: rgba(204, 143, 0, 0.12) !important;
-            color: #CC8F00 !important;
+            background-color: rgba(var(--semantic-color-warning), 0.12) !important;
+            color: rgb(var(--semantic-color-warning)) !important;
         }
 
         &:active:not(:disabled) {
-            background-color: rgba(204, 143, 0, 0.16) !important;
+            background-color: rgba(var(--semantic-color-warning), 0.16) !important;
         }
     }
 
     // Avoid global `.app__body .btn.btn-danger` (filled red + white text), which overrides
     // `.btn.btn-tertiary.btn-danger`. Matches legacy `ActionButton` danger styling.
     .mm-blocks-button--danger {
-        background-color: rgba(var(--error-text-color-rgb), 0.08) !important;
-        color: var(--error-text) !important;
+        background-color: rgba(var(--semantic-color-danger), 0.08) !important;
+        color: rgb(var(--semantic-color-danger)) !important;
 
         &:hover:not(:disabled),
         &:focus:not(:disabled) {
-            background-color: rgba(var(--error-text-color-rgb), 0.12) !important;
-            color: var(--error-text) !important;
+            background-color: rgba(var(--semantic-color-danger), 0.12) !important;
+            color: rgb(var(--semantic-color-danger)) !important;
         }
 
         &:active:not(:disabled) {
-            background-color: rgba(var(--error-text-color-rgb), 0.16) !important;
-            color: var(--error-text) !important;
+            background-color: rgba(var(--semantic-color-danger), 0.16) !important;
+            color: rgb(var(--semantic-color-danger)) !important;
         }
     }
 
@@ -316,6 +352,41 @@ $mm-blocks-container-max-heights: (
         }
     }
 
+    // Nested framed containers: subtle borders and no elevation when inside a bordered
+    // parent (`--border` / `--accent-border`), column set/column, or collapsible.
+    .mm-blocks-container--border,
+    .mm-blocks-container--accent.mm-blocks-container--accent-border,
+    .mm-blocks-column-set,
+    .mm-blocks-column {
+        .mm-blocks-container.mm-blocks-container--border,
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            padding: 12px;
+            box-shadow: none;
+        }
+
+        .mm-blocks-container.mm-blocks-container--border {
+            border-color: $mm-blocks-border-subtle;
+        }
+
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            border-top-color: $mm-blocks-border-subtle;
+            border-right-color: $mm-blocks-border-subtle;
+            border-bottom-color: $mm-blocks-border-subtle;
+        }
+
+        .mm-blocks-container.mm-blocks-container--accent:not(.mm-blocks-container--accent-border) {
+            padding: 12px;
+            box-shadow: none;
+        }
+    }
+
+    .mm-blocks-container--border,
+    .mm-blocks-container--accent.mm-blocks-container--accent-border {
+        .mm-blocks-collapsible {
+            box-shadow: none;
+        }
+    }
+
     .mm-blocks-column-set {
         display: flex;
         width: 100%;
@@ -342,15 +413,38 @@ $mm-blocks-container-max-heights: (
 
     .mm-blocks-collapsible {
         border: 1px solid $mm-blocks-border-subtle;
-        border-radius: 4px;
+        border-radius: var(--radius-s);
+        background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-1);
+
+        .mm-blocks-container.mm-blocks-container--border,
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            padding: 12px;
+            box-shadow: none;
+        }
+
+        .mm-blocks-container.mm-blocks-container--border {
+            border-color: $mm-blocks-border-subtle;
+        }
+
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            border-top-color: $mm-blocks-border-subtle;
+            border-right-color: $mm-blocks-border-subtle;
+            border-bottom-color: $mm-blocks-border-subtle;
+        }
 
         &-header {
             display: flex;
             width: 100%;
             align-items: center;
             padding: 8px 10px;
-            gap: 8px;
+            gap: 4px;
             text-align: left;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            .mm-blocks-column-set {
+                align-items: center;
+            }
 
             &:hover {
                 background: $mm-blocks-surface-subtle;
@@ -364,6 +458,7 @@ $mm-blocks-container-max-heights: (
             &__chevron {
                 display: flex;
                 flex-shrink: 0;
+                width: 16px;
                 align-items: center;
                 justify-content: center;
                 color: $mm-blocks-text-muted;
@@ -376,7 +471,7 @@ $mm-blocks-container-max-heights: (
         }
 
         &-content {
-            padding: 0 10px 10px;
+            padding: 10px 12px 12px 12px;
         }
     }
 }

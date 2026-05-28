@@ -14,28 +14,28 @@ const theme = {
 
 describe('mmBlocksButtonClassName', () => {
     it('returns default tertiary classes when style is omitted', () => {
-        expect(mmBlocksButtonClassName(undefined)).toBe('btn btn-sm btn-tertiary');
+        expect(mmBlocksButtonClassName(undefined)).toBe('btn btn-tertiary');
     });
 
     it('returns primary classes for primary style', () => {
-        expect(mmBlocksButtonClassName('primary')).toBe('btn btn-sm btn-primary');
+        expect(mmBlocksButtonClassName('primary')).toBe('btn btn-primary');
     });
 
     it('returns danger tertiary classes for danger style', () => {
-        expect(mmBlocksButtonClassName('danger')).toBe('btn btn-sm btn-tertiary mm-blocks-button--danger');
+        expect(mmBlocksButtonClassName('danger')).toBe('btn btn-tertiary mm-blocks-button--danger');
     });
 
     it('returns default tertiary classes for default style', () => {
-        expect(mmBlocksButtonClassName('default')).toBe('btn btn-sm btn-tertiary');
+        expect(mmBlocksButtonClassName('default')).toBe('btn btn-tertiary');
     });
 
     it('returns good classes for good and success styles', () => {
-        expect(mmBlocksButtonClassName('good')).toBe('btn btn-sm btn-tertiary mm-blocks-button--good');
-        expect(mmBlocksButtonClassName('success')).toBe('btn btn-sm btn-tertiary mm-blocks-button--success');
+        expect(mmBlocksButtonClassName('good')).toBe('btn btn-tertiary mm-blocks-button--good');
+        expect(mmBlocksButtonClassName('success')).toBe('btn btn-tertiary mm-blocks-button--success');
     });
 
     it('returns warning classes for warning style', () => {
-        expect(mmBlocksButtonClassName('warning')).toBe('btn btn-sm btn-tertiary mm-blocks-button--warning');
+        expect(mmBlocksButtonClassName('warning')).toBe('btn btn-tertiary mm-blocks-button--warning');
     });
 });
 
