@@ -1247,8 +1247,8 @@ func TestInstallPlugin(t *testing.T) {
 		package main
 
 		import (
+			"fmt"
 			"net/http"
-
 
 			"github.com/mattermost/mattermost/server/public/plugin"
 		)
@@ -1278,7 +1278,7 @@ func TestInstallPlugin(t *testing.T) {
 			defer resp.Body.Close()
 			_, aerr := p.API.InstallPlugin(resp.Body, true)
 			if aerr != nil {
-				return errors.Wrap(aerr, "cannot install plugin")
+				return fmt.Errorf("cannot install plugin: %w", aerr)
 			}
 			return nil
 		}
@@ -3164,6 +3164,8 @@ func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 	pluginCode := `
 	package main
 	import (
+		"errors"
+
 		"github.com/mattermost/mattermost/server/public/model"
 		"github.com/mattermost/mattermost/server/public/plugin"
 	)
