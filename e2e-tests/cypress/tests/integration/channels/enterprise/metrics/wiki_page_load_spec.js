@@ -11,7 +11,6 @@
 // Group: @channels @enterprise @metrics @wiki @performance
 
 describe('Wiki > Page Load Performance', () => {
-    let testChannel;
     let testWiki;
     const testPages = [];
 
@@ -26,9 +25,7 @@ describe('Wiki > Page Load Performance', () => {
         });
 
         // # Create test team and channel
-        cy.apiInitSetup().then(({team, channel}) => {
-            testChannel = channel;
-
+        cy.apiInitSetup().then(({team}) => {
             // # Grant wiki (channel properties) and page permissions
             // Wiki operations now use manage_*_channel_properties permissions
             cy.apiGetRolesByNames(['channel_user']).then(({roles}) => {

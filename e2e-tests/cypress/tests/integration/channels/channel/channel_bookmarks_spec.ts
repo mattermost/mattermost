@@ -471,7 +471,6 @@ describe('Channel Bookmarks', () => {
 
                 cy.makeClient().then(async (client) => {
                     for (let i = 1; i <= OVERFLOW_COUNT; i++) {
-                        // eslint-disable-next-line no-await-in-loop
                         await client.createChannelBookmark(overflowChannel.id, {
                             type: 'link',
                             display_name: `OvBm ${String(i).padStart(2, '0')}`,

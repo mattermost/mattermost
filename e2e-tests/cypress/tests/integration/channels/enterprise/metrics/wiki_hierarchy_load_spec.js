@@ -12,7 +12,6 @@
 
 describe('Wiki > Page Hierarchy Load Performance', () => {
     let testTeam;
-    let testChannel;
     let testWiki;
     let hierarchyPages = [];
 
@@ -27,9 +26,8 @@ describe('Wiki > Page Hierarchy Load Performance', () => {
         });
 
         // # Create test team and channel
-        cy.apiInitSetup().then(({team, channel}) => {
+        cy.apiInitSetup().then(({team}) => {
             testTeam = team;
-            testChannel = channel;
 
             // # Grant wiki (channel properties) and page permissions
             // Wiki operations now use manage_*_channel_properties permissions
