@@ -629,10 +629,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         const ctrlSendSection = this.renderCtrlSendSection();
 
         const formattingSection = this.renderFormattingSection();
-        let formattingSectionDivider = null;
-        if (formattingSection) {
-            formattingSectionDivider = <div className='divider-light'/>;
-        }
 
         let deactivateAccountSection: ReactNode = '';
         let makeConfirmationModal: ReactNode = '';
@@ -723,18 +719,10 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         }
 
         const unreadScrollPositionSection = this.renderUnreadScrollPositionSection();
-        let unreadScrollPositionSectionDivider = null;
-        if (unreadScrollPositionSection) {
-            unreadScrollPositionSectionDivider = <div className='divider-light'/>;
-        }
 
         let syncDraftsSection = null;
-        let syncDraftsSectionDivider = null;
         if (this.props.syncedDraftsAreAllowed) {
             syncDraftsSection = this.renderSyncDraftsSection();
-            if (syncDraftsSection) {
-                syncDraftsSectionDivider = <div className='divider-light'/>;
-            }
         }
 
         return (
@@ -764,7 +752,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     />
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
-                    {formattingSectionDivider}
+                    <div className='divider-light'/>
                     {formattingSection}
                     <div className='divider-light'/>
                     <JoinLeaveSection
@@ -776,6 +764,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         userPreferences={this.props.userPreferences}
                         userId={this.props.user.id}
                     />
+                    <div className='divider-light'/>
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
@@ -783,11 +772,11 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         adminMode={this.props.adminMode}
                         userId={this.props.user.id}
                     />
-                    {unreadScrollPositionSectionDivider}
+                    <div className='divider-light'/>
                     {unreadScrollPositionSection}
-                    {syncDraftsSectionDivider}
+                    <div className='divider-light'/>
                     {syncDraftsSection}
-                    {formattingSectionDivider}
+                    <div className='divider-light'/>
                     <EnableConcurrentReactExperimentalSection
                         activeSection={this.props.activeSection}
                         onUpdateSection={this.handleUpdateSection}
