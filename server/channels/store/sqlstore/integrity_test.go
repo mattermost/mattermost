@@ -813,6 +813,8 @@ func orphanedRecordsWithChildIDs(records []model.OrphanedRecord, childIDs ...str
 
 func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		ss.DropAllTables()
+
 		store := ss.(*SqlStore)
 		dbmap := store.GetMaster()
 
@@ -828,11 +830,12 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithChildIDs(data.Records, channel.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &channel.TeamId,
 				ChildId:  &channel.Id,
-			}, data.Records[0])
+			}, records[0])
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
 		})
 
@@ -846,11 +849,12 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithChildIDs(data.Records, channel.Id, direct.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &channel.TeamId,
 				ChildId:  &channel.Id,
-			}, data.Records[0])
+			}, records[0])
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userA.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userB.Id)
@@ -869,15 +873,17 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 2)
-			require.Equal(t, model.OrphanedRecord{
-				ParentId: &channel.TeamId,
-				ChildId:  &channel.Id,
-			}, data.Records[0])
-			require.Equal(t, model.OrphanedRecord{
-				ParentId: new("test"),
-				ChildId:  &direct.Id,
-			}, data.Records[1])
+			records := orphanedRecordsWithChildIDs(data.Records, channel.Id, direct.Id)
+			require.ElementsMatch(t, []model.OrphanedRecord{
+				{
+					ParentId: &channel.TeamId,
+					ChildId:  &channel.Id,
+				},
+				{
+					ParentId: new("test"),
+					ChildId:  &direct.Id,
+				},
+			}, records)
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userA.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userB.Id)

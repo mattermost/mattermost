@@ -1627,8 +1627,11 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify values were NOT updated
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"value1"`, string(retrieved[0].Value))
-		assert.Equal(t, `"value2"`, string(retrieved[1].Value))
+		require.Len(t, retrieved, 2)
+		retrievedValue1 := findValueByID(t, retrieved, createdValues[0].ID)
+		assert.Equal(t, `"value1"`, string(retrievedValue1.Value))
+		retrievedValue2 := findValueByID(t, retrieved, createdValues[1].ID)
+		assert.Equal(t, `"value2"`, string(retrievedValue2.Value))
 	})
 
 	t.Run("mixed protected and non-protected fields - enforces access control only on protected fields", func(t *testing.T) {
@@ -1687,8 +1690,11 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"protected value"`, string(retrieved[0].Value))
-		assert.Equal(t, `"public value"`, string(retrieved[1].Value))
+		require.Len(t, retrieved, 2)
+		retrievedProtectedValue := findValueByID(t, retrieved, createdValues[0].ID)
+		assert.Equal(t, `"protected value"`, string(retrievedProtectedValue.Value))
+		retrievedPublicValue := findValueByID(t, retrieved, createdValues[1].ID)
+		assert.Equal(t, `"public value"`, string(retrievedPublicValue.Value))
 
 		// Now try with source plugin - should succeed for both
 		createdValues[0].Value = json.RawMessage(`"updated protected"`)
@@ -1761,8 +1767,11 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"value from plugin1"`, string(retrieved[0].Value))
-		assert.Equal(t, `"value from plugin2"`, string(retrieved[1].Value))
+		require.Len(t, retrieved, 2)
+		retrievedValue1 := findValueByID(t, retrieved, createdValue1.ID)
+		assert.Equal(t, `"value from plugin1"`, string(retrievedValue1.Value))
+		retrievedValue2 := findValueByID(t, retrieved, createdValue2.ID)
+		assert.Equal(t, `"value from plugin2"`, string(retrievedValue2.Value))
 
 		// Try to update both values with plugin2 - should also fail because it doesn't own field1
 		createdValue1.Value = json.RawMessage(`"hacked by plugin2"`)
@@ -1775,8 +1784,11 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify still NO values were updated
 		retrieved, err = th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"value from plugin1"`, string(retrieved[0].Value))
-		assert.Equal(t, `"value from plugin2"`, string(retrieved[1].Value))
+		require.Len(t, retrieved, 2)
+		retrievedValue1 = findValueByID(t, retrieved, createdValue1.ID)
+		assert.Equal(t, `"value from plugin1"`, string(retrievedValue1.Value))
+		retrievedValue2 = findValueByID(t, retrieved, createdValue2.ID)
+		assert.Equal(t, `"value from plugin2"`, string(retrievedValue2.Value))
 
 		// Each plugin can update its own value individually
 		createdValue1.Value = json.RawMessage(`"plugin-1 updated its own"`)
@@ -1789,6 +1801,18 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, `"plugin-2 updated its own"`, string(updated2.Value))
 	})
+}
+
+func findValueByID(t *testing.T, values []*model.PropertyValue, id string) *model.PropertyValue {
+	t.Helper()
+	for _, value := range values {
+		if value.ID == id {
+			return value
+		}
+	}
+
+	require.FailNow(t, "missing property value", "missing property value %s", id)
+	return nil
 }
 
 func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
