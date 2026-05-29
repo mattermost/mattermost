@@ -499,16 +499,18 @@ type PolicySimulationResponse struct {
 // PolicySimulationUserOverride captures the per-user inputs the picker UI
 // sends to /access_control_policies/cel/simulate_users. The simulator
 // resolves each user's profile attributes from CPA storage and then layers
-// session context on top: first the active-session snapshot (when
-// UseActiveSession is set), then the explicit SessionOverrides map.
+// session context on top: the requesting admin's resolved session
+// attributes (the same user_agent_* / ip_address bag the live PDP reads
+// via App.GetSessionAttributes) are applied as a baseline, then the
+// explicit SessionOverrides map overrides individual keys.
 type PolicySimulationUserOverride struct {
 	// UserID identifies the user to simulate against.
 	UserID string `json:"user_id"`
-	// UseActiveSession injects the requesting admin's session.* attributes
-	// (network_status, client_type, device_managed, ip_range, platform,
-	// device_id) into this user's evaluation context. When the live PDP
-	// does not yet populate session.* on the request context this is a
-	// no-op; the API surface is forward-compatible.
+	// UseActiveSession is retained for API backward compatibility. The
+	// simulator now always layers the requesting admin's resolved session
+	// snapshot under SessionOverrides — leaving overrides empty means
+	// "evaluate against the session as the server resolves it" — so this
+	// flag is effectively a no-op. New clients should leave it unset.
 	UseActiveSession bool `json:"use_active_session,omitempty"`
 	// SessionOverrides replaces individual session.* attributes for this
 	// user only. Applied on top of the active-session snapshot when both
