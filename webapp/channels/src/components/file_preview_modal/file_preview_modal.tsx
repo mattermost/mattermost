@@ -70,6 +70,7 @@ type State = {
     imageHeight: number | string;
     loaded: Record<number, boolean>;
     prevFileInfosCount: number;
+    prevFileIds: string[];
     progress: Record<number, number>;
     showCloseBtn: boolean;
     showZoomControls: boolean;
@@ -115,6 +116,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             imageHeight: '100%',
             loaded: Utils.fillRecord(false, this.props.fileInfos.length),
             prevFileInfosCount: 0,
+            prevFileIds: this.props.fileInfos.map(FilePreviewModal.getFileIdentity),
             progress: Utils.fillRecord(0, this.props.fileInfos.length),
             showCloseBtn: false,
             showZoomControls: false,
@@ -129,6 +131,17 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             isDragging: false,
             content: '',
         };
+    }
+
+    // Stable identity for a file used to detect same-length swaps in the
+    // fileInfos prop (a websocket post update could replace one attachment
+    // without changing the array length). FileInfo has an `id`, LinkInfo
+    // has a `link`; fall back to extension to keep this total.
+    static getFileIdentity(fileInfo: FileInfo | LinkInfo): string {
+        if (isFileInfo(fileInfo)) {
+            return `f:${fileInfo.id}`;
+        }
+        return `l:${fileInfo.link ?? fileInfo.extension ?? ''}`;
     }
 
     static getDefaultScaleForFile(fileInfo: FileInfo | LinkInfo): number {
@@ -233,21 +246,32 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         } else {
             updatedState.showZoomControls = false;
         }
-        if (props.fileInfos.length !== state.prevFileInfosCount) {
+
+        // Detect any change to the file list — either the length, or a
+        // same-index identity swap (e.g. a websocket post update replacing
+        // attachment N without changing array length).
+        const nextFileIds = props.fileInfos.map(FilePreviewModal.getFileIdentity);
+        const lengthChanged = props.fileInfos.length !== state.prevFileInfosCount;
+        const identitiesChanged = !lengthChanged && nextFileIds.some((id, i) => id !== state.prevFileIds[i]);
+        if (lengthChanged || identitiesChanged) {
             updatedState.loaded = Utils.fillRecord(false, props.fileInfos.length);
             updatedState.progress = Utils.fillRecord(0, props.fileInfos.length);
             updatedState.prevFileInfosCount = props.fileInfos.length;
+            updatedState.prevFileIds = nextFileIds;
 
-            // Reconcile scale/translate with the new file list: preserve any
-            // existing per-index entries, seed brand-new indexes with the
-            // file's default, and drop entries past the new length so a
-            // missing entry can never read as `undefined` (which would flip
-            // isZoomed and leak through clamp comparisons).
+            // Reconcile scale/translate per index: preserve entries whose
+            // file identity is unchanged; reset to the new file's default
+            // when the identity at that index changed (or is brand new).
             const nextScale: Record<number, number> = {};
             const nextTranslate: Record<number, Translate> = {};
             for (let i = 0; i < props.fileInfos.length; i++) {
-                nextScale[i] = state.scale[i] ?? FilePreviewModal.getDefaultScaleForFile(props.fileInfos[i]);
-                nextTranslate[i] = state.translate[i] ?? {x: 0, y: 0};
+                const idUnchanged = state.prevFileIds[i] === nextFileIds[i];
+                nextScale[i] = idUnchanged && state.scale[i] !== undefined ?
+                    state.scale[i] :
+                    FilePreviewModal.getDefaultScaleForFile(props.fileInfos[i]);
+                nextTranslate[i] = idUnchanged && state.translate[i] !== undefined ?
+                    state.translate[i] :
+                    {x: 0, y: 0};
             }
             updatedState.scale = nextScale;
             updatedState.translate = nextTranslate;
