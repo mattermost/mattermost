@@ -176,8 +176,9 @@ const NewChannelModal = () => {
             default_category_name: defaultCategoryName,
             managed_category_name: managedCategoryName,
             ...(classificationEnabled && selectedClassificationId && bannerText ? {
+                // Leave banner_info disabled: the classification banner renders
+                // off the property value, not banner_info.enabled.
                 banner_info: {
-                    enabled: true,
                     text: bannerText,
                     background_color: selectedClassificationLevel?.color || '',
                 },
