@@ -432,6 +432,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if patch.GroupConstrained != nil && !oldChannel.SupportsGroupSync() {
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.group_constrained_not_allowed.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	switch oldChannel.Type {
 	case model.ChannelTypeOpen:
 		if updatingProperties {
@@ -469,12 +474,6 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		if (patch.Name != nil && *patch.Name != oldChannel.Name) || (patch.DisplayName != nil && *patch.DisplayName != oldChannel.DisplayName) || (patch.Purpose != nil && *patch.Purpose != oldChannel.Purpose) || patch.DefaultCategoryName != nil {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-
-		// group_constrained is only meaningful for group-synced public/private channels; reject it for DM/GM.
-		if patch.GroupConstrained != nil {
-			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.group_constrained_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 

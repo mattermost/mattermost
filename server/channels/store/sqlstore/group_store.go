@@ -1289,8 +1289,8 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
 		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
 		Where(sq.Eq{"Channels.DeleteAt": 0, "Channels.GroupConstrained": true, "Bots.UserId": nil}).
-		// DM/GM channels have no group mappings, so never treat their members as removable.
-		Where(sq.NotEq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}}).
+		// Only public/private channels support group sync; never treat other channel members as removable.
+		Where(sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}}).
 		Where(whereStmt)
 
 	if channelID != nil {

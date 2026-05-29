@@ -93,6 +93,15 @@ func TestChannelIsValidDiscoverable(t *testing.T) {
 	})
 }
 
+func TestChannelSupportsGroupSync(t *testing.T) {
+	require.True(t, (&Channel{Type: ChannelTypeOpen}).SupportsGroupSync())
+	require.True(t, (&Channel{Type: ChannelTypePrivate}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeDirect}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeGroup}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeOpenBoard}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypePrivateBoard}).SupportsGroupSync())
+}
+
 func TestChannelIsValidGroupConstrained(t *testing.T) {
 	base := Channel{
 		Id:          NewId(),
@@ -115,7 +124,7 @@ func TestChannelIsValidGroupConstrained(t *testing.T) {
 		require.Nil(t, c.IsValid())
 	})
 
-	t.Run("group_constrained is rejected on direct and group messages", func(t *testing.T) {
+	t.Run("group_constrained is rejected on direct, group, and board channels", func(t *testing.T) {
 		c := base
 		c.GroupConstrained = NewPointer(true)
 
@@ -123,6 +132,12 @@ func TestChannelIsValidGroupConstrained(t *testing.T) {
 		require.NotNil(t, c.IsValid())
 
 		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeOpenBoard
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivateBoard
 		require.NotNil(t, c.IsValid())
 	})
 }
