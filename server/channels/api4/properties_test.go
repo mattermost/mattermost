@@ -532,8 +532,8 @@ func TestGetPropertyFields(t *testing.T) {
 	// Side-effect-only fixtures: their DB presence proves the hierarchical
 	// filter actively excludes them. ElementsMatch on the expected ID set
 	// handles the exclusion check.
-	_ = mkField(t, model.PropertyFieldTargetLevelTeam, otherTeam.Id)      // team-B field
-	_ = mkField(t, model.PropertyFieldTargetLevelChannel, channelY.Id)   // channel-Y field (BasicUser has no access)
+	_ = mkField(t, model.PropertyFieldTargetLevelTeam, otherTeam.Id)   // team-B field
+	_ = mkField(t, model.PropertyFieldTargetLevelChannel, channelY.Id) // channel-Y field (BasicUser has no access)
 
 	fieldIDs := func(fields []*model.PropertyField) []string {
 		ids := make([]string, len(fields))

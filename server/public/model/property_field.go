@@ -510,8 +510,8 @@ type PropertyFieldSearchOpts struct {
 	GroupID string
 	// Deprecated: use ObjectTypes instead. Kept for backwards compatibility
 	// with existing callers; mutually exclusive with ObjectTypes.
-	ObjectType  string
-	ObjectTypes []string
+	ObjectType     string
+	ObjectTypes    []string
 	TargetType     string
 	TargetIDs      []string
 	ChannelID      string
