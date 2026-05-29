@@ -4548,7 +4548,9 @@ func TestMergeStoredPolicyExpressions_FailClosedSentinelRejectedOnResubmit(t *te
 
 	_, mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
 
-	require.NotNil(t, mergeErr, "expected mergeStoredPolicyExpressions to return an error when the caller submits the fail-closed sentinel")
+	require.NotNil(t, mergeErr)
+	assert.Equal(t, mergeBlockErr.Id, mergeErr.Id, "error ID must match the forbidden contract")
+	assert.Equal(t, mergeBlockErr.StatusCode, mergeErr.StatusCode, "status code must be 403 Forbidden")
 	mockACS.AssertExpectations(t)
 }
 
