@@ -912,6 +912,9 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
 }
 
 export function getPostTranslation(post: Post, locale: string): PostTranslation | undefined {
+    if (post.metadata?.translations?.[locale]) {
+        return post.metadata.translations[locale];
+    }
     const normalizedLocale = locale.split('-')[0];
     return post.metadata?.translations?.[normalizedLocale];
 }
