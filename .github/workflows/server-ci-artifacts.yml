@@ -14,7 +14,7 @@ jobs:
   ## We only need the condition on the first job
   ## This will run only when a pull request is created with server changes
   update-initial-status:
-    if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-22.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
