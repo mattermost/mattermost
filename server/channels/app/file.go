@@ -160,11 +160,11 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	var backend filestore.FileBackend
 	var err error
 	complianceEnabled := license != nil && *license.Features.Compliance
+	allowInsecure := insecure != nil && *insecure
 	if a.UseExportFileStore() {
-		allowInsecure := insecure != nil && *insecure
 		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
 	} else {
-		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
+		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, allowInsecure))
 	}
 	if err != nil {
 		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
