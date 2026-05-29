@@ -139,6 +139,17 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         return ZoomSettings.DEFAULT_SCALE;
     }
 
+    // Images get a lower zoom-in ceiling than PDFs: beyond ~2x the image
+    // exceeds the modal viewport in both dimensions and panning becomes
+    // tedious. PDFs keep the original 3.0 ceiling.
+    static getMaxScaleForFile(fileInfo: FileInfo | LinkInfo): number {
+        const fileType = Utils.getFileType(fileInfo.extension || '');
+        if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+            return ZoomSettings.MAX_SCALE_IMAGE;
+        }
+        return ZoomSettings.MAX_SCALE;
+    }
+
     handleNext = () => {
         let id = this.state.imageIndex + 1;
         if (id > this.props.fileInfos.length - 1) {
@@ -226,6 +237,20 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             updatedState.loaded = Utils.fillRecord(false, props.fileInfos.length);
             updatedState.progress = Utils.fillRecord(0, props.fileInfos.length);
             updatedState.prevFileInfosCount = props.fileInfos.length;
+
+            // Reconcile scale/translate with the new file list: preserve any
+            // existing per-index entries, seed brand-new indexes with the
+            // file's default, and drop entries past the new length so a
+            // missing entry can never read as `undefined` (which would flip
+            // isZoomed and leak through clamp comparisons).
+            const nextScale: Record<number, number> = {};
+            const nextTranslate: Record<number, Translate> = {};
+            for (let i = 0; i < props.fileInfos.length; i++) {
+                nextScale[i] = state.scale[i] ?? FilePreviewModal.getDefaultScaleForFile(props.fileInfos[i]);
+                nextTranslate[i] = state.translate[i] ?? {x: 0, y: 0};
+            }
+            updatedState.scale = nextScale;
+            updatedState.translate = nextTranslate;
         }
         return Object.keys(updatedState).length ? updatedState : null;
     }
@@ -352,8 +377,10 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleZoomIn = () => {
+        const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        const maxScale = FilePreviewModal.getMaxScaleForFile(fileInfo);
         let newScale = this.state.scale[this.state.imageIndex];
-        newScale = Math.min(newScale + ZoomSettings.SCALE_DELTA, ZoomSettings.MAX_SCALE);
+        newScale = Math.min(newScale + ZoomSettings.SCALE_DELTA, maxScale);
         this.setScale(this.state.imageIndex, newScale);
     };
 
@@ -394,9 +421,10 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             const idx = prev.imageIndex;
             const fileInfo = this.props.fileInfos[idx];
             const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
+            const maxScale = FilePreviewModal.getMaxScaleForFile(fileInfo);
             const oldScale = prev.scale[idx] ?? defaultScale;
             const newScale = direction > 0 ?
-                Math.min(oldScale + stepMagnitude, ZoomSettings.MAX_SCALE) :
+                Math.min(oldScale + stepMagnitude, maxScale) :
                 Math.max(oldScale - stepMagnitude, ZoomSettings.MIN_SCALE);
             if (newScale === oldScale) {
                 return null;
@@ -421,6 +449,16 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             return;
         }
         const idx = this.state.imageIndex;
+        const fileInfo = this.props.fileInfos[idx];
+        const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
+        const currentScale = this.state.scale[idx] ?? defaultScale;
+
+        // Only allow drag-to-pan when the image is actually zoomed in. At
+        // default scale the image fits the viewport, so dragging would just
+        // slide it around in empty space.
+        if (currentScale <= defaultScale) {
+            return;
+        }
         const current = this.state.translate[idx] ?? {x: 0, y: 0};
         this.dragState = {
             startX: e.clientX,
@@ -542,6 +580,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                         <PopoverBar
                             scale={this.state.scale[this.state.imageIndex]}
                             defaultScale={ZoomSettings.DEFAULT_SCALE_IMAGE}
+                            maxScale={ZoomSettings.MAX_SCALE_IMAGE}
                             showZoomControls={this.state.showZoomControls}
                             handleZoomIn={this.handleZoomIn}
                             handleZoomOut={this.handleZoomOut}

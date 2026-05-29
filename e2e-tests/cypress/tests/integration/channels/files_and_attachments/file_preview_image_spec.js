@@ -140,10 +140,12 @@ describe('Upload Files - Image', () => {
         // # Click zoom-in
         cy.get('@filePreviewModal').find('.modal-zoom-btn .icon-plus').click();
 
-        // * Image is scaled up (transform contains scale > 1)
+        // * Image is scaled up — match only scale values strictly greater than 1
+        //   (e.g. scale(1.25), scale(2)), so a transform of scale(1) or no
+        //   scale at all would fail this assertion.
         cy.get('@filePreviewModal').find('[data-testid="imagePreview"]').
             should('have.attr', 'style').
-            and('match', /scale\((?!1\))[0-9.]+\)/);
+            and('match', /scale\((?:1\.\d+|[2-9]\d*(?:\.\d+)?)\)/);
 
         // # Press '0' to reset
         cy.get('body').type('0');
