@@ -31,6 +31,7 @@ import TeammateNameDisplay from './teammate_name_display';
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 import {UserSettingBoolean} from '../user_setting_boolean';
+import {UserSettingRadio} from '../user_setting_radio';
 
 const Preferences = Constants.Preferences;
 
@@ -39,7 +40,6 @@ function getDisplayStateFromProps(props: Props) {
         channelDisplayMode: props.channelDisplayMode,
         messageDisplay: props.messageDisplay,
         colorizeUsernames: props.colorizeUsernames,
-        collapsedReplyThreads: props.collapsedReplyThreads,
     };
 }
 
@@ -125,7 +125,6 @@ type State = {
     channelDisplayMode: string;
     messageDisplay: string;
     colorizeUsernames: string;
-    collapsedReplyThreads: string;
     handleSubmit?: () => void;
     serverError?: string;
 };
@@ -190,19 +189,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.COLORIZE_USERNAMES,
             value: this.state.colorizeUsernames,
         };
-        const collapsedReplyThreadsPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.COLLAPSED_REPLY_THREADS,
-            value: this.state.collapsedReplyThreads,
-        };
 
         this.setState({isSaving: true});
 
         const preferences = [
             channelDisplayModePreference,
             messageDisplayPreference,
-            collapsedReplyThreadsPreference,
             colorizeUsernamesPreference,
         ];
 
@@ -234,10 +226,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handlemessageDisplayRadio(messageDisplay: string) {
         this.setState({messageDisplay});
-    }
-
-    handleCollapseReplyThreadsRadio(collapsedReplyThreads: string) {
-        this.setState({collapsedReplyThreads});
     }
 
     handleOnChange(e: React.ChangeEvent, display: {[key: string]: any}) {
@@ -536,6 +524,28 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         );
     };
 
+    readonly collapsedReplyThreadsOptions = [
+        Preferences.COLLAPSED_REPLY_THREADS_ON,
+        Preferences.COLLAPSED_REPLY_THREADS_OFF,
+    ];
+    renderCollapsedReplyThreadsLabel = (value: string) => {
+        if (value === Preferences.COLLAPSED_REPLY_THREADS_ON) {
+            return (
+                <FormattedMessage
+                    id='user.settings.display.collapsedReplyThreadsOn'
+                    defaultMessage='On'
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.display.collapsedReplyThreadsOff'
+                defaultMessage='Off'
+            />
+        );
+    };
+
     render() {
         const collapseSection = (
             <UserSettingBoolean
@@ -761,38 +771,28 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         let collapsedReplyThreads;
 
         if (this.props.collapsedReplyThreadsAllowUserPreference) {
-            collapsedReplyThreads = this.createSection({
-                section: Preferences.COLLAPSED_REPLY_THREADS,
-                display: 'collapsedReplyThreads',
-                value: this.state.collapsedReplyThreads,
-                defaultDisplay: Preferences.COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT,
-                title: defineMessage({
-                    id: 'user.settings.display.collapsedReplyThreadsTitle',
-                    defaultMessage: 'Threaded Discussions',
-                }),
-                firstOption: {
-                    value: Preferences.COLLAPSED_REPLY_THREADS_ON,
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.display.collapsedReplyThreadsOn',
-                            defaultMessage: 'On',
-                        }),
-                    },
-                },
-                secondOption: {
-                    value: Preferences.COLLAPSED_REPLY_THREADS_OFF,
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.display.collapsedReplyThreadsOff',
-                            defaultMessage: 'Off',
-                        }),
-                    },
-                },
-                description: defineMessage({
-                    id: 'user.settings.display.collapsedReplyThreadsDescription',
-                    defaultMessage: 'When enabled, reply messages are not shown in the channel and you\'ll be notified about threads you\'re following in the "Threads" view.',
-                }),
-            });
+            collapsedReplyThreads = (
+                <UserSettingRadio
+                    activeSection={this.props.activeSection}
+                    currentValue={this.props.collapsedReplyThreads}
+                    helpText={
+                        <FormattedMessage
+                            id='user.settings.display.collapsedReplyThreadsDescription'
+                            defaultMessage={'When enabled, reply messages are not shown in the channel and you\'ll be notified about threads you\'re following in the "Threads" view.'}
+                        />
+                    }
+                    onSubmit={this.handleSubmitPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSED_REPLY_THREADS)}
+                    options={this.collapsedReplyThreadsOptions}
+                    renderOptionLabel={this.renderCollapsedReplyThreadsLabel}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.collapsedReplyThreadsTitle'
+                            defaultMessage='Threaded Discussions'
+                        />
+                    }
+                    updateSection={this.updateSection}
+                />
+            );
         }
 
         const clickToReply = (

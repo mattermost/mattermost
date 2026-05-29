@@ -344,11 +344,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should update collapsed reply threads state', async () => {
-        const props = {...requiredProps, activeSection: 'collapsed_reply_threads', collapsedReplyThreadsAllowUserPreference: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const props = {...requiredProps, enableLinkPreviews: true};
+        renderWithUserSettingsState(UserSettingsDisplay, props);
 
-        const radioA = container.querySelector('#collapsed_reply_threadsFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#collapsed_reply_threadsFormatB') as HTMLInputElement;
+        await userEvent.click(screen.getByRole('button', {name: 'Website Link Previews Edit'}));
+
+        const radioA = screen.getByRole('radio', {name: 'On'});
+        const radioB = screen.getByRole('radio', {name: 'Off'});
 
         await userEvent.click(radioB);
         expect(radioB).toBeChecked();

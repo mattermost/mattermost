@@ -27,6 +27,7 @@ import PerformanceDebuggingSection from './performance_debugging_section';
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 import {UserSettingBoolean} from '../user_setting_boolean';
+import {UserSettingRadio} from '../user_setting_radio';
 
 import type {PropsFromRedux} from './index';
 
@@ -72,7 +73,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             formatting: this.props.formatting,
             join_leave: this.props.joinLeave,
             sync_drafts: this.props.syncDrafts,
-            [Preferences.UNREAD_SCROLL_POSITION]: this.props.unreadScrollPosition,
         };
 
         const isSaving = false;
@@ -270,88 +270,31 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         );
     };
 
+    readonly unreadScrollPositionOptions = [
+        Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT,
+        Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST,
+    ];
     renderUnreadScrollPositionSection = () => {
-        const active = this.props.activeSection === Preferences.UNREAD_SCROLL_POSITION;
-        let max = null;
-        if (active) {
-            max = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.advance.unreadScrollPositionTitle'
-                            defaultMessage='Scroll position when viewing an unread channel'
-                        />
-                    }
-                    inputs={[
-                        <fieldset key='unreadScrollPositionSetting'>
-                            <legend className='form-legend hidden-label'>
-                                <FormattedMessage
-                                    id='user.settings.advance.unreadScrollPositionTitle'
-                                    defaultMessage='Scroll position when viewing an unread channel'
-                                />
-                            </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='unreadPositionStartFromLeftOff'
-                                        type='radio'
-                                        name='unreadScrollPosition'
-                                        checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT}
-                                        onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.startFromLeftOff'
-                                        defaultMessage='Start me where I left off'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='unreadPositionStartFromNewest'
-                                        type='radio'
-                                        name='unreadScrollPosition'
-                                        checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST}
-                                        onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.startFromNewest'
-                                        defaultMessage='Start me at the newest message'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='mt-5'>
-                                <FormattedMessage
-                                    id='user.settings.advance.unreadScrollPositionDesc'
-                                    defaultMessage='Choose your scroll position when you view an unread channel. Channels will always be marked as read when viewed.'
-                                />
-                            </div>
-                        </fieldset>,
-                    ]}
-                    submit={this.handleSubmit.bind(this, [Preferences.UNREAD_SCROLL_POSITION])}
-                    saving={this.state.isSaving}
-                    serverError={this.state.serverError}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
-        }
-
         return (
-            <SettingItem
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+            <UserSettingRadio
+                activeSection={this.props.activeSection}
+                currentValue={this.props.unreadScrollPosition}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.advance.unreadScrollPositionDesc'
+                        defaultMessage='Choose your scroll position when you view an unread channel. Channels will always be marked as read when viewed.'
+                    />
+                }
+                onSubmit={this.handleSubmitPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.UNREAD_SCROLL_POSITION)}
+                options={this.unreadScrollPositionOptions}
+                renderOptionLabel={this.renderUnreadScrollPositionLabel}
                 title={
                     <FormattedMessage
                         id='user.settings.advance.unreadScrollPositionTitle'
                         defaultMessage='Scroll position when viewing an unread channel'
                     />
                 }
-                describe={this.renderUnreadScrollPositionLabel(this.state.settings[Preferences.UNREAD_SCROLL_POSITION])}
-                section={Preferences.UNREAD_SCROLL_POSITION}
                 updateSection={this.handleUpdateSection}
-                max={max}
             />
         );
     };
