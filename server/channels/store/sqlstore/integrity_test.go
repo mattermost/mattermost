@@ -1097,6 +1097,7 @@ func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
 
 func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		ss.DropAllTables()
 		store := ss.(*SqlStore)
 		dbmap := store.GetMaster()
 
