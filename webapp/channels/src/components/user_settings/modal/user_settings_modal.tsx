@@ -249,7 +249,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         }
     };
 
-    updateSection = (section?: string, skipConfirm?: boolean) => {
+    updateSection = (section: string, skipConfirm?: boolean) => {
         if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateSection(section, true));
         } else {

@@ -144,7 +144,7 @@ export type Props = {
     user: UserProfile;
     updateSection: (section: string) => void;
     updateTab: (notifications: string) => void;
-    activeSection?: string;
+    activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
     isMobileView: boolean;

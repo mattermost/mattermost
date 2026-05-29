@@ -19,8 +19,8 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         areAllSectionsInactive: false,
         userId: 'current_user_id',
         joinLeave: 'true',
-        onUpdateSection: jest.fn(),
         renderOnOffLabel: jest.fn((label: string) => <span>{label === 'true' ? 'On' : 'Off'}</span>),
+        updateSection: jest.fn(),
         actions: {
             savePreferences: jest.fn(() => {
                 return new Promise<void>((resolve) => {
@@ -67,17 +67,17 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         expect(joinLeaveOn).toBeChecked();
     });
 
-    test('should call props.actions.savePreferences and props.onUpdateSection on handleSubmit', async () => {
+    test('should call props.actions.savePreferences and props.updateSection on handleSubmit', async () => {
         const actions = {
             savePreferences: jest.fn().mockImplementation(() => Promise.resolve({data: true})),
         };
-        const onUpdateSection = jest.fn();
+        const updateSection = jest.fn();
         renderWithContext(
             <JoinLeaveSection
                 {...defaultProps}
                 active={true}
                 actions={actions}
-                onUpdateSection={onUpdateSection}
+                updateSection={updateSection}
             />,
         );
 
@@ -92,7 +92,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         await userEvent.click(screen.getByTestId('saveSetting'));
         expect(actions.savePreferences).toHaveBeenCalledTimes(1);
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
-        expect(onUpdateSection).toHaveBeenCalledTimes(1);
+        expect(updateSection).toHaveBeenCalledTimes(1);
 
         // Change to 'false' and save again
         await userEvent.click(screen.getByRole('radio', {name: /off/i}));
@@ -102,13 +102,13 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
     });
 
-    test('should match state and call props.onUpdateSection on handleUpdateSection', async () => {
-        const onUpdateSection = jest.fn();
+    test('should match state and call props.updateSection on handleUpdateSection', async () => {
+        const updateSection = jest.fn();
         renderWithContext(
             <JoinLeaveSection
                 {...defaultProps}
                 active={true}
-                onUpdateSection={onUpdateSection}
+                updateSection={updateSection}
             />,
         );
 
@@ -116,9 +116,9 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         await userEvent.click(screen.getByRole('radio', {name: /off/i}));
         expect(screen.getByRole('radio', {name: /off/i})).toBeChecked();
 
-        // Click Cancel → handleUpdateSection() resets state and calls onUpdateSection
+        // Click Cancel → handleUpdateSection() resets state and calls updateSection
         await userEvent.click(screen.getByTestId('cancelButton'));
-        expect(onUpdateSection).toHaveBeenCalledTimes(1);
+        expect(updateSection).toHaveBeenCalledTimes(1);
 
         // After cancel, re-render as active to verify the state was reset
         // The joinLeave prop is 'true', so after reset the On radio should be checked

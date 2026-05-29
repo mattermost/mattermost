@@ -20,7 +20,7 @@ import SecurityTab from './user_settings_security';
 
 type Props = {
     user: UserProfile;
-    activeSection?: string;
+    activeSection: string;
     updateSection: (section: string) => void;
     closeModal: () => void;
     collapseModal: () => void;

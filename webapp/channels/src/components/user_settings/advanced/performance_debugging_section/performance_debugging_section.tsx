@@ -17,7 +17,7 @@ import type {PropsFromRedux} from './index';
 type Props = PropsFromRedux & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    onUpdateSection: (section?: string) => void;
+    updateSection: (section: string) => void;
 };
 
 export default function PerformanceDebuggingSection(props: Props) {
@@ -91,7 +91,7 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
             }
             describe={description}
             section={AdvancedSections.PERFORMANCE_DEBUGGING}
-            updateSection={props.onUpdateSection}
+            updateSection={props.updateSection}
             ref={ref}
         />
     );
@@ -129,10 +129,10 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
             props.savePreferences(props.userId, preferences);
         }
 
-        props.onUpdateSection('');
+        props.updateSection('');
     }, [
         props.userId,
-        props.onUpdateSection,
+        props.updateSection,
         props.savePreferences,
         disableClientPlugins,
         disableTypingMessages,
@@ -193,7 +193,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
                 </fieldset>,
             ]}
             submit={handleSubmit}
-            updateSection={props.onUpdateSection}
+            updateSection={props.updateSection}
         />
     );
 }

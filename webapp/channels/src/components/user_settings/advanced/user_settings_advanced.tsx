@@ -42,7 +42,7 @@ export type OwnProps = {
     adminMode?: boolean;
     user: UserProfile;
     userPreferences?: PreferencesType;
-    updateSection: (section?: string) => void;
+    updateSection: (section: string) => void;
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
@@ -151,7 +151,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         });
     };
 
-    handleUpdateSection = (section?: string): void => {
+    handleUpdateSection = (section: string): void => {
         if (!section) {
             this.setState(this.getStateFromProps());
         }
@@ -756,7 +756,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     <JoinLeaveSection
                         active={this.props.activeSection === AdvancedSections.JOIN_LEAVE}
                         areAllSectionsInactive={this.props.activeSection === ''}
-                        onUpdateSection={this.handleUpdateSection}
+                        updateSection={this.handleUpdateSection}
                         renderOnOffLabel={this.renderOnOffLabel}
                         adminMode={this.props.adminMode}
                         userPreferences={this.props.userPreferences}
@@ -764,7 +764,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     />
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
-                        onUpdateSection={this.handleUpdateSection}
+                        updateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         adminMode={this.props.adminMode}
                         userId={this.props.user.id}
@@ -773,7 +773,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {syncDraftsSection}
                     <EnableConcurrentReactExperimentalSection
                         activeSection={this.props.activeSection}
-                        onUpdateSection={this.handleUpdateSection}
+                        updateSection={this.handleUpdateSection}
                         adminMode={this.props.adminMode}
                         renderOnOffLabel={this.renderOnOffLabel}
                     />

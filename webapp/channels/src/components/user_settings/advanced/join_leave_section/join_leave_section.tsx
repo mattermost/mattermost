@@ -22,8 +22,8 @@ type Props = OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
     joinLeave: string;
-    onUpdateSection: (section?: string) => void;
     renderOnOffLabel: (label: string) => ReactNode;
+    updateSection: (section: string) => void;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
     };
@@ -65,20 +65,20 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
         a11yFocus(e.currentTarget);
     };
 
-    public handleUpdateSection = (section?: string): void => {
+    public handleUpdateSection = (section: string): void => {
         if (!section) {
             this.setState({joinLeaveState: this.props.joinLeave});
         }
 
-        this.props.onUpdateSection(section);
+        this.props.updateSection(section);
     };
 
     public handleSubmit = (): void => {
-        const {actions, userId, onUpdateSection} = this.props;
+        const {actions, userId, updateSection} = this.props;
         const joinLeavePreference = {category: Preferences.CATEGORY_ADVANCED_SETTINGS, user_id: userId, name: Preferences.ADVANCED_FILTER_JOIN_LEAVE, value: this.state.joinLeaveState};
         actions.savePreferences(userId, [joinLeavePreference]);
 
-        onUpdateSection();
+        updateSection('');
     };
 
     public render(): React.ReactNode {

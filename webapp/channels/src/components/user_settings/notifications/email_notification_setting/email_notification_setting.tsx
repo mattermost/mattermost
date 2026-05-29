@@ -158,7 +158,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         this.props.onSubmit();
     };
 
-    handleUpdateSection = (section?: string) => {
+    handleUpdateSection = (section: string) => {
         if (section) {
             this.props.updateSection(section);
         } else {

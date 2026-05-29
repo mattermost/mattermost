@@ -22,14 +22,14 @@ const storageKey = 'enable_concurrent_react_experimental';
 type Props = {
     activeSection: string;
     adminMode?: boolean;
-    onUpdateSection: (section?: string) => void;
     renderOnOffLabel: (enabled: string) => React.JSX.Element;
+    updateSection: (section: string) => void;
 };
 
 export default function EnableConcurrentReactExperimentalSection({
     activeSection,
     adminMode,
-    onUpdateSection,
+    updateSection,
     renderOnOffLabel,
 }: Props) {
     const enableDeveloperMode = useSelector((state: GlobalState) => getConfig(state).EnableDeveloper === 'true');
@@ -68,9 +68,9 @@ export default function EnableConcurrentReactExperimentalSection({
                 storageArea: localStorage,
             }));
 
-            onUpdateSection();
+            updateSection('');
         });
-    }, [enabled, onUpdateSection]);
+    }, [enabled, updateSection]);
 
     if (adminMode || !enableDeveloperMode) {
         return null;
@@ -88,7 +88,7 @@ export default function EnableConcurrentReactExperimentalSection({
                 }
                 describe={renderOnOffLabel(currentValue)}
                 section={section}
-                updateSection={onUpdateSection}
+                updateSection={updateSection}
             />
         );
     }
@@ -159,7 +159,7 @@ export default function EnableConcurrentReactExperimentalSection({
             ]}
             submit={handleSubmit}
             saving={false}
-            updateSection={onUpdateSection}
+            updateSection={updateSection}
         />
     );
 }

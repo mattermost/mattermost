@@ -89,7 +89,7 @@ export type OwnProps = {
 type Props = OwnProps & {
     user: UserProfile;
     updateSection: (section: string) => void;
-    activeSection?: string;
+    activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
     setRequireConfirm?: () => void;
