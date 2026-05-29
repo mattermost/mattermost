@@ -26,6 +26,7 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+import TeammateNameDisplay from './teammate_name_display';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -35,7 +36,6 @@ const Preferences = Constants.Preferences;
 
 function getDisplayStateFromProps(props: Props) {
     return {
-        teammateNameDisplay: props.teammateNameDisplay,
         channelDisplayMode: props.channelDisplayMode,
         messageDisplay: props.messageDisplay,
         colorizeUsernames: props.colorizeUsernames,
@@ -69,8 +69,6 @@ type SectionProps = {
     secondOption: Option;
     thirdOption?: Option;
     description: MessageDescriptor;
-    disabled?: boolean;
-    onSubmit?: () => void;
 };
 
 export type OwnProps = {
@@ -124,7 +122,6 @@ type Props = OwnProps & {
 type State = {
     [key: string]: any;
     isSaving: boolean;
-    teammateNameDisplay: string;
     channelDisplayMode: string;
     messageDisplay: string;
     colorizeUsernames: string;
@@ -175,12 +172,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     handleSubmit = async () => {
         const userId = this.props.user.id;
 
-        const teammateNameDisplayPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.NAME_NAME_FORMAT,
-            value: this.state.teammateNameDisplay,
-        };
         const channelDisplayModePreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -212,7 +203,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             channelDisplayModePreference,
             messageDisplayPreference,
             collapsedReplyThreadsPreference,
-            teammateNameDisplayPreference,
             colorizeUsernamesPreference,
         ];
 
@@ -279,11 +269,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             secondOption,
             thirdOption,
             description,
-            disabled,
-            onSubmit,
         } = props;
-        let extraInfo = null;
-        let submit: (() => Promise<void>) | (() => void) | null = onSubmit || this.handleSubmit;
 
         const firstMessage = (
             <FormattedMessage
@@ -434,7 +420,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 );
             }
 
-            let inputs = [
+            const inputs = [
                 <fieldset key={key}>
                     <legend className='form-legend hidden-label'>
                         {messageTitle}
@@ -478,26 +464,13 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 </fieldset>,
             ];
 
-            if (display === 'teammateNameDisplay' && disabled) {
-                extraInfo = (
-                    <span>
-                        <FormattedMessage
-                            id='user.settings.display.teammateNameDisplay'
-                            defaultMessage='This field is handled through your System Administrator. If you want to change it, you need to do so through your System Administrator.'
-                        />
-                    </span>
-                );
-                submit = null;
-                inputs = [];
-            }
             max = (
                 <SettingItemMax
                     title={messageTitle}
                     inputs={inputs}
-                    submit={submit}
+                    submit={this.handleSubmit}
                     saving={this.state.isSaving}
                     serverError={this.state.serverError}
-                    extraInfo={extraInfo}
                     updateSection={this.updateSection}
                 />);
         }
@@ -656,48 +629,15 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             />
         );
 
-        const teammateNameDisplaySection = this.createSection({
-            section: Preferences.NAME_NAME_FORMAT,
-            display: 'teammateNameDisplay',
-            value: this.props.lockTeammateNameDisplay ? this.props.configTeammateNameDisplay : this.state.teammateNameDisplay,
-            defaultDisplay: this.props.configTeammateNameDisplay,
-            title: defineMessage({
-                id: 'user.settings.display.teammateNameDisplayTitle',
-                defaultMessage: 'Teammate Name Display',
-            }),
-            firstOption: {
-                value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.teammateNameDisplayUsername',
-                        defaultMessage: 'Show username',
-                    }),
-                },
-            },
-            secondOption: {
-                value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME,
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.teammateNameDisplayNicknameFullname',
-                        defaultMessage: 'Show nickname if one exists, otherwise show first and last name',
-                    }),
-                },
-            },
-            thirdOption: {
-                value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_FULLNAME,
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.teammateNameDisplayFullname',
-                        defaultMessage: 'Show first and last name',
-                    }),
-                },
-            },
-            description: defineMessage({
-                id: 'user.settings.display.teammateNameDisplayDescription',
-                defaultMessage: 'Set how to display other user\'s names in posts and the Direct Messages list.',
-            }),
-            disabled: this.props.lockTeammateNameDisplay,
-        });
+        const teammateNameDisplaySection = (
+            <TeammateNameDisplay
+                activeSection={this.props.activeSection}
+                currentValue={this.props.teammateNameDisplay}
+                lockTeammateNameDisplay={this.props.lockTeammateNameDisplay}
+                onSubmit={this.handleSubmitPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.NAME_NAME_FORMAT)}
+                updateSection={this.updateSection}
+            />
+        );
 
         const availabilityStatusOnPostsSection = (
             <UserSettingBoolean

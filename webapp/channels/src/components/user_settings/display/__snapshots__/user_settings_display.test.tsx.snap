@@ -99,15 +99,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1v:Title"
+            id=":r27:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1v:Title :r1v:Edit"
+            aria-labelledby=":r27:Title :r27:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1v:Edit"
+            id=":r27:Edit"
           >
             <i
               aria-hidden="true"
@@ -119,7 +119,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1v:Desc"
+          id=":r27:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -127,47 +127,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -176,15 +135,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r20:Title"
+            id=":r28:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r28:Title :r28:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r28:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r28:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r29:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r20:Title :r20:Edit"
+            aria-labelledby=":r29:Title :r29:Edit"
             class="color--link style--none section-min__edit"
-            id=":r20:Edit"
+            id=":r29:Edit"
           >
             <i
               aria-hidden="true"
@@ -196,7 +191,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r20:Desc"
+          id=":r29:Desc"
         >
           On
         </div>
@@ -212,15 +207,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r21:Title"
+            id=":r2a:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r21:Title :r21:Edit"
+            aria-labelledby=":r2a:Title :r2a:Edit"
             class="color--link style--none section-min__edit"
-            id=":r21:Edit"
+            id=":r2a:Edit"
           >
             <i
               aria-hidden="true"
@@ -232,7 +227,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r21:Desc"
+          id=":r2a:Desc"
         >
           On
         </div>
@@ -248,15 +243,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r22:Title"
+            id=":r2b:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r22:Title :r22:Edit"
+            aria-labelledby=":r2b:Title :r2b:Edit"
             class="color--link style--none section-min__edit"
-            id=":r22:Edit"
+            id=":r2b:Edit"
           >
             <i
               aria-hidden="true"
@@ -268,7 +263,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r22:Desc"
+          id=":r2b:Desc"
         >
           On
         </div>
@@ -284,15 +279,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r23:Title"
+            id=":r2c:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r23:Title :r23:Edit"
+            aria-labelledby=":r2c:Title :r2c:Edit"
             class="color--link style--none section-min__edit"
-            id=":r23:Edit"
+            id=":r2c:Edit"
           >
             <i
               aria-hidden="true"
@@ -304,7 +299,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r23:Desc"
+          id=":r2c:Desc"
         >
           Expanded
         </div>
@@ -359,15 +354,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r24:Title"
+            id=":r2d:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r24:Title :r24:Edit"
+            aria-labelledby=":r2d:Title :r2d:Edit"
             class="color--link style--none section-min__edit"
-            id=":r24:Edit"
+            id=":r2d:Edit"
           >
             <i
               aria-hidden="true"
@@ -379,7 +374,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r24:Desc"
+          id=":r2d:Desc"
         >
           On
         </div>
@@ -488,15 +483,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r25:Title"
+            id=":r2e:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r25:Title :r25:Edit"
+            aria-labelledby=":r2e:Title :r2e:Edit"
             class="color--link style--none section-min__edit"
-            id=":r25:Edit"
+            id=":r2e:Edit"
           >
             <i
               aria-hidden="true"
@@ -508,7 +503,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r25:Desc"
+          id=":r2e:Desc"
         >
           On
         </div>
@@ -524,15 +519,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r26:Title"
+            id=":r2f:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r26:Title :r26:Edit"
+            aria-labelledby=":r2f:Title :r2f:Edit"
             class="color--link style--none section-min__edit"
-            id=":r26:Edit"
+            id=":r2f:Edit"
           >
             <i
               aria-hidden="true"
@@ -544,7 +539,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r26:Desc"
+          id=":r2f:Desc"
         >
           On
         </div>
@@ -697,15 +692,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2v:Title"
+            id=":r3b:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2v:Title :r2v:Edit"
+            aria-labelledby=":r3b:Title :r3b:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2v:Edit"
+            id=":r3b:Edit"
           >
             <i
               aria-hidden="true"
@@ -717,7 +712,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2v:Desc"
+          id=":r3b:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -725,47 +720,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -774,15 +728,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r30:Title"
+            id=":r3c:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r3c:Title :r3c:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r3c:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r3c:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r3d:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r30:Title :r30:Edit"
+            aria-labelledby=":r3d:Title :r3d:Edit"
             class="color--link style--none section-min__edit"
-            id=":r30:Edit"
+            id=":r3d:Edit"
           >
             <i
               aria-hidden="true"
@@ -794,7 +784,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r30:Desc"
+          id=":r3d:Desc"
         >
           On
         </div>
@@ -810,15 +800,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r31:Title"
+            id=":r3e:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r31:Title :r31:Edit"
+            aria-labelledby=":r3e:Title :r3e:Edit"
             class="color--link style--none section-min__edit"
-            id=":r31:Edit"
+            id=":r3e:Edit"
           >
             <i
               aria-hidden="true"
@@ -830,7 +820,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r31:Desc"
+          id=":r3e:Desc"
         >
           On
         </div>
@@ -846,15 +836,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r32:Title"
+            id=":r3f:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r32:Title :r32:Edit"
+            aria-labelledby=":r3f:Title :r3f:Edit"
             class="color--link style--none section-min__edit"
-            id=":r32:Edit"
+            id=":r3f:Edit"
           >
             <i
               aria-hidden="true"
@@ -866,7 +856,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r32:Desc"
+          id=":r3f:Desc"
         >
           On
         </div>
@@ -882,15 +872,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r33:Title"
+            id=":r3g:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r33:Title :r33:Edit"
+            aria-labelledby=":r3g:Title :r3g:Edit"
             class="color--link style--none section-min__edit"
-            id=":r33:Edit"
+            id=":r3g:Edit"
           >
             <i
               aria-hidden="true"
@@ -902,7 +892,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r33:Desc"
+          id=":r3g:Desc"
         >
           Expanded
         </div>
@@ -982,12 +972,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        id=":r34:false"
-                        name=":r34:"
+                        checked=""
+                        id=":r3h:true"
+                        name=":r3h:"
                         type="radio"
-                        value="false"
+                        value="true"
                       />
-                      Off
+                      On
                     </label>
                   </div>
                   <div
@@ -995,13 +986,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        checked=""
-                        id=":r34:true"
-                        name=":r34:"
+                        id=":r3h:false"
+                        name=":r3h:"
                         type="radio"
-                        value="true"
+                        value="false"
                       />
-                      On
+                      Off
                     </label>
                   </div>
                 </div>
@@ -1092,15 +1082,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r35:Title"
+            id=":r3i:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r35:Title :r35:Edit"
+            aria-labelledby=":r3i:Title :r3i:Edit"
             class="color--link style--none section-min__edit"
-            id=":r35:Edit"
+            id=":r3i:Edit"
           >
             <i
               aria-hidden="true"
@@ -1112,7 +1102,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r35:Desc"
+          id=":r3i:Desc"
         >
           On
         </div>
@@ -1128,15 +1118,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r36:Title"
+            id=":r3j:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r36:Title :r36:Edit"
+            aria-labelledby=":r3j:Title :r3j:Edit"
             class="color--link style--none section-min__edit"
-            id=":r36:Edit"
+            id=":r3j:Edit"
           >
             <i
               aria-hidden="true"
@@ -1148,7 +1138,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r36:Desc"
+          id=":r3j:Desc"
         >
           On
         </div>
@@ -1326,12 +1316,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        id=":rv:false"
-                        name=":rv:"
+                        id=":r13:true"
+                        name=":r13:"
                         type="radio"
-                        value="false"
+                        value="true"
                       />
-                      12-hour clock (example: 4:00 PM)
+                      24-hour clock (example: 16:00)
                     </label>
                   </div>
                   <div
@@ -1339,12 +1329,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        id=":rv:true"
-                        name=":rv:"
+                        id=":r13:false"
+                        name=":r13:"
                         type="radio"
-                        value="true"
+                        value="false"
                       />
-                      24-hour clock (example: 16:00)
+                      12-hour clock (example: 4:00 PM)
                     </label>
                   </div>
                 </div>
@@ -1388,47 +1378,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -1437,15 +1386,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r10:Title"
+            id=":r14:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r14:Title :r14:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r14:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r14:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r15:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r10:Title :r10:Edit"
+            aria-labelledby=":r15:Title :r15:Edit"
             class="color--link style--none section-min__edit"
-            id=":r10:Edit"
+            id=":r15:Edit"
           >
             <i
               aria-hidden="true"
@@ -1457,7 +1442,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r10:Desc"
+          id=":r15:Desc"
         >
           On
         </div>
@@ -1473,15 +1458,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r11:Title"
+            id=":r16:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r11:Title :r11:Edit"
+            aria-labelledby=":r16:Title :r16:Edit"
             class="color--link style--none section-min__edit"
-            id=":r11:Edit"
+            id=":r16:Edit"
           >
             <i
               aria-hidden="true"
@@ -1493,7 +1478,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r11:Desc"
+          id=":r16:Desc"
         >
           On
         </div>
@@ -1509,15 +1494,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r12:Title"
+            id=":r17:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r12:Title :r12:Edit"
+            aria-labelledby=":r17:Title :r17:Edit"
             class="color--link style--none section-min__edit"
-            id=":r12:Edit"
+            id=":r17:Edit"
           >
             <i
               aria-hidden="true"
@@ -1529,7 +1514,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r12:Desc"
+          id=":r17:Desc"
         >
           On
         </div>
@@ -1545,15 +1530,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r13:Title"
+            id=":r18:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r13:Title :r13:Edit"
+            aria-labelledby=":r18:Title :r18:Edit"
             class="color--link style--none section-min__edit"
-            id=":r13:Edit"
+            id=":r18:Edit"
           >
             <i
               aria-hidden="true"
@@ -1565,7 +1550,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r13:Desc"
+          id=":r18:Desc"
         >
           Expanded
         </div>
@@ -1620,15 +1605,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r14:Title"
+            id=":r19:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r14:Title :r14:Edit"
+            aria-labelledby=":r19:Title :r19:Edit"
             class="color--link style--none section-min__edit"
-            id=":r14:Edit"
+            id=":r19:Edit"
           >
             <i
               aria-hidden="true"
@@ -1640,7 +1625,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r14:Desc"
+          id=":r19:Desc"
         >
           On
         </div>
@@ -1695,15 +1680,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r15:Title"
+            id=":r1a:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r15:Title :r15:Edit"
+            aria-labelledby=":r1a:Title :r1a:Edit"
             class="color--link style--none section-min__edit"
-            id=":r15:Edit"
+            id=":r1a:Edit"
           >
             <i
               aria-hidden="true"
@@ -1715,7 +1700,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r15:Desc"
+          id=":r1a:Desc"
         >
           On
         </div>
@@ -1731,15 +1716,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r16:Title"
+            id=":r1b:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r16:Title :r16:Edit"
+            aria-labelledby=":r1b:Title :r1b:Edit"
             class="color--link style--none section-min__edit"
-            id=":r16:Edit"
+            id=":r1b:Edit"
           >
             <i
               aria-hidden="true"
@@ -1751,7 +1736,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r16:Desc"
+          id=":r1b:Desc"
         >
           On
         </div>
@@ -1904,86 +1889,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r8:Title"
-          >
-            Clock Display
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r8:Title :r8:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r8:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r8:Desc"
-        >
-          24-hour clock (example: 16:00)
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
             id=":r9:Title"
           >
-            Show online availability on profile images
+            Clock Display
           </h4>
           <button
             aria-expanded="false"
@@ -2003,7 +1911,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="section-min__describe"
           id=":r9:Desc"
         >
-          On
+          24-hour clock (example: 16:00)
         </div>
       </div>
       <div
@@ -2019,7 +1927,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":ra:Title"
           >
-            Share last active time
+            Teammate Name Display
           </h4>
           <button
             aria-expanded="false"
@@ -2039,7 +1947,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="section-min__describe"
           id=":ra:Desc"
         >
-          On
+          Show first and last name
         </div>
       </div>
       <div
@@ -2055,7 +1963,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":rb:Title"
           >
-            Website Link Previews
+            Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
@@ -2074,6 +1982,78 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         <div
           class="section-min__describe"
           id=":rb:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rc:Title"
+          >
+            Share last active time
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rc:Title :rc:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rc:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rc:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rd:Title"
+          >
+            Website Link Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rd:Title :rd:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rd:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rd:Desc"
         >
           On
         </div>
@@ -2114,12 +2094,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        id=":rc:false"
-                        name=":rc:"
+                        id=":re:true"
+                        name=":re:"
                         type="radio"
-                        value="false"
+                        value="true"
                       />
-                      Collapsed
+                      Expanded
                     </label>
                   </div>
                   <div
@@ -2127,12 +2107,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        id=":rc:true"
-                        name=":rc:"
+                        id=":re:false"
+                        name=":re:"
                         type="radio"
-                        value="true"
+                        value="false"
                       />
-                      Expanded
+                      Collapsed
                     </label>
                   </div>
                 </div>
@@ -2223,15 +2203,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rd:Title"
+            id=":rf:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rd:Title :rd:Edit"
+            aria-labelledby=":rf:Title :rf:Edit"
             class="color--link style--none section-min__edit"
-            id=":rd:Edit"
+            id=":rf:Edit"
           >
             <i
               aria-hidden="true"
@@ -2243,7 +2223,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rd:Desc"
+          id=":rf:Desc"
         >
           On
         </div>
@@ -2298,15 +2278,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":re:Title"
+            id=":rg:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":re:Title :re:Edit"
+            aria-labelledby=":rg:Title :rg:Edit"
             class="color--link style--none section-min__edit"
-            id=":re:Edit"
+            id=":rg:Edit"
           >
             <i
               aria-hidden="true"
@@ -2318,7 +2298,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":re:Desc"
+          id=":rg:Desc"
         >
           On
         </div>
@@ -2334,15 +2314,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rf:Title"
+            id=":rh:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rf:Title :rf:Edit"
+            aria-labelledby=":rh:Title :rh:Edit"
             class="color--link style--none section-min__edit"
-            id=":rf:Edit"
+            id=":rh:Edit"
           >
             <i
               aria-hidden="true"
@@ -2354,7 +2334,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rf:Desc"
+          id=":rh:Desc"
         >
           On
         </div>
@@ -2507,15 +2487,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r27:Title"
+            id=":r2g:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r27:Title :r27:Edit"
+            aria-labelledby=":r2g:Title :r2g:Edit"
             class="color--link style--none section-min__edit"
-            id=":r27:Edit"
+            id=":r2g:Edit"
           >
             <i
               aria-hidden="true"
@@ -2527,7 +2507,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r27:Desc"
+          id=":r2g:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -2535,47 +2515,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -2584,15 +2523,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r28:Title"
+            id=":r2h:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2h:Title :r2h:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2h:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r2h:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r2i:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r28:Title :r28:Edit"
+            aria-labelledby=":r2i:Title :r2i:Edit"
             class="color--link style--none section-min__edit"
-            id=":r28:Edit"
+            id=":r2i:Edit"
           >
             <i
               aria-hidden="true"
@@ -2604,7 +2579,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r28:Desc"
+          id=":r2i:Desc"
         >
           On
         </div>
@@ -2620,15 +2595,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r29:Title"
+            id=":r2j:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r29:Title :r29:Edit"
+            aria-labelledby=":r2j:Title :r2j:Edit"
             class="color--link style--none section-min__edit"
-            id=":r29:Edit"
+            id=":r2j:Edit"
           >
             <i
               aria-hidden="true"
@@ -2640,7 +2615,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r29:Desc"
+          id=":r2j:Desc"
         >
           On
         </div>
@@ -2656,15 +2631,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2a:Title"
+            id=":r2k:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2a:Title :r2a:Edit"
+            aria-labelledby=":r2k:Title :r2k:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2a:Edit"
+            id=":r2k:Edit"
           >
             <i
               aria-hidden="true"
@@ -2676,7 +2651,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2a:Desc"
+          id=":r2k:Desc"
         >
           On
         </div>
@@ -2692,15 +2667,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2b:Title"
+            id=":r2l:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2b:Title :r2b:Edit"
+            aria-labelledby=":r2l:Title :r2l:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2b:Edit"
+            id=":r2l:Edit"
           >
             <i
               aria-hidden="true"
@@ -2712,7 +2687,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2b:Desc"
+          id=":r2l:Desc"
         >
           Expanded
         </div>
@@ -2767,15 +2742,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2c:Title"
+            id=":r2m:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2c:Title :r2c:Edit"
+            aria-labelledby=":r2m:Title :r2m:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2c:Edit"
+            id=":r2m:Edit"
           >
             <i
               aria-hidden="true"
@@ -2787,7 +2762,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2c:Desc"
+          id=":r2m:Desc"
         >
           On
         </div>
@@ -2842,15 +2817,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2d:Title"
+            id=":r2n:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2d:Title :r2d:Edit"
+            aria-labelledby=":r2n:Title :r2n:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2d:Edit"
+            id=":r2n:Edit"
           >
             <i
               aria-hidden="true"
@@ -2862,7 +2837,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2d:Desc"
+          id=":r2n:Desc"
         >
           On
         </div>
@@ -2878,15 +2853,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2e:Title"
+            id=":r2o:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2e:Title :r2e:Edit"
+            aria-labelledby=":r2o:Title :r2o:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2e:Edit"
+            id=":r2o:Edit"
           >
             <i
               aria-hidden="true"
@@ -2898,7 +2873,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2e:Desc"
+          id=":r2o:Desc"
         >
           On
         </div>
@@ -3018,122 +2993,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rg:Title"
-          >
-            Clock Display
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rg:Title :rg:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rg:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rg:Desc"
-        >
-          24-hour clock (example: 16:00)
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":rh:Title"
-          >
-            Show online availability on profile images
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rh:Title :rh:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rh:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rh:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
             id=":ri:Title"
           >
-            Share last active time
+            Clock Display
           </h4>
           <button
             aria-expanded="false"
@@ -3153,7 +3015,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="section-min__describe"
           id=":ri:Desc"
         >
-          On
+          24-hour clock (example: 16:00)
         </div>
       </div>
       <div
@@ -3169,7 +3031,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":rj:Title"
           >
-            Default Appearance of Image Previews
+            Teammate Name Display
           </h4>
           <button
             aria-expanded="false"
@@ -3188,6 +3050,114 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         <div
           class="section-min__describe"
           id=":rj:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rk:Title"
+          >
+            Show online availability on profile images
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rk:Title :rk:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rk:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rk:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rl:Title"
+          >
+            Share last active time
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rl:Title :rl:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rl:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rl:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rm:Title"
+          >
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rm:Title :rm:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rm:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rm:Desc"
         >
           Expanded
         </div>
@@ -3242,15 +3212,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rk:Title"
+            id=":rn:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rk:Title :rk:Edit"
+            aria-labelledby=":rn:Title :rn:Edit"
             class="color--link style--none section-min__edit"
-            id=":rk:Edit"
+            id=":rn:Edit"
           >
             <i
               aria-hidden="true"
@@ -3262,7 +3232,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rk:Desc"
+          id=":rn:Desc"
         >
           On
         </div>
@@ -3317,15 +3287,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rl:Title"
+            id=":ro:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rl:Title :rl:Edit"
+            aria-labelledby=":ro:Title :ro:Edit"
             class="color--link style--none section-min__edit"
-            id=":rl:Edit"
+            id=":ro:Edit"
           >
             <i
               aria-hidden="true"
@@ -3337,7 +3307,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rl:Desc"
+          id=":ro:Desc"
         >
           On
         </div>
@@ -3353,15 +3323,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rm:Title"
+            id=":rp:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rm:Title :rm:Edit"
+            aria-labelledby=":rp:Title :rp:Edit"
             class="color--link style--none section-min__edit"
-            id=":rm:Edit"
+            id=":rp:Edit"
           >
             <i
               aria-hidden="true"
@@ -3373,7 +3343,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rm:Desc"
+          id=":rp:Desc"
         >
           On
         </div>
@@ -3526,158 +3496,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rn:Title"
-          >
-            Clock Display
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rn:Title :rn:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rn:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rn:Desc"
-        >
-          24-hour clock (example: 16:00)
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":ro:Title"
-          >
-            Show online availability on profile images
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":ro:Title :ro:Edit"
-            class="color--link style--none section-min__edit"
-            id=":ro:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":ro:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":rp:Title"
-          >
-            Share last active time
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rp:Title :rp:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rp:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rp:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
             id=":rq:Title"
           >
-            Website Link Previews
+            Clock Display
           </h4>
           <button
             aria-expanded="false"
@@ -3697,7 +3518,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="section-min__describe"
           id=":rq:Desc"
         >
-          On
+          24-hour clock (example: 16:00)
         </div>
       </div>
       <div
@@ -3713,7 +3534,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":rr:Title"
           >
-            Default Appearance of Image Previews
+            Teammate Name Display
           </h4>
           <button
             aria-expanded="false"
@@ -3732,6 +3553,150 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         <div
           class="section-min__describe"
           id=":rr:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rs:Title"
+          >
+            Show online availability on profile images
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rs:Title :rs:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rs:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rs:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rt:Title"
+          >
+            Share last active time
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rt:Title :rt:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rt:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rt:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":ru:Title"
+          >
+            Website Link Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":ru:Title :ru:Edit"
+            class="color--link style--none section-min__edit"
+            id=":ru:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":ru:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rv:Title"
+          >
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rv:Title :rv:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rv:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rv:Desc"
         >
           Expanded
         </div>
@@ -3786,15 +3751,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rs:Title"
+            id=":r10:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rs:Title :rs:Edit"
+            aria-labelledby=":r10:Title :r10:Edit"
             class="color--link style--none section-min__edit"
-            id=":rs:Edit"
+            id=":r10:Edit"
           >
             <i
               aria-hidden="true"
@@ -3806,7 +3771,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rs:Desc"
+          id=":r10:Desc"
         >
           On
         </div>
@@ -3861,15 +3826,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rt:Title"
+            id=":r11:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rt:Title :rt:Edit"
+            aria-labelledby=":r11:Title :r11:Edit"
             class="color--link style--none section-min__edit"
-            id=":rt:Edit"
+            id=":r11:Edit"
           >
             <i
               aria-hidden="true"
@@ -3881,7 +3846,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rt:Desc"
+          id=":r11:Desc"
         >
           On
         </div>
@@ -3897,15 +3862,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":ru:Title"
+            id=":r12:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":ru:Title :ru:Edit"
+            aria-labelledby=":r12:Title :r12:Edit"
             class="color--link style--none section-min__edit"
-            id=":ru:Edit"
+            id=":r12:Edit"
           >
             <i
               aria-hidden="true"
@@ -3917,7 +3882,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":ru:Desc"
+          id=":r12:Desc"
         >
           On
         </div>
@@ -4070,15 +4035,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1n:Title"
+            id=":r1u:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1n:Title :r1n:Edit"
+            aria-labelledby=":r1u:Title :r1u:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1n:Edit"
+            id=":r1u:Edit"
           >
             <i
               aria-hidden="true"
@@ -4090,7 +4055,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1n:Desc"
+          id=":r1u:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -4098,47 +4063,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -4147,15 +4071,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1o:Title"
+            id=":r1v:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1v:Title :r1v:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1v:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1v:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r20:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1o:Title :r1o:Edit"
+            aria-labelledby=":r20:Title :r20:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1o:Edit"
+            id=":r20:Edit"
           >
             <i
               aria-hidden="true"
@@ -4167,7 +4127,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1o:Desc"
+          id=":r20:Desc"
         >
           On
         </div>
@@ -4183,15 +4143,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1p:Title"
+            id=":r21:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1p:Title :r1p:Edit"
+            aria-labelledby=":r21:Title :r21:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1p:Edit"
+            id=":r21:Edit"
           >
             <i
               aria-hidden="true"
@@ -4203,7 +4163,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1p:Desc"
+          id=":r21:Desc"
         >
           On
         </div>
@@ -4219,15 +4179,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1q:Title"
+            id=":r22:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1q:Title :r1q:Edit"
+            aria-labelledby=":r22:Title :r22:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1q:Edit"
+            id=":r22:Edit"
           >
             <i
               aria-hidden="true"
@@ -4239,7 +4199,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1q:Desc"
+          id=":r22:Desc"
         >
           On
         </div>
@@ -4255,15 +4215,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1r:Title"
+            id=":r23:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1r:Title :r1r:Edit"
+            aria-labelledby=":r23:Title :r23:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1r:Edit"
+            id=":r23:Edit"
           >
             <i
               aria-hidden="true"
@@ -4275,7 +4235,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1r:Desc"
+          id=":r23:Desc"
         >
           Expanded
         </div>
@@ -4396,15 +4356,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1s:Title"
+            id=":r24:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1s:Title :r1s:Edit"
+            aria-labelledby=":r24:Title :r24:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1s:Edit"
+            id=":r24:Edit"
           >
             <i
               aria-hidden="true"
@@ -4416,7 +4376,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1s:Desc"
+          id=":r24:Desc"
         >
           On
         </div>
@@ -4471,15 +4431,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1t:Title"
+            id=":r25:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1t:Title :r1t:Edit"
+            aria-labelledby=":r25:Title :r25:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1t:Edit"
+            id=":r25:Edit"
           >
             <i
               aria-hidden="true"
@@ -4491,7 +4451,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1t:Desc"
+          id=":r25:Desc"
         >
           On
         </div>
@@ -4507,15 +4467,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1u:Title"
+            id=":r26:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1u:Title :r1u:Edit"
+            aria-labelledby=":r26:Title :r26:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1u:Edit"
+            id=":r26:Edit"
           >
             <i
               aria-hidden="true"
@@ -4527,7 +4487,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1u:Desc"
+          id=":r26:Desc"
         >
           On
         </div>
@@ -4708,47 +4668,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -4759,7 +4678,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":r1:Title"
           >
-            Show online availability on profile images
+            Teammate Name Display
           </h4>
           <button
             aria-expanded="false"
@@ -4779,7 +4698,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="section-min__describe"
           id=":r1:Desc"
         >
-          On
+          Show first and last name
         </div>
       </div>
       <div
@@ -4795,7 +4714,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":r2:Title"
           >
-            Share last active time
+            Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
@@ -4831,7 +4750,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":r3:Title"
           >
-            Website Link Previews
+            Share last active time
           </h4>
           <button
             aria-expanded="false"
@@ -4867,7 +4786,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":r4:Title"
           >
-            Default Appearance of Image Previews
+            Website Link Previews
           </h4>
           <button
             aria-expanded="false"
@@ -4886,6 +4805,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         <div
           class="section-min__describe"
           id=":r4:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r5:Title"
+          >
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r5:Title :r5:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r5:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r5:Desc"
         >
           Expanded
         </div>
@@ -4940,15 +4895,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r5:Title"
+            id=":r6:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r5:Title :r5:Edit"
+            aria-labelledby=":r6:Title :r6:Edit"
             class="color--link style--none section-min__edit"
-            id=":r5:Edit"
+            id=":r6:Edit"
           >
             <i
               aria-hidden="true"
@@ -4960,7 +4915,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r5:Desc"
+          id=":r6:Desc"
         >
           On
         </div>
@@ -5015,45 +4970,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r6:Title"
-          >
-            Quick reactions on messages
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r6:Title :r6:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r6:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r6:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
             id=":r7:Title"
           >
-            Render emoticons as emojis
+            Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
@@ -5072,6 +4991,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         <div
           class="section-min__describe"
           id=":r7:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r8:Title"
+          >
+            Render emoticons as emojis
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r8:Title :r8:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r8:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r8:Desc"
         >
           On
         </div>
@@ -5224,15 +5179,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r17:Title"
+            id=":r1c:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r17:Title :r17:Edit"
+            aria-labelledby=":r1c:Title :r1c:Edit"
             class="color--link style--none section-min__edit"
-            id=":r17:Edit"
+            id=":r1c:Edit"
           >
             <i
               aria-hidden="true"
@@ -5244,7 +5199,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r17:Desc"
+          id=":r1c:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -5252,47 +5207,114 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <section
+        class="section-max form-horizontal "
+      >
+        <h4
+          class="col-sm-12 section-title"
+          id="settingTitle"
+        >
+          Teammate Name Display
+        </h4>
         <div
-          class="section-min"
+          class="sectionContent col-sm-10 col-sm-offset-2"
         >
           <div
-            class="section-min__header"
+            class="setting-list"
+            tabindex="-1"
           >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
+            <div
+              class="setting-list-item"
             >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
+              <fieldset>
+                <legend
+                  class="form-legend hidden-label"
+                >
+                  Teammate Name Display
+                </legend>
+                <div
+                  role="radiogroup"
+                >
+                  <div
+                    class="radio"
+                  >
+                    <label>
+                      <input
+                        id=":r1d:username"
+                        name=":r1d:"
+                        type="radio"
+                        value="username"
+                      />
+                      Show username
+                    </label>
+                  </div>
+                  <div
+                    class="radio"
+                  >
+                    <label>
+                      <input
+                        id=":r1d:nickname_full_name"
+                        name=":r1d:"
+                        type="radio"
+                        value="nickname_full_name"
+                      />
+                      Show nickname if one exists, otherwise show first and last name
+                    </label>
+                  </div>
+                  <div
+                    class="radio"
+                  >
+                    <label>
+                      <input
+                        id=":r1d:full_name"
+                        name=":r1d:"
+                        type="radio"
+                        value="full_name"
+                      />
+                      Show first and last name
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="mt-5"
+                >
+                  <p>
+                    Set how to display other user's names in posts and the Direct Messages list.
+                  </p>
+                </div>
+              </fieldset>
+            </div>
+            <div
+              class="setting-list-item"
             >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
+              <hr />
+              <div
+                role="alert"
               />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
+              <button
+                class="btn btn-primary"
+                data-testid="saveSetting"
+                id="saveSetting"
+                type="submit"
+              >
+                <span>
+                  Save
+                </span>
+              </button>
+              <button
+                class="btn btn-tertiary"
+                data-testid="cancelButton"
+                id="cancelSetting"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
+      </section>
+      <div
+        class="divider-light"
+      />
       <div
         class="section-min"
       >
@@ -5301,15 +5323,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r18:Title"
+            id=":r1e:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r18:Title :r18:Edit"
+            aria-labelledby=":r1e:Title :r1e:Edit"
             class="color--link style--none section-min__edit"
-            id=":r18:Edit"
+            id=":r1e:Edit"
           >
             <i
               aria-hidden="true"
@@ -5321,7 +5343,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r18:Desc"
+          id=":r1e:Desc"
         >
           On
         </div>
@@ -5337,15 +5359,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r19:Title"
+            id=":r1f:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r19:Title :r19:Edit"
+            aria-labelledby=":r1f:Title :r1f:Edit"
             class="color--link style--none section-min__edit"
-            id=":r19:Edit"
+            id=":r1f:Edit"
           >
             <i
               aria-hidden="true"
@@ -5357,7 +5379,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r19:Desc"
+          id=":r1f:Desc"
         >
           On
         </div>
@@ -5373,15 +5395,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1a:Title"
+            id=":r1g:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1a:Title :r1a:Edit"
+            aria-labelledby=":r1g:Title :r1g:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1a:Edit"
+            id=":r1g:Edit"
           >
             <i
               aria-hidden="true"
@@ -5393,7 +5415,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1a:Desc"
+          id=":r1g:Desc"
         >
           On
         </div>
@@ -5409,15 +5431,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1b:Title"
+            id=":r1h:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1b:Title :r1b:Edit"
+            aria-labelledby=":r1h:Title :r1h:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1b:Edit"
+            id=":r1h:Edit"
           >
             <i
               aria-hidden="true"
@@ -5429,7 +5451,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1b:Desc"
+          id=":r1h:Desc"
         >
           Expanded
         </div>
@@ -5484,15 +5506,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1c:Title"
+            id=":r1i:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1c:Title :r1c:Edit"
+            aria-labelledby=":r1i:Title :r1i:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1c:Edit"
+            id=":r1i:Edit"
           >
             <i
               aria-hidden="true"
@@ -5504,7 +5526,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1c:Desc"
+          id=":r1i:Desc"
         >
           On
         </div>
@@ -5559,15 +5581,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1d:Title"
+            id=":r1j:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1d:Title :r1d:Edit"
+            aria-labelledby=":r1j:Title :r1j:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1d:Edit"
+            id=":r1j:Edit"
           >
             <i
               aria-hidden="true"
@@ -5579,7 +5601,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1d:Desc"
+          id=":r1j:Desc"
         >
           On
         </div>
@@ -5595,15 +5617,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1e:Title"
+            id=":r1k:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1e:Title :r1e:Edit"
+            aria-labelledby=":r1k:Title :r1k:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1e:Edit"
+            id=":r1k:Edit"
           >
             <i
               aria-hidden="true"
@@ -5615,7 +5637,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1e:Desc"
+          id=":r1k:Desc"
         >
           On
         </div>
@@ -5768,15 +5790,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2f:Title"
+            id=":r2p:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2f:Title :r2f:Edit"
+            aria-labelledby=":r2p:Title :r2p:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2f:Edit"
+            id=":r2p:Edit"
           >
             <i
               aria-hidden="true"
@@ -5788,7 +5810,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2f:Desc"
+          id=":r2p:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -5796,47 +5818,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -5845,15 +5826,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2g:Title"
+            id=":r2q:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2q:Title :r2q:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2q:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r2q:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r2r:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2g:Title :r2g:Edit"
+            aria-labelledby=":r2r:Title :r2r:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2g:Edit"
+            id=":r2r:Edit"
           >
             <i
               aria-hidden="true"
@@ -5865,7 +5882,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2g:Desc"
+          id=":r2r:Desc"
         >
           On
         </div>
@@ -5881,15 +5898,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2h:Title"
+            id=":r2s:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2h:Title :r2h:Edit"
+            aria-labelledby=":r2s:Title :r2s:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2h:Edit"
+            id=":r2s:Edit"
           >
             <i
               aria-hidden="true"
@@ -5901,7 +5918,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2h:Desc"
+          id=":r2s:Desc"
         >
           On
         </div>
@@ -5917,15 +5934,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2i:Title"
+            id=":r2t:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2i:Title :r2i:Edit"
+            aria-labelledby=":r2t:Title :r2t:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2i:Edit"
+            id=":r2t:Edit"
           >
             <i
               aria-hidden="true"
@@ -5937,7 +5954,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2i:Desc"
+          id=":r2t:Desc"
         >
           On
         </div>
@@ -5953,15 +5970,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2j:Title"
+            id=":r2u:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2j:Title :r2j:Edit"
+            aria-labelledby=":r2u:Title :r2u:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2j:Edit"
+            id=":r2u:Edit"
           >
             <i
               aria-hidden="true"
@@ -5973,7 +5990,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2j:Desc"
+          id=":r2u:Desc"
         >
           Expanded
         </div>
@@ -6028,15 +6045,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2k:Title"
+            id=":r2v:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2k:Title :r2k:Edit"
+            aria-labelledby=":r2v:Title :r2v:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2k:Edit"
+            id=":r2v:Edit"
           >
             <i
               aria-hidden="true"
@@ -6048,7 +6065,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2k:Desc"
+          id=":r2v:Desc"
         >
           On
         </div>
@@ -6103,15 +6120,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2l:Title"
+            id=":r30:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2l:Title :r2l:Edit"
+            aria-labelledby=":r30:Title :r30:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2l:Edit"
+            id=":r30:Edit"
           >
             <i
               aria-hidden="true"
@@ -6123,7 +6140,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2l:Desc"
+          id=":r30:Desc"
         >
           On
         </div>
@@ -6139,15 +6156,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2m:Title"
+            id=":r31:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2m:Title :r2m:Edit"
+            aria-labelledby=":r31:Title :r31:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2m:Edit"
+            id=":r31:Edit"
           >
             <i
               aria-hidden="true"
@@ -6159,7 +6176,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2m:Desc"
+          id=":r31:Desc"
         >
           On
         </div>
@@ -6320,15 +6337,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2n:Title"
+            id=":r32:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2n:Title :r2n:Edit"
+            aria-labelledby=":r32:Title :r32:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2n:Edit"
+            id=":r32:Edit"
           >
             <i
               aria-hidden="true"
@@ -6340,7 +6357,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2n:Desc"
+          id=":r32:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -6348,47 +6365,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -6397,15 +6373,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2o:Title"
+            id=":r33:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r33:Title :r33:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r33:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r33:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r34:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2o:Title :r2o:Edit"
+            aria-labelledby=":r34:Title :r34:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2o:Edit"
+            id=":r34:Edit"
           >
             <i
               aria-hidden="true"
@@ -6417,7 +6429,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2o:Desc"
+          id=":r34:Desc"
         >
           On
         </div>
@@ -6433,15 +6445,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2p:Title"
+            id=":r35:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2p:Title :r2p:Edit"
+            aria-labelledby=":r35:Title :r35:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2p:Edit"
+            id=":r35:Edit"
           >
             <i
               aria-hidden="true"
@@ -6453,7 +6465,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2p:Desc"
+          id=":r35:Desc"
         >
           On
         </div>
@@ -6469,15 +6481,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2q:Title"
+            id=":r36:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2q:Title :r2q:Edit"
+            aria-labelledby=":r36:Title :r36:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2q:Edit"
+            id=":r36:Edit"
           >
             <i
               aria-hidden="true"
@@ -6489,7 +6501,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2q:Desc"
+          id=":r36:Desc"
         >
           On
         </div>
@@ -6505,15 +6517,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2r:Title"
+            id=":r37:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2r:Title :r2r:Edit"
+            aria-labelledby=":r37:Title :r37:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2r:Edit"
+            id=":r37:Edit"
           >
             <i
               aria-hidden="true"
@@ -6525,7 +6537,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2r:Desc"
+          id=":r37:Desc"
         >
           Expanded
         </div>
@@ -6580,15 +6592,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2s:Title"
+            id=":r38:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2s:Title :r2s:Edit"
+            aria-labelledby=":r38:Title :r38:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2s:Edit"
+            id=":r38:Edit"
           >
             <i
               aria-hidden="true"
@@ -6600,7 +6612,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2s:Desc"
+          id=":r38:Desc"
         >
           On
         </div>
@@ -6655,15 +6667,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2t:Title"
+            id=":r39:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2t:Title :r2t:Edit"
+            aria-labelledby=":r39:Title :r39:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2t:Edit"
+            id=":r39:Edit"
           >
             <i
               aria-hidden="true"
@@ -6675,7 +6687,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2t:Desc"
+          id=":r39:Desc"
         >
           On
         </div>
@@ -6691,15 +6703,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2u:Title"
+            id=":r3a:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2u:Title :r2u:Edit"
+            aria-labelledby=":r3a:Title :r3a:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2u:Edit"
+            id=":r3a:Edit"
           >
             <i
               aria-hidden="true"
@@ -6711,7 +6723,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2u:Desc"
+          id=":r3a:Desc"
         >
           On
         </div>
@@ -6864,15 +6876,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1f:Title"
+            id=":r1l:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1f:Title :r1f:Edit"
+            aria-labelledby=":r1l:Title :r1l:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1f:Edit"
+            id=":r1l:Edit"
           >
             <i
               aria-hidden="true"
@@ -6884,7 +6896,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1f:Desc"
+          id=":r1l:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -6892,47 +6904,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -6941,15 +6912,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1g:Title"
+            id=":r1m:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1m:Title :r1m:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1m:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1m:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r1n:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1g:Title :r1g:Edit"
+            aria-labelledby=":r1n:Title :r1n:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1g:Edit"
+            id=":r1n:Edit"
           >
             <i
               aria-hidden="true"
@@ -6961,7 +6968,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1g:Desc"
+          id=":r1n:Desc"
         >
           On
         </div>
@@ -6977,15 +6984,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1h:Title"
+            id=":r1o:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1h:Title :r1h:Edit"
+            aria-labelledby=":r1o:Title :r1o:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1h:Edit"
+            id=":r1o:Edit"
           >
             <i
               aria-hidden="true"
@@ -6997,7 +7004,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1h:Desc"
+          id=":r1o:Desc"
         >
           On
         </div>
@@ -7013,15 +7020,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1i:Title"
+            id=":r1p:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1i:Title :r1i:Edit"
+            aria-labelledby=":r1p:Title :r1p:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1i:Edit"
+            id=":r1p:Edit"
           >
             <i
               aria-hidden="true"
@@ -7033,7 +7040,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1i:Desc"
+          id=":r1p:Desc"
         >
           On
         </div>
@@ -7049,15 +7056,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1j:Title"
+            id=":r1q:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1j:Title :r1j:Edit"
+            aria-labelledby=":r1q:Title :r1q:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1j:Edit"
+            id=":r1q:Edit"
           >
             <i
               aria-hidden="true"
@@ -7069,7 +7076,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1j:Desc"
+          id=":r1q:Desc"
         >
           Expanded
         </div>
@@ -7124,15 +7131,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1k:Title"
+            id=":r1r:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1k:Title :r1k:Edit"
+            aria-labelledby=":r1r:Title :r1r:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1k:Edit"
+            id=":r1r:Edit"
           >
             <i
               aria-hidden="true"
@@ -7144,7 +7151,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1k:Desc"
+          id=":r1r:Desc"
         >
           On
         </div>
@@ -7199,15 +7206,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1l:Title"
+            id=":r1s:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1l:Title :r1l:Edit"
+            aria-labelledby=":r1s:Title :r1s:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1l:Edit"
+            id=":r1s:Edit"
           >
             <i
               aria-hidden="true"
@@ -7219,7 +7226,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1l:Desc"
+          id=":r1s:Desc"
         >
           On
         </div>
@@ -7235,15 +7242,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1m:Title"
+            id=":r1t:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1m:Title :r1m:Edit"
+            aria-labelledby=":r1t:Title :r1t:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1m:Edit"
+            id=":r1t:Edit"
           >
             <i
               aria-hidden="true"
@@ -7255,7 +7262,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1m:Desc"
+          id=":r1t:Desc"
         >
           On
         </div>
@@ -7408,15 +7415,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r5v:Title"
+            id=":r6n:Title"
           >
             Clock Display
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r5v:Title :r5v:Edit"
+            aria-labelledby=":r6n:Title :r6n:Edit"
             class="color--link style--none section-min__edit"
-            id=":r5v:Edit"
+            id=":r6n:Edit"
           >
             <i
               aria-hidden="true"
@@ -7428,7 +7435,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r5v:Desc"
+          id=":r6n:Desc"
         >
           24-hour clock (example: 16:00)
         </div>
@@ -7436,47 +7443,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div
         class="section-min"
       >
@@ -7485,15 +7451,51 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r60:Title"
+            id=":r6o:Title"
+          >
+            Teammate Name Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r6o:Title :r6o:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r6o:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r6o:Desc"
+        >
+          Show first and last name
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r6p:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r60:Title :r60:Edit"
+            aria-labelledby=":r6p:Title :r6p:Edit"
             class="color--link style--none section-min__edit"
-            id=":r60:Edit"
+            id=":r6p:Edit"
           >
             <i
               aria-hidden="true"
@@ -7505,7 +7507,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r60:Desc"
+          id=":r6p:Desc"
         >
           On
         </div>
@@ -7521,15 +7523,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r61:Title"
+            id=":r6q:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r61:Title :r61:Edit"
+            aria-labelledby=":r6q:Title :r6q:Edit"
             class="color--link style--none section-min__edit"
-            id=":r61:Edit"
+            id=":r6q:Edit"
           >
             <i
               aria-hidden="true"
@@ -7541,7 +7543,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r61:Desc"
+          id=":r6q:Desc"
         >
           On
         </div>
@@ -7557,15 +7559,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r62:Title"
+            id=":r6r:Title"
           >
             Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r62:Title :r62:Edit"
+            aria-labelledby=":r6r:Title :r6r:Edit"
             class="color--link style--none section-min__edit"
-            id=":r62:Edit"
+            id=":r6r:Edit"
           >
             <i
               aria-hidden="true"
@@ -7577,7 +7579,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r62:Desc"
+          id=":r6r:Desc"
         >
           Expanded
         </div>
@@ -7632,15 +7634,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r63:Title"
+            id=":r6s:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r63:Title :r63:Edit"
+            aria-labelledby=":r6s:Title :r6s:Edit"
             class="color--link style--none section-min__edit"
-            id=":r63:Edit"
+            id=":r6s:Edit"
           >
             <i
               aria-hidden="true"
@@ -7652,7 +7654,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r63:Desc"
+          id=":r6s:Desc"
         >
           On
         </div>
@@ -7707,15 +7709,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r64:Title"
+            id=":r6t:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r64:Title :r64:Edit"
+            aria-labelledby=":r6t:Title :r6t:Edit"
             class="color--link style--none section-min__edit"
-            id=":r64:Edit"
+            id=":r6t:Edit"
           >
             <i
               aria-hidden="true"
@@ -7727,7 +7729,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r64:Desc"
+          id=":r6t:Desc"
         >
           On
         </div>
@@ -7743,15 +7745,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r65:Title"
+            id=":r6u:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r65:Title :r65:Edit"
+            aria-labelledby=":r6u:Title :r6u:Edit"
             class="color--link style--none section-min__edit"
-            id=":r65:Edit"
+            id=":r6u:Edit"
           >
             <i
               aria-hidden="true"
@@ -7763,7 +7765,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r65:Desc"
+          id=":r6u:Desc"
         >
           On
         </div>

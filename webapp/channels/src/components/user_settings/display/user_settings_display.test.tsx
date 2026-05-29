@@ -156,9 +156,11 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, teammate name display section', () => {
-        const props = {...requiredProps, activeSection: 'teammate_name_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+    test('should match snapshot, teammate name display section', async () => {
+        const {container} = renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Teammate Name Display Edit'}));
+
         expect(container).toMatchSnapshot();
     });
 
@@ -264,12 +266,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should update teammateNameDisplay state', async () => {
-        const props = {...requiredProps, activeSection: 'name_format'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
 
-        const radioA = container.querySelector('#name_formatFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#name_formatFormatB') as HTMLInputElement;
-        const radioC = container.querySelector('#name_formatFormatC') as HTMLInputElement;
+        await userEvent.click(screen.getByRole('button', {name: 'Teammate Name Display Edit'}));
+
+        const radioA = screen.getByRole('radio', {name: 'Show username'});
+        const radioB = screen.getByRole('radio', {name: 'Show nickname if one exists, otherwise show first and last name'});
+        const radioC = screen.getByRole('radio', {name: 'Show first and last name'});
 
         await userEvent.click(radioA);
         expect(radioA).toBeChecked();

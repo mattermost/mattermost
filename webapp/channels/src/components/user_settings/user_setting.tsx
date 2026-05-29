@@ -26,6 +26,11 @@ export interface UseUserSettingOptions<T> {
     helpText: React.ReactNode;
 
     /**
+     * Whether or not to hide the submit button.
+     */
+    hideSubmit?: boolean;
+
+    /**
      * A callback that, given ChangeEvent, returns the updated value of the setting.
      */
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => T;
@@ -65,6 +70,7 @@ export interface InputRenderProps<T> {
 export function useUserSetting<T>({
     activeSection,
     helpText,
+    hideSubmit,
     currentValue,
     onChange,
     onSubmit,
@@ -114,7 +120,7 @@ export function useUserSetting<T>({
                         {renderHelpText(helpText)}
                     </fieldset>,
                 ]}
-                submit={handleSubmit}
+                submit={hideSubmit ? undefined : handleSubmit}
                 saving={saving}
                 updateSection={updateSection}
             />
