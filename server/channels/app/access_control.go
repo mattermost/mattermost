@@ -134,7 +134,8 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		// actually submitted should be checked against their holdings. Running
 		// validation after merge would reject the re-injected hidden values
 		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
-		if appErr := a.validatePolicyExpressionValues(rctx, policy, resolver); appErr != nil {
+		appErr = a.validatePolicyExpressionValues(rctx, policy, resolver)
+		if appErr != nil {
 			return nil, appErr
 		}
 
@@ -554,8 +555,8 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 		if appErr != nil {
 			return nil, model.NewAppError("SimulateAccessControlPolicyForUsers", "app.pap.simulate.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
-		if _, appErr := a.mergeStoredPolicyExpressions(rctx, params.Policy, resolver); appErr != nil {
-			return nil, appErr
+		if _, mergeAppErr := a.mergeStoredPolicyExpressions(rctx, params.Policy, resolver); mergeAppErr != nil {
+			return nil, mergeAppErr
 		}
 
 		resp, appErr := acs.SimulatePolicyForUsers(rctx, params)
