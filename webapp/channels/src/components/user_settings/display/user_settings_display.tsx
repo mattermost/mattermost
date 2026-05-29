@@ -212,10 +212,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }]);
     };
 
-    handleTeammateNameDisplayRadio = (teammateNameDisplay: string) => {
-        this.setState({teammateNameDisplay});
-    };
-
     handleAvailabilityStatusRadio = (availabilityStatusOnPosts: string) => {
         this.setState({availabilityStatusOnPosts});
     };
