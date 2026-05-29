@@ -3,9 +3,6 @@
 exports[`components/user_settings/notifications/send_test_notification_notice should match snapshot 1`] = `
 <div>
   <div
-    class="divider-light"
-  />
-  <div
     style="margin-top: 20px;"
   >
     <div

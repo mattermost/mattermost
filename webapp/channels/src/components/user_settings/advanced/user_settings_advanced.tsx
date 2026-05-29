@@ -752,9 +752,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     />
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
-                    <div className='divider-light'/>
                     {formattingSection}
-                    <div className='divider-light'/>
                     <JoinLeaveSection
                         active={this.props.activeSection === AdvancedSections.JOIN_LEAVE}
                         areAllSectionsInactive={this.props.activeSection === ''}
@@ -764,7 +762,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         userPreferences={this.props.userPreferences}
                         userId={this.props.user.id}
                     />
-                    <div className='divider-light'/>
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
@@ -772,18 +769,14 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         adminMode={this.props.adminMode}
                         userId={this.props.user.id}
                     />
-                    <div className='divider-light'/>
                     {unreadScrollPositionSection}
-                    <div className='divider-light'/>
                     {syncDraftsSection}
-                    <div className='divider-light'/>
                     <EnableConcurrentReactExperimentalSection
                         activeSection={this.props.activeSection}
                         onUpdateSection={this.handleUpdateSection}
                         adminMode={this.props.adminMode}
                         renderOnOffLabel={this.renderOnOffLabel}
                     />
-                    <div className='divider-light'/>
                     {deactivateAccountSection}
                     <div className='divider-dark'/>
                     {makeConfirmationModal}

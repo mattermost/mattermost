@@ -1053,17 +1053,13 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     />
                     <div className='divider-dark first'/>
                     {passwordSection}
-                    <div className='divider-light'/>
                     <MfaSection
                         active={this.props.activeSection === SECTION_MFA}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         updateSection={this.handleUpdateSection}
                     />
-                    <div className='divider-light'/>
                     {oauthSection}
-                    <div className='divider-light'/>
                     {tokensSection}
-                    <div className='divider-light'/>
                     {signInSection}
                     <div className='divider-dark'/>
                     <br/>

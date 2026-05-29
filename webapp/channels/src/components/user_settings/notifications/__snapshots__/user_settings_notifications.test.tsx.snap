@@ -301,9 +301,6 @@ Object {
             class="divider-light"
           />
           <div
-            class="divider-light"
-          />
-          <div
             style="margin-top: 20px;"
           >
             <div
@@ -644,9 +641,6 @@ Object {
             None
           </div>
         </div>
-        <div
-          class="divider-light"
-        />
         <div
           class="divider-light"
         />
@@ -1025,9 +1019,6 @@ Object {
             class="divider-light"
           />
           <div
-            class="divider-light"
-          />
-          <div
             class="section-min isDisabled"
           >
             <div
@@ -1370,9 +1361,6 @@ Object {
             "@some-user"
           </div>
         </div>
-        <div
-          class="divider-light"
-        />
         <div
           class="divider-light"
         />
@@ -1789,9 +1777,6 @@ Object {
             class="divider-light"
           />
           <div
-            class="divider-light"
-          />
-          <div
             style="margin-top: 20px;"
           >
             <div
@@ -2096,9 +2081,6 @@ Object {
             "@some-user"
           </div>
         </div>
-        <div
-          class="divider-light"
-        />
         <div
           class="divider-light"
         />

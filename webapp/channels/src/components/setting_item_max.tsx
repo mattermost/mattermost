@@ -232,44 +232,47 @@ const SettingItemMax = ({
     }
 
     return (
-        <section
-            className={`section-max form-horizontal ${containerStyle}`}
-            ref={settingList}
-        >
-            {title}
-            {extraContentBeforeSettingList}
-            <div
-                className={classNames('sectionContent', {
-                    'col-sm-12': isFullWidth,
-                    'col-sm-10 col-sm-offset-2': !isFullWidth,
-                })}
+        <>
+            <section
+                className={`section-max form-horizontal ${containerStyle}`}
+                ref={settingList}
             >
+                {title}
+                {extraContentBeforeSettingList}
                 <div
-                    tabIndex={-1}
-                    className='setting-list'
+                    className={classNames('sectionContent', {
+                        'col-sm-12': isFullWidth,
+                        'col-sm-10 col-sm-offset-2': !isFullWidth,
+                    })}
                 >
-                    {listContent}
-                    <div className='setting-list-item'>
-                        <hr/>
-                        {submitExtra}
-                        <div
-                            role='alert'
-                        >
-                            {serverError}
+                    <div
+                        tabIndex={-1}
+                        className='setting-list'
+                    >
+                        {listContent}
+                        <div className='setting-list-item'>
+                            <hr/>
+                            {submitExtra}
+                            <div
+                                role='alert'
+                            >
+                                {serverError}
+                            </div>
+                            {submit}
+                            <Button
+                                id='cancelSetting'
+                                data-testid='cancelButton'
+                                emphasis='tertiary'
+                                onClick={handleUpdateSection}
+                            >
+                                {cancelButtonText}
+                            </Button>
                         </div>
-                        {submit}
-                        <Button
-                            id='cancelSetting'
-                            data-testid='cancelButton'
-                            emphasis='tertiary'
-                            onClick={handleUpdateSection}
-                        >
-                            {cancelButtonText}
-                        </Button>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+            <div className='divider-light'/>
+        </>
     );
 };
 

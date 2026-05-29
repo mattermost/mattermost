@@ -57,6 +57,7 @@ const PluginTab = ({
                         const CustomComponent = v.component;
                         sectionEl = (
                             <PluggableErrorBoundary
+                                key={v.title}
                                 pluginId={settings.id}
                             >
                                 <CustomComponent/>
@@ -65,6 +66,7 @@ const PluginTab = ({
                     } else {
                         sectionEl = (
                             <PluginSetting
+                                key={v.title}
                                 pluginId={settings.id}
                                 activeSection={activeSection}
                                 section={v}
@@ -73,12 +75,7 @@ const PluginTab = ({
                         );
                     }
 
-                    return (
-                        <React.Fragment key={v.title}>
-                            {sectionEl}
-                            <div className='divider-light'/>
-                        </React.Fragment>
-                    );
+                    return sectionEl;
                 },
                 )}
                 <div className='divider-dark'/>

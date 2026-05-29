@@ -37,6 +37,9 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
       </span>
     </div>
   </div>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -132,5 +135,8 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;

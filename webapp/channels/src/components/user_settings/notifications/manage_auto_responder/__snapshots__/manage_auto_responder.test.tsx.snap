@@ -68,6 +68,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -158,5 +161,8 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;

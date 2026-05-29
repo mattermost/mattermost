@@ -50,12 +50,7 @@ export default function PerformanceDebuggingSection(props: Props) {
         );
     }
 
-    return (
-        <>
-            {settings}
-            <div className='divider-light'/>
-        </>
-    );
+    return settings;
 }
 
 const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComponent, Props>((props, ref) => {

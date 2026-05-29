@@ -92,28 +92,31 @@ export default class SettingItemMin extends React.PureComponent<Props> {
         }
 
         return (
-            <div
-                className={classNames('section-min', {isDisabled: this.props.isDisabled})}
-                onClick={this.handleClick}
-            >
+            <>
                 <div
-                    className='section-min__header'
+                    className={classNames('section-min', {isDisabled: this.props.isDisabled})}
+                    onClick={this.handleClick}
                 >
-                    <h4
-                        id={this.props.section + 'Title'}
-                        className={classNames('section-min__title', {isDisabled: this.props.isDisabled})}
+                    <div
+                        className='section-min__header'
                     >
-                        {this.props.title}
-                    </h4>
-                    {editButtonComponent}
+                        <h4
+                            id={this.props.section + 'Title'}
+                            className={classNames('section-min__title', {isDisabled: this.props.isDisabled})}
+                        >
+                            {this.props.title}
+                        </h4>
+                        {editButtonComponent}
+                    </div>
+                    <div
+                        id={this.props.section + 'Desc'}
+                        className={classNames('section-min__describe', {isDisabled: this.props.isDisabled})}
+                    >
+                        {this.props.describe}
+                    </div>
                 </div>
-                <div
-                    id={this.props.section + 'Desc'}
-                    className={classNames('section-min__describe', {isDisabled: this.props.isDisabled})}
-                >
-                    {this.props.describe}
-                </div>
-            </div>
+                <div className='divider-light'/>
+            </>
         );
     }
 }

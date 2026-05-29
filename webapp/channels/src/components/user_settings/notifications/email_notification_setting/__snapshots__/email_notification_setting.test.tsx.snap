@@ -89,6 +89,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -127,6 +130,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       Email notifications are not enabled
     </div>
   </div>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -165,6 +171,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       Off
     </div>
   </div>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -203,6 +212,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       On
     </div>
   </div>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -328,6 +340,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -376,6 +391,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -491,6 +509,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -599,6 +620,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -691,5 +715,8 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;

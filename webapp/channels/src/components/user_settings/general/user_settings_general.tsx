@@ -1848,15 +1848,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     />
                     <div className='divider-dark first'/>
                     {nameSection}
-                    <div className='divider-light'/>
                     {usernameSection}
-                    <div className='divider-light'/>
                     {nicknameSection}
-                    <div className='divider-light'/>
                     {positionSection}
-                    <div className='divider-light'/>
                     {emailSection}
-                    <div className='divider-light'/>
                     {customAttributeSection}
                     {pictureSection}
                     <div className='divider-dark'/>

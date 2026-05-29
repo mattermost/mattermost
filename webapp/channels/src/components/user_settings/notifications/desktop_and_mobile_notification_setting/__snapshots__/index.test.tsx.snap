@@ -187,6 +187,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -226,6 +229,9 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
       Configure desktop and mobile settings
     </div>
   </div>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -405,5 +411,8 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;

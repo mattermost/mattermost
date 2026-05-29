@@ -1149,7 +1149,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         pushThreads={this.state.pushThreads}
                         desktopAndMobileSettingsDifferent={this.state.desktopAndMobileSettingsDifferent}
                     />
-                    <div className='divider-light'/>
                     <DesktopNotificationSoundsSettings
                         active={this.props.activeSection === UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
                         updateSection={this.handleUpdateSection}
@@ -1165,7 +1164,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         callsDesktopSound={this.state.callsDesktopSound}
                         callsNotificationSound={this.state.callsNotificationSound}
                     />
-                    <div className='divider-light'/>
                     <EmailNotificationSetting
                         active={this.props.activeSection === UserSettingsNotificationSections.EMAIL}
                         updateSection={this.handleUpdateSection}
@@ -1180,37 +1178,18 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         onChange={this.handleEmailRadio}
                         threads={this.state.emailThreads || ''}
                     />
-                    <div className='divider-light'/>
                     {channelMentionAutoFollowSection}
-                    <div className='divider-light'/>
                     {keywordsWithNotificationSection}
-                    {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
-                        <>
-                            <div className='divider-light'/>
-                            {keywordsWithHighlightSection}
-                        </>
-                    )}
-                    <div className='divider-light'/>
-                    {!this.props.isCollapsedThreadsEnabled && (
-                        <>
-                            <div className='divider-light'/>
-                            {commentsSection}
-                        </>
-                    )}
-                    {this.props.enableAutoResponder && (
-                        <>
-                            <div className='divider-light'/>
-                            {autoResponderSection}
-                        </>
-                    )}
+                    {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) &&
+                        keywordsWithHighlightSection
+                    }
+                    {!this.props.isCollapsedThreadsEnabled && commentsSection}
+                    {this.props.enableAutoResponder && autoResponderSection}
 
                     {/*  We placed the disabled items in the last */}
-                    {(this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
-                        <>
-                            <div className='divider-light'/>
-                            {keywordsWithHighlightSection}
-                        </>
-                    )}
+                    {(this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) &&
+                        keywordsWithHighlightSection
+                    }
                     <SendTestNotificationNotice adminMode={this.props.adminMode}/>
                 </div>
             </div>

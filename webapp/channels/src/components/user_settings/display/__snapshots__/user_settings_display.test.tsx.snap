@@ -85,6 +85,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -120,6 +123,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -159,6 +165,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -194,6 +203,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -233,6 +245,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -268,6 +283,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -305,6 +323,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -341,6 +362,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -376,6 +400,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="click_to_replyDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -467,6 +494,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </section>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -502,6 +532,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -541,6 +574,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -578,6 +614,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -672,6 +711,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -707,6 +749,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -746,6 +791,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -781,6 +829,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -820,6 +871,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -855,6 +909,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -892,6 +949,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -927,6 +987,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1018,6 +1081,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </section>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1054,6 +1120,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1089,6 +1158,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1128,6 +1200,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1165,6 +1240,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1259,6 +1337,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1349,6 +1430,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </section>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1387,6 +1471,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1422,6 +1509,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1461,6 +1551,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1496,6 +1589,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1533,6 +1629,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1568,6 +1667,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1605,6 +1707,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1641,6 +1746,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1676,6 +1784,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1715,6 +1826,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1752,6 +1866,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1846,6 +1963,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1881,6 +2001,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1920,6 +2043,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -1955,6 +2081,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -1994,6 +2123,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2029,6 +2161,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2120,6 +2255,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </section>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2155,6 +2293,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2192,6 +2333,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2228,6 +2372,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2263,6 +2410,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2302,6 +2452,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2339,6 +2492,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2433,6 +2589,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2468,6 +2627,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2507,6 +2669,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2542,6 +2707,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2581,6 +2749,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2616,6 +2787,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2653,6 +2827,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2688,6 +2865,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2725,6 +2905,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2761,6 +2944,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2796,6 +2982,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2834,6 +3023,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             Off
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -2936,6 +3128,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -2971,6 +3166,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3010,6 +3208,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3045,6 +3246,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3084,6 +3288,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3119,6 +3326,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="collapseDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3156,6 +3366,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3191,6 +3404,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="click_to_replyDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3228,6 +3444,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3263,6 +3482,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3302,6 +3524,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3339,6 +3564,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3433,6 +3661,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3468,6 +3699,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3507,6 +3741,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3542,6 +3779,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3580,6 +3820,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             On
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3671,6 +3914,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </section>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3706,6 +3952,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="collapseDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3743,6 +3992,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3778,6 +4030,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="click_to_replyDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3815,6 +4070,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3850,6 +4108,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -3889,6 +4150,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -3926,6 +4190,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4020,6 +4287,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4055,6 +4325,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4094,6 +4367,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4129,6 +4405,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4168,6 +4447,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4204,6 +4486,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4239,6 +4524,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="collapseDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4342,6 +4630,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </section>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4377,6 +4668,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="click_to_replyDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4414,6 +4708,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4449,6 +4746,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4488,6 +4788,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4525,6 +4828,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4619,6 +4925,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4654,6 +4963,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4693,6 +5005,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4728,6 +5043,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4767,6 +5085,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4802,6 +5123,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4839,6 +5163,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4874,6 +5201,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -4911,6 +5241,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4947,6 +5280,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -4982,6 +5318,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5021,6 +5360,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5058,6 +5400,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5152,6 +5497,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5187,6 +5535,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5226,6 +5577,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5261,6 +5615,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5300,6 +5657,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5335,6 +5695,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5372,6 +5735,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5407,6 +5773,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5444,6 +5813,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5480,6 +5852,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5515,6 +5890,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5554,6 +5932,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5591,6 +5972,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5685,6 +6069,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5720,6 +6107,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5759,6 +6149,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5794,6 +6187,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5833,6 +6229,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5868,6 +6267,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5905,6 +6307,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -5940,6 +6345,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -5977,6 +6385,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6013,6 +6424,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6048,6 +6462,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6087,6 +6504,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6124,6 +6544,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6226,6 +6649,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6261,6 +6687,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6300,6 +6729,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6335,6 +6767,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6374,6 +6809,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6409,6 +6847,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6446,6 +6887,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6481,6 +6925,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6518,6 +6965,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6554,6 +7004,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6589,6 +7042,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6628,6 +7084,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6665,6 +7124,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6759,6 +7221,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6794,6 +7259,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6833,6 +7301,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6868,6 +7339,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6907,6 +7381,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -6942,6 +7419,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="linkpreviewDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -6979,6 +7459,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7014,6 +7497,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="message_displayDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7051,6 +7537,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7087,6 +7576,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7122,6 +7614,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7161,6 +7656,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7198,6 +7696,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7292,6 +7793,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7327,6 +7831,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
             id="clockDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7366,6 +7873,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7401,6 +7911,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
             id="availabilityStatusDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7438,6 +7951,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7473,6 +7989,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
             id="collapseDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7510,6 +8029,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7545,6 +8067,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
             id="click_to_replyDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7582,6 +8107,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           />
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7617,6 +8145,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
             id="one_click_reactions_enabledDesc"
           />
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />
@@ -7656,6 +8187,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           </div>
         </div>
         <div
+          class="divider-light"
+        />
+        <div
           class="divider-dark"
         />
       </div>
@@ -7693,6 +8227,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
             English (US)
           </div>
         </div>
+        <div
+          class="divider-light"
+        />
         <div
           class="divider-dark"
         />

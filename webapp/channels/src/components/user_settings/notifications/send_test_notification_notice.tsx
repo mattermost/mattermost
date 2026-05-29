@@ -118,7 +118,6 @@ const SendTestNotificationNotice = ({
 
     return (
         <>
-            <div className='divider-light'/>
             <div style={sectionNoticeContainerStyle}>
                 <SectionNotice
                     text={intl.formatMessage({

@@ -92,5 +92,8 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;

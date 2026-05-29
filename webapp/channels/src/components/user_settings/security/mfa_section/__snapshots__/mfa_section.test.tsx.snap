@@ -37,6 +37,9 @@ exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = 
       Active
     </div>
   </div>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -75,6 +78,9 @@ exports[`MfaSection rendering when section is collapsed and MFA is not active 1`
       Inactive
     </div>
   </div>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -134,6 +140,9 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -193,6 +202,9 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 
@@ -252,6 +264,9 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
       </div>
     </div>
   </section>
+  <div
+    class="divider-light"
+  />
 </div>
 `;
 

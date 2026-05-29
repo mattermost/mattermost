@@ -94,16 +94,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         data-testid="mfa-section"
       />
       <div
-        class="divider-light"
-      />
-      <div
-        class="divider-light"
-      />
-      <div
         data-testid="tokens-section"
-      />
-      <div
-        class="divider-light"
       />
       <div
         class="section-min"
@@ -138,6 +129,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           Email and Password
         </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div
         class="divider-dark"
       />
@@ -263,16 +257,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         data-testid="mfa-section"
       />
       <div
-        class="divider-light"
-      />
-      <div
-        class="divider-light"
-      />
-      <div
         data-testid="tokens-section"
-      />
-      <div
-        class="divider-light"
       />
       <div
         class="section-min"
@@ -307,6 +292,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           Email and Password
         </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div
         class="divider-dark"
       />
@@ -432,16 +420,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         data-testid="mfa-section"
       />
       <div
-        class="divider-light"
-      />
-      <div
-        class="divider-light"
-      />
-      <div
         data-testid="tokens-section"
-      />
-      <div
-        class="divider-light"
       />
       <div
         class="section-min"
@@ -476,6 +455,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           Email and Password
         </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div
         class="divider-dark"
       />
@@ -601,16 +583,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         data-testid="mfa-section"
       />
       <div
-        class="divider-light"
-      />
-      <div
-        class="divider-light"
-      />
-      <div
         data-testid="tokens-section"
-      />
-      <div
-        class="divider-light"
       />
       <div
         class="section-min"
@@ -645,6 +618,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           Email and Password
         </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div
         class="divider-dark"
       />
@@ -765,16 +741,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         data-testid="mfa-section"
       />
       <div
-        class="divider-light"
-      />
-      <div
-        class="divider-light"
-      />
-      <div
         data-testid="tokens-section"
-      />
-      <div
-        class="divider-light"
       />
       <div
         class="section-min"
@@ -809,6 +776,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           OpenID
         </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div
         class="divider-dark"
       />
