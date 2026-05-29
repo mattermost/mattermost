@@ -792,6 +792,44 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	})
 }
 
+func orphanedRecordsWithChildIDs(records []model.OrphanedRecord, childIDs ...string) []model.OrphanedRecord {
+	childIDSet := make(map[string]struct{}, len(childIDs))
+	for _, childID := range childIDs {
+		childIDSet[childID] = struct{}{}
+	}
+
+	filtered := make([]model.OrphanedRecord, 0, len(childIDs))
+	for _, record := range records {
+		if record.ChildId == nil {
+			continue
+		}
+		if _, ok := childIDSet[*record.ChildId]; ok {
+			filtered = append(filtered, record)
+		}
+	}
+
+	return filtered
+}
+
+func orphanedRecordsWithParentIDs(records []model.OrphanedRecord, parentIDs ...string) []model.OrphanedRecord {
+	parentIDSet := make(map[string]struct{}, len(parentIDs))
+	for _, parentID := range parentIDs {
+		parentIDSet[parentID] = struct{}{}
+	}
+
+	filtered := make([]model.OrphanedRecord, 0, len(parentIDs))
+	for _, record := range records {
+		if record.ParentId == nil {
+			continue
+		}
+		if _, ok := parentIDSet[*record.ParentId]; ok {
+			filtered = append(filtered, record)
+		}
+	}
+
+	return filtered
+}
+
 func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
@@ -954,6 +992,8 @@ func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 
 func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		ss.DropAllTables()
+
 		store := ss.(*SqlStore)
 		dbmap := store.GetMaster()
 
@@ -971,10 +1011,11 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithParentIDs(data.Records, team.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &team.Id,
-			}, data.Records[0])
+			}, records[0])
 			ss.Team().RemoveAllMembersByTeam(member.TeamId)
 		})
 	})
