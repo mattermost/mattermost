@@ -517,6 +517,7 @@ export type PolicyEvaluationScope = 'all' | 'this_rule';
  */
 export type PolicySimulationUserOverride = {
     user_id: string;
+
     /**
      * Retained for API backward compatibility — the server now always
      * layers the requesting admin's resolved session snapshot under
