@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 const maxPropertyValuePatchItems = 50
@@ -196,13 +197,23 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	if cursorID := query.Get("cursor_id"); cursorID != "" {
 		cur := model.PropertyFieldSearchCursor{PropertyFieldID: cursorID}
 		if v := query.Get("cursor_update_at"); v != "" {
-			cur.UpdateAt, _ = strconv.ParseInt(v, 10, 64)
+			ua, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				c.SetInvalidParamWithErr("cursor_update_at", err)
+				return
+			}
+			cur.UpdateAt = ua
 		}
 		if v := query.Get("cursor_create_at"); v != "" {
-			cur.CreateAt, _ = strconv.ParseInt(v, 10, 64)
+			ca, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				c.SetInvalidParamWithErr("cursor_create_at", err)
+				return
+			}
+			cur.CreateAt = ca
 		}
 		if err := cur.IsValid(); err != nil {
-			c.SetInvalidURLParam("cursor")
+			c.SetInvalidParamWithErr("cursor", err)
 			return
 		}
 		opts.Cursor = cur
@@ -215,7 +226,7 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.TargetIDs = []string{t}
 	}
 
-	doSearchPropertyFields(c, w, group, opts, "getPropertyFields")
+	searchPropertyFieldsCore(c, w, group, opts, "getPropertyFields")
 }
 
 func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -266,17 +277,19 @@ func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if opts.PerPage <= 0 {
-		opts.PerPage = 60
+		opts.PerPage = web.PerPageDefault
+	} else if opts.PerPage > web.PerPageMaximum {
+		opts.PerPage = web.PerPageMaximum
 	}
 
-	doSearchPropertyFields(c, w, group, opts, "searchPropertyFields")
+	searchPropertyFieldsCore(c, w, group, opts, "searchPropertyFields")
 }
 
-// doSearchPropertyFields is the shared pipeline both list-style endpoints
+// searchPropertyFieldsCore is the shared pipeline both list-style endpoints
 // share once opts has been populated from query string or request body:
 // scope resolution + permission checks, opts validation, audit, search,
 // response encoding.
-func doSearchPropertyFields(c *Context, w http.ResponseWriter, group *model.PropertyGroup, opts model.PropertyFieldSearchOpts, callerName string) {
+func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.PropertyGroup, opts model.PropertyFieldSearchOpts, callerName string) {
 	if !resolveScopeAndCheckPermissions(c, &opts, callerName) {
 		return
 	}
@@ -367,7 +380,7 @@ func resolveScopeAndCheckPermissions(c *Context, opts *model.PropertyFieldSearch
 		}
 	case len(opts.TargetIDs) > 0:
 		// target_id without target_type is malformed.
-		c.Err = model.NewAppError(callerName, "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError(callerName, "api.property_field.get.target_type_required.app_error", nil, "", http.StatusBadRequest)
 		return false
 	default:
 		c.Err = model.NewAppError(callerName, "api.property_field.get.scope_required.app_error", nil, "", http.StatusBadRequest)
@@ -595,10 +608,20 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 	if cursorID := query.Get("cursor_id"); cursorID != "" {
 		cur := model.PropertyValueSearchCursor{PropertyValueID: cursorID}
 		if v := query.Get("cursor_update_at"); v != "" {
-			cur.UpdateAt, _ = strconv.ParseInt(v, 10, 64)
+			ua, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				c.SetInvalidParamWithErr("cursor_update_at", err)
+				return
+			}
+			cur.UpdateAt = ua
 		}
 		if v := query.Get("cursor_create_at"); v != "" {
-			cur.CreateAt, _ = strconv.ParseInt(v, 10, 64)
+			ca, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				c.SetInvalidParamWithErr("cursor_create_at", err)
+				return
+			}
+			cur.CreateAt = ca
 		}
 		opts.Cursor = cur
 	}
