@@ -1629,10 +1629,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, retrieved, 2)
 		retrievedValue1 := findValueByID(t, retrieved, createdValues[0].ID)
-		require.NotNil(t, retrievedValue1)
 		assert.Equal(t, `"value1"`, string(retrievedValue1.Value))
 		retrievedValue2 := findValueByID(t, retrieved, createdValues[1].ID)
-		require.NotNil(t, retrievedValue2)
 		assert.Equal(t, `"value2"`, string(retrievedValue2.Value))
 	})
 
@@ -1694,10 +1692,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, retrieved, 2)
 		retrievedProtectedValue := findValueByID(t, retrieved, createdValues[0].ID)
-		require.NotNil(t, retrievedProtectedValue)
 		assert.Equal(t, `"protected value"`, string(retrievedProtectedValue.Value))
 		retrievedPublicValue := findValueByID(t, retrieved, createdValues[1].ID)
-		require.NotNil(t, retrievedPublicValue)
 		assert.Equal(t, `"public value"`, string(retrievedPublicValue.Value))
 
 		// Now try with source plugin - should succeed for both
@@ -1773,10 +1769,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, retrieved, 2)
 		retrievedValue1 := findValueByID(t, retrieved, createdValue1.ID)
-		require.NotNil(t, retrievedValue1)
 		assert.Equal(t, `"value from plugin1"`, string(retrievedValue1.Value))
 		retrievedValue2 := findValueByID(t, retrieved, createdValue2.ID)
-		require.NotNil(t, retrievedValue2)
 		assert.Equal(t, `"value from plugin2"`, string(retrievedValue2.Value))
 
 		// Try to update both values with plugin2 - should also fail because it doesn't own field1
@@ -1792,10 +1786,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, retrieved, 2)
 		retrievedValue1 = findValueByID(t, retrieved, createdValue1.ID)
-		require.NotNil(t, retrievedValue1)
 		assert.Equal(t, `"value from plugin1"`, string(retrievedValue1.Value))
 		retrievedValue2 = findValueByID(t, retrieved, createdValue2.ID)
-		require.NotNil(t, retrievedValue2)
 		assert.Equal(t, `"value from plugin2"`, string(retrievedValue2.Value))
 
 		// Each plugin can update its own value individually
