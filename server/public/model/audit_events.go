@@ -308,6 +308,7 @@ const (
 	AuditEventMoveThread                         = "moveThread"                         // move thread and replies to different channel
 	AuditEventNotificationAck                    = "notificationAck"                    // notification ack
 	AuditEventPatchPost                          = "patchPost"                          // update post meta properties
+	AuditEventPostDelivered                      = "postDelivered"                      // post delivered to a user (see post_delivery_mechanism.go for mechanism values)
 	AuditEventRestorePostVersion                 = "restorePostVersion"                 // restore post to previous version
 	AuditEventSaveIsPinnedPost                   = "saveIsPinnedPost"                   // pin or unpin post
 	AuditEventSearchPosts                        = "searchPosts"                        // search for posts

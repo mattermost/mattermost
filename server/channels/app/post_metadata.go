@@ -351,6 +351,10 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 					removePermalinkMetadataFromPost(post)
 					// Since we remove the permalink metadata, we return true for isMember
 					isMemberForPreviews = true
+				} else {
+					// Mechanism 8: user retained access to the previewed post —
+					// record the embedded post as delivered to this viewer.
+					a.AuditPostDelivered(rctx, userID, previewPost.Post.Id, previewPost.Post.ChannelId, model.AuditMechPermalinkPreview)
 				}
 			}
 		}

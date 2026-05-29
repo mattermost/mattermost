@@ -87,6 +87,15 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 		return appErr
 	}
 
+	// Mechanism 6/7: derived from the *built* message, not the raw config —
+	// BuildPushNotificationMessage may downgrade ID-loaded to generic/full
+	// when the license check fails, so msg.IsIdLoaded is the source of truth.
+	pushMech := model.AuditMechPushFull
+	if msg.IsIdLoaded {
+		pushMech = model.AuditMechPushIDOnly
+	}
+	a.AuditPostDelivered(rctx, user.Id, post.Id, channel.Id, pushMech)
+
 	return a.sendPushNotificationToAllSessions(rctx, msg, user.Id, "")
 }
 

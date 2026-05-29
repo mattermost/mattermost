@@ -403,6 +403,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
 				return true
 			}, plugin.MessageHasBeenPostedID)
+			// Mechanism 12: dispatched once per post (outside the per-plugin
+			// callback). Attribute the delivery to the post author since there
+			// is no per-plugin user identity at this hook point.
+			a.AuditPostDelivered(rctx, rpost.UserId, rpost.Id, rpost.ChannelId, model.AuditMechPluginHook)
 		})
 	}
 

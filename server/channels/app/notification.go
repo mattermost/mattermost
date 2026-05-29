@@ -737,6 +737,16 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		return nil, appErr
 	}
 
+	// Mechanism 16: post broadcast over websocket to all channel members the
+	// notifier is aware of. One delivery record per recipient.
+	if len(profileMap) > 0 {
+		recipientIDs := make([]string, 0, len(profileMap))
+		for uid := range profileMap {
+			recipientIDs = append(recipientIDs, uid)
+		}
+		a.AuditPostDeliveredFanOut(rctx, recipientIDs, post.Id, channel.Id, model.AuditMechWebsocketBroadcast)
+	}
+
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {
 		for uid := range followers {

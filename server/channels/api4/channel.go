@@ -1102,6 +1102,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
+	c.App.AuditPostDeliveredBulk(c.AppContext, c.AppContext.Session().UserId, clientPostList.Order, c.Params.ChannelId, model.AuditMechAPIDirect)
+
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberRoles, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
