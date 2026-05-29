@@ -1333,6 +1333,13 @@ func TestPropertyFieldSearchOpts_IsValid(t *testing.T) {
 		assert.Contains(t, err.Error(), "garbage")
 	})
 
+	t.Run("legacy ObjectType containing an invalid value is rejected", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectType: "garbage"}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "garbage")
+	})
+
 	t.Run("ChannelID combined with TargetType is invalid", func(t *testing.T) {
 		opts := PropertyFieldSearchOpts{
 			ChannelID:  validID,

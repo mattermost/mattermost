@@ -529,6 +529,10 @@ func (o PropertyFieldSearchOpts) IsValid() error {
 		return errors.New("object_type and object_types are mutually exclusive")
 	}
 
+	if o.ObjectType != "" && !IsValidPropertyFieldObjectType(o.ObjectType) {
+		return fmt.Errorf("invalid object_type %q", o.ObjectType)
+	}
+
 	for _, ot := range o.ObjectTypes {
 		if !IsValidPropertyFieldObjectType(ot) {
 			return fmt.Errorf("invalid object_type %q", ot)

@@ -260,6 +260,7 @@
               properties:
                 object_types:
                   type: array
+                  minItems: 1
                   description: >
                     One or more object types to include in the response. At
                     least one value is required; unknown values return 400.

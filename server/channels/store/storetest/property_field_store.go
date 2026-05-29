@@ -1770,10 +1770,13 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		// Without this, postgres millisecond resolution still usually produces
 		// distinct timestamps and the tiebreaker would never fire.
 		sharedUpdateAt := model.GetMillis() + 1
-		_, execErr := s.GetMaster().Exec(
-			"UPDATE PropertyFields SET UpdateAt = $1 WHERE Id IN ($2, $3, $4)",
-			sharedUpdateAt, f1.ID, f2.ID, f3.ID,
-		)
+		updateQuery, updateArgs, err := sq.StatementBuilder.PlaceholderFormat(s.GetQueryPlaceholder()).
+			Update("PropertyFields").
+			Set("UpdateAt", sharedUpdateAt).
+			Where(sq.Eq{"Id": []string{f1.ID, f2.ID, f3.ID}}).
+			ToSql()
+		require.NoError(t, err)
+		_, execErr := s.GetMaster().Exec(updateQuery, updateArgs...)
 		require.NoError(t, execErr)
 
 		// Expected order in delta mode: UpdateAt ASC, then Id ASC. All three share
