@@ -3295,6 +3295,10 @@
     "translation": "You do not have permission to manage options for this property field."
   },
   {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "Invalid property value search options."
+  },
+  {
     "id": "api.property_value.invalid_object_type.app_error",
     "translation": "The provided object type is not valid."
   },
