@@ -9,6 +9,7 @@ import {isMac} from '@mattermost/shared/utils/user_agent';
 import AdvancedSettingsDisplay from 'components/user_settings/advanced/user_settings_advanced';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithUserSettingsState} from 'tests/user_settings';
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -55,35 +56,24 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     };
 
     test('should have called handleSubmit', async () => {
-        const updateSection = jest.fn();
+        renderWithUserSettingsState(AdvancedSettingsDisplay, requiredProps);
 
-        const props = {...requiredProps, updateSection, activeSection: 'formatting'};
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await userEvent.click(screen.getByRole('button', {name: 'Enable Post Formatting Edit'}));
 
         await userEvent.click(screen.getByTestId('saveSetting'));
-        expect(updateSection).toHaveBeenCalledWith('');
+
+        expect(requiredProps.actions.savePreferences).toHaveBeenCalled();
+        expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
     });
 
-    test('should have called updateSection', async () => {
-        const updateSection = jest.fn();
-        const props = {...requiredProps, updateSection, activeSection: 'formatting'};
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
-
-        // Click Save → handleSubmit → handleUpdateSection('') → updateSection('')
-        await userEvent.click(screen.getByTestId('saveSetting'));
-        expect(updateSection).toHaveBeenCalledWith('');
-    });
-
-    test('should have called updateUserActive', async () => {
-        const updateUserActive = jest.fn(() => Promise.resolve({}));
-        const revokeAllSessionsForUser = jest.fn().mockResolvedValue({data: true});
+    test('should deactivate user and revoke session', async () => {
         const props = {
             ...requiredProps,
             enableUserDeactivation: true,
-            activeSection: 'deactivateAccount',
-            actions: {...requiredProps.actions, updateUserActive, revokeAllSessionsForUser},
         };
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        renderWithUserSettingsState(AdvancedSettingsDisplay, props);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Deactivate Account Edit'}));
 
         // Click "Deactivate" button in SettingItemMax to show the modal
         await userEvent.click(screen.getByText('Deactivate'));
@@ -91,26 +81,11 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         // Click the confirm button in the modal
         await userEvent.click(screen.getByText('Yes, deactivate my account'));
 
-        expect(updateUserActive).toHaveBeenCalled();
-        expect(updateUserActive).toHaveBeenCalledWith(requiredProps.user.id, false);
-    });
+        expect(props.actions.updateUserActive).toHaveBeenCalled();
+        expect(props.actions.updateUserActive).toHaveBeenCalledWith(requiredProps.user.id, false);
 
-    test('handleDeactivateAccountSubmit() should have called revokeAllSessions', async () => {
-        const revokeAllSessionsForUser = jest.fn().mockResolvedValue({data: true});
-        const props = {
-            ...requiredProps,
-            enableUserDeactivation: true,
-            activeSection: 'deactivateAccount',
-            actions: {...requiredProps.actions, revokeAllSessionsForUser},
-        };
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
-
-        // Click "Deactivate" button then confirm
-        await userEvent.click(screen.getByText('Deactivate'));
-        await userEvent.click(screen.getByText('Yes, deactivate my account'));
-
-        expect(revokeAllSessionsForUser).toHaveBeenCalled();
-        expect(revokeAllSessionsForUser).toHaveBeenCalledWith(requiredProps.user.id);
+        expect(props.actions.revokeAllSessionsForUser).toHaveBeenCalled();
+        expect(props.actions.revokeAllSessionsForUser).toHaveBeenCalledWith(requiredProps.user.id);
     });
 
     test('handleDeactivateAccountSubmit() should have updated state.serverError', async () => {
@@ -119,10 +94,11 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const props = {
             ...requiredProps,
             enableUserDeactivation: true,
-            activeSection: 'deactivateAccount',
             actions: {...requiredProps.actions, revokeAllSessionsForUser},
         };
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        renderWithUserSettingsState(AdvancedSettingsDisplay, props);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Deactivate Account Edit'}));
 
         // Click "Deactivate" button then confirm
         await userEvent.click(screen.getByText('Deactivate'));

@@ -7,6 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getAllLanguages} from 'i18n/i18n';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithUserSettingsState} from 'tests/user_settings';
 
 import UserSettingsDisplay from './user_settings_display';
 
@@ -23,11 +24,6 @@ jest.mock('./manage_languages', () => ({
 jest.mock('components/user_settings/display/user_settings_theme', () => ({
     __esModule: true,
     default: () => <div data-testid='theme-setting'/>,
-}));
-
-jest.mock('./render_emoticons_as_emoji', () => ({
-    __esModule: true,
-    default: () => <div data-testid='render-emoticons'/>,
 }));
 
 jest.mock('utils/timezone', () => ({
@@ -207,9 +203,11 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, clickToReply section', () => {
-        const props = {...requiredProps, activeSection: 'click_to_reply'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+    test('should match snapshot, clickToReply section', async () => {
+        const {container} = renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Click to open threads Edit'}));
+
         expect(container).toMatchSnapshot();
     });
 
@@ -332,26 +330,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should update linkPreviewDisplay state', async () => {
-        const props = {...requiredProps, activeSection: 'linkpreview', enableLinkPreviews: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const props = {...requiredProps, enableLinkPreviews: true};
+        renderWithUserSettingsState(UserSettingsDisplay, props);
 
-        const radioA = container.querySelector('#linkpreviewFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#linkpreviewFormatB') as HTMLInputElement;
+        await userEvent.click(screen.getByRole('button', {name: 'Website Link Previews Edit'}));
 
-        await userEvent.click(radioA);
-        expect(radioA).toBeChecked();
-
-        await userEvent.click(radioB);
-        expect(radioB).toBeChecked();
-    });
-
-    test('should update display state', async () => {
-        const props = {...requiredProps, activeSection: 'linkpreview', enableLinkPreviews: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-
-        // Click radio buttons in the link preview section to test handleOnChange
-        const radioA = container.querySelector('#linkpreviewFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#linkpreviewFormatB') as HTMLInputElement;
+        const radioA = screen.getByRole('radio', {name: 'On'});
+        const radioB = screen.getByRole('radio', {name: 'Off'});
 
         await userEvent.click(radioA);
         expect(radioA).toBeChecked();
@@ -375,11 +360,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should update last active state', async () => {
-        const props = {...requiredProps, activeSection: 'lastactive', lastActiveTimeEnabled: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const props = {...requiredProps, lastActiveTimeEnabled: true};
+        renderWithUserSettingsState(UserSettingsDisplay, props);
 
-        const radioA = container.querySelector('#lastactiveFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#lastactiveFormatB') as HTMLInputElement;
+        await userEvent.click(screen.getByRole('button', {name: 'Website Link Previews Edit'}));
+
+        const radioA = screen.getByRole('radio', {name: 'On'});
+        const radioB = screen.getByRole('radio', {name: 'Off'});
 
         await userEvent.click(radioB);
         expect(radioB).toBeChecked();

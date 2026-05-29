@@ -26,10 +26,10 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
-import RenderEmoticonsAsEmoji from './render_emoticons_as_emoji';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
+import {UserSettingBoolean} from '../user_setting_boolean';
 
 const Preferences = Constants.Preferences;
 
@@ -37,16 +37,11 @@ function getDisplayStateFromProps(props: Props) {
     return {
         militaryTime: props.militaryTime,
         teammateNameDisplay: props.teammateNameDisplay,
-        availabilityStatusOnPosts: props.availabilityStatusOnPosts,
         channelDisplayMode: props.channelDisplayMode,
         messageDisplay: props.messageDisplay,
         colorizeUsernames: props.colorizeUsernames,
         collapseDisplay: props.collapseDisplay,
         collapsedReplyThreads: props.collapsedReplyThreads,
-        linkPreviewDisplay: props.linkPreviewDisplay,
-        lastActiveDisplay: props.lastActiveDisplay.toString(),
-        oneClickReactionsOnPosts: props.oneClickReactionsOnPosts,
-        clickToReply: props.clickToReply,
     };
 }
 
@@ -133,16 +128,11 @@ type State = {
     isSaving: boolean;
     militaryTime: string;
     teammateNameDisplay: string;
-    availabilityStatusOnPosts: string;
     channelDisplayMode: string;
     messageDisplay: string;
     colorizeUsernames: string;
     collapseDisplay: string;
     collapsedReplyThreads: string;
-    linkPreviewDisplay: string;
-    lastActiveDisplay: string;
-    oneClickReactionsOnPosts: string;
-    clickToReply: string;
     handleSubmit?: () => void;
     serverError?: string;
 };
@@ -171,9 +161,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
     }
 
-    submitLastActive = () => {
+    submitLastActive = (lastActiveDisplay: string) => {
         const {user, actions} = this.props;
-        const {lastActiveDisplay} = this.state;
 
         const updatedUser = {
             ...user,
@@ -184,21 +173,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         };
 
         const action = this.props.adminMode ? actions.patchUser : actions.updateMe;
-        action(updatedUser).
-            then((res) => {
-                if ('data' in res) {
-                    this.props.updateSection('');
-                } else if ('error' in res) {
-                    const {error} = res;
-                    let serverError;
-                    if (error instanceof Error) {
-                        serverError = error.message;
-                    } else {
-                        serverError = error as string;
-                    }
-                    this.setState({serverError, isSaving: false});
-                }
-            });
+        return action(updatedUser);
     };
 
     handleSubmit = async () => {
@@ -209,12 +184,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
             name: Preferences.USE_MILITARY_TIME,
             value: this.state.militaryTime,
-        };
-        const availabilityStatusOnPostsPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.AVAILABILITY_STATUS_ON_POSTS,
-            value: this.state.availabilityStatusOnPosts,
         };
         const teammateNameDisplayPreference = {
             user_id: userId,
@@ -252,24 +221,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.COLLAPSED_REPLY_THREADS,
             value: this.state.collapsedReplyThreads,
         };
-        const linkPreviewDisplayPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.LINK_PREVIEW_DISPLAY,
-            value: this.state.linkPreviewDisplay,
-        };
-        const oneClickReactionsOnPostsPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.ONE_CLICK_REACTIONS_ENABLED,
-            value: this.state.oneClickReactionsOnPosts,
-        };
-        const clickToReplyPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.CLICK_TO_REPLY,
-            value: this.state.clickToReply,
-        };
 
         this.setState({isSaving: true});
 
@@ -278,18 +229,23 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             channelDisplayModePreference,
             messageDisplayPreference,
             collapsedReplyThreadsPreference,
-            clickToReplyPreference,
             collapseDisplayPreference,
-            linkPreviewDisplayPreference,
             teammateNameDisplayPreference,
-            availabilityStatusOnPostsPreference,
-            oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
         ];
 
         await this.props.actions.savePreferences(userId, preferences);
 
         this.updateSection('');
+    };
+
+    handleSubmitPreference = (category: string, name: string) => (value: string) => {
+        return this.props.actions.savePreferences(this.props.user.id, [{
+            user_id: this.props.user.id,
+            category,
+            name,
+            value,
+        }]);
     };
 
     handleClockRadio = (militaryTime: string) => {
@@ -319,22 +275,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     handleCollapseReplyThreadsRadio(collapsedReplyThreads: string) {
         this.setState({collapsedReplyThreads});
     }
-
-    handleLastActiveRadio(lastActiveDisplay: string) {
-        this.setState({lastActiveDisplay});
-    }
-
-    handleLinkPreviewRadio(linkPreviewDisplay: string) {
-        this.setState({linkPreviewDisplay});
-    }
-
-    handleOneClickReactionsRadio = (oneClickReactionsOnPosts: string) => {
-        this.setState({oneClickReactionsOnPosts});
-    };
-
-    handleClickToReplyRadio = (clickToReply: string) => {
-        this.setState({clickToReply});
-    };
 
     handleOnChange(e: React.ChangeEvent, display: {[key: string]: any}) {
         this.setState({...display});
@@ -648,78 +588,51 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         });
 
         let linkPreviewSection = null;
-
         if (this.props.enableLinkPreviews) {
-            linkPreviewSection = this.createSection({
-                section: 'linkpreview',
-                display: 'linkPreviewDisplay',
-                value: this.state.linkPreviewDisplay,
-                defaultDisplay: 'true',
-                title: defineMessage({
-                    id: 'user.settings.display.linkPreviewDisplay',
-                    defaultMessage: 'Website Link Previews',
-                }),
-                firstOption: {
-                    value: 'true',
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.display.linkPreviewOn',
-                            defaultMessage: 'On',
-                        }),
-                    },
-                },
-                secondOption: {
-                    value: 'false',
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.display.linkPreviewOff',
-                            defaultMessage: 'Off',
-                        }),
-                    },
-                },
-                description: defineMessage({
-                    id: 'user.settings.display.linkPreviewDesc',
-                    defaultMessage: 'When available, the first web link in a message will show a preview of the website content below the message.',
-                }),
-            });
+            linkPreviewSection = (
+                <UserSettingBoolean
+                    activeSection={this.props.activeSection}
+                    currentValue={this.props.linkPreviewDisplay}
+                    helpText={
+                        <FormattedMessage
+                            id='user.settings.display.linkPreviewDesc'
+                            defaultMessage='When available, the first web link in a message will show a preview of the website content below the message.'
+                        />
+                    }
+                    onSubmit={this.handleSubmitPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY)}
+                    updateSection={this.updateSection}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.linkPreviewDisplay'
+                            defaultMessage='Website Link Previews'
+                        />
+                    }
+                />
+            );
         }
 
         let lastActiveSection = null;
-
         if (this.props.lastActiveTimeEnabled) {
-            lastActiveSection = this.createSection({
-                section: 'lastactive',
-                display: 'lastActiveDisplay',
-                value: this.state.lastActiveDisplay,
-                defaultDisplay: 'true',
-                title: defineMessage({
-                    id: 'user.settings.display.lastActiveDisplay',
-                    defaultMessage: 'Share last active time',
-                }),
-                firstOption: {
-                    value: 'true',
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.display.lastActiveOn',
-                            defaultMessage: 'On',
-                        }),
-                    },
-                },
-                secondOption: {
-                    value: 'false',
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.display.lastActiveOff',
-                            defaultMessage: 'Off',
-                        }),
-                    },
-                },
-                description: defineMessage({
-                    id: 'user.settings.display.lastActiveDesc',
-                    defaultMessage: 'When enabled, other users will see when you were last active.',
-                }),
-                onSubmit: this.submitLastActive,
-            });
+            lastActiveSection = (
+                <UserSettingBoolean
+                    activeSection={this.props.activeSection}
+                    currentValue={this.props.lastActiveDisplay.toString()}
+                    helpText={
+                        <FormattedMessage
+                            id='user.settings.display.lastActiveDesc'
+                            defaultMessage='When enabled, other users will see when you were last active.'
+                        />
+                    }
+                    onSubmit={this.submitLastActive}
+                    updateSection={this.updateSection}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.lastActiveDisplay'
+                            defaultMessage='Share last active time'
+                        />
+                    }
+                />
+            );
         }
 
         const clockSection = this.createSection({
@@ -798,38 +711,33 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             disabled: this.props.lockTeammateNameDisplay,
         });
 
-        const availabilityStatusOnPostsSection = this.createSection({
-            section: 'availabilityStatus',
-            display: 'availabilityStatusOnPosts',
-            value: this.state.availabilityStatusOnPosts,
-            defaultDisplay: 'true',
-            title: defineMessage({
-                id: 'user.settings.display.availabilityStatusOnPostsTitle',
-                defaultMessage: 'Show online availability on profile images',
-            }),
-            firstOption: {
-                value: 'true',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.sidebar.on',
-                        defaultMessage: 'On',
-                    }),
-                },
-            },
-            secondOption: {
-                value: 'false',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.sidebar.off',
-                        defaultMessage: 'Off',
-                    }),
-                },
-            },
-            description: defineMessage({
-                id: 'user.settings.display.availabilityStatusOnPostsDescription',
-                defaultMessage: 'When enabled, online availability is displayed on profile images in the message list.',
-            }),
-        });
+        const availabilityStatusOnPostsSection = (
+            <UserSettingBoolean
+                activeSection={this.props.activeSection}
+                currentValue={this.props.availabilityStatusOnPosts}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.display.availabilityStatusOnPostsDescription'
+                        defaultMessage='When enabled, online availability is displayed on profile images in the message list.'
+                    />
+                }
+                onSubmit={(value: string) => {
+                    return this.props.actions.savePreferences(this.props.user.id, [{
+                        user_id: this.props.user.id,
+                        category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                        name: Preferences.AVAILABILITY_STATUS_ON_POSTS,
+                        value,
+                    }]);
+                }}
+                updateSection={this.updateSection}
+                title={
+                    <FormattedMessage
+                        id='user.settings.display.availabilityStatusOnPostsTitle'
+                        defaultMessage='Show online availability on profile images'
+                    />
+                }
+            />
+        );
 
         let timezoneSelection;
         if (!this.props.shouldAutoUpdateTimezone) {
@@ -959,38 +867,33 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             });
         }
 
-        const clickToReply = this.createSection({
-            section: Preferences.CLICK_TO_REPLY,
-            display: 'clickToReply',
-            value: this.state.clickToReply,
-            defaultDisplay: 'true',
-            title: defineMessage({
-                id: 'user.settings.display.clickToReply',
-                defaultMessage: 'Click to open threads',
-            }),
-            firstOption: {
-                value: 'true',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.sidebar.on',
-                        defaultMessage: 'On',
-                    }),
-                },
-            },
-            secondOption: {
-                value: 'false',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.sidebar.off',
-                        defaultMessage: 'Off',
-                    }),
-                },
-            },
-            description: defineMessage({
-                id: 'user.settings.display.clickToReplyDescription',
-                defaultMessage: 'When enabled, click anywhere on a message to open the reply thread.',
-            }),
-        });
+        const clickToReply = (
+            <UserSettingBoolean
+                activeSection={this.props.activeSection}
+                currentValue={this.props.lastActiveDisplay.toString()}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.display.clickToReplyDescription'
+                        defaultMessage='When enabled, click anywhere on a message to open the reply thread.'
+                    />
+                }
+                onSubmit={(value: string) => {
+                    return this.props.actions.savePreferences(this.props.user.id, [{
+                        user_id: this.props.user.id,
+                        category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                        name: Preferences.CLICK_TO_REPLY,
+                        value,
+                    }]);
+                }}
+                updateSection={this.updateSection}
+                title={
+                    <FormattedMessage
+                        id='user.settings.display.clickToReply'
+                        defaultMessage='Click to open threads'
+                    />
+                }
+            />
+        );
 
         const channelDisplayModeSection = this.createSection({
             section: Preferences.CHANNEL_DISPLAY_MODE,
@@ -1078,76 +981,61 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         let oneClickReactionsOnPostsSection;
         if (this.props.emojiPickerEnabled) {
-            oneClickReactionsOnPostsSection = this.createSection({
-                section: Preferences.ONE_CLICK_REACTIONS_ENABLED,
-                display: 'oneClickReactionsOnPosts',
-                value: this.state.oneClickReactionsOnPosts,
-                defaultDisplay: 'true',
-                title: defineMessage({
-                    id: 'user.settings.display.oneClickReactionsOnPostsTitle',
-                    defaultMessage: 'Quick reactions on messages',
-                }),
-                firstOption: {
-                    value: 'true',
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.sidebar.on',
-                            defaultMessage: 'On',
-                        }),
-                    },
-                },
-                secondOption: {
-                    value: 'false',
-                    radionButtonText: {
-                        label: defineMessage({
-                            id: 'user.settings.sidebar.off',
-                            defaultMessage: 'Off',
-                        }),
-                    },
-                },
-                description: defineMessage({
-                    id: 'user.settings.display.oneClickReactionsOnPostsDescription',
-                    defaultMessage: 'When enabled, you can react quickly with recently used reactions when hovering over a message.',
-                }),
-            });
+            oneClickReactionsOnPostsSection = (
+                <UserSettingBoolean
+                    activeSection={this.props.activeSection}
+                    currentValue={this.props.linkPreviewDisplay}
+                    helpText={
+                        <FormattedMessage
+                            id='user.settings.display.oneClickReactionsOnPostsDescription'
+                            defaultMessage='When enabled, you can react quickly with recently used reactions when hovering over a message.'
+                        />
+                    }
+                    onSubmit={(value: string) => {
+                        return this.props.actions.savePreferences(this.props.user.id, [{
+                            user_id: this.props.user.id,
+                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                            name: Preferences.ONE_CLICK_REACTIONS_ENABLED,
+                            value,
+                        }]);
+                    }}
+                    updateSection={this.updateSection}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.display.oneClickReactionsOnPostsTitle'
+                            defaultMessage='Quick reactions on messages'
+                        />
+                    }
+                />
+            );
         }
 
         const renderEmoticonsAsEmojiSection = (
-            <div>
-                <SettingItem
-                    active={this.props.activeSection === 'renderEmoticonsAsEmoji'}
-                    areAllSectionsInactive={this.props.activeSection === ''}
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.renderEmoticonsAsEmojiTitle'
-                            defaultMessage='Render emoticons as emojis'
-                        />
-                    }
-                    describe={
-                        this.props.renderEmoticonsAsEmoji === 'true' ? (
-                            <FormattedMessage
-                                id='user.settings.advance.on'
-                                defaultMessage='On'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='user.settings.advance.off'
-                                defaultMessage='Off'
-                            />
-                        )
-                    }
-                    section='renderEmoticonsAsEmoji'
-                    updateSection={this.updateSection}
-                    max={(
-                        <RenderEmoticonsAsEmoji
-                            renderEmoticonsAsEmoji={this.props.renderEmoticonsAsEmoji}
-                            user={this.props.user}
-                            updateSection={this.updateSection}
-                        />
-                    )}
-                />
-                <div className='divider-dark'/>
-            </div>
+            <UserSettingBoolean
+                activeSection={this.props.activeSection}
+                currentValue={this.props.renderEmoticonsAsEmoji}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.display.oneClickReactionsOnPostsDescription'
+                        defaultMessage='When enabled, you can react quickly with recently used reactions when hovering over a message.'
+                    />
+                }
+                onSubmit={(value: string) => {
+                    return this.props.actions.savePreferences(this.props.user.id, [{
+                        user_id: this.props.user.id,
+                        category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                        name: Preferences.RENDER_EMOTICONS_AS_EMOJI,
+                        value,
+                    }]);
+                }}
+                updateSection={this.updateSection}
+                title={
+                    <FormattedMessage
+                        id='user.settings.display.renderEmoticonsAsEmojiTitle'
+                        defaultMessage='Render emoticons as emojis'
+                    />
+                }
+            />
         );
 
         return (

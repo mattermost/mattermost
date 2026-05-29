@@ -10,15 +10,15 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
     >
       <h4
         class="section-min__title"
-        id="joinLeaveTitle"
+        id=":r0:Title"
       >
         Enable Join/Leave Messages
       </h4>
       <button
         aria-expanded="false"
-        aria-labelledby="joinLeaveTitle joinLeaveEdit"
+        aria-labelledby=":r0:Title :r0:Edit"
         class="color--link style--none section-min__edit"
-        id="joinLeaveEdit"
+        id=":r0:Edit"
       >
         <i
           aria-hidden="true"
@@ -30,11 +30,9 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
     </div>
     <div
       class="section-min__describe"
-      id="joinLeaveDesc"
+      id=":r0:Desc"
     >
-      <span>
-        On
-      </span>
+      On
     </div>
   </div>
   <div
@@ -71,39 +69,42 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
               Enable Join/Leave Messages
             </legend>
             <div
-              class="radio"
+              role="radiogroup"
             >
-              <label>
-                <input
-                  checked=""
-                  class="a11y--active a11y--focused"
-                  id="joinLeaveOn"
-                  name="joinLeave"
-                  type="radio"
-                  value="true"
-                />
-                On
-              </label>
-              <br />
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
-                <input
-                  id="joinLeaveOff"
-                  name="joinLeave"
-                  type="radio"
-                  value="false"
-                />
-                Off
-              </label>
-              <br />
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    checked=""
+                    id=":r0:On"
+                    name=":r0:"
+                    type="radio"
+                    value="true"
+                  />
+                  On
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    id=":r0:Off"
+                    name=":r0:"
+                    type="radio"
+                    value="false"
+                  />
+                  Off
+                </label>
+              </div>
             </div>
             <div
               class="mt-5"
             >
-              When "On", System Messages saying a user has joined or left a channel will be visible. When "Off", the System Messages about joining or leaving a channel will be hidden. A message will still show up when you are added to a channel, so you can receive a notification.
+              <p>
+                When "On", System Messages saying a user has joined or left a channel will be visible. When "Off", the System Messages about joining or leaving a channel will be hidden. A message will still show up when you are added to a channel, so you can receive a notification.
+              </p>
             </div>
           </fieldset>
         </div>

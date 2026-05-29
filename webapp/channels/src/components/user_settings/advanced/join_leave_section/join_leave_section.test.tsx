@@ -1,25 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import JoinLeaveSection from 'components/user_settings/advanced/join_leave_section/join_leave_section';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithUserSettingsState} from 'tests/user_settings';
 
 import type {GlobalState} from 'types/store';
 
 describe('components/user_settings/advanced/JoinLeaveSection', () => {
     const defaultProps = {
-        active: false,
-        areAllSectionsInactive: false,
+        activeSection: '',
         userId: 'current_user_id',
         joinLeave: 'true',
-        renderOnOffLabel: jest.fn((label: string) => <span>{label === 'true' ? 'On' : 'Off'}</span>),
         updateSection: jest.fn(),
         actions: {
             savePreferences: jest.fn(() => {
@@ -30,32 +27,23 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container, rerender} = renderWithContext(
-            <JoinLeaveSection {...defaultProps}/>,
-        );
+    test('should match snapshot', async () => {
+        const {container} = renderWithUserSettingsState(JoinLeaveSection, defaultProps);
 
         expect(container).toMatchSnapshot();
         expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
         expect(screen.getByText('Enable Join/Leave Messages')).toBeInTheDocument();
 
-        rerender(
-            <JoinLeaveSection
-                {...defaultProps}
-                active={true}
-            />,
-        );
+        await userEvent.click(screen.getByRole('button', {name: 'Enable Join/Leave Messages Edit'}));
+
         expect(container).toMatchSnapshot();
         expect(screen.getByTestId('saveSetting')).toBeInTheDocument();
     });
 
     test('should match state on handleOnChange', async () => {
-        renderWithContext(
-            <JoinLeaveSection
-                {...defaultProps}
-                active={true}
-            />,
-        );
+        renderWithUserSettingsState(JoinLeaveSection, defaultProps);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Enable Join/Leave Messages Edit'}));
 
         const joinLeaveOff = screen.getByRole('radio', {name: /off/i});
         const joinLeaveOn = screen.getByRole('radio', {name: /on/i});
@@ -67,19 +55,16 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         expect(joinLeaveOn).toBeChecked();
     });
 
-    test('should call props.actions.savePreferences and props.updateSection on handleSubmit', async () => {
+    test('should call props.actions.savePreferences on submit', async () => {
         const actions = {
             savePreferences: jest.fn().mockImplementation(() => Promise.resolve({data: true})),
         };
-        const updateSection = jest.fn();
-        renderWithContext(
-            <JoinLeaveSection
-                {...defaultProps}
-                active={true}
-                actions={actions}
-                updateSection={updateSection}
-            />,
-        );
+        renderWithUserSettingsState(JoinLeaveSection, {
+            ...defaultProps,
+            actions,
+        });
+
+        await userEvent.click(screen.getByRole('button', {name: 'Enable Join/Leave Messages Edit'}));
 
         const joinLeavePreference = {
             category: 'advanced_settings',
@@ -92,7 +77,8 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         await userEvent.click(screen.getByTestId('saveSetting'));
         expect(actions.savePreferences).toHaveBeenCalledTimes(1);
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
-        expect(updateSection).toHaveBeenCalledTimes(1);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Enable Join/Leave Messages Edit'}));
 
         // Change to 'false' and save again
         await userEvent.click(screen.getByRole('radio', {name: /off/i}));
@@ -102,23 +88,18 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
     });
 
-    test('should match state and call props.updateSection on handleUpdateSection', async () => {
-        const updateSection = jest.fn();
-        renderWithContext(
-            <JoinLeaveSection
-                {...defaultProps}
-                active={true}
-                updateSection={updateSection}
-            />,
-        );
+    test('should reset state on cancel', async () => {
+        renderWithUserSettingsState(JoinLeaveSection, defaultProps);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Enable Join/Leave Messages Edit'}));
 
         // Change the radio to 'false'
         await userEvent.click(screen.getByRole('radio', {name: /off/i}));
         expect(screen.getByRole('radio', {name: /off/i})).toBeChecked();
 
-        // Click Cancel → handleUpdateSection() resets state and calls updateSection
+        // Click Cancel → handleUpdateSection() resets state and closes section
         await userEvent.click(screen.getByTestId('cancelButton'));
-        expect(updateSection).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole('radio')).not.toBeInTheDocument();
 
         // After cancel, re-render as active to verify the state was reset
         // The joinLeave prop is 'true', so after reset the On radio should be checked

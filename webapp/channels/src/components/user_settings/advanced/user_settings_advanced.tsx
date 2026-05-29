@@ -26,6 +26,7 @@ import PerformanceDebuggingSection from './performance_debugging_section';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
+import {UserSettingBoolean} from '../user_setting_boolean';
 
 import type {PropsFromRedux} from './index';
 
@@ -119,6 +120,15 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         this.handleUpdateSection('');
     };
 
+    handleSubmitPreference = (category: string, name: string) => (value: string) => {
+        return this.props.actions.savePreferences(this.props.user.id, [{
+            user_id: this.props.user.id,
+            category,
+            name,
+            value,
+        }]);
+    };
+
     handleDeactivateAccountSubmit = async (): Promise<void> => {
         const userId = this.props.user.id;
 
@@ -193,24 +203,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         };
     };
 
-    renderOnOffLabel(enabled: string): JSX.Element {
-        if (enabled === 'false') {
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.off'
-                    defaultMessage='Off'
-                />
-            );
-        }
-
-        return (
-            <FormattedMessage
-                id='user.settings.advance.on'
-                defaultMessage='On'
-            />
-        );
-    }
-
     renderUnreadScrollPositionLabel(option?: string): JSX.Element {
         if (option === Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT) {
             return (
@@ -256,87 +248,24 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     }
 
     renderFormattingSection = () => {
-        const active = this.props.activeSection === 'formatting';
-        let max = null;
-        if (active) {
-            max = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.advance.formattingTitle'
-                            defaultMessage='Enable Post Formatting'
-                        />
-                    }
-                    inputs={[
-                        <fieldset key='formattingSetting'>
-                            <legend className='form-legend hidden-label'>
-                                <FormattedMessage
-                                    id='user.settings.advance.formattingTitle'
-                                    defaultMessage='Enable Post Formatting'
-                                />
-                            </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='postFormattingOn'
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'true')}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='postFormattingOff'
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'false')}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='mt-5'>
-                                <FormattedMessage
-                                    id='user.settings.advance.formattingDesc'
-                                    defaultMessage='If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled.'
-                                />
-                            </div>
-                        </fieldset>,
-                    ]}
-                    submit={this.handleSubmit.bind(this, ['formatting'])}
-                    saving={this.state.isSaving}
-                    serverError={this.state.serverError}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
-        }
-
         return (
-            <SettingItem
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+            <UserSettingBoolean
+                activeSection={this.props.activeSection}
+                currentValue={this.props.formatting}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.advance.formattingDesc'
+                        defaultMessage='If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled.'
+                    />
+                }
+                onSubmit={this.handleSubmitPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting')}
                 title={
                     <FormattedMessage
                         id='user.settings.advance.formattingTitle'
                         defaultMessage='Enable Post Formatting'
                     />
                 }
-                describe={this.renderOnOffLabel(this.state.settings.formatting)}
-                section={'formatting'}
                 updateSection={this.handleUpdateSection}
-                max={max}
             />
         );
     };
@@ -428,88 +357,24 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     renderSyncDraftsSection = () => {
-        const active = this.props.activeSection === AdvancedSections.SYNC_DRAFTS;
-        let max = null;
-        if (active) {
-            max = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.advance.syncDrafts.Title'
-                            defaultMessage='Allow message drafts to sync with the server'
-                        />
-                    }
-                    inputs={[
-                        <fieldset key='syncDraftsSetting'>
-                            <legend className='form-legend hidden-label'>
-                                <FormattedMessage
-                                    id='user.settings.advance.syncDrafts.Title'
-                                    defaultMessage='Allow message drafts to sync with the server'
-                                />
-                            </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='syncDraftsOn'
-                                        type='radio'
-                                        name='syncDrafts'
-                                        checked={this.state.settings.sync_drafts !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'sync_drafts', 'true')}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='syncDraftsOff'
-                                        type='radio'
-                                        name='syncDrafts'
-                                        checked={this.state.settings.sync_drafts === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'sync_drafts', 'false')}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
-                                    />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='mt-5'>
-                                <FormattedMessage
-                                    id='user.settings.advance.syncDrafts.Desc'
-                                    defaultMessage='When enabled, message drafts are synced with the server so they can be accessed from any device. When disabled, message drafts are only saved locally on the device where they are composed.'
-                                />
-                            </div>
-                        </fieldset>,
-                    ]}
-                    setting={AdvancedSections.SYNC_DRAFTS}
-                    submit={this.handleSubmit.bind(this, ['sync_drafts'])}
-                    saving={this.state.isSaving}
-                    serverError={this.state.serverError}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
-        }
-
         return (
-            <SettingItem
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+            <UserSettingBoolean
+                activeSection={this.props.activeSection}
+                currentValue={this.props.formatting}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.advance.syncDrafts.Desc'
+                        defaultMessage='When enabled, message drafts are synced with the server so they can be accessed from any device. When disabled, message drafts are only saved locally on the device where they are composed.'
+                    />
+                }
+                onSubmit={this.handleSubmitPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'sync_drafts')}
                 title={
                     <FormattedMessage
                         id='user.settings.advance.syncDrafts.Title'
                         defaultMessage='Allow message drafts to sync with the server'
                     />
                 }
-                describe={this.renderOnOffLabel(this.state.settings.sync_drafts)}
-                section={AdvancedSections.SYNC_DRAFTS}
                 updateSection={this.handleUpdateSection}
-                max={max}
             />
         );
     };
@@ -754,10 +619,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {ctrlSendSection}
                     {formattingSection}
                     <JoinLeaveSection
-                        active={this.props.activeSection === AdvancedSections.JOIN_LEAVE}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        activeSection={this.props.activeSection}
                         updateSection={this.handleUpdateSection}
-                        renderOnOffLabel={this.renderOnOffLabel}
                         adminMode={this.props.adminMode}
                         userPreferences={this.props.userPreferences}
                         userId={this.props.user.id}
@@ -775,7 +638,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         activeSection={this.props.activeSection}
                         updateSection={this.handleUpdateSection}
                         adminMode={this.props.adminMode}
-                        renderOnOffLabel={this.renderOnOffLabel}
                     />
                     {deactivateAccountSection}
                     <div className='divider-dark'/>
