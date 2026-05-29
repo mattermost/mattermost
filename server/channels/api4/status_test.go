@@ -137,6 +137,33 @@ func TestGetUserStatusWithAutoStatusUpdateDisabled(t *testing.T) {
 		require.NoError(t, appErr)
 		assert.Equal(t, "online", userStatus.Status)
 	})
+
+	t.Run("timed DND still expires and restores previous status", func(t *testing.T) {
+		// Even with automatic status updates disabled, the DND expiry job restores
+		// the user out of DND. This path updates the status directly in the store
+		// (Status = PrevStatus) and never calls SetStatusOnline/SetStatusAwayIfNeeded,
+		// so it must not be affected by the auto_status_update preference gate.
+		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From AutoStatus Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
+		defer task.Cancel()
+
+		// Establish a known previous status (online) before entering DND.
+		th.App.SetStatusOnline(th.BasicUser.Id, true)
+		userStatus, _, appErr := client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, appErr)
+		require.Equal(t, "online", userStatus.Status)
+
+		// Enter a timed DND that will expire shortly.
+		th.App.SetStatusDoNotDisturbTimed(th.BasicUser.Id, time.Now().Add(2*time.Second).Unix())
+		userStatus, _, appErr = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, appErr)
+		require.Equal(t, "dnd", userStatus.Status)
+
+		// The DND status must be restored once it expires (not left stuck in DND).
+		require.Eventually(t, func() bool {
+			userStatus, _, appErr = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+			return appErr == nil && userStatus.Status == "online"
+		}, 15*time.Second, 500*time.Millisecond, "DND status was not restored after expiry while auto status updates were disabled")
+	})
 }
 
 func TestGetUsersStatusesByIds(t *testing.T) {
