@@ -5243,12 +5243,12 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
-    "id": "app.access_control.build_subject_for_session.get_session_attributes.app_error",
-    "translation": "Failed to retrieve the session attributes."
-  },
-  {
     "id": "app.access_control.get_channel_role.app_error",
     "translation": "Unable to get channel role for the user. Please try again."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Failed to retrieve the session attributes."
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -7675,10 +7675,6 @@
   {
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "You do not satisfy one or more conditions in this policy."
-  },
-  {
-    "id": "app.pap.save_policy.user_session_unsupported.app_error",
-    "translation": "Session attributes are not supported for policy simulation."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
