@@ -889,9 +889,18 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 }
 
 // filterSharedOnlyFieldOptions filters a field's options to only include those the caller has values for.
+//
+// Rank fields are the exception: rather than exact-match membership, a rank
+// field exposes every option at or below the caller's own rank ("everything at
+// your rank and lower"), so a higher-cleared caller sees the full ladder up to
+// their level. See filterSharedOnlyRankFieldOptions.
 func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect && field.Type != model.PropertyFieldTypeRank {
 		return field
+	}
+
+	if field.Type == model.PropertyFieldTypeRank {
+		return h.filterSharedOnlyRankFieldOptions(field, callerID)
 	}
 
 	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
@@ -934,8 +943,104 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 	return filteredField
 }
 
+// filterSharedOnlyRankFieldOptions filters a rank field's options to those at
+// or below the caller's own rank, rather than the exact-match intersection
+// used for select/multiselect. A caller who holds no value for the field (and
+// therefore has no rank) sees no options.
+func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
+	rankByID := buildOptionRankMap(field)
+	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
+	if !ok {
+		filteredField := h.copyPropertyField(field)
+		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+		return filteredField
+	}
+
+	if field.Attrs == nil {
+		return field
+	}
+	optionsArr, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return field
+	}
+	optionsSlice, ok := optionsArr.([]any)
+	if !ok {
+		return field
+	}
+
+	filteredOptions := []any{}
+	for _, opt := range optionsSlice {
+		optMap, ok := opt.(map[string]any)
+		if !ok {
+			continue
+		}
+		optID, ok := optMap["id"].(string)
+		if !ok {
+			continue
+		}
+		rank, ok := rankByID[optID]
+		if !ok {
+			continue
+		}
+		if rank <= callerRank {
+			filteredOptions = append(filteredOptions, opt)
+		}
+	}
+
+	filteredField := h.copyPropertyField(field)
+	filteredField.Attrs[model.PropertyFieldAttributeOptions] = filteredOptions
+	return filteredField
+}
+
+// callerRankForField returns the rank the caller holds for a rank field, using
+// the already-built option-ID-to-rank map. A rank field is select-shaped (a
+// single value per user), so the caller has at most one option; we take it.
+// ok is false when the caller has no value for the field or the option carries
+// no rank, in which case the caller has no clearance and sees nothing.
+func (h *AccessControlHook) callerRankForField(field *model.PropertyField, callerID string, rankByID map[string]int) (int, bool) {
+	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil || len(callerOptionIDs) == 0 {
+		return 0, false
+	}
+
+	var callerOptionID string
+	for id := range callerOptionIDs {
+		callerOptionID = id
+		break
+	}
+
+	rank, ok := rankByID[callerOptionID]
+	return rank, ok
+}
+
+// buildOptionRankMap returns a map of option ID to rank for a rank field.
+// Options without a rank are skipped.
+func buildOptionRankMap(field *model.PropertyField) map[string]int {
+	out := map[string]int{}
+	if field.Attrs == nil {
+		return out
+	}
+	rawOpts, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return out
+	}
+	opts, err := model.NewPropertyOptionsFromFieldAttrs[*model.CustomProfileAttributesSelectOption](rawOpts)
+	if err != nil {
+		return out
+	}
+	for _, o := range opts {
+		if o.Rank == nil {
+			continue
+		}
+		out[o.ID] = *o.Rank
+	}
+	return out
+}
+
 // filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
 // Returns the filtered value or nil if there's no intersection.
+//   - rank: the target's value is visible when its rank is at or below the caller's own
+//     rank ("everything at your rank and lower"). See filterSharedOnlyRankValue.
 //   - select / multiselect: per-value intersection (a multi-value field may return a subset).
 //   - text / date / user / any other primitive type: binary — visible only if the caller's
 //     stored value equals the target's value exactly. Otherwise nil.
@@ -944,7 +1049,11 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 // existence is itself controlled information: a caller who doesn't hold the same value
 // must not see the target's value through any read endpoint.
 func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect && field.Type != model.PropertyFieldTypeRank {
+	if field.Type == model.PropertyFieldTypeRank {
+		return h.filterSharedOnlyRankValue(field, value, callerID)
+	}
+
+	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
 		return h.filterSharedOnlyScalarValue(field, value, callerID)
 	}
 
@@ -972,7 +1081,7 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 	filteredValue := *value
 
 	switch field.Type {
-	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
+	case model.PropertyFieldTypeSelect:
 		jsonValue, err := json.Marshal(intersection[0])
 		if err != nil {
 			return nil
@@ -991,6 +1100,37 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 	default:
 		return nil
 	}
+}
+
+// filterSharedOnlyRankValue returns the target's value when its rank is at or
+// below the caller's own rank ("everything at your rank and lower"), otherwise
+// nil. This differs from select/multiselect, which require an exact option
+// match. A caller who holds no value of their own (and therefore has no rank)
+// sees nothing. A rank field is select-shaped, so the target has at most one
+// option.
+func (h *AccessControlHook) filterSharedOnlyRankValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	rankByID := buildOptionRankMap(field)
+	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
+	if !ok {
+		return nil
+	}
+
+	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
+	if err != nil || len(targetOptionIDs) == 0 {
+		return nil
+	}
+
+	for targetID := range targetOptionIDs {
+		rank, ok := rankByID[targetID]
+		if !ok {
+			continue
+		}
+		if rank <= callerRank {
+			filtered := *value
+			return &filtered
+		}
+	}
+	return nil
 }
 
 // filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
