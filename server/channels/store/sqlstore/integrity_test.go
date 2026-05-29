@@ -792,25 +792,6 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	})
 }
 
-func orphanedRecordsWithChildIDs(records []model.OrphanedRecord, childIDs ...string) []model.OrphanedRecord {
-	childIDSet := make(map[string]struct{}, len(childIDs))
-	for _, childID := range childIDs {
-		childIDSet[childID] = struct{}{}
-	}
-
-	filtered := make([]model.OrphanedRecord, 0, len(childIDs))
-	for _, record := range records {
-		if record.ChildId == nil {
-			continue
-		}
-		if _, ok := childIDSet[*record.ChildId]; ok {
-			filtered = append(filtered, record)
-		}
-	}
-
-	return filtered
-}
-
 func orphanedRecordsWithParentIDs(records []model.OrphanedRecord, parentIDs ...string) []model.OrphanedRecord {
 	parentIDSet := make(map[string]struct{}, len(parentIDs))
 	for _, parentID := range parentIDs {
