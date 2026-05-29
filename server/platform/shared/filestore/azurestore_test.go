@@ -7,13 +7,112 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
+	"net"
 	"os"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
+
+func TestBuildAzureServiceURL(t *testing.T) {
+	const account = "acmemattermost"
+
+	tests := []struct {
+		name     string
+		cloud    string
+		scheme   string
+		endpoint string
+		expected string
+		wantErr  bool
+	}{
+		{
+			name:     "commercial cloud, default scheme",
+			cloud:    model.AzureCloudCommercial,
+			scheme:   "https",
+			expected: "https://acmemattermost.blob.core.windows.net/",
+		},
+		{
+			name:     "empty cloud falls back to commercial for legacy configs",
+			cloud:    "",
+			scheme:   "https",
+			expected: "https://acmemattermost.blob.core.windows.net/",
+		},
+		{
+			name:     "government cloud uses the usgovcloudapi suffix",
+			cloud:    model.AzureCloudGovernment,
+			scheme:   "https",
+			expected: "https://acmemattermost.blob.core.usgovcloudapi.net/",
+		},
+		{
+			name:     "custom cloud returns the endpoint verbatim (vhost-style)",
+			cloud:    model.AzureCloudCustom,
+			scheme:   "https",
+			endpoint: "https://acmemattermost.blob.core.windows.net/",
+			expected: "https://acmemattermost.blob.core.windows.net/",
+		},
+		{
+			name:     "custom cloud returns the endpoint verbatim (Azurite path-style)",
+			cloud:    model.AzureCloudCustom,
+			scheme:   "http",
+			endpoint: "http://localhost:10000/devstoreaccount1/",
+			expected: "http://localhost:10000/devstoreaccount1/",
+		},
+		{
+			name:     "custom cloud preserves arbitrary paths the admin provides",
+			cloud:    model.AzureCloudCustom,
+			scheme:   "https",
+			endpoint: "https://blob-proxy.internal.example.com/some/prefix/account/",
+			expected: "https://blob-proxy.internal.example.com/some/prefix/account/",
+		},
+		{
+			name:    "custom cloud rejects an empty endpoint",
+			cloud:   model.AzureCloudCustom,
+			scheme:  "https",
+			wantErr: true,
+		},
+		{
+			name:     "custom cloud rejects an endpoint missing the scheme",
+			cloud:    model.AzureCloudCustom,
+			scheme:   "https",
+			endpoint: "acmemattermost.blob.core.windows.net/",
+			wantErr:  true,
+		},
+		{
+			name:     "custom cloud rejects an endpoint with no host",
+			cloud:    model.AzureCloudCustom,
+			scheme:   "https",
+			endpoint: "https:///acmemattermost/",
+			wantErr:  true,
+		},
+		{
+			name:     "custom cloud rejects a non-HTTP scheme",
+			cloud:    model.AzureCloudCustom,
+			scheme:   "https",
+			endpoint: "ftp://blob.example.com/",
+			wantErr:  true,
+		},
+		{
+			name:    "unknown cloud value is rejected",
+			cloud:   "azuregermany",
+			scheme:  "https",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := buildAzureServiceURL(tt.cloud, tt.scheme, account, tt.endpoint)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, got)
+		})
+	}
+}
 
 func TestAzureFileBackendPrefix(t *testing.T) {
 	tests := []struct {
@@ -124,12 +223,89 @@ func azuriteSettings(t *testing.T) FileBackendSettings {
 	return FileBackendSettings{
 		DriverName:                      driverAzure,
 		AzureStorageAccount:             azuriteWellKnownAccount,
+		AzureAuthMode:                   model.AzureAuthModeSharedKey,
 		AzureAccessKey:                  azuriteWellKnownKey,
 		AzureContainer:                  "mattermost-test",
-		AzureEndpoint:                   fmt.Sprintf("%s:%s", host, port),
+		AzureCloud:                      model.AzureCloudCustom,
+		AzureEndpoint:                   "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
+		AzureRequestTimeoutMilliseconds: 30000,
+	}
+}
+
+func TestNewAzureFileBackendAuthMode(t *testing.T) {
+	base := FileBackendSettings{
+		DriverName:                      driverAzure,
+		AzureStorageAccount:             "anaccount",
+		AzureContainer:                  "acontainer",
+		AzureEndpoint:                   "localhost:10000",
 		AzureSSL:                        false,
 		AzureRequestTimeoutMilliseconds: 30000,
 	}
+
+	t.Run("shared_key constructs a client", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeSharedKey
+		s.AzureAccessKey = azuriteWellKnownKey
+
+		be, err := NewAzureFileBackend(s)
+		require.NoError(t, err)
+		require.NotNil(t, be.client)
+	})
+
+	t.Run("default_credential constructs a client without an access key", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeDefaultCredential
+		// Intentionally no AzureAccessKey - default credential reads
+		// identity from the host environment, not config.
+
+		be, err := NewAzureFileBackend(s)
+		require.NoError(t, err)
+		require.NotNil(t, be.client)
+	})
+
+	t.Run("empty AuthMode is rejected", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = ""
+		s.AzureAccessKey = azuriteWellKnownKey
+
+		_, err := NewAzureFileBackend(s)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unknown azure auth mode")
+	})
+
+	t.Run("unknown AuthMode is rejected", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = "oauth2"
+		s.AzureAccessKey = azuriteWellKnownKey
+
+		_, err := NewAzureFileBackend(s)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unknown azure auth mode")
+	})
+}
+
+func TestCheckMandatoryAzureFieldsAuthMode(t *testing.T) {
+	base := FileBackendSettings{
+		AzureStorageAccount: "anaccount",
+		AzureContainer:      "acontainer",
+	}
+
+	t.Run("shared_key requires access key", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeSharedKey
+		s.AzureAccessKey = ""
+		require.Error(t, s.CheckMandatoryAzureFields())
+
+		s.AzureAccessKey = "somekey"
+		require.NoError(t, s.CheckMandatoryAzureFields())
+	})
+
+	t.Run("default_credential does not require access key", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeDefaultCredential
+		s.AzureAccessKey = ""
+		require.NoError(t, s.CheckMandatoryAzureFields())
+	})
 }
 
 func TestAzureFileBackendTestSuite(t *testing.T) {
