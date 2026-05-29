@@ -952,8 +952,29 @@ func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 	})
 }
 
+func orphanedRecordsWithParentIDs(records []model.OrphanedRecord, parentIDs ...string) []model.OrphanedRecord {
+	parentIDSet := make(map[string]struct{}, len(parentIDs))
+	for _, parentID := range parentIDs {
+		parentIDSet[parentID] = struct{}{}
+	}
+
+	filtered := make([]model.OrphanedRecord, 0, len(parentIDs))
+	for _, record := range records {
+		if record.ParentId == nil {
+			continue
+		}
+		if _, ok := parentIDSet[*record.ParentId]; ok {
+			filtered = append(filtered, record)
+		}
+	}
+
+	return filtered
+}
+
 func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		ss.DropAllTables()
+
 		store := ss.(*SqlStore)
 		dbmap := store.GetMaster()
 
@@ -971,10 +992,11 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithParentIDs(data.Records, team.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &team.Id,
-			}, data.Records[0])
+			}, records[0])
 			ss.Team().RemoveAllMembersByTeam(member.TeamId)
 		})
 	})
