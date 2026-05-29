@@ -148,31 +148,12 @@ type State = {
 };
 
 export default class UserSettingsDisplay extends React.PureComponent<Props, State> {
-    public prevSections: {
-        theme: string;
-
-        clock: string;
-        linkpreview: string;
-        message_display: string;
-        channel_display_mode: string;
-        languages: string;
-    };
-
     constructor(props: Props) {
         super(props);
 
         this.state = {
             ...getDisplayStateFromProps(props),
             isSaving: false,
-        };
-
-        this.prevSections = {
-            theme: 'dummySectionName', // dummy value that should never match any section name
-            clock: 'theme',
-            linkpreview: 'clock',
-            message_display: 'linkpreview',
-            channel_display_mode: 'message_display',
-            languages: 'channel_display_mode',
         };
     }
 
@@ -701,9 +682,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     defaultMessage: 'When available, the first web link in a message will show a preview of the website content below the message.',
                 }),
             });
-            this.prevSections.message_display = 'linkpreview';
-        } else {
-            this.prevSections.message_display = this.prevSections.linkpreview;
         }
 
         let lastActiveSection = null;
