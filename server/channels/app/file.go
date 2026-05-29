@@ -60,16 +60,37 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	var fileBackendSettings filestore.FileBackendSettings
+	bucket := settings.AmazonS3Bucket
 	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
-	} else {
-		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+		bucket = settings.ExportAmazonS3Bucket
 	}
+	if bucket == nil || *bucket == "" {
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
 
-	err := fileBackendSettings.CheckMandatoryS3Fields()
-	if err != nil {
-		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
+func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.AppError {
+	storageAccount := settings.AzureStorageAccount
+	authMode := settings.AzureAuthMode
+	accessKey := settings.AzureAccessKey
+	container := settings.AzureContainer
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		storageAccount = settings.ExportAzureStorageAccount
+		authMode = settings.ExportAzureAuthMode
+		accessKey = settings.ExportAzureAccessKey
+		container = settings.ExportAzureContainer
+	}
+	if storageAccount == nil || *storageAccount == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure storage account setting", http.StatusBadRequest)
+	}
+	if container == nil || *container == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure container setting", http.StatusBadRequest)
+	}
+	// Access key only matters under shared-key auth. Default credential pulls
+	// identity from the host environment.
+	if authMode != nil && *authMode == model.AzureAuthModeSharedKey && (accessKey == nil || *accessKey == "") {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure access key setting", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -1598,19 +1619,24 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.
 		return nil, nil
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get user for file download permission filtering",
-			mlog.String("user_id", userID),
-			mlog.Err(err),
-		)
-		return nil, err
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
+	} else {
+		user, err := a.GetUser(userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get user for file download permission filtering",
+				mlog.String("user_id", userID),
+				mlog.Err(err),
+			)
+			return nil, err
+		}
+		// channelID is intentionally empty here: the subject is reused across many
+		// channels in the file-search loop. hasFileDownloadPermission attaches the
+		// channel-scoped role per-evaluation via attachChannelScopedRole.
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	}
-
-	// channelID is intentionally empty here: the subject is reused across many
-	// channels in the file-search loop. hasFileDownloadPermission attaches the
-	// channel-scoped role per-evaluation via attachChannelScopedRole.
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),
