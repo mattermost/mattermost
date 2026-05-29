@@ -91,45 +91,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r1v:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1v:Title :r1v:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1v:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r1v:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -179,15 +176,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1f:Title"
+            id=":r20:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1f:Title :r1f:Edit"
+            aria-labelledby=":r20:Title :r20:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1f:Edit"
+            id=":r20:Edit"
           >
             <i
               aria-hidden="true"
@@ -199,7 +196,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1f:Desc"
+          id=":r20:Desc"
         >
           On
         </div>
@@ -215,15 +212,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1g:Title"
+            id=":r21:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1g:Title :r1g:Edit"
+            aria-labelledby=":r21:Title :r21:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1g:Edit"
+            id=":r21:Edit"
           >
             <i
               aria-hidden="true"
@@ -235,7 +232,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1g:Desc"
+          id=":r21:Desc"
         >
           On
         </div>
@@ -251,15 +248,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1h:Title"
+            id=":r22:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1h:Title :r1h:Edit"
+            aria-labelledby=":r22:Title :r22:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1h:Edit"
+            id=":r22:Edit"
           >
             <i
               aria-hidden="true"
@@ -271,7 +268,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1h:Desc"
+          id=":r22:Desc"
         >
           On
         </div>
@@ -279,45 +276,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r23:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r23:Title :r23:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r23:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r23:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -365,15 +359,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1i:Title"
+            id=":r24:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1i:Title :r1i:Edit"
+            aria-labelledby=":r24:Title :r24:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1i:Edit"
+            id=":r24:Edit"
           >
             <i
               aria-hidden="true"
@@ -385,7 +379,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1i:Desc"
+          id=":r24:Desc"
         >
           On
         </div>
@@ -459,7 +453,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   role="alert"
                 />
                 <button
-                  class="btn btn-primary a11y--active a11y--focused"
+                  class="btn btn-primary"
                   data-testid="saveSetting"
                   id="saveSetting"
                   type="submit"
@@ -494,15 +488,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1j:Title"
+            id=":r25:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1j:Title :r1j:Edit"
+            aria-labelledby=":r25:Title :r25:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1j:Edit"
+            id=":r25:Edit"
           >
             <i
               aria-hidden="true"
@@ -514,7 +508,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1j:Desc"
+          id=":r25:Desc"
         >
           On
         </div>
@@ -530,15 +524,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1k:Title"
+            id=":r26:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1k:Title :r1k:Edit"
+            aria-labelledby=":r26:Title :r26:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1k:Edit"
+            id=":r26:Edit"
           >
             <i
               aria-hidden="true"
@@ -550,7 +544,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1k:Desc"
+          id=":r26:Desc"
         >
           On
         </div>
@@ -695,45 +689,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r2v:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2v:Title :r2v:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2v:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r2v:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -783,15 +774,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r27:Title"
+            id=":r30:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r27:Title :r27:Edit"
+            aria-labelledby=":r30:Title :r30:Edit"
             class="color--link style--none section-min__edit"
-            id=":r27:Edit"
+            id=":r30:Edit"
           >
             <i
               aria-hidden="true"
@@ -803,7 +794,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r27:Desc"
+          id=":r30:Desc"
         >
           On
         </div>
@@ -819,15 +810,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r28:Title"
+            id=":r31:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r28:Title :r28:Edit"
+            aria-labelledby=":r31:Title :r31:Edit"
             class="color--link style--none section-min__edit"
-            id=":r28:Edit"
+            id=":r31:Edit"
           >
             <i
               aria-hidden="true"
@@ -839,7 +830,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r28:Desc"
+          id=":r31:Desc"
         >
           On
         </div>
@@ -855,15 +846,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r29:Title"
+            id=":r32:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r29:Title :r29:Edit"
+            aria-labelledby=":r32:Title :r32:Edit"
             class="color--link style--none section-min__edit"
-            id=":r29:Edit"
+            id=":r32:Edit"
           >
             <i
               aria-hidden="true"
@@ -875,7 +866,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r29:Desc"
+          id=":r32:Desc"
         >
           On
         </div>
@@ -883,45 +874,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r33:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r33:Title :r33:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r33:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r33:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -994,13 +982,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        checked=""
-                        id=":r2a:On"
-                        name=":r2a:"
+                        id=":r34:false"
+                        name=":r34:"
                         type="radio"
-                        value="true"
+                        value="false"
                       />
-                      On
+                      Off
                     </label>
                   </div>
                   <div
@@ -1008,12 +995,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   >
                     <label>
                       <input
-                        id=":r2a:Off"
-                        name=":r2a:"
+                        checked=""
+                        id=":r34:true"
+                        name=":r34:"
                         type="radio"
-                        value="false"
+                        value="true"
                       />
-                      Off
+                      On
                     </label>
                   </div>
                 </div>
@@ -1104,15 +1092,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2b:Title"
+            id=":r35:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2b:Title :r2b:Edit"
+            aria-labelledby=":r35:Title :r35:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2b:Edit"
+            id=":r35:Edit"
           >
             <i
               aria-hidden="true"
@@ -1124,7 +1112,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2b:Desc"
+          id=":r35:Desc"
         >
           On
         </div>
@@ -1140,15 +1128,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r2c:Title"
+            id=":r36:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r2c:Title :r2c:Edit"
+            aria-labelledby=":r36:Title :r36:Edit"
             class="color--link style--none section-min__edit"
-            id=":r2c:Edit"
+            id=":r36:Edit"
           >
             <i
               aria-hidden="true"
@@ -1160,7 +1148,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r2c:Desc"
+          id=":r36:Desc"
         >
           On
         </div>
@@ -1305,99 +1293,101 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <section
-          class="section-max form-horizontal "
+      <section
+        class="section-max form-horizontal "
+      >
+        <h4
+          class="col-sm-12 section-title"
+          id="settingTitle"
         >
-          <h4
-            class="col-sm-12 section-title"
-            id="settingTitle"
-          >
-            Clock Display
-          </h4>
+          Clock Display
+        </h4>
+        <div
+          class="sectionContent col-sm-10 col-sm-offset-2"
+        >
           <div
-            class="sectionContent col-sm-10 col-sm-offset-2"
+            class="setting-list"
+            tabindex="-1"
           >
             <div
-              class="setting-list"
-              tabindex="-1"
+              class="setting-list-item"
             >
-              <div
-                class="setting-list-item"
-              >
-                <fieldset>
-                  <legend
-                    class="form-legend hidden-label"
-                  >
-                    Clock Display
-                  </legend>
+              <fieldset>
+                <legend
+                  class="form-legend hidden-label"
+                >
+                  Clock Display
+                </legend>
+                <div
+                  role="radiogroup"
+                >
                   <div
                     class="radio"
                   >
                     <label>
                       <input
-                        id="clockFormatA"
-                        name="clockFormat"
+                        id=":rv:false"
+                        name=":rv:"
                         type="radio"
+                        value="false"
                       />
                       12-hour clock (example: 4:00 PM)
                     </label>
-                    <br />
                   </div>
                   <div
                     class="radio"
                   >
                     <label>
                       <input
-                        id="clockFormatB"
-                        name="clockFormat"
+                        id=":rv:true"
+                        name=":rv:"
                         type="radio"
+                        value="true"
                       />
                       24-hour clock (example: 16:00)
                     </label>
-                    <br />
                   </div>
-                  <div>
-                    <br />
-                    Select how you prefer time displayed.
-                  </div>
-                </fieldset>
-              </div>
-              <div
-                class="setting-list-item"
-              >
-                <hr />
+                </div>
                 <div
-                  role="alert"
-                />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                  class="mt-5"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
-              </div>
+                  <p>
+                    Select how you prefer time displayed.
+                  </p>
+                </div>
+              </fieldset>
+            </div>
+            <div
+              class="setting-list-item"
+            >
+              <hr />
+              <div
+                role="alert"
+              />
+              <button
+                class="btn btn-primary"
+                data-testid="saveSetting"
+                id="saveSetting"
+                type="submit"
+              >
+                <span>
+                  Save
+                </span>
+              </button>
+              <button
+                class="btn btn-tertiary"
+                data-testid="cancelButton"
+                id="cancelSetting"
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </section>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
+        </div>
+      </section>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -1447,15 +1437,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rn:Title"
+            id=":r10:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rn:Title :rn:Edit"
+            aria-labelledby=":r10:Title :r10:Edit"
             class="color--link style--none section-min__edit"
-            id=":rn:Edit"
+            id=":r10:Edit"
           >
             <i
               aria-hidden="true"
@@ -1467,7 +1457,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rn:Desc"
+          id=":r10:Desc"
         >
           On
         </div>
@@ -1483,15 +1473,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":ro:Title"
+            id=":r11:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":ro:Title :ro:Edit"
+            aria-labelledby=":r11:Title :r11:Edit"
             class="color--link style--none section-min__edit"
-            id=":ro:Edit"
+            id=":r11:Edit"
           >
             <i
               aria-hidden="true"
@@ -1503,7 +1493,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":ro:Desc"
+          id=":r11:Desc"
         >
           On
         </div>
@@ -1519,15 +1509,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rp:Title"
+            id=":r12:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rp:Title :rp:Edit"
+            aria-labelledby=":r12:Title :r12:Edit"
             class="color--link style--none section-min__edit"
-            id=":rp:Edit"
+            id=":r12:Edit"
           >
             <i
               aria-hidden="true"
@@ -1539,7 +1529,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rp:Desc"
+          id=":r12:Desc"
         >
           On
         </div>
@@ -1547,45 +1537,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r13:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r13:Title :r13:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r13:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r13:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -1633,15 +1620,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rq:Title"
+            id=":r14:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rq:Title :rq:Edit"
+            aria-labelledby=":r14:Title :r14:Edit"
             class="color--link style--none section-min__edit"
-            id=":rq:Edit"
+            id=":r14:Edit"
           >
             <i
               aria-hidden="true"
@@ -1653,7 +1640,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rq:Desc"
+          id=":r14:Desc"
         >
           On
         </div>
@@ -1708,15 +1695,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rr:Title"
+            id=":r15:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rr:Title :rr:Edit"
+            aria-labelledby=":r15:Title :r15:Edit"
             class="color--link style--none section-min__edit"
-            id=":rr:Edit"
+            id=":r15:Edit"
           >
             <i
               aria-hidden="true"
@@ -1728,7 +1715,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rr:Desc"
+          id=":r15:Desc"
         >
           On
         </div>
@@ -1744,15 +1731,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rs:Title"
+            id=":r16:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rs:Title :rs:Edit"
+            aria-labelledby=":r16:Title :r16:Edit"
             class="color--link style--none section-min__edit"
-            id=":rs:Edit"
+            id=":r16:Edit"
           >
             <i
               aria-hidden="true"
@@ -1764,7 +1751,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rs:Desc"
+          id=":r16:Desc"
         >
           On
         </div>
@@ -1909,45 +1896,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r8:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r8:Title :r8:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r8:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r8:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -1997,15 +1981,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r6:Title"
+            id=":r9:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r6:Title :r6:Edit"
+            aria-labelledby=":r9:Title :r9:Edit"
             class="color--link style--none section-min__edit"
-            id=":r6:Edit"
+            id=":r9:Edit"
           >
             <i
               aria-hidden="true"
@@ -2017,7 +2001,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r6:Desc"
+          id=":r9:Desc"
         >
           On
         </div>
@@ -2033,15 +2017,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r7:Title"
+            id=":ra:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r7:Title :r7:Edit"
+            aria-labelledby=":ra:Title :ra:Edit"
             class="color--link style--none section-min__edit"
-            id=":r7:Edit"
+            id=":ra:Edit"
           >
             <i
               aria-hidden="true"
@@ -2053,7 +2037,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r7:Desc"
+          id=":ra:Desc"
         >
           On
         </div>
@@ -2069,15 +2053,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r8:Title"
+            id=":rb:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r8:Title :r8:Edit"
+            aria-labelledby=":rb:Title :rb:Edit"
             class="color--link style--none section-min__edit"
-            id=":r8:Edit"
+            id=":rb:Edit"
           >
             <i
               aria-hidden="true"
@@ -2089,7 +2073,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r8:Desc"
+          id=":rb:Desc"
         >
           On
         </div>
@@ -2097,99 +2081,101 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
-        <section
-          class="section-max form-horizontal "
+      <section
+        class="section-max form-horizontal "
+      >
+        <h4
+          class="col-sm-12 section-title"
+          id="settingTitle"
         >
-          <h4
-            class="col-sm-12 section-title"
-            id="settingTitle"
-          >
-            Default Appearance of Image Previews
-          </h4>
+          Default Appearance of Image Previews
+        </h4>
+        <div
+          class="sectionContent col-sm-10 col-sm-offset-2"
+        >
           <div
-            class="sectionContent col-sm-10 col-sm-offset-2"
+            class="setting-list"
+            tabindex="-1"
           >
             <div
-              class="setting-list"
-              tabindex="-1"
+              class="setting-list-item"
             >
-              <div
-                class="setting-list-item"
-              >
-                <fieldset>
-                  <legend
-                    class="form-legend hidden-label"
-                  >
-                    Default Appearance of Image Previews
-                  </legend>
+              <fieldset>
+                <legend
+                  class="form-legend hidden-label"
+                >
+                  Default Appearance of Image Previews
+                </legend>
+                <div
+                  role="radiogroup"
+                >
                   <div
                     class="radio"
                   >
                     <label>
                       <input
-                        id="collapseFormatA"
-                        name="collapseFormat"
+                        id=":rc:false"
+                        name=":rc:"
                         type="radio"
-                      />
-                      Expanded
-                    </label>
-                    <br />
-                  </div>
-                  <div
-                    class="radio"
-                  >
-                    <label>
-                      <input
-                        id="collapseFormatB"
-                        name="collapseFormat"
-                        type="radio"
+                        value="false"
                       />
                       Collapsed
                     </label>
-                    <br />
                   </div>
-                  <div>
-                    <br />
-                    Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.
+                  <div
+                    class="radio"
+                  >
+                    <label>
+                      <input
+                        id=":rc:true"
+                        name=":rc:"
+                        type="radio"
+                        value="true"
+                      />
+                      Expanded
+                    </label>
                   </div>
-                </fieldset>
-              </div>
-              <div
-                class="setting-list-item"
-              >
-                <hr />
+                </div>
                 <div
-                  role="alert"
-                />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                  class="mt-5"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
-              </div>
+                  <p>
+                    Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.
+                  </p>
+                </div>
+              </fieldset>
+            </div>
+            <div
+              class="setting-list-item"
+            >
+              <hr />
+              <div
+                role="alert"
+              />
+              <button
+                class="btn btn-primary"
+                data-testid="saveSetting"
+                id="saveSetting"
+                type="submit"
+              >
+                <span>
+                  Save
+                </span>
+              </button>
+              <button
+                class="btn btn-tertiary"
+                data-testid="cancelButton"
+                id="cancelSetting"
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </section>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
+        </div>
+      </section>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -2237,15 +2223,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r9:Title"
+            id=":rd:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r9:Title :r9:Edit"
+            aria-labelledby=":rd:Title :rd:Edit"
             class="color--link style--none section-min__edit"
-            id=":r9:Edit"
+            id=":rd:Edit"
           >
             <i
               aria-hidden="true"
@@ -2257,7 +2243,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r9:Desc"
+          id=":rd:Desc"
         >
           On
         </div>
@@ -2312,15 +2298,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":ra:Title"
+            id=":re:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":ra:Title :ra:Edit"
+            aria-labelledby=":re:Title :re:Edit"
             class="color--link style--none section-min__edit"
-            id=":ra:Edit"
+            id=":re:Edit"
           >
             <i
               aria-hidden="true"
@@ -2332,7 +2318,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":ra:Desc"
+          id=":re:Desc"
         >
           On
         </div>
@@ -2348,15 +2334,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":rb:Title"
+            id=":rf:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":rb:Title :rb:Edit"
+            aria-labelledby=":rf:Title :rf:Edit"
             class="color--link style--none section-min__edit"
-            id=":rb:Edit"
+            id=":rf:Edit"
           >
             <i
               aria-hidden="true"
@@ -2368,7 +2354,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":rb:Desc"
+          id=":rf:Desc"
         >
           On
         </div>
@@ -2513,45 +2499,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r27:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r27:Title :r27:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r27:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r27:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -2601,15 +2584,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1l:Title"
+            id=":r28:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1l:Title :r1l:Edit"
+            aria-labelledby=":r28:Title :r28:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1l:Edit"
+            id=":r28:Edit"
           >
             <i
               aria-hidden="true"
@@ -2621,7 +2604,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1l:Desc"
+          id=":r28:Desc"
         >
           On
         </div>
@@ -2637,15 +2620,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1m:Title"
+            id=":r29:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1m:Title :r1m:Edit"
+            aria-labelledby=":r29:Title :r29:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1m:Edit"
+            id=":r29:Edit"
           >
             <i
               aria-hidden="true"
@@ -2657,7 +2640,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1m:Desc"
+          id=":r29:Desc"
         >
           On
         </div>
@@ -2673,15 +2656,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1n:Title"
+            id=":r2a:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1n:Title :r1n:Edit"
+            aria-labelledby=":r2a:Title :r2a:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1n:Edit"
+            id=":r2a:Edit"
           >
             <i
               aria-hidden="true"
@@ -2693,7 +2676,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1n:Desc"
+          id=":r2a:Desc"
         >
           On
         </div>
@@ -2701,45 +2684,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r2b:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2b:Title :r2b:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2b:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r2b:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -2787,15 +2767,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1o:Title"
+            id=":r2c:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1o:Title :r1o:Edit"
+            aria-labelledby=":r2c:Title :r2c:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1o:Edit"
+            id=":r2c:Edit"
           >
             <i
               aria-hidden="true"
@@ -2807,7 +2787,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1o:Desc"
+          id=":r2c:Desc"
         >
           On
         </div>
@@ -2862,15 +2842,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1p:Title"
+            id=":r2d:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1p:Title :r1p:Edit"
+            aria-labelledby=":r2d:Title :r2d:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1p:Edit"
+            id=":r2d:Edit"
           >
             <i
               aria-hidden="true"
@@ -2882,7 +2862,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1p:Desc"
+          id=":r2d:Desc"
         >
           On
         </div>
@@ -2898,15 +2878,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1q:Title"
+            id=":r2e:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1q:Title :r1q:Edit"
+            aria-labelledby=":r2e:Title :r2e:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1q:Edit"
+            id=":r2e:Edit"
           >
             <i
               aria-hidden="true"
@@ -2918,7 +2898,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1q:Desc"
+          id=":r2e:Desc"
         >
           On
         </div>
@@ -3030,347 +3010,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":rc:Title"
-          >
-            Show online availability on profile images
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rc:Title :rc:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rc:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rc:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":rd:Title"
-          >
-            Share last active time
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rd:Title :rd:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rd:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rd:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="message_displayTitle"
-            >
-              Message Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="message_displayTitle message_displayEdit"
-              class="color--link style--none section-min__edit"
-              id="message_displayEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="message_displayDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":re:Title"
-          >
-            Click to open threads
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":re:Title :re:Edit"
-            class="color--link style--none section-min__edit"
-            id=":re:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":re:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="channel_display_modeTitle"
-            >
-              Channel Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
-              class="color--link style--none section-min__edit"
-              id="channel_display_modeEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="channel_display_modeDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":rf:Title"
-          >
-            Quick reactions on messages
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rf:Title :rf:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rf:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rf:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
       <div
         class="section-min"
       >
@@ -3381,7 +3020,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":rg:Title"
           >
-            Render emoticons as emojis
+            Clock Display
           </h4>
           <button
             aria-expanded="false"
@@ -3401,188 +3040,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="section-min__describe"
           id=":rg:Desc"
         >
-          On
+          24-hour clock (example: 16:00)
         </div>
       </div>
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="languagesTitle"
-            >
-              Language
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="languagesTitle languagesEdit"
-              class="color--link style--none section-min__edit"
-              id="languagesEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="languagesDesc"
-          >
-            English (US)
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, link preview section with EnableLinkPreviews is true 1`] = `
-<div>
-  <div
-    aria-labelledby="displayButton"
-    id="displaySettings"
-    role="tabpanel"
-  >
-    <div
-      class="modal-header"
-    >
-      <button
-        class="close"
-        data-dismiss="modal"
-        id="closeButton"
-        type="button"
-      >
-        <span
-          aria-hidden="true"
-        >
-          ×
-        </span>
-      </button>
-      <h4
-        class="modal-title"
-      >
-        <div
-          class="modal-back"
-        >
-          <i
-            aria-label="Collapse Icon"
-            class="fa fa-angle-left"
-          />
-        </div>
-        Display Settings
-      </h4>
-    </div>
-    <div
-      class="user-settings"
-    >
-      <div
-        class="userSettingDesktopHeader"
-      >
-        <h3
-          class="tab-header"
-          id="displaySettingsTitle"
-        >
-          Display Settings
-        </h3>
-      </div>
-      <div
-        class="divider-dark first"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapsed_reply_threadsTitle"
-            >
-              Threaded Discussions
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
-              class="color--link style--none section-min__edit"
-              id="collapsed_reply_threadsEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapsed_reply_threadsDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div>
         <div
           class="section-min"
@@ -3706,7 +3169,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             class="section-min__title"
             id=":rj:Title"
           >
-            Website Link Previews
+            Default Appearance of Image Previews
           </h4>
           <button
             aria-expanded="false"
@@ -3726,51 +3189,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="section-min__describe"
           id=":rj:Desc"
         >
-          On
+          Expanded
         </div>
       </div>
       <div
         class="divider-light"
       />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
       <div>
         <div
           class="section-min"
@@ -4003,6 +3427,550 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 </div>
 `;
 
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, link preview section with EnableLinkPreviews is true 1`] = `
+<div>
+  <div
+    aria-labelledby="displayButton"
+    id="displaySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Display Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+          id="displaySettingsTitle"
+        >
+          Display Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="collapsed_reply_threadsTitle"
+            >
+              Threaded Discussions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
+              class="color--link style--none section-min__edit"
+              id="collapsed_reply_threadsEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="collapsed_reply_threadsDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rn:Title"
+          >
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rn:Title :rn:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rn:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rn:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="name_formatTitle"
+            >
+              Teammate Name Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="name_formatTitle name_formatEdit"
+              class="color--link style--none section-min__edit"
+              id="name_formatEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="name_formatDesc"
+          >
+            Show first and last name
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":ro:Title"
+          >
+            Show online availability on profile images
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":ro:Title :ro:Edit"
+            class="color--link style--none section-min__edit"
+            id=":ro:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":ro:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rp:Title"
+          >
+            Share last active time
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rp:Title :rp:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rp:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rp:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rq:Title"
+          >
+            Website Link Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rq:Title :rq:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rq:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rq:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rr:Title"
+          >
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rr:Title :rr:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rr:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rr:Desc"
+        >
+          Expanded
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="message_displayTitle"
+            >
+              Message Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="message_displayTitle message_displayEdit"
+              class="color--link style--none section-min__edit"
+              id="message_displayEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="message_displayDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rs:Title"
+          >
+            Click to open threads
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rs:Title :rs:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rs:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rs:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channel_display_modeTitle"
+            >
+              Channel Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
+              class="color--link style--none section-min__edit"
+              id="channel_display_modeEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channel_display_modeDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":rt:Title"
+          >
+            Quick reactions on messages
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":rt:Title :rt:Edit"
+            class="color--link style--none section-min__edit"
+            id=":rt:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":rt:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":ru:Title"
+          >
+            Render emoticons as emojis
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":ru:Title :ru:Edit"
+            class="color--link style--none section-min__edit"
+            id=":ru:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":ru:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="languagesTitle"
+            >
+              Language
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="languagesTitle languagesEdit"
+              class="color--link style--none section-min__edit"
+              id="languagesEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="languagesDesc"
+          >
+            English (US)
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, message display section 1`] = `
 <div>
   <div
@@ -4094,45 +4062,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r1n:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1n:Title :r1n:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1n:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r1n:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -4182,15 +4147,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r19:Title"
+            id=":r1o:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r19:Title :r19:Edit"
+            aria-labelledby=":r1o:Title :r1o:Edit"
             class="color--link style--none section-min__edit"
-            id=":r19:Edit"
+            id=":r1o:Edit"
           >
             <i
               aria-hidden="true"
@@ -4202,7 +4167,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r19:Desc"
+          id=":r1o:Desc"
         >
           On
         </div>
@@ -4218,15 +4183,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1a:Title"
+            id=":r1p:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1a:Title :r1a:Edit"
+            aria-labelledby=":r1p:Title :r1p:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1a:Edit"
+            id=":r1p:Edit"
           >
             <i
               aria-hidden="true"
@@ -4238,7 +4203,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1a:Desc"
+          id=":r1p:Desc"
         >
           On
         </div>
@@ -4254,15 +4219,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1b:Title"
+            id=":r1q:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1b:Title :r1b:Edit"
+            aria-labelledby=":r1q:Title :r1q:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1b:Edit"
+            id=":r1q:Edit"
           >
             <i
               aria-hidden="true"
@@ -4274,7 +4239,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1b:Desc"
+          id=":r1q:Desc"
         >
           On
         </div>
@@ -4282,45 +4247,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r1r:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1r:Title :r1r:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1r:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r1r:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <section
           class="section-max form-horizontal "
@@ -4399,7 +4361,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   role="alert"
                 />
                 <button
-                  class="btn btn-primary a11y--active a11y--focused"
+                  class="btn btn-primary"
                   data-testid="saveSetting"
                   id="saveSetting"
                   type="submit"
@@ -4419,6 +4381,1094 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             </div>
           </div>
         </section>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r1s:Title"
+          >
+            Click to open threads
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1s:Title :r1s:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1s:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1s:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channel_display_modeTitle"
+            >
+              Channel Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
+              class="color--link style--none section-min__edit"
+              id="channel_display_modeEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channel_display_modeDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r1t:Title"
+          >
+            Quick reactions on messages
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1t:Title :r1t:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1t:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1t:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r1u:Title"
+          >
+            Render emoticons as emojis
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1u:Title :r1u:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1u:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1u:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="languagesTitle"
+            >
+              Language
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="languagesTitle languagesEdit"
+              class="color--link style--none section-min__edit"
+              id="languagesEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="languagesDesc"
+          >
+            English (US)
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, no active section 1`] = `
+<div>
+  <div
+    aria-labelledby="displayButton"
+    id="displaySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Display Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+          id="displaySettingsTitle"
+        >
+          Display Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="collapsed_reply_threadsTitle"
+            >
+              Threaded Discussions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
+              class="color--link style--none section-min__edit"
+              id="collapsed_reply_threadsEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="collapsed_reply_threadsDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r0:Title"
+          >
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r0:Title :r0:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r0:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r0:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="name_formatTitle"
+            >
+              Teammate Name Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="name_formatTitle name_formatEdit"
+              class="color--link style--none section-min__edit"
+              id="name_formatEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="name_formatDesc"
+          >
+            Show first and last name
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r1:Title"
+          >
+            Show online availability on profile images
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1:Title :r1:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r2:Title"
+          >
+            Share last active time
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2:Title :r2:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r2:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r3:Title"
+          >
+            Website Link Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r3:Title :r3:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r3:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r3:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r4:Title"
+          >
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r4:Title :r4:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r4:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r4:Desc"
+        >
+          Expanded
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="message_displayTitle"
+            >
+              Message Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="message_displayTitle message_displayEdit"
+              class="color--link style--none section-min__edit"
+              id="message_displayEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="message_displayDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r5:Title"
+          >
+            Click to open threads
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r5:Title :r5:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r5:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r5:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channel_display_modeTitle"
+            >
+              Channel Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
+              class="color--link style--none section-min__edit"
+              id="channel_display_modeEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channel_display_modeDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r6:Title"
+          >
+            Quick reactions on messages
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r6:Title :r6:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r6:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r6:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r7:Title"
+          >
+            Render emoticons as emojis
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r7:Title :r7:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r7:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r7:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="languagesTitle"
+            >
+              Language
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="languagesTitle languagesEdit"
+              class="color--link style--none section-min__edit"
+              id="languagesEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="languagesDesc"
+          >
+            English (US)
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, teammate name display section 1`] = `
+<div>
+  <div
+    aria-labelledby="displayButton"
+    id="displaySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Display Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+          id="displaySettingsTitle"
+        >
+          Display Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="collapsed_reply_threadsTitle"
+            >
+              Threaded Discussions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
+              class="color--link style--none section-min__edit"
+              id="collapsed_reply_threadsEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="collapsed_reply_threadsDesc"
+          />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r17:Title"
+          >
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r17:Title :r17:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r17:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r17:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="name_formatTitle"
+            >
+              Teammate Name Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="name_formatTitle name_formatEdit"
+              class="color--link style--none section-min__edit"
+              id="name_formatEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="name_formatDesc"
+          >
+            Show first and last name
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r18:Title"
+          >
+            Show online availability on profile images
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r18:Title :r18:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r18:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r18:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r19:Title"
+          >
+            Share last active time
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r19:Title :r19:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r19:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r19:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r1a:Title"
+          >
+            Website Link Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1a:Title :r1a:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1a:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1a:Desc"
+        >
+          On
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id=":r1b:Title"
+          >
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1b:Title :r1b:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1b:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id=":r1b:Desc"
+        >
+          Expanded
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div>
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="message_displayTitle"
+            >
+              Message Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="message_displayTitle message_displayEdit"
+              class="color--link style--none section-min__edit"
+              id="message_displayEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="message_displayDesc"
+          />
+        </div>
         <div
           class="divider-light"
         />
@@ -4619,1106 +5669,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 </div>
 `;
 
-exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, no active section 1`] = `
-<div>
-  <div
-    aria-labelledby="displayButton"
-    id="displaySettings"
-    role="tabpanel"
-  >
-    <div
-      class="modal-header"
-    >
-      <button
-        class="close"
-        data-dismiss="modal"
-        id="closeButton"
-        type="button"
-      >
-        <span
-          aria-hidden="true"
-        >
-          ×
-        </span>
-      </button>
-      <h4
-        class="modal-title"
-      >
-        <div
-          class="modal-back"
-        >
-          <i
-            aria-label="Collapse Icon"
-            class="fa fa-angle-left"
-          />
-        </div>
-        Display Settings
-      </h4>
-    </div>
-    <div
-      class="user-settings"
-    >
-      <div
-        class="userSettingDesktopHeader"
-      >
-        <h3
-          class="tab-header"
-          id="displaySettingsTitle"
-        >
-          Display Settings
-        </h3>
-      </div>
-      <div
-        class="divider-dark first"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapsed_reply_threadsTitle"
-            >
-              Threaded Discussions
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
-              class="color--link style--none section-min__edit"
-              id="collapsed_reply_threadsEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapsed_reply_threadsDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r0:Title"
-          >
-            Show online availability on profile images
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r0:Title :r0:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r0:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r0:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r1:Title"
-          >
-            Share last active time
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r1:Title :r1:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r1:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r1:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r2:Title"
-          >
-            Website Link Previews
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r2:Title :r2:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r2:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r2:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="message_displayTitle"
-            >
-              Message Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="message_displayTitle message_displayEdit"
-              class="color--link style--none section-min__edit"
-              id="message_displayEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="message_displayDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r3:Title"
-          >
-            Click to open threads
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r3:Title :r3:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r3:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r3:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="channel_display_modeTitle"
-            >
-              Channel Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
-              class="color--link style--none section-min__edit"
-              id="channel_display_modeEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="channel_display_modeDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r4:Title"
-          >
-            Quick reactions on messages
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r4:Title :r4:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r4:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r4:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r5:Title"
-          >
-            Render emoticons as emojis
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r5:Title :r5:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r5:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r5:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="languagesTitle"
-            >
-              Language
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="languagesTitle languagesEdit"
-              class="color--link style--none section-min__edit"
-              id="languagesEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="languagesDesc"
-          >
-            English (US)
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, teammate name display section 1`] = `
-<div>
-  <div
-    aria-labelledby="displayButton"
-    id="displaySettings"
-    role="tabpanel"
-  >
-    <div
-      class="modal-header"
-    >
-      <button
-        class="close"
-        data-dismiss="modal"
-        id="closeButton"
-        type="button"
-      >
-        <span
-          aria-hidden="true"
-        >
-          ×
-        </span>
-      </button>
-      <h4
-        class="modal-title"
-      >
-        <div
-          class="modal-back"
-        >
-          <i
-            aria-label="Collapse Icon"
-            class="fa fa-angle-left"
-          />
-        </div>
-        Display Settings
-      </h4>
-    </div>
-    <div
-      class="user-settings"
-    >
-      <div
-        class="userSettingDesktopHeader"
-      >
-        <h3
-          class="tab-header"
-          id="displaySettingsTitle"
-        >
-          Display Settings
-        </h3>
-      </div>
-      <div
-        class="divider-dark first"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapsed_reply_threadsTitle"
-            >
-              Threaded Discussions
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
-              class="color--link style--none section-min__edit"
-              id="collapsed_reply_threadsEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapsed_reply_threadsDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":rt:Title"
-          >
-            Show online availability on profile images
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rt:Title :rt:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rt:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rt:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":ru:Title"
-          >
-            Share last active time
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":ru:Title :ru:Edit"
-            class="color--link style--none section-min__edit"
-            id=":ru:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":ru:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":rv:Title"
-          >
-            Website Link Previews
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":rv:Title :rv:Edit"
-            class="color--link style--none section-min__edit"
-            id=":rv:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":rv:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="message_displayTitle"
-            >
-              Message Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="message_displayTitle message_displayEdit"
-              class="color--link style--none section-min__edit"
-              id="message_displayEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="message_displayDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r10:Title"
-          >
-            Click to open threads
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r10:Title :r10:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r10:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r10:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="channel_display_modeTitle"
-            >
-              Channel Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
-              class="color--link style--none section-min__edit"
-              id="channel_display_modeEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="channel_display_modeDesc"
-          />
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r11:Title"
-          >
-            Quick reactions on messages
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r11:Title :r11:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r11:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r11:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div
-        class="section-min"
-      >
-        <div
-          class="section-min__header"
-        >
-          <h4
-            class="section-min__title"
-            id=":r12:Title"
-          >
-            Render emoticons as emojis
-          </h4>
-          <button
-            aria-expanded="false"
-            aria-labelledby=":r12:Title :r12:Edit"
-            class="color--link style--none section-min__edit"
-            id=":r12:Edit"
-          >
-            <i
-              aria-hidden="true"
-              class="icon-pencil-outline"
-              title="Edit Icon"
-            />
-            Edit
-          </button>
-        </div>
-        <div
-          class="section-min__describe"
-          id=":r12:Desc"
-        >
-          On
-        </div>
-      </div>
-      <div
-        class="divider-light"
-      />
-      <div>
-        <div
-          class="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="languagesTitle"
-            >
-              Language
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="languagesTitle languagesEdit"
-              class="color--link style--none section-min__edit"
-              id="languagesEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="languagesDesc"
-          >
-            English (US)
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, theme section with EnableThemeSelection is false 1`] = `
 <div>
   <div
@@ -5810,45 +5760,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r2f:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2f:Title :r2f:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2f:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r2f:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -5898,15 +5845,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1r:Title"
+            id=":r2g:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1r:Title :r1r:Edit"
+            aria-labelledby=":r2g:Title :r2g:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1r:Edit"
+            id=":r2g:Edit"
           >
             <i
               aria-hidden="true"
@@ -5918,7 +5865,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1r:Desc"
+          id=":r2g:Desc"
         >
           On
         </div>
@@ -5934,15 +5881,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1s:Title"
+            id=":r2h:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1s:Title :r1s:Edit"
+            aria-labelledby=":r2h:Title :r2h:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1s:Edit"
+            id=":r2h:Edit"
           >
             <i
               aria-hidden="true"
@@ -5954,7 +5901,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1s:Desc"
+          id=":r2h:Desc"
         >
           On
         </div>
@@ -5970,15 +5917,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1t:Title"
+            id=":r2i:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1t:Title :r1t:Edit"
+            aria-labelledby=":r2i:Title :r2i:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1t:Edit"
+            id=":r2i:Edit"
           >
             <i
               aria-hidden="true"
@@ -5990,7 +5937,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1t:Desc"
+          id=":r2i:Desc"
         >
           On
         </div>
@@ -5998,45 +5945,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r2j:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2j:Title :r2j:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2j:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r2j:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -6084,15 +6028,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1u:Title"
+            id=":r2k:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1u:Title :r1u:Edit"
+            aria-labelledby=":r2k:Title :r2k:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1u:Edit"
+            id=":r2k:Edit"
           >
             <i
               aria-hidden="true"
@@ -6104,7 +6048,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1u:Desc"
+          id=":r2k:Desc"
         >
           On
         </div>
@@ -6159,15 +6103,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r1v:Title"
+            id=":r2l:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r1v:Title :r1v:Edit"
+            aria-labelledby=":r2l:Title :r2l:Edit"
             class="color--link style--none section-min__edit"
-            id=":r1v:Edit"
+            id=":r2l:Edit"
           >
             <i
               aria-hidden="true"
@@ -6179,7 +6123,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r1v:Desc"
+          id=":r2l:Desc"
         >
           On
         </div>
@@ -6195,15 +6139,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r20:Title"
+            id=":r2m:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r20:Title :r20:Edit"
+            aria-labelledby=":r2m:Title :r2m:Edit"
             class="color--link style--none section-min__edit"
-            id=":r20:Edit"
+            id=":r2m:Edit"
           >
             <i
               aria-hidden="true"
@@ -6215,7 +6159,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r20:Desc"
+          id=":r2m:Desc"
         >
           On
         </div>
@@ -6368,45 +6312,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r2n:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2n:Title :r2n:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2n:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r2n:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -6456,15 +6397,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r21:Title"
+            id=":r2o:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r21:Title :r21:Edit"
+            aria-labelledby=":r2o:Title :r2o:Edit"
             class="color--link style--none section-min__edit"
-            id=":r21:Edit"
+            id=":r2o:Edit"
           >
             <i
               aria-hidden="true"
@@ -6476,7 +6417,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r21:Desc"
+          id=":r2o:Desc"
         >
           On
         </div>
@@ -6492,15 +6433,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r22:Title"
+            id=":r2p:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r22:Title :r22:Edit"
+            aria-labelledby=":r2p:Title :r2p:Edit"
             class="color--link style--none section-min__edit"
-            id=":r22:Edit"
+            id=":r2p:Edit"
           >
             <i
               aria-hidden="true"
@@ -6512,7 +6453,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r22:Desc"
+          id=":r2p:Desc"
         >
           On
         </div>
@@ -6528,15 +6469,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r23:Title"
+            id=":r2q:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r23:Title :r23:Edit"
+            aria-labelledby=":r2q:Title :r2q:Edit"
             class="color--link style--none section-min__edit"
-            id=":r23:Edit"
+            id=":r2q:Edit"
           >
             <i
               aria-hidden="true"
@@ -6548,7 +6489,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r23:Desc"
+          id=":r2q:Desc"
         >
           On
         </div>
@@ -6556,45 +6497,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r2r:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r2r:Title :r2r:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r2r:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r2r:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -6642,15 +6580,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r24:Title"
+            id=":r2s:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r24:Title :r24:Edit"
+            aria-labelledby=":r2s:Title :r2s:Edit"
             class="color--link style--none section-min__edit"
-            id=":r24:Edit"
+            id=":r2s:Edit"
           >
             <i
               aria-hidden="true"
@@ -6662,7 +6600,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r24:Desc"
+          id=":r2s:Desc"
         >
           On
         </div>
@@ -6717,15 +6655,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r25:Title"
+            id=":r2t:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r25:Title :r25:Edit"
+            aria-labelledby=":r2t:Title :r2t:Edit"
             class="color--link style--none section-min__edit"
-            id=":r25:Edit"
+            id=":r2t:Edit"
           >
             <i
               aria-hidden="true"
@@ -6737,7 +6675,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r25:Desc"
+          id=":r2t:Desc"
         >
           On
         </div>
@@ -6753,15 +6691,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r26:Title"
+            id=":r2u:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r26:Title :r26:Edit"
+            aria-labelledby=":r2u:Title :r2u:Edit"
             class="color--link style--none section-min__edit"
-            id=":r26:Edit"
+            id=":r2u:Edit"
           >
             <i
               aria-hidden="true"
@@ -6773,7 +6711,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r26:Desc"
+          id=":r2u:Desc"
         >
           On
         </div>
@@ -6918,45 +6856,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r1f:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1f:Title :r1f:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1f:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r1f:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -7006,15 +6941,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r13:Title"
+            id=":r1g:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r13:Title :r13:Edit"
+            aria-labelledby=":r1g:Title :r1g:Edit"
             class="color--link style--none section-min__edit"
-            id=":r13:Edit"
+            id=":r1g:Edit"
           >
             <i
               aria-hidden="true"
@@ -7026,7 +6961,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r13:Desc"
+          id=":r1g:Desc"
         >
           On
         </div>
@@ -7042,15 +6977,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r14:Title"
+            id=":r1h:Title"
           >
             Share last active time
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r14:Title :r14:Edit"
+            aria-labelledby=":r1h:Title :r1h:Edit"
             class="color--link style--none section-min__edit"
-            id=":r14:Edit"
+            id=":r1h:Edit"
           >
             <i
               aria-hidden="true"
@@ -7062,7 +6997,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r14:Desc"
+          id=":r1h:Desc"
         >
           On
         </div>
@@ -7078,15 +7013,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r15:Title"
+            id=":r1i:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r15:Title :r15:Edit"
+            aria-labelledby=":r1i:Title :r1i:Edit"
             class="color--link style--none section-min__edit"
-            id=":r15:Edit"
+            id=":r1i:Edit"
           >
             <i
               aria-hidden="true"
@@ -7098,7 +7033,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r15:Desc"
+          id=":r1i:Desc"
         >
           On
         </div>
@@ -7106,45 +7041,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r1j:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r1j:Title :r1j:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r1j:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r1j:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -7192,15 +7124,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r16:Title"
+            id=":r1k:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r16:Title :r16:Edit"
+            aria-labelledby=":r1k:Title :r1k:Edit"
             class="color--link style--none section-min__edit"
-            id=":r16:Edit"
+            id=":r1k:Edit"
           >
             <i
               aria-hidden="true"
@@ -7212,7 +7144,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r16:Desc"
+          id=":r1k:Desc"
         >
           On
         </div>
@@ -7267,15 +7199,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r17:Title"
+            id=":r1l:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r17:Title :r17:Edit"
+            aria-labelledby=":r1l:Title :r1l:Edit"
             class="color--link style--none section-min__edit"
-            id=":r17:Edit"
+            id=":r1l:Edit"
           >
             <i
               aria-hidden="true"
@@ -7287,7 +7219,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r17:Desc"
+          id=":r1l:Desc"
         >
           On
         </div>
@@ -7303,15 +7235,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         >
           <h4
             class="section-min__title"
-            id=":r18:Title"
+            id=":r1m:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r18:Title :r18:Edit"
+            aria-labelledby=":r1m:Title :r1m:Edit"
             class="color--link style--none section-min__edit"
-            id=":r18:Edit"
+            id=":r1m:Edit"
           >
             <i
               aria-hidden="true"
@@ -7323,7 +7255,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         </div>
         <div
           class="section-min__describe"
-          id=":r18:Desc"
+          id=":r1m:Desc"
         >
           On
         </div>
@@ -7468,45 +7400,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           class="divider-dark"
         />
       </div>
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r5v:Title"
           >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
+            Clock Display
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r5v:Title :r5v:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r5v:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r5v:Desc"
+        >
+          24-hour clock (example: 16:00)
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -7556,15 +7485,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r4l:Title"
+            id=":r60:Title"
           >
             Show online availability on profile images
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r4l:Title :r4l:Edit"
+            aria-labelledby=":r60:Title :r60:Edit"
             class="color--link style--none section-min__edit"
-            id=":r4l:Edit"
+            id=":r60:Edit"
           >
             <i
               aria-hidden="true"
@@ -7576,7 +7505,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r4l:Desc"
+          id=":r60:Desc"
         >
           On
         </div>
@@ -7592,15 +7521,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r4m:Title"
+            id=":r61:Title"
           >
             Website Link Previews
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r4m:Title :r4m:Edit"
+            aria-labelledby=":r61:Title :r61:Edit"
             class="color--link style--none section-min__edit"
-            id=":r4m:Edit"
+            id=":r61:Edit"
           >
             <i
               aria-hidden="true"
@@ -7612,7 +7541,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r4m:Desc"
+          id=":r61:Desc"
         >
           On
         </div>
@@ -7620,45 +7549,42 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <div
         class="divider-light"
       />
-      <div>
+      <div
+        class="section-min"
+      >
         <div
-          class="section-min"
+          class="section-min__header"
         >
-          <div
-            class="section-min__header"
+          <h4
+            class="section-min__title"
+            id=":r62:Title"
           >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
+            Default Appearance of Image Previews
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby=":r62:Title :r62:Edit"
+            class="color--link style--none section-min__edit"
+            id=":r62:Edit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
         </div>
         <div
-          class="divider-light"
-        />
-        <div
-          class="divider-dark"
-        />
+          class="section-min__describe"
+          id=":r62:Desc"
+        >
+          Expanded
+        </div>
       </div>
+      <div
+        class="divider-light"
+      />
       <div>
         <div
           class="section-min"
@@ -7706,15 +7632,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r4n:Title"
+            id=":r63:Title"
           >
             Click to open threads
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r4n:Title :r4n:Edit"
+            aria-labelledby=":r63:Title :r63:Edit"
             class="color--link style--none section-min__edit"
-            id=":r4n:Edit"
+            id=":r63:Edit"
           >
             <i
               aria-hidden="true"
@@ -7726,7 +7652,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r4n:Desc"
+          id=":r63:Desc"
         >
           On
         </div>
@@ -7781,15 +7707,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r4o:Title"
+            id=":r64:Title"
           >
             Quick reactions on messages
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r4o:Title :r4o:Edit"
+            aria-labelledby=":r64:Title :r64:Edit"
             class="color--link style--none section-min__edit"
-            id=":r4o:Edit"
+            id=":r64:Edit"
           >
             <i
               aria-hidden="true"
@@ -7801,7 +7727,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r4o:Desc"
+          id=":r64:Desc"
         >
           On
         </div>
@@ -7817,15 +7743,15 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         >
           <h4
             class="section-min__title"
-            id=":r4p:Title"
+            id=":r65:Title"
           >
             Render emoticons as emojis
           </h4>
           <button
             aria-expanded="false"
-            aria-labelledby=":r4p:Title :r4p:Edit"
+            aria-labelledby=":r65:Title :r65:Edit"
             class="color--link style--none section-min__edit"
-            id=":r4p:Edit"
+            id=":r65:Edit"
           >
             <i
               aria-hidden="true"
@@ -7837,7 +7763,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         </div>
         <div
           class="section-min__describe"
-          id=":r4p:Desc"
+          id=":r65:Desc"
         >
           On
         </div>

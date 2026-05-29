@@ -121,9 +121,10 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, collapse section', () => {
-        const props = {...requiredProps, activeSection: 'collapse'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+    test('should match snapshot, collapse section', async () => {
+        const {container} = renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Default Appearance of Image Previews Edit'}));
         expect(container).toMatchSnapshot();
     });
 
@@ -147,9 +148,11 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, clock section', () => {
-        const props = {...requiredProps, activeSection: 'clock'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+    test('should match snapshot, clock section', async () => {
+        const {container} = renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Clock Display Edit'}));
+
         expect(container).toMatchSnapshot();
     });
 
@@ -211,30 +214,20 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should have called handleSubmit', async () => {
-        const updateSection = jest.fn();
+    test('should collapse section when Save or Cancel is clicked', async () => {
+        renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
 
-        const props = {...requiredProps, updateSection, activeSection: 'clock'};
-        renderWithContext(<UserSettingsDisplay {...props}/>);
+        await userEvent.click(screen.getByRole('button', {name: 'Clock Display Edit'}));
 
         await userEvent.click(screen.getByTestId('saveSetting'));
-        expect(updateSection).toHaveBeenCalledWith('');
-    });
 
-    test('should have called updateSection', async () => {
-        const updateSection = jest.fn();
+        await expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
 
-        const props = {...requiredProps, updateSection, activeSection: 'clock'};
-        renderWithContext(<UserSettingsDisplay {...props}/>);
+        await userEvent.click(screen.getByRole('button', {name: 'Clock Display Edit'}));
 
-        // Click Save → handleSubmit → updateSection('')
-        await userEvent.click(screen.getByTestId('saveSetting'));
-        expect(updateSection).toHaveBeenCalledWith('');
-
-        // Click Cancel → updateSection is called again
-        updateSection.mockClear();
         await userEvent.click(screen.getByTestId('cancelButton'));
-        expect(updateSection).toHaveBeenCalled();
+
+        await expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
     });
 
     test('should have called closeModal', async () => {
@@ -256,11 +249,12 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should update militaryTime state', async () => {
-        const props = {...requiredProps, activeSection: 'clock'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
 
-        const radioA = container.querySelector('#clockFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#clockFormatB') as HTMLInputElement;
+        await userEvent.click(screen.getByRole('button', {name: 'Clock Display Edit'}));
+
+        const radioA = screen.getByRole('radio', {name: '12-hour clock (example: 4:00 PM)'});
+        const radioB = screen.getByRole('radio', {name: '24-hour clock (example: 16:00)'});
 
         await userEvent.click(radioA);
         expect(radioA).toBeChecked();
@@ -316,11 +310,12 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should update collapseDisplay state', async () => {
-        const props = {...requiredProps, activeSection: 'collapse'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        renderWithUserSettingsState(UserSettingsDisplay, requiredProps);
 
-        const radioA = container.querySelector('#collapseFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#collapseFormatB') as HTMLInputElement;
+        await userEvent.click(screen.getByRole('button', {name: 'Default Appearance of Image Previews Edit'}));
+
+        const radioA = screen.getByRole('radio', {name: 'Collapsed'});
+        const radioB = screen.getByRole('radio', {name: 'Expanded'});
 
         await userEvent.click(radioA);
         expect(radioA).toBeChecked();

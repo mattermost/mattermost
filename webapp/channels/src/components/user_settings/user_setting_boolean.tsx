@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {a11yFocus} from 'utils/utils';
 
 import {useUserSetting, type InputRenderProps} from './user_setting';
+
+const options = ['false', 'true'];
 
 export interface UseBooleanSettingOptions {
 
@@ -32,6 +34,12 @@ export interface UseBooleanSettingOptions {
     onSubmit?: ((value: string) => void) | ((value: string) => Promise<void>);
 
     /**
+     * A callback that renders the label for the given option. Defaults to rendering "Off" for "false" and "On" for
+     * anything else.
+     */
+    renderOptionLabel?: (option: string) => React.ReactNode;
+
+    /**
      * The label for the setting in the UI
      */
     title: React.ReactNode;
@@ -47,9 +55,35 @@ export function useBooleanSetting({
     currentValue,
     helpText,
     onSubmit,
+    renderOptionLabel = renderOnOffLabel,
     updateSection,
     title,
 }: UseBooleanSettingOptions) {
+    const renderInputs = useCallback(({onChange, sectionId, value}: InputRenderProps<string>) => {
+        return (
+            <div role='radiogroup'>
+                {options.map((option) => (
+                    <div
+                        key={option}
+                        className='radio'
+                    >
+                        <label>
+                            <input
+                                id={`${sectionId}${option}`}
+                                type='radio'
+                                value={option}
+                                name={sectionId}
+                                checked={value === option}
+                                onChange={onChange}
+                            />
+                            {renderOptionLabel(option)}
+                        </label>
+                    </div>
+                ))}
+            </div>
+        );
+    }, [renderOptionLabel]);
+
     const {component} = useUserSetting({
         activeSection,
         currentValue,
@@ -57,7 +91,7 @@ export function useBooleanSetting({
         onChange: handleChange,
         onSubmit,
         updateSection,
-        renderMinDescription: renderOnOffLabel,
+        renderMinDescription: renderOptionLabel,
         renderInputs,
         title,
     });
@@ -77,39 +111,6 @@ function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     a11yFocus(e.currentTarget);
 
     return e.currentTarget.value;
-}
-
-function renderInputs({onChange, sectionId, value}: InputRenderProps<string>) {
-    return (
-        <div role='radiogroup'>
-            <div className='radio'>
-                <label>
-                    <input
-                        id={`${sectionId}On`}
-                        type='radio'
-                        value='true'
-                        name={sectionId}
-                        checked={value === 'true'}
-                        onChange={onChange}
-                    />
-                    {renderOnOffLabel('true')}
-                </label>
-            </div>
-            <div className='radio'>
-                <label>
-                    <input
-                        id={`${sectionId}Off`}
-                        type='radio'
-                        value='false'
-                        name={sectionId}
-                        checked={value === 'false'}
-                        onChange={onChange}
-                    />
-                    {renderOnOffLabel('false')}
-                </label>
-            </div>
-        </div>
-    );
 }
 
 /**

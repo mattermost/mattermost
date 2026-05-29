@@ -35,12 +35,10 @@ const Preferences = Constants.Preferences;
 
 function getDisplayStateFromProps(props: Props) {
     return {
-        militaryTime: props.militaryTime,
         teammateNameDisplay: props.teammateNameDisplay,
         channelDisplayMode: props.channelDisplayMode,
         messageDisplay: props.messageDisplay,
         colorizeUsernames: props.colorizeUsernames,
-        collapseDisplay: props.collapseDisplay,
         collapsedReplyThreads: props.collapsedReplyThreads,
     };
 }
@@ -126,12 +124,10 @@ type Props = OwnProps & {
 type State = {
     [key: string]: any;
     isSaving: boolean;
-    militaryTime: string;
     teammateNameDisplay: string;
     channelDisplayMode: string;
     messageDisplay: string;
     colorizeUsernames: string;
-    collapseDisplay: string;
     collapsedReplyThreads: string;
     handleSubmit?: () => void;
     serverError?: string;
@@ -179,12 +175,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     handleSubmit = async () => {
         const userId = this.props.user.id;
 
-        const timePreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.USE_MILITARY_TIME,
-            value: this.state.militaryTime,
-        };
         const teammateNameDisplayPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -209,12 +199,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.COLORIZE_USERNAMES,
             value: this.state.colorizeUsernames,
         };
-        const collapseDisplayPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.COLLAPSE_DISPLAY,
-            value: this.state.collapseDisplay,
-        };
         const collapsedReplyThreadsPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -225,11 +209,9 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         this.setState({isSaving: true});
 
         const preferences = [
-            timePreference,
             channelDisplayModePreference,
             messageDisplayPreference,
             collapsedReplyThreadsPreference,
-            collapseDisplayPreference,
             teammateNameDisplayPreference,
             colorizeUsernamesPreference,
         ];
@@ -248,10 +230,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }]);
     };
 
-    handleClockRadio = (militaryTime: string) => {
-        this.setState({militaryTime});
-    };
-
     handleTeammateNameDisplayRadio = (teammateNameDisplay: string) => {
         this.setState({teammateNameDisplay});
     };
@@ -266,10 +244,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handlemessageDisplayRadio(messageDisplay: string) {
         this.setState({messageDisplay});
-    }
-
-    handleCollapseRadio(collapseDisplay: string) {
-        this.setState({collapseDisplay});
     }
 
     handleCollapseReplyThreadsRadio(collapsedReplyThreads: string) {
@@ -553,39 +527,64 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         );
     }
 
+    renderCollapseLabel = (value: string) => {
+        if (value === 'false') {
+            return (
+                <FormattedMessage
+                    id='user.settings.display.collapseOff'
+                    defaultMessage='Collapsed'
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.display.collapseOn'
+                defaultMessage='Expanded'
+            />
+        );
+    };
+
+    renderClockLabel = (value: string) => {
+        if (value === 'false') {
+            return (
+                <FormattedMessage
+                    id='user.settings.display.normalClock'
+                    defaultMessage='12-hour clock (example: 4:00 PM)'
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.display.militaryClock'
+                defaultMessage='24-hour clock (example: 16:00)'
+            />
+        );
+    };
+
     render() {
-        const collapseSection = this.createSection({
-            section: 'collapse',
-            display: 'collapseDisplay',
-            value: this.state.collapseDisplay,
-            defaultDisplay: 'false',
-            title: defineMessage({
-                id: 'user.settings.display.collapseDisplay',
-                defaultMessage: 'Default Appearance of Image Previews',
-            }),
-            firstOption: {
-                value: 'false',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.collapseOn',
-                        defaultMessage: 'Expanded',
-                    }),
-                },
-            },
-            secondOption: {
-                value: 'true',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.collapseOff',
-                        defaultMessage: 'Collapsed',
-                    }),
-                },
-            },
-            description: defineMessage({
-                id: 'user.settings.display.collapseDesc',
-                defaultMessage: 'Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.',
-            }),
-        });
+        const collapseSection = (
+            <UserSettingBoolean
+                activeSection={this.props.activeSection}
+                currentValue={this.props.collapseDisplay}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.display.collapseDesc'
+                        defaultMessage='Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.'
+                    />
+                }
+                onSubmit={this.handleSubmitPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY)}
+                renderOptionLabel={this.renderCollapseLabel}
+                title={
+                    <FormattedMessage
+                        id='user.settings.display.collapseDisplay'
+                        defaultMessage='Default Appearance of Image Previews'
+                    />
+                }
+                updateSection={this.updateSection}
+            />
+        );
 
         let linkPreviewSection = null;
         if (this.props.enableLinkPreviews) {
@@ -635,38 +634,27 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             );
         }
 
-        const clockSection = this.createSection({
-            section: 'clock',
-            display: 'militaryTime',
-            value: this.state.militaryTime,
-            defaultDisplay: 'false',
-            title: defineMessage({
-                id: 'user.settings.display.clockDisplay',
-                defaultMessage: 'Clock Display',
-            }),
-            firstOption: {
-                value: 'false',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.normalClock',
-                        defaultMessage: '12-hour clock (example: 4:00 PM)',
-                    }),
-                },
-            },
-            secondOption: {
-                value: 'true',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.militaryClock',
-                        defaultMessage: '24-hour clock (example: 16:00)',
-                    }),
-                },
-            },
-            description: defineMessage({
-                id: 'user.settings.display.preferTime',
-                defaultMessage: 'Select how you prefer time displayed.',
-            }),
-        });
+        const clockSection = (
+            <UserSettingBoolean
+                activeSection={this.props.activeSection}
+                currentValue={this.props.militaryTime}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.display.preferTime'
+                        defaultMessage='Select how you prefer time displayed.'
+                    />
+                }
+                onSubmit={this.handleSubmitPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME)}
+                renderOptionLabel={this.renderClockLabel}
+                title={
+                    <FormattedMessage
+                        id='user.settings.display.clockDisplay'
+                        defaultMessage='Clock Display'
+                    />
+                }
+                updateSection={this.updateSection}
+            />
+        );
 
         const teammateNameDisplaySection = this.createSection({
             section: Preferences.NAME_NAME_FORMAT,
