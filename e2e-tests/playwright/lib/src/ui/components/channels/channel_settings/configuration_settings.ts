@@ -95,7 +95,7 @@ export default class ConfigurationSettings {
         await textBox.fill(text);
     }
 
-    async setChannelBannerTextColor(color: string) {
+    async setChannelBannerBackgroundColor(color: string) {
         const colorInput = this.container.locator('#channel_banner_banner_background_color_picker-inputColorValue');
         await expect(colorInput).toBeVisible();
         await colorInput.fill(color);

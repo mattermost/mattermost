@@ -7713,6 +7713,10 @@
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "You do not have permission to make this change to the policy."
+  },
+  {
     "id": "app.pap.save_policy.invalid_value",
     "translation": "Invalid value."
   },

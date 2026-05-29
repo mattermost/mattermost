@@ -424,12 +424,12 @@ func TestCheckSelfInclusion(t *testing.T) {
 		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
 			Return([]*model.User{{Id: callerID}}, int64(1), nil).Once()
 
-		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID)
+		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID, false)
 		require.Nil(t, appErr)
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("caller who does not satisfy the policy is rejected with 403", func(t *testing.T) {
+	t.Run("caller who does not satisfy the policy is rejected with specific self_exclusion error when no hidden values were merged", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		callerID := th.BasicUser.Id
 
@@ -441,14 +441,37 @@ func TestCheckSelfInclusion(t *testing.T) {
 
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
-		// No users returned → caller does not satisfy → expect self_exclusion 403.
+		// No users returned → caller does not satisfy → expect specific self_exclusion error.
 		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
 			Return([]*model.User{}, int64(0), nil).Once()
 
-		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID)
+		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID, false)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		require.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("caller who does not satisfy the policy gets opaque 403 when hidden values were merged", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		callerID := th.BasicUser.Id
+
+		policy := &model.AccessControlPolicy{
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.clearance == "TopSecret"`},
+			},
+		}
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		// No users returned → caller does not satisfy → mergedHidden=true returns generic forbidden.
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID, true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "app.pap.save_policy.forbidden", appErr.Id)
 		mockACS.AssertExpectations(t)
 	})
 
@@ -468,7 +491,7 @@ func TestCheckSelfInclusion(t *testing.T) {
 		// No query should fire for trivial expressions — if it does, the mock will fail
 		// the test by returning the default zero-value response.
 
-		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID)
+		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID, false)
 		require.Nil(t, appErr)
 		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
 	})
@@ -4468,7 +4491,7 @@ func TestMergeStoredPolicyExpressions_ActionsLocked(t *testing.T) {
 	// Canonical merge re-injects the hidden literal from storedExpr into the submitted (masked) expression.
 	mockACS.On("MergeExpressionWithMaskedValuesCanonical", mock.Anything, maskedExpr, storedExpr, mock.Anything).Return(storedExpr, nil).Once()
 
-	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
+	_, mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
 	require.Nil(t, mergeErr)
 
 	require.Len(t, submittedPolicy.Rules, 1)
@@ -4479,22 +4502,11 @@ func TestMergeStoredPolicyExpressions_ActionsLocked(t *testing.T) {
 	mockACS.AssertExpectations(t)
 }
 
-// TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit verifies the
-// claim from the PR review: if MaskPolicyExpressions emitted "true" for a rule
-// (fail-closed), a caller who re-submits that "true" unchanged will be blocked
-// on the save path.
-//
-// How it works with the canonical walker:
-//  1. MaskPolicyExpressions (GET path) calls MaskExpressionForCaller; on error it
-//     sets the rule to "true" (fail-closed).
-//  2. The caller sees "true" in the GET response and re-submits it.
-//  3. On the save path, mergeExpressionWithMaskedValues calls HasMaskedValuesForCaller
-//     on the stored expression → true (the field is hidden from this caller).
-//  4. MergeExpressionWithMaskedValuesCanonical is called with "true" as the submitted
-//     expression. The canonical walker finds that the stored masked node has no
-//     matching sentinel in "true" → ErrMaskedLiteralDeleted → save is blocked.
-//     "true" is never written to the DB.
-func TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit(t *testing.T) {
+// TestMergeStoredPolicyExpressions_FailClosedSentinelRejectedOnResubmit verifies that
+// re-submitting the fail-closed sentinel (maskFailClosedSentinel) is blocked on save.
+// MaskPolicyExpressions emits maskFailClosedSentinel on error; the canonical walker
+// rejects it because it contains no matching property comparison for the stored hidden node.
+func TestMergeStoredPolicyExpressions_FailClosedSentinelRejectedOnResubmit(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
@@ -4513,13 +4525,11 @@ func TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit(t *testin
 		},
 	}
 
-	// Caller re-submits "true" — what MaskPolicyExpressions emitted as the
-	// fail-closed value when it could not safely mask the stored expression on GET.
 	submittedPolicy := &model.AccessControlPolicy{
 		ID:   policyID,
 		Type: model.AccessControlPolicyTypeParent,
 		Rules: []model.AccessControlPolicyRule{
-			{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: maskFailClosedSentinel},
 		},
 	}
 
@@ -4532,16 +4542,13 @@ func TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit(t *testin
 	mockACS.On("GetPolicy", mock.Anything, policyID).Return(storedPolicy, nil).Once()
 	// Stored expression has hidden values the caller cannot see.
 	mockACS.On("HasMaskedValuesForCaller", mock.Anything, storedExpr, mock.Anything).Return(true, nil).Once()
-	// Submitting "true" drops the masked node entirely — the canonical walker rejects this.
+	// Submitting the sentinel drops the masked node — the canonical walker rejects this.
 	mergeBlockErr := model.NewAppError("MergeExpressionWithMaskedValuesCanonical", "app.pap.save_policy.masked_condition_deleted", nil, "masked literal deleted", http.StatusForbidden)
-	mockACS.On("MergeExpressionWithMaskedValuesCanonical", mock.Anything, "true", storedExpr, mock.Anything).Return("", mergeBlockErr).Once()
+	mockACS.On("MergeExpressionWithMaskedValuesCanonical", mock.Anything, maskFailClosedSentinel, storedExpr, mock.Anything).Return("", mergeBlockErr).Once()
 
-	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
+	_, mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
 
-	// Save must be blocked. The error returned here causes UpdateAccessControlPolicy
-	// to abort before any DB write — the in-memory struct may still hold "true"
-	// but it never reaches the store.
-	require.NotNil(t, mergeErr, "expected mergeStoredPolicyExpressions to return an error when the caller drops a masked literal")
+	require.NotNil(t, mergeErr, "expected mergeStoredPolicyExpressions to return an error when the caller submits the fail-closed sentinel")
 	mockACS.AssertExpectations(t)
 }
 
@@ -4600,7 +4607,7 @@ func TestMergeStoredPolicyExpressions_ActionsEditableWhenNoMasking(t *testing.T)
 	// Public field: no values hidden → HasMaskedValuesForCaller returns false → fast path, no merge needed.
 	mockACS.On("HasMaskedValuesForCaller", mock.Anything, expr, mock.Anything).Return(false, nil).Once()
 
-	appErr = th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
+	_, appErr = th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
 	require.Nil(t, appErr)
 
 	require.Len(t, submittedPolicy.Rules, 1)
@@ -4666,4 +4673,223 @@ func TestRejectMaskedTokens_NewPolicy(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestUpdateAccessControlPoliciesActive_MaskingGuard verifies deactivation follows the
+// same masking rules as delete, while activation is always allowed.
+func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
+	t.Run("deactivation blocked when caller has masked values", func(t *testing.T) {
+		// policyHasMaskedValuesForCaller resolves the property group from the store,
+		// so this subtest uses SetupConfig + InitBasic rather than a mock store.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = true
+		}).InitBasic(t)
+
+		callerID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
+
+		policyID := model.NewId()
+		sensitivePolicy := &model.AccessControlPolicy{
+			ID:   policyID,
+			Type: model.AccessControlPolicyTypeChannel,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.f_unknown == "Secret"`},
+			},
+		}
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("GetPolicy", th.Context, policyID).Return(sensitivePolicy, nil).Once()
+		// Unknown field → fail-closed → HasMaskedValues=true.
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(&model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: "user.attributes.f_unknown", Operator: "==", Value: "Secret", ValueType: model.LiteralValue},
+			},
+		}, nil).Maybe()
+
+		_, appErr := th.App.UpdateAccessControlPoliciesActive(th.Context, []model.AccessControlPolicyActiveUpdate{
+			{ID: policyID, Active: false},
+		})
+
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "app.pap.delete_policy.masked_values", appErr.Id)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("activation always allowed even when caller has masked values", func(t *testing.T) {
+		// The guard skips Active=true updates, so no property store access is needed.
+		thMock := SetupWithStoreMock(t)
+		thMock.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = true
+		})
+
+		callerID := model.NewId()
+		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
+
+		channelID := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:   channelID,
+			Type: model.AccessControlPolicyTypeChannel,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.f_unknown == "Secret"`},
+			},
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+
+		// Channel cache & WS broadcast
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
+		mockChannelStore.On("InvalidateChannel", channelID).Maybe()
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Maybe()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockACS
+
+		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
+			{ID: channelID, Active: true},
+		})
+
+		require.Nil(t, appErr)
+		mockACPStore.AssertExpectations(t)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("deactivation allowed when masking flag is off", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
+
+		channelID := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:   channelID,
+			Type: model.AccessControlPolicyTypeChannel,
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
+		mockChannelStore.On("InvalidateChannel", channelID).Maybe()
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Maybe()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockACS
+
+		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
+			{ID: channelID, Active: false},
+		})
+
+		require.Nil(t, appErr)
+		// GetPolicy must never be called when masking is off.
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+		mockACPStore.AssertExpectations(t)
+	})
+}
+
+// TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents verifies that
+// activate/deactivate fires cache invalidation and WS events for channel and parent policies.
+func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.T) {
+	t.Run("channel policy triggers publishChannelPolicyEnforcedUpdate", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
+
+		channelID := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:   channelID,
+			Type: model.AccessControlPolicyTypeChannel,
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("InvalidateChannel", channelID).Once()
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockACS
+
+		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
+			{ID: channelID, Active: true},
+		})
+
+		require.Nil(t, appErr)
+		mockChannelStore.AssertExpectations(t)
+	})
+}
+
+// TestSaveForbiddenErrorHidesInternalID verifies that saveForbiddenError always returns
+// app.pap.save_policy.forbidden with an empty DetailedError, regardless of the internal reason.
+func TestSaveForbiddenErrorHidesInternalID(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	internalReasons := []string{
+		"masked_condition_deleted: detail",
+		"masked_rule_deleted: detail",
+		"self_exclusion: detail",
+		"advanced_expression_blocked: detail",
+	}
+
+	for _, reason := range internalReasons {
+		appErr := saveForbiddenError(rctx, "testWhere", reason)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.pap.save_policy.forbidden", appErr.Id, "reason %q must not appear in error ID", reason)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Empty(t, appErr.DetailedError)
+	}
+}
+
+// TestMaskPolicyExpressions_FailClosedUsesDenyAllSentinel verifies that MaskPolicyExpressions
+// emits maskFailClosedSentinel ("false") on parse failure, not the open-access "true".
+func TestMaskPolicyExpressions_FailClosedUsesDenyAllSentinel(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	callerID := model.NewId()
+
+	t.Run("CPA group lookup failure masks all rules to deny-all sentinel", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.secret == "X"`},
+			},
+		}
+
+		// Inject a mock ACS that makes ExpressionToVisualAST fail, triggering fail-closed.
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(nil,
+			model.NewAppError("ExpressionToVisualAST", "app_error", nil, "parse fail", http.StatusInternalServerError)).Maybe()
+
+		th.App.MaskPolicyExpressions(th.Context, policy, callerID)
+
+		require.Len(t, policy.Rules, 1)
+		assert.Equal(t, maskFailClosedSentinel, policy.Rules[0].Expression)
+	})
+
+	t.Run("trivial true and empty rules are untouched by fail-closed path", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: ""},
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		th.App.MaskPolicyExpressions(th.Context, policy, callerID)
+
+		assert.Equal(t, "", policy.Rules[0].Expression, "empty expression must stay empty")
+		assert.Equal(t, "true", policy.Rules[1].Expression, "open-access rule must stay \"true\"")
+	})
 }

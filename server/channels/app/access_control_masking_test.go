@@ -833,11 +833,9 @@ func TestMaskSimulationPolicyLiteralsForCaller_GuardClauses(t *testing.T) {
 	})
 
 	t.Run("empty callerID is a no-op", func(t *testing.T) {
-		// A session-less caller reaching this code path would be a
-		// caller-context bug; the function must refuse rather than
-		// run with an empty caller (which the property service would
-		// resolve to "no holdings" and therefore mask everything,
-		// effectively a stealthy DoS).
+		// The API layer rejects empty callerID before reaching this function.
+		// Pinned to ensure MaskSimulationPolicyLiteralsForCaller is safe to call
+		// with an empty callerID (no panic, no masking applied).
 		resp := &model.PolicySimulationResponse{
 			Results: []model.PolicySimulationUserResult{{
 				Decisions: map[string]model.PolicySimulationActionDecision{

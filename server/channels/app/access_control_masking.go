@@ -310,10 +310,11 @@ func filterConditionValues(condition *model.Condition, visibleNames map[string]s
 const maskedTokenValue = "--------"
 
 // rejectMaskedTokens rejects any rule expression that still contains the masked
-// token after merge — merge should have replaced it with the real stored value.
+// token or the fail-closed sentinel after merge — both are response-only values
+// that must never reach the store.
 func rejectMaskedTokens(policy *model.AccessControlPolicy) *model.AppError {
 	for _, rule := range policy.Rules {
-		if strings.Contains(rule.Expression, maskedTokenValue) {
+		if strings.Contains(rule.Expression, maskedTokenValue) || rule.Expression == maskFailClosedSentinel {
 			return model.NewAppError("CreateOrUpdateAccessControlPolicy",
 				"app.pap.save_policy.masked_token_in_expression", nil,
 				"expression contains a masked token that could not be resolved to a stored value",
@@ -676,8 +677,15 @@ func clearEvaluationTreeLiterals(node *model.PolicySimulationEvaluationNode) {
 	}
 }
 
+// maskFailClosedSentinel is the CEL expression written into a response rule when masking
+// cannot safely produce a redacted version (parse failure or CPA group unavailable).
+// "false" is used because it is deny-all if ever evaluated literally, matching the
+// fail-closed intent. This value only ever appears in API responses — the stored DB
+// expression is never overwritten by this path.
+const maskFailClosedSentinel = "false"
+
 // MaskPolicyExpressions masks non-held literal values in all policy rule expressions, in place.
-// Fails closed (sets a rule to "true") if its expression cannot be parsed or masked.
+// Fails closed (sets a rule to maskFailClosedSentinel) if its expression cannot be parsed or masked.
 func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -693,7 +701,7 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 			if rule.Expression == "" || rule.Expression == "true" {
 				continue
 			}
-			policy.Rules[i].Expression = "true"
+			policy.Rules[i].Expression = maskFailClosedSentinel
 		}
 		return
 	}
@@ -707,7 +715,7 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 			rctx.Logger().Warn("MaskPolicyExpressions: failed to mask rule expression, failing closed",
 				mlog.Err(appErr),
 			)
-			policy.Rules[i].Expression = "true"
+			policy.Rules[i].Expression = maskFailClosedSentinel
 			continue
 		}
 		policy.Rules[i].Expression = masked
