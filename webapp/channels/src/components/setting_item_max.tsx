@@ -31,10 +31,6 @@ type Props = {
      */
     infoPosition?: string;
 
-    /**
-     * Settings or tab section
-     */
-    section?: string;
     updateSection?: (section: string) => void;
     setting?: string;
     submit?: ((setting?: string) => void) | null;
@@ -54,7 +50,6 @@ type Props = {
 const SettingItemMax = ({
     infoPosition = 'bottom',
     saving = false,
-    section = '',
     containerStyle = '',
     shiftEnter,
     disableEnterSubmit,
@@ -127,10 +122,10 @@ const SettingItemMax = ({
     const handleUpdateSection = useCallback(
         (e: React.MouseEvent) => {
             if (updateSection) {
-                updateSection(section);
+                updateSection('');
             }
             e.preventDefault();
-        }, [section, updateSection],
+        }, [updateSection],
     );
 
     let serverError = null;
