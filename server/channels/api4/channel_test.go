@@ -7890,7 +7890,12 @@ func TestSetChannelMembers(t *testing.T) {
 	t.Run("policy-enforced channel rejected", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
-		// Create an access control policy to make the channel policy-enforced
+		// The gate rejects bulk membership edits only when the channel's
+		// policy actually governs membership. We declare the `membership`
+		// action here so PolicyActions[membership]=true is hydrated on
+		// subsequent reads — a non-membership action (e.g. `view`) would
+		// no longer trigger this path after the Phase 2 migration, which
+		// is intentional and covered by the permission-only test below.
 		policy := &model.AccessControlPolicy{
 			Type:    model.AccessControlPolicyTypeChannel,
 			ID:      channel.Id,
@@ -7898,13 +7903,17 @@ func TestSetChannelMembers(t *testing.T) {
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
-					Actions:    []string{"view"},
+					Actions:    []string{model.AccessControlPolicyActionMembership},
 					Expression: "user.attributes.team == \"test\"",
 				},
 			},
 		}
 		_, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
 		require.NoError(t, storeErr)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channel.Id)
+		})
+		th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
 
 		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 0)
 		require.Error(t, err)
@@ -8190,6 +8199,54 @@ func TestSetChannelMembers(t *testing.T) {
 		member, _, err = th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.False(t, member.SchemeAdmin, "BasicUser should no longer be admin")
+	})
+
+	t.Run("permission-only policy does NOT reject bulk membership edits (bug fix)", func(t *testing.T) {
+		// The original `policy_enforced` rejection misfired for channels
+		// carrying only a permission policy (e.g. file upload
+		// restriction). After Phase 2 the gate reads
+		// PolicyActions[membership] specifically, so the endpoint must
+		// succeed for these channels.
+		channel := th.CreatePrivateChannel(t)
+		user2 := th.BasicUser2
+
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:       channel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+			},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channel.Id)
+		})
+		th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
+
+		// Sanity check: the channel reads as PolicyEnforced=true (any
+		// policy attached) but PolicyActions[membership]=false. Without
+		// this distinction the test below would still pass due to the
+		// rejection path simply being dead code, defeating the purpose
+		// of the regression test.
+		ch, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, ch.PolicyEnforced, "channel must report PolicyEnforced=true so we know the bug-prone path is reachable")
+		require.False(t, ch.HasMembershipPolicyAction(), "channel must NOT carry the membership action — that's the bug-fix invariant")
+
+		results, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{
+			Members: []string{th.BasicUser.Id, user2.Id},
+		}, 0, 0)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		var allAdded []string
+		for _, r := range results {
+			allAdded = append(allAdded, r.Added...)
+		}
+		assert.Contains(t, allAdded, user2.Id, "user2 should have been added since the gate must not reject permission-only channels")
 	})
 }
 
