@@ -102,6 +102,43 @@ func TestGetUserStatus(t *testing.T) {
 	})
 }
 
+func TestGetUserStatusWithAutoStatusUpdateDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	// Disable automatic activity detection for the user.
+	err := th.App.Srv().Store().Preference().Save(model.Preferences{{
+		UserId:   th.BasicUser.Id,
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     model.PreferenceNameAutoStatusUpdate,
+		Value:    "false",
+	}})
+	require.NoError(t, err)
+
+	// Manually go online so there is an existing status to preserve.
+	th.App.SetStatusOnline(th.BasicUser.Id, true)
+	userStatus, _, appErr := client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+	require.NoError(t, appErr)
+	require.Equal(t, "online", userStatus.Status)
+
+	t.Run("automatic away is gated", func(t *testing.T) {
+		// Make the user appear idle past the away timeout.
+		th.App.SaveAndBroadcastStatus(&model.Status{
+			UserId:         th.BasicUser.Id,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: 0,
+		})
+
+		th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+
+		userStatus, _, appErr := client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, appErr)
+		assert.Equal(t, "online", userStatus.Status)
+	})
+}
+
 func TestGetUsersStatusesByIds(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
