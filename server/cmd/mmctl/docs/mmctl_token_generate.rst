@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Generate token for a user. Use --expires-in to set an expiry, which may be required by the server's EnforcePersonalAccessTokenExpiry setting.
+Generate token for a user. Use --expires-in to set an expiry, which may be required by the server's MaximumPersonalAccessTokenLifetimeDays setting.
 
 ::
 

@@ -401,17 +401,24 @@ func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
 	a.ch.srv.platform.SetSessionExpireInHours(session, hours)
 }
 
-// validateUserAccessTokenExpiry enforces the server-side PAT expiry policy
-// (ServiceSettings.EnforcePersonalAccessTokenExpiry and
-// MaximumPersonalAccessTokenLifetimeDays) against a token's ExpiresAt before
-// it is persisted. ExpiresAt == 0 means "never expires" and is only allowed
-// when enforcement is off. MaximumPersonalAccessTokenLifetimeDays == 0 means
-// unlimited.
+// validateUserAccessTokenExpiry checks a token's ExpiresAt against
+// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays. 0 means no policy:
+// never-expiring tokens are allowed. A value > 0 requires the token to expire
+// within that many days, so ExpiresAt == 0 or an expiry beyond the cap is
+// rejected. Only newly created tokens are checked; existing tokens are not
+// re-validated.
 func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model.AppError {
 	cfg := a.Config().ServiceSettings
 
+	maxDays := int64(0)
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil {
+		maxDays = int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	}
+
 	if token.ExpiresAt == 0 {
-		if cfg.EnforcePersonalAccessTokenExpiry != nil && *cfg.EnforcePersonalAccessTokenExpiry {
+		// A configured maximum lifetime implies tokens must expire; never-expiring
+		// tokens are only allowed when no maximum is set.
+		if maxDays > 0 {
 			return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_required.app_error", nil, "", http.StatusBadRequest)
 		}
 		return nil
@@ -421,8 +428,7 @@ func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model
 		return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_in_past.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil && *cfg.MaximumPersonalAccessTokenLifetimeDays > 0 {
-		maxDays := int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	if maxDays > 0 {
 		maxExpiry := model.GetMillis() + maxDays*24*60*60*1000
 		if token.ExpiresAt > maxExpiry {
 			return model.NewAppError(

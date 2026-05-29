@@ -388,7 +388,6 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
 	EnforceMultifactorAuthentication       *bool    `access:"authentication_mfa"`
 	EnableUserAccessTokens                 *bool    `access:"integrations_integration_management"`
-	EnforcePersonalAccessTokenExpiry       *bool    `access:"integrations_integration_management"`
 	MaximumPersonalAccessTokenLifetimeDays *int     `access:"integrations_integration_management"`
 	AllowCorsFrom                          *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
 	CorsExposedHeaders                     *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
@@ -561,10 +560,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableUserAccessTokens == nil {
 		s.EnableUserAccessTokens = new(false)
-	}
-
-	if s.EnforcePersonalAccessTokenExpiry == nil {
-		s.EnforcePersonalAccessTokenExpiry = new(false)
 	}
 
 	if s.MaximumPersonalAccessTokenLifetimeDays == nil {

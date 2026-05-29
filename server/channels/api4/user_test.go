@@ -5874,13 +5874,27 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckErrorID(t, err, "app.user_access_token.expires_at_in_past.app_error")
 	})
 
-	t.Run("create token without expires_at is rejected when enforcement is on", func(t *testing.T) {
+	t.Run("create token without expires_at is allowed when no maximum lifetime is set", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		// MaximumPersonalAccessTokenLifetimeDays defaults to 0 (no policy), so a
+		// never-expiring token is accepted.
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), rtoken.ExpiresAt)
+		assert.True(t, rtoken.IsActive)
+	})
+
+	t.Run("create token without expires_at is rejected when a maximum lifetime is set", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableUserAccessTokens = true
-			*cfg.ServiceSettings.EnforcePersonalAccessTokenExpiry = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
 		})
 
 		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
@@ -5889,13 +5903,13 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
 	})
 
-	t.Run("create token with expires_at allowed when enforcement is on", func(t *testing.T) {
+	t.Run("create token with expires_at within the maximum lifetime is allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableUserAccessTokens = true
-			*cfg.ServiceSettings.EnforcePersonalAccessTokenExpiry = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
 		})
 
 		expiresAt := model.GetMillis() + 24*60*60*1000
@@ -5928,7 +5942,6 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableUserAccessTokens = true
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
-			*cfg.ServiceSettings.EnforcePersonalAccessTokenExpiry = true
 			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
 		})
 
@@ -5944,9 +5957,9 @@ func TestCreateUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		// Bot is allowed a non-expiring token even though enforcement is on and a
-		// max lifetime is configured — bots are programmatic clients and bypass
-		// the PAT expiry policy, matching the existing EnableUserAccessTokens bypass.
+		// Bot is allowed a non-expiring token even though a max lifetime is
+		// configured — bots are programmatic clients and bypass the PAT expiry
+		// policy, matching the existing EnableUserAccessTokens bypass.
 		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", 0)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), rtoken.ExpiresAt)

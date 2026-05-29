@@ -27,7 +27,7 @@ var GenerateUserTokenCmd = &cobra.Command{
 	Use:   "generate [user] [description]",
 	Short: "Generate token for a user",
 	Long: "Generate token for a user. Use --expires-in to set an expiry, which may be required by " +
-		"the server's EnforcePersonalAccessTokenExpiry setting.",
+		"the server's MaximumPersonalAccessTokenLifetimeDays setting.",
 	Example: `  generate testuser test-token
   generate testuser ci-token --expires-in 90d
   generate testuser short-lived --expires-in 12h`,

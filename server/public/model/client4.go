@@ -1889,8 +1889,8 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 // permission. A non-blank description is required.
 //
 // expiresAt is the Unix-millis expiry for the token; 0 means the token does not
-// expire, subject to server policy (ServiceSettings.EnforcePersonalAccessTokenExpiry,
-// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays).
+// expire, subject to server policy (ServiceSettings.MaximumPersonalAccessTokenLifetimeDays:
+// a value > 0 requires tokens to expire within that many days and rejects 0).
 func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string, expiresAt int64) (*UserAccessToken, *Response, error) {
 	requestBody := &UserAccessToken{Description: description, ExpiresAt: expiresAt}
 	r, err := c.doAPIPostJSON(ctx, c.userRoute(userId).Join("tokens"), requestBody)

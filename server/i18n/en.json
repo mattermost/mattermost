@@ -9532,7 +9532,7 @@
   },
   {
     "id": "app.user_access_token.expires_at_required.app_error",
-    "translation": "Personal access tokens must include an expiry date because the server policy requires it."
+    "translation": "Personal access tokens must include an expiry date because the server enforces a maximum token lifetime."
   },
   {
     "id": "app.user_access_token.expires_at_too_far.app_error",
