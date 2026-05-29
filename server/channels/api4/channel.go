@@ -428,6 +428,12 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// group_constrained is only meaningful for group-synced public/private channels; reject it for DM/GM.
+		if patch.GroupConstrained != nil {
+			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.group_constrained_not_allowed.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		if updatingAutoTranslation && *c.App.Config().AutoTranslationSettings.RestrictDMAndGM {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.auto_translation_restricted.app_error", nil, "", http.StatusForbidden)
 			return

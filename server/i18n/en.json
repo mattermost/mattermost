@@ -488,6 +488,10 @@
     "translation": "Failed to update the channel."
   },
   {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "You are not allowed to set group_constrained on direct or group messages."
+  },
+  {
     "id": "api.channel.patch_update_channel.no_changes.app_error",
     "translation": "No changes in the patch."
   },
@@ -10789,6 +10793,10 @@
   {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Direct and group message channels cannot be group constrained."
   },
   {
     "id": "model.channel.is_valid.header.app_error",

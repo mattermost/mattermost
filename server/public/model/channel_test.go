@@ -93,6 +93,40 @@ func TestChannelIsValidDiscoverable(t *testing.T) {
 	})
 }
 
+func TestChannelIsValidGroupConstrained(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Header:      "h",
+		Purpose:     "p",
+	}
+
+	t.Run("group_constrained is allowed on public and private channels", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeOpen
+		require.Nil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivate
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("group_constrained is rejected on direct and group messages", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeDirect
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+	})
+}
+
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 

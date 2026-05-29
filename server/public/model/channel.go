@@ -347,6 +347,10 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.discoverable.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
+	if o.IsGroupConstrained() && o.IsGroupOrDirect() {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.group_constrained.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
 	return nil
 }
 
