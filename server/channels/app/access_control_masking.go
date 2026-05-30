@@ -306,8 +306,10 @@ func filterConditionValues(condition *model.Condition, visibleNames map[string]s
 	}
 }
 
-// maskedTokenValue is the sentinel the frontend uses for masked values; never a valid attribute value.
-const maskedTokenValue = "--------"
+// maskedTokenValue is a terse local alias for model.MaskingTokenValue, the
+// single source of truth for the masked-value sentinel shared with the
+// canonical CEL walker. Never a valid attribute value.
+const maskedTokenValue = model.MaskingTokenValue
 
 // rejectMaskedTokens rejects any rule expression that still contains the masked
 // token or the fail-closed sentinel after merge — both are response-only values
@@ -584,16 +586,7 @@ func (a *App) maskLeafActualValue(node *model.PolicySimulationEvaluationNode, mc
 		node.ActualValue = maskedTokenValue
 		return
 	}
-	switch info.Access {
-	case model.MaskingFieldAccessPublic:
-		// visible as-is
-	case model.MaskingFieldAccessSourceOnly:
-		node.ActualValue = maskedTokenValue
-	case model.MaskingFieldAccessSharedOnly:
-		if _, visible := info.VisibleValues[node.ActualValue]; !visible {
-			node.ActualValue = maskedTokenValue
-		}
-	default:
+	if info.IsValueHidden(node.ActualValue) {
 		node.ActualValue = maskedTokenValue
 	}
 }

@@ -365,23 +365,19 @@ func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr st
 
 // mergeExpressionWithMaskedValues re-injects hidden values from storedExpr into
 // submittedExpr using the canonical CEL AST walker. Returns submittedExpr unchanged
-// when storedExpr contains no values hidden from the caller (fast path). Returns 403
-// if the caller dropped an AST node that held hidden values, or if the submitted tree
-// shape diverges from stored while hidden values are present.
+// when storedExpr contains no values hidden from the caller (the canonical merge's
+// own fast path). Returns 403 if the caller dropped an AST node that held hidden
+// values, or if the submitted tree shape diverges from stored while hidden values
+// are present.
 func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, storedExpr string, resolver model.MaskingFieldResolver) (string, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return submittedExpr, nil
 	}
 
-	hasMasked, appErr := acs.HasMaskedValuesForCaller(rctx, storedExpr, resolver)
-	if appErr != nil {
-		return "", appErr
-	}
-	if !hasMasked {
-		return submittedExpr, nil
-	}
-
+	// No separate has-masked pre-check here: MergeExpressionWithMaskedValuesCanonical
+	// already short-circuits to submittedExpr when stored has nothing hidden, so an
+	// extra walk would only re-parse and re-scan the stored expression.
 	return acs.MergeExpressionWithMaskedValuesCanonical(rctx, submittedExpr, storedExpr, resolver)
 }
 

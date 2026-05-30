@@ -30,6 +30,31 @@ type MaskingFieldInfo struct {
 	VisibleValues map[string]struct{}
 }
 
+// IsValueHidden reports whether the literal value lit is hidden from the caller
+// under this field's access mode. It is the single source of truth for the
+// per-value visibility decision shared by the masking, validation, and merge
+// walkers.
+//
+// The masked-token placeholder (MaskingTokenValue) is never itself "hidden": it
+// is a server-generated stand-in from a prior read response, not a real value.
+// Unknown or unrecognised access modes fail closed (treated as hidden).
+func (info *MaskingFieldInfo) IsValueHidden(lit string) bool {
+	if lit == MaskingTokenValue {
+		return false
+	}
+	switch info.Access {
+	case MaskingFieldAccessPublic:
+		return false
+	case MaskingFieldAccessSourceOnly:
+		return true
+	case MaskingFieldAccessSharedOnly:
+		_, visible := info.VisibleValues[lit]
+		return !visible
+	default:
+		return true
+	}
+}
+
 // MaskingFieldResolver answers field-visibility questions for a named property
 // attribute (the suffix after "user.attributes.", e.g. "department").
 //

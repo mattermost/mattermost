@@ -7725,10 +7725,6 @@
     "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
   },
   {
-    "id": "app.pap.save_policy.masked_rule_deleted",
-    "translation": "You cannot remove a rule that contains attribute values you do not have permission to view."
-  },
-  {
     "id": "app.pap.save_policy.masked_token_in_expression",
     "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again."
   },
