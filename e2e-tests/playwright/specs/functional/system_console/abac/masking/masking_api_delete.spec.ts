@@ -15,6 +15,7 @@ import {
     getPolicyIdFromURL,
     getRawPolicyExpression,
     openExistingPolicy,
+    resubmitPolicyExpression,
     searchPoliciesExpression,
     setUserAttribute,
 } from './masking_helpers';
@@ -555,6 +556,85 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             if (await valueSelector.isVisible({timeout: 2000})) {
                 await expect(valueSelector).toBeDisabled();
             }
+        } finally {
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
+        }
+    });
+
+    test('MM-68508-22: PUT re-submitting "false" over a rule with hidden values is rejected (403), stored policy untouched', async ({
+        pw,
+    }) => {
+        // The genuinely dangerous scenario: a caller re-submits the deny-all
+        // sentinel "false" over a stored rule whose values they cannot see, which
+        // would silently wipe a masked rule. The canonical merge can't pair the
+        // bare "false" with the stored masked node, so it must fail closed (403)
+        // and leave the stored expression untouched. The merge is the actual line
+        // of defence — rejectMaskedTokens' former "== false" check was only a
+        // redundant (and overbroad) extra layer on top of it. This is the
+        // end-to-end proof of that protection.
+        test.setTimeout(60000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.initSetup();
+        const fieldIds: string[] = [];
+        const policyIds: string[] = [];
+
+        try {
+            await enableUserManagedAttributes(adminClient);
+            await enableMaskingFlag(adminClient);
+
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
+            const fieldId = await createMaskingTextField(adminClient, fieldName);
+            fieldIds.push(fieldId);
+            await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const page = systemConsolePage.page;
+            await navigateToABACPage(page);
+            await enableABAC(page);
+
+            const policyName = `MaskingPolicy ${pw.random.id()}`;
+            const policyId = await createPolicyWithCEL(
+                page,
+                policyName,
+                `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
+            );
+            policyIds.push(policyId);
+
+            // Flip to shared_only AFTER the save: the admin now holds only "Alpha",
+            // so "Bravo"/"Charlie" become hidden from this caller.
+            await setFieldAsSharedOnly(fieldId);
+
+            // Sanity: the caller's GET view is masked.
+            const masked = await getRawPolicyExpression(page, policyId);
+            expect(masked).toContain('Alpha');
+            expect(masked).toContain('--------');
+            expect(masked).not.toContain('Bravo');
+            expect(masked).not.toContain('Charlie');
+
+            // Attempt to overwrite the masked rule with the bare deny-all sentinel.
+            const {status, body} = await resubmitPolicyExpression(page, policyId, 'false');
+            expect(status, `PUT re-submitting "false" returned ${status}`).toBe(403);
+            expect(body?.id).toBe('app.pap.save_policy.masked_condition_deleted');
+
+            // The stored expression must be untouched — direct DB read still has originals.
+            const rawExpression = (await getStoredPolicyRuleExpressions(policyId))[0] ?? '';
+            expect(rawExpression).toContain('Alpha');
+            expect(rawExpression).toContain('Bravo');
+            expect(rawExpression).toContain('Charlie');
+            expect(rawExpression).not.toBe('false');
         } finally {
             for (const id of policyIds) {
                 try {

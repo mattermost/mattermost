@@ -312,11 +312,19 @@ func filterConditionValues(condition *model.Condition, visibleNames map[string]s
 const maskedTokenValue = model.MaskingTokenValue
 
 // rejectMaskedTokens rejects any rule expression that still contains the masked
-// token or the fail-closed sentinel after merge — both are response-only values
-// that must never reach the store.
+// token after merge — it is a response-only placeholder (server-generated, never
+// a real attribute value) that must never reach the store.
+//
+// The fail-closed sentinel (maskFailClosedSentinel, "false") is deliberately NOT
+// rejected here: "false" is also a legitimate, author-written deny-all expression,
+// and persisting it is harmless (deny is the safe direction). The dangerous case —
+// round-tripping the sentinel back over a stored rule whose values the caller
+// could not see — is caught on the update path by the canonical merge, which
+// fails closed (ErrMergeNodeDeleted / ErrMergeShapeMismatch → 403) when the
+// submitted node can't be paired with the masked stored node.
 func rejectMaskedTokens(policy *model.AccessControlPolicy) *model.AppError {
 	for _, rule := range policy.Rules {
-		if strings.Contains(rule.Expression, maskedTokenValue) || rule.Expression == maskFailClosedSentinel {
+		if strings.Contains(rule.Expression, maskedTokenValue) {
 			return model.NewAppError("CreateOrUpdateAccessControlPolicy",
 				"app.pap.save_policy.masked_token_in_expression", nil,
 				"expression contains a masked token that could not be resolved to a stored value",

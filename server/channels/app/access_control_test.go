@@ -4665,6 +4665,18 @@ func TestRejectMaskedTokens_NewPolicy(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			// "false" is the fail-closed sentinel's literal value, but it is also a
+			// legitimate author-written deny-all expression. It must NOT be rejected
+			// here — persisting deny-all is safe, and the dangerous resubmit-over-a-
+			// masked-rule case is handled by the canonical merge on the update path.
+			name: "bare false deny-all expression passes",
+			rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership},
+					Expression: maskFailClosedSentinel},
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {

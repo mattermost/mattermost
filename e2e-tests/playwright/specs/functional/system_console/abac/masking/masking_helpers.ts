@@ -194,6 +194,43 @@ export async function getRawPolicyExpression(page: Page, policyId: string): Prom
     return (data?.rules?.[0]?.expression ?? '') as string;
 }
 
+/**
+ * Re-submit an existing policy with rule[0].expression overwritten by
+ * newExpression, using the logged-in caller's own browser session (so per-caller
+ * masking applies). Performs the GET -> modify -> PUT round-trip a real client
+ * would: fetch the (possibly masked) policy, change one rule's expression, and
+ * save it back. Returns the HTTP status and parsed body so callers can assert
+ * the server's response (e.g. a fail-closed 403).
+ */
+export async function resubmitPolicyExpression(
+    page: Page,
+    policyId: string,
+    newExpression: string,
+): Promise<{status: number; body: any}> {
+    return page.evaluate(
+        async ({id, expr}: {id: string; expr: string}) => {
+            const getResp = await fetch(`/api/v4/access_control_policies/${id}`, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+            });
+            const policy = await getResp.json();
+            if (Array.isArray(policy?.rules) && policy.rules.length > 0) {
+                policy.rules[0].expression = expr;
+            }
+            const putResp = await fetch('/api/v4/access_control_policies', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(policy),
+            });
+            const body = await putResp.json().catch(() => ({}));
+            return {status: putResp.status, body};
+        },
+        {id: policyId, expr: newExpression},
+    );
+}
+
 export async function searchPoliciesExpression(page: Page, term: string): Promise<string> {
     const data = await page.evaluate(async (t: string) => {
         const resp = await fetch('/api/v4/access_control_policies/search', {
