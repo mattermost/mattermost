@@ -39,3 +39,11 @@ export function isChannelAccessControlEnabled(state: GlobalState): boolean {
     // Permission system (MANAGE_CHANNEL_ACCESS_RULES) handles granular access
     return accessControlSettings.EnableAttributeBasedAccessControl;
 }
+
+export function isPostPolicyEnabled(state: GlobalState): boolean {
+    if (!isChannelAccessControlEnabled(state)) {
+        return false;
+    }
+    const config = getConfig(state);
+    return config?.FeatureFlagPostPolicy === 'true';
+}

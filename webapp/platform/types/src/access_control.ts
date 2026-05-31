@@ -74,6 +74,28 @@ export function buildRulesWithMembership(existingRules: AccessControlPolicyRule[
     return [{actions: ['membership'], expression: expression.trim()}, ...otherRules];
 }
 
+/**
+ * Returns every rule tagged with the post_filter action. Order is preserved
+ * so callers can address a specific rule by its index.
+ */
+export function getPostFilterRules(rules?: AccessControlPolicyRule[]): AccessControlPolicyRule[] {
+    return (rules ?? []).filter((r) => r.actions?.includes('post_filter'));
+}
+
+/**
+ * Replaces the post_filter rule set on an existing rules array while
+ * preserving every non-post_filter rule (membership, file_upload, etc.).
+ * Empty expressions are dropped. Trimming matches buildRulesWithMembership.
+ */
+export function buildRulesWithPostFilterRules(existingRules: AccessControlPolicyRule[], expressions: string[]): AccessControlPolicyRule[] {
+    const otherRules = existingRules.filter((r) => !r.actions?.includes('post_filter'));
+    const postFilterRules = expressions.
+        map((e) => e.trim()).
+        filter((e) => e.length > 0).
+        map((e) => ({actions: ['post_filter'], expression: e}));
+    return [...otherRules, ...postFilterRules];
+}
+
 export type CELExpressionError = {
     message: string;
     line: number;
