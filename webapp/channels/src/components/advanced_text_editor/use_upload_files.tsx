@@ -15,6 +15,7 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
+import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
 import FilePreview from 'components/file_preview';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
@@ -48,6 +49,13 @@ const useUploadFiles = (
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_FILE_ATTACHMENT) : true;
     });
     const editAttachmentsDisabled = isPostBeingEdited && !canEditAttachments;
+
+    // ABAC render-time gate: disable the upload affordance (kept visible, with a
+    // tooltip) when a permission policy denies upload_file_attachment for the
+    // current user in this channel. This is a rendering hint only — the upload
+    // endpoint still enforces server-side.
+    const uploadPermission = useRenderPermission({resourceType: 'channel', resourceId: channelId, action: 'upload_file_attachment'});
+    const uploadDeniedByPolicy = uploadPermission.evaluated && uploadPermission.allowed === false;
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
 
@@ -192,6 +200,7 @@ const useUploadFiles = (
             rootId={postId}
             channelId={channelId}
             postType={postType}
+            forceDisabled={uploadDeniedByPolicy}
         />
     );
 

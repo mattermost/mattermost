@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, RenderPermissionTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -63,6 +63,11 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getPostsAround: jest.fn(() => ({type: 'GET_POSTS_AROUND'})),
     getMentionsAndStatusesForPosts: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/render_permissions', () => ({
+    ...jest.requireActual('mattermost-redux/actions/render_permissions'),
+    reconcileChannelPostsForRedaction: jest.fn(() => ({type: 'MOCK_RECONCILE'})),
 }));
 
 jest.mock('mattermost-redux/actions/channel_categories', () => ({
@@ -985,7 +990,8 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
     });
 
     test('dispatches RECEIVED_CHANNEL with parsed channel and invalidates attribute cache', () => {
-        const testStore = configureStore({});
+        // Current channel differs from the updated channel, so no post reconciliation.
+        const testStore = configureStore({entities: {channels: {currentChannelId: 'other-channel'}}});
         const channel = {
             id: 'channel-ac-1',
             team_id: 'team-1',
@@ -999,14 +1005,31 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
+        // Updates the channel record and invalidates render decisions for that
+        // channel only. No broad channel/member/team refetch is dispatched.
         expect(testStore.getActions()).toEqual([
             {
                 type: ChannelTypes.RECEIVED_CHANNEL,
                 data: channel,
             },
+            {
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+                data: {channelId: 'channel-ac-1'},
+            },
         ]);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
+    });
+
+    test('reconciles posts when the updated channel is the one being viewed', () => {
+        const testStore = configureStore({entities: {channels: {currentChannelId: 'channel-ac-1'}}});
+        const channel = {id: 'channel-ac-1', team_id: 'team-1', policy_enforced: true};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent({data: {channel: JSON.stringify(channel)}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL);
+        expect(types).toContain('MOCK_RECONCILE');
     });
 
     test('returns early when msg.data.channel is missing', () => {
@@ -1528,6 +1551,50 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), 'nonExistintUser')).toBeFalsy();
         expect(stateUser(testStore.getState(), currentUserId)).toBeTruthy();
         expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeFalsy();
+    });
+});
+
+describe('render permission invalidation via existing events', () => {
+    const currentUserId = 'user1';
+
+    function stateWithCurrentUser(currentChannelId = '') {
+        return {
+            entities: {
+                users: {
+                    currentUserId,
+                    profiles: {user1: {id: currentUserId, roles: 'system_user'}},
+                },
+                channels: {currentChannelId},
+            },
+        };
+    }
+
+    test('CPA value update for the current user invalidates current-user render decisions', () => {
+        const testStore = configureStore(stateWithCurrentUser());
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER);
+    });
+
+    test('CPA value update for the current user reconciles the visible channel posts', () => {
+        const testStore = configureStore(stateWithCurrentUser('visible-channel'));
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: currentUserId, values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain('MOCK_RECONCILE');
+    });
+
+    test('CPA value update for another user does NOT invalidate current-user render decisions', () => {
+        const testStore = configureStore(stateWithCurrentUser());
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({data: {user_id: 'someoneElse', values: {field1: 'v'}}}));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).not.toContain(RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER);
+        expect(types).not.toContain('MOCK_RECONCILE');
     });
 });
 

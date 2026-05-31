@@ -79,6 +79,7 @@ import {
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
+import {invalidateRenderDecisionsForChannel, invalidateCurrentUserRenderDecisions, clearRenderDecisions, reconcileChannelPostsForRedaction} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
@@ -859,7 +860,7 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
 }
 
 export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         if (!msg.data.channel) {
             return;
         }
@@ -874,6 +875,20 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // consumers (e.g. the channel invite modal banner) refetch the
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+
+        // Drop cached render-permission decisions for this channel. Mounted
+        // useRenderPermission hooks for the visible channel will refetch lazily;
+        // hidden channels make no request until they become visible again.
+        doDispatch(invalidateRenderDecisionsForChannel(channel.id));
+
+        // If this is the channel the user is currently viewing, the policy change
+        // may have flipped download_file_attachment, which changes how already-
+        // loaded post file metadata should be sanitized. Reconcile only the
+        // visible channel (one ETag-bypassing refetch); hidden channels reconcile
+        // when next visited.
+        if (channel.id === getCurrentChannelId(doGetState())) {
+            doDispatch(reconcileChannelPostsForRedaction(channel.id));
+        }
     };
 }
 
@@ -1681,6 +1696,18 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
         store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
+        // A system-role change for the current user can change their ABAC
+        // (permission-lane) decisions, so drop their cached render decisions and
+        // reconcile the visible channel's posts in case download access changed.
+        if (msg.data.user_id === getCurrentUserId(store.getState())) {
+            store.dispatch(invalidateCurrentUserRenderDecisions());
+
+            const currentChannelId = getCurrentChannelId(store.getState());
+            if (currentChannelId) {
+                store.dispatch(reconcileChannelPostsForRedaction(currentChannelId));
+            }
+        }
+
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
             redirectUserToDefaultTeam();
         }
@@ -1700,11 +1727,21 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
         dispatch(resetReloadPostsInTranslatedChannels());
     }
 
+    // If the permission-policies feature availability changed, cached render
+    // decisions may no longer be valid; clear them so they are recomputed.
+    if (currentConfig?.FeatureFlagPermissionPolicies !== newConfig?.FeatureFlagPermissionPolicies) {
+        store.dispatch(clearRenderDecisions());
+    }
+
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
+    // A license change can flip ABAC availability, so clear cached render
+    // decisions; they will be recomputed on demand.
+    store.dispatch(clearRenderDecisions());
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
@@ -2212,10 +2249,26 @@ function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorte
     };
 }
 
-export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated) {
-    return {
-        type: UserTypes.RECEIVED_CPA_VALUES,
-        data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
+export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
+        });
+
+        // The current user's attribute values are an input to ABAC evaluation, so
+        // their render decisions are now stale. Other users' updates do not affect
+        // the current user's own decisions.
+        if (msg.data.user_id === getCurrentUserId(doGetState())) {
+            doDispatch(invalidateCurrentUserRenderDecisions());
+
+            // The download_file_attachment decision for the visible channel may
+            // have changed; reconcile its posts so redaction is reflected.
+            const currentChannelId = getCurrentChannelId(doGetState());
+            if (currentChannelId) {
+                doDispatch(reconcileChannelPostsForRedaction(currentChannelId));
+            }
+        }
     };
 }
 

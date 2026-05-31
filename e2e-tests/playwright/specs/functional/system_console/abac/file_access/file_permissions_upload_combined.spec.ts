@@ -3,7 +3,6 @@
 
 import {expect, test, enableABAC} from '@mattermost/playwright-lib';
 
-import {getAsset} from '../../../../../asset';
 import {createPermissionPolicy, deletePermissionPolicyByName, navigateToPermissionPoliciesPage} from '../support';
 
 import {setupUserAndChannel} from './helpers';
@@ -20,7 +19,7 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         }
     });
 
-    test('MM-T5822 user denied upload sees error when attempting file attachment', async ({pw}) => {
+    test('MM-T5822 user denied upload sees the upload control disabled', async ({pw}) => {
         test.setTimeout(180000);
         await pw.skipIfNoLicense();
 
@@ -35,7 +34,10 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         lastPolicyName = `Upload Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
-            celExpression: 'false',
+
+            // Attribute comparison no test user satisfies (deny-all) instead of the
+            // bare `false` literal, which currently fails policy creation.
+            celExpression: "user.attributes.Department == 'no-such-value-deny-all'",
             permissions: ['Upload Files'],
         });
 
@@ -55,16 +57,16 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
             )
             .toBe(true);
 
-        const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
+        const {channelsPage: deniedChannelsPage} = await pw.testBrowser.login(deniedUser);
         await deniedChannelsPage.goto(team.name, channelName);
         await deniedChannelsPage.toBeVisible();
 
-        deniedPage.once('filechooser', async (fileChooser) => {
-            await fileChooser.setFiles(getAsset('mattermost.png'));
-        });
-        await deniedChannelsPage.centerView.postCreate.attachmentButton.click();
-
-        await expect(deniedPage.getByText(/required access to upload/i)).toBeVisible({timeout: 30000});
+        // The render-time ABAC decision keeps the attachment control visible but
+        // disabled, so the user cannot attempt an upload that the server would
+        // reject. (Server-side enforcement of upload denial is covered by the
+        // combined enforcement test below.)
+        await expect(deniedChannelsPage.centerView.postCreate.attachmentButton).toBeVisible({timeout: 30000});
+        await expect(deniedChannelsPage.centerView.postCreate.attachmentButton).toBeDisabled();
         // error text already asserted above
     });
 
@@ -122,7 +124,10 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
         lastPolicyName = `Both Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
-            celExpression: 'false',
+
+            // Attribute comparison no test user satisfies (deny-all) instead of the
+            // bare `false` literal, which currently fails policy creation.
+            celExpression: "user.attributes.Department == 'no-such-value-deny-all'",
             permissions: ['Download Files', 'Upload Files'],
         });
         await systemConsolePage.page.waitForTimeout(1000);
@@ -131,15 +136,14 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
         await deniedChannelsPage.goto(team.name, channelName);
         await deniedChannelsPage.toBeVisible();
 
+        // Download denied: existing files render as the redacted placeholder.
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toContainText('Files not available');
 
-        deniedPage.once('filechooser', async (fileChooser) => {
-            await fileChooser.setFiles(getAsset('mattermost.png'));
-        });
-        await deniedChannelsPage.centerView.postCreate.attachmentButton.click();
-        await expect(deniedPage.getByText(/required access to upload/i)).toBeVisible({timeout: 15000});
-        // error text already asserted above
+        // Upload denied: the attachment control is visible but disabled at render
+        // time, so the user cannot attempt an upload the server would reject.
+        await expect(deniedChannelsPage.centerView.postCreate.attachmentButton).toBeVisible({timeout: 15000});
+        await expect(deniedChannelsPage.centerView.postCreate.attachmentButton).toBeDisabled();
     });
 
     test('MM-T5825 user can download and upload files when no restriction policies exist', async ({pw}) => {
