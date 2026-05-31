@@ -40,29 +40,53 @@ func (a *App) hydratePostValues(rctx request.CTX, posts []*model.Post) ([]*model
 		postIDs = append(postIDs, p.Id)
 	}
 
-	values, appErr := a.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
-		GroupID:    group.ID,
-		TargetType: model.PropertyValueTargetTypePost,
-		TargetIDs:  postIDs,
-		PerPage:    -1,
-	})
-	if appErr != nil {
-		return nil, appErr
+	// SearchPropertyValues rejects PerPage<1, so page through results. A page
+	// big enough to hold every value referenced by a single post-fetch page
+	// (200 posts × a handful of fields each) keeps the loop to ~1 round trip
+	// in practice while still respecting the store contract.
+	const pageSize = 500
+	var values []*model.PropertyValue
+	cursor := model.PropertyValueSearchCursor{}
+	for {
+		page, appErr := a.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
+			GroupID:    group.ID,
+			TargetType: model.PropertyValueTargetTypePost,
+			TargetIDs:  postIDs,
+			PerPage:    pageSize,
+			Cursor:     cursor,
+		})
+		if appErr != nil {
+			return nil, appErr
+		}
+		values = append(values, page...)
+		if len(page) < pageSize {
+			break
+		}
+		last := page[len(page)-1]
+		cursor = model.PropertyValueSearchCursor{PropertyValueID: last.ID, CreateAt: last.CreateAt}
 	}
 
-	// Lookup table: field ID → field name (one search query for the group).
-	fields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		GroupID: group.ID,
-		PerPage: -1,
-	})
-	if appErr != nil {
-		return nil, appErr
+	// Lookup table: field ID → field name. One paged sweep over the group.
+	fieldNameByID := make(map[string]string)
+	fieldCursor := model.PropertyFieldSearchCursor{}
+	for {
+		fields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+			GroupID: group.ID,
+			PerPage: pageSize,
+			Cursor:  fieldCursor,
+		})
+		if appErr != nil {
+			return nil, appErr
+		}
+		for _, f := range fields {
+			fieldNameByID[f.ID] = f.Name
+		}
+		if len(fields) < pageSize {
+			break
+		}
+		last := fields[len(fields)-1]
+		fieldCursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
 	}
-	fieldNameByID := make(map[string]string, len(fields))
-	for _, f := range fields {
-		fieldNameByID[f.ID] = f.Name
-	}
-
 	// Pivot values into post-keyed maps of {field name → decoded value}.
 	byPostID := make(map[string]map[string]any, len(posts))
 	for _, v := range values {
@@ -93,22 +117,33 @@ func (a *App) hydratePostValues(rctx request.CTX, posts []*model.Post) ([]*model
 	return out, nil
 }
 
-// blankPostInPlace clears the user-visible content of a post and marks it
-// with the PostPropsHiddenByPolicy sentinel so the client can render a
-// "Hidden by policy" placeholder. Timeline-essential fields (Id, UserId,
-// ChannelId, CreateAt, Type) are preserved so list order and authorship
-// remain intact.
-func blankPostInPlace(p *model.Post) {
+// blankedPostFor returns a clone of the given post with user-visible content
+// cleared and the PostPropsHiddenByPolicy sentinel set. The clone is critical:
+// PostStore caches *model.Post pointers in memory (see
+// LocalCachePostStore.GetPosts), so mutating the original would poison the
+// cache for every subsequent reader (admins included). Timeline-essential
+// fields (Id, UserId, ChannelId, CreateAt, Type) are preserved by Clone.
+func blankedPostFor(p *model.Post) *model.Post {
 	if p == nil {
-		return
+		return nil
 	}
-	p.Message = ""
-	p.FileIds = nil
-	p.DelProp(model.PostPropsAttachments)
-	if p.Props == nil {
-		p.Props = model.StringInterface{}
+	c := p.Clone()
+	c.Message = ""
+	c.FileIds = nil
+	c.DelProp(model.PostPropsAttachments)
+	if c.Props == nil {
+		c.Props = model.StringInterface{}
+	} else {
+		// Clone's ShallowCopy copies the Props map header — make our own so
+		// the sentinel doesn't leak back into the cached original.
+		copied := make(model.StringInterface, len(c.Props)+1)
+		for k, v := range c.Props {
+			copied[k] = v
+		}
+		c.Props = copied
 	}
-	p.Props[model.PostPropsHiddenByPolicy] = true
+	c.Props[model.PostPropsHiddenByPolicy] = true
+	return c
 }
 
 // filterPostsByPostPolicy evaluates all post_filter rules on each post's
@@ -153,6 +188,18 @@ func (a *App) filterPostsByPostPolicy(rctx request.CTX, postList *model.PostList
 		return nil, appErr
 	}
 
+	// Build a fresh PostList wrapper so we don't mutate a cached one. The
+	// store layer caches *model.PostList (and its inner Posts map) for the
+	// common page sizes (see LocalCachePostStore.GetPosts) — mutating either
+	// the map or the *Post pointers would poison the cache for every
+	// subsequent reader. Allowed posts reuse the original pointer; denied
+	// posts get a blanked clone via blankedPostFor.
+	out := *postList
+	out.Posts = make(map[string]*model.Post, len(postList.Posts))
+	for id, p := range postList.Posts {
+		out.Posts[id] = p
+	}
+
 	for _, pwv := range hydrated {
 		if pwv == nil || pwv.Post == nil {
 			continue
@@ -163,15 +210,15 @@ func (a *App) filterPostsByPostPolicy(rctx request.CTX, postList *model.PostList
 				mlog.String("post_id", pwv.Id),
 				mlog.String("channel_id", pwv.ChannelId),
 				mlog.Err(evalErr))
-			blankPostInPlace(postList.Posts[pwv.Id])
+			out.Posts[pwv.Id] = blankedPostFor(out.Posts[pwv.Id])
 			continue
 		}
 		if !allow {
-			blankPostInPlace(postList.Posts[pwv.Id])
+			out.Posts[pwv.Id] = blankedPostFor(out.Posts[pwv.Id])
 		}
 	}
 
-	return postList, nil
+	return &out, nil
 }
 
 // filterSinglePostByPostPolicy is the single-post variant used by callers
@@ -209,11 +256,10 @@ func (a *App) filterSinglePostByPostPolicy(rctx request.CTX, post *model.Post, u
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
 			mlog.Err(evalErr))
-		blankPostInPlace(post)
-		return post, nil
+		return blankedPostFor(post), nil
 	}
 	if !allow {
-		blankPostInPlace(post)
+		return blankedPostFor(post), nil
 	}
 	return post, nil
 }
