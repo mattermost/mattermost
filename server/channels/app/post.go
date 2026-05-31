@@ -994,6 +994,14 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 		post.FileIds = []string{}
 	}
 
+	// TODO(post-policy): per-recipient WS broadcast filter. Mirror
+	// processBroadcastHookForBurnOnRead / setupBroadcastHookForAbacFiles —
+	// evaluate the channel's post_filter rules against the recipient and
+	// blank the payload if denied. See abac-tasks/spec.md §3 (deferred
+	// from MVP); REST fetch sites apply filterPostsByPostPolicy today, so
+	// a denied recipient sees the post unblanked on live push until the
+	// next REST refresh.
+
 	// Extract metadata that needs per-recipient filtering before serialization
 	permalinkPreviewedPost := post.GetPreviewPost()
 	previewProp := post.GetPreviewedPostProp()
