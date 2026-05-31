@@ -70,7 +70,9 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
         lastPolicyName = `Download Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
-            celExpression: 'false',
+            // Deny-all via an attribute comparison no test user satisfies, instead
+            // of the bare `false` literal (which currently fails policy creation).
+            celExpression: "user.attributes.Department == 'no-such-value-deny-all'",
             permissions: ['Download Files'],
             adminClient,
         });
@@ -279,7 +281,9 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         lastPolicyName = `BOR Download Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
-            celExpression: 'false',
+            // Deny-all via an attribute comparison no test user satisfies, instead
+            // of the bare `false` literal (which currently fails policy creation).
+            celExpression: "user.attributes.Department == 'no-such-value-deny-all'",
             permissions: ['Download Files'],
             adminClient,
         });
@@ -337,7 +341,9 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         await createPermissionPolicy(systemConsolePage.page, {
             adminClient,
             name: lastPolicyName,
-            celExpression: 'false',
+            // Deny-all via an attribute comparison no test user satisfies, instead
+            // of the bare `false` literal (which currently fails policy creation).
+            celExpression: "user.attributes.Department == 'no-such-value-deny-all'",
             permissions: ['Download Files'],
         });
         await systemConsolePage.page.waitForTimeout(1000);
