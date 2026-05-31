@@ -6445,6 +6445,8 @@
   "user.settings.security.loginSaml": "SAMLでログインしました",
   "user.settings.security.logoutActiveSessions": "アクティブなセッションを確認しログアウトする",
   "user.settings.security.logoutActiveSessions.icon": "使用中セッションアイコン",
+  "user.settings.security.magicLink": "マジックリンク",
+  "user.settings.security.magicLinkInfo": "このアカウントにはマジックリンクのみでログインできます。",
   "user.settings.security.method": "サインイン方法",
   "user.settings.security.newPassword": "新しいパスワード",
   "user.settings.security.noApps": "認証済みのOAuth 2.0アプリケーションはありません。",
