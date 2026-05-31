@@ -1254,6 +1254,11 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 		return nil, appErr
 	}
 
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	// The postList is sorted as only rootPosts Order is included
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
@@ -1284,6 +1289,11 @@ func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (
 		return nil, appErr
 	}
 
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
@@ -1307,6 +1317,11 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 
 	var appErr *model.AppError
 	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, rctx.Session().UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, rctx.Session().UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1348,6 +1363,11 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 
 	var appErr *model.AppError
 	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1441,6 +1461,11 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		return nil, appErr
 	}
 
+	post, appErr = a.filterSinglePostByPostPolicy(rctx, post, rctx.Session().UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
 	if appErr != nil {
 		return nil, appErr
@@ -1475,6 +1500,11 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 		return nil, appErr
 	}
 
+	posts, appErr = a.filterPostsByPostPolicy(rctx, posts, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	// Get inserts the requested post first in the list, then adds the sorted threadPosts.
 	// So, the whole postList.Order is not sorted.
 	// The fully sorted list comes only when the CollapsedThreads is true and the Directions is not empty.
@@ -1505,6 +1535,11 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 		return nil, appErr
 	}
 
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
@@ -1527,6 +1562,11 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 		return nil, appErr
 	}
 
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
@@ -1545,6 +1585,11 @@ func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID stri
 	// Process burn-on-read posts for the requesting user
 	var appErr *model.AppError
 	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1575,6 +1620,11 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 
 	var appErr *model.AppError
 	list, appErr = a.revealBurnOnReadPostsForUser(rctx, list, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	list, appErr = a.filterPostsByPostPolicy(rctx, list, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1620,6 +1670,11 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 		return nil, appErr
 	}
 
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	// GetPostsBefore orders by channel id and deleted at,
 	// before sorting based on created at.
 	// but the deleted at is only ever where deleted at = 0,
@@ -1652,6 +1707,11 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 
 	var appErr *model.AppError
 	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1696,6 +1756,11 @@ func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.Ge
 
 	var appErr *model.AppError
 	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	postList, appErr = a.filterPostsByPostPolicy(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2201,6 +2266,10 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
+		return nil, false, appErr
+	}
+
+	if _, appErr := a.filterPostsByPostPolicy(rctx, postSearchResults.PostList, userID); appErr != nil {
 		return nil, false, appErr
 	}
 
