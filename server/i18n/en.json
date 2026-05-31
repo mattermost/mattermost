@@ -5271,6 +5271,10 @@
     "translation": "You do not have permission to manage this access control policy."
   },
   {
+    "id": "app.access_control_decision.unsupported_action.app_error",
+    "translation": "Unsupported action for render decisions: {{.Action}}"
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Failed to save the batch of acknowledgement objects"
   },
@@ -10757,6 +10761,26 @@
   {
     "id": "model.access.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.action_empty.app_error",
+    "translation": "Action names cannot be empty."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.actions_empty.app_error",
+    "translation": "At least one action must be requested."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
+    "translation": "Too many actions requested."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_id.app_error",
+    "translation": "Invalid resource id."
+  },
+  {
+    "id": "model.access_control_decision.is_valid.resource_type.app_error",
+    "translation": "Resource type is required."
   },
   {
     "id": "model.access_policy.inherit.already_imported.app_error",
