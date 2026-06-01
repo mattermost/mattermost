@@ -36,7 +36,6 @@ import type {GlobalState} from 'types/store';
 
 import Attachment from './attachments';
 
-import {THREADING_TIME} from '../../common/options';
 import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
@@ -262,7 +261,7 @@ function ThreadItem({
                     <EventTimestamp
                         className='alt-hidden'
                         value={lastReplyAt}
-                        timestampProps={THREADING_TIME}
+                        showTooltip={false}
                     />
                 </div>
                 <div className='menu-anchor alt-visible'>
@@ -330,7 +329,7 @@ function ThreadItem({
                     />
                     <EventTimestamp
                         value={lastReplyAt}
-                        timestampProps={THREADING_TIME}
+                        showTooltip={false}
                     />
                 </span>
             </div>

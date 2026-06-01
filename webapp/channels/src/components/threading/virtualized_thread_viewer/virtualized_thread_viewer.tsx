@@ -15,7 +15,6 @@ import type {OnScrollArgs, OnItemsRenderedArgs} from 'components/dynamic_virtual
 import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
-import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
 
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
@@ -70,19 +69,6 @@ const virtListStyles = {
 
 const innerStyles = {
     paddingTop: '28px',
-};
-
-const THREADING_TIME: typeof BASE_THREADING_TIME = {
-    ...BASE_THREADING_TIME,
-    units: [
-        'now',
-        'minute',
-        'hour',
-        'day',
-        'week',
-        'month',
-        'year',
-    ],
 };
 
 const OFFSET_TO_SHOW_TOAST = -50;
@@ -371,7 +357,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
-                    timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
                     threadId={this.props.selected.id}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                     isChannelAutotranslated={this.props.isChannelAutotranslated}

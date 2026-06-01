@@ -18,7 +18,7 @@ jest.mock('components/widgets/users/avatars', () => (props: any) => {
 });
 
 let capturedTimestampProps: any = {};
-jest.mock('components/timestamp', () => (props: any) => {
+jest.mock('components/event_timestamp', () => (props: any) => {
     capturedTimestampProps = props;
     return <span data-testid='mock-timestamp'/>;
 });
