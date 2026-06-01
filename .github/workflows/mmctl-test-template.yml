@@ -79,9 +79,10 @@ jobs:
           else
             export TESTFLAGS="-timeout 30m"
           fi
-          # GOBIN is not mounted separately: server/bin is inside the workspace
-          # mount below, and the Makefile sets GOBIN=$(PWD)/bin which resolves
-          # to /mattermost/server/bin — exactly where the test runner expects it.
+          # No separate GOBIN mount needed: the workspace volume below maps the
+          # host's server/bin/ to /mattermost/server/bin/ inside the container.
+          # The Makefile's GOBIN=$(PWD)/bin resolves to that same path, which is
+          # also where the mmctl test runner expects the gotestsum binary.
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \

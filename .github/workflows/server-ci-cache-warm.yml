@@ -63,9 +63,10 @@ jobs:
       - name: Warm cache inside build container
         if: steps.cache-check.outputs.cache-hit != 'true'
         run: |
-          # GOBIN is not mounted separately: server/bin is inside the workspace
-          # mount below, and the Makefile sets GOBIN=$(PWD)/bin which resolves
-          # to /mattermost/server/bin — the correct location for tool binaries.
+          # No separate GOBIN mount needed: the workspace volume below maps the
+          # host's server/bin/ to /mattermost/server/bin/ inside the container.
+          # The Makefile's GOBIN=$(PWD)/bin resolves to that same path, so tool
+          # binaries installed during warming land in the cached workspace.
           docker run --rm \
             --env GOMODCACHE \
             --env GOCACHE \
