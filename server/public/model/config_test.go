@@ -322,6 +322,36 @@ func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
 	}
 }
 
+func TestFileSettingsAzurePresignExpiresBounds(t *testing.T) {
+	cases := []struct {
+		name  string
+		value int64
+	}{
+		{"zero", 0},
+		{"negative", -1},
+		{"above 7-day ceiling", MaxAzurePresignExpiresSeconds + 1},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			cfg.FileSettings.ExportAzurePresignExpiresSeconds = NewPointer(tc.value)
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, "model.config.is_valid.export_azure_presign_expires.app_error", err.Id)
+		})
+	}
+
+	t.Run("exactly at the 7-day ceiling is accepted", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExportAzurePresignExpiresSeconds = NewPointer(int64(MaxAzurePresignExpiresSeconds))
+
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+}
+
 func TestFileSettingsAzureAuthMode(t *testing.T) {
 	t.Run("defaults to shared_key", func(t *testing.T) {
 		cfg := &Config{}
