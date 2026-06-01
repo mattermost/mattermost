@@ -29,6 +29,7 @@ import PostAcknowledgements from 'components/post_view/acknowledgements';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import BurnOnReadBadge from 'components/post_view/burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from 'components/post_view/burn_on_read_concealed_placeholder';
+import HiddenByPolicyPlaceholder from 'components/post_view/hidden_by_policy_placeholder';
 import BurnOnReadTimerChip from 'components/post_view/burn_on_read_timer_chip';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
@@ -573,8 +574,18 @@ function PostComponent(props: Props) {
     // Determine if we should show concealed placeholder for burn-on-read posts
     const showConcealedPlaceholder = props.shouldDisplayBurnOnReadConcealed && post.type === PostTypes.BURN_ON_READ;
 
+    // Post Policy: the server blanks the message and sets a sentinel prop
+    // when a channel post_filter rule denies this post for the viewer. The
+    // placeholder is intentionally non-interactive — enforcement happens
+    // server-side, so there is nothing to reveal client-side.
+    const hiddenByPolicy = PostUtils.isHiddenByPolicy(post);
+
     let message;
-    if (showConcealedPlaceholder) {
+    if (hiddenByPolicy) {
+        message = (
+            <HiddenByPolicyPlaceholder postId={post.id}/>
+        );
+    } else if (showConcealedPlaceholder) {
         message = (
             <BurnOnReadConcealedPlaceholder
                 postId={post.id}

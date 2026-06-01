@@ -53,6 +53,7 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
 // Mock the general selectors
 jest.mock('selectors/general', () => ({
     isChannelAccessControlEnabled: jest.fn().mockReturnValue(true),
+    isPostPolicyEnabled: jest.fn().mockReturnValue(false),
     getBasePath: jest.fn().mockReturnValue(''),
 }));
 

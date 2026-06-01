@@ -1,0 +1,123 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelSettingsModal {
+    &__postPoliciesTab {
+        display: flex;
+        max-height: 100%;
+        flex: 1;
+        flex-direction: column;
+        padding-bottom: 60px;
+        overflow-y: auto;
+    }
+
+    &__postPoliciesHeader {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 16px;
+        gap: 8px;
+    }
+
+    &__postPoliciesTitle {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__postPoliciesSubtitle {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__postPoliciesLoading,
+    &__postPoliciesEmpty {
+        margin: 16px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 13px;
+    }
+
+    &__postPoliciesLoadError {
+        padding: 12px 16px;
+        border: 1px solid rgba(var(--error-text-color-rgb), 0.32);
+        border-radius: 4px;
+        margin-bottom: 16px;
+        background-color: rgba(var(--error-text-color-rgb), 0.08);
+        color: var(--error-text);
+        font-size: 13px;
+    }
+
+    &__postPoliciesList {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        margin: 0 0 16px;
+        gap: 16px;
+        list-style: none;
+    }
+
+    &__postPoliciesCard {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 6px;
+        background-color: var(--center-channel-bg);
+        gap: 8px;
+    }
+
+    &__postPoliciesCardLabel {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        text-transform: uppercase;
+    }
+
+    &__postPoliciesTextarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 4px;
+        background-color: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-size: 13px;
+        line-height: 18px;
+        resize: vertical;
+
+        &:focus {
+            border-color: var(--button-bg);
+            outline: none;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+        }
+    }
+
+    &__postPoliciesCardError {
+        margin: 4px 0 0;
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__postPoliciesCardActions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 4px;
+        gap: 8px;
+    }
+
+    &__postPoliciesAdd {
+        align-self: flex-start;
+    }
+}

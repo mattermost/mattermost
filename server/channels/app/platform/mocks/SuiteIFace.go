@@ -16,6 +16,24 @@ type SuiteIFace struct {
 	mock.Mock
 }
 
+// EvaluatePostPolicyForRecipient provides a mock function with given fields: rctx, channelID, postID, userID, postValues
+func (_m *SuiteIFace) EvaluatePostPolicyForRecipient(rctx request.CTX, channelID string, postID string, userID string, postValues map[string]interface{}) bool {
+	ret := _m.Called(rctx, channelID, postID, userID, postValues)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluatePostPolicyForRecipient")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, map[string]interface{}) bool); ok {
+		r0 = rf(rctx, channelID, postID, userID, postValues)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // GetSession provides a mock function with given fields: token
 func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError) {
 	ret := _m.Called(token)

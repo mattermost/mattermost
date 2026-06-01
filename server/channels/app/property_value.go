@@ -159,9 +159,47 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 				a.Publish(message)
 			}
 		}
+
+		// When property values are upserted on a post and PostPolicy is on,
+		// re-emit a post_edited event so postPolicyBroadcastHook runs against
+		// the updated value set. Closes the live leak window between the
+		// initial `posted` broadcast (no values in DB yet) and the value
+		// patch that follows — without this, denied recipients see the
+		// message body until they refresh. The hook still blanks
+		// per-recipient on the re-broadcast.
+		if objectType == model.PropertyFieldObjectTypePost && a.Config().FeatureFlags.PostPolicy {
+			a.republishPostForPolicyRecompute(rctx, targetID)
+		}
 	}
 
 	return result, nil
+}
+
+// republishPostForPolicyRecompute fetches the given post and emits a
+// post_edited WS event so postPolicyBroadcastHook re-evaluates with the
+// most recent property values. Best-effort: logs and returns on error so
+// caller paths (UpsertPropertyValues) don't fail because of a follow-up
+// notification miss.
+func (a *App) republishPostForPolicyRecompute(rctx request.CTX, postID string) {
+	post, appErr := a.Srv().Store().Post().GetSingle(rctx, postID, false)
+	if appErr != nil {
+		rctx.Logger().Warn("republishPostForPolicyRecompute: get post failed",
+			mlog.String("post_id", postID), mlog.Err(appErr))
+		return
+	}
+	// Clone so publishWebsocketEventForPost's in-place mutations
+	// (metadata strip, prop deletion) can't poison the store cache.
+	clone := post.Clone()
+	// Bump UpdateAt on the broadcast copy (not the DB row) so the webapp's
+	// shouldUpdatePost reducer accepts this re-broadcast. Without this the
+	// reducer drops the update because storedPost.update_at ==
+	// receivedPost.update_at and the recipient never sees the blanking.
+	clone.UpdateAt = model.GetMillis()
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", clone.ChannelId, "", nil, "")
+	if err := a.publishWebsocketEventForPost(rctx, clone, message); err != nil {
+		rctx.Logger().Warn("republishPostForPolicyRecompute: publish failed",
+			mlog.String("post_id", postID), mlog.Err(err))
+	}
 }
 
 // DeletePropertyValue deletes a property value and broadcasts a property_values_updated event.

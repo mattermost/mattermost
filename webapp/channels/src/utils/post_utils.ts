@@ -67,6 +67,15 @@ export function isFromBot(post: Post): boolean {
     return post.props && post.props.from_bot === 'true';
 }
 
+// HiddenByPolicyProp is set on Post.Props by the server when a Post Policy
+// has blanked the post body for the requesting user. The frontend renders a
+// non-interactive placeholder in place of the message when this is true.
+export const HiddenByPolicyProp = 'hidden_by_policy';
+
+export function isHiddenByPolicy(post: Post): boolean {
+    return Boolean(post?.props?.[HiddenByPolicyProp]);
+}
+
 export function isPostOwner(state: GlobalState, post: Post): boolean {
     return getCurrentUserId(state) === post.user_id;
 }

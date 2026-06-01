@@ -64,6 +64,10 @@ func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, 
 	return true
 }
 
+func (ms *mockSuite) EvaluatePostPolicyForRecipient(rctx request.CTX, channelID string, postID string, userID string, postValues map[string]any) bool {
+	return true
+}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
 	return nil
 }
