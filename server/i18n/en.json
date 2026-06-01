@@ -13151,6 +13151,26 @@
     "translation": "Template for {{.field}} produced output larger than the allowed limit."
   },
   {
+    "id": "api.webhook.template.values.encode.app_error",
+    "translation": "Failed to encode rendered value for property field {{.field}}."
+  },
+  {
+    "id": "api.webhook.template.values.group.app_error",
+    "translation": "Failed to load the channel-post property group."
+  },
+  {
+    "id": "api.webhook.template.values.unknown_field.app_error",
+    "translation": "Property field {{.field}} is not defined for this channel."
+  },
+  {
+    "id": "api.webhook.template.values.unsupported_type.app_error",
+    "translation": "Property field {{.field}} has type {{.type}}; only text fields are supported by inline templating."
+  },
+  {
+    "id": "api.webhook.template.values.upsert.app_error",
+    "translation": "Failed to persist templated property values for this post."
+  },
+  {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "No text specified."
   },

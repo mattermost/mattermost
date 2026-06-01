@@ -58,6 +58,13 @@ type IncomingWebhookRequest struct {
 	Type        string               `json:"type"`
 	IconEmoji   string               `json:"icon_emoji"`
 	Priority    *PostPriority        `json:"priority"`
+
+	// RenderedValues is a transient, server-internal carrier for per-post
+	// property values rendered from inline templating (?values.<name>=).
+	// Keyed by property-field name; the value is the rendered string,
+	// which the app layer coerces into the field's typed PropertyValue.
+	// Never serialized to or from clients.
+	RenderedValues map[string]string `json:"-"`
 }
 
 type IncomingWebhooksWithCount struct {

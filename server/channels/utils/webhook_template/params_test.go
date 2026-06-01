@@ -5,6 +5,7 @@ package webhook_template
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -114,5 +115,58 @@ func TestExtractScalars(t *testing.T) {
 		s := ExtractScalars(q)
 		require.True(t, s.UsernamePresent)
 		require.Equal(t, "", s.Username)
+	})
+}
+
+func TestExtractValueTemplates(t *testing.T) {
+	t.Run("simple field", func(t *testing.T) {
+		q := url.Values{"values.severity": []string{`{{.p}}`}}
+		got := ExtractValueTemplates(q)
+		require.Len(t, got, 1)
+		require.Equal(t, "severity", got[0].FieldName)
+		require.Equal(t, `{{.p}}`, got[0].Template)
+	})
+
+	t.Run("dashes and underscores accepted", func(t *testing.T) {
+		q := url.Values{
+			"values.dash-name":   []string{`a`},
+			"values.under_score": []string{`b`},
+			"values._leading":    []string{`c`},
+			"values.MixedCase":   []string{`d`},
+			"values.123":         []string{`e`},
+		}
+		got := ExtractValueTemplates(q)
+		require.Len(t, got, 5)
+	})
+
+	t.Run("invalid names ignored", func(t *testing.T) {
+		q := url.Values{
+			"values.-leading-dash":          []string{`x`},
+			"values.has.dot":                []string{`x`},
+			"values.has space":              []string{`x`},
+			"values.":                       []string{`x`},
+			"values.a/b":                    []string{`x`},
+			"values." + strings.Repeat("a", 100): []string{`x`}, // > 63 chars
+			"notvalues.foo":                 []string{`x`},
+		}
+		got := ExtractValueTemplates(q)
+		require.Empty(t, got)
+	})
+
+	t.Run("multiple fields plus unrelated params", func(t *testing.T) {
+		q := url.Values{
+			"values.severity": []string{`{{.s}}`},
+			"values.region":   []string{`{{.r}}`},
+			"text":            []string{`{{.summary}}`},
+			"template":        []string{`1`},
+		}
+		got := ExtractValueTemplates(q)
+		require.Len(t, got, 2)
+	})
+
+	t.Run("no value params", func(t *testing.T) {
+		q := url.Values{"template": []string{`1`}, "text": []string{`x`}}
+		got := ExtractValueTemplates(q)
+		require.Empty(t, got)
 	})
 }
