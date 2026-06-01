@@ -7,8 +7,9 @@
   "styles": "dist/index.esm.css",
   "scripts": {
     "build": "rollup -c",
-    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "check": "eslint ./src eslint.config.mjs --quiet",
     "check-types": "tsc -b",
+    "fix": "eslint ./src eslint.config.mjs --quiet --fix",
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",

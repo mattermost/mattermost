@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/eslint-plugin",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "ESLint configuration and custom rules used by Mattermost",
   "repository": {
     "type": "git",
@@ -10,7 +10,12 @@
   "author": "Mattermost, Inc.",
   "license": "Apache 2.0",
   "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/eslint-plugin#readme",
-  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./index.js"
+    }
+  },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
@@ -32,6 +37,8 @@
     }
   },
   "scripts": {
+    "check": "eslint . --quiet",
+    "fix": "eslint . --quiet --fix",
     "clean": "rm -rf node_modules"
   }
 }
