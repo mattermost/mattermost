@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "A group-synced team cannot have a membership policy applied."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
   },
@@ -3939,6 +3943,10 @@
     "translation": "An error occurred updating the team icon."
   },
   {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "Group sync cannot be enabled on a team that has a membership policy applied."
+  },
+  {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Specified user is not a member of specified team."
   },
@@ -4765,6 +4773,10 @@
   {
     "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
     "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled team."
   },
   {
     "id": "api.user.guest_magic_link.expired_token.app_error",
@@ -7617,6 +7629,10 @@
     "translation": "Unable to assign access control policy to channels."
   },
   {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "Unable to assign access control policy to teams."
+  },
+  {
     "id": "app.pap.check_expression.app_error",
     "translation": "Could not check expression."
   },
@@ -7671,6 +7687,10 @@
   {
     "id": "app.pap.get_policy_attributes.app_error",
     "translation": "Could not get attributes for policy."
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "Could not get team members to remove."
   },
   {
     "id": "app.pap.hydrate_actions.app_error",
@@ -7775,6 +7795,10 @@
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
     "translation": "Could not unassign access control policy from channels."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "Could not unassign access control policy from teams."
   },
   {
     "id": "app.pap.update_access_control_policies_active.app_error",

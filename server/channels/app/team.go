@@ -304,6 +304,19 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 }
 
 func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
+	if patch.GroupConstrained != nil && *patch.GroupConstrained {
+		// Group sync and ABAC are mutually exclusive on a team; block enabling
+		// group sync while a team membership policy is attached. The assign
+		// side enforces the converse in ValidateTeamEligibilityForAccessControl.
+		existing, appErr := a.GetTeam(teamID)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if existing.PolicyEnforced {
+			return nil, model.NewAppError("PatchTeam", "api.team.update.group_constrained.policy_exists", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	team, err := a.ch.srv.teamService.PatchTeam(teamID, patch)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -898,6 +911,39 @@ func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
 	}
 
 	return teams, nil
+}
+
+// TeamAccessControlled reports whether the team enforces an ABAC membership
+// policy. Mirrors ChannelAccessControlled, with one addition: it also gates on
+// the TeamMembershipAccessControl feature flag so team enforcement can ship
+// dark and roll out independently of channel ABAC (which is GA on the umbrella
+// flag). When the flag, license, or config is off it returns (false, nil) and
+// no team join is ever ABAC-evaluated. A hydration error returns (false, err)
+// — fail-closed, never a silent (false, nil).
+func (a *App) TeamAccessControlled(rctx request.CTX, teamID string) (bool, *model.AppError) {
+	if !a.Config().FeatureFlags.TeamMembershipAccessControl {
+		return false, nil
+	}
+
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return false, nil
+	}
+
+	team, err := a.Srv().Store().Team().Get(teamID)
+	var nfErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &nfErr) {
+		return false, model.NewAppError("TeamAccessControlled", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if errors.As(err, &nfErr) {
+		return false, nil
+	}
+
+	if appErr := a.HydrateTeamPolicyActions(rctx, team); appErr != nil {
+		// Fail-closed: a hydration error must not silently downgrade an
+		// ABAC-controlled team to "unrestricted" for the join gate.
+		return false, appErr
+	}
+
+	return team.HasMembershipPolicyAction(), nil
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -1836,6 +1882,8 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.cleanupTeamAccessControlPolicy(rctx, team)
+
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
@@ -1868,11 +1916,57 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
+	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team)
+
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
 
 	return nil
+}
+
+// cleanupTeamAccessControlPolicy removes the team-scope ABAC policy row, if
+// any, for a team being archived or permanently deleted. Mirrors
+// cleanupChannelAccessControlPolicy: an orphaned policy row would still be
+// picked up by the sync worker and surface in policy-enforced searches.
+// Failures are logged but never returned — deleting/archiving a team must not
+// be blocked by an ABAC cleanup error.
+//
+// We deliberately do not gate on team.PolicyEnforced: that flag is derived
+// from the AccessControlPolicies table and can be stale, which would cause us
+// to skip cleanup and leave an orphan. DeletePolicy is a no-op when no row
+// exists, so calling it unconditionally is safe. When the enterprise service
+// is unavailable or reports the op unsupported, we fall back to deleting the
+// row directly through the store.
+func (a *App) cleanupTeamAccessControlPolicy(rctx request.CTX, team *model.Team) {
+	if team == nil || team.Id == "" {
+		return
+	}
+
+	useStoreFallback := false
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		useStoreFallback = true
+	} else if appErr := acs.DeletePolicy(rctx, team.Id); appErr != nil {
+		switch appErr.StatusCode {
+		case http.StatusNotImplemented, http.StatusNotAcceptable:
+			useStoreFallback = true
+		default:
+			rctx.Logger().Warn("Failed to delete team ABAC policy during team delete/archive",
+				mlog.String("team_id", team.Id),
+				mlog.Err(appErr),
+			)
+		}
+	}
+
+	if useStoreFallback {
+		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, team.Id); err != nil {
+			rctx.Logger().Warn("Failed to delete team ABAC policy during team delete/archive",
+				mlog.String("team_id", team.Id),
+				mlog.Err(err),
+			)
+		}
+	}
 }
 
 func (a *App) RestoreTeam(teamID string) *model.AppError {

@@ -213,6 +213,44 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
+func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	query := s.getQueryBuilder().
+		Select(teamMemberSliceColumns()...).From("TeamMembers").LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
+		OrderBy("TeamMembers.UserId ASC")
+
+	if opts.Query != "" {
+		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+	}
+
+	argCount := len(opts.Args)
+
+	argCount++
+	query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.TeamId = $%d", argCount), teamID))
+
+	if opts.Limit > 0 {
+		query = query.Limit(uint64(opts.Limit))
+	} else if opts.Limit > MaxPerPage {
+		query = query.Limit(uint64(MaxPerPage))
+	}
+
+	if opts.Cursor.TargetID != "" {
+		argCount++
+		query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
+	}
+
+	q, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+
+	members := []*model.TeamMember{}
+	if err := s.GetReplica().Select(&members, q, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find team members with for team id=%s", teamID)
+	}
+
+	return members, nil
+}
+
 func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, prevArgs int) (int, sq.SelectBuilder) {
 	for _, term := range terms {
 		searchFields := []string{}
