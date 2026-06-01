@@ -921,7 +921,7 @@
         Validate and parse a license file without saving it. This allows administrators
         to preview the license details before applying it.
 
-        __Minimum server version__: 10.6
+        __Minimum server version__: 10.9
 
         ##### Permissions
         Must have `manage_system` permission.
