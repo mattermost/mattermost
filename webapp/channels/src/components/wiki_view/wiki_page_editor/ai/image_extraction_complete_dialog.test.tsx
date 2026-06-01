@@ -43,7 +43,12 @@ describe('components/wiki_view/wiki_page_editor/ai/ImageExtractionCompleteDialog
 
     it('should render for handwriting extraction with insert option', () => {
         const onInsertContent = jest.fn();
-        renderWithIntl(<ImageExtractionCompleteDialog {...defaultProps} onInsertContent={onInsertContent}/>);
+        renderWithIntl(
+            <ImageExtractionCompleteDialog
+                {...defaultProps}
+                onInsertContent={onInsertContent}
+            />,
+        );
 
         expect(screen.getByText('Text Extracted')).toBeInTheDocument();
         expect(screen.getByText(/The text has been extracted/)).toBeInTheDocument();
@@ -64,7 +69,12 @@ describe('components/wiki_view/wiki_page_editor/ai/ImageExtractionCompleteDialog
 
     it('should call onInsertContent when Insert into page button is clicked for handwriting', () => {
         const onInsertContent = jest.fn();
-        renderWithIntl(<ImageExtractionCompleteDialog {...defaultProps} onInsertContent={onInsertContent}/>);
+        renderWithIntl(
+            <ImageExtractionCompleteDialog
+                {...defaultProps}
+                onInsertContent={onInsertContent}
+            />,
+        );
 
         const insertButton = screen.getByText('Insert into page');
         fireEvent.click(insertButton);

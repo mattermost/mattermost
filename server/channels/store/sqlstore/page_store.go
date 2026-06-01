@@ -124,7 +124,7 @@ func (s *SqlPageStore) GetPage(rctx request.CTX, pageID string, includeDeleted b
 			"p.IsPinned", "p.UserId", "p.ChannelId", "p.RootId", "p.OriginalId",
 			"p.PageParentId", "p.Message", "p.Type", "p.Props",
 			"p.Hashtags", "p.Filenames", "p.FileIds",
-			"p.HasReactions", "p.RemoteId", "p.PageSearchText").
+			"p.HasReactions", "p.RemoteId", "p.ContentText").
 		From("Posts p").
 		Where(sq.And{
 			sq.Eq{"p.Id": pageID},
@@ -470,16 +470,16 @@ func (s *SqlPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, 
 		}
 
 		// Update the Post with optimistic locking via EditAt.
-		// Preserve the existing PageSearchText for title-only updates (content unchanged).
-		searchText := currentPost.PageSearchText
+		// Preserve the existing ContentText for title-only updates (content unchanged).
+		searchText := currentPost.ContentText
 		if page.Message != currentPost.Message {
-			searchText = page.PageSearchText
+			searchText = page.ContentText
 		}
 		now := model.GetMillis()
 		updateQuery := s.getQueryBuilder().
 			Update("Posts").
 			Set("Message", page.Message).
-			Set("PageSearchText", searchText).
+			Set("ContentText", searchText).
 			Set("Props", model.StringInterfaceToJSON(page.Props)).
 			Set("UpdateAt", now).
 			Set("EditAt", now).
@@ -1203,9 +1203,9 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			}
 			currentPost.Message = content
 			if doc, parseErr := model.ParseTipTapDocument(content); parseErr == nil {
-				currentPost.PageSearchText = model.BuildSearchText(doc)
+				currentPost.ContentText = model.BuildSearchText(doc)
 			} else {
-				currentPost.PageSearchText = ""
+				currentPost.ContentText = ""
 			}
 			needsHistory = true
 		}
@@ -1223,7 +1223,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			updateQuery := s.getQueryBuilder().
 				Update("Posts").
 				Set("Message", currentPost.Message).
-				Set("PageSearchText", currentPost.PageSearchText).
+				Set("ContentText", currentPost.ContentText).
 				Set("EditAt", currentPost.EditAt).
 				Set("UpdateAt", currentPost.UpdateAt).
 				Set("Props", model.StringInterfaceToJSON(currentPost.Props)).

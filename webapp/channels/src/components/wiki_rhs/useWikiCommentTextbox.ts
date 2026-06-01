@@ -18,7 +18,7 @@ export function useWikiCommentTextbox() {
     const teamId = useSelector(getCurrentTeamId);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const useChannelMentions = useSelector((state: GlobalState) =>
-        channelId ? haveIChannelPermission(state, teamId, channelId, Permissions.USE_CHANNEL_MENTIONS) : false,
+        (channelId ? haveIChannelPermission(state, teamId, channelId, Permissions.USE_CHANNEL_MENTIONS) : false),
     );
     return {channelId, maxPostSize, useChannelMentions};
 }

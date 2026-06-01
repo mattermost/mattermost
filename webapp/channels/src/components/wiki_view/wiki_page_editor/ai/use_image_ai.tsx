@@ -5,14 +5,14 @@ import {useCallback, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {useIsMounted} from 'hooks/useIsMounted';
-
 import type {ServerError} from '@mattermost/types/errors';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {savePageDraft as savePageDraftAction} from 'actions/page_drafts';
 import {createPage as createPageAction} from 'actions/pages';
+
+import {useIsMounted} from 'hooks/useIsMounted';
 
 import type {ImageAIAction} from '../formatting_bar_bubble';
 

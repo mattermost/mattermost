@@ -117,8 +117,6 @@ export function useWikiPageData(
 
             // No wiki context at all — nothing to load.
             if (!pageId && !wikiId) {
-                // eslint-disable-next-line no-console
-                console.log('[TRACE][useWikiPageData] early return: no pageId and no wikiId → setLoading(false)');
                 if (!cancelled) {
                     setLoading(false);
                 }
@@ -225,11 +223,7 @@ export function useWikiPageData(
             if (wikiId) {
                 // First check if wiki exists by trying to fetch it from Redux (or API if not cached)
                 // This will return 404 if wiki was deleted
-                // eslint-disable-next-line no-console
-                console.log('[TRACE][useWikiPageData] calling fetchWiki', {wikiId});
                 const wikiResult = await dispatch(fetchWiki(wikiId));
-                // eslint-disable-next-line no-console
-                console.log('[TRACE][useWikiPageData] fetchWiki resolved', {wikiId, hasError: Boolean(wikiResult.error), cancelled});
                 if (cancelled) {
                     return;
                 }
@@ -244,8 +238,6 @@ export function useWikiPageData(
                     return;
                 }
 
-                // eslint-disable-next-line no-console
-                console.log('[TRACE][useWikiPageData] wiki exists, about to setLoading(false)', {wikiId, channelId, url: window.location.pathname});
                 // Wiki exists - pages and drafts are loaded by parent WikiView component
             } else if (channelId) {
                 // No wikiId but a channel context — load that channel's default page.
@@ -612,6 +604,7 @@ export function useWikiPageActions(
         if (pageParentIdFromDraft) {
             const latestState = store.getState();
             const parentPage = getPageById(latestState, pageParentIdFromDraft);
+
             // The redux pages.byId map only contains published pages. A parent draft that has
             // never been published has no entry here, so its child cannot be published yet.
             if (!parentPage) {

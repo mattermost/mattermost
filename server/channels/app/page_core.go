@@ -133,13 +133,13 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 	}
 
 	page := &model.Post{
-		Id:             pageID, // If empty, PreSave() will generate a new ID
-		Type:           model.PostTypePage,
-		ChannelId:      channelID,
-		UserId:         userID,
-		Message:        content,
-		PageSearchText: extractedSearchText,
-		PageParentId:   pageParentID,
+		Id:           pageID, // If empty, PreSave() will generate a new ID
+		Type:         model.PostTypePage,
+		ChannelId:    channelID,
+		UserId:       userID,
+		Message:      content,
+		ContentText:  extractedSearchText,
+		PageParentId: pageParentID,
 		Props: model.StringInterface{
 			model.PagePropsTitle: title,
 		},
@@ -374,7 +374,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 
 	if content != "" {
 		post.Message = content
-		post.PageSearchText = extractedSearchText
+		post.ContentText = extractedSearchText
 	}
 
 	if post.Props == nil {

@@ -41,8 +41,8 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	type MovePageRequest struct {
-		ParentId     *string `json:"parent_id,omitempty"`     // nil = keep current parent
-		SiblingIndex *int64  `json:"sibling_index,omitempty"` // position among siblings
+		PageParentId *string `json:"page_parent_id,omitempty"` // nil = keep current parent
+		SiblingIndex *int64  `json:"sibling_index,omitempty"`  // position among siblings
 	}
 
 	var req MovePageRequest
@@ -51,8 +51,8 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.ParentId != nil && *req.ParentId != "" && !model.IsValidId(*req.ParentId) {
-		c.SetInvalidParam("parent_id")
+	if req.PageParentId != nil && *req.PageParentId != "" && !model.IsValidId(*req.PageParentId) {
+		c.SetInvalidParam("page_parent_id")
 		return
 	}
 
@@ -63,9 +63,9 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If new parent is specified, verify it exists, is a page, and belongs to the same wiki
-	if req.ParentId != nil && *req.ParentId != "" {
+	if req.PageParentId != nil && *req.PageParentId != "" {
 		// GetPage validates the post exists and is a page type
-		parentPage, err := c.App.GetPage(c.AppContext, *req.ParentId)
+		parentPage, err := c.App.GetPage(c.AppContext, *req.PageParentId)
 		if err != nil {
 			c.Err = model.NewAppError("movePage", "api.wiki.move_page.parent_not_found.app_error", nil, "", err.StatusCode).Wrap(err)
 			return
@@ -83,7 +83,7 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !ok || parentWikiId == "" {
 			// Fallback: get wiki_id from PropertyValues (source of truth)
 			var wikiErr *model.AppError
-			parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, *req.ParentId)
+			parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, *req.PageParentId)
 			if wikiErr != nil || parentWikiId == "" {
 				c.Err = model.NewAppError("movePage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 				return
@@ -95,14 +95,14 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if req.ParentId != nil {
-		model.AddEventParameterToAuditRec(auditRec, "parent_id", *req.ParentId)
+	if req.PageParentId != nil {
+		model.AddEventParameterToAuditRec(auditRec, "page_parent_id", *req.PageParentId)
 	}
 	if req.SiblingIndex != nil {
 		model.AddEventParameterToAuditRec(auditRec, "sibling_index", *req.SiblingIndex)
 	}
 
-	siblings, appErr := c.App.MovePage(c.AppContext, c.Params.PageId, req.ParentId, c.Params.WikiId, req.SiblingIndex)
+	siblings, appErr := c.App.MovePage(c.AppContext, c.Params.PageId, req.PageParentId, c.Params.WikiId, req.SiblingIndex)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -129,7 +129,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	type MovePageRequest struct {
 		TargetWikiId string  `json:"target_wiki_id"`
-		ParentPageId *string `json:"parent_page_id,omitempty"`
+		PageParentId *string `json:"page_parent_id,omitempty"`
 	}
 
 	var req MovePageRequest
@@ -143,8 +143,8 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.ParentPageId != nil && *req.ParentPageId != "" && !model.IsValidId(*req.ParentPageId) {
-		c.SetInvalidParam("parent_page_id")
+	if req.PageParentId != nil && *req.PageParentId != "" && !model.IsValidId(*req.PageParentId) {
+		c.SetInvalidParam("page_parent_id")
 		return
 	}
 
@@ -152,8 +152,8 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
 	model.AddEventParameterToAuditRec(auditRec, "source_wiki_id", c.Params.WikiId)
 	model.AddEventParameterToAuditRec(auditRec, "target_wiki_id", req.TargetWikiId)
-	if req.ParentPageId != nil && *req.ParentPageId != "" {
-		model.AddEventParameterToAuditRec(auditRec, "parent_page_id", *req.ParentPageId)
+	if req.PageParentId != nil && *req.PageParentId != "" {
+		model.AddEventParameterToAuditRec(auditRec, "page_parent_id", *req.PageParentId)
 	}
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
@@ -205,7 +205,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.MovePageToWiki(c.AppContext, page, req.TargetWikiId, req.ParentPageId, c.Params.WikiId, sourceWiki, targetWiki); appErr != nil {
+	if appErr := c.App.MovePageToWiki(c.AppContext, page, req.TargetWikiId, req.PageParentId, c.Params.WikiId, sourceWiki, targetWiki); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -230,7 +230,7 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	type DuplicatePageRequest struct {
 		TargetWikiId string  `json:"target_wiki_id"`
-		ParentPageId *string `json:"parent_page_id,omitempty"`
+		PageParentId *string `json:"page_parent_id,omitempty"`
 		Title        *string `json:"title,omitempty"`
 	}
 
@@ -245,8 +245,8 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.ParentPageId != nil && *req.ParentPageId != "" && !model.IsValidId(*req.ParentPageId) {
-		c.SetInvalidParam("parent_page_id")
+	if req.PageParentId != nil && *req.PageParentId != "" && !model.IsValidId(*req.PageParentId) {
+		c.SetInvalidParam("page_parent_id")
 		return
 	}
 
@@ -303,7 +303,7 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, page, req.TargetWikiId, req.ParentPageId, req.Title, c.AppContext.Session().UserId, targetWiki, channel)
+	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, page, req.TargetWikiId, req.PageParentId, req.Title, c.AppContext.Session().UserId, targetWiki, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return

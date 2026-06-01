@@ -1466,6 +1466,7 @@ function handlePageCommentCreatedEvent(msg: WebSocketMessage) {
     // getMyChannelMember(post.channel_id) — the wiki backing channel — and trigger
     // sendDesktopNotification with a backing-channel URL, leaking the substrate.
     const crtEnabled = isCollapsedThreadsEnabled(getState());
+
     // Dual-dispatch: wiki store for wiki RHS isolation, posts store for channel feed
     dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment}});
     dispatch(receivedNewPost(comment, crtEnabled));

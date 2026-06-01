@@ -205,6 +205,7 @@ describe('PasteMarkdownExtension', () => {
 
             // The dangerous URL is blocked; link text may be preserved with a safe href
             expect(html).not.toContain('javascript:');
+
             // The safe image is preserved
             expect(html).toContain('example.com/x.png');
         });

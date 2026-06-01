@@ -124,6 +124,7 @@ const PageTreeView = ({
     const currentTeam = useSelector(getCurrentTeam);
     const outlineExpandedNodes = useSelector(getOutlineExpandedNodes);
     const outlineCache = useSelector(getOutlineCache);
+
     // Flatten tree for rendering, respecting expanded state
     const visibleNodes = useMemo(
         () => flattenTree(tree, expandedNodes),

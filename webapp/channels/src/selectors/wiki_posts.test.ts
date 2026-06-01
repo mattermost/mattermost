@@ -7,8 +7,6 @@ import {makeInitialPagesState} from 'tests/helpers/pages_state';
 
 import {isPageCommentResolved, getPageCommentResolutionInfo, makeGetFilteredPostIdsForWikiThread, makeGetFilteredCommentsByResolution} from './wiki_posts';
 
-type DeepPartial<T> = T extends object ? {[K in keyof T]?: DeepPartial<T[K]>} : T;
-
 function makeState(pagesOverride: Partial<ReturnType<typeof makeInitialPagesState>> = {}): any {
     return {
         entities: {

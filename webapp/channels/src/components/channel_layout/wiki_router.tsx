@@ -76,8 +76,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps): StateProps {
     const wikiId = ownProps.match?.params.wikiId ?? '';
     const resolvedChannelId = getResolvedChannelId(state, wikiId);
     const channel = resolvedChannelId ? getChannel(state, resolvedChannelId) : undefined;
-    // eslint-disable-next-line no-console
-    console.log('[TRACE][wiki_router] mapStateToProps', {wikiId, resolvedChannelId, channelExists: Boolean(channel), url: window.location.pathname});
     return {
         resolvedChannelId,
         channelExists: Boolean(channel),

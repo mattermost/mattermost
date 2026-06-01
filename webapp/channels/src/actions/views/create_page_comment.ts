@@ -3,8 +3,8 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {CreatePostReturnType} from 'mattermost-redux/actions/posts';
 import {logError} from 'mattermost-redux/actions/errors';
+import type {CreatePostReturnType} from 'mattermost-redux/actions/posts';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createPageComment as createPageCommentAction, createPageCommentReply} from 'actions/pages';

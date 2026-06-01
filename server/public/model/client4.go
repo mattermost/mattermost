@@ -8330,7 +8330,7 @@ func (c *Client4) DuplicatePage(ctx context.Context, sourceWikiId, pageId, targe
 		"target_wiki_id": targetWikiId,
 	}
 	if parentPageId != nil {
-		payload["parent_page_id"] = *parentPageId
+		payload["page_parent_id"] = *parentPageId
 	}
 	if customTitle != nil {
 		payload["title"] = *customTitle
@@ -8359,7 +8359,7 @@ func (c *Client4) GetPageBreadcrumb(ctx context.Context, wikiId, pageId string) 
 func (c *Client4) MovePage(ctx context.Context, wikiId, pageId string, parentId *string, siblingIndex *int64) (*PostList, *Response, error) {
 	payload := map[string]any{}
 	if parentId != nil {
-		payload["parent_id"] = *parentId
+		payload["page_parent_id"] = *parentId
 	}
 	if siblingIndex != nil {
 		payload["sibling_index"] = *siblingIndex

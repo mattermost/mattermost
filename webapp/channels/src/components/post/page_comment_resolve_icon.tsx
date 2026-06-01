@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckCircleIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {CheckCircleIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';
 
 import {resolvePageComment, unresolvePageComment} from 'actions/pages';
 import {closeModal, openModal} from 'actions/views/modals';
-import InfoToast from 'components/info_toast/info_toast';
 import {isPageCommentResolved} from 'selectors/wiki_posts';
+
+import InfoToast from 'components/info_toast/info_toast';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {isPageComment} from 'utils/page_utils';

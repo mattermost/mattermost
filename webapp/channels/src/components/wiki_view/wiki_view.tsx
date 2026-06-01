@@ -9,7 +9,7 @@ import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {notifyPageEditorStopped} from 'actions/pages';
@@ -49,12 +49,9 @@ const WikiView = () => {
     const location = useLocation();
     const {params, path} = useRouteMatch<{pageId?: string; draftId?: string; wikiId: string}>();
     const {pageId, draftId, wikiId} = params;
-    // eslint-disable-next-line no-console
-    console.log('[TRACE][wiki_view] render', {wikiId, pageId, draftId, url: window.location.pathname, path});
     const channelId = useSelector((state: GlobalState) => getResolvedChannelId(state, wikiId || ''));
 
     const teamId = useSelector(getCurrentTeamId);
-    const currentTeam = useSelector(getCurrentTeam);
     const currentUserId = useSelector(getCurrentUserId);
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
     const isWikiRhsOpen = rhsState === 'wiki';
@@ -83,19 +80,13 @@ const WikiView = () => {
     // Load wiki data (pages, drafts) on wiki change
     // Uses cache-first pattern: only fetches pages if not already loaded
     React.useEffect(() => {
-        // eslint-disable-next-line no-console
-        console.log('[TRACE][wiki_view] fetchWikiBundle effect', {wikiId, url: window.location.pathname});
         if (!wikiId) {
-            // eslint-disable-next-line no-console
-            console.log('[TRACE][wiki_view] fetchWikiBundle skipped: no wikiId');
             setWikiBundleLoading(false);
             return undefined;
         }
         let cancelled = false;
         setWikiBundleLoadError(false);
         setWikiBundleLoading(true);
-        // eslint-disable-next-line no-console
-        console.log('[TRACE][wiki_view] dispatching fetchWikiBundle', {wikiId});
         dispatch(fetchWikiBundle(wikiId)).then((result) => {
             if (cancelled) {
                 return;
@@ -134,16 +125,12 @@ const WikiView = () => {
         isSelectingDraftRef,
     );
     const isLoading = isRouteLoading || wikiBundleLoading;
-    // eslint-disable-next-line no-console
-    console.log('[TRACE][wiki_view] loading state', {isRouteLoading, wikiBundleLoading, isLoading, wikiId, channelId});
 
     const currentDraft = useSelector((state: GlobalState) => {
         if (!wikiId || !draftId) {
             return null;
         }
         const d = getPageDraft(state, wikiId, draftId);
-        // eslint-disable-next-line no-console
-        console.log('[TRACE][wiki_view] currentDraft lookup', {wikiId, draftId, found: Boolean(d)});
         return d;
     });
 
@@ -186,8 +173,6 @@ const WikiView = () => {
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
     const newDrafts = useSelector((state: GlobalState) => (wikiId ? getNewDraftsForWiki(state, wikiId) : []));
     const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
-    // eslint-disable-next-line no-console
-    console.log('[TRACE][wiki_view] data counts', {allPages: allPages.length, allDrafts: allDrafts.length, newDrafts: newDrafts.length, wikiId, pageId, draftId});
 
     // Refs to track latest values to avoid stale closures in async callbacks
     const newDraftsRef = React.useRef(newDrafts);
@@ -231,8 +216,6 @@ const WikiView = () => {
 
     // Single source of truth for empty state (no drafts, no pages)
     const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0 && allPages.length === 0;
-    // eslint-disable-next-line no-console
-    console.log('[TRACE][wiki_view] empty-state check', {isEmptyState, '!currentDraft': !currentDraft, '!pageId': !pageId, allDraftsLen: allDrafts.length, allPagesLen: allPages.length});
 
     // Store last viewed page when pageId or draftId changes
     React.useEffect(() => {
@@ -563,8 +546,6 @@ const WikiView = () => {
     // Auto-updating RHS on page navigation is intentionally not done — the RHS ThreadViewer
     // mount blocks PageViewer rendering for ~60s; users toggle RHS manually instead.
 
-    // eslint-disable-next-line no-console
-    console.log('[TRACE][wiki_view] returning JSX', {isLoading, wikiBundleLoadError, isEmptyState, wikiId});
     if (wikiBundleLoadError) {
         return (
             <div
@@ -589,9 +570,6 @@ const WikiView = () => {
             })}
             data-testid='wiki-view'
         >
-            {isLoading ? (
-                (() => { /* eslint-disable-next-line no-console */ console.log('[TRACE][wiki_view] BRANCH: outer LoadingScreen', {isRouteLoading, wikiBundleLoading}); return null; })()
-            ) : null}
             {isLoading ? (
                 <div
                     className='no-results__holder'
@@ -697,7 +675,6 @@ const WikiView = () => {
                             className='PagePane__content'
                             data-testid='wiki-page-content'
                         >
-                            {draftId && (!currentDraft || currentDraft.rootId !== draftId) && (() => { /* eslint-disable-next-line no-console */ console.log('[TRACE][wiki_view] RENDERING: inner draft LoadingScreen', {draftId, currentDraftRootId: currentDraft?.rootId}); return null; })()}
                             {draftId && (!currentDraft || currentDraft.rootId !== draftId) && (
                                 <div className='no-results__holder'>
                                     <LoadingScreen/>
@@ -720,7 +697,6 @@ const WikiView = () => {
                                     wikiId={wikiId}
                                 />
                             )}
-                            {isEmptyState && (() => { /* eslint-disable-next-line no-console */ console.log('[TRACE][wiki_view] RENDERING: No Pages Yet', {isEmptyState, allDraftsLen: allDrafts.length, allPagesLen: allPages.length, currentDraft: Boolean(currentDraft), pageId, draftId, isLoading}); return null; })()}
                             {isEmptyState && (
                                 <div className='PagePane__emptyState'>
                                     <i className='icon-file-document-outline'/>

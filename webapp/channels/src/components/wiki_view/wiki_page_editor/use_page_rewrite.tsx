@@ -5,8 +5,6 @@ import type {Editor} from '@tiptap/react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {useIsMounted} from 'hooks/useIsMounted';
-
 import type {ServerError} from '@mattermost/types/errors';
 
 import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
@@ -16,6 +14,8 @@ import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 import {RewriteAction} from 'components/advanced_text_editor/rewrite_action';
 import RewriteMenu from 'components/advanced_text_editor/rewrite_menu';
 import {openMenu} from 'components/menu';
+
+import {useIsMounted} from 'hooks/useIsMounted';
 
 import type {Language} from './ai/language_picker';
 

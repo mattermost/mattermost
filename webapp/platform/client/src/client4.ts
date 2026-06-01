@@ -2368,9 +2368,9 @@ export default class Client4 {
     // parentId: if provided, changes the page's parent (null/undefined = keep current parent, empty string = move to root)
     // siblingIndex: if provided, reorders the page to this position among siblings
     movePage = (wikiId: string, pageId: string, parentId?: string | null, siblingIndex?: number) => {
-        const body: {parent_id?: string; sibling_index?: number} = {};
+        const body: {page_parent_id?: string; sibling_index?: number} = {};
         if (parentId !== undefined) {
-            body.parent_id = parentId ?? '';
+            body.page_parent_id = parentId ?? '';
         }
         if (siblingIndex !== undefined) {
             body.sibling_index = siblingIndex;
@@ -2383,9 +2383,9 @@ export default class Client4 {
     };
 
     movePageToWiki = (sourceWikiId: string, pageId: string, targetWikiId: string, parentPageId?: string) => {
-        const body: {target_wiki_id: string; parent_page_id?: string} = {target_wiki_id: targetWikiId};
+        const body: {target_wiki_id: string; page_parent_id?: string} = {target_wiki_id: targetWikiId};
         if (parentPageId) {
-            body.parent_page_id = parentPageId;
+            body.page_parent_id = parentPageId;
         }
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(sourceWikiId, pageId)}/move-to-wiki`,
@@ -5198,7 +5198,7 @@ export default class Client4 {
     movePageDraft = (wikiId: string, pageId: string, parentId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}/move`,
-            {method: 'POST', body: JSON.stringify({parent_id: parentId})},
+            {method: 'POST', body: JSON.stringify({page_parent_id: parentId})},
         );
     };
 

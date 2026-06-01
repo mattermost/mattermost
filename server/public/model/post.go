@@ -191,16 +191,16 @@ type Post struct {
 	// populate edit boxes if present.
 	MessageSource string `json:"message_source,omitempty" xml:"MessageSource,omitempty"`
 
-	Type           string          `json:"type" xml:"Type"`
-	propsMu        sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
-	Props          StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
-	Hashtags       string          `json:"hashtags" xml:"Hashtags"`
-	PageSearchText string          `json:"page_search_text,omitempty" xml:"PageSearchText"`
-	Filenames      StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
-	FileIds        StringArray     `json:"file_ids" xml:"FileIds>Id"`
-	PendingPostId  string          `json:"pending_post_id" xml:"PendingPostId"`
-	HasReactions   bool            `json:"has_reactions,omitempty" xml:"HasReactions,omitempty"`
-	RemoteId       *string         `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
+	Type          string          `json:"type" xml:"Type"`
+	propsMu       sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
+	Props         StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
+	Hashtags      string          `json:"hashtags" xml:"Hashtags"`
+	ContentText   string          `json:"content_text,omitempty" xml:"ContentText"`
+	Filenames     StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
+	FileIds       StringArray     `json:"file_ids" xml:"FileIds>Id"`
+	PendingPostId string          `json:"pending_post_id" xml:"PendingPostId"`
+	HasReactions  bool            `json:"has_reactions,omitempty" xml:"HasReactions,omitempty"`
+	RemoteId      *string         `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
 
 	// Transient data populated before sending a post to the client
 	ReplyCount   int64         `json:"reply_count" xml:"ReplyCount"`
@@ -420,7 +420,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Type = o.Type
 	dst.Props = o.Props
 	dst.Hashtags = o.Hashtags
-	dst.PageSearchText = o.PageSearchText
+	dst.ContentText = o.ContentText
 	dst.Filenames = o.Filenames
 	dst.FileIds = o.FileIds
 	dst.PendingPostId = o.PendingPostId
@@ -668,7 +668,7 @@ func (o *Post) SanitizeProps() {
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
 	o.RemoteId = new("")
-	o.PageSearchText = ""
+	o.ContentText = ""
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil

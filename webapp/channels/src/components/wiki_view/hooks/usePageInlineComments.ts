@@ -199,6 +199,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                             return;
                         }
                     }
+
                     // Fallback: comment not yet in local Redux state (e.g. other clients)
                     fetchInlineComments(true);
                 }

@@ -51,7 +51,7 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("ChangePageParent", func(t *testing.T) { testChangePageParent(t, rctx, ss) })
 	t.Run("GetCommentsForPage", func(t *testing.T) { testGetCommentsForPage(t, rctx, ss) })
 	t.Run("UpdatePageWithContent", func(t *testing.T) { testUpdatePageWithContent(t, rctx, ss) })
-	t.Run("PageSearchTextPersistence", func(t *testing.T) { testPageSearchTextPersistence(t, rctx, ss) })
+	t.Run("ContentTextPersistence", func(t *testing.T) { testContentTextPersistence(t, rctx, ss) })
 	t.Run("ConcurrentOperations", func(t *testing.T) { testConcurrentOperations(t, rctx, ss) })
 	t.Run("DeletePage", func(t *testing.T) { testDeletePage(t, rctx, ss) })
 	t.Run("VersionHistoryPruning", func(t *testing.T) { testVersionHistoryPruning(t, rctx, ss, s) })
@@ -870,7 +870,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotNil(t, updatedPost)
 
 		require.JSONEq(t, contentJSON, updatedPost.Message)
-		require.Equal(t, "Test content", updatedPost.PageSearchText)
+		require.Equal(t, "Test content", updatedPost.ContentText)
 	})
 
 	t.Run("updates both title and content", func(t *testing.T) {
@@ -894,7 +894,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		require.Equal(t, "Updated Title", updatedPost.Props["title"])
 		require.JSONEq(t, contentJSON, updatedPost.Message)
-		require.Equal(t, "New Heading", updatedPost.PageSearchText)
+		require.Equal(t, "New Heading", updatedPost.ContentText)
 	})
 
 	t.Run("fails for non-existent pageID", func(t *testing.T) {
@@ -1005,7 +1005,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testPageSearchTextPersistence(t *testing.T, rctx request.CTX, ss store.Store) {
+func testContentTextPersistence(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      teamID,
@@ -1017,7 +1017,7 @@ func testPageSearchTextPersistence(t *testing.T, rctx request.CTX, ss store.Stor
 
 	userID := model.NewId()
 
-	t.Run("PageSearchText is persisted and fetchable after UpdatePageWithContent", func(t *testing.T) {
+	t.Run("ContentText is persisted and fetchable after UpdatePageWithContent", func(t *testing.T) {
 		page := &model.Post{
 			ChannelId: channel.Id,
 			UserId:    userID,
@@ -1032,15 +1032,15 @@ func testPageSearchTextPersistence(t *testing.T, rctx request.CTX, ss store.Stor
 
 		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "", contentJSON)
 		require.NoError(t, updateErr)
-		require.Equal(t, "searchable words here", updatedPost.PageSearchText)
+		require.Equal(t, "searchable words here", updatedPost.ContentText)
 
 		// Re-fetch from DB and verify the column was actually persisted.
 		fetched, fetchErr := ss.Post().GetSingle(rctx, page.Id, false)
 		require.NoError(t, fetchErr)
-		require.Equal(t, "searchable words here", fetched.PageSearchText)
+		require.Equal(t, "searchable words here", fetched.ContentText)
 	})
 
-	t.Run("PageSearchText is cleared to empty string when content is invalid JSON", func(t *testing.T) {
+	t.Run("ContentText is cleared to empty string when content is invalid JSON", func(t *testing.T) {
 		page := &model.Post{
 			ChannelId: channel.Id,
 			UserId:    userID,

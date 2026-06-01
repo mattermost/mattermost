@@ -17,7 +17,6 @@ import FormatListBulletedIcon from '@mattermost/compass-icons/components/format-
 import GlobeIcon from '@mattermost/compass-icons/components/globe';
 import LinkVariantIcon from '@mattermost/compass-icons/components/link-variant';
 import OpenInNewIcon from '@mattermost/compass-icons/components/open-in-new';
-import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outline';
 import PlusIcon from '@mattermost/compass-icons/components/plus';
 import TrashCanOutlineIcon from '@mattermost/compass-icons/components/trash-can-outline';
 

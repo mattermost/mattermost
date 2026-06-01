@@ -113,8 +113,6 @@ export const GET_PAGES_FAILURE = WikiTypes.GET_PAGES_FAILURE;
 // Fetch all pages for a wiki (with automatic pagination)
 export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
     return async (dispatch, getState) => {
-        // eslint-disable-next-line no-console
-        console.log('[TRACE][fetchPages] dispatching GET_PAGES_REQUEST', {wikiId, url: window.location.pathname});
         dispatch({type: GET_PAGES_REQUEST, data: {wikiId}});
 
         try {
@@ -147,8 +145,6 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
             // otherwise arePagesLoaded stays false and callers refetch in a loop.
             // The reducer preserves any non-empty message already in state, so list
             // endpoints (which return pages without TipTap content) don't clobber it.
-            // eslint-disable-next-line no-console
-            console.log('[TRACE][fetchPages] dispatching RECEIVED_PAGES', {wikiId, count: allPages.length});
             dispatch({
                 type: WikiTypes.RECEIVED_PAGES,
                 data: {wikiId, pages: allPages},
@@ -156,8 +152,6 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
 
             return {data: allPages};
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('[TRACE][fetchPages] error, dispatching GET_PAGES_FAILURE', {wikiId, error: String(error)});
             handleApiError(error, dispatch, getState);
             dispatch({type: GET_PAGES_FAILURE, data: {wikiId, error}});
             return {error};
@@ -224,12 +218,8 @@ export function fetchWiki(wikiId: string): ActionFuncAsync<Wiki> {
 
         // Return cached wiki if it exists
         if (existingWiki) {
-            // eslint-disable-next-line no-console
-            console.log('[TRACE][fetchWiki] cache hit', {wikiId});
             return {data: existingWiki};
         }
-        // eslint-disable-next-line no-console
-        console.log('[TRACE][fetchWiki] cache miss, fetching from API', {wikiId});
 
         try {
             const wiki = await Client4.getWiki(wikiId);

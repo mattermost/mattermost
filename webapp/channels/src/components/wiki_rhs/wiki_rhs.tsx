@@ -8,8 +8,8 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
-
 import {scrollToAnchor} from 'components/wiki_view/page_anchor';
+
 import type {InlineAnchor} from 'types/store/pages';
 
 import AllWikiThreads from './all_wiki_threads';
@@ -61,6 +61,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInl
         if (originPageId && wikiId) {
             originPageIdRef.current = null;
             openWikiRhs(originPageId, wikiId);
+
             // Cross-page thread navigation always originates from the all-threads
             // tab; restore it so the user lands where they left off (bug A29).
             setWikiRhsActiveTab('all_threads');

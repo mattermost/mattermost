@@ -387,7 +387,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 	})
 }
 
-func TestCreatePageSetsPageSearchText(t *testing.T) {
+func TestCreatePageSetsContentText(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
@@ -397,10 +397,10 @@ func TestCreatePageSetsPageSearchText(t *testing.T) {
 	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "My Page", "", contentJSON, th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 	require.NotNil(t, page)
-	require.Equal(t, "searchable text here", page.PageSearchText)
+	require.Equal(t, "searchable text here", page.ContentText)
 }
 
-func TestUpdatePageSetsPageSearchText(t *testing.T) {
+func TestUpdatePageSetsContentText(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
@@ -410,12 +410,12 @@ func TestUpdatePageSetsPageSearchText(t *testing.T) {
 	initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"initial content"}]}]}`
 	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Update Test Page", "", initialContent, th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
-	require.Equal(t, "initial content", page.PageSearchText)
+	require.Equal(t, "initial content", page.ContentText)
 
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"updated content words"}]}]}`
 	updated, appErr := th.App.UpdatePage(rctx, page, "Update Test Page", newContent, "", nil)
 	require.Nil(t, appErr)
-	require.Equal(t, "updated content words", updated.PageSearchText)
+	require.Equal(t, "updated content words", updated.ContentText)
 }
 
 func TestPageSearchByContent(t *testing.T) {
@@ -439,7 +439,7 @@ func TestPageSearchByContent(t *testing.T) {
 
 	var found bool
 	for _, post := range results.Posts {
-		if post.PageSearchText == uniqueWord {
+		if post.ContentText == uniqueWord {
 			found = true
 			break
 		}

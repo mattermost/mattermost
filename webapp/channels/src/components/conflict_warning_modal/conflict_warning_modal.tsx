@@ -72,6 +72,7 @@ function extractParagraphs(input: string | null | undefined): string[] {
             for (const top of doc.content) {
                 walk(top);
             }
+
             // Drop empty paragraphs — a TipTap doc with one empty paragraph
             // should be treated the same as an empty doc.
             const nonEmpty = out.filter((p) => p.length > 0);
@@ -144,14 +145,6 @@ export default function ConflictWarningModal({
         }
         return undefined;
     }, [identicalNoticeVisible, dispatch]);
-
-    const handleClose = () => {
-        if (isDiscarding) {
-            return;
-        }
-        dispatch(closeModal(ModalIdentifiers.PAGE_CONFLICT_WARNING));
-        onContinueEditing();
-    };
 
     const handleConfirmOptionSelect = () => {
         switch (selectedOption) {

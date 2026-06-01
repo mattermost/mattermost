@@ -104,8 +104,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     };
 
     onTabChange = (tabId: string) => {
-        // eslint-disable-next-line no-console
-        console.log('[TRACE][channel_view] onTabChange', {tabId, url: window.location.pathname});
         this.setState({activeTab: tabId});
     };
 

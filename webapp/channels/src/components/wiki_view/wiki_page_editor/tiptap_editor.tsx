@@ -966,6 +966,7 @@ const TipTapEditor = ({
                                                     const file = item.getAsFile();
                                                     if (file) {
                                                         handleFileUpload(editor, file).catch((e) => {
+                                                            // eslint-disable-next-line no-console
                                                             console.error('TipTap: paste file upload failed:', e);
                                                         });
                                                     }
@@ -1069,6 +1070,7 @@ const TipTapEditor = ({
                                                     file,
                                                     pos?.pos,
                                                 ).catch((e) => {
+                                                    // eslint-disable-next-line no-console
                                                     console.error('TipTap: drag-drop file upload failed:', e);
                                                 });
                                             });
@@ -1242,6 +1244,7 @@ const TipTapEditor = ({
                 return;
             }
             onContentChange(JSON.stringify(currentEditor.getJSON()));
+
             // Only scroll for user-initiated edits; programmatic insertions
             // (AI content, remote sync) explicitly opt out via addToHistory=false.
             if (transaction.getMeta('addToHistory') !== false) {
@@ -1328,6 +1331,7 @@ const TipTapEditor = ({
             try {
                 editor.chain().focus().insertContent(imageExtractedNodes as Parameters<typeof editor.commands.insertContent>[0]).run();
             } catch (insertErr) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to insert extracted image content, falling back to plain text:', insertErr);
                 const fallbackText = (imageExtractedNodes as Array<{content?: Array<{text?: string}>}>).
                     flatMap((n) => n.content ?? []).
@@ -1429,7 +1433,7 @@ const TipTapEditor = ({
     // Update inline comments in both extensions when they change
     useEffect(() => {
         if (!editor) {
-            return undefined;
+            return;
         }
 
         // Update storage for click handling

@@ -313,7 +313,7 @@ func TestPageDraftOwnershipValidation(t *testing.T) {
 
 	t.Run("user cannot move another user's draft", func(t *testing.T) {
 		url := "/wikis/" + wiki.Id + "/drafts/" + draftPageId + "/move"
-		payload := `{"parent_id":""}`
+		payload := `{"page_parent_id":""}`
 		httpResp, err := client2.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, model.BuildResponse(httpResp))
@@ -380,7 +380,7 @@ func TestMovePageDraft(t *testing.T) {
 
 		// Move draft to parent
 		url := "/wikis/" + wiki.Id + "/drafts/" + draftId + "/move"
-		payload := `{"parent_id":"` + parentPage.Id + `"}`
+		payload := `{"page_parent_id":"` + parentPage.Id + `"}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
@@ -406,7 +406,7 @@ func TestMovePageDraft(t *testing.T) {
 
 		// Move draft to root (empty parent_id)
 		url := "/wikis/" + wiki.Id + "/drafts/" + draftId + "/move"
-		payload := `{"parent_id":""}`
+		payload := `{"page_parent_id":""}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
@@ -420,7 +420,7 @@ func TestMovePageDraft(t *testing.T) {
 
 	t.Run("fail for non-existent draft", func(t *testing.T) {
 		url := "/wikis/" + wiki.Id + "/drafts/" + model.NewId() + "/move"
-		payload := `{"parent_id":""}`
+		payload := `{"page_parent_id":""}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, model.BuildResponse(httpResp))
@@ -433,7 +433,7 @@ func TestMovePageDraft(t *testing.T) {
 		require.NoError(t, err)
 
 		url := "/wikis/" + model.NewId() + "/drafts/" + draftId + "/move"
-		payload := `{"parent_id":""}`
+		payload := `{"page_parent_id":""}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, model.BuildResponse(httpResp))

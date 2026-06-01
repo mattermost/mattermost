@@ -481,6 +481,7 @@ function commentsByPageId(state: Record<string, string[]> = {}, action: AnyActio
             return state;
         }
         const ids = comments.map((c: Post) => c.id).filter(Boolean);
+
         // Preserve any IDs added via WS during fetch (not in the fetched list)
         const existing = state[pageId] || [];
         const fetched = new Set(ids);
@@ -513,6 +514,7 @@ function commentsByPageId(state: Record<string, string[]> = {}, action: AnyActio
         if (pageId && state[pageId]) {
             return {...state, [pageId]: state[pageId].filter((id) => id !== commentId)};
         }
+
         // pageId unknown: scan all
         let changed = false;
         const next: Record<string, string[]> = {};

@@ -203,7 +203,7 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		ParentId string `json:"parent_id"`
+		PageParentId string `json:"page_parent_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -212,13 +212,13 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate ParentId if provided
-	if req.ParentId != "" && !model.IsValidId(req.ParentId) {
-		c.SetInvalidParam("parent_id")
+	if req.PageParentId != "" && !model.IsValidId(req.PageParentId) {
+		c.SetInvalidParam("page_parent_id")
 		return
 	}
 
-	if req.ParentId != "" {
-		parentPage, appErr := c.App.GetPage(c.AppContext, req.ParentId)
+	if req.PageParentId != "" {
+		parentPage, appErr := c.App.GetPage(c.AppContext, req.PageParentId)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -232,15 +232,15 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if parentWikiId != c.Params.WikiId {
-			c.SetInvalidParam("parent_id")
+			c.SetInvalidParam("page_parent_id")
 			return
 		}
 	}
 
-	auditRec.AddMeta("new_parent_id", req.ParentId)
+	auditRec.AddMeta("new_parent_id", req.PageParentId)
 	auditRec.AddEventPriorState(pageDraft)
 
-	if appErr := c.App.MovePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, req.ParentId); appErr != nil {
+	if appErr := c.App.MovePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, req.PageParentId); appErr != nil {
 		c.Err = appErr
 		return
 	}

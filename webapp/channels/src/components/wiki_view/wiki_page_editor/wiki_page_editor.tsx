@@ -189,7 +189,10 @@ const WikiPageEditor = ({
                             pageId={pageId}
                         />
                     )}
-                    <div className='page-status-wrapper' data-testid='page-status-wrapper'>
+                    <div
+                        className='page-status-wrapper'
+                        data-testid='page-status-wrapper'
+                    >
                         <PageStatusSelector
                             pageId={pageId || ''}
                             isDraft={true}

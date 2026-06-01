@@ -26,8 +26,8 @@ import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 
 import type {FakePost} from 'types/store/rhs';
 
-import WikiReplyComment from './wiki_reply_comment';
 import {applyResolutionFilter, ResolutionFilterBar} from './resolution_filter';
+import WikiReplyComment from './wiki_reply_comment';
 
 import './wiki_page_thread_viewer.scss';
 
@@ -68,7 +68,7 @@ const WikiPageThreadViewer = (props: Props) => {
             return [];
         }
 
-        let filtered = pageComments.filter((post: Post) => {
+        const filtered = pageComments.filter((post: Post) => {
             return pageInlineCommentHasAnchor(post);
         }) as Post[];
 

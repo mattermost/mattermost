@@ -65,8 +65,6 @@ function ChannelTabContent({
         }
 
         if (activeTab.startsWith('wiki-')) {
-            // eslint-disable-next-line no-console
-            console.log('[TRACE][channel_tab_panel] rendering WikiView', {activeTab, channelId, url: window.location.pathname});
             return (
                 <div className='channel-tab-panel-content channel-tab-panel-content--wiki'>
                     <WikiView/>

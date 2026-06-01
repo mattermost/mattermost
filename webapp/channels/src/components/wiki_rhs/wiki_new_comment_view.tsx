@@ -4,9 +4,8 @@
 import React, {useEffect, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type TextboxClass from 'components/textbox/textbox';
-
 import Textbox from 'components/textbox';
+import type TextboxClass from 'components/textbox/textbox';
 
 import type {InlineAnchor} from 'types/store/pages';
 

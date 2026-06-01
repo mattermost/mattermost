@@ -134,7 +134,7 @@ func postSliceColumnsWithTypes() []struct {
 		{"Type", reflect.String},
 		{"Props", reflect.Map},
 		{"Hashtags", reflect.String},
-		{"PageSearchText", reflect.String},
+		{"ContentText", reflect.String},
 		{"Filenames", reflect.Slice},
 		{"FileIds", reflect.Slice},
 		{"HasReactions", reflect.Bool},
@@ -159,7 +159,7 @@ func postToSlice(post *model.Post) []any {
 		post.Type,
 		model.StringInterfaceToJSON(post.Props),
 		post.Hashtags,
-		post.PageSearchText,
+		post.ContentText,
 		model.ArrayToJSON(post.Filenames),
 		model.ArrayToJSON(post.FileIds),
 		post.HasReactions,
@@ -487,7 +487,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 			Type=:Type,
 			Props=:Props,
 			Hashtags=:Hashtags,
-			PageSearchText=:PageSearchText,
+			ContentText=:ContentText,
 			Filenames=:Filenames,
 			FileIds=:FileIds,
 			HasReactions=:HasReactions,
@@ -554,7 +554,7 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 					Type=:Type,
 					Props=:Props,
 					Hashtags=:Hashtags,
-					PageSearchText=:PageSearchText,
+					ContentText=:ContentText,
 					Filenames=:Filenames,
 					FileIds=:FileIds,
 					HasReactions=:HasReactions,
@@ -2423,7 +2423,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			var wikiFilterClauses []string
 			var pageSearchArgs []any
 			wikiFilterClauses = append(wikiFilterClauses, "q2.Type = '"+model.PostTypePage+"'")
-			wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("to_tsvector('%s', COALESCE(q2.Props->>'title', '') || ' ' || COALESCE(q2.PageSearchText, '')) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg))
+			wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("to_tsvector('%s', COALESCE(q2.Props->>'title', '') || ' ' || COALESCE(q2.ContentText, '')) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg))
 			pageSearchArgs = append(pageSearchArgs, tsQueryClause)
 
 			// Apply wiki ID filter if specified

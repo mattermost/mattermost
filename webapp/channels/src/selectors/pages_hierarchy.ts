@@ -7,9 +7,10 @@ import {makeGetPages} from 'selectors/pages';
 
 import {buildTree, getAncestorIds} from 'components/pages_hierarchy_panel/utils/tree_builder';
 
+import type {Heading} from 'utils/page_outline';
+
 import type {GlobalState} from 'types/store';
 import type {PageOrDraft} from 'types/store/pages';
-import type {Heading} from 'utils/page_outline';
 
 // Re-export types from canonical source
 export type {Page, DraftPage, PageOrDraft, TreeNode} from 'types/store/pages';

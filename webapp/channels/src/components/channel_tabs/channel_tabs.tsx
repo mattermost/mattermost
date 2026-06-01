@@ -335,8 +335,6 @@ function ChannelTabs({
     }, [activeTab, hasWikiPages, onTabChange]);
 
     const handleTabClick = useCallback((tabId: TabType) => {
-        // eslint-disable-next-line no-console
-        console.log('[TRACE][channel_tabs] handleTabClick', {tabId, currentUrl: window.location.pathname, teamName});
         if (tabId === 'bookmarks') {
             return;
         }
@@ -345,11 +343,7 @@ function ChannelTabs({
         if (tabId.startsWith('wiki-')) {
             const wikiId = tabId.replace('wiki-', '');
             const targetUrl = getWikiUrl(teamName, wikiId);
-            // eslint-disable-next-line no-console
-            console.log('[TRACE][channel_tabs] wiki tab → history.push', {targetUrl, wikiId, teamName});
             history.push(targetUrl);
-            // eslint-disable-next-line no-console
-            console.log('[TRACE][channel_tabs] after history.push, url now:', window.location.pathname);
             return;
         }
 

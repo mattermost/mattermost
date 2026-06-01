@@ -9,9 +9,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {WebSocketMessage} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
-
 import {logError} from 'mattermost-redux/actions/errors';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {getPageComments, fetchPages} from 'actions/pages';
 import {makeGetPublishedPages, arePagesLoaded} from 'selectors/pages';
@@ -22,9 +21,10 @@ import WebSocketClient from 'client/web_websocket_client';
 import {useIsMounted} from 'hooks/useIsMounted';
 import {SocketEvents} from 'utils/constants';
 import {pageInlineCommentHasAnchor, getPageTitle} from 'utils/page_utils';
-import {applyResolutionFilter, ResolutionFilterBar} from './resolution_filter';
 
 import type {GlobalState} from 'types/store';
+
+import {applyResolutionFilter, ResolutionFilterBar} from './resolution_filter';
 
 type PageThread = {
     pageId: string;
