@@ -1036,3 +1036,146 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 		assert.Empty(t, hooks, "AccessControl is nil in test env — hook not registered")
 	})
 }
+
+func TestPostPolicyBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &postPolicyBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+	postID := model.NewId()
+
+	makePost := func() (*model.Post, string) {
+		t.Helper()
+		post := &model.Post{
+			Id:        postID,
+			UserId:    model.NewId(),
+			ChannelId: channelID,
+			CreateAt:  model.GetMillis(),
+			Type:      "",
+			Message:   "top secret L1",
+			FileIds:   model.StringArray{model.NewId()},
+			Metadata: &model.PostMetadata{
+				Files: []*model.FileInfo{{Id: model.NewId(), Name: "f.txt"}},
+			},
+		}
+		postJSON, err := post.ToJSON()
+		require.NoError(t, err)
+		return post, postJSON
+	}
+
+	makeMessage := func(postJSON string) *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", channelID, "", nil, "")
+		event.Add("post", postJSON)
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeArgs := func() map[string]any {
+		return map[string]any{
+			"channel_id":  channelID,
+			"post_id":     postID,
+			"post_values": map[string]any{"secretlevel": "L1"},
+		}
+	}
+
+	makeWebConn := func(allow bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("EvaluatePostPolicyForRecipient",
+			mock.Anything,
+			channelID,
+			postID,
+			userID,
+			mock.AnythingOfType("map[string]interface {}"),
+		).Return(allow)
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		return wc
+	}
+
+	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) *model.Post {
+		t.Helper()
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+		var gotPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(gotJSON), &gotPost))
+		return &gotPost
+	}
+
+	t.Run("allowed recipient: post unchanged", func(t *testing.T) {
+		_, postJSON := makePost()
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(true)
+
+		require.NoError(t, hook.Process(msg, wc, makeArgs()))
+
+		gotPost := extractPost(t, msg)
+		assert.Equal(t, "top secret L1", gotPost.Message)
+		assert.Len(t, gotPost.FileIds, 1)
+		assert.NotEqual(t, true, gotPost.GetProp(model.PostPropsHiddenByPolicy))
+	})
+
+	t.Run("denied recipient: post blanked + sentinel set", func(t *testing.T) {
+		_, postJSON := makePost()
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(false)
+
+		require.NoError(t, hook.Process(msg, wc, makeArgs()))
+
+		gotPost := extractPost(t, msg)
+		assert.Equal(t, "", gotPost.Message)
+		assert.Empty(t, gotPost.FileIds)
+		assert.Nil(t, gotPost.Metadata.Files)
+		assert.Equal(t, true, gotPost.GetProp(model.PostPropsHiddenByPolicy))
+		// Timeline-essential fields preserved.
+		assert.Equal(t, postID, gotPost.Id)
+		assert.Equal(t, channelID, gotPost.ChannelId)
+	})
+
+	t.Run("missing channel_id arg returns error", func(t *testing.T) {
+		_, postJSON := makePost()
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(true)
+		args := makeArgs()
+		delete(args, "channel_id")
+
+		err := hook.Process(msg, wc, args)
+		require.Error(t, err)
+	})
+}
+
+func TestSetupBroadcastHookForPostPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	post := &model.Post{
+		Id:        model.NewId(),
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "L1",
+	}
+
+	t.Run("PostPolicy flag off: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PostPolicy = false
+		})
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+		th.App.setupBroadcastHookForPostPolicy(th.Context, post, message)
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("PostPolicy flag on but no AccessControl service: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PostPolicy = true
+		})
+		// Test env has AccessControl == nil (no enterprise plugin loaded).
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+		th.App.setupBroadcastHookForPostPolicy(th.Context, post, message)
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks,
+			"AccessControl is nil in test env — hook must not register")
+	})
+}

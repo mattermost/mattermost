@@ -994,14 +994,6 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 		post.FileIds = []string{}
 	}
 
-	// TODO(post-policy): per-recipient WS broadcast filter. Mirror
-	// processBroadcastHookForBurnOnRead / setupBroadcastHookForAbacFiles —
-	// evaluate the channel's post_filter rules against the recipient and
-	// blank the payload if denied. See abac-tasks/spec.md §3 (deferred
-	// from MVP); REST fetch sites apply filterPostsByPostPolicy today, so
-	// a denied recipient sees the post unblanked on live push until the
-	// next REST refresh.
-
 	// Extract metadata that needs per-recipient filtering before serialization
 	permalinkPreviewedPost := post.GetPreviewPost()
 	previewProp := post.GetPreviewedPostProp()
@@ -1050,8 +1042,43 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 
 	a.setupBroadcastHookForAbacFiles(post, message)
 
+	a.setupBroadcastHookForPostPolicy(rctx, post, message)
+
 	a.Publish(message)
 	return nil
+}
+
+// setupBroadcastHookForPostPolicy registers the per-recipient post-policy
+// hook on the `posted` broadcast when the PostPolicy feature flag is on and
+// the enterprise access-control service is loaded. The hook evaluates the
+// channel's post_filter policies for each recipient and blanks the payload
+// when the policy denies. Property values are hydrated once here and passed
+// to the hook so per-recipient evaluation skips the store roundtrip.
+func (a *App) setupBroadcastHookForPostPolicy(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) {
+	if !a.Config().FeatureFlags.PostPolicy {
+		return
+	}
+	if a.Srv().Channels().AccessControl == nil {
+		return
+	}
+	if post == nil {
+		return
+	}
+
+	hydrated, appErr := a.hydratePostValues(rctx, []*model.Post{post})
+	if appErr != nil {
+		rctx.Logger().Warn("setupBroadcastHookForPostPolicy: hydration failed, falling back to empty values",
+			mlog.String("post_id", post.Id),
+			mlog.Err(appErr))
+		usePostPolicyHook(message, post.ChannelId, post.Id, nil)
+		return
+	}
+
+	var values map[string]any
+	if len(hydrated) > 0 && hydrated[0] != nil {
+		values = hydrated[0].Values
+	}
+	usePostPolicyHook(message, post.ChannelId, post.Id, values)
 }
 
 // setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and

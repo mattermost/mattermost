@@ -25,6 +25,7 @@ const (
 	broadcastBurnOnRead         = "burn_on_read"
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
 	broadcastAbacFiles          = "abac_files"
+	broadcastPostPolicy         = "post_policy"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -37,6 +38,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
 		broadcastAbacFiles:          &abacFilesBroadcastHook{},
+		broadcastPostPolicy:         &postPolicyBroadcastHook{},
 	}
 }
 
@@ -502,6 +504,71 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 		mlog.Warn("abacFilesBroadcastHook: failed to marshal post in fallback strip; rejecting event", mlog.Err(jsonErr))
 		msg.Event().Reject()
 	}
+	return nil
+}
+
+// usePostPolicyHook registers the per-recipient post-policy hook on the
+// websocket broadcast. The post's hydrated property values are encoded as
+// hook args so the evaluation on each recipient skips a store roundtrip;
+// the sender hydrates once.
+func usePostPolicyHook(message *model.WebSocketEvent, channelID string, postID string, postValues map[string]any) {
+	message.GetBroadcast().AddHook(broadcastPostPolicy, map[string]any{
+		"channel_id":  channelID,
+		"post_id":     postID,
+		"post_values": postValues,
+	})
+}
+
+type postPolicyBroadcastHook struct{}
+
+// Process evaluates the channel's post_filter policies for the recipient
+// (webConn.UserId) using the pre-hydrated property values carried in args.
+// On deny, the post in msg["post"] is replaced with a blanked clone that
+// preserves Id / UserId / ChannelId / CreateAt / Type and sets the
+// PostPropsHiddenByPolicy sentinel. Eval errors fail-closed (blank).
+func (h *postPolicyBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_id value passed to postPolicyBroadcastHook")
+	}
+	postID, err := getTypedArg[string](args, "post_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid post_id value passed to postPolicyBroadcastHook")
+	}
+	postValues, err := getTypedArg[map[string]any](args, "post_values")
+	if err != nil {
+		return errors.Wrap(err, "Invalid post_values value passed to postPolicyBroadcastHook")
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log())
+	if webConn.Suite.EvaluatePostPolicyForRecipient(rctx, channelID, postID, webConn.UserId, postValues) {
+		return nil
+	}
+
+	post, perr := getPostFromMessage(msg)
+	if perr != nil {
+		return errors.Wrap(perr, "postPolicyBroadcastHook: failed to get post from message")
+	}
+
+	// Blank in place — the post we just unmarshaled is recipient-local, so
+	// mutating it can't poison any cache.
+	post.Message = ""
+	post.FileIds = model.StringArray{}
+	post.DelProp(model.PostPropsAttachments)
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
+	post.Metadata.Files = nil
+	post.Metadata.Embeds = []*model.PostEmbed{}
+	post.Metadata.Emojis = []*model.Emoji{}
+	post.Metadata.Reactions = []*model.Reaction{}
+	post.AddProp(model.PostPropsHiddenByPolicy, true)
+
+	blankedJSON, jerr := post.ToJSON()
+	if jerr != nil {
+		return errors.Wrap(jerr, "postPolicyBroadcastHook: failed to marshal blanked post")
+	}
+	msg.Add("post", blankedJSON)
 	return nil
 }
 

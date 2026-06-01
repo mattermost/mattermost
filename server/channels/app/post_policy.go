@@ -221,6 +221,50 @@ func (a *App) filterPostsByPostPolicy(rctx request.CTX, postList *model.PostList
 	return &out, nil
 }
 
+// EvaluatePostPolicyForRecipient is the SuiteIFace entry point used by the
+// WS posted broadcast hook. Returns true (allow) when the feature flag is
+// off, when no enterprise access-control service is loaded, or when every
+// applicable post_filter policy on the channel allows the recipient. Returns
+// false (deny) when any policy denies, when subject build fails, or when
+// the evaluator returns an error (fail-closed).
+//
+// postValues is the already-hydrated property values map for the post; the
+// hook hydrates once on the sender side and passes the map through the hook
+// args so per-recipient evaluation skips the store roundtrip.
+func (a *App) EvaluatePostPolicyForRecipient(rctx request.CTX, channelID string, postID string, userID string, postValues map[string]any) bool {
+	if !a.Config().FeatureFlags.PostPolicy {
+		return true
+	}
+	ac := a.Srv().Channels().AccessControl
+	if ac == nil {
+		return true
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, "")
+	if appErr != nil {
+		rctx.Logger().Warn("post policy: failed to build subject; failing closed",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr))
+		return false
+	}
+
+	pwv := &model.PostWithValues{
+		Post:   &model.Post{Id: postID, ChannelId: channelID},
+		Values: postValues,
+	}
+	allow, evalErr := ac.EvaluatePostPolicies(rctx, channelID, pwv, subject)
+	if evalErr != nil {
+		rctx.Logger().Warn("post policy: per-recipient evaluation failed; failing closed",
+			mlog.String("user_id", userID),
+			mlog.String("post_id", postID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(evalErr))
+		return false
+	}
+	return allow
+}
+
 // filterSinglePostByPostPolicy is the single-post variant used by callers
 // like GetSinglePost / GetPermalinkPost. Returns the post (possibly
 // blanked) on allow/deny. Returns an AppError only when hydration or
