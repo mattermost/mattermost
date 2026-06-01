@@ -116,6 +116,7 @@
         "SiteName": "Mattermost",
         "MaxUsersPerTeam": 2000,
         "EnableJoinLeaveMessageByDefault": true,
+        "EnableUtcTimestampsByDefault": false,
         "EnableUserCreation": true,
         "EnableOpenServer": true,
         "EnableUserDeactivation": false,

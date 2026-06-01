@@ -821,6 +821,88 @@ describe('shouldShowJoinLeaveMessages', () => {
     });
 });
 
+describe('shouldUseUtcTimestamps', () => {
+    it('should default to false', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableUtcTimestampsByDefault: 'false',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(false);
+    });
+
+    it('set config to true, return true', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableUtcTimestampsByDefault: 'true',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(true);
+    });
+
+    it('if user preference is set, admin default is not used', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableUtcTimestampsByDefault: 'true',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_UTC_TIMESTAMPS)]: {
+                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                            name: Preferences.USE_UTC_TIMESTAMPS,
+                            value: 'false',
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(false);
+    });
+
+    it('if user preference is true, return true even when admin default is false', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableUtcTimestampsByDefault: 'false',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_UTC_TIMESTAMPS)]: {
+                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                            name: Preferences.USE_UTC_TIMESTAMPS,
+                            value: 'true',
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(true);
+    });
+});
+
 describe('shouldShowUnreadsCategory', () => {
     test('should return value from the preference if set', () => {
         const state = {

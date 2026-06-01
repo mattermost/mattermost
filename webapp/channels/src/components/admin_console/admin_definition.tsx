@@ -3103,6 +3103,13 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
+                            type: 'bool',
+                            key: 'TeamSettings.EnableUtcTimestampsByDefault',
+                            label: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultTitle', defaultMessage: 'Enable UTC timestamps by default:'}),
+                            help_text: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultDescription', defaultMessage: 'When true, new users see UTC timestamps next to message authors by default. Users can override this in Account Settings > Display > Timestamp Display.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
                             type: 'dropdown',
                             key: 'TeamSettings.RestrictDirectMessage',
                             label: defineMessage({id: 'admin.team.restrictDirectMessage', defaultMessage: 'Enable users to open Direct Message channels with:'}),

@@ -215,6 +215,13 @@ export function shouldShowJoinLeaveMessages(state: GlobalState) {
     return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
 }
 
+export function shouldUseUtcTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {
+    const config = getConfig(state);
+    const enableUtcTimestampsByDefault = config.EnableUtcTimestampsByDefault === 'true';
+
+    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_UTC_TIMESTAMPS, enableUtcTimestampsByDefault, userPreferences);
+}
+
 // shouldShowUnreadsCategory returns true if the user has unereads grouped separately with the new sidebar enabled.
 export const shouldShowUnreadsCategory: (state: GlobalState, userPreferences?: PreferencesType) => boolean = createSelector(
     'shouldShowUnreadsCategory',

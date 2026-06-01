@@ -8,7 +8,9 @@ import type {Post} from '@mattermost/types/posts';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled, shouldUseUtcTimestamps} from 'mattermost-redux/selectors/entities/preferences';
+
+import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -33,6 +35,8 @@ function makeMapStateToProps() {
 
     return (state: GlobalState, ownProps: OwnProps) => {
         const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
+        const useUtcTimestamps = shouldUseUtcTimestamps(state);
+        const effectiveUseRelativeTimestamp = useRelativeTimestamp && !useUtcTimestamps;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
@@ -43,7 +47,7 @@ function makeMapStateToProps() {
 
         const replyListIds = getRepliesListWithSeparators(state, {
             postIds,
-            showDate: !useRelativeTimestamp,
+            showDate: !effectiveUseRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
         const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
@@ -56,6 +60,8 @@ function makeMapStateToProps() {
             replyListIds,
             newMessagesSeparatorActions,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
+            useRelativeTimestamp: effectiveUseRelativeTimestamp,
+            utcTimestampProps: useUtcTimestamps ? UTC_TIMESTAMP_PROPS : undefined,
         };
     };
 }

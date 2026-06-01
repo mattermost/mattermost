@@ -184,3 +184,41 @@ describe('components/post_view/post_time/PostTime', () => {
         expect(mockEmitCloseRightHandSide).toHaveBeenCalled();
     });
 });
+
+describe('components/post_view/post_time/PostTime connected', () => {
+    const baseProps = {
+        isPermalink: true,
+        eventTime: 1577836800000,
+        isMobileView: false,
+        location: 'center',
+        postId: 'post123',
+        teamUrl: '/team1',
+    };
+
+    test('should render UTC timestamp when use_utc_timestamps preference is enabled', () => {
+        const ConnectedPostTime = require('./index').default;
+
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableUtcTimestampsByDefault: 'false',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        'display_settings--use_utc_timestamps': {
+                            category: 'display_settings',
+                            name: 'use_utc_timestamps',
+                            value: 'true',
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<ConnectedPostTime {...baseProps}/>, state);
+
+        expect(screen.getByText(/01\/01\/2020.*00:00.*UTC/i)).toBeInTheDocument();
+    });
+});

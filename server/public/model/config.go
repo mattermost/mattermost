@@ -2517,6 +2517,7 @@ type TeamSettings struct {
 	SiteName                        *string `access:"site_customization"`
 	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
+	EnableUtcTimestampsByDefault    *bool   `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
 	EnableUserDeactivation          *bool   `access:"experimental_features"`
@@ -2553,6 +2554,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableJoinLeaveMessageByDefault == nil {
 		s.EnableJoinLeaveMessageByDefault = new(true)
+	}
+
+	if s.EnableUtcTimestampsByDefault == nil {
+		s.EnableUtcTimestampsByDefault = new(false)
 	}
 
 	if s.EnableUserCreation == nil {

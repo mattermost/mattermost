@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -15,6 +16,7 @@ import type {OnScrollArgs, OnItemsRenderedArgs} from 'components/dynamic_virtual
 import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
+import type {Props as TimestampProps} from 'components/timestamp';
 import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
 
 import Constants from 'utils/constants';
@@ -40,6 +42,7 @@ type Props = {
     replyListIds: string[];
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
+    utcTimestampProps?: Partial<TimestampProps>;
     isMobileView: boolean;
     isThreadView: boolean;
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
@@ -371,7 +374,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
-                    timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
+                    timestampProps={this.props.utcTimestampProps || (this.props.useRelativeTimestamp ? THREADING_TIME : undefined)}
                     threadId={this.props.selected.id}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                     isChannelAutotranslated={this.props.isChannelAutotranslated}

@@ -98,6 +98,8 @@ export const Preferences = {
     AVAILABILITY_STATUS_ON_POSTS_DEFAULT: 'true',
     USE_MILITARY_TIME: 'use_military_time',
     USE_MILITARY_TIME_DEFAULT: 'false',
+    USE_UTC_TIMESTAMPS: 'use_utc_timestamps',
+    USE_UTC_TIMESTAMPS_DEFAULT: 'false',
     UNREAD_SCROLL_POSITION: 'unread_scroll_position',
     UNREAD_SCROLL_POSITION_START_FROM_LEFT: 'start_from_left_off',
     UNREAD_SCROLL_POSITION_START_FROM_NEWEST: 'start_from_newest',

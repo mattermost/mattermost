@@ -36,6 +36,7 @@ const Preferences = Constants.Preferences;
 function getDisplayStateFromProps(props: Props) {
     return {
         militaryTime: props.militaryTime,
+        useUtcTimestamps: props.useUtcTimestamps,
         teammateNameDisplay: props.teammateNameDisplay,
         availabilityStatusOnPosts: props.availabilityStatusOnPosts,
         channelDisplayMode: props.channelDisplayMode,
@@ -104,6 +105,7 @@ type Props = OwnProps & {
     shouldAutoUpdateTimezone: boolean | string;
     lockTeammateNameDisplay: boolean;
     militaryTime: string;
+    useUtcTimestamps: string;
     teammateNameDisplay: string;
     availabilityStatusOnPosts: string;
     channelDisplayMode: string;
@@ -132,6 +134,7 @@ type State = {
     [key: string]: any;
     isSaving: boolean;
     militaryTime: string;
+    useUtcTimestamps: string;
     teammateNameDisplay: string;
     availabilityStatusOnPosts: string;
     channelDisplayMode: string;
@@ -229,6 +232,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.USE_MILITARY_TIME,
             value: this.state.militaryTime,
         };
+        const useUtcTimestampsPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.USE_UTC_TIMESTAMPS,
+            value: this.state.useUtcTimestamps,
+        };
         const availabilityStatusOnPostsPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -294,6 +303,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const preferences = [
             timePreference,
+            useUtcTimestampsPreference,
             channelDisplayModePreference,
             messageDisplayPreference,
             collapsedReplyThreadsPreference,
@@ -777,6 +787,39 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
         });
 
+        const utcTimestampsSection = this.createSection({
+            section: 'utcTimestamps',
+            display: 'useUtcTimestamps',
+            value: this.state.useUtcTimestamps,
+            defaultDisplay: 'false',
+            title: defineMessage({
+                id: 'user.settings.display.timestampDisplay',
+                defaultMessage: 'Timestamp Display',
+            }),
+            firstOption: {
+                value: 'false',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.localTimestamp',
+                        defaultMessage: 'Local time (example: 4:00 PM or 1 minute ago)',
+                    }),
+                },
+            },
+            secondOption: {
+                value: 'true',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.utcTimestamp',
+                        defaultMessage: 'UTC (example: 2024-06-01 14:30 UTC)',
+                    }),
+                },
+            },
+            description: defineMessage({
+                id: 'user.settings.display.timestampDisplayDesc',
+                defaultMessage: 'Select how timestamps are displayed next to message authors.',
+            }),
+        });
+
         const teammateNameDisplaySection = this.createSection({
             section: Preferences.NAME_NAME_FORMAT,
             display: 'teammateNameDisplay',
@@ -1202,6 +1245,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {themeSection}
                     {collapsedReplyThreads}
                     {clockSection}
+                    {utcTimestampsSection}
                     {teammateNameDisplaySection}
                     {availabilityStatusOnPostsSection}
                     {lastActiveSection}

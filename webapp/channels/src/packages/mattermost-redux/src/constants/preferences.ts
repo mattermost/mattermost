@@ -36,6 +36,7 @@ const Preferences = {
     DISPLAY_PREFER_USERNAME: 'username',
     MENTION_KEYS: 'mention_keys',
     USE_MILITARY_TIME: 'use_military_time',
+    USE_UTC_TIMESTAMPS: 'use_utc_timestamps',
 
     CATEGORY_CUSTOM_STATUS: 'custom_status',
     NAME_CUSTOM_STATUS_TUTORIAL_STATE: 'custom_status_tutorial_state',

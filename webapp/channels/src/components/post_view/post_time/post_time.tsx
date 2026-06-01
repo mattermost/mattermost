@@ -11,6 +11,7 @@ import {isMobile} from '@mattermost/shared/utils/user_agent';
 import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
+import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
 
 import {Locations} from 'utils/constants';
 
@@ -38,6 +39,7 @@ type Props = {
     postId: string;
     teamUrl: string;
     timestampProps?: ComponentProps<typeof Timestamp>;
+    useUtcTimestamps?: boolean;
 }
 
 export default class PostTime extends React.PureComponent<Props> {
@@ -60,6 +62,7 @@ export default class PostTime extends React.PureComponent<Props> {
             postId,
             teamUrl,
             timestampProps = {},
+            useUtcTimestamps,
         } = this.props;
 
         const postTime = (
@@ -93,12 +96,20 @@ export default class PostTime extends React.PureComponent<Props> {
         return (
             <WithTooltip
                 title={
-                    <Timestamp
-                        value={eventTime}
-                        useSemanticOutput={false}
-                        useDate={getDateFormat}
-                        useTime={getTimeFormat}
-                    />
+                    useUtcTimestamps ? (
+                        <Timestamp
+                            value={eventTime}
+                            useSemanticOutput={false}
+                            {...UTC_TIMESTAMP_PROPS}
+                        />
+                    ) : (
+                        <Timestamp
+                            value={eventTime}
+                            useSemanticOutput={false}
+                            useDate={getDateFormat}
+                            useTime={getTimeFormat}
+                        />
+                    )
                 }
             >
                 {content}
