@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -68,5 +69,32 @@ func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
 		resp.Attachments = StringifyMessageAttachmentFieldValue(resp.Attachments)
 	}
 
+	if err := o.IsValid(); err != nil {
+		return nil, err
+	}
+
 	return &o, nil
+}
+
+func (o *CommandResponse) IsValid() *AppError {
+	// check response type
+	if o.ResponseType != CommandResponseTypeInChannel && o.ResponseType != CommandResponseTypeEphemeral && o.ResponseType != "" {
+		return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.response_type.app_error", nil, "invalid response type", http.StatusBadRequest)
+	}
+
+	maxLength := 65535
+	if len(o.Text) > maxLength {
+		return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.text.app_error", nil, "text is too long", http.StatusBadRequest)
+	}
+
+	for _, resp := range o.ExtraResponses {
+		if resp == nil {
+			continue
+		}
+
+		if err := resp.IsValid(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
