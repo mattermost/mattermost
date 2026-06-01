@@ -20,12 +20,6 @@ export interface UseUserSettingOptions<T> {
     currentValue: T;
 
     /**
-     * One or more FormattedMessages containing the help text for the setting. Each message will be rendered
-     * as an individual paragraph.
-     */
-    helpText: React.ReactNode;
-
-    /**
      * Whether or not to hide the submit button.
      */
     hideSubmit?: boolean;
@@ -69,7 +63,6 @@ export interface InputRenderProps<T> {
 
 export function useUserSetting<T>({
     activeSection,
-    helpText,
     hideSubmit,
     currentValue,
     onChange,
@@ -80,7 +73,7 @@ export function useUserSetting<T>({
     updateSection,
 }: UseUserSettingOptions<T>) {
     const {active, sectionId} = useSettingSection(activeSection);
-    const [value, setValue] = useSettingValue(active, currentValue);
+    const [value, setValue] = useSettingState(active, currentValue);
     const minRef = useEditButtonFocus(sectionId, activeSection);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +110,6 @@ export function useUserSetting<T>({
                             {title}
                         </legend>
                         {renderInputs({onChange: handleChange, sectionId, value})}
-                        {renderHelpText(helpText)}
                     </fieldset>,
                 ]}
                 submit={hideSubmit ? undefined : handleSubmit}
@@ -177,9 +169,9 @@ function useEditButtonFocus(sectionId: string, activeSection: string | undefined
 }
 
 /**
- * useSettingValue acts as a useState, but it resets the state value to currentValue whenever active changes.
+ * useSettingState acts as a useState, but it resets the state value to currentValue whenever active changes.
  */
-function useSettingValue<T>(active: boolean, currentValue: T) {
+function useSettingState<T>(active: boolean, currentValue: T) {
     const [value, setValue] = useState(currentValue);
 
     const [prevActive, setPrevActive] = useState(active);
@@ -198,7 +190,7 @@ function useSettingValue<T>(active: boolean, currentValue: T) {
  * Renders the help text for a setting wrapped in paragraph(s) and with a margin above. If helpText contains multiple
  * items, each is wrapped in its own paragraph.
  */
-function renderHelpText(helpText: React.ReactNode) {
+export function renderHelpText(helpText: React.ReactNode) {
     if (!helpText) {
         return null;
     }

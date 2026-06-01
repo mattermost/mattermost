@@ -5,9 +5,15 @@ import React, {useCallback} from 'react';
 
 import {a11yFocus} from 'utils/utils';
 
-import {useUserSetting, type InputRenderProps, type UseUserSettingOptions} from './user_setting';
+import {renderHelpText, useUserSetting, type InputRenderProps, type UseUserSettingOptions} from './user_setting';
 
 export interface UseRadioSettingOptions {
+
+    /**
+     * One or more FormattedMessages containing the help text for the setting. Each message will be rendered
+     * as an individual paragraph.
+     */
+    helpText: React.ReactNode;
 
     /**
      * The values of the options
@@ -21,44 +27,21 @@ export interface UseRadioSettingOptions {
 }
 
 export function useRadioSetting({
+    helpText,
     options,
     renderOptionLabel,
 }: UseRadioSettingOptions) {
-    const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        // The browser already moves the focus, but this is needed to ensure that the A11yController shows a visible
-        // focus highlight when using the keyboard.
-        a11yFocus(e.currentTarget);
-
-        return e.currentTarget.value;
-    }, []);
-
-    const renderInputs = useCallback(({onChange, sectionId, value}: InputRenderProps<string>) => {
+    const renderInputs = useCallback((inputProps: InputRenderProps<string>) => {
         return (
-            <div role='radiogroup'>
-                {options.map((option) => (
-                    <div
-                        key={option}
-                        className='radio'
-                    >
-                        <label>
-                            <input
-                                id={`${sectionId}${option}`}
-                                type='radio'
-                                value={option}
-                                name={sectionId}
-                                checked={value === option}
-                                onChange={onChange}
-                            />
-                            {renderOptionLabel(option)}
-                        </label>
-                    </div>
-                ))}
-            </div>
+            <>
+                {renderRadioInputs(options, renderOptionLabel, inputProps)}
+                {renderHelpText(helpText)}
+            </>
         );
-    }, [options, renderOptionLabel]);
+    }, [helpText, options, renderOptionLabel]);
 
     return {
-        onChange,
+        onChange: onRadioChange,
         renderInputs,
         renderMinDescription: renderOptionLabel,
     };
@@ -66,11 +49,48 @@ export function useRadioSetting({
 
 export interface UserSettingRadioProps extends Omit<UseUserSettingOptions<string>, 'onChange' | 'renderInputs' | 'renderMinDescription'>, UseRadioSettingOptions {}
 
-export function UserSettingRadio({options, renderOptionLabel, ...otherProps}: UserSettingRadioProps) {
+export function UserSettingRadio({helpText, options, renderOptionLabel, ...otherProps}: UserSettingRadioProps) {
     const {component} = useUserSetting({
         ...otherProps,
-        ...useRadioSetting({options, renderOptionLabel}),
+        ...useRadioSetting({helpText, options, renderOptionLabel}),
     });
 
     return component;
+}
+
+export function onRadioChange(e: React.ChangeEvent<HTMLInputElement>) {
+    // The browser already moves the focus, but this is needed to ensure that the A11yController shows a visible
+    // focus highlight when using the keyboard.
+    a11yFocus(e.currentTarget);
+
+    return e.currentTarget.value;
+}
+
+export function renderRadioInputs(
+    options: string[],
+    renderOptionLabel: UseRadioSettingOptions['renderOptionLabel'],
+    {onChange, sectionId, value}: InputRenderProps<string>,
+) {
+    return (
+        <div role='radiogroup'>
+            {options.map((option) => (
+                <div
+                    key={option}
+                    className='radio'
+                >
+                    <label>
+                        <input
+                            id={`${sectionId}${option}`}
+                            type='radio'
+                            value={option}
+                            name={sectionId}
+                            checked={value === option}
+                            onChange={onChange}
+                        />
+                        {renderOptionLabel(option)}
+                    </label>
+                </div>
+            ))}
+        </div>
+    );
 }

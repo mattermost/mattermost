@@ -22,9 +22,11 @@ export interface UseBooleanSettingOptions extends Omit<UseRadioSettingOptions, '
 }
 
 export function useBooleanSetting({
+    helpText,
     renderOptionLabel = renderOnOffLabel,
 }: UseBooleanSettingOptions) {
     return useRadioSetting({
+        helpText,
         options,
         renderOptionLabel,
     });
@@ -32,10 +34,10 @@ export function useBooleanSetting({
 
 export interface UserSettingBooleanProps extends Omit<UserSettingRadioProps, 'options' | 'renderOptionLabel'>, UseBooleanSettingOptions {}
 
-export function UserSettingBoolean({renderOptionLabel, ...otherProps}: UserSettingBooleanProps) {
+export function UserSettingBoolean({helpText, renderOptionLabel, ...otherProps}: UserSettingBooleanProps) {
     const {component} = useUserSetting({
         ...otherProps,
-        ...useBooleanSetting({renderOptionLabel}),
+        ...useBooleanSetting({helpText, renderOptionLabel}),
     });
 
     return component;

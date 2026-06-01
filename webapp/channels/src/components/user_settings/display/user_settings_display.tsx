@@ -711,58 +711,28 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             );
         }
 
-        const messageDisplaySection = this.createSection({
-            section: Preferences.MESSAGE_DISPLAY,
-            display: 'messageDisplay',
-            value: this.state.messageDisplay,
-            defaultDisplay: Preferences.MESSAGE_DISPLAY_CLEAN,
-            title: defineMessage({
-                id: 'user.settings.display.messageDisplayTitle',
-                defaultMessage: 'Message Display',
-            }),
-            firstOption: {
-                value: Preferences.MESSAGE_DISPLAY_CLEAN,
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.messageDisplayClean',
-                        defaultMessage: 'Standard',
-                    }),
-                    more: defineMessage({
-                        id: 'user.settings.display.messageDisplayCleanDes',
-                        defaultMessage: 'Easy to scan and read.',
-                    }),
-                },
-            },
-            secondOption: {
-                value: Preferences.MESSAGE_DISPLAY_COMPACT,
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.messageDisplayCompact',
-                        defaultMessage: 'Compact',
-                    }),
-                    more: defineMessage({
-                        id: 'user.settings.display.messageDisplayCompactDes',
-                        defaultMessage: 'Fit as many messages on the screen as we can.',
-                    }),
-                },
-                childOption: {
-                    label: defineMessage({
-                        id: 'user.settings.display.colorize',
-                        defaultMessage: 'Colorize usernames',
-                    }),
-                    value: this.state.colorizeUsernames,
-                    display: 'colorizeUsernames',
-                    more: defineMessage({
-                        id: 'user.settings.display.colorizeDes',
-                        defaultMessage: 'Use colors to distinguish users in compact mode',
-                    }),
-                },
-            },
-            description: defineMessage({
-                id: 'user.settings.display.messageDisplayDescription',
-                defaultMessage: 'Select how messages in a channel should be displayed.',
-            }),
-        });
+        const messageDisplaySection = (
+            <UserSettingRadio
+                activeSection={this.props.activeSection}
+                currentValue={this.props.messageDisplay}
+                helpText={
+                    <FormattedMessage
+                        id='user.settings.display.messageDisplayDescription'
+                        defaultMessage='Select how messages in a channel should be displayed.'
+                    />
+                }
+                onSubmit={this.handleSubmitPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.MESSAGE_DISPLAY)}
+                options={this.messageDisplayOptions}
+                renderOptionLabel={this.renderMessageDisplayLabel}
+                title={
+                    <FormattedMessage
+                        id='user.settings.display.messageDisplayTitle'
+                        defaultMessage='Message Display'
+                    />
+                }
+                updateSection={this.updateSection}
+            />
+        );
 
         let collapsedReplyThreads;
 

@@ -21,6 +21,12 @@ export interface TeammateNameDisplayProps extends Pick<UserSettingRadioProps, 'a
 
 export default function TeammateNameDisplay({lockTeammateNameDisplay, ...otherProps}: TeammateNameDisplayProps) {
     const {renderInputs: renderRadioInputs, ...radioProps} = useRadioSetting({
+        helpText: lockTeammateNameDisplay ? undefined : (
+            <FormattedMessage
+                id='user.settings.display.teammateNameDisplayDescription'
+                defaultMessage={'Set how to display other user\'s names in posts and the Direct Messages list.'}
+            />
+        ),
         options: teammateNameDisplayOptions,
         renderOptionLabel: renderTeammateNameDisplayLabel,
     });
@@ -42,12 +48,6 @@ export default function TeammateNameDisplay({lockTeammateNameDisplay, ...otherPr
     const {component} = useUserSetting({
         ...otherProps,
         ...radioProps,
-        helpText: lockTeammateNameDisplay ? undefined : (
-            <FormattedMessage
-                id='user.settings.display.teammateNameDisplayDescription'
-                defaultMessage={'Set how to display other user\'s names in posts and the Direct Messages list.'}
-            />
-        ),
         hideSubmit: lockTeammateNameDisplay,
         renderInputs,
         title: (
