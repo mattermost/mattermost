@@ -1824,9 +1824,13 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user_auth", &userAuth)
 
-	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
+	if !userAuth.IsValid() {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	if userAuth.AuthService == model.UserAuthServiceEmail {
+		userAuth.AuthService = ""
 	}
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
@@ -2944,6 +2948,10 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
+	// TODO: remove once the API officially supports setting expires_at; until
+	// then, strip any client-supplied value so that JSON-decoded requests cannot
+	// set an arbitrary (or zero) expiry through the create-token endpoint.
+	accessToken.ExpiresAt = 0
 
 	token, err := c.App.CreateUserAccessToken(c.AppContext, &accessToken)
 	if err != nil {

@@ -376,6 +376,20 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 		return 0
 	}
 
+	// For PAT sessions with a fixed expiry, return the remaining lifetime so
+	// that ExtendSessionExpiryIfNeeded never pushes ExpiresAt past the token's
+	// own expiry. The elapsed threshold check collapses to zero, so extension
+	// is effectively a no-op for these sessions (correct: the expiry is fixed).
+	// PAT sessions with ExpiresAt == 0 (non-expiring) fall through to normal
+	// web-session behavior.
+	if session.Props[model.SessionPropType] == model.SessionTypeUserAccessToken && session.ExpiresAt > 0 {
+		remaining := session.ExpiresAt - model.GetMillis()
+		if remaining < 0 {
+			return 0
+		}
+		return remaining
+	}
+
 	var hours int
 	if session.IsMobileApp() {
 		hours = *a.Config().ServiceSettings.SessionLengthMobileInHours
@@ -458,6 +472,15 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false", http.StatusUnauthorized)
 	}
 
+	if token.IsExpired() {
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventRejectExpiredUserAccessToken, model.AuditStatusFail)
+		auditRec.AddMeta("token_id", token.Id)
+		auditRec.AddMeta("user_id", token.UserId)
+		auditRec.AddMeta("expires_at", token.ExpiresAt)
+		a.LogAuditRec(rctx, auditRec, nil)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token", http.StatusUnauthorized)
+	}
+
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -484,6 +507,12 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
 	a.ch.srv.platform.SetSessionExpireInHours(session, model.SessionUserAccessTokenExpiryHours)
+
+	// If the underlying PAT has a non-zero expiry, clamp the session expiry to
+	// the token's ExpiresAt so that cached sessions honor PAT expiry as well.
+	if token.ExpiresAt > 0 && (session.ExpiresAt == 0 || token.ExpiresAt < session.ExpiresAt) {
+		session.ExpiresAt = token.ExpiresAt
+	}
 
 	session, nErr = a.Srv().Store().Session().Save(rctx, session)
 	if nErr != nil {

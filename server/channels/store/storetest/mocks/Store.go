@@ -1235,6 +1235,26 @@ func (_m *Store) Session() store.SessionStore {
 	return r0
 }
 
+// SessionAttribute provides a mock function with no fields
+func (_m *Store) SessionAttribute() store.SessionAttributeStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionAttribute")
+	}
+
+	var r0 store.SessionAttributeStore
+	if rf, ok := ret.Get(0).(func() store.SessionAttributeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SessionAttributeStore)
+		}
+	}
+
+	return r0
+}
+
 // SharedChannel provides a mock function with no fields
 func (_m *Store) SharedChannel() store.SharedChannelStore {
 	ret := _m.Called()
