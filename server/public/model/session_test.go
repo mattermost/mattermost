@@ -169,6 +169,12 @@ func TestIsValidVoIPDeviceID(t *testing.T) {
 		{"valid apple_rn", PushNotifyAppleReactNative + ":abcd", true},
 		{"valid apple_rnbeta", PushNotifyAppleReactNative + "beta:abcd", true},
 		{"apple_rn-v2 tolerated", PushNotifyAppleReactNative + "-v2:abcd", true},
+		{"apple_rn-v0 tolerated", PushNotifyAppleReactNative + "-v0:abcd", true},
+		{"apple_rn-v999 tolerated", PushNotifyAppleReactNative + "-v999:abcd", true},
+		{"apple_rn-voip is not stripped and fails allowlist", PushNotifyAppleReactNative + "-voip:abcd", false},
+		{"apple_rn-vabc is not stripped and fails allowlist", PushNotifyAppleReactNative + "-vabc:abcd", false},
+		{"apple_rn-v with empty version is not stripped and fails allowlist", PushNotifyAppleReactNative + "-v:abcd", false},
+		{"apple_rn-v-2 with negative version is not stripped and fails allowlist", PushNotifyAppleReactNative + "-v-2:abcd", false},
 	}
 
 	for _, tc := range testCases {
@@ -199,6 +205,12 @@ func TestIsValidStandardDeviceID(t *testing.T) {
 		{"apple_rnbeta-v2", PushNotifyAppleReactNative + "beta-v2:abcd", true},
 		{"android_rn-v2", PushNotifyAndroidReactNative + "-v2:abcd", true},
 		{"unknown platform with -v2", "foo_rn-v2:abcd", false},
+		{"apple_rn-v0", PushNotifyAppleReactNative + "-v0:abcd", true},
+		{"apple_rn-v999", PushNotifyAppleReactNative + "-v999:abcd", true},
+		{"apple_rn-voip not stripped, fails allowlist", PushNotifyAppleReactNative + "-voip:abcd", false},
+		{"apple_rn-vabc not stripped, fails allowlist", PushNotifyAppleReactNative + "-vabc:abcd", false},
+		{"apple_rn-v with empty version not stripped", PushNotifyAppleReactNative + "-v:abcd", false},
+		{"apple_rn-v-2 with negative version not stripped", PushNotifyAppleReactNative + "-v-2:abcd", false},
 	}
 
 	for _, tc := range testCases {

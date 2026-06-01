@@ -328,16 +328,17 @@ var voipDevicePlatforms = []string{
 }
 
 // IsValidDeviceID checks that deviceID has the "<platform>[-v<N>]:<token>"
-// shape and <platform> is in the allowlist. The optional "-v<N>" suffix
-// (e.g. "apple_rn-v2") is the mobile->proxy app-version signal and is
-// stripped before the allowlist check.
+// shape and <platform> is in the allowlist. The "-v<N>" suffix is only
+// stripped when it's terminal and N is a non-negative integer.
 func IsValidDeviceID(deviceID string, allowed []string) bool {
 	platform, token, ok := strings.Cut(deviceID, ":")
 	if !ok || token == "" {
 		return false
 	}
-	if idx := strings.Index(platform, "-v"); idx != -1 {
-		platform = platform[:idx]
+	if idx := strings.LastIndex(platform, "-v"); idx != -1 {
+		if v, err := strconv.Atoi(platform[idx+2:]); err == nil && v >= 0 {
+			platform = platform[:idx]
+		}
 	}
 	return slices.Contains(allowed, platform)
 }

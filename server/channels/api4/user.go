@@ -2696,7 +2696,8 @@ func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceI
 			c.Err = err
 			return
 		}
-	} else if voipDeviceId != "" {
+	}
+	if voipDeviceId != "" {
 		if err := c.App.RevokeSessionsForVoIPDeviceId(c.AppContext, c.AppContext.Session().UserId, voipDeviceId, c.AppContext.Session().Id); err != nil {
 			c.Err = err
 			return
