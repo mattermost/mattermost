@@ -3,6 +3,7 @@
 
 import type {History} from 'history';
 
+import {LogLevel} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -27,7 +28,6 @@ import {doesCookieContainsMMUserId} from 'utils/utils';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {Translations} from 'types/store/i18n';
-import {LogLevel} from '@mattermost/types/client4';
 
 export type TranslationPluginFunction = (locale: string) => Translations
 
@@ -171,5 +171,5 @@ export function logIfConcurrentReactEnabled(): ActionFuncAsync<boolean> {
         }
 
         return {data: concurrentReactEnabled};
-    }
+    };
 }
