@@ -1138,6 +1138,42 @@ func TestShouldSendPushNotifications(t *testing.T) {
 		assert.True(t, result)
 	})
 
+	t.Run("should return false for silent post without force", func(t *testing.T) {
+		// User and channel are both configured to receive all-activity push;
+		// silent must suppress the push regardless of preferences.
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsSilentNotification, true)
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, true, status, post, false)
+		assert.False(t, result, "silent post must suppress push even when all-activity push is enabled")
+	})
+
+	t.Run("force notification overrides silent for push", func(t *testing.T) {
+		// Core override semantic: force must win over silent. User and
+		// channel push are both Off; force must still produce a push, even
+		// when silent is also set.
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyNone, model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
+
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
+		assert.True(t, result, "force must win over silent — IsNotificationSuppressed returns false when both are set")
+	})
+
 	t.Run("should return false if force undefined", func(t *testing.T) {
 		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
 		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone

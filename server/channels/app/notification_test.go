@@ -510,6 +510,104 @@ func TestCreatePostSilentBroadcastsPostedWithProps(t *testing.T) {
 	assert.Equal(t, "true", receivedPost.GetProp(model.PostPropsFromBot))
 }
 
+// TestSendNotifications_SilentSkipsGroupMention verifies that a silent @-channel
+// mention does not populate the "mentions" field in the broadcast WS event for
+// any channel member. Covers the !suppressNotifications guard at the
+// allowGroupMentions branch in notification.go.
+func TestSendNotifications_SilentSkipsGroupMention(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+	defer closeWS1()
+	messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS2()
+
+	post := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "@channel heads up",
+	}
+	post.AddProp(model.PostPropsSilentNotification, true)
+	post.AddProp(model.PostPropsFromBot, "true")
+
+	_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, botUser, nil, false)
+	require.NoError(t, err)
+
+	// The posted event still broadcasts (for live rendering), but mentions
+	// metadata must be absent under silent suppression.
+	received1 := <-messages1
+	require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+	assert.Nil(t, received1.GetData()["mentions"], "silent @channel must not surface mentions for BasicUser")
+
+	received2 := <-messages2
+	require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+	assert.Nil(t, received2.GetData()["mentions"], "silent @channel must not surface mentions for BasicUser2")
+}
+
+// TestSendNotifications_SilentSkipsCRTFollowers verifies that a silent reply
+// in a CRT thread does not populate the "followers" field in the broadcast
+// WS event. Covers the !suppressNotifications guard around the CRT follower
+// path in notification.go.
+func TestSendNotifications_SilentSkipsCRTFollowers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	// Sanity baseline: a non-silent reply populates followers for the root author.
+	baselineFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	baselineMsgs, baselineClose := connectFakeWebSocket(t, th, th.BasicUser.Id, "", baselineFilter)
+	defer baselineClose()
+
+	nonSilent := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "normal reply",
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, nonSilent, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	baseline := <-baselineMsgs
+	require.Equal(t, model.WebsocketEventPosted, baseline.EventType())
+	require.NotNil(t, baseline.GetData()["followers"], "baseline (non-silent) reply must populate followers — guards against unrelated regression in CRT plumbing")
+
+	// Now the actual silent case: followers must be absent.
+	silentMsgs, silentClose := connectFakeWebSocket(t, th, th.BasicUser.Id, "", baselineFilter)
+	defer silentClose()
+
+	silent := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "silent reply",
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, silent, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+	require.Nil(t, appErr)
+
+	receivedSilent := <-silentMsgs
+	require.Equal(t, model.WebsocketEventPosted, receivedSilent.EventType())
+	assert.Nil(t, receivedSilent.GetData()["followers"], "silent CRT reply must not notify thread followers")
+}
+
 func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
 	t.Helper()
 
@@ -784,6 +882,41 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Nil(t, outOfTeamUsers)
 		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return no results for silent posts", func(t *testing.T) {
+		// A silent post must not trigger the "did you mean to invite X?"
+		// ephemeral that goes to the poster, so the helper returns nil
+		// for all three categories regardless of channel membership.
+		post := &model.Post{}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Nil(t, outOfTeamUsers)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("force notification overrides silent for out-of-channel mentions", func(t *testing.T) {
+		// IsNotificationSuppressed returns false when force is set, so the
+		// helper must run its normal logic and surface user3 (out-of-channel).
+		post := &model.Post{}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+		potentialMentions := []string{user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, user3.Id, outOfChannelUsers[0].Id)
+		// Normal-logic fall-through returns an initialized empty slice for
+		// outOfTeamUsers (mirrors the "should return users not in the channel" case).
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfGroupUsers)
 	})
 

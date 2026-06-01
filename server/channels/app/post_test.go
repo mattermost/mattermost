@@ -2043,12 +2043,14 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		time.Sleep(1 * time.Millisecond)
 		// from_webhook is now server-set via FromIncomingWebhook flag, not client-supplied Props.
-		_, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{
-			TriggerWebhooks:     true,
+		// Route through CreatePostAsUserWithFlags so the "skip view-marking for webhook" branch
+		// (post.go) is actually exercised — CreatePost alone never touches LastViewedAt.
+		createdPost, _, appErr := th.App.CreatePostAsUserWithFlags(th.Context, post, "", model.CreatePostFlags{
 			SetOnline:           true,
 			FromIncomingWebhook: true,
 		})
 		require.Nil(t, appErr)
+		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromWebhook))
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
