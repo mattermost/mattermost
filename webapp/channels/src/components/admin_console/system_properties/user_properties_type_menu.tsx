@@ -133,7 +133,7 @@ const getTypeDescriptor = (field: UserPropertyField): TypeDescriptor => {
     return TYPE_DESCRIPTOR.text;
 };
 
-type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect';
+type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect' | 'rank';
 
 type TypeDescriptor = {
     id: TypeID;
@@ -204,6 +204,16 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         label: defineMessage({
             id: 'admin.system_properties.user_properties.table.select_type.multi_select',
             defaultMessage: 'Multi-select',
+        }),
+    },
+    rank: {
+        id: 'rank',
+        fieldType: 'rank',
+        valueType: '',
+        icon: ChevronDownCircleOutlineIcon,
+        label: defineMessage({
+            id: 'admin.system_properties.user_properties.table.select_type.rank',
+            defaultMessage: 'Rank',
         }),
     },
 } as const;

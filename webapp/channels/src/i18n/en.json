@@ -3282,6 +3282,7 @@
   "admin.system_properties.user_properties.table.select_type.email": "Email",
   "admin.system_properties.user_properties.table.select_type.multi_select": "Multi-select",
   "admin.system_properties.user_properties.table.select_type.phone": "Phone",
+  "admin.system_properties.user_properties.table.select_type.rank": "Rank",
   "admin.system_properties.user_properties.table.select_type.select": "Select",
   "admin.system_properties.user_properties.table.select_type.text": "Text",
   "admin.system_properties.user_properties.table.select_type.url": "URL",

@@ -305,14 +305,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return currentValue !== originalValue;
     };
 
-    // Resolves option IDs to display names for select/multiselect CPA fields.
+    // Resolves option IDs to display names for select/multiselect/rank CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
             return '(empty)';
         }
 
         const options = field.attrs?.options || [];
-        if (field.type === 'select' || field.type === 'multiselect') {
+        if (field.type === 'select' || field.type === 'multiselect' || field.type === 'rank') {
             if (!Array.isArray(value)) {
                 // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
@@ -568,7 +568,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         const fieldContent = (() => {
             switch (field.type) {
-            case 'select': {
+            case 'select':
+            case 'rank': {
                 const options = field.attrs?.options || [];
                 return (
                     <select

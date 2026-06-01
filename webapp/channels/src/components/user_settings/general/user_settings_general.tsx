@@ -1453,7 +1453,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return '';
                 }
 
-                if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                if (attribute.type === 'select' || attribute.type === 'multiselect' || attribute.type === 'rank') {
                     const attribOptions = attribute.attrs.options;
                     if (!attribOptions) {
                         return '';
@@ -1554,7 +1554,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         attributeLabel = '';
                     }
 
-                    if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                    if (attribute.type === 'select' || attribute.type === 'multiselect' || attribute.type === 'rank') {
                         const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
