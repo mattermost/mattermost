@@ -1805,6 +1805,17 @@ func mmBlocksExternalEntry(url string, context map[string]any) map[string]any {
 	return entry
 }
 
+func mmBlocksOpenURLEntry(url string, query map[string]any) map[string]any {
+	entry := map[string]any{
+		"type": MmBlocksActionTypeOpenURL,
+		"url":  url,
+	}
+	if query != nil {
+		entry["query"] = query
+	}
+	return entry
+}
+
 // ensureMmBlocksReferenceActions adds mm_blocks buttons so each mm_blocks_actions key is referenced.
 func ensureMmBlocksReferenceActions(p *Post) {
 	actions, ok := coerceToStringAnyMap(p.GetProp(PostPropsMmBlocksActions))
@@ -2225,6 +2236,86 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "requires mm_blocks_actions")
+	})
+
+	t.Run("valid openURL entries return no error", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("https://example.com/page", nil),
+			"open2": mmBlocksOpenURLEntry("/team/channels/town-square", map[string]any{"q": "1"}),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("openURL empty URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("openURL javascript URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("javascript://alert(1)", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "http or https")
+	})
+
+	t.Run("openURL protocol-relative URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("//evil.example/phish", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protocol-relative")
+	})
+
+	t.Run("openURL path traversal is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("/team/../admin", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "path traversal")
+	})
+
+	t.Run("openURL /plugins/ path is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("/plugins/myplugin/handler", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "plugin paths are not allowed")
+	})
+
+	t.Run("openURL static query exceeding entry cap is rejected", func(t *testing.T) {
+		query := make(map[string]any, MaxActionQueryEntries+1)
+		for i := range MaxActionQueryEntries + 1 {
+			query["k"+strconv.Itoa(i)] = "v"
+		}
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("https://example.com", query),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "static query")
 	})
 }
 

@@ -111,7 +111,7 @@ describe('InlineActionButton', () => {
 
         await userEvent.click(screen.getByRole('button'));
 
-        // Server action ID regex allows [A-Za-z0-9]+; losing case would
+        // Server action ID regex allows [A-Za-z0-9_-]+; losing case would
         // cause lookups to 404 when mm_blocks_actions keys are mixed-case.
         expect(mockedDoPostActionWithCookie).toHaveBeenCalledWith('abc', 'MxPlan42', '', '', {tail: '214'}, 'mm_block');
 
@@ -259,10 +259,39 @@ describe('InlineActionButton', () => {
         expect(container).toHaveTextContent('Click me');
     });
 
-    test('renders {children} as plain text for non-alphanumeric action ID', () => {
-        // Server regex is ^[A-Za-z0-9]+$; URL authority chars (port,
-        // userinfo, dash, dot) would never resolve server-side.
-        for (const href of ['mmaction://plan:443', 'mmaction://user@plan', 'mmaction://my-plan', 'mmaction://my.plan']) {
+    test.each([
+        {href: 'mmaction://my-plan?x=1', actionId: 'my-plan', query: {x: '1'}},
+        {href: 'mmaction://foo_bar', actionId: 'foo_bar', query: {}},
+        {href: 'mmaction://pw_mm_blocks_openurl_eph', actionId: 'pw_mm_blocks_openurl_eph', query: {}},
+    ])('accepts action ID $actionId and dispatches on click', async ({href, actionId, query}) => {
+        const {resolve} = setupControllablePromise();
+
+        renderWithContext(
+            <InlineActionButton
+                {...baseProps}
+                href={href}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button'));
+
+        expect(mockedDoPostActionWithCookie).toHaveBeenCalledWith('abc', actionId, '', '', query, 'mm_block');
+
+        await act(async () => {
+            resolve();
+        });
+    });
+
+    test('renders {children} as plain text for invalid action ID', () => {
+        // Server regex is ^[A-Za-z0-9_-]+$; URL authority punctuation and
+        // other characters would never resolve server-side.
+        for (const href of [
+            'mmaction://plan:443',
+            'mmaction://user@plan',
+            'mmaction://my.plan',
+            'mmaction://my plan',
+            'mmaction://',
+        ]) {
             const {container, unmount} = renderWithContext(
                 <InlineActionButton
                     {...baseProps}

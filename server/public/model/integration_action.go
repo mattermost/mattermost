@@ -1060,7 +1060,8 @@ func ValidateMmBlocksActions(o *Post) error {
 		if spec == nil {
 			return fmt.Errorf("mm_blocks_actions entry %q has invalid type or shape", key)
 		}
-		if spec.Type == MmBlocksActionTypeExternal {
+		switch spec.Type {
+		case MmBlocksActionTypeExternal:
 			if err := validateIntegrationURL(spec.URL); err != nil {
 				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
 			}
@@ -1081,6 +1082,13 @@ func ValidateMmBlocksActions(o *Post) error {
 				if len(k) > MaxActionQueryKeyLength {
 					return fmt.Errorf("mm_blocks_actions entry %q context key exceeds %d chars", key, MaxActionQueryKeyLength)
 				}
+			}
+		case MmBlocksActionTypeOpenURL:
+			if err := validateOpenURL(spec.URL); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
+			}
+			if err := ValidateActionQuery(spec.Query); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q static query: %w", key, err)
 			}
 		}
 	}
@@ -1123,10 +1131,45 @@ func validateIntegrationURL(rawURL string) error {
 	if parseErr != nil {
 		return fmt.Errorf("must have a valid integration URL: %w", parseErr)
 	}
-	if strings.Contains(u.Path, "/../") || strings.HasSuffix(u.Path, "/..") {
+	if pathHasTraversalSegment(u.Path) {
 		return fmt.Errorf("integration URL must not contain path traversal segments")
 	}
 	return nil
+}
+
+// validateOpenURL bounds openURL goto targets. Relative paths (/) are used
+// for in-app navigation via applyIntegrationGotoLocation; http(s) URLs open in
+// a new tab. Plugin integration paths are not allowed here — those belong on
+// external actions.
+func validateOpenURL(rawURL string) error {
+	if rawURL == "" {
+		return fmt.Errorf("must have a non-empty URL")
+	}
+	if strings.HasPrefix(rawURL, "/") {
+		if strings.HasPrefix(rawURL, "//") {
+			return fmt.Errorf("must not be a protocol-relative URL")
+		}
+		if strings.HasPrefix(rawURL, "/plugins/") {
+			return fmt.Errorf("plugin paths are not allowed for openURL actions")
+		}
+		u, parseErr := url.Parse(rawURL)
+		if parseErr != nil {
+			return fmt.Errorf("must have a valid path: %w", parseErr)
+		}
+		if pathHasTraversalSegment(u.Path) {
+			return fmt.Errorf("must not contain path traversal segments")
+		}
+		return nil
+	}
+	if !IsValidHTTPURL(rawURL) {
+		return fmt.Errorf("must have a valid http or https URL, or a path starting with /")
+	}
+	return nil
+}
+
+func pathHasTraversalSegment(path string) bool {
+	return strings.Contains(path, "/../") || strings.HasSuffix(path, "/..") ||
+		path == "/.." || strings.HasPrefix(path, "/..")
 }
 
 func (o *Post) GenerateActionIds() {

@@ -26,7 +26,7 @@ const INLINE_ACTION_TIMEOUT_MS = 15_000;
 // Mirrors the server-side action ID regex (model.mmBlocksActionIDRegex). An
 // invalid ID can never resolve to an mm_blocks_actions entry, so reject at
 // render time rather than emitting a dead button.
-const MMACTION_ID_REGEX = /^[A-Za-z0-9]+$/;
+const MMACTION_ID_REGEX = /^[A-Za-z0-9_-]+$/;
 
 // Cap the per-click params byte length so a crafted markdown link can't
 // trigger an oversized server request. Server-side ValidateActionQuery
@@ -56,7 +56,7 @@ type Props = {
 
 // parseMmactionHref extracts (actionId, query) from an mmaction:// URL,
 // applying the same validation the server enforces. Returns null if the URL
-// is malformed, has an unknown scheme, has a non-alphanumeric action ID, or
+// is malformed, has an unknown scheme, has an invalid action ID, or
 // exceeds the params length cap. The component renders {children} as plain
 // text when this returns null, so a malformed link degrades to readable text
 // rather than a broken button.
