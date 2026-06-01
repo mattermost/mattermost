@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/utils"
 )
@@ -83,7 +84,7 @@ func (o *CommandResponse) IsValid() *AppError {
 	}
 
 	maxLength := 65535
-	if len(o.Text) > maxLength {
+	if utf8.RuneCountInString(o.Text) > maxLength {
 		return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.text.app_error", nil, "text is too long", http.StatusBadRequest)
 	}
 
