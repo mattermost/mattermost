@@ -1,14 +1,12 @@
 name: Migration Review & Release Notes
  
 # Fires whenever a new .up.sql file lands on master.
-# Runs the review-migration and migration-release-notes skills via Claude,
-# commits the output to a short-lived branch, opens a PR assigned to the
-# release manager, and posts a link on the original migration PR.
+# Runs the review-migration and migration-release-notes skills via Claude
+# and writes the combined output to the job summary, visible directly in
+# the Actions run UI — no GitHub App, PAT, or special permissions needed.
 #
-# Required secrets:  ANTHROPIC_API_KEY (already in this repo)
-# Required variables: MIGRATION_REVIEW_ASSIGNEE (GitHub username to assign)
-#
-# No other secrets or external services needed.
+# Required secrets:
+#   ANTHROPIC_API_KEY  — already a repo secret
  
 on:
   push:
@@ -17,8 +15,7 @@ on:
       - 'server/channels/db/migrations/postgres/**.up.sql'
  
 permissions:
-  contents: write       # to create the review branch and commit the file
-  pull-requests: write  # to open the review PR and comment on the migration PR
+  contents: read  # checkout only
  
 jobs:
   generate:
@@ -30,10 +27,7 @@ jobs:
         # actions/checkout v4.2.2
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          # fetch-depth: 0 fetches the full history so that multi-commit pushes
-          # are handled correctly — diff covers all commits in the push, not
-          # just the latest one.
-          fetch-depth: 0
+          fetch-depth: 0             # full history — covers multi-commit pushes
           persist-credentials: false
  
       - name: Set up Python
@@ -46,31 +40,16 @@ jobs:
         run: pip install anthropic
  
       - name: Detect and process new migrations
-        # All secrets/variables are injected as environment variables by
-        # GitHub Actions — they are never interpolated into shell commands.
-        # The file list from `git diff` goes directly into a bash array via
-        # process substitution (mapfile + <(...)); it never passes through
-        # GITHUB_OUTPUT or any ${{ }} expression, eliminating the
-        # heredoc-delimiter injection vector entirely.
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          MIGRATION_REVIEW_ASSIGNEE: ${{ vars.MIGRATION_REVIEW_ASSIGNEE }}
-          # Full push range (previous HEAD → new HEAD).
-          # Env var keeps this out of ${{ }} shell expansion.
           PUSH_BASE_SHA: ${{ github.event.before }}
         run: |
           # Collect newly-added .up.sql paths across ALL commits in this push.
-          # $PUSH_BASE_SHA..$GITHUB_SHA covers every commit, not just the
-          # latest — handles multi-commit pushes correctly.
-          # Process substitution puts each path in its own array element;
-          # no value is ever shell-interpolated.
+          # Process substitution into a bash array — no shell injection.
+          MIGRATIONS_GLOB='server/channels/db/migrations/postgres/*.up.sql'
           mapfile -t files < <(
             git diff --name-only --diff-filter=A \
-              "$PUSH_BASE_SHA" "$GITHUB_SHA" \
-              -- 'server/channels/db/migrations/postgres/*.up.sql'
+              "$PUSH_BASE_SHA" "$GITHUB_SHA" -- "$MIGRATIONS_GLOB"
           )
  
           if [ "${#files[@]}" -eq 0 ]; then
@@ -81,5 +60,4 @@ jobs:
           echo "Found ${#files[@]} new migration(s):"
           printf '  %s\n' "${files[@]}"
  
-          # Each element of ${files[@]} is a separate, quoted argument.
           python .github/scripts/migration_automation.py "${files[@]}"
