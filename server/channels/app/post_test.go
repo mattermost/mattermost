@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -784,10 +785,12 @@ func TestFillInPostPropsChannelMentionResolution(t *testing.T) {
 	// `inChannel`, and returns the persisted channel_mentions map (or nil).
 	resolve := func(t *testing.T, inChannel *model.Channel, mentioned ...*model.Channel) map[string]any {
 		t.Helper()
-		message := "hello"
+		var builder strings.Builder
+		builder.WriteString("hello")
 		for _, m := range mentioned {
-			message += fmt.Sprintf(" ~%s", m.Name)
+			fmt.Fprintf(&builder, " ~%s", m.Name)
 		}
+		message := builder.String()
 		post := &model.Post{
 			Message:   message,
 			ChannelId: inChannel.Id,
@@ -835,14 +838,14 @@ func TestFillInPostPropsChannelMentionResolution(t *testing.T) {
 		setCompliance(false)
 
 		mentions := resolve(t, otherTeamPostChannel, otherTeamPublic)
-		assert.NotContains(t, mentions, otherTeamPublic.Name)
+		assert.Nil(t, mentions)
 	})
 
 	t.Run("private channel the author is not a member of => not persisted", func(t *testing.T) {
 		setCompliance(false)
 
 		mentions := resolve(t, postChannel, privateNonMember)
-		assert.NotContains(t, mentions, privateNonMember.Name)
+		assert.Nil(t, mentions)
 	})
 
 	t.Run("channel the author is a member of => persisted", func(t *testing.T) {
