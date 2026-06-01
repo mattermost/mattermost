@@ -3121,6 +3121,7 @@
   "group_list_modal.removeGroupButton": "Csoport eltávolítása",
   "help.commands.example.dnd": "A \"Ne zavarjanak\" mód kikapcsolja az asztali és mobil értesítéseket",
   "inProduct_notices.adminOnlyMessage": "Csak az adminisztrátorok számára látható",
+  "inline_action_button.executing": "Végrehajtás...",
   "input.clear": "Törlés",
   "installed_command.header": "Perjel parancsok",
   "installed_commands.add": "Perjel parancs hozzáadása",
