@@ -11335,30 +11335,6 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
-    "id": "model.config.is_valid.audit_storage_conn_max_idle_time_milliseconds.app_error",
-    "translation": "Invalid connection maximum idle time for audit storage settings. Must be a non-negative number."
-  },
-  {
-    "id": "model.config.is_valid.audit_storage_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for audit storage settings. Must be a non-negative number."
-  },
-  {
-    "id": "model.config.is_valid.audit_storage_data_src.app_error",
-    "translation": "Invalid data source for audit storage settings. Must be set when audit storage is enabled."
-  },
-  {
-    "id": "model.config.is_valid.audit_storage_idle.app_error",
-    "translation": "Invalid maximum idle connection for audit storage settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.audit_storage_max_conn.app_error",
-    "translation": "Invalid maximum open connection for audit storage settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.audit_storage_query_timeout.app_error",
-    "translation": "Invalid query timeout for audit storage settings. Must be a positive number."
-  },
-  {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
     "translation": "Invalid autotranslation agents configuration: AI service must not be empty."
   },

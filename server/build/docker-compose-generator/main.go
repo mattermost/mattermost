@@ -25,7 +25,6 @@ type Container struct {
 func main() {
 	validServices := map[string]int{
 		"postgres":              5432,
-		"postgres-auditstorage": 5432,
 		"minio":                 9000,
 		"azurite":               10000,
 		"inbucket":              9001,
