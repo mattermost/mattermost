@@ -502,6 +502,7 @@ const (
 	AuditEventRegenOutgoingHookToken  = "regenOutgoingHookToken"  // regenerate authentication token
 	AuditEventUpdateIncomingHook      = "updateIncomingHook"      // update incoming webhook
 	AuditEventUpdateOutgoingHook      = "updateOutgoingHook"      // update outgoing webhook
+	AuditEventIncomingHookTemplated   = "incomingHookTemplated"   // incoming webhook request used inline templating
 )
 
 // Content Flagging

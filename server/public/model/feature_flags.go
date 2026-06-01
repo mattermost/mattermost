@@ -125,6 +125,11 @@ type FeatureFlags struct {
 
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
+
+	// Enable inline-templated incoming webhooks: callers may pass
+	// ?template=1&text={{.summary}} etc. on POST /hooks/{id}, and the
+	// rendered values overwrite fields on the parsed IncomingWebhookRequest.
+	IncomingWebhookTemplates bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -182,6 +187,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AggregatePluginMetrics = false
 
 	f.ManagedChannelCategories = false
+
+	f.IncomingWebhookTemplates = false
 }
 
 // ToMap returns the feature flags as a map[string]string

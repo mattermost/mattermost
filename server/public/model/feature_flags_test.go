@@ -33,6 +33,18 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		m := f2.ToMap()
 		require.Equal(t, "false", m["PostPolicy"])
 	})
+
+	t.Run("IncomingWebhookTemplates should default to false", func(t *testing.T) {
+		f2 := &FeatureFlags{}
+		f2.SetDefaults()
+		require.False(t, f2.IncomingWebhookTemplates)
+		m := f2.ToMap()
+		require.Equal(t, "false", m["IncomingWebhookTemplates"])
+
+		f2.IncomingWebhookTemplates = true
+		m = f2.ToMap()
+		require.Equal(t, "true", m["IncomingWebhookTemplates"])
+	})
 }
 
 func TestFeatureFlagsToMap(t *testing.T) {
