@@ -36,7 +36,9 @@ export default class NotificationsSettings {
         this.desktopAndMobileEditButton = container.locator('#desktopAndMobileEdit');
         this.desktopNotificationSoundEditButton = container.locator('#desktopNotificationSoundEdit');
         this.emailEditButton = container.locator('#emailEdit');
-        this.channelMentionAutoFollowEditButton = container.getByRole('button', {name: 'Auto-follow threads on channel-wide mentions Edit'});
+        this.channelMentionAutoFollowEditButton = container.getByRole('button', {
+            name: 'Auto-follow threads on channel-wide mentions Edit',
+        });
         this.keywordsTriggerNotificationsEditButton = container.locator('#keywordsAndMentionsEdit');
         this.keywordsGetHighlightedEditButton = container.locator('#keywordsAndHighlightEdit');
 
