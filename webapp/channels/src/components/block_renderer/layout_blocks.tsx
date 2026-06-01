@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 
 import type {
@@ -272,10 +272,43 @@ type CollapsibleBlockProps = {
 };
 
 const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
-    const [collapsed, setCollapsed] = useState<boolean>(block.collapsed !== false);
+    const initiallyCollapsed = block.collapsed !== false;
+    const [collapsed, setCollapsed] = useState<boolean>(initiallyCollapsed);
+
+    // null = expanded steady state (max-height: none); number pins height during animation.
+    const [contentMaxHeight, setContentMaxHeight] = useState<number | null>(initiallyCollapsed ? 0 : null);
+    const contentInnerRef = useRef<HTMLDivElement>(null);
     const toggleCollapsed = useCallback(() => {
-        setCollapsed((prev) => !prev);
-    }, []);
+        const inner = contentInnerRef.current;
+        if (!inner) {
+            setCollapsed((prev) => !prev);
+            return;
+        }
+
+        if (!collapsed) {
+            const height = inner.scrollHeight;
+            setContentMaxHeight(height);
+            requestAnimationFrame(() => {
+                setContentMaxHeight(0);
+                setCollapsed(true);
+            });
+            return;
+        }
+
+        setCollapsed(false);
+        setContentMaxHeight(0);
+        requestAnimationFrame(() => {
+            setContentMaxHeight(inner.scrollHeight);
+        });
+    }, [collapsed]);
+    const handleContentTransitionEnd = useCallback((event: React.TransitionEvent<HTMLDivElement>) => {
+        if (event.propertyName !== 'max-height' || event.target !== event.currentTarget) {
+            return;
+        }
+        if (!collapsed) {
+            setContentMaxHeight(null);
+        }
+    }, [collapsed]);
     const innerHeaderBlock = useMemo(() => ({
         type: 'container' as const,
         content: block.header,
@@ -291,8 +324,10 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
 
     const contentId = `mm-blocks-collapsible-content-${postId}`;
 
+    const contentStyle: CSSProperties | undefined = contentMaxHeight === null ? undefined : {maxHeight: contentMaxHeight};
+
     return (
-        <div className='mm-blocks-collapsible'>
+        <div className={classNames('mm-blocks-collapsible', {'mm-blocks-collapsible--expanded': !collapsed})}>
             <button
                 className='mm-blocks-collapsible-header style--none'
                 onClick={toggleCollapsed}
@@ -304,7 +339,7 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                     className='mm-blocks-collapsible-header__chevron'
                     aria-hidden='true'
                 >
-                    <i className={collapsed ? 'icon icon-chevron-right' : 'icon icon-chevron-down'}/>
+                    <i className='icon icon-chevron-right'/>
                 </span>
                 <span className='mm-blocks-collapsible-header__body'>
                     <ContainerBlock
@@ -314,10 +349,16 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                     />
                 </span>
             </button>
-            {!collapsed && (
+            <div
+                id={contentId}
+                className='mm-blocks-collapsible-content'
+                aria-hidden={collapsed}
+                style={contentStyle}
+                onTransitionEnd={handleContentTransitionEnd}
+            >
                 <div
-                    id={contentId}
-                    className='mm-blocks-collapsible-content'
+                    ref={contentInnerRef}
+                    className='mm-blocks-collapsible-content__inner'
                 >
                     <ContainerBlock
                         block={innerContentBlock}
@@ -325,7 +366,7 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                         onAction={onAction}
                     />
                 </div>
-            )}
+            </div>
         </div>
     );
 };

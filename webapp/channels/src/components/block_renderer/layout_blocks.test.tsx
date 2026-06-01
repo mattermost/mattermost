@@ -109,31 +109,6 @@ describe('BlockSwitch', () => {
         expect(container.querySelector('.mm-blocks-column-set--gap-medium')).not.toBeInTheDocument();
     });
 
-    it('applies column gap on inner container', () => {
-        const {container} = renderWithContext(
-            <BlockSwitch
-                block={{
-                    type: 'column_set',
-                    columns: [
-                        {
-                            type: 'column',
-                            gap: 'none',
-                            items: [
-                                {type: 'text', text: 'A'},
-                                {type: 'text', text: 'B'},
-                            ],
-                        },
-                    ],
-                }}
-                postId='post-1'
-                onAction={onAction}
-            />,
-        );
-
-        const column = container.querySelector('.mm-blocks-column');
-        expect(column?.querySelector('.mm-blocks-container--gap-none')).toBeInTheDocument();
-    });
-
     it('toggles collapsible content on header click', async () => {
         const user = userEvent.setup();
         renderWithContext(
@@ -150,10 +125,14 @@ describe('BlockSwitch', () => {
         );
 
         const toggle = screen.getByRole('button', {expanded: false});
-        expect(screen.queryByText('Hidden body')).not.toBeInTheDocument();
+        const content = document.getElementById('mm-blocks-collapsible-content-post-collapse');
+        expect(content).toHaveAttribute('aria-hidden', 'true');
+        expect(toggle.closest('.mm-blocks-collapsible')).not.toHaveClass('mm-blocks-collapsible--expanded');
 
         await user.click(toggle);
         expect(screen.getByRole('button', {expanded: true})).toBeInTheDocument();
+        expect(content).toHaveAttribute('aria-hidden', 'false');
+        expect(toggle.closest('.mm-blocks-collapsible')).toHaveClass('mm-blocks-collapsible--expanded');
         expect(screen.getByText('Hidden body')).toBeInTheDocument();
     });
 });

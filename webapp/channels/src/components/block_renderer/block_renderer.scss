@@ -466,12 +466,39 @@ $mm-blocks-container-max-heights: (
                 .icon {
                     font-size: 18px;
                     line-height: 1;
+                    transition: transform 0.25s ease;
                 }
             }
         }
 
+        &--expanded {
+            .mm-blocks-collapsible-header__chevron .icon {
+                transform: rotate(90deg);
+            }
+
+            .mm-blocks-collapsible-content {
+                max-height: none;
+            }
+        }
+
         &-content {
-            padding: 10px 12px 12px 12px;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+
+            &__inner {
+                padding: 10px 12px 12px 12px;
+                overflow: hidden;
+                min-height: 0;
+            }
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .mm-blocks-collapsible {
+            &-header__chevron .icon,
+            &-content {
+                transition: none;
+            }
         }
     }
 }
