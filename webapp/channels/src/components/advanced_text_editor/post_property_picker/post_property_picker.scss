@@ -37,23 +37,6 @@
     }
 }
 
-.post-property-picker__add-new {
-    color: var(--button-bg);
-    font-weight: 600;
-
-    .post-property-picker__add-new-icon {
-        display: inline-flex;
-        align-items: center;
-        color: var(--button-bg);
-        margin-inline-end: 8px;
-    }
-}
-
-.post-property-picker__manage {
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    font-size: 12px;
-}
-
 .post-property-picker__empty {
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-style: italic;
@@ -101,29 +84,9 @@
     font-weight: 400;
 }
 
-.post-property-picker__add-new-row {
-    padding: 0;
-    list-style: none;
-}
-
-.post-property-picker__add-new-btn {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    padding: 8px 12px;
-    border: none;
-    background: transparent;
-    color: var(--button-bg);
-    cursor: pointer;
-    font: inherit;
-    font-weight: 600;
-    text-align: left;
-
-    &:hover,
-    &:focus-visible {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        outline: none;
-    }
+.post-property-picker__menu-anchor {
+    display: inline-flex;
+    max-width: 100%;
 }
 
 .post-property-picker__form-wrapper {
@@ -186,59 +149,25 @@
 }
 
 .post-property-picker__menu {
+    box-sizing: border-box;
+
     li:hover .post-property-picker__row-actions,
     li:focus-within .post-property-picker__row-actions {
         opacity: 1;
     }
-}
 
-.post-property-picker__edit-row {
-    display: flex;
-    align-items: center;
-    padding: 6px 12px;
-    gap: 8px;
-    list-style: none;
+    .post-property-picker__form-wrapper {
+        width: 100%;
+        box-sizing: border-box;
 
-    .post-property-picker__edit-row-icon {
-        display: inline-flex;
-        flex: 0 0 auto;
-        align-items: center;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-
-        svg {
-            width: 16px;
-            height: 16px;
+        .new-property-form {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
         }
-    }
 
-    .post-property-picker__edit-row-name {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    .post-property-picker__edit-row-type {
-        flex: 0 0 140px;
-        min-width: 0;
-    }
-
-    .post-property-picker__edit-row-action {
-        display: inline-flex;
-        width: 24px;
-        height: 24px;
-        flex: 0 0 auto;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
-        background: transparent;
-        color: var(--button-bg);
-        cursor: pointer;
-
-        &:hover,
-        &:focus-visible {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            outline: none;
+        .PropertyFieldTypeMenu .Input_wrapper {
+            min-width: 0;
         }
     }
 }

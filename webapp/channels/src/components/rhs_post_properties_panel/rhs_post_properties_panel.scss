@@ -1,73 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Matches PropertyCardView field rows in the Integrated Boards card sidebar.
 .rhs-post-properties-panel {
     display: flex;
     flex-direction: column;
-    padding: 12px 16px;
+    padding: 16px 24px;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    gap: 8px;
 }
 
 .rhs-post-properties-panel__rows {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
 }
 
 .rhs-post-properties-panel__row {
-    display: grid;
-    min-height: 28px;
+    display: flex;
+    min-height: 32px;
     align-items: center;
-    column-gap: 8px;
-    grid-template-columns: minmax(120px, 35%) 1fr auto;
-}
-
-.rhs-post-properties-panel__row-clear {
-    display: inline-flex;
-    width: 22px;
-    height: 22px;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.5);
-    cursor: pointer;
+    margin: 0;
+    gap: 16px;
 
     &:hover,
-    &:focus-visible {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: var(--center-channel-color);
-        outline: none;
+    &:focus-within {
+        .rhs-post-properties-panel__row-clear {
+            opacity: 1;
+            pointer-events: auto;
+        }
     }
 }
 
 .rhs-post-properties-panel__row-label {
     display: flex;
+    min-width: 110px;
+    max-width: 110px;
     align-items: center;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: var(--center-channel-color);
     font-size: 12px;
     font-weight: 600;
-    gap: 6px;
-}
-
-.rhs-post-properties-panel__row-icon {
-    display: inline-flex;
-    align-items: center;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-
-    .property-type-icon {
-        display: inline-flex;
-        align-items: center;
-    }
-
-    svg {
-        display: block;
-        width: 14px;
-        height: 14px;
-    }
 }
 
 .rhs-post-properties-panel__row-name {
@@ -79,42 +50,59 @@
 .rhs-post-properties-panel__row-value {
     display: flex;
     min-width: 0;
+    flex: 1;
     align-items: center;
+    gap: 4px;
+}
+
+.rhs-post-properties-panel__row-clear {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.5);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease-in-out;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: none;
+    }
 }
 
 .rhs-post-properties-panel__row-trigger {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 0;
     border: none;
-    border-radius: 4px;
     background: transparent;
     color: var(--center-channel-color);
     cursor: pointer;
     font-size: 13px;
     line-height: 16px;
     text-align: left;
-    transition: background-color 0.12s ease;
 
     &:hover,
     &:focus-visible {
-        background: rgba(var(--center-channel-color-rgb), 0.1);
         outline: none;
-    }
-
-    &--filled {
-        background: rgba(var(--center-channel-color-rgb), 0.06);
-
-        &:hover,
-        &:focus-visible {
-            background: rgba(var(--center-channel-color-rgb), 0.1);
-        }
     }
 }
 
 .rhs-post-properties-panel__empty {
-    color: rgba(var(--center-channel-color-rgb), 0.5);
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 13px;
     font-style: italic;
+    font-weight: 400;
 }
 
 .rhs-post-properties-panel .property-pills {
@@ -124,7 +112,6 @@
     gap: 4px;
 }
 
-// Inline values rendered inside the row trigger
 .rhs-post-properties-panel__row-trigger .property-user,
 .rhs-post-properties-panel__row-trigger .property-users {
     display: inline-flex;
@@ -141,15 +128,52 @@
 .rhs-post-properties-panel__row-trigger .property-date,
 .rhs-post-properties-panel__row-trigger .property-text {
     color: inherit;
+    font-size: 13px;
     line-height: 16px;
 }
 
-// Avatar inside the chip ships with vertical-align: sub, which pushes the
-// image below the text baseline. Reset so the avatar sits flush with the
-// rest of the trigger content.
 .rhs-post-properties-panel__row-trigger .Avatar {
     display: inline-block;
     vertical-align: middle;
+}
+
+// Inline + popover select editors share the same full-width control styling.
+.rhs-post-properties-panel__inline-editor,
+.rhs-post-properties-panel__editor {
+    width: 100%;
+    min-width: 0;
+
+    .property-value-editor--select,
+    .property-value-editor--multiselect {
+        width: 100%;
+    }
+
+    .LabeledSelect {
+        width: 100%;
+
+        .Input_fieldset {
+            min-height: 32px;
+            align-items: center;
+        }
+
+        .Input_wrapper {
+            padding: 0 16px;
+            margin: 0;
+        }
+
+        .LabeledSelect__control {
+            width: 100%;
+            min-height: 0;
+        }
+
+        .LabeledSelect__value-container {
+            padding: 0;
+        }
+    }
+}
+
+.rhs-post-properties-panel__inline-editor {
+    flex: 1;
 }
 
 .rhs-post-properties-panel__editor {
@@ -161,48 +185,36 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
 }
 
-.rhs-post-properties-panel__footer {
+.rhs-post-properties-panel__add-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 4px;
-    gap: 8px;
-}
-
-.rhs-post-properties-panel__footer-left {
-    display: inline-flex;
+    min-height: 32px;
     align-items: center;
 }
 
 .rhs-post-properties-panel__add-property {
-    padding: 4px 8px;
+    display: inline-flex;
+    height: 32px;
+    align-items: center;
+    padding: 0;
     border: none;
+    border-radius: 4px;
     background: transparent;
-    color: var(--button-bg);
+    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
     cursor: pointer;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 400;
+    gap: 6px;
 
     &:hover:not(:disabled) {
-        text-decoration: underline;
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
+    }
+
+    &.rhs-post-properties-panel__add-property--active {
+        color: var(--button-bg);
     }
 
     &:disabled {
         cursor: not-allowed;
         opacity: 0.4;
-    }
-}
-
-.rhs-post-properties-panel__toggle {
-    padding: 4px 8px;
-    border: none;
-    background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-
-    &:hover {
-        color: var(--center-channel-color);
     }
 }

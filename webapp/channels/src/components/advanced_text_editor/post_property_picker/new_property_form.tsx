@@ -1,22 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {FocusEventHandler, KeyboardEventHandler} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import type {GroupBase} from 'react-select';
 import {components} from 'react-select';
 import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
+import {Button} from '@mattermost/shared/components/button';
+import type {ButtonSize} from '@mattermost/shared/components/button/button_classes';
 import type {FieldType, PropertyFieldOption} from '@mattermost/types/properties';
 
-import PropertyTypeIcon from 'components/property_value_editor/type_icon';
 import Input from 'components/widgets/inputs/input/input';
-import LabeledSelect from 'components/widgets/inputs/labeled_select';
-import type {LabeledSelectOption} from 'components/widgets/inputs/labeled_select';
 
 import Constants from 'utils/constants';
+
+import {formDataEqualsInitial} from './property_field_form_utils';
+import PropertyFieldTypeMenu from './property_field_type_menu';
 
 import './new_property_form.scss';
 
@@ -26,11 +29,32 @@ export type NewPropertyData = {
     options?: Array<{id: string; name: string}>;
 };
 
+export type NewPropertyFormHandle = {
+    submit: () => void;
+};
+
 export type Props = {
     onSave: (data: NewPropertyData) => Promise<void>;
     onCancel: () => void;
     onLayoutChange?: () => void;
+    initialValues?: NewPropertyData;
+    inputIdPrefix?: string;
+    typeMenuOpensUpward?: boolean;
+    disableSaveWhenUnchanged?: boolean;
+    saveAriaLabel?: string;
+    cancelAriaLabel?: string;
+    className?: string;
+    buttonSize?: ButtonSize;
+
+    // Hide the built-in action buttons. The parent is then responsible for
+    // triggering save via the imperative `submit` ref handle (e.g. a modal footer).
+    hideActions?: boolean;
+    onSubmitDisabledChange?: (disabled: boolean) => void;
 };
+
+function getInitialOptions(field?: NewPropertyData): PropertyFieldOption[] {
+    return field?.options ?? [];
+}
 
 type OptionPill = {label: string; id: string; value: string};
 type SelectProps = CreatableProps<OptionPill, true, GroupBase<OptionPill>>;
@@ -57,13 +81,43 @@ const customComponents: SelectProps['components'] = {
 };
 
 const pillStyles: SelectProps['styles'] = {
+    control: (base, props) => ({
+        ...base,
+        minHeight: '40px',
+        overflowY: 'auto',
+        border: '1px solid rgba(var(--center-channel-color-rgb), 0.16)',
+        borderRadius: '4px',
+        backgroundColor: 'var(--center-channel-bg)',
+        boxShadow: 'none',
+        ...props.isFocused && {
+            borderColor: 'var(--button-bg)',
+            backgroundColor: 'var(--center-channel-bg)',
+            boxShadow: 'none',
+        },
+        '&:hover': {
+            cursor: 'text',
+            borderColor: 'rgba(var(--center-channel-color-rgb), 0.48)',
+        },
+    }),
+    valueContainer: (base) => ({
+        ...base,
+        padding: '2px 8px',
+    }),
+    input: (base) => ({
+        ...base,
+        color: 'var(--center-channel-color)',
+    }),
+    placeholder: (base) => ({
+        ...base,
+        color: 'rgba(var(--center-channel-color-rgb), 0.64)',
+    }),
     multiValue: (base) => ({
         ...base,
         borderRadius: '12px',
         paddingLeft: '6px',
         paddingTop: '1px',
         paddingBottom: '1px',
-        backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.08)',
+        backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
     }),
     multiValueLabel: (base) => ({
         ...base,
@@ -77,35 +131,35 @@ const pillStyles: SelectProps['styles'] = {
     multiValueRemove: (base) => ({
         ...base,
         cursor: 'pointer',
-        color: 'var(--center-channel-color)',
+        color: 'rgba(var(--center-channel-color-rgb), 0.72)',
         borderRadius: '0 12px 12px 0',
         '&:hover': {
-            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.08)',
+            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
             color: 'var(--center-channel-color)',
-        },
-    }),
-    control: (base, props) => ({
-        ...base,
-        minHeight: '40px',
-        overflowY: 'auto',
-        border: '1px solid rgba(var(--center-channel-color-rgb), 0.16)',
-        borderRadius: '4px',
-        ...props.isFocused && {
-            border: '1px solid var(--button-bg)',
-            boxShadow: 'none',
-        },
-        '&:hover': {
-            cursor: 'text',
         },
     }),
 };
 
-export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Props) {
+const NewPropertyForm = forwardRef<NewPropertyFormHandle, Props>(({
+    onSave,
+    onCancel,
+    onLayoutChange,
+    initialValues,
+    inputIdPrefix = 'new-property',
+    typeMenuOpensUpward = true,
+    disableSaveWhenUnchanged = false,
+    saveAriaLabel,
+    cancelAriaLabel,
+    className,
+    buttonSize = 'sm',
+    hideActions = false,
+    onSubmitDisabledChange,
+}: Props, ref) => {
     const {formatMessage} = useIntl();
 
-    const [name, setName] = useState('');
-    const [type, setType] = useState<FieldType>(DEFAULT_TYPE);
-    const [options, setOptions] = useState<PropertyFieldOption[]>([]);
+    const [name, setName] = useState(initialValues?.name ?? '');
+    const [type, setType] = useState<FieldType>(initialValues?.type ?? DEFAULT_TYPE);
+    const [options, setOptions] = useState<PropertyFieldOption[]>(() => getInitialOptions(initialValues));
     const [query, setQuery] = useState('');
     const [saving, setSaving] = useState(false);
     const [nameError, setNameError] = useState('');
@@ -122,11 +176,8 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
         onLayoutChange?.();
     }, [needsOptions, optionsCount, hasNameError, hasOptionsError, isQueryValid, onLayoutChange]);
 
-    const handleTypeChange = useCallback((next: LabeledSelectOption<FieldType> | Array<LabeledSelectOption<FieldType>> | null) => {
-        if (!next || Array.isArray(next)) {
-            return;
-        }
-        setType(next.value);
+    const handleTypeChange = useCallback((next: FieldType) => {
+        setType(next);
         setOptionsError('');
     }, []);
 
@@ -230,17 +281,6 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
         defaultMessage: 'Options',
     });
 
-    const typeOptions = useMemo<Array<LabeledSelectOption<FieldType>>>(() => [
-        {value: 'text', label: formatMessage({id: 'new_property_form.type.text', defaultMessage: 'Text'}), icon: <PropertyTypeIcon type='text'/>},
-        {value: 'date', label: formatMessage({id: 'new_property_form.type.date', defaultMessage: 'Date'}), icon: <PropertyTypeIcon type='date'/>},
-        {value: 'select', label: formatMessage({id: 'new_property_form.type.select', defaultMessage: 'Select'}), icon: <PropertyTypeIcon type='select'/>},
-        {value: 'multiselect', label: formatMessage({id: 'new_property_form.type.multiselect', defaultMessage: 'Multi-select'}), icon: <PropertyTypeIcon type='multiselect'/>},
-        {value: 'user', label: formatMessage({id: 'new_property_form.type.user', defaultMessage: 'User'}), icon: <PropertyTypeIcon type='user'/>},
-        {value: 'multiuser', label: formatMessage({id: 'new_property_form.type.multiuser', defaultMessage: 'Multi-user'}), icon: <PropertyTypeIcon type='multiuser'/>},
-    ], [formatMessage]);
-
-    const selectedTypeOption = typeOptions.find((o) => o.value === type) ?? typeOptions[0];
-
     // For new options, send id: "" so backend EnsureOptionIDs assigns the id.
     // For pills we still need a stable React key, so use the option's name (which we already deduplicate).
     const pillValues = useMemo<OptionPill[]>(
@@ -248,15 +288,39 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
         [options],
     );
 
-    const submitDisabled = saving || (needsOptions && options.length === 0 && !(query.trim() && isQueryValid));
+    const hasChanges = useMemo(() => {
+        if (!initialValues || !disableSaveWhenUnchanged) {
+            return true;
+        }
+        return !formDataEqualsInitial({
+            name: name.trim(),
+            type,
+            options: needsOptions ? options : undefined,
+        }, initialValues);
+    }, [disableSaveWhenUnchanged, initialValues, name, type, options, needsOptions]);
+
+    const submitDisabled = saving ||
+        !hasChanges ||
+        (disableSaveWhenUnchanged && !name.trim()) ||
+        (needsOptions && options.length === 0 && !(query.trim() && isQueryValid));
+
+    useImperativeHandle(ref, () => ({submit: handleSave}), [handleSave]);
+
+    useEffect(() => {
+        onSubmitDisabledChange?.(submitDisabled);
+    }, [submitDisabled, onSubmitDisabledChange]);
+
+    const nameInputId = `${inputIdPrefix}-name`;
+    const typeInputId = `${inputIdPrefix}-type`;
+    const optionsInputId = `${inputIdPrefix}-options`;
 
     return (
-        <div className='new-property-form'>
+        <div className={classNames('new-property-form', className)}>
             <div className='new-property-form__field'>
                 <Input
-                    id='new-property-name'
+                    id={nameInputId}
                     type='text'
-                    name='new-property-name'
+                    name={nameInputId}
                     label={nameLabel}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -266,16 +330,12 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
             </div>
 
             <div className='new-property-form__field'>
-                <LabeledSelect<FieldType>
-                    inputId='new-property-type'
-                    label={typeLabel}
-                    aria-label={typeLabel}
-                    value={selectedTypeOption}
-                    options={typeOptions}
+                <PropertyFieldTypeMenu
+                    inputId={typeInputId}
+                    value={type}
                     onChange={handleTypeChange}
-                    isSearchable={false}
-                    menuPlacement='top'
-                    menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                    aria-label={typeLabel}
+                    menuOpensUpward={typeMenuOpensUpward}
                 />
             </div>
 
@@ -283,7 +343,7 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
                 <div className='new-property-form__options'>
                     <CreatableSelect<OptionPill, true, GroupBase<OptionPill>>
                         aria-label={optionsAriaLabel}
-                        inputId='new-property-options'
+                        inputId={optionsInputId}
                         className='new-property-form__options-select'
                         classNamePrefix='new-property-form__options'
                         components={customComponents}
@@ -316,23 +376,33 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
                 </div>
             )}
 
-            <div className='new-property-form__actions'>
-                <button
-                    type='button'
-                    className='new-property-form__save'
-                    disabled={submitDisabled}
-                    onClick={handleSave}
-                >
-                    {saveLabel}
-                </button>
-                <button
-                    type='button'
-                    className='new-property-form__cancel'
-                    onClick={onCancel}
-                >
-                    {cancelLabel}
-                </button>
-            </div>
+            {!hideActions && (
+                <div className='new-property-form__actions'>
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        size={buttonSize}
+                        aria-label={cancelAriaLabel}
+                        onClick={onCancel}
+                    >
+                        {cancelLabel}
+                    </Button>
+                    <Button
+                        type='button'
+                        emphasis='primary'
+                        size={buttonSize}
+                        aria-label={saveAriaLabel}
+                        disabled={submitDisabled}
+                        onClick={handleSave}
+                    >
+                        {saveLabel}
+                    </Button>
+                </div>
+            )}
         </div>
     );
-}
+});
+
+NewPropertyForm.displayName = 'NewPropertyForm';
+
+export default NewPropertyForm;

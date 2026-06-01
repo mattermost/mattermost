@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
+import {act, fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {
+    createChannelPostPropertyField,
     deleteChannelPostPropertyField,
     patchChannelPostPropertyField,
 } from 'mattermost-redux/actions/properties';
@@ -17,10 +18,14 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import ManagePostPropertiesModal from './manage_post_properties_modal';
 
 jest.mock('mattermost-redux/actions/properties', () => ({
+    createChannelPostPropertyField: jest.fn(() => ({type: 'MOCK_CREATE'})),
     patchChannelPostPropertyField: jest.fn(() => ({type: 'MOCK_PATCH'})),
     deleteChannelPostPropertyField: jest.fn(() => ({type: 'MOCK_DELETE'})),
 }));
 
+const createChannelPostPropertyFieldMock = createChannelPostPropertyField as jest.MockedFunction<
+    typeof createChannelPostPropertyField
+>;
 const patchChannelPostPropertyFieldMock = patchChannelPostPropertyField as jest.MockedFunction<
     typeof patchChannelPostPropertyField
 >;
@@ -82,6 +87,7 @@ function buildState(fields: PropertyField[]) {
 
 describe('components/manage_post_properties_modal/ManagePostPropertiesModal', () => {
     beforeEach(() => {
+        createChannelPostPropertyFieldMock.mockClear();
         patchChannelPostPropertyFieldMock.mockClear();
         deleteChannelPostPropertyFieldMock.mockClear();
     });
@@ -144,7 +150,7 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
         expect(deleteBtn).toBeEnabled();
     });
 
-    test('clicking edit enters edit mode: name Input + type LabeledSelect appear', () => {
+    test('clicking edit enters edit mode with the shared property form', () => {
         const fields = [makeField({id: 'f1', name: 'Status'})];
 
         renderWithContext(
@@ -157,11 +163,11 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
 
         fireEvent.click(screen.getByRole('button', {name: /edit f1/i}));
 
-        expect(screen.getByLabelText(/^Status$/i)).toHaveValue('Status');
-        expect(screen.getByRole('combobox')).toBeInTheDocument();
+        expect(screen.getByLabelText('Name')).toHaveValue('Status');
+        expect(screen.getByLabelText(/^type$/i)).toBeInTheDocument();
     });
 
-    test('renaming a field and clicking save dispatches patchChannelPostPropertyField', () => {
+    test('renaming a field and clicking the footer Save dispatches patchChannelPostPropertyField', async () => {
         const fields = [makeField({id: 'f1', name: 'Status'})];
 
         renderWithContext(
@@ -173,13 +179,15 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
         );
 
         fireEvent.click(screen.getByRole('button', {name: /edit f1/i}));
-        fireEvent.change(screen.getByLabelText(/^Status$/i), {target: {value: 'Stage'}});
-        fireEvent.click(screen.getByRole('button', {name: /save f1/i}));
+        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'Stage'}});
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', {name: /^save$/i}));
+        });
 
         expect(patchChannelPostPropertyFieldMock).toHaveBeenCalledWith('f1', {name: 'Stage'});
     });
 
-    test('cancelling edit reverts drafts and does not dispatch', () => {
+    test('cancelling edit from the footer reverts drafts and does not dispatch', () => {
         const fields = [makeField({id: 'f1', name: 'Status'})];
 
         renderWithContext(
@@ -191,14 +199,14 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
         );
 
         fireEvent.click(screen.getByRole('button', {name: /edit f1/i}));
-        fireEvent.change(screen.getByLabelText(/^Status$/i), {target: {value: 'Stage'}});
-        fireEvent.click(screen.getByRole('button', {name: /cancel edit f1/i}));
+        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'Stage'}});
+        fireEvent.click(screen.getByRole('button', {name: /^cancel$/i}));
 
         expect(patchChannelPostPropertyFieldMock).not.toHaveBeenCalled();
         expect(screen.getByText('Status')).toBeInTheDocument();
     });
 
-    test('save is disabled when the name is unchanged', () => {
+    test('footer Save is disabled when the name is unchanged', () => {
         const fields = [makeField({id: 'f1', name: 'Status'})];
 
         renderWithContext(
@@ -210,10 +218,10 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
         );
 
         fireEvent.click(screen.getByRole('button', {name: /edit f1/i}));
-        expect(screen.getByRole('button', {name: /save f1/i})).toBeDisabled();
+        expect(screen.getByRole('button', {name: /^save$/i})).toBeDisabled();
     });
 
-    test('save is disabled when the name is empty', () => {
+    test('footer Save is disabled when the name is empty', () => {
         const fields = [makeField({id: 'f1', name: 'Status'})];
 
         renderWithContext(
@@ -225,11 +233,11 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
         );
 
         fireEvent.click(screen.getByRole('button', {name: /edit f1/i}));
-        fireEvent.change(screen.getByLabelText(/^Status$/i), {target: {value: '   '}});
-        expect(screen.getByRole('button', {name: /save f1/i})).toBeDisabled();
+        fireEvent.change(screen.getByLabelText('Name'), {target: {value: '   '}});
+        expect(screen.getByRole('button', {name: /^save$/i})).toBeDisabled();
     });
 
-    test('changing type to select adds option editing controls', () => {
+    test('changing type to select shows the options pill editor', () => {
         const fields = [makeField({id: 'f1', name: 'Status', type: 'text'})];
 
         renderWithContext(
@@ -241,18 +249,12 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
         );
 
         fireEvent.click(screen.getByRole('button', {name: /edit f1/i}));
-        expect(screen.queryByRole('button', {name: /add option/i})).not.toBeInTheDocument();
+        expect(document.getElementById('manage-property-f1-options')).not.toBeInTheDocument();
 
-        const combobox = screen.getByRole('combobox');
+        fireEvent.click(screen.getByLabelText(/^type$/i));
+        fireEvent.click(screen.getByRole('menuitemradio', {name: /^Select$/}));
 
-        // react-select opens its menu on ArrowDown when focused.
-        fireEvent.focus(combobox);
-        fireEvent.keyDown(combobox, {key: 'ArrowDown'});
-
-        // The menu is rendered inline (no portal) — find the Select option.
-        fireEvent.click(screen.getByText(/^Select$/));
-
-        expect(screen.getByRole('button', {name: /add option/i})).toBeInTheDocument();
+        expect(document.getElementById('manage-property-f1-options')).toBeInTheDocument();
     });
 
     test('clicking delete opens the ConfirmModal; cancel does not dispatch', () => {
@@ -292,6 +294,36 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
         fireEvent.click(screen.getByRole('button', {name: /^delete$/i}));
 
         expect(deleteChannelPostPropertyFieldMock).toHaveBeenCalledWith('f1');
+    });
+
+    test('clicking Add property hides the list and shows the shared form; footer Save dispatches create', async () => {
+        const fields = [makeField({id: 'f1', name: 'Status'})];
+
+        renderWithContext(
+            <ManagePostPropertiesModal
+                channelId={channelId}
+                onExited={jest.fn()}
+            />,
+            buildState(fields),
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /add property/i}));
+
+        // List is hidden, the create form is shown, and the header action is gone.
+        expect(screen.queryByText('Status')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Name')).toHaveValue('');
+        expect(screen.queryByRole('button', {name: /add property/i})).not.toBeInTheDocument();
+
+        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'Stage'}});
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', {name: /^save$/i}));
+        });
+
+        expect(createChannelPostPropertyFieldMock).toHaveBeenCalledWith(channelId, {
+            name: 'Stage',
+            type: 'text',
+            attrs: undefined,
+        });
     });
 
     test('shows an empty state when the channel has no fields', () => {

@@ -1,26 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
+
+import {fireEvent, renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import NewPropertyForm from './new_property_form';
 
-function wrap(ui: React.ReactElement) {
-    return <IntlProvider locale='en'>{ui}</IntlProvider>;
-}
-
 function pickType(label: RegExp | string) {
-    const combobox = screen.getByRole('combobox', {name: /type/i});
-    fireEvent.mouseDown(combobox);
-    fireEvent.focus(combobox);
-    fireEvent.click(screen.getByRole('option', {name: label}));
+    fireEvent.click(screen.getByLabelText(/^type$/i));
+    fireEvent.click(screen.getByRole('menuitemradio', {name: label}));
 }
 
 // The CreatableSelect for options exposes a combobox with inputId
-// `new-property-options`. The Type LabeledSelect also exposes a combobox.
-// Disambiguate by id to avoid hitting the Type one by mistake.
+// `new-property-options`. The type control is a `Menu` trigger (button), not react-select.
 function getOptionsInput(): HTMLInputElement {
     const input = document.getElementById('new-property-options') as HTMLInputElement | null;
     if (!input) {
@@ -31,27 +24,25 @@ function getOptionsInput(): HTMLInputElement {
 
 describe('components/advanced_text_editor/post_property_picker/NewPropertyForm', () => {
     test('renders a name input and type selector', () => {
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
         expect(screen.getByRole('textbox', {name: /name/i})).toBeInTheDocument();
-        expect(screen.getByRole('combobox', {name: /type/i})).toBeInTheDocument();
+        expect(screen.getByLabelText(/^type$/i)).toBeInTheDocument();
     });
 
     test('renders each type option with its property-type icon when the menu opens', () => {
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
 
-        const combobox = screen.getByRole('combobox', {name: /type/i});
-        fireEvent.mouseDown(combobox);
-        fireEvent.focus(combobox);
+        fireEvent.click(screen.getByLabelText(/^type$/i));
 
         for (const [label, type] of [
             [/Text/, 'text'],
@@ -59,32 +50,33 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
             [/^Select$/, 'select'],
             [/Multi-select/, 'multiselect'],
             [/User/, 'user'],
+            [/Multi-user/, 'multiuser'],
         ] as const) {
-            const option = screen.getByRole('option', {name: label});
-            expect(within(option).getByText(label)).toBeInTheDocument();
-            expect(option.querySelector(`[data-property-type='${type}']`)).not.toBeNull();
+            const item = screen.getByRole('menuitemradio', {name: label});
+            expect(within(item).getByText(label)).toBeInTheDocument();
+            expect(item.querySelector(`[data-property-type='${type}']`)).not.toBeNull();
         }
     });
 
     test('calls onCancel when cancel is clicked', () => {
         const onCancel = jest.fn();
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={onCancel}
             />,
-        ));
+        );
         fireEvent.click(screen.getByRole('button', {name: /cancel/i}));
         expect(onCancel).toHaveBeenCalled();
     });
 
     test('shows a validation error when name is empty on save', () => {
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
         fireEvent.click(screen.getByRole('button', {name: /^save/i}));
         expect(screen.getByText(/name is required/i)).toBeInTheDocument();
 
@@ -94,12 +86,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
 
     test('calls onSave with name and type for a text field', async () => {
         const onSave = jest.fn().mockResolvedValue(undefined);
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={onSave}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
 
         fireEvent.change(screen.getByRole('textbox', {name: /name/i}), {target: {value: 'Status'}});
         fireEvent.click(screen.getByRole('button', {name: /^save/i}));
@@ -114,12 +106,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
     });
 
     test('shows the options pill editor when type is select', () => {
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
         pickType(/^Select$/);
 
         // The CreatableSelect is rendered (combobox with our inputId).
@@ -129,12 +121,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
     });
 
     test('disables save for select with no options', () => {
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
         fireEvent.change(screen.getByRole('textbox', {name: /name/i}), {target: {value: 'Priority'}});
         pickType(/^Select$/);
         expect(screen.getByRole('button', {name: /^save/i})).toBeDisabled();
@@ -145,12 +137,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
         // we want to also verify the error message contract when validation runs.
         // We do this by adding then removing an option to ensure the input had
         // focus once, then asserting the disabled state plus pre-validation text.
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
         fireEvent.change(screen.getByRole('textbox', {name: /name/i}), {target: {value: 'Priority'}});
         pickType(/^Select$/);
 
@@ -160,12 +152,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
     });
 
     test('adds an option by typing and pressing Enter, and removes it via the pill x', () => {
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
         pickType(/^Select$/);
 
         const input = getOptionsInput();
@@ -186,12 +178,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
     });
 
     test('shows a duplicate-name error when typing an existing option name', () => {
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={jest.fn()}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
         pickType(/^Select$/);
 
         const input = getOptionsInput();
@@ -209,12 +201,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
 
     test('calls onSave with options for a select field (id: "" for new options)', async () => {
         const onSave = jest.fn().mockResolvedValue(undefined);
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={onSave}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
 
         fireEvent.change(screen.getByRole('textbox', {name: /name/i}), {target: {value: 'Status'}});
         pickType(/^Select$/);
@@ -243,12 +235,12 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
 
     test('accepts a typed-but-unconfirmed option on save', async () => {
         const onSave = jest.fn().mockResolvedValue(undefined);
-        render(wrap(
+        renderWithContext(
             <NewPropertyForm
                 onSave={onSave}
                 onCancel={jest.fn()}
             />,
-        ));
+        );
 
         fireEvent.change(screen.getByRole('textbox', {name: /name/i}), {target: {value: 'Status'}});
         pickType(/^Select$/);

@@ -187,6 +187,21 @@ describe('components/threading/VirtualizedThreadViewer', () => {
 
         expect(mockScrollToItem).not.toHaveBeenCalledWith(0, 'end', undefined);
     });
+
+    test('uses top-anchored layout in the RHS so the root post stays at the top', () => {
+        const {container, queryByTestId} = renderWithContext(
+            <VirtualizedThreadViewer
+                {...baseProps}
+                topAnchored={true}
+            />,
+            baseState,
+        );
+
+        expect(container.querySelector('.virtual-list__ctr--top-anchored')).toBeInTheDocument();
+        expect(container.querySelector('.post-right__content--top-anchored')).toBeInTheDocument();
+        expect(queryByTestId('virtualized-list')).not.toBeInTheDocument();
+        expect(queryByTestId('create-comment')).toBeInTheDocument();
+    });
 });
 
 describe('components/threading/ThreadViewerRow', () => {

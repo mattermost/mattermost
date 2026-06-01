@@ -40,24 +40,6 @@
         color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
-    .LabeledSelect__menu {
-        z-index: 100;
-        background-color: var(--center-channel-bg);
-    }
-
-    .LabeledSelect__option {
-        cursor: pointer;
-    }
-
-    .LabeledSelect__option--is-focused {
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-    }
-
-    .LabeledSelect__option--is-selected {
-        background-color: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--center-channel-color);
-    }
-
     .LabeledSelect__indicator {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding: 4px;
@@ -79,4 +61,47 @@
 
 .LabeledSelect__option-label {
     line-height: 18px;
+}
+
+// When `menuPortalTarget` is set, the menu is rendered outside `.LabeledSelect`;
+// keep these selectors at root so theme + elevation match `components/menu`.
+.LabeledSelect__menu-portal {
+    z-index: 10000;
+}
+
+.LabeledSelect__menu {
+    z-index: 100;
+    margin-block-start: 4px;
+    padding: 4px 0;
+    border-radius: 4px;
+    background-color: var(--center-channel-bg);
+    box-shadow: var(--elevation-4), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+}
+
+.LabeledSelect__menu-list {
+    padding: 0;
+}
+
+.LabeledSelect__option {
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    padding: 6px 20px;
+    cursor: pointer;
+    color: var(--center-channel-color);
+    font-size: 14px;
+}
+
+.LabeledSelect__option--is-focused {
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+}
+
+.LabeledSelect__option--is-selected {
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+    color: var(--center-channel-color);
+}
+
+.LabeledSelect__option--is-selected.LabeledSelect__option--is-focused {
+    background-color: rgba(var(--button-bg-rgb), 0.12);
+    color: var(--center-channel-color);
 }

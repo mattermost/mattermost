@@ -1,64 +1,106 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Wider modal — matches the channel-settings modal precedent.
-// `manage-post-properties-modal` is the class forwarded to react-bootstrap's
-// `dialogClassName` via GenericModal's `className` prop.
-.manage-post-properties-modal {
+// `className` is forwarded to `dialogClassName`, so this class lands directly
+// on `.modal-dialog`. Constrain the dialog itself (not an inner wrapper) so the
+// content fills the modal instead of being stranded on the left.
+.app__body .modal .GenericModal.manage-post-properties-modal {
+    width: 100%;
+    max-width: 512px;
+
     .GenericModal__wrapper {
-        max-width: 920px;
+        width: 100%;
+    }
+
+    // Title left, "Add property" action right.
+    .GenericModal__header {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    // The modal injects a border + focus ring onto any `.form-control`. Our
+    // `Input` already draws its own `Input_fieldset` border, so keep the inner
+    // input borderless to avoid an input-inside-an-input (and a doubled ring).
+    .new-property-form .Input.form-control {
+        height: auto;
+        min-height: 0;
+        border: none;
+
+        &:focus {
+            box-shadow: none;
+        }
+    }
+
+    // Normalize the name input + type dropdown to a 40px control height.
+    // (The options pill editor is already 40px via its react-select styles.)
+    .new-property-form {
+        .Input_fieldset {
+            min-height: 40px;
+            align-items: center;
+        }
+
+        .Input_wrapper {
+            margin: 0;
+        }
     }
 }
 
 .manage-post-properties-modal__body {
     display: flex;
+    width: 100%;
     flex-direction: column;
-    gap: 12px;
 }
 
 .manage-post-properties-modal__rows {
     display: flex;
     max-height: min(60vh, 480px);
     flex-direction: column;
-    gap: 4px;
     overflow-y: auto;
 }
 
 .manage-post-properties-modal__empty {
-    padding: 12px;
+    padding: 24px 32px;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-style: italic;
     text-align: center;
 }
 
-// --- Row layout ----------------------------------------------------------
-
+// Read-mode row — full-bleed hover + divider, text aligned to the header's
+// 32px content inset.
 .manage-row {
-    display: flex;
-    flex-direction: column;
-    padding: 6px 8px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    gap: 6px;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.04);
-    }
-}
-
-.manage-row__main {
     display: grid;
     align-items: center;
+    padding: 12px 24px 12px 32px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     column-gap: 12px;
-    grid-template-columns: 24px minmax(140px, 1fr) auto minmax(0, 2fr) auto;
+    grid-template-columns: 20px minmax(0, 1.4fr) auto minmax(0, 1fr) auto;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:not(.manage-row--editing):hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
 }
 
 .manage-row__icon {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     color: rgba(var(--center-channel-color-rgb), 0.56);
+    line-height: 0;
+
+    .property-type-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
 
     svg {
+        display: block;
         width: 18px;
         height: 18px;
     }
@@ -68,7 +110,7 @@
     overflow: hidden;
     color: var(--center-channel-color);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -76,6 +118,7 @@
 .manage-row__type-label {
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 13px;
+    white-space: nowrap;
 }
 
 .manage-row__chips {
@@ -85,8 +128,6 @@
     gap: 4px;
 }
 
-// Trailing action group — hidden by default, revealed on hover or when any
-// descendant of the row is focused (keyboard reachability).
 .manage-row__actions {
     display: inline-flex;
     align-items: center;
@@ -94,13 +135,6 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 120ms ease-in-out;
-
-    // Edit-mode rows show their actions unconditionally — there's no read-mode
-    // state to fall back to, and the user needs save/cancel always reachable.
-    .manage-row--editing & {
-        opacity: 1;
-        pointer-events: auto;
-    }
 }
 
 .manage-row:hover .manage-row__actions,
@@ -126,11 +160,6 @@
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: var(--center-channel-color);
     }
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.4;
-    }
 }
 
 .manage-row__action-btn--delete:hover:not(:disabled) {
@@ -138,74 +167,18 @@
     color: var(--error-text, #d24b4e);
 }
 
-.manage-row__action-btn--save:not(:disabled) {
-    color: var(--button-bg);
-}
-
-// --- Edit-mode layout ----------------------------------------------------
-
+// Edit-mode row — the shared form fills the modal width, aligned to the same
+// 32px content inset. No nested card background.
 .manage-row--editing {
-    padding: 8px;
-    border-color: rgba(var(--center-channel-color-rgb), 0.12);
-    background: rgba(var(--center-channel-color-rgb), 0.02);
-}
+    display: block;
+    padding: 16px 32px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
-.manage-row--editing .manage-row__main {
-    grid-template-columns: 24px minmax(160px, 2fr) minmax(160px, 1fr) auto;
-}
-
-.manage-row__name-input {
-    width: 100%;
-}
-
-.manage-row__type-input {
-    min-width: 160px;
-}
-
-.manage-row__options-edit {
-    display: flex;
-    flex-direction: column;
-    padding: 4px 0 4px 36px;
-    gap: 6px;
-}
-
-.manage-row__option-edit-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    .Input_container {
-        flex: 1;
+    &:last-child {
+        border-bottom: none;
     }
 }
 
-.manage-row__option-remove {
-    display: inline-flex;
-    width: 24px;
-    height: 24px;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    cursor: pointer;
-
-    &:hover {
-        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
-        color: var(--error-text, #d24b4e);
-    }
-}
-
-.manage-row__add-option {
-    align-self: flex-start;
-    padding: 4px 8px;
-    border: 1px dashed rgba(var(--center-channel-color-rgb), 0.24);
-    border-radius: 4px;
-    background: transparent;
-    color: var(--button-bg);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
+.manage-row__form.new-property-form {
+    min-width: 0;
 }

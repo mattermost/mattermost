@@ -5,9 +5,22 @@ import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 import RhsPostPropertiesPanel from './rhs_post_properties_panel';
+
+function openPickerAndSelectField(fieldId: string) {
+    fireEvent.click(screen.getByRole('button', {name: /add property/i}));
+    const item = document.getElementById(`post-property-picker-item-${fieldId}`);
+    expect(item).toBeTruthy();
+    fireEvent.click(item!);
+}
+
+async function waitForFieldRow(fieldId: string) {
+    await waitFor(() => {
+        expect(document.querySelector(`[data-property-field-id="${fieldId}"]`)).toBeInTheDocument();
+    });
+}
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -113,7 +126,7 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(screen.queryByText('Priority')).not.toBeInTheDocument();
     });
 
-    test('"Show all" toggle reveals empty fields and switches to "Show less"', () => {
+    test('renders an "Empty" placeholder for locally attached fields without a value', async () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
 
@@ -130,38 +143,15 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
             />,
         );
 
-        const toggle = screen.getByRole('button', {name: /show all/i});
-        fireEvent.click(toggle);
-
-        expect(screen.getByText('Priority')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: /show less/i})).toBeInTheDocument();
-    });
-
-    test('renders an "Empty" placeholder for fields without a value when expanded', () => {
-        const status = makeField({id: 'f1', name: 'Status'});
-        const priority = makeField({id: 'f2', name: 'Priority'});
-
-        renderWithContext(
-            <RhsPostPropertiesPanel
-                postId='post-1'
-                channelId='channel-1'
-                fields={[status, priority]}
-                valuesByFieldId={{
-                    f1: makeValue({field_id: 'f1', value: 'open'}),
-                }}
-                loadPostPropertyValues={jest.fn()}
-                onChangeValue={jest.fn()}
-            />,
-        );
-
-        fireEvent.click(screen.getByRole('button', {name: /show all/i}));
+        openPickerAndSelectField('f2');
+        await waitForFieldRow('f2');
 
         const empty = screen.getByText(/^empty$/i);
         expect(empty).toBeInTheDocument();
         expect(empty).toHaveClass('rhs-post-properties-panel__empty');
     });
 
-    test('does not show "Show all" when every field has a value', () => {
+    test('does not render a show-all toggle', () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
 
@@ -172,7 +162,6 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
                 fields={[status, priority]}
                 valuesByFieldId={{
                     f1: makeValue({field_id: 'f1', value: 'open'}),
-                    f2: makeValue({field_id: 'f2', value: 'high', id: 'v2'}),
                 }}
                 loadPostPropertyValues={jest.fn()}
                 onChangeValue={jest.fn()}
@@ -247,7 +236,7 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(screen.getByRole('button', {name: /add property/i})).toBeInTheDocument();
     });
 
-    test('footer renders "Add property" and "Show all" together inside one row', () => {
+    test('renders add property inside the property rows list', () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
 
@@ -264,10 +253,9 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
             />,
         );
 
-        const footer = container.querySelector('.rhs-post-properties-panel__footer');
-        expect(footer).not.toBeNull();
-        expect(footer?.querySelector('.rhs-post-properties-panel__add-property')).not.toBeNull();
-        expect(footer?.querySelector('.rhs-post-properties-panel__toggle')).not.toBeNull();
+        expect(container.querySelector('.rhs-post-properties-panel__add-row')).not.toBeNull();
+        expect(container.querySelector('.rhs-post-properties-panel__add-property')).not.toBeNull();
+        expect(screen.queryByRole('button', {name: /show all/i})).not.toBeInTheDocument();
     });
 
     test('picker only lists fields that are not already attached to the post', () => {
@@ -366,7 +354,7 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(clear).toHaveFocus();
     });
 
-    test('does not render a clear button on an empty row in expanded view', () => {
+    test('does not render a clear button on an empty row', async () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
 
@@ -383,16 +371,14 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
             />,
         );
 
-        fireEvent.click(screen.getByRole('button', {name: /show all/i}));
+        openPickerAndSelectField('f2');
+        await waitForFieldRow('f2');
 
-        // Priority is unfilled in expanded view — no clear button
         expect(screen.queryByRole('button', {name: /clear priority/i})).not.toBeInTheDocument();
-
-        // Status is filled — clear button present
         expect(screen.getByRole('button', {name: /clear status/i})).toBeInTheDocument();
     });
 
-    test('selecting a field from the picker attaches it locally so it appears in the panel', () => {
+    test('selecting a field from the picker attaches it locally so it appears in the panel', async () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
 
@@ -409,12 +395,46 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
             />,
         );
 
-        // Initially Priority is hidden in collapsed view.
-        expect(screen.queryByText('Priority')).not.toBeInTheDocument();
+        expect(document.querySelector('[data-property-field-id="f2"]')).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', {name: /add property/i}));
-        fireEvent.click(screen.getByRole('menuitem', {name: /priority/i}));
+        openPickerAndSelectField('f2');
+        await waitForFieldRow('f2');
 
-        expect(screen.getByText('Priority')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /edit priority/i})).toBeInTheDocument();
+    });
+
+    test('empty select fields render an inline dropdown instead of an Empty trigger', async () => {
+        const status = makeField({id: 'f1', name: 'Status'});
+        const priority = makeField({
+            id: 'f2',
+            name: 'Priority',
+            type: 'select',
+            attrs: {
+                options: [
+                    {id: 'o1', name: 'Low'},
+                    {id: 'o2', name: 'High'},
+                ],
+            } as PropertyField['attrs'],
+        });
+
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status, priority]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        openPickerAndSelectField('f2');
+        await waitForFieldRow('f2');
+
+        const row = document.querySelector('[data-property-field-id="f2"]');
+        expect(row?.querySelector('.rhs-post-properties-panel__inline-editor')).toBeInTheDocument();
+        expect(row?.querySelector('.rhs-post-properties-panel__empty')).not.toBeInTheDocument();
     });
 });

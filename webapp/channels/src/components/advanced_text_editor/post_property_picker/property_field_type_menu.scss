@@ -1,0 +1,81 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Trigger uses standard Input horizontal inset (16px) — not LabeledSelect's react-select padding.
+
+.PropertyFieldTypeMenu {
+    &.Input_container {
+        margin-top: 0;
+    }
+
+    .PropertyFieldTypeMenu__trigger {
+        width: 100%;
+        cursor: pointer;
+    }
+
+    &.Input_container.disabled .PropertyFieldTypeMenu__trigger {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .PropertyFieldTypeMenu__menu-button {
+        display: flex;
+        width: 100%;
+        min-height: 32px;
+        align-items: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 20px;
+        text-align: left;
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .LabeledSelect__single-value-row {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .LabeledSelect__option-label {
+            line-height: 20px;
+        }
+
+        .property-type-icon {
+            display: inline-flex;
+            align-items: center;
+            line-height: 0;
+        }
+    }
+
+    .PropertyFieldTypeMenu__indicators {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+
+        .icon-chevron-down {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-weight: normal;
+
+            &::before {
+                margin: 0;
+            }
+        }
+    }
+
+    .Input_fieldset.PropertyFieldTypeMenu__fieldset--open,
+    .PropertyFieldTypeMenu__trigger.PropertyFieldTypeMenu__fieldset--open {
+        border-color: var(--button-bg);
+        box-shadow: inset 0 0 0 1px var(--button-bg);
+        color: var(--button-bg);
+
+        .Input_legend {
+            color: var(--button-bg);
+        }
+    }
+}

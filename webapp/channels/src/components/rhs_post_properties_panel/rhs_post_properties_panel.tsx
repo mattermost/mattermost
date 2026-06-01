@@ -12,7 +12,6 @@ import PostPropertyPicker from 'components/advanced_text_editor/post_property_pi
 import PropertyValueEditor from 'components/property_value_editor';
 import PropertyChipPopover from 'components/property_value_editor/property_chip_popover';
 import {renderPropertyValue} from 'components/property_value_editor/render_property_value';
-import PropertyTypeIcon from 'components/property_value_editor/type_icon';
 
 import './rhs_post_properties_panel.scss';
 
@@ -42,6 +41,10 @@ function isFilled(raw: unknown): boolean {
         return raw.length > 0;
     }
     return true;
+}
+
+function isSelectType(type: PropertyField['type']): boolean {
+    return type === 'select' || type === 'multiselect';
 }
 
 function FieldRow({
@@ -76,7 +79,7 @@ function FieldRow({
         onChangeValue(field.id, null);
     }, [field.id, onChangeValue]);
 
-    const triggerClass = `rhs-post-properties-panel__row-trigger${filled ? ' rhs-post-properties-panel__row-trigger--filled' : ''}`;
+    const triggerClass = 'rhs-post-properties-panel__row-trigger';
 
     const trigger = (
         <button
@@ -101,34 +104,41 @@ function FieldRow({
             data-property-field-id={field.id}
         >
             <div className='rhs-post-properties-panel__row-label'>
-                <span className='rhs-post-properties-panel__row-icon'>
-                    <PropertyTypeIcon type={field.type}/>
-                </span>
                 <span className='rhs-post-properties-panel__row-name'>{field.name}</span>
             </div>
             <div className='rhs-post-properties-panel__row-value'>
-                <PropertyChipPopover trigger={trigger}>
-                    {() => (
-                        <div className='rhs-post-properties-panel__editor'>
-                            <PropertyValueEditor
-                                field={field}
-                                value={value}
-                                onChange={handleChange}
-                            />
-                        </div>
-                    )}
-                </PropertyChipPopover>
+                {!filled && isSelectType(field.type) ? (
+                    <div className='rhs-post-properties-panel__inline-editor'>
+                        <PropertyValueEditor
+                            field={field}
+                            value={value}
+                            onChange={handleChange}
+                        />
+                    </div>
+                ) : (
+                    <PropertyChipPopover trigger={trigger}>
+                        {() => (
+                            <div className='rhs-post-properties-panel__editor'>
+                                <PropertyValueEditor
+                                    field={field}
+                                    value={value}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        )}
+                    </PropertyChipPopover>
+                )}
+                {filled && (
+                    <button
+                        type='button'
+                        className='rhs-post-properties-panel__row-clear'
+                        aria-label={clearLabel}
+                        onClick={handleClear}
+                    >
+                        <CloseIcon size={14}/>
+                    </button>
+                )}
             </div>
-            {filled && (
-                <button
-                    type='button'
-                    className='rhs-post-properties-panel__row-clear'
-                    aria-label={clearLabel}
-                    onClick={handleClear}
-                >
-                    <CloseIcon size={14}/>
-                </button>
-            )}
         </div>
     );
 }
@@ -141,7 +151,6 @@ export default function RhsPostPropertiesPanel({
     onChangeValue,
     onCreateField,
 }: Props) {
-    const [showAll, setShowAll] = useState(false);
     const [locallyAttached, setLocallyAttached] = useState<string[]>([]);
 
     useEffect(() => {
@@ -185,10 +194,7 @@ export default function RhsPostPropertiesPanel({
         return null;
     }
 
-    const visibleFields = showAll ? fields : visibleInCollapsed;
-    const hasUnfilled = visibleInCollapsed.length < fields.length;
-
-    const toggleShowAll = () => setShowAll((current) => !current);
+    const visibleFields = visibleInCollapsed;
 
     return (
         <div className='rhs-post-properties-panel'>
@@ -201,9 +207,7 @@ export default function RhsPostPropertiesPanel({
                         onChangeValue={onChangeValue}
                     />
                 ))}
-            </div>
-            <div className='rhs-post-properties-panel__footer'>
-                <div className='rhs-post-properties-panel__footer-left'>
+                <div className='rhs-post-properties-panel__add-row'>
                     <PostPropertyPicker
                         mode='rhs'
                         fields={pickerFields}
@@ -213,25 +217,6 @@ export default function RhsPostPropertiesPanel({
                         disabled={false}
                     />
                 </div>
-                {hasUnfilled && (
-                    <button
-                        type='button'
-                        className='rhs-post-properties-panel__toggle'
-                        onClick={toggleShowAll}
-                    >
-                        {showAll ? (
-                            <FormattedMessage
-                                id='rhs_post_properties_panel.show_less'
-                                defaultMessage='Show less'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='rhs_post_properties_panel.show_all'
-                                defaultMessage='Show all'
-                            />
-                        )}
-                    </button>
-                )}
             </div>
         </div>
     );

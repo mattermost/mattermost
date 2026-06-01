@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {CloseIcon, PencilOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {deleteChannelPostPropertyField} from 'mattermost-redux/actions/properties';
+import {deleteChannelPostPropertyField, patchChannelPostPropertyField} from 'mattermost-redux/actions/properties';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassDesignProvider from 'components/compass_design_provider';
@@ -20,11 +20,13 @@ import PropertyTypeIcon from 'components/property_value_editor/type_icon';
 
 import type {DispatchFunc} from 'types/store';
 
-import EditPropertyRow from './edit_property_row';
 import NewPropertyForm from './new_property_form';
 import type {NewPropertyData} from './new_property_form';
+import {buildPropertyFieldPatch, fieldToFormData} from './property_field_form_utils';
 
 import './post_property_picker.scss';
+
+const MENU_WIDTH = '320px';
 
 export type Props = {
     fields: PropertyField[];
@@ -98,6 +100,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
 
     const handleAddNewClick = useCallback(() => {
         if (onCreateField) {
+            setEditingFieldId(null);
             setInAddNewMode(true);
             return;
         }
@@ -107,6 +110,31 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
     const handleCancelAddNew = useCallback(() => {
         setInAddNewMode(false);
     }, []);
+
+    const handleCancelEdit = useCallback(() => {
+        setEditingFieldId(null);
+    }, []);
+
+    const handleSaveEdit = useCallback(async (data: NewPropertyData) => {
+        if (!editingFieldId) {
+            return;
+        }
+        const field = fields.find((f) => f.id === editingFieldId);
+        if (!field) {
+            return;
+        }
+
+        const patch = buildPropertyFieldPatch(field, data);
+        if (patch) {
+            await dispatch(patchChannelPostPropertyField(editingFieldId, patch));
+        }
+        setEditingFieldId(null);
+    }, [dispatch, editingFieldId, fields]);
+
+    const editingField = editingFieldId ?
+        fields.find((f) => f.id === editingFieldId) :
+        undefined;
+    const showingForm = (inAddNewMode && onCreateField) || Boolean(editingField);
 
     const handleSaveNew = useCallback(async (data: NewPropertyData) => {
         if (!onCreateField) {
@@ -121,16 +149,6 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
         fields.filter((f) => f.name.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
     const items = filteredFields.map((field) => {
-        if (editingFieldId === field.id) {
-            return (
-                <EditPropertyRow
-                    key={field.id}
-                    field={field}
-                    onExit={() => setEditingFieldId(null)}
-                />
-            );
-        }
-
         const leadingElement = (
             <span className='post-property-picker__row-icon'>
                 <PropertyTypeIcon type={field.type}/>
@@ -148,6 +166,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                     )}
                     onClick={(e) => {
                         e.stopPropagation();
+                        setInAddNewMode(false);
                         setEditingFieldId(field.id);
                     }}
                 >
@@ -201,8 +220,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
     const triggerButton = mode === 'rhs' ? (
         <button
             type='button'
-            id='postPropertyPickerButton'
-            className='rhs-post-properties-panel__add-property'
+            className={classNames('rhs-post-properties-panel__add-property', {'rhs-post-properties-panel__add-property--active': open})}
             disabled={disabled}
             aria-label={triggerLabel}
         >
@@ -213,7 +231,6 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
         </button>
     ) : (
         <button
-            id='postPropertyPickerButton'
             type='button'
             className={classNames('post-property-picker__trigger', {'post-property-picker__trigger--active': open})}
             disabled={disabled}
@@ -247,12 +264,13 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                 menuButton={{
                     id: 'postPropertyPickerButton',
                     as: 'div',
+                    class: classNames('style--none', 'post-property-picker__menu-anchor'),
                     children: triggerButton,
                 }}
                 menu={{
                     id: 'post-property-picker-menu',
                     'aria-label': triggerLabel,
-                    width: inAddNewMode ? '420px' : '360px',
+                    width: MENU_WIDTH,
                     className: 'post-property-picker__menu',
                     onToggle: handleMenuToggle,
                     isMenuOpen: open,
@@ -270,7 +288,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                 }}
                 popoverAction={popoverActionRef}
             >
-                {inAddNewMode && onCreateField ? [
+                {showingForm ? [
                     (
                         <li
                             key='post-property-picker-form'
@@ -279,8 +297,10 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                             onKeyUp={stopPropagationOnKey}
                         >
                             <NewPropertyForm
-                                onSave={handleSaveNew}
-                                onCancel={handleCancelAddNew}
+                                key={editingField?.id ?? 'new'}
+                                initialValues={editingField ? fieldToFormData(editingField) : undefined}
+                                onSave={editingField ? handleSaveEdit : handleSaveNew}
+                                onCancel={editingField ? handleCancelEdit : handleCancelAddNew}
                                 onLayoutChange={handleFormLayoutChange}
                             />
                         </li>
@@ -337,44 +357,39 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                     ...(!showEmptyState && !showNoMatches ? items : []),
                     <Menu.Separator key='post-property-picker-separator'/>,
                     (
-                        <li
+                        <Menu.Item
                             key='post-property-picker-add-new'
-                            className='post-property-picker__add-new-row'
-                        >
-                            <button
-                                type='button'
-                                id='post-property-picker-add-new'
-                                className='post-property-picker__add-new-btn'
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddNewClick();
-                                }}
-                            >
-                                <span className='post-property-picker__add-new-icon'>
+                            id='post-property-picker-add-new'
+                            leadingElement={(
+                                <span className='post-property-picker__row-icon'>
                                     <PlusIcon size={16}/>
                                 </span>
-                                <span className='post-property-picker__add-new'>
+                            )}
+                            labels={(
+                                <span>
                                     <FormattedMessage
                                         id='post_property_picker.add_new'
                                         defaultMessage='Add new property'
                                     />
                                 </span>
-                            </button>
-                        </li>
+                            )}
+                            disableCloseOnSelect={Boolean(onCreateField)}
+                            onClick={() => handleAddNewClick()}
+                        />
                     ),
                     onManageClick && (
                         <Menu.Item
                             key='post-property-picker-manage'
                             id='post-property-picker-manage'
                             onClick={onManageClick}
-                            labels={
-                                <span className='post-property-picker__manage'>
+                            labels={(
+                                <span>
                                     <FormattedMessage
                                         id='post_property_picker.manage'
                                         defaultMessage='Manage properties'
                                     />
                                 </span>
-                            }
+                            )}
                         />
                     ),
                 ]}

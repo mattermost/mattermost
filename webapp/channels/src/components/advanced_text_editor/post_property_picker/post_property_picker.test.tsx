@@ -6,9 +6,19 @@ import React from 'react';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {patchChannelPostPropertyField} from 'mattermost-redux/actions/properties';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import PostPropertyPicker from './post_property_picker';
+
+jest.mock('mattermost-redux/actions/properties', () => ({
+    ...jest.requireActual('mattermost-redux/actions/properties'),
+    patchChannelPostPropertyField: jest.fn(() => ({type: 'MOCK_PATCH'})),
+    deleteChannelPostPropertyField: jest.fn(() => ({type: 'MOCK_DELETE'})),
+}));
+
+const patchMock = patchChannelPostPropertyField as jest.MockedFunction<typeof patchChannelPostPropertyField>;
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -29,6 +39,10 @@ function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
 }
 
 describe('components/advanced_text_editor/post_property_picker/PostPropertyPicker', () => {
+    beforeEach(() => {
+        patchMock.mockClear();
+    });
+
     test('renders the picker trigger button', () => {
         renderWithContext(
             <PostPropertyPicker
@@ -332,5 +346,50 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
             name: 'Owner',
             type: 'text',
         }));
+    });
+
+    test('clicking edit opens the full property form pre-filled with the field', () => {
+        renderWithContext(
+            <PostPropertyPicker
+                fields={[makeField({id: 'f1', name: 'Status', type: 'select', attrs: {options: [{id: 'o1', name: 'Open'}]}})]}
+                stagedFieldIds={[]}
+                onToggleStaged={jest.fn()}
+                onCreateField={jest.fn(() => Promise.resolve())}
+                disabled={false}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /add property/i}));
+        fireEvent.click(screen.getByRole('button', {name: /edit status/i}));
+
+        expect(screen.queryByText('Status')).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText(/search properties/i)).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Name')).toHaveValue('Status');
+        expect(screen.getByLabelText('Type')).toBeInTheDocument();
+        expect(screen.getByText('Open')).toBeInTheDocument();
+    });
+
+    test('saving the edit form patches the field and returns to the list', async () => {
+        renderWithContext(
+            <PostPropertyPicker
+                fields={[makeField({id: 'f1', name: 'Status', type: 'text'})]}
+                stagedFieldIds={[]}
+                onToggleStaged={jest.fn()}
+                onCreateField={jest.fn(() => Promise.resolve())}
+                disabled={false}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /add property/i}));
+        fireEvent.click(screen.getByRole('button', {name: /edit status/i}));
+
+        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'State'}});
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', {name: /save/i}));
+        });
+
+        expect(patchMock).toHaveBeenCalledWith('f1', {name: 'State'});
+        expect(screen.getByText('Status')).toBeInTheDocument();
     });
 });

@@ -5,7 +5,7 @@
     display: flex;
     min-width: 260px;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
 }
 
 .new-property-form__field {
@@ -35,36 +35,4 @@
 .new-property-form__actions {
     display: flex;
     justify-content: flex-end;
-    gap: 6px;
-}
-
-.new-property-form__save,
-.new-property-form__cancel {
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 18px;
-}
-
-.new-property-form__save {
-    border: 1px solid var(--button-bg);
-    background: var(--button-bg);
-    color: var(--button-color);
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.4;
-    }
-}
-
-.new-property-form__cancel {
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    background: transparent;
-    color: var(--center-channel-color);
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-    }
 }

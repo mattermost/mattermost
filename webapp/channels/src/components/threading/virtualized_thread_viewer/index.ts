@@ -7,10 +7,8 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getPropertyValuesForTarget} from 'mattermost-redux/selectors/entities/properties';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -27,6 +25,7 @@ type OwnProps = {
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
     onCardClick: (post: Post) => void;
+    isThreadView: boolean;
 }
 
 function makeMapStateToProps() {
@@ -50,22 +49,6 @@ function makeMapStateToProps() {
         });
         const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
-        const integratedBoardsEnabled = getFeatureFlagValue(state, 'IntegratedBoards') === 'true';
-        const postValues = integratedBoardsEnabled ? getPropertyValuesForTarget(state, selected.id) : [];
-        const hasPostProperties = postValues.some((v) => {
-            const raw = v.value;
-            if (raw === null || raw === undefined) {
-                return false;
-            }
-            if (typeof raw === 'string') {
-                return raw.length > 0;
-            }
-            if (Array.isArray(raw)) {
-                return raw.length > 0;
-            }
-            return true;
-        });
-
         return {
             currentUserId,
             directTeammate,
@@ -74,7 +57,7 @@ function makeMapStateToProps() {
             replyListIds,
             newMessagesSeparatorActions,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
-            topAnchored: hasPostProperties,
+            topAnchored: !ownProps.isThreadView,
         };
     };
 }

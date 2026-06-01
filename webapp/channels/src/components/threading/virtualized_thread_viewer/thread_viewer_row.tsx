@@ -6,6 +6,7 @@ import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
@@ -56,6 +57,9 @@ function RootPostRow({
     isChannelAutotranslated: boolean;
 }) {
     const channelId = useSelector((state: GlobalState) => getPost(state, listId)?.channel_id ?? '');
+    const integratedBoardsEnabled = useSelector(
+        (state: GlobalState) => getFeatureFlagValue(state, 'IntegratedBoards') === 'true',
+    );
 
     return (
         <>
@@ -71,7 +75,12 @@ function RootPostRow({
                 postId={listId}
                 channelId={channelId}
             />
-            {!isDeletedPost && <RootPostDivider postId={listId}/>}
+            {!isDeletedPost && (
+                <RootPostDivider
+                    postId={listId}
+                    sectionHeading={integratedBoardsEnabled}
+                />
+            )}
         </>
     );
 }

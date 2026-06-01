@@ -301,6 +301,15 @@ export function Menu(props: Props) {
 
     const providerValue = useMenuContextValue(closeMenu, isMenuOpen);
 
+    const paperStyle = {
+        ...(props.menu.hideBackdrop ? {pointerEvents: 'auto' as const} : {}),
+        ...(props.menu.width ? {
+            width: props.menu.width,
+            minWidth: props.menu.width,
+            boxSizing: 'border-box' as const,
+        } : {}),
+    };
+
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
         return renderMenuButton();
@@ -332,7 +341,7 @@ export function Menu(props: Props) {
                         // Making it pointer-events:none lets drag events pass through to
                         // elements behind it, while the paper content stays interactive.
                         style={props.menu.hideBackdrop ? {pointerEvents: 'none'} : undefined}
-                        PaperProps={props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined}
+                        PaperProps={Object.keys(paperStyle).length > 0 ? {style: paperStyle} : undefined}
                         TransitionProps={{
                             mountOnEnter: true,
                             unmountOnExit: true,
@@ -358,6 +367,7 @@ export function Menu(props: Props) {
                             className={props.menu.className}
                             style={{
                                 width: props.menu.width,
+                                boxSizing: props.menu.width ? 'border-box' : undefined,
                             }}
                             autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
                             onKeyDown={handleMenuListKeyDown}
