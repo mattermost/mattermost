@@ -87,6 +87,7 @@ const (
 	PreferenceNameColorizeUsernames       = "colorize_usernames"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
+	PreferenceNameDateTimeDisplayFormat   = "datetime_display_format"
 
 	PreferenceNameShowUnreadSection = "show_unread_section"
 	PreferenceLimitVisibleDmsGms    = "limit_visible_dms_gms"
@@ -157,6 +158,14 @@ func (o *Preference) IsValid() *AppError {
 		visibleDmsGmsValue, convErr := strconv.Atoi(o.Value)
 		if convErr != nil || visibleDmsGmsValue < 1 || visibleDmsGmsValue > PreferenceMaxLimitVisibleDmsGmsValue {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.limit_visible_dms_gms.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+		}
+	}
+
+	if o.Category == PreferenceCategoryDisplaySettings && o.Name == PreferenceNameDateTimeDisplayFormat {
+		if o.Value != DateTimeDisplayFormatCompact &&
+			o.Value != DateTimeDisplayFormatTimeSeconds &&
+			o.Value != DateTimeDisplayFormatISODatetime {
+			return NewAppError("Preference.IsValid", "model.config.is_valid.display.datetime_display_format.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
 	}
 

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, waitFor, act, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PostTime from './post_time';
 
@@ -29,13 +29,19 @@ describe('components/post_view/post_time/PostTime', () => {
     const initialState = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    DateTimeDisplayFormat: 'compact',
+                },
             },
             preferences: {
                 myPreferences: {},
             },
         },
     };
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
 
     test('should render PostTime component', () => {
         renderWithContext(<PostTime {...baseProps}/>, initialState);
@@ -64,27 +70,17 @@ describe('components/post_view/post_time/PostTime', () => {
     });
 
     test('should show tooltip with date and time on hover', async () => {
-        jest.useFakeTimers();
+        const user = userEvent.setup();
 
         renderWithContext(<PostTime {...baseProps}/>, initialState);
 
-        const timeElement = screen.getByText('12:00 AM');
-        await userEvent.hover(timeElement.closest('a') || timeElement, {advanceTimers: jest.advanceTimersByTime});
+        await user.hover(screen.getByRole('link'));
 
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
-
-        await waitFor(() => {
-            // Check for the tooltip content with date and time
-            expect(screen.getByText(/Wednesday, January 1, 2020 at 12:00:00 AM/)).toBeInTheDocument();
-        });
-
-        jest.useRealTimers();
+        expect(await screen.findByRole('tooltip')).toHaveTextContent(/Wednesday, January 1, 2020 at 12:00:00 AM/);
     });
 
     test('should show tooltip with correct date format', async () => {
-        jest.useFakeTimers();
+        const user = userEvent.setup();
 
         const props = {
             ...baseProps,
@@ -93,23 +89,13 @@ describe('components/post_view/post_time/PostTime', () => {
 
         renderWithContext(<PostTime {...props}/>, initialState);
 
-        const timeElement = screen.getByText('12:00 AM');
-        await userEvent.hover(timeElement.closest('a') || timeElement, {advanceTimers: jest.advanceTimersByTime});
+        await user.hover(screen.getByRole('link'));
 
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
-
-        await waitFor(() => {
-            // Check for the tooltip content with the correct date format
-            expect(screen.getByText(/Friday, January 1, 2021 at 12:00:00 AM/)).toBeInTheDocument();
-        });
-
-        jest.useRealTimers();
+        expect(await screen.findByRole('tooltip')).toHaveTextContent(/Friday, January 1, 2021 at 12:00:00 AM/);
     });
 
     test('should show tooltip with correct time format for different times', async () => {
-        jest.useFakeTimers();
+        const user = userEvent.setup();
 
         const props = {
             ...baseProps,
@@ -118,19 +104,9 @@ describe('components/post_view/post_time/PostTime', () => {
 
         renderWithContext(<PostTime {...props}/>, initialState);
 
-        const timeElement = screen.getByText('12:00 PM');
-        await userEvent.hover(timeElement.closest('a') || timeElement, {advanceTimers: jest.advanceTimersByTime});
+        await user.hover(screen.getByRole('link'));
 
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
-
-        await waitFor(() => {
-            // Check for the tooltip content with PM time
-            expect(screen.getByText(/Wednesday, January 1, 2020 at 12:00:00 PM/)).toBeInTheDocument();
-        });
-
-        jest.useRealTimers();
+        expect(await screen.findByRole('tooltip')).toHaveTextContent(/Wednesday, January 1, 2020 at 12:00:00 PM/);
     });
 
     test('should handle timestampProps correctly', () => {
@@ -146,6 +122,32 @@ describe('components/post_view/post_time/PostTime', () => {
 
         const timeElement = screen.getByText('00:00');
         expect(timeElement).toHaveClass('custom-timestamp');
+    });
+
+    test('should render compact timestamp when forceCompactFormat is true', () => {
+        const isoState = {
+            entities: {
+                general: {
+                    config: {
+                        DateTimeDisplayFormat: 'iso_datetime',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        };
+
+        renderWithContext(
+            <PostTime
+                {...baseProps}
+                forceCompactFormat={true}
+            />,
+            isoState,
+        );
+
+        expect(screen.getByText('12:00 AM')).toBeInTheDocument();
+        expect(screen.queryByText(/2020-01-01/)).not.toBeInTheDocument();
     });
 
     test('should have correct accessibility attributes', () => {
@@ -169,6 +171,7 @@ describe('components/post_view/post_time/PostTime', () => {
     });
 
     test('should call emitCloseRightHandSide when clicked on mobile', async () => {
+        const user = userEvent.setup();
         const mockEmitCloseRightHandSide = require('actions/global_actions').emitCloseRightHandSide;
 
         const props = {
@@ -179,7 +182,7 @@ describe('components/post_view/post_time/PostTime', () => {
         renderWithContext(<PostTime {...props}/>, initialState);
 
         const timeElement = screen.getByText('12:00 AM');
-        await userEvent.click(timeElement.closest('a') || timeElement);
+        await user.click(timeElement.closest('a') || timeElement);
 
         expect(mockEmitCloseRightHandSide).toHaveBeenCalled();
     });

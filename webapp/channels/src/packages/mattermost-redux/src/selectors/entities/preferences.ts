@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CollapsedThreads} from '@mattermost/types/config';
+import {CollapsedThreads, DateTimeDisplayFormat} from '@mattermost/types/config';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -110,6 +110,35 @@ export const getTeammateNameDisplaySetting: (state: GlobalState) => string = cre
         return General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME;
     },
 );
+
+export const getDateTimeDisplayFormat: (state: GlobalState) => DateTimeDisplayFormat = createSelector(
+    'getDateTimeDisplayFormat',
+    getConfig,
+    (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT),
+    (config, userPreference) => {
+        if (userPreference?.value === DateTimeDisplayFormat.COMPACT ||
+            userPreference?.value === DateTimeDisplayFormat.TIME_SECONDS ||
+            userPreference?.value === DateTimeDisplayFormat.ISO_DATETIME) {
+            return userPreference.value;
+        }
+
+        const configValue = config?.DateTimeDisplayFormat;
+        if (configValue === DateTimeDisplayFormat.TIME_SECONDS ||
+            configValue === DateTimeDisplayFormat.ISO_DATETIME) {
+            return configValue;
+        }
+
+        return DateTimeDisplayFormat.COMPACT;
+    },
+);
+
+export function isCompactDateTimeDisplayFormat(state: GlobalState): boolean {
+    return getDateTimeDisplayFormat(state) === DateTimeDisplayFormat.COMPACT;
+}
+
+export function getDateTimeDisplayFormatUserPreference(state: GlobalState): string | undefined {
+    return getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)?.value;
+}
 
 export const getThemePreferences = makeGetCategory('getThemePreferences', Preferences.CATEGORY_THEME);
 

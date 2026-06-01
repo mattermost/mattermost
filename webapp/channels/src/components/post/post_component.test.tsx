@@ -723,4 +723,54 @@ describe('PostComponent', () => {
             expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
     });
+
+    describe('post timestamp visibility', () => {
+        const isoTimestampState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        DateTimeDisplayFormat: 'iso_datetime',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        };
+
+        test('should hide consecutive post timestamp until hover when using a non-compact timestamp format', async () => {
+            const user = userEvent.setup();
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isCompactDateTimeDisplay: false,
+                isConsecutivePost: true,
+                hasReplies: false,
+                previousPostIsComment: false,
+                location: Locations.CENTER,
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, isoTimestampState);
+
+            expect(container.querySelector('.post__time')).not.toBeInTheDocument();
+
+            await user.hover(container.querySelector('.post')!);
+
+            expect(container.querySelector('.post__time')).toBeInTheDocument();
+        });
+
+        test('should always show timestamp on non-consecutive posts when using a non-compact timestamp format', () => {
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isCompactDateTimeDisplay: false,
+                isConsecutivePost: false,
+                location: Locations.CENTER,
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, isoTimestampState);
+
+            expect(container.querySelector('.post__time')).toBeInTheDocument();
+        });
+    });
 });

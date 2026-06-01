@@ -25,7 +25,7 @@ import Markdown from 'components/markdown';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
-import Timestamp from 'components/timestamp';
+import EventTimestamp from 'components/event_timestamp';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 
@@ -259,10 +259,10 @@ function ThreadItem({
                             />
                         )}
                     </div>
-                    <Timestamp
-                        {...THREADING_TIME}
+                    <EventTimestamp
                         className='alt-hidden'
                         value={lastReplyAt}
+                        timestampProps={THREADING_TIME}
                     />
                 </div>
                 <div className='menu-anchor alt-visible'>
@@ -328,9 +328,9 @@ function ThreadItem({
                         id='threading.threadItem.timestamp'
                         defaultMessage='Last reply '
                     />
-                    <Timestamp
-                        {...THREADING_TIME}
+                    <EventTimestamp
                         value={lastReplyAt}
+                        timestampProps={THREADING_TIME}
                     />
                 </span>
             </div>

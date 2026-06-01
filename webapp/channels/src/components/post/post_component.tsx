@@ -66,6 +66,7 @@ export type Props = {
     team?: Team;
     currentUserId: string;
     compactDisplay?: boolean;
+    isCompactDateTimeDisplay?: boolean;
     colorizeUsernames?: boolean;
     isFlagged: boolean;
     previewCollapsed?: string;
@@ -524,6 +525,9 @@ function PostComponent(props: Props) {
         },
     );
 
+    const isCenterConsecutivePost = props.isConsecutivePost && props.location === Locations.CENTER;
+    const alwaysShowNonCompactTimestamp = !props.isCompactDateTimeDisplay && !isCenterConsecutivePost;
+
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
         comment = (
@@ -801,13 +805,17 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='badges-wrapper col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
+                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER || alwaysShowNonCompactTimestamp) &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
                                         eventTime={post.create_at}
                                         postId={post.id}
                                         location={props.location}
+                                        forceCompactFormat={
+                                            props.compactDisplay ||
+                                            (props.isConsecutivePost && props.location === Locations.CENTER)
+                                        }
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }

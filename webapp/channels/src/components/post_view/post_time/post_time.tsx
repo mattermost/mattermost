@@ -5,17 +5,16 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {isMobile} from '@mattermost/shared/utils/user_agent';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as GlobalActions from 'actions/global_actions';
 
-import Timestamp from 'components/timestamp';
+import EventTimestamp from 'components/event_timestamp';
+import EventTimestampTooltip from 'components/event_timestamp/event_timestamp_tooltip';
+import type Timestamp from 'components/timestamp';
 
 import {Locations} from 'utils/constants';
-
-const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
-const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'};
 
 type Props = {
 
@@ -38,6 +37,7 @@ type Props = {
     postId: string;
     teamUrl: string;
     timestampProps?: ComponentProps<typeof Timestamp>;
+    forceCompactFormat?: boolean;
 }
 
 export default class PostTime extends React.PureComponent<Props> {
@@ -60,14 +60,16 @@ export default class PostTime extends React.PureComponent<Props> {
             postId,
             teamUrl,
             timestampProps = {},
+            forceCompactFormat = false,
         } = this.props;
 
         const postTime = (
-            <Timestamp
+            <EventTimestamp
                 value={eventTime}
                 className='post__time'
-                useDate={false}
-                {...timestampProps}
+                timestampProps={timestampProps}
+                showTooltip={false}
+                forceCompactFormat={forceCompactFormat}
             />
         );
 
@@ -93,12 +95,7 @@ export default class PostTime extends React.PureComponent<Props> {
         return (
             <WithTooltip
                 title={
-                    <Timestamp
-                        value={eventTime}
-                        useSemanticOutput={false}
-                        useDate={getDateFormat}
-                        useTime={getTimeFormat}
-                    />
+                    <EventTimestampTooltip value={eventTime}/>
                 }
             >
                 {content}

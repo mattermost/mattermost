@@ -728,6 +728,7 @@ const defaultServerConfig: AdminConfig = {
     DisplaySettings: {
         CustomURLSchemes: [],
         MaxMarkdownNodes: 0,
+        DateTimeDisplayFormat: 'compact',
     },
     GuestAccountsSettings: {
         Enable: false,

@@ -26,6 +26,7 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+import DateTimeDisplayFormatSetting, {isDateAndTimeSectionActive} from './date_time_display_format_setting/index';
 import RenderEmoticonsAsEmoji from './render_emoticons_as_emoji';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
@@ -151,7 +152,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     public prevSections: {
         theme: string;
 
-        clock: string;
+        date_and_time: string;
         linkpreview: string;
         message_display: string;
         channel_display_mode: string;
@@ -168,8 +169,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         this.prevSections = {
             theme: 'dummySectionName', // dummy value that should never match any section name
-            clock: 'theme',
-            linkpreview: 'clock',
+            date_and_time: 'theme',
+            linkpreview: 'date_and_time',
             message_display: 'linkpreview',
             channel_display_mode: 'message_display',
             languages: 'channel_display_mode',
@@ -223,12 +224,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     handleSubmit = async () => {
         const userId = this.props.user.id;
 
-        const timePreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.USE_MILITARY_TIME,
-            value: this.state.militaryTime,
-        };
         const availabilityStatusOnPostsPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -293,7 +288,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         this.setState({isSaving: true});
 
         const preferences = [
-            timePreference,
             channelDisplayModePreference,
             messageDisplayPreference,
             collapsedReplyThreadsPreference,
@@ -309,10 +303,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         await this.props.actions.savePreferences(userId, preferences);
 
         this.updateSection('');
-    };
-
-    handleClockRadio = (militaryTime: string) => {
-        this.setState({militaryTime});
     };
 
     handleTeammateNameDisplayRadio = (teammateNameDisplay: string) => {
@@ -744,39 +734,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             });
         }
 
-        const clockSection = this.createSection({
-            section: 'clock',
-            display: 'militaryTime',
-            value: this.state.militaryTime,
-            defaultDisplay: 'false',
-            title: defineMessage({
-                id: 'user.settings.display.clockDisplay',
-                defaultMessage: 'Clock Display',
-            }),
-            firstOption: {
-                value: 'false',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.normalClock',
-                        defaultMessage: '12-hour clock (example: 4:00 PM)',
-                    }),
-                },
-            },
-            secondOption: {
-                value: 'true',
-                radionButtonText: {
-                    label: defineMessage({
-                        id: 'user.settings.display.militaryClock',
-                        defaultMessage: '24-hour clock (example: 16:00)',
-                    }),
-                },
-            },
-            description: defineMessage({
-                id: 'user.settings.display.preferTime',
-                defaultMessage: 'Select how you prefer time displayed.',
-            }),
-        });
-
         const teammateNameDisplaySection = this.createSection({
             section: Preferences.NAME_NAME_FORMAT,
             display: 'teammateNameDisplay',
@@ -1201,11 +1158,15 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     <div className='divider-dark first'/>
                     {themeSection}
                     {collapsedReplyThreads}
-                    {clockSection}
+                    <DateTimeDisplayFormatSetting
+                        active={isDateAndTimeSectionActive(this.props.activeSection)}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        updateSection={this.updateSection}
+                    />
+                    {timezoneSelection}
                     {teammateNameDisplaySection}
                     {availabilityStatusOnPostsSection}
                     {lastActiveSection}
-                    {timezoneSelection}
                     {linkPreviewSection}
                     {collapseSection}
                     {messageDisplaySection}

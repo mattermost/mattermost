@@ -20,7 +20,7 @@ import FileAttachmentListContainer from 'components/file_attachment_list';
 import InfoToast from 'components/info_toast/info_toast';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostMessageContainer from 'components/post_view/post_message_view';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import EventTimestamp from 'components/event_timestamp';
 import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -32,11 +32,6 @@ import RestorePostModal from '../restore_post_modal';
 import './edited_post_items.scss';
 
 import type {PropsFromRedux} from './index';
-
-const DATE_RANGES = [
-    RelativeRanges.TODAY_TITLE_CASE,
-    RelativeRanges.YESTERDAY_TITLE_CASE,
-];
 
 const itemMessages = defineMessages({
     helpText: {
@@ -240,9 +235,8 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
                             <i className={`icon ${open ? 'icon-chevron-down' : 'icon-chevron-right'}`}/>
                         </button>
                         <span className='edit-post-history__date'>
-                            <Timestamp
+                            <EventTimestamp
                                 value={timeStampValue}
-                                ranges={DATE_RANGES}
                             />
                         </span>
                         {currentVersionIndicator}

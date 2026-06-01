@@ -21,8 +21,8 @@ import {selectPost} from 'actions/views/rhs';
 
 import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
+import EventTimestamp from 'components/event_timestamp';
 import {THREADING_TIME} from 'components/threading/common/options';
-import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
 
 import type {GlobalState} from 'types/store';
@@ -137,20 +137,20 @@ function ThreadFooter({
             />
 
             {Boolean(lastReplyAt) && (
-                <Timestamp
-                    value={lastReplyAt}
-                    {...THREADING_TIME}
-                >
-                    {({formatted}) => (
-                        <span className='Timestamp separated alt-visible'>
-                            <FormattedMessage
-                                id='threading.footer.lastReplyAt'
-                                defaultMessage='Last reply {formatted}'
-                                values={{formatted}}
-                            />
-                        </span>
-                    )}
-                </Timestamp>
+                <span className='Timestamp separated alt-visible'>
+                    <FormattedMessage
+                        id='threading.footer.lastReplyAt'
+                        defaultMessage='Last reply {formatted}'
+                        values={{
+                            formatted: (
+                                <EventTimestamp
+                                    value={lastReplyAt}
+                                    timestampProps={THREADING_TIME}
+                                />
+                            ),
+                        }}
+                    />
+                </span>
             )}
         </div>
     );

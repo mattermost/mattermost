@@ -18,7 +18,7 @@ import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
 import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
-import Timestamp from 'components/timestamp';
+import EventTimestamp from 'components/event_timestamp';
 import UserProfileComponent from 'components/user_profile';
 
 import * as PostUtils from 'utils/post_utils';
@@ -162,16 +162,8 @@ const PostMessagePreview = (props: Props) => {
                         />
                     </div>
                     <div className='col d-flex align-items-center'>
-                        <Timestamp
+                        <EventTimestamp
                             value={previewPost.create_at}
-                            units={[
-                                'now',
-                                'minute',
-                                'hour',
-                                'day',
-                            ]}
-                            useTime={false}
-                            day={'numeric'}
                             className='post-preview__time'
                         />
                         {previewPost.metadata?.priority && isPostPriorityEnabled && (

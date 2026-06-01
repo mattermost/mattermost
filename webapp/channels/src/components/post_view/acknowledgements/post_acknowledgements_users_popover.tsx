@@ -13,7 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 import {makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import Nbsp from 'components/html_entities/nbsp';
-import Timestamp from 'components/timestamp';
+import EventTimestamp from 'components/event_timestamp';
 import Avatar from 'components/widgets/users/avatar';
 
 import type {GlobalState} from 'types/store';
@@ -101,7 +101,7 @@ function Row({
                     )}
                 </div>
                 <Span>
-                    <Timestamp value={acknowledgedAt}/>
+                    <EventTimestamp value={acknowledgedAt}/>
                 </Span>
             </Info>
         </Item>

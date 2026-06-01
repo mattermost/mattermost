@@ -111,6 +111,10 @@ const (
 	CollapsedThreadsDefaultOff = "default_off"
 	CollapsedThreadsAlwaysOn   = "always_on"
 
+	DateTimeDisplayFormatCompact     = "compact"
+	DateTimeDisplayFormatTimeSeconds = "time_seconds"
+	DateTimeDisplayFormatISODatetime = "iso_datetime"
+
 	EmailBatchingBufferSize = 256
 	EmailBatchingInterval   = 30
 
@@ -3927,8 +3931,9 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes []string `access:"site_posts"`
-	MaxMarkdownNodes *int     `access:"site_posts"`
+	CustomURLSchemes        []string `access:"site_posts"`
+	MaxMarkdownNodes        *int     `access:"site_posts"`
+	DateTimeDisplayFormat   *string  `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -3939,6 +3944,10 @@ func (s *DisplaySettings) SetDefaults() {
 
 	if s.MaxMarkdownNodes == nil {
 		s.MaxMarkdownNodes = new(0)
+	}
+
+	if s.DateTimeDisplayFormat == nil {
+		s.DateTimeDisplayFormat = new(DateTimeDisplayFormatCompact)
 	}
 }
 
@@ -5195,6 +5204,12 @@ func (s *DisplaySettings) isValid() *AppError {
 				)
 			}
 		}
+	}
+
+	if *s.DateTimeDisplayFormat != DateTimeDisplayFormatCompact &&
+		*s.DateTimeDisplayFormat != DateTimeDisplayFormatTimeSeconds &&
+		*s.DateTimeDisplayFormat != DateTimeDisplayFormatISODatetime {
+		return NewAppError("Config.IsValid", "model.config.is_valid.display.datetime_display_format.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

@@ -8,13 +8,15 @@ import {FormattedMessage} from 'react-intl';
 import {SyncIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import EventTimestamp from 'components/event_timestamp';
+import {RelativeRanges} from 'components/timestamp';
+import type Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 
 import './panel_header.scss';
 import {isToday} from 'utils/datetime';
 
-const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
+const DRAFT_TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',
     useSemanticOutput: false,
     useTime: false,
@@ -28,6 +30,12 @@ export const SCHEDULED_POST_TIME_RANGES = [
 ];
 
 export const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute}) => ({hour, minute});
+
+const SCHEDULED_POST_TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
+    ranges: SCHEDULED_POST_TIME_RANGES,
+    useSemanticOutput: false,
+    useTime: scheduledPostTimeFormat,
+};
 
 type Props = {
     kind: 'draft' | 'scheduledPost';
@@ -73,9 +81,9 @@ function PanelHeader({
                     <div className='PanelHeader__timestamp'>
                         {
                             Boolean(timestamp) && kind === 'draft' && (
-                                <Timestamp
+                                <EventTimestamp
                                     value={new Date(timestamp)}
-                                    {...TIMESTAMP_PROPS}
+                                    timestampProps={DRAFT_TIMESTAMP_PROPS}
                                 />
                             )
                         }
@@ -87,11 +95,9 @@ function PanelHeader({
                                     defaultMessage='Send {isTodayOrTomorrow, select, true {} other {on}} {scheduledDateTime}'
                                     values={{
                                         scheduledDateTime: (
-                                            <Timestamp
+                                            <EventTimestamp
                                                 value={timestamp}
-                                                ranges={SCHEDULED_POST_TIME_RANGES}
-                                                useSemanticOutput={false}
-                                                useTime={scheduledPostTimeFormat}
+                                                timestampProps={SCHEDULED_POST_TIMESTAMP_PROPS}
                                             />
                                         ),
                                         isTodayOrTomorrow: isToday(timestampDateObject),
