@@ -207,6 +207,11 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockSessionAttributeStore := mocks.SessionAttributeStore{}
 	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
 
+	fakeField := model.PropertyField{ID: "field-id", GroupID: "group-id", Name: "field-name"}
+	mockPropertyFieldStore := mocks.PropertyFieldStore{}
+	mockPropertyFieldStore.On("GetForGroup", context.Background(), "group-id").Return([]*model.PropertyField{&fakeField}, nil)
+	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
+
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)
 

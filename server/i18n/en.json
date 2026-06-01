@@ -8345,6 +8345,10 @@
     "translation": "Unable to get property field by name."
   },
   {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Unable to get property fields for group."
+  },
+  {
     "id": "app.property_field.get_many.app_error",
     "translation": "Unable to get property fields."
   },
