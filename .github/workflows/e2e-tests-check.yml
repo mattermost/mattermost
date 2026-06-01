@@ -5,6 +5,7 @@ on:
     paths:
       - "e2e-tests/**"
       - "webapp/platform/client/**"
+      - "webapp/platform/eslint-plugin/**"
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
 
