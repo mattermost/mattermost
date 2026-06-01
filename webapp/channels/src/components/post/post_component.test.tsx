@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-import {PostPriority} from '@mattermost/types/posts';
 import {DateTimeDisplayFormat} from '@mattermost/types/config';
+import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
