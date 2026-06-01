@@ -59,9 +59,41 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 	return a.ch.exportFilestore
 }
 
+// UseExportFileStore reports whether the dedicated export filestore is
+// active. When true, callers reading the filestore configuration should
+// resolve the export-side fields (ExportDriverName, ExportAmazonS3*,
+// ExportAzure*, ...) rather than the primary fields.
+func (a *App) UseExportFileStore() bool {
+	if !a.License().IsCloud() {
+		return false
+	}
+	if !a.Config().FeatureFlags.CloudDedicatedExportUI {
+		return false
+	}
+	dedicated := a.Config().FileSettings.DedicatedExportStore
+	return dedicated != nil && *dedicated
+}
+
+// ResolvedFileStoreDriverName returns the driver name that callers should
+// read for the active filestore -- ExportDriverName when the dedicated
+// export filestore is enabled, otherwise the primary DriverName. The empty
+// string is returned when neither pointer is set so callers can produce a
+// dedicated "unsupported driver" error.
+func (a *App) ResolvedFileStoreDriverName(settings *model.FileSettings) string {
+	name := settings.DriverName
+	if a.UseExportFileStore() {
+		name = settings.ExportDriverName
+	}
+
+	if name == nil {
+		return ""
+	}
+	return *name
+}
+
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 	bucket := settings.AmazonS3Bucket
-	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+	if a.UseExportFileStore() {
 		bucket = settings.ExportAmazonS3Bucket
 	}
 	if bucket == nil || *bucket == "" {
@@ -72,10 +104,12 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 
 func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.AppError {
 	storageAccount := settings.AzureStorageAccount
+	authMode := settings.AzureAuthMode
 	accessKey := settings.AzureAccessKey
 	container := settings.AzureContainer
-	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+	if a.UseExportFileStore() {
 		storageAccount = settings.ExportAzureStorageAccount
+		authMode = settings.ExportAzureAuthMode
 		accessKey = settings.ExportAzureAccessKey
 		container = settings.ExportAzureContainer
 	}
@@ -85,7 +119,9 @@ func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.App
 	if container == nil || *container == "" {
 		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure container setting", http.StatusBadRequest)
 	}
-	if accessKey == nil || *accessKey == "" {
+	// Access key only matters under shared-key auth. Default credential pulls
+	// identity from the host environment.
+	if authMode != nil && *authMode == model.AzureAuthModeSharedKey && (accessKey == nil || *accessKey == "") {
 		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure access key setting", http.StatusBadRequest)
 	}
 	return nil
@@ -124,11 +160,11 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	var backend filestore.FileBackend
 	var err error
 	complianceEnabled := license != nil && *license.Features.Compliance
-	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+	allowInsecure := insecure != nil && *insecure
+	if a.UseExportFileStore() {
 		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
 	} else {
-		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
+		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, allowInsecure))
 	}
 	if err != nil {
 		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1615,19 +1651,24 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.
 		return nil, nil
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get user for file download permission filtering",
-			mlog.String("user_id", userID),
-			mlog.Err(err),
-		)
-		return nil, err
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
+	} else {
+		user, err := a.GetUser(userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get user for file download permission filtering",
+				mlog.String("user_id", userID),
+				mlog.Err(err),
+			)
+			return nil, err
+		}
+		// channelID is intentionally empty here: the subject is reused across many
+		// channels in the file-search loop. hasFileDownloadPermission attaches the
+		// channel-scoped role per-evaluation via attachChannelScopedRole.
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	}
-
-	// channelID is intentionally empty here: the subject is reused across many
-	// channels in the file-search loop. hasFileDownloadPermission attaches the
-	// channel-scoped role per-evaluation via attachChannelScopedRole.
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),

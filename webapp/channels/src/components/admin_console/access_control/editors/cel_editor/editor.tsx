@@ -25,6 +25,7 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     extraEditorClassName: 'policyEditor',
     language: POLICY_LANGUAGE,
     automaticLayout: true,
+    fixedOverflowWidgets: true,
     minimap: {enabled: false},
     lineNumbers: 'off',
     scrollBeyondLastLine: false,
