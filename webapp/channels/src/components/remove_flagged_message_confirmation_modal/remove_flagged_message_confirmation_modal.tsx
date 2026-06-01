@@ -10,7 +10,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {ContentFlaggingTypes} from 'mattermost-redux/action_types';
+import {removeContentFlaggingPost} from 'mattermost-redux/actions/content_flagging';
 import {Client4} from 'mattermost-redux/client';
 
 import {useChannel} from 'components/common/hooks/useChannel';
@@ -95,10 +95,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
             setRequestError('');
             await actionFunc(flaggedPost.id, comment);
             if (action === 'remove') {
-                dispatch({
-                    type: ContentFlaggingTypes.FLAGGED_POST_REMOVED,
-                    data: {postId: flaggedPost.id},
-                });
+                dispatch(removeContentFlaggingPost(flaggedPost.id));
             }
             handleClose();
         } catch (error) {
