@@ -271,7 +271,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
         // server just applied, so it always matches what's now active.
         const appliedStartsAt = previewedLicense?.starts_at ?? parseInt(currentLicense.StartsAt, 10);
         const appliedExpiresAt = previewedLicense?.expires_at ?? parseInt(currentLicense.ExpiresAt, 10);
-        const appliedUsers = previewedLicense?.features.users ?? Number(currentLicense.Users);
+        const appliedUsers = previewedLicense?.features?.users ?? Number(currentLicense.Users);
         const appliedSkuShortName = previewedLicense?.sku_short_name ?? currentLicense.SkuShortName;
         const appliedIsGovSku = previewedLicense?.is_gov_sku ?? (currentLicense.IsGovSku === 'true');
 

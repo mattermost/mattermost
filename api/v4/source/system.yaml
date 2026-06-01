@@ -924,7 +924,7 @@
         __Minimum server version__: 10.9
 
         ##### Permissions
-        Must have `manage_system` permission.
+        Must have `manage_license_information` permission.
       operationId: PreviewLicenseFile
       requestBody:
         content:
@@ -970,6 +970,9 @@
                   is_trial:
                     type: boolean
                     description: Whether this is a trial license
+                  is_gov_sku:
+                    type: boolean
+                    description: Whether this is a government SKU license
                   customer:
                     type: object
                     properties:
