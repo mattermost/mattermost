@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -234,6 +235,174 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test\"}"))
 		require.NoError(t, err)
 		assert.True(t, resp.StatusCode == http.StatusNotImplemented)
+	})
+}
+
+func TestIncomingWebhookTemplating(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
+		t.Skip("incoming webhooks disabled in test config")
+	}
+
+	// Feature-flag writes are blocked by default in tests (Split is not
+	// configured, so SetupFeatureFlags marks the config store read-only-FF).
+	// Unlock so we can flip IncomingWebhookTemplates per subtest.
+	th.Server.Platform().SetConfigReadOnlyFF(false)
+
+	hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, hookErr)
+
+	base := apiClient.URL + "/hooks/" + hook.Id
+
+	latestPost := func(t *testing.T) *model.Post {
+		t.Helper()
+		l, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			PerPage:   1,
+		})
+		require.Nil(t, appErr)
+		require.NotEmpty(t, l.Order)
+		return l.Posts[l.Order[0]]
+	}
+
+	enableFlag := func(on bool) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.IncomingWebhookTemplates = on })
+	}
+
+	t.Run("flag off ignores templating", func(t *testing.T) {
+		enableFlag(false)
+		body := `{"x":"templated","text":"from-body"}`
+		url := base + "?template=1&text={{.x}}"
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		// Templating disabled → typed parse wins; .text from body is what posts.
+		assert.Equal(t, "from-body", p.Message)
+	})
+
+	t.Run("gate off ignores templating", func(t *testing.T) {
+		enableFlag(true)
+		body := `{"x":"templated","text":"from-body"}`
+		url := base + "?text={{.x}}"
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		// Gate not set → text= ignored; typed payload determines the post.
+		assert.Equal(t, "from-body", p.Message)
+	})
+
+	t.Run("text template overlay", func(t *testing.T) {
+		enableFlag(true)
+		body := `{"summary":"Disk full"}`
+		url := base + "?template=1&text={{.summary}}"
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		assert.Equal(t, "Disk full", p.Message)
+	})
+
+	t.Run("tmpl alias works", func(t *testing.T) {
+		enableFlag(true)
+		body := `{"summary":"alias-works"}`
+		url := base + "?tmpl=yes&text={{.summary}}"
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		assert.Equal(t, "alias-works", p.Message)
+	})
+
+	t.Run("overlay wins over typed body", func(t *testing.T) {
+		enableFlag(true)
+		body := `{"text":"from-body","x":"templated"}`
+		url := base + "?template=1&text={{.x}}"
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		assert.Equal(t, "templated", p.Message)
+	})
+
+	t.Run("template attachment title", func(t *testing.T) {
+		enableFlag(true)
+		body := `{"text":"hello","title":"the title"}`
+		url := base + "?template=1&text={{.text}}&attachments[0].title={{.title}}"
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		assert.Equal(t, "hello", p.Message)
+		// MessageAttachment props are surfaced via PostPropsAttachments.
+		atts := p.Attachments()
+		require.Len(t, atts, 1)
+		assert.Equal(t, "the title", atts[0].Title)
+	})
+
+	t.Run("sprig default", func(t *testing.T) {
+		enableFlag(true)
+		body := `{}`
+		u := base + `?template=1&text=` + url.QueryEscape(`{{default "fallback-text" .nope}}`)
+		resp, err := http.Post(u, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		assert.Equal(t, "fallback-text", p.Message)
+	})
+
+	t.Run("bad content-type returns 400", func(t *testing.T) {
+		enableFlag(true)
+		body := "payload=" + `{"text":"x"}`
+		url := base + "?template=1&text={{.summary}}"
+		resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("disallowed directive returns 400", func(t *testing.T) {
+		enableFlag(true)
+		body := `{}`
+		url := base + "?template=1&text={{call+.Fn}}"
+		// `{{call .Fn}}` URL-encoded
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("template parse error returns 400", func(t *testing.T) {
+		enableFlag(true)
+		body := `{}`
+		url := base + "?template=1&text=%7B%7B" // {{ unterminated
+		resp, err := http.Post(url, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("invalid JSON body returns 400", func(t *testing.T) {
+		enableFlag(true)
+		url := base + "?template=1&text={{.x}}"
+		resp, err := http.Post(url, "application/json", strings.NewReader("not json"))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("attachment index out of range returns 400", func(t *testing.T) {
+		enableFlag(true)
+		url := base + "?template=1&attachments[99].title=x"
+		resp, err := http.Post(url, "application/json", strings.NewReader(`{"text":"hi"}`))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
 
