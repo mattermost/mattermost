@@ -375,6 +375,15 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Notify the access control service so any per-field metadata it caches
+	// (e.g. the rank-by-name lookup used by the live evaluator) and any
+	// compiled-policy cache entries that depend on this field are dropped
+	// cluster-wide. Without this a deleted rank field's stale options would
+	// linger in the per-node cache until restart.
+	if acs := a.Srv().ch.AccessControl; acs != nil {
+		acs.OnPropertyFieldOptionsChanged(rctx, existing.ID)
+	}
+
 	if existing.IsPSAv2() {
 		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)
 		if ok {
