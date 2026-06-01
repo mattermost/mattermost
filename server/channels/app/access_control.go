@@ -2125,6 +2125,8 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 // from ChannelMember and appended to Subject.ScopedRoles so v0.4 channel resource policy
 // permission rules can match (channel_guest / channel_user / channel_admin). When empty,
 // only the system-scoped role is populated.
+//
+// Team join evaluations pass channelID="" — no channel role exists at join time.
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 

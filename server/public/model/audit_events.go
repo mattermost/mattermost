@@ -19,6 +19,13 @@ const (
 	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
 	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
 	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
+
+	AuditEventAssignPolicyToTeam     = "assignPolicyToTeam"
+	AuditEventUnassignPolicyFromTeam = "unassignPolicyFromTeam"
+
+	AuditEventTeamMembershipDenied       = "teamMembershipDenied"       // policy gate rejected a join attempt
+	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // member removed by policy evaluation
+	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel removal cascaded from a team removal
 )
 
 // Audit & Certificates

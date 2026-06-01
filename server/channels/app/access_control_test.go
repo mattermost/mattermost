@@ -4834,3 +4834,23 @@ func TestMaskPolicyExpressions_FailClosedUsesDenyAllSentinel(t *testing.T) {
 		assert.Equal(t, "true", policy.Rules[1].Expression, "open-access rule must stay \"true\"")
 	})
 }
+
+// Verify that the team join path (channelID="") produces a subject with no
+// channel-scoped role — the user holds no channel role at team-join time, so
+// attaching one would produce a misleading subject for the membership decision.
+func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("no channel-scoped role when channelID is empty", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+
+		require.NotEmpty(t, subject.ScopedRoles)
+		assert.Equal(t, model.AccessControlSubjectScopeSystem, subject.ScopedRoles[0].Scope)
+
+		for _, sr := range subject.ScopedRoles {
+			assert.NotEqual(t, model.AccessControlSubjectScopeChannel, sr.Scope)
+		}
+	})
+}
