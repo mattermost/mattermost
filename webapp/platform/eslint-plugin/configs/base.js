@@ -8,7 +8,7 @@ import {FlatCompat} from '@eslint/eslintrc';
 import js from '@eslint/js';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
-import headerPlugin from 'eslint-plugin-header';
+import headersPlugin from 'eslint-plugin-headers';
 import importPlugin from 'eslint-plugin-import';
 import globals from 'globals';
 
@@ -45,7 +45,7 @@ const base = {
             rules,
         },
         typescript: typescriptPlugin,
-        header: headerPlugin,
+        headers: headersPlugin,
         import: importPlugin,
     },
     rules: {
@@ -197,11 +197,14 @@ const base = {
         ],
         'global-require': 2,
         'guard-for-in': 2,
-        'header/header': [
-            2,
-            'line',
-            ' Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information.',
-            2,
+        'headers/header-format': [
+            'error',
+            {
+                source: 'string',
+                style: 'line',
+                content: 'Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\nSee LICENSE.txt for license information.',
+                trailingNewlines: 2,
+            },
         ],
         'id-blacklist': 0,
         'import/no-duplicates': 2,
