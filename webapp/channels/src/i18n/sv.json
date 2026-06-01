@@ -5951,7 +5951,7 @@
   "threading.following": "Följer",
   "threading.footer.lastReplyAt": "Senaste svar {formatted}",
   "threading.header.heading": "Tråd",
-  "threading.notFollowing": "Följer",
+  "threading.notFollowing": "Följ",
   "threading.numNewMessages": "{newReplies, plural, =0 {Inga olästa meddelanden} =1 {Ett oläst meddelande} other {# olästa meddelanden}}",
   "threading.numNewReplies": "{newReplies, plural, =1 {# nytt svar} other {# nya svar}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Svar} =1 {# svar} other {# svar}}",
