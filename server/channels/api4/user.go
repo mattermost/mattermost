@@ -2135,11 +2135,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 	magicLinkToken := props["magic_link_token"]
 
-	if voipDeviceId != "" && !model.IsValidVoIPDeviceID(voipDeviceId) {
-		c.SetInvalidParam("voip_device_id")
-		return
-	}
-
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
@@ -2636,7 +2631,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	receivedProps := model.MapFromJSON(r.Body)
 	deviceId := receivedProps["device_id"]
-	voipDeviceId := receivedProps[model.SessionPropVoIPDeviceId]
+	voipDeviceId := receivedProps["voip_device_id"]
 
 	newProps := map[string]string{}
 
@@ -2659,21 +2654,8 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
-	var voipAuditRec *model.AuditRecord
-	if voipDeviceId != "" {
-		voipAuditRec = c.MakeAuditRecord(model.AuditEventAttachVoIPDeviceId, model.AuditStatusFail)
-		defer c.LogAuditRec(voipAuditRec)
-		model.AddEventParameterToAuditRec(voipAuditRec, "voip_device_id", voipDeviceId)
-
-		if !model.IsValidVoIPDeviceID(voipDeviceId) {
-			c.SetInvalidParam(model.SessionPropVoIPDeviceId)
-			return
-		}
-		newProps[model.SessionPropVoIPDeviceId] = voipDeviceId
-	}
-
-	if deviceId != "" {
-		attachDeviceId(c, w, r, deviceId)
+	if deviceId != "" || voipDeviceId != "" {
+		attachDeviceIds(c, w, r, deviceId, voipDeviceId)
 	}
 
 	if c.Err != nil {
@@ -2685,23 +2667,36 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if voipAuditRec != nil {
-		voipAuditRec.Success()
-	}
-
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
 	ReturnStatusOK(w)
 }
 
-func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId string) {
+func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceId, voipDeviceId string) {
 	auditRec := c.MakeAuditRecord(model.AuditEventAttachDeviceId, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voipDeviceId)
 
-	// A special case where we logout of all other sessions with the same device id
-	if err := c.App.RevokeSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
-		c.Err = err
+	if deviceId != "" && !model.IsValidStandardDeviceID(deviceId) {
+		c.SetInvalidParam("device_id")
 		return
+	}
+	if voipDeviceId != "" && !model.IsValidVoIPDeviceID(voipDeviceId) {
+		c.SetInvalidParam("voip_device_id")
+		return
+	}
+
+	// Logout other sessions for the same device(s).
+	if deviceId != "" {
+		if err := c.App.RevokeSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
+			c.Err = err
+			return
+		}
+	} else if voipDeviceId != "" {
+		if err := c.App.RevokeSessionsForVoIPDeviceId(c.AppContext, c.AppContext.Session().UserId, voipDeviceId, c.AppContext.Session().Id); err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
@@ -2734,7 +2729,16 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId
 
 	http.SetCookie(w, sessionCookie)
 
-	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, c.AppContext.Session().ExpiresAt); err != nil {
+	// Fall back to the existing column when the caller didn't send a new one,
+	// so an update of just one of the two doesn't wipe the other.
+	if deviceId == "" {
+		deviceId = c.AppContext.Session().DeviceId
+	}
+	if voipDeviceId == "" {
+		voipDeviceId = c.AppContext.Session().VoIPDeviceId
+	}
+
+	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, voipDeviceId, c.AppContext.Session().ExpiresAt); err != nil {
 		c.Err = err
 		return
 	}

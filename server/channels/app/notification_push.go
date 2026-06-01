@@ -39,14 +39,6 @@ const (
 	notificationTypeDummy       notificationType = "dummy"
 
 	notificationErrorRemoveDevice = "device was reported as removed"
-
-	// pushCategoryAnsweredElsewhere is set on Type=clear, SubType=calls
-	// pushes that the Calls plugin fans out when a user joins a call from
-	// one of their devices, so the other VoIP-registered devices can clear
-	// their CallKit ringing UI. The plugin can't pass a skip-session-id
-	// through the public plugin API, so it encodes it on SenderId; the
-	// matching is done in sendPushNotificationToAllSessions.
-	pushCategoryAnsweredElsewhere = "answered_elsewhere"
 )
 
 type PushNotificationsHub struct {
@@ -170,39 +162,17 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			continue
 		}
 
-		// Plugin-side skip convention for "answered elsewhere" Calls cancel
-		// pushes: the Calls plugin can't pass a skip-session-id through the
-		// public API, so it encodes it as SenderId on a notification with
-		// Category=answered_elsewhere. We honor that here and clear SenderId
-		// on the copy below so the session id never reaches the proxy or device.
-		// See plugin: handleAnsweredElsewhere in mattermost-plugin-calls.
-		if msg.Category == pushCategoryAnsweredElsewhere && msg.SenderId == session.Id {
-			rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Session skipped for answered-elsewhere cancel push",
-				mlog.String("type", model.NotificationTypePush),
-				mlog.String("user_id", session.UserId),
-				mlog.String("session_id", session.Id),
-			)
-			continue
-		}
-
 		// We made a copy to avoid decoding and parsing all the time
 		tmpMessage := msg.DeepCopy()
-		if tmpMessage.Category == pushCategoryAnsweredElsewhere {
-			// SenderId carried the session id to skip (see above); strip it
-			// so it doesn't leak to the proxy/device.
-			tmpMessage.SenderId = ""
-		}
 
-		// For calls notifications, prefer the VoIP device ID if the session has
-		// one. The prefix on the VoIP token (e.g. "apple_voip_rn:") tells the
-		// push proxy to dispatch to its VoIP send path. If no VoIP token is
-		// registered, fall back to the standard device ID so the user still
-		// gets a regular push notification.
 		deviceID := session.DeviceId
-		if tmpMessage.SubType == model.PushSubTypeCalls {
-			if voipDeviceID := session.Props[model.SessionPropVoIPDeviceId]; voipDeviceID != "" {
-				deviceID = voipDeviceID
-			}
+		voipUsable := session.VoIPDeviceId != "" && session.Props[model.SessionPropLastRemovedVoIPDeviceId] != session.VoIPDeviceId
+		if tmpMessage.Transport == model.PushTransportVoIP && voipUsable {
+			deviceID = session.VoIPDeviceId
+		} else {
+			// No VoIP token for this session — downgrade so the proxy dispatches
+			// via the standard alert path instead of the VoIP one.
+			tmpMessage.Transport = model.PushTransportStandard
 		}
 		tmpMessage.SetDeviceIdAndPlatform(deviceID)
 		tmpMessage.AckId = model.NewId()
@@ -238,7 +208,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
 				mlog.String("user_id", session.UserId),
-				mlog.String("device_id", tmpMessage.DeviceId),
+				mlog.String("session_id", session.Id),
 				mlog.Err(err),
 			)
 			continue
@@ -249,7 +219,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
 			mlog.String("user_id", session.UserId),
-			mlog.String("device_id", tmpMessage.DeviceId),
+			mlog.String("session_id", session.Id),
 			mlog.String("status", model.PushSendSuccess),
 		)
 
@@ -574,8 +544,14 @@ func (a *App) sendToPushProxy(rctx request.CTX, msg *model.PushNotification, ses
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
+		removedProp := model.SessionPropLastRemovedDeviceId
+		removedValue := session.DeviceId
+		if msg.Transport == model.PushTransportVoIP {
+			removedProp = model.SessionPropLastRemovedVoIPDeviceId
+			removedValue = session.VoIPDeviceId
+		}
 		appErr := a.SetExtraSessionProps(session, map[string]string{
-			model.SessionPropLastRemovedDeviceId: session.DeviceId,
+			removedProp: removedValue,
 		})
 		if appErr != nil {
 			return fmt.Errorf("Failed to set extra session properties: %w", appErr)
@@ -809,7 +785,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceID string) string
 			mlog.String("push_type", msg.Type),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonPushProxySendError),
-			mlog.String("device_id", msg.DeviceId),
+			mlog.String("device", model.RedactDeviceID(deviceID)),
 			mlog.Err(err),
 		)
 		return "unknown"
@@ -825,7 +801,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceID string) string
 			mlog.String("push_type", msg.Type),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonPushProxyError),
-			mlog.String("device_id", msg.DeviceId),
+			mlog.String("device", model.RedactDeviceID(deviceID)),
 			mlog.Err(errors.New(pushResponse[model.PushStatusErrorMsg])),
 		)
 		return "unknown"

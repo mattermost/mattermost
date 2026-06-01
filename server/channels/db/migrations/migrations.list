@@ -369,3 +369,5 @@ channels/db/migrations/postgres/000185_create_channel_guards.down.sql
 channels/db/migrations/postgres/000185_create_channel_guards.up.sql
 channels/db/migrations/postgres/000186_create_channel_guards_plugin_id_index.down.sql
 channels/db/migrations/postgres/000186_create_channel_guards_plugin_id_index.up.sql
+channels/db/migrations/postgres/000187_add_voip_device_id_to_sessions.down.sql
+channels/db/migrations/postgres/000187_add_voip_device_id_to_sessions.up.sql

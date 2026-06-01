@@ -32,6 +32,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, rctx, ss) })
 	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, rctx, ss) })
 	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, rctx, ss) })
+	t.Run("SessionUpdateDeviceIdClearsOnEmpty", func(t *testing.T) { testSessionUpdateDeviceIdClearsOnEmpty(t, rctx, ss) })
 	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, rctx, ss) })
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, rctx, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, rctx, ss) })
@@ -214,7 +215,7 @@ func testSessionUpdateDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyApple+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyAppleReactNative+":1234567890", "", s1.ExpiresAt)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
@@ -223,7 +224,7 @@ func testSessionUpdateDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyApple+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyAppleReactNative+":1234567890", "", s1.ExpiresAt)
 	require.NoError(t, err)
 }
 
@@ -234,7 +235,7 @@ func testSessionUpdateDeviceId2(t *testing.T, rctx request.CTX, ss store.Store) 
 	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyAppleReactNative+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyAppleReactNative+":1234567890", model.PushNotifyAppleReactNative+":voiptoken", s1.ExpiresAt)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
@@ -243,8 +244,33 @@ func testSessionUpdateDeviceId2(t *testing.T, rctx request.CTX, ss store.Store) 
 	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
-	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyAppleReactNative+":1234567890", s1.ExpiresAt)
+	err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyAppleReactNative+":1234567890", "", s1.ExpiresAt)
 	require.NoError(t, err)
+
+	// Verify both columns round-tripped via the regular Get path.
+	got, err := ss.Session().Get(rctx, s1.Id)
+	require.NoError(t, err)
+	require.Equal(t, model.PushNotifyAppleReactNative+":1234567890", got.DeviceId)
+	require.Equal(t, model.PushNotifyAppleReactNative+":voiptoken", got.VoIPDeviceId)
+}
+
+func testSessionUpdateDeviceIdClearsOnEmpty(t *testing.T, rctx request.CTX, ss store.Store) {
+	s := &model.Session{UserId: model.NewId()}
+	s, err := ss.Session().Save(rctx, s)
+	require.NoError(t, err)
+
+	standardToken := model.PushNotifyAppleReactNative + ":standard"
+	voipToken := model.PushNotifyAppleReactNative + ":voip"
+	err = ss.Session().UpdateDeviceId(s.Id, standardToken, voipToken, s.ExpiresAt)
+	require.NoError(t, err)
+
+	err = ss.Session().UpdateDeviceId(s.Id, "", "", s.ExpiresAt)
+	require.NoError(t, err)
+
+	got, err := ss.Session().Get(rctx, s.Id)
+	require.NoError(t, err)
+	require.Empty(t, got.DeviceId)
+	require.Empty(t, got.VoIPDeviceId)
 }
 
 func testSessionStoreUpdateExpiresAt(t *testing.T, rctx request.CTX, ss store.Store) {

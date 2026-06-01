@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -27,9 +28,9 @@ const (
 	SessionPropOAuthAppID                 = "oauth_app_id"
 	SessionPropMattermostAppID            = "mattermost_app_id"
 	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
+	SessionPropLastRemovedVoIPDeviceId    = "last_removed_voip_device_id"
 	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
 	SessionPropMobileVersion              = "mobile_version"
-	SessionPropVoIPDeviceId               = "voip_device_id"
 	SessionTypeUserAccessToken            = "UserAccessToken"
 	SessionTypeCloudKey                   = "CloudKey"
 	SessionTypeRemoteclusterToken         = "RemoteClusterToken"
@@ -72,6 +73,7 @@ type Session struct {
 	LastActivityAt int64         `json:"last_activity_at"`
 	UserId         string        `json:"user_id"`
 	DeviceId       string        `json:"device_id"`
+	VoIPDeviceId   string        `json:"voip_device_id"`
 	Roles          string        `json:"roles"`
 	IsOAuth        bool          `json:"is_oauth"`
 	ExpiredNotify  bool          `json:"expired_notify"`
@@ -88,6 +90,7 @@ func (s *Session) Auditable() map[string]any {
 		"last_activity_at": s.LastActivityAt,
 		"user_id":          s.UserId,
 		"device_id":        s.DeviceId,
+		"voip_device_id":   s.VoIPDeviceId,
 		"roles":            s.Roles,
 		"is_oauth":         s.IsOAuth,
 		"expired_notify":   s.ExpiredNotify,
@@ -304,17 +307,55 @@ func (s *Session) LastActivityAt_() float64 {
 	return float64(s.LastActivityAt)
 }
 
-// IsValidVoIPDeviceID returns true if the given value is a valid VoIP device
-// identifier in the form "<platform>:<token>", where <platform> is in the
-// allowlist of VoIP platforms (currently iOS-only) and <token> is non-empty.
-func IsValidVoIPDeviceID(voipDeviceID string) bool {
-	platform, token, ok := strings.Cut(voipDeviceID, ":")
+// standardDevicePlatforms is the allowlist for DeviceId.
+var standardDevicePlatforms = []string{
+	PushNotifyAppleReactNative,
+	PushNotifyAppleReactNative + "beta",
+	PushNotifyAndroidReactNative,
+}
+
+// voipDevicePlatforms is the allowlist for VoIPDeviceId. Android isn't here
+// yet — once it grows a VoIP equivalent, add it or unify as a single allowlist.
+var voipDevicePlatforms = []string{
+	PushNotifyAppleReactNative,
+	PushNotifyAppleReactNative + "beta",
+}
+
+// IsValidDeviceID checks that deviceID has the "<platform>[-v<N>]:<token>"
+// shape and <platform> is in the allowlist. The optional "-v<N>" suffix
+// (e.g. "apple_rn-v2") is the mobile->proxy app-version signal and is
+// stripped before the allowlist check.
+func IsValidDeviceID(deviceID string, allowed []string) bool {
+	platform, token, ok := strings.Cut(deviceID, ":")
 	if !ok || token == "" {
 		return false
 	}
-	switch platform {
-	case PushNotifyAppleReactNativeVoIP, PushNotifyAppleReactNativeVoIP + "beta":
-		return true
+	if idx := strings.Index(platform, "-v"); idx != -1 {
+		platform = platform[:idx]
 	}
-	return false
+	return slices.Contains(allowed, platform)
+}
+
+func IsValidStandardDeviceID(deviceID string) bool {
+	return IsValidDeviceID(deviceID, standardDevicePlatforms)
+}
+
+func IsValidVoIPDeviceID(deviceID string) bool {
+	return IsValidDeviceID(deviceID, voipDevicePlatforms)
+}
+
+// RedactDeviceID returns "<platform>:<first-8>…" for safe inclusion in logs.
+// Returns "" for empty input and the original prefix for malformed input.
+func RedactDeviceID(deviceID string) string {
+	if deviceID == "" {
+		return ""
+	}
+	platform, token, ok := strings.Cut(deviceID, ":")
+	if !ok || token == "" {
+		return platform
+	}
+	if len(token) <= 8 {
+		return platform + ":" + token
+	}
+	return platform + ":" + token[:8] + "…"
 }

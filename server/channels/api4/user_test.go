@@ -4660,7 +4660,7 @@ func TestAttachDeviceId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	deviceId := model.PushNotifyApple + ":1234567890"
+	deviceId := model.PushNotifyAppleReactNative + ":1234567890"
 
 	t.Run("success", func(t *testing.T) {
 		testCases := []struct {
@@ -4777,8 +4777,7 @@ func TestAttachDeviceId(t *testing.T) {
 	})
 
 	resetVoIP := func(session *model.Session) {
-		session.AddProp(model.SessionPropVoIPDeviceId, "")
-		err := th.Server.Store().Session().UpdateProps(session)
+		err := th.Server.Store().Session().UpdateDeviceId(session.Id, session.DeviceId, "", session.ExpiresAt)
 		require.NoError(t, err)
 		th.App.ClearSessionCacheForUser(session.UserId)
 	}
@@ -4786,49 +4785,95 @@ func TestAttachDeviceId(t *testing.T) {
 	t.Run("Invalid voip_device_id is rejected", func(t *testing.T) {
 		session, _ := th.App.GetSession(client.AuthToken)
 		defer resetVoIP(session)
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: "android_voip_rn:abcd"})
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "android_rn:abcd"})
 		assert.Error(t, err)
 
 		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-		assert.Empty(t, storeSession.Props[model.SessionPropVoIPDeviceId])
+		assert.Empty(t, storeSession.VoIPDeviceId)
 	})
 
 	t.Run("voip_device_id without platform separator is rejected", func(t *testing.T) {
 		session, _ := th.App.GetSession(client.AuthToken)
 		defer resetVoIP(session)
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: "abcd"})
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "abcd"})
 		assert.Error(t, err)
 
 		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-		assert.Empty(t, storeSession.Props[model.SessionPropVoIPDeviceId])
+		assert.Empty(t, storeSession.VoIPDeviceId)
 	})
 
-	t.Run("Valid voip_device_id persists into session props", func(t *testing.T) {
+	t.Run("Valid voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
 		session, _ := th.App.GetSession(client.AuthToken)
 		defer resetVoIP(session)
-		voipID := model.PushNotifyAppleReactNativeVoIP + ":abcd1234"
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: voipID})
+		voipID := model.PushNotifyAppleReactNative + ":abcd1234"
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voipID})
 		assert.NoError(t, err)
 
 		updatedSession, _ := th.App.GetSession(client.AuthToken)
 		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, voipID, updatedSession.Props[model.SessionPropVoIPDeviceId])
-		assert.Equal(t, voipID, storeSession.Props[model.SessionPropVoIPDeviceId])
+		assert.Equal(t, voipID, updatedSession.VoIPDeviceId)
+		assert.Equal(t, voipID, storeSession.VoIPDeviceId)
 	})
 
-	t.Run("Beta voip_device_id persists into session props", func(t *testing.T) {
+	t.Run("Beta voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
 		session, _ := th.App.GetSession(client.AuthToken)
 		defer resetVoIP(session)
-		voipID := model.PushNotifyAppleReactNativeVoIP + "beta:abcd1234"
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: voipID})
+		voipID := model.PushNotifyAppleReactNative + "beta:abcd1234"
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voipID})
 		assert.NoError(t, err)
 
 		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, voipID, storeSession.Props[model.SessionPropVoIPDeviceId])
+		assert.Equal(t, voipID, storeSession.VoIPDeviceId)
+	})
+
+	resetBothTokens := func(session *model.Session) {
+		err := th.Server.Store().Session().UpdateDeviceId(session.Id, "", "", session.ExpiresAt)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	// The handler pre-fills the unset column from the current session so a
+	// one-token update doesn't wipe the other. Without that guard, a mobile
+	// client refreshing only one of its two tokens would silently lose the
+	// other from its session.
+	t.Run("Attaching voip_device_id alone preserves an existing device_id", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(session)
+
+		existingDeviceID := model.PushNotifyAppleReactNative + ":existing-standard"
+		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, existingDeviceID, "", session.ExpiresAt))
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		voipID := model.PushNotifyAppleReactNative + ":new-voip"
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voipID})
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, existingDeviceID, storeSession.DeviceId, "existing DeviceId must not be wiped")
+		assert.Equal(t, voipID, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("Attaching device_id alone preserves an existing voip_device_id", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(session)
+
+		existingVoIPID := model.PushNotifyAppleReactNative + ":existing-voip"
+		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, "", existingVoIPID, session.ExpiresAt))
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		deviceID := model.PushNotifyAppleReactNative + ":new-standard"
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"device_id": deviceID})
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, deviceID, storeSession.DeviceId)
+		assert.Equal(t, existingVoIPID, storeSession.VoIPDeviceId, "existing VoIPDeviceId must not be wiped")
 	})
 }
 

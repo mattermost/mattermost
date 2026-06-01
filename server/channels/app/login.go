@@ -144,38 +144,52 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
 
+	if opts.DeviceID != "" && !model.IsValidStandardDeviceID(opts.DeviceID) {
+		return nil, model.NewAppError("DoLogin", "api.user.attach_device_id.invalid_device_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if opts.VoIPDeviceID != "" && !model.IsValidVoIPDeviceID(opts.VoIPDeviceID) {
+		return nil, model.NewAppError("DoLogin", "api.user.attach_device_id.invalid_voip_device_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// Presence of a device or VoIP token is authoritative for mobile-ness:
 	// trust the explicit signal over the user-agent sniff.
 	if opts.DeviceID != "" || opts.VoIPDeviceID != "" {
 		opts.IsMobile = true
 	}
 
-	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: opts.DeviceID, IsOAuth: false, Props: map[string]string{
-		model.UserAuthServiceIsMobile: strconv.FormatBool(opts.IsMobile),
-		model.UserAuthServiceIsSaml:   strconv.FormatBool(opts.IsSaml),
-		model.UserAuthServiceIsOAuth:  strconv.FormatBool(opts.IsOAuthUser),
-	}}
-	if opts.VoIPDeviceID != "" {
-		session.AddProp(model.SessionPropVoIPDeviceId, opts.VoIPDeviceID)
+	session := &model.Session{
+		UserId:       user.Id,
+		Roles:        user.GetRawRoles(),
+		DeviceId:     opts.DeviceID,
+		VoIPDeviceId: opts.VoIPDeviceID,
+		IsOAuth:      false,
+		Props: map[string]string{
+			model.UserAuthServiceIsMobile: strconv.FormatBool(opts.IsMobile),
+			model.UserAuthServiceIsSaml:   strconv.FormatBool(opts.IsSaml),
+			model.UserAuthServiceIsOAuth:  strconv.FormatBool(opts.IsOAuthUser),
+		},
 	}
 	session.GenerateCSRF()
 
-	if opts.DeviceID != "" {
-		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
-
-		// A special case where we logout of all other sessions with the same Id.
-		// The VoIP token, if any, lives on the same session and is therefore
-		// revoked together with it.
-		if err := a.RevokeSessionsForDeviceId(rctx, user.Id, opts.DeviceID, ""); err != nil {
-			err.StatusCode = http.StatusInternalServerError
-			return nil, err
-		}
-	} else if opts.IsMobile {
+	if opts.DeviceID != "" || opts.VoIPDeviceID != "" || opts.IsMobile {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 	} else if opts.IsOAuthUser || opts.IsSaml {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
 	} else {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)
+	}
+
+	if opts.DeviceID != "" {
+		if err := a.RevokeSessionsForDeviceId(rctx, user.Id, opts.DeviceID, ""); err != nil {
+			err.StatusCode = http.StatusInternalServerError
+			return nil, err
+		}
+	}
+	if opts.VoIPDeviceID != "" {
+		if err := a.RevokeSessionsForVoIPDeviceId(rctx, user.Id, opts.VoIPDeviceID, ""); err != nil {
+			err.StatusCode = http.StatusInternalServerError
+			return nil, err
+		}
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())

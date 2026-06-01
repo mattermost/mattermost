@@ -4539,6 +4539,14 @@
     "translation": "not an ldap user"
   },
   {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Invalid device id."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Invalid VoIP device id."
+  },
+  {
     "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
     "translation": "Authentication Transfer is not available as email signup is disabled."
   },

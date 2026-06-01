@@ -51,7 +51,7 @@ func (a *App) NotifySessionsExpired() error {
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
 			mlog.String("user_id", session.UserId),
-			mlog.String("device_id", tmpMessage.DeviceId),
+			mlog.String("session_id", session.Id),
 			mlog.String("post_id", msg.PostId),
 		))
 

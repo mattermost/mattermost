@@ -32,7 +32,7 @@ func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	}
 
 	s.sessionSelectQuery = s.getQueryBuilder().
-		Select("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
+		Select("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "VoIPDeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
 		From("Sessions")
 
 	return s
@@ -59,8 +59,8 @@ func (me SqlSessionStore) Save(rctx request.CTX, session *model.Session) (*model
 
 	query, args, err := me.getQueryBuilder().
 		Insert("Sessions").
-		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
-		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, jsonProps).
+		Columns("Id", "Token", "CreateAt", "ExpiresAt", "LastActivityAt", "UserId", "DeviceId", "VoIPDeviceId", "Roles", "IsOAuth", "ExpiredNotify", "Props").
+		Values(session.Id, session.Token, session.CreateAt, session.ExpiresAt, session.LastActivityAt, session.UserId, session.DeviceId, session.VoIPDeviceId, session.Roles, session.IsOAuth, session.ExpiredNotify, jsonProps).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "sessions_tosql")
@@ -321,14 +321,14 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, error) {
 	return userId, nil
 }
 
-func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
-	query := "UPDATE Sessions SET DeviceId = ?, ExpiresAt = ?, ExpiredNotify = false WHERE Id = ?"
+func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, voipDeviceId string, expiresAt int64) error {
+	query := "UPDATE Sessions SET DeviceId = ?, VoIPDeviceId = ?, ExpiresAt = ?, ExpiredNotify = false WHERE Id = ?"
 
-	_, err := me.GetMaster().Exec(query, deviceId, expiresAt, id)
+	_, err := me.GetMaster().Exec(query, deviceId, voipDeviceId, expiresAt, id)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to update Session with id=%s", id)
+		return errors.Wrapf(err, "failed to update Session with id=%s", id)
 	}
-	return deviceId, nil
+	return nil
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {

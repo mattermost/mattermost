@@ -10255,10 +10255,10 @@ func (s *TimerLayerSessionStore) Save(rctx request.CTX, session *model.Session) 
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error) {
+func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceID string, voipDeviceID string, expiresAt int64) error {
 	start := time.Now()
 
-	result, err := s.SessionStore.UpdateDeviceId(id, deviceID, expiresAt)
+	err := s.SessionStore.UpdateDeviceId(id, deviceID, voipDeviceID, expiresAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10268,7 +10268,7 @@ func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceID string, expi
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.UpdateDeviceId", success, elapsed)
 	}
-	return result, err
+	return err
 }
 
 func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified bool) error {
@@ -14821,6 +14821,22 @@ func (s *TimerLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 	return result, err
 }
 
+func (s *TimerLayerWebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+	start := time.Now()
+
+	err := s.WebhookStore.UpdateIncomingLastUsed(webhookID, lastUsed)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.UpdateIncomingLastUsed", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	start := time.Now()
 
@@ -14863,10 +14879,6 @@ func (s *TimerLayer) TotalReadDbConnections() int {
 
 func (s *TimerLayer) TotalSearchDbConnections() int {
 	return s.Store.TotalSearchDbConnections()
-}
-
-func (s *TimerLayer) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
-	return s.Store.GetDiagnostics(ctx)
 }
 
 func (s *TimerLayer) UnlockFromMaster() {

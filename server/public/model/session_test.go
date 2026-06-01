@@ -161,18 +161,49 @@ func TestIsValidVoIPDeviceID(t *testing.T) {
 		Valid       bool
 	}{
 		{"empty string", "", false},
-		{"missing token", PushNotifyAppleReactNativeVoIP + ":", false},
-		{"missing separator", PushNotifyAppleReactNativeVoIP, false},
+		{"missing token", PushNotifyAppleReactNative + ":", false},
+		{"missing separator", PushNotifyAppleReactNative, false},
 		{"missing platform", ":abcd", false},
-		{"unknown platform", "android_voip_rn:abcd", false},
-		{"standard apple prefix is not VoIP", PushNotifyAppleReactNative + ":abcd", false},
-		{"valid apple_voip_rn", PushNotifyAppleReactNativeVoIP + ":abcd", true},
-		{"valid apple_voip_rnbeta", PushNotifyAppleReactNativeVoIP + "beta:abcd", true},
+		{"android is not VoIP-capable yet", PushNotifyAndroidReactNative + ":abcd", false},
+		{"legacy bare apple prefix not allowed", "apple:abcd", false},
+		{"valid apple_rn", PushNotifyAppleReactNative + ":abcd", true},
+		{"valid apple_rnbeta", PushNotifyAppleReactNative + "beta:abcd", true},
+		{"apple_rn-v2 tolerated", PushNotifyAppleReactNative + "-v2:abcd", true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
 			assert.Equal(t, tc.Valid, IsValidVoIPDeviceID(tc.Value))
+		})
+	}
+}
+
+func TestIsValidStandardDeviceID(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Value       string
+		Valid       bool
+	}{
+		{"empty string", "", false},
+		{"missing token", PushNotifyAppleReactNative + ":", false},
+		{"missing separator", PushNotifyAppleReactNative, false},
+		{"missing platform", ":abcd", false},
+		{"legacy bare apple prefix not allowed", "apple:abcd", false},
+		{"legacy bare android prefix not allowed", "android:abcd", false},
+		{"valid apple_rn", PushNotifyAppleReactNative + ":abcd", true},
+		{"valid apple_rnbeta", PushNotifyAppleReactNative + "beta:abcd", true},
+		{"valid android_rn", PushNotifyAndroidReactNative + ":abcd", true},
+		// Mobile encodes the app-version it speaks in a "-v<N>" suffix on
+		// the platform (proxy strips it). Validator must tolerate it.
+		{"apple_rn-v2", PushNotifyAppleReactNative + "-v2:abcd", true},
+		{"apple_rnbeta-v2", PushNotifyAppleReactNative + "beta-v2:abcd", true},
+		{"android_rn-v2", PushNotifyAndroidReactNative + "-v2:abcd", true},
+		{"unknown platform with -v2", "foo_rn-v2:abcd", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			assert.Equal(t, tc.Valid, IsValidStandardDeviceID(tc.Value))
 		})
 	}
 }

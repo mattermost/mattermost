@@ -167,6 +167,11 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 }
 
 func (ps *PlatformService) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) error {
+	// Empty token is a no-op — otherwise it would match every session
+	// without a DeviceId (i.e. all web sessions).
+	if deviceID == "" {
+		return nil
+	}
 	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
 	if err != nil {
 		return err
@@ -175,7 +180,27 @@ func (ps *PlatformService) RevokeSessionsForDeviceId(rctx request.CTX, userID st
 		if session.DeviceId == deviceID && session.Id != currentSessionId {
 			rctx.Logger().Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
 			if err := ps.RevokeSession(rctx, session); err != nil {
-				rctx.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
+				rctx.Logger().Warn("Could not revoke session for device", mlog.String("session_id", session.Id), mlog.Err(err))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (ps *PlatformService) RevokeSessionsForVoIPDeviceId(rctx request.CTX, userID string, voipDeviceID string, currentSessionId string) error {
+	if voipDeviceID == "" {
+		return nil
+	}
+	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
+	if err != nil {
+		return err
+	}
+	for _, session := range sessions {
+		if session.VoIPDeviceId == voipDeviceID && session.Id != currentSessionId {
+			rctx.Logger().Debug("Revoking sessionId for userId. Re-login with the same VoIP device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
+			if err := ps.RevokeSession(rctx, session); err != nil {
+				rctx.Logger().Warn("Could not revoke session for VoIP device", mlog.String("session_id", session.Id), mlog.Err(err))
 			}
 		}
 	}

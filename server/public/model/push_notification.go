@@ -8,11 +8,10 @@ import (
 )
 
 const (
-	PushNotifyApple                = "apple"
-	PushNotifyAndroid              = "android"
-	PushNotifyAppleReactNative     = "apple_rn"
-	PushNotifyAndroidReactNative   = "android_rn"
-	PushNotifyAppleReactNativeVoIP = "apple_voip_rn"
+	PushNotifyApple              = "apple"
+	PushNotifyAndroid            = "android"
+	PushNotifyAppleReactNative   = "apple_rn"
+	PushNotifyAndroidReactNative = "android_rn"
 
 	PushTypeMessage     = "message"
 	PushTypeClear       = "clear"
@@ -51,6 +50,14 @@ type PushSubType string
 // PushSubTypeCalls is used by the Calls plugin
 const PushSubTypeCalls PushSubType = "calls"
 
+// PushTransport selects which delivery path the push proxy uses.
+type PushTransport string
+
+const (
+	PushTransportStandard PushTransport = ""
+	PushTransportVoIP     PushTransport = "voip"
+)
+
 type PushNotificationAck struct {
 	Id               string `json:"id"`
 	ClientReceivedAt int64  `json:"received_at"`
@@ -61,33 +68,34 @@ type PushNotificationAck struct {
 }
 
 type PushNotification struct {
-	AckId            string      `json:"ack_id"`
-	Platform         string      `json:"platform"`
-	ServerId         string      `json:"server_id"`
-	DeviceId         string      `json:"device_id"`
-	PostId           string      `json:"post_id"`
-	Category         string      `json:"category,omitempty"`
-	Sound            string      `json:"sound,omitempty"`
-	Message          string      `json:"message,omitempty"`
-	Badge            int         `json:"badge,omitempty"`
-	ContentAvailable int         `json:"cont_ava,omitempty"`
-	TeamId           string      `json:"team_id,omitempty"`
-	ChannelId        string      `json:"channel_id,omitempty"`
-	RootId           string      `json:"root_id,omitempty"`
-	ChannelName      string      `json:"channel_name,omitempty"`
-	Type             string      `json:"type,omitempty"`
-	SubType          PushSubType `json:"sub_type,omitempty"`
-	SenderId         string      `json:"sender_id,omitempty"`
-	SenderName       string      `json:"sender_name,omitempty"`
-	OverrideUsername string      `json:"override_username,omitempty"`
-	OverrideIconURL  string      `json:"override_icon_url,omitempty"`
-	FromWebhook      string      `json:"from_webhook,omitempty"`
-	Version          string      `json:"version,omitempty"`
-	IsCRTEnabled     bool        `json:"is_crt_enabled"`
-	IsIdLoaded       bool        `json:"is_id_loaded"`
-	PostType         string      `json:"-"`
-	ChannelType      ChannelType `json:"-"`
-	Signature        string      `json:"signature"`
+	AckId            string        `json:"ack_id"`
+	Platform         string        `json:"platform"`
+	ServerId         string        `json:"server_id"`
+	DeviceId         string        `json:"device_id"`
+	PostId           string        `json:"post_id"`
+	Category         string        `json:"category,omitempty"`
+	Sound            string        `json:"sound,omitempty"`
+	Message          string        `json:"message,omitempty"`
+	Badge            int           `json:"badge,omitempty"`
+	ContentAvailable int           `json:"cont_ava,omitempty"`
+	TeamId           string        `json:"team_id,omitempty"`
+	ChannelId        string        `json:"channel_id,omitempty"`
+	RootId           string        `json:"root_id,omitempty"`
+	ChannelName      string        `json:"channel_name,omitempty"`
+	Type             string        `json:"type,omitempty"`
+	SubType          PushSubType   `json:"sub_type,omitempty"`
+	Transport        PushTransport `json:"transport,omitempty"`
+	SenderId         string        `json:"sender_id,omitempty"`
+	SenderName       string        `json:"sender_name,omitempty"`
+	OverrideUsername string        `json:"override_username,omitempty"`
+	OverrideIconURL  string        `json:"override_icon_url,omitempty"`
+	FromWebhook      string        `json:"from_webhook,omitempty"`
+	Version          string        `json:"version,omitempty"`
+	IsCRTEnabled     bool          `json:"is_crt_enabled"`
+	IsIdLoaded       bool          `json:"is_id_loaded"`
+	PostType         string        `json:"-"`
+	ChannelType      ChannelType   `json:"-"`
+	Signature        string        `json:"signature"`
 }
 
 func (pn *PushNotification) DeepCopy() *PushNotification {
