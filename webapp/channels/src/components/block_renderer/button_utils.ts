@@ -10,7 +10,7 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {isMmButtonHexColor, isMmButtonSemanticStyle} from './utils/button';
 
 export function mmBlocksButtonClassName(style: string | undefined): string {
-    const base = 'btn btn-sm';
+    const base = 'btn';
     if (!style || style === 'default') {
         return `${base} btn-tertiary`;
     }
