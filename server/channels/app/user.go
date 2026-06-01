@@ -1037,6 +1037,10 @@ func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 		c.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
 	}
 
+	if nErr := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(userID); nErr != nil {
+		c.Logger().Warn("unable to remove oauth access data by user id", mlog.Err(nErr))
+	}
+
 	return nil
 }
 
