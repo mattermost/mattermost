@@ -902,8 +902,61 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
-	return err
+	post, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
+	if err != nil {
+		return err
+	}
+
+	if len(req.RenderedValues) > 0 {
+		if writeErr := a.writeWebhookTemplatedValues(rctx, channel.Id, post.Id, req.RenderedValues); writeErr != nil {
+			return writeErr
+		}
+	}
+	return nil
+}
+
+// writeWebhookTemplatedValues persists per-post property values rendered by
+// the inline-templating layer. For each (fieldName → renderedString) pair it
+// looks up the matching channel-post PropertyField, validates the type
+// (v1 supports text only) and JSON-encodes the rendered string as the
+// PropertyValue. All values are written together via UpsertPropertyValues so
+// either every field lands or none does.
+func (a *App) writeWebhookTemplatedValues(rctx request.CTX, channelID, postID string, rendered map[string]string) *model.AppError {
+	if len(rendered) == 0 {
+		return nil
+	}
+
+	group, appErr := a.GetPropertyGroup(rctx, model.ChannelPostPropertyGroupName)
+	if appErr != nil {
+		return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.group.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	values := make([]*model.PropertyValue, 0, len(rendered))
+	for name, s := range rendered {
+		field, appErr := a.GetPropertyFieldByName(rctx, group.ID, channelID, name)
+		if appErr != nil {
+			return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.unknown_field.app_error", map[string]any{"field": name}, "", http.StatusBadRequest).Wrap(appErr)
+		}
+		if field.Type != model.PropertyFieldTypeText {
+			return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.unsupported_type.app_error", map[string]any{"field": name, "type": string(field.Type)}, "", http.StatusBadRequest)
+		}
+		encoded, jsonErr := json.Marshal(s)
+		if jsonErr != nil {
+			return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.encode.app_error", map[string]any{"field": name}, "", http.StatusInternalServerError).Wrap(jsonErr)
+		}
+		values = append(values, &model.PropertyValue{
+			TargetID:   postID,
+			TargetType: model.PropertyFieldObjectTypePost,
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			Value:      encoded,
+		})
+	}
+
+	if _, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypePost, postID, ""); appErr != nil {
+		return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.upsert.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+	return nil
 }
 
 func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {

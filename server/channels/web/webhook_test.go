@@ -406,6 +406,100 @@ func TestIncomingWebhookTemplating(t *testing.T) {
 	})
 }
 
+func TestIncomingWebhookTemplating_PropertyValues(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
+		t.Skip("incoming webhooks disabled in test config")
+	}
+
+	th.Server.Platform().SetConfigReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.IncomingWebhookTemplates = true })
+
+	// The channel-post property group is registered by a startup migration.
+	group, gErr := th.App.GetPropertyGroup(th.Context, model.ChannelPostPropertyGroupName)
+	require.Nil(t, gErr)
+	require.NotNil(t, group)
+
+	field := &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "severity",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypePost,
+		TargetID:   th.BasicChannel.Id,
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
+	}
+	createdField, fErr := th.App.CreatePropertyField(th.Context, field, false, "")
+	require.Nil(t, fErr)
+	require.NotEmpty(t, createdField.ID)
+
+	hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, hookErr)
+	base := apiClient.URL + "/hooks/" + hook.Id
+
+	latestPost := func(t *testing.T) *model.Post {
+		t.Helper()
+		l, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			PerPage:   1,
+		})
+		require.Nil(t, appErr)
+		require.NotEmpty(t, l.Order)
+		return l.Posts[l.Order[0]]
+	}
+
+	t.Run("writes text property value from rendered template", func(t *testing.T) {
+		body := `{"level":"high","summary":"Disk full"}`
+		u := base + "?template=1&text={{.summary}}&values.severity={{.level}}"
+		resp, err := http.Post(u, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		assert.Equal(t, "Disk full", p.Message)
+
+		values, vErr := th.App.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{
+			TargetIDs: []string{p.Id},
+			FieldID:   createdField.ID,
+			PerPage:   10,
+		})
+		require.Nil(t, vErr)
+		require.Len(t, values, 1)
+		assert.JSONEq(t, `"high"`, string(values[0].Value))
+	})
+
+	t.Run("unknown field returns 400", func(t *testing.T) {
+		body := `{"x":"y"}`
+		u := base + "?template=1&text={{.x}}&values.nonexistent={{.x}}"
+		resp, err := http.Post(u, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("flag off ignores values templates", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.IncomingWebhookTemplates = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.IncomingWebhookTemplates = true })
+		})
+
+		body := `{"text":"raw","level":"medium"}`
+		u := base + "?template=1&values.severity={{.level}}"
+		resp, err := http.Post(u, "application/json", strings.NewReader(body))
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		p := latestPost(t)
+		values, vErr := th.App.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{
+			TargetIDs: []string{p.Id},
+			FieldID:   createdField.ID,
+			PerPage:   10,
+		})
+		require.Nil(t, vErr)
+		assert.Empty(t, values, "values templates must not apply when flag is off")
+	})
+}
+
 func TestCommandWebhooks(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 

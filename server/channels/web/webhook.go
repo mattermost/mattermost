@@ -134,6 +134,18 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = templateErrorToAppError(errCtx, tplErr)
 				return
 			}
+
+			valueTemplates := webhook_template.ExtractValueTemplates(q)
+			if len(valueTemplates) > 0 {
+				rendered, vErr := webhook_template.RenderValues(c.AppContext.Context(), rawJSONBody, valueTemplates, "values.")
+				if vErr != nil {
+					c.Err = templateErrorToAppError(errCtx, vErr)
+					return
+				}
+				incomingWebhookPayload.RenderedValues = rendered
+				auditRec.AddMeta("templated_values", sortedKeys(rendered))
+			}
+
 			auditRec.Success()
 		} else if hasTemplateParams(r.URL.Query()) {
 			c.Logger.Debug("incoming webhook templating params present but gate not set; ignoring",
@@ -165,11 +177,23 @@ func hasTemplateParams(q map[string][]string) bool {
 		case "text", "username", "icon_url", "icon_emoji", "channel", "priority":
 			return true
 		}
-		if strings.HasPrefix(k, "attachments[") {
+		if strings.HasPrefix(k, "attachments[") || strings.HasPrefix(k, "values.") {
 			return true
 		}
 	}
 	return false
+}
+
+// sortedKeys returns the sorted list of keys in a map[string]string. Used
+// for audit records that should not depend on Go's randomized map iteration
+// order.
+func sortedKeys(m map[string]string) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // templatedFieldNames returns the sorted list of templated field names from
@@ -185,7 +209,7 @@ func templatedFieldNames(q map[string][]string) []string {
 		case "text", "username", "icon_url", "icon_emoji", "channel", "priority":
 			names = append(names, k)
 		default:
-			if strings.HasPrefix(k, "attachments[") {
+			if strings.HasPrefix(k, "attachments[") || strings.HasPrefix(k, "values.") {
 				names = append(names, k)
 			}
 		}
