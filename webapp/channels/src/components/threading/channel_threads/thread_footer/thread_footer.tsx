@@ -19,9 +19,9 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {selectPost} from 'actions/views/rhs';
 
+import EventTimestamp from 'components/event_timestamp';
 import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
-import EventTimestamp from 'components/event_timestamp';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Avatars from 'components/widgets/users/avatars';
 

@@ -3,9 +3,8 @@
 
 import {DateTimeDisplayFormat} from '@mattermost/types/config';
 
+import {Preferences} from 'mattermost-redux/constants';
 import {getDateTimeDisplayFormat, isCompactDateTimeDisplayFormat} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Preferences} from 'utils/constants';
 
 describe('getDateTimeDisplayFormat', () => {
     const baseState = {

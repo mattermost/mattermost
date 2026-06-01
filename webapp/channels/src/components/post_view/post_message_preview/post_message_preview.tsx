@@ -11,6 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {General} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
+import EventTimestamp from 'components/event_timestamp';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import PriorityLabel from 'components/post_priority/post_priority_label';
@@ -18,7 +19,6 @@ import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
 import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
-import EventTimestamp from 'components/event_timestamp';
 import UserProfileComponent from 'components/user_profile';
 
 import * as PostUtils from 'utils/post_utils';

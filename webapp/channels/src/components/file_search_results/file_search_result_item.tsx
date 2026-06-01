@@ -8,9 +8,9 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
+import EventTimestamp from 'components/event_timestamp';
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import FilePreviewModal from 'components/file_preview_modal';
-import EventTimestamp from 'components/event_timestamp';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Tag from 'components/widgets/tag/tag';

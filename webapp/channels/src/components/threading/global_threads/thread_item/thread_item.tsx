@@ -21,11 +21,11 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import EventTimestamp from 'components/event_timestamp';
 import Markdown from 'components/markdown';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
-import EventTimestamp from 'components/event_timestamp';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 

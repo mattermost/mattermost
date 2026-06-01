@@ -6,7 +6,6 @@ import type {ComponentProps} from 'react';
 import {useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
 import {DateTimeDisplayFormat} from '@mattermost/types/config';
 
 import Timestamp, {supportsHourCycle} from 'components/timestamp';
@@ -57,9 +56,7 @@ function EventTimestamp({
     const intl = useIntl();
     const dateValue = value instanceof Date ? value : new Date(value);
     const useContextTimestampProps = hasContextTimestampProps(timestampProps);
-    const inlineFormat = forceCompactFormat || useContextTimestampProps ?
-        DateTimeDisplayFormat.COMPACT :
-        dateTimeDisplayFormat;
+    const inlineFormat = forceCompactFormat || useContextTimestampProps ? DateTimeDisplayFormat.COMPACT : dateTimeDisplayFormat;
 
     let inlineContent: React.ReactNode;
     if (inlineFormat === DateTimeDisplayFormat.COMPACT) {

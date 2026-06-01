@@ -24,9 +24,9 @@ import Constants from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
 import {a11yFocus} from 'utils/utils';
 
+import DateTimeDisplayFormatSetting, {isDateAndTimeSectionActive} from './date_time_display_format_setting/index';
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
-import DateTimeDisplayFormatSetting, {isDateAndTimeSectionActive} from './date_time_display_format_setting/index';
 import RenderEmoticonsAsEmoji from './render_emoticons_as_emoji';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
