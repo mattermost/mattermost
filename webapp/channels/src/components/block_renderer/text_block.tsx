@@ -8,7 +8,7 @@ import type {MmTextBlock} from '@mattermost/types/mm_blocks';
 
 import Markdown from 'components/markdown';
 
-import {MmBlocksInlineMarkdownActionsContext} from './context';
+import {MmBlocksInlineMarkdownActionsContext, MmBlocksInteractionsDisabledContext} from './context';
 
 type TextBlockProps = {block: MmTextBlock; postId: string};
 
@@ -21,6 +21,7 @@ function mmTextBlockClassNames(block: MmTextBlock): string {
 
 export const TextBlock = ({block, postId}: TextBlockProps) => {
     const {mmBlocksActionCookie, integrationFormat} = useContext(MmBlocksInlineMarkdownActionsContext);
+    const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     if (!block.text) {
         return null;
     }
@@ -29,7 +30,7 @@ export const TextBlock = ({block, postId}: TextBlockProps) => {
             <Markdown
                 message={block.text}
                 postId={postId}
-                allowInlineActions={true}
+                allowInlineActions={!interactionsDisabled}
                 mmBlocksActionCookie={mmBlocksActionCookie}
                 integrationFormat={integrationFormat}
             />

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
@@ -26,6 +26,7 @@ import {ActionTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import {MmBlocksInteractionsDisabledContext} from './context';
 import type {ActionHandler} from './types';
 
 type MmBlocksSelectProvider = GenericUserProvider | GenericChannelProvider | MenuActionProvider;
@@ -53,6 +54,7 @@ function staticSelectDisplayValue(
 
 export const StaticSelectElement = ({element, postId, onAction}: StaticSelectElementProps) => {
     const dispatch = useDispatch();
+    const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     const [isExecuting, setIsExecuting] = useState(false);
     const reduxSelection = useSelector((state: GlobalState) => {
         const actions = state.views.posts.menuActions[postId];
@@ -89,7 +91,7 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
 
     const handleSelected = useCallback(
         async (selected: Selected) => {
-            if (!selected || !element.action_id || isExecuting) {
+            if (interactionsDisabled || !selected || !element.action_id || isExecuting) {
                 return;
             }
 
@@ -129,7 +131,7 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
                 setIsExecuting(false);
             }
         },
-        [dispatch, element.action_id, element.cookie, element.data_source, element.query, isExecuting, onAction, postId],
+        [dispatch, element.action_id, element.cookie, element.data_source, element.query, interactionsDisabled, isExecuting, onAction, postId],
     );
 
     const isDynamicSource = element.data_source === 'users' || element.data_source === 'channels';
@@ -150,7 +152,7 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
                     inputClassName='mm-blocks-select'
                     value={value}
                     toggleFocus={handlePopupOpened}
-                    disabled={element.disabled === true || isExecuting}
+                    disabled={interactionsDisabled || element.disabled === true || isExecuting}
                 />
             )}
         </PostContext.Consumer>

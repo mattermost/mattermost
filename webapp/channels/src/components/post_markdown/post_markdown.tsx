@@ -49,6 +49,9 @@ export type OwnProps = {
     renderEmoticonsAsEmoji?: boolean;
 
     isRHS?: boolean;
+
+    /** Permalink previews and similar read-only surfaces. */
+    disableInteractions?: boolean;
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -130,7 +133,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         const isWebhook = this.props.post?.props?.from_webhook === 'true';
         const isPlugin = this.props.post?.props?.from_plugin === 'true';
 
-        const allowInlineActions = isBot || isWebhook || isPlugin;
+        const allowInlineActions = !this.props.disableInteractions && (isBot || isWebhook || isPlugin);
         const postProps = this.props.post?.props as Record<string, unknown> | undefined;
         const mmBlocksActionsCookie = typeof postProps?.mm_blocks_actions === 'string' ?
             postProps.mm_blocks_actions :

@@ -22,9 +22,12 @@ import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 
 type Props = {
     post: Post;
+
+    /** Preview/read-only surfaces: render blocks but do not dispatch actions. */
+    interactionsDisabled?: boolean;
 };
 
-const InteractiveMessages = ({post}: Props) => {
+const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [actionError, setActionError] = useState<string | null>(null);
@@ -83,6 +86,7 @@ const InteractiveMessages = ({post}: Props) => {
                     mmBlocksActionCookie,
                     integrationFormat,
                 }}
+                interactionsDisabled={interactionsDisabled}
             />
             {actionError && (
                 <div className='has-error'>

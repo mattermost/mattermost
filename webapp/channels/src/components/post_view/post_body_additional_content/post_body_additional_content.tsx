@@ -11,6 +11,7 @@ import {isArrayOf} from '@mattermost/types/utilities';
 import {validateBindings} from 'mattermost-redux/utils/apps';
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 
+import {hasInteractiveMessageProps} from 'components/block_renderer/translation';
 import MessageAttachmentList from 'components/post_view/message_attachments/message_attachment_list';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostImage from 'components/post_view/post_image';
@@ -159,14 +160,8 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
         // handled here. The existing paths below are only reached when the flag is off.
         if (this.props.mmBlocksEnabled) {
             const props = this.props.post.props as Record<string, unknown>;
-            const mb = props?.mm_blocks;
-            const hasMmBlocksArray = Array.isArray(mb) && mb.length > 0;
-            const hasInteractiveContent = hasMmBlocksArray ||
-                Array.isArray(props?.blocks) ||
-                Array.isArray(props?.cards) ||
-                Array.isArray(props?.attachments);
 
-            if (hasInteractiveContent) {
+            if (hasInteractiveMessageProps(props)) {
                 return (
                     <>
                         {this.props.children}

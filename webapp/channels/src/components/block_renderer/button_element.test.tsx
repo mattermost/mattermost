@@ -8,6 +8,7 @@ import type {MmButtonBlock} from '@mattermost/types/mm_blocks';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {ButtonElement} from './button_element';
+import {MmBlocksInteractionsDisabledContext} from './context';
 
 describe('ButtonElement', () => {
     const onAction = jest.fn();
@@ -154,5 +155,25 @@ describe('ButtonElement', () => {
         );
 
         expect(screen.getByRole('button', {name: 'Disabled'})).toBeDisabled();
+    });
+
+    it('disables the button and does not dispatch when interactions are disabled', async () => {
+        renderWithContext(
+            <MmBlocksInteractionsDisabledContext.Provider value={true}>
+                <ButtonElement
+                    element={{
+                        type: 'button',
+                        text: 'Preview',
+                        action_id: 'preview',
+                    }}
+                    onAction={onAction}
+                />
+            </MmBlocksInteractionsDisabledContext.Provider>,
+        );
+
+        const button = screen.getByRole('button', {name: 'Preview'});
+        expect(button).toBeDisabled();
+        await userEvent.click(button);
+        expect(onAction).not.toHaveBeenCalled();
     });
 });

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -13,6 +13,7 @@ import Markdown from 'components/markdown';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {mmBlocksButtonClassName, mmBlocksButtonInlineStyle} from './button_utils';
+import {MmBlocksInteractionsDisabledContext} from './context';
 import type {ActionHandler} from './types';
 
 const buttonMarkdownOptions = {
@@ -27,10 +28,11 @@ type ButtonElementProps = {
 
 export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
     const theme = useSelector(getTheme);
+    const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     const [isExecuting, setIsExecuting] = useState(false);
 
     const handleClick = useCallback(async () => {
-        if (isExecuting || !element.text || !element.action_id) {
+        if (interactionsDisabled || isExecuting || !element.text || !element.action_id) {
             return;
         }
         setIsExecuting(true);
@@ -39,7 +41,7 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
         } finally {
             setIsExecuting(false);
         }
-    }, [element.action_id, element.cookie, element.query, element.text, isExecuting, onAction]);
+    }, [element.action_id, element.cookie, element.query, element.text, interactionsDisabled, isExecuting, onAction]);
 
     if (!element.text || (!element.action_id)) {
         return null;
@@ -51,7 +53,7 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
             className={mmBlocksButtonClassName(element.style)}
             style={mmBlocksButtonInlineStyle(element.style, theme)}
             onClick={handleClick}
-            disabled={element.disabled === true || isExecuting}
+            disabled={interactionsDisabled || element.disabled === true || isExecuting}
             aria-busy={isExecuting}
         >
             {isExecuting && <LoadingSpinner/>}

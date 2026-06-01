@@ -14,6 +14,9 @@ export type MmBlocksInlineMarkdownActions = {
 
 export const MmBlocksInlineMarkdownActionsContext = createContext<MmBlocksInlineMarkdownActions>({});
 
+/** When true, buttons/selects and mmaction:// links render but do not dispatch actions. */
+export const MmBlocksInteractionsDisabledContext = createContext(false);
+
 export const MmBlocksImagesMetadataContext = createContext<Record<string, PostImage> | undefined>(undefined);
 
 /** How the *immediate* mm_blocks parent lays out direct children (`column` = vertical stack, `row` = horizontal flow). */

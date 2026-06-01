@@ -17,6 +17,24 @@ import {translateAttachments} from './attachments';
 import {translateBlockKit} from './block_kit';
 import {translateMMBlocks} from './mm_block';
 
+/** True when post props include a non-empty interactive payload (any supported format). */
+export function hasInteractiveMessageProps(props: Record<string, unknown> | undefined): boolean {
+    if (!props) {
+        return false;
+    }
+    const mb = props.mm_blocks;
+    if (Array.isArray(mb) && mb.length > 0) {
+        return true;
+    }
+    if (Array.isArray(props.blocks) && props.blocks.length > 0) {
+        return true;
+    }
+    if (Array.isArray(props.cards) && props.cards.length > 0) {
+        return true;
+    }
+    return Array.isArray(props.attachments) && props.attachments.length > 0;
+}
+
 /**
  * Detects the format present in the post props and returns normalised `MmBlock[]`,
  * or null if no supported interactive content is found.

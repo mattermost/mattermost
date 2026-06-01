@@ -17,7 +17,27 @@ import {
     MM_BLOCKS_SIMPLE,
 } from './test_fixtures';
 
-import {getPostInteractiveIntegrationFormat, translatePostProps} from './index';
+import {getPostInteractiveIntegrationFormat, hasInteractiveMessageProps, translatePostProps} from './index';
+
+describe('hasInteractiveMessageProps', () => {
+    it('returns false for missing or empty interactive props', () => {
+        expect(hasInteractiveMessageProps(undefined)).toBe(false);
+        expect(hasInteractiveMessageProps({})).toBe(false);
+        expect(hasInteractiveMessageProps({
+            mm_blocks: [],
+            blocks: [],
+            cards: [],
+            attachments: [],
+        })).toBe(false);
+    });
+
+    it('returns true when any supported interactive array is non-empty', () => {
+        expect(hasInteractiveMessageProps({mm_blocks: MM_BLOCKS_SIMPLE})).toBe(true);
+        expect(hasInteractiveMessageProps({blocks: BLOCK_KIT_SIMPLE})).toBe(true);
+        expect(hasInteractiveMessageProps({cards: ADAPTIVE_CARDS_SIMPLE})).toBe(true);
+        expect(hasInteractiveMessageProps({attachments: ATTACHMENTS_SIMPLE})).toBe(true);
+    });
+});
 
 describe('translatePostProps', () => {
     describe('empty and missing content', () => {

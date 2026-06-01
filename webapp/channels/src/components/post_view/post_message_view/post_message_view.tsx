@@ -25,6 +25,8 @@ import * as Utils from 'utils/utils';
 
 import type {PostPluginComponent} from 'types/store/plugins';
 
+import MessageBodyFooterMountNotify from './message_body_footer_mount_notify';
+
 // These posts types must not be rendered with the collapsible "Show More" container.
 const FULL_HEIGHT_POST_TYPES = new Set([
     PostTypes.CUSTOM_DATA_SPILLAGE_REPORT,
@@ -47,6 +49,12 @@ type Props = {
     sharedChannelsPluginsEnabled?: boolean;
     isChannelAutotranslated: boolean;
     userLanguage: string;
+
+    /** Permalink previews and similar read-only surfaces. */
+    disableInteractions?: boolean;
+
+    /** Rendered inside ShowMore with the post message (e.g. read-only interactive blocks). */
+    messageBodyFooter?: React.ReactNode;
 }
 
 type State = {
@@ -120,6 +128,8 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             theme,
             overflowType,
             maxHeight,
+            disableInteractions,
+            messageBodyFooter,
         } = this.props;
 
         if (post.state === Posts.POST_DELETED) {
@@ -179,8 +189,14 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         channelId={post.channel_id}
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
                         isRHS={isRHS}
+                        disableInteractions={disableInteractions}
                     />
                 </div>
+                {messageBodyFooter != null && (
+                    <MessageBodyFooterMountNotify onHeightChange={this.checkPostOverflow}>
+                        {messageBodyFooter}
+                    </MessageBodyFooterMountNotify>
+                )}
                 {(!isSharedChannel || this.props.sharedChannelsPluginsEnabled) && (
                     <Pluggable
                         pluggableName='PostMessageAttachment'
