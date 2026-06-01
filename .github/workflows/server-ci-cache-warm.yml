@@ -45,7 +45,7 @@ jobs:
             .go-mod-cache
             .go-build-cache
             server/bin
-          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum') }}
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
           lookup-only: true
 
       - name: Export Go cache paths
@@ -90,4 +90,4 @@ jobs:
             .go-mod-cache
             .go-build-cache
             server/bin
-          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum') }}
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
