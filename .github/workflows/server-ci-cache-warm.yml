@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  actions: write # required to save the Actions cache
 
 jobs:
   warm:
