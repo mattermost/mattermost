@@ -13115,6 +13115,42 @@
     "translation": "Unable to split webhook props into {{.Max}} character parts."
   },
   {
+    "id": "web.incoming_webhook.template.bad_content_type.app_error",
+    "translation": "Inline templating requires Content-Type application/json."
+  },
+  {
+    "id": "web.incoming_webhook.template.disallowed.app_error",
+    "translation": "Template for {{.field}} uses a disallowed directive (call, template, or define)."
+  },
+  {
+    "id": "web.incoming_webhook.template.execute.app_error",
+    "translation": "Template for {{.field}} failed to execute against the request body."
+  },
+  {
+    "id": "web.incoming_webhook.template.index_out_of_range.app_error",
+    "translation": "Attachment or field index in {{.field}} exceeds the configured maximum."
+  },
+  {
+    "id": "web.incoming_webhook.template.invalid_json_body.app_error",
+    "translation": "Inline templating requires a valid JSON request body."
+  },
+  {
+    "id": "web.incoming_webhook.template.parse.app_error",
+    "translation": "Template for {{.field}} could not be parsed."
+  },
+  {
+    "id": "web.incoming_webhook.template.short_invalid.app_error",
+    "translation": "Template for {{.field}} did not render a valid boolean for short."
+  },
+  {
+    "id": "web.incoming_webhook.template.timeout.app_error",
+    "translation": "Template for {{.field}} exceeded the execution time limit."
+  },
+  {
+    "id": "web.incoming_webhook.template.too_large.app_error",
+    "translation": "Template for {{.field}} produced output larger than the allowed limit."
+  },
+  {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "No text specified."
   },
