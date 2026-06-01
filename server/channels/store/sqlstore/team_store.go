@@ -207,26 +207,44 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func teamSliceColumns() []string {
-	return []string{
-		"Teams.Id",
-		"Teams.CreateAt",
-		"Teams.UpdateAt",
-		"Teams.DeleteAt",
-		"Teams.DisplayName",
-		"Teams.Name",
-		"Teams.Description",
-		"Teams.Email",
-		"Teams.Type",
-		"Teams.CompanyName",
-		"Teams.AllowedDomains",
-		"Teams.InviteId",
-		"Teams.AllowOpenInvite",
-		"Teams.LastTeamIconUpdate",
-		"Teams.SchemeId",
-		"Teams.GroupConstrained",
-		"Teams.CloudLimitsArchived",
+// teamSliceColumns returns fields of the team as a string slice.
+// Optionally, you can add a prefix (accepts only 1 value) to the fields.
+func teamSliceColumns(isSelect bool, prefix ...string) []string {
+	p := "Teams"
+	if len(prefix) == 1 {
+		p = prefix[0]
+	} else if len(prefix) > 1 {
+		panic("cannot accept multiple prefixes")
 	}
+
+	columns := []string{
+		p + ".Id",
+		p + ".CreateAt",
+		p + ".UpdateAt",
+		p + ".DeleteAt",
+		p + ".DisplayName",
+		p + ".Name",
+		p + ".Description",
+		p + ".Email",
+		p + ".Type",
+		p + ".CompanyName",
+		p + ".AllowedDomains",
+		p + ".InviteId",
+		p + ".AllowOpenInvite",
+		p + ".LastTeamIconUpdate",
+		p + ".SchemeId",
+		p + ".GroupConstrained",
+		p + ".CloudLimitsArchived",
+	}
+
+	if isSelect {
+		// Type guard keeps team membership policies from colliding with channel/parent
+		// policies that happen to share an Id with a team.
+		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team') AS PolicyEnforced", p))
+		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
+	}
+
+	return columns
 }
 
 func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
@@ -235,7 +253,7 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
-		Select(teamSliceColumns()...).
+		Select(teamSliceColumns(true)...).
 		From("Teams")
 
 	s.teamMembersQuery = s.getQueryBuilder().
@@ -1470,7 +1488,7 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
 	data := []*model.TeamForExport{}
 	query, args, err := s.getQueryBuilder().
-		Select(teamSliceColumns()...).
+		Select(teamSliceColumns(true)...).
 		Column("Schemes.Name as SchemeName").
 		From("Teams").
 		LeftJoin("Schemes ON Teams.SchemeId = Schemes.Id").
