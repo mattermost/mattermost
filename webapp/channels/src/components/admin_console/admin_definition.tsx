@@ -3863,6 +3863,27 @@ const AdminDefinition: AdminDefinitionType = {
                             description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews, message formatting, and how timestamps appear on posts.'}),
                             settings: [
                                 {
+                                    type: 'dropdown',
+                                    key: 'DisplaySettings.DateTimeDisplayFormat',
+                                    label: defineMessage({id: 'admin.posts.dateTimeDisplayFormat.title', defaultMessage: 'Default date and time format:'}),
+                                    help_text: defineMessage({id: 'admin.posts.dateTimeDisplayFormat.desc', defaultMessage: 'Sets the default format for message timestamps. Users can override this in Account Settings > Display.'}),
+                                    options: [
+                                        {
+                                            value: 'compact',
+                                            display_name: defineMessage({id: 'datetime_display_format.compact', defaultMessage: 'Compact (example: 3:45 PM)'}),
+                                        },
+                                        {
+                                            value: 'time_seconds',
+                                            display_name: defineMessage({id: 'datetime_display_format.time_seconds', defaultMessage: 'Time with seconds (example: 3:45:05 PM)'}),
+                                        },
+                                        {
+                                            value: 'iso_datetime',
+                                            display_name: defineMessage({id: 'datetime_display_format.iso_datetime', defaultMessage: 'Date and time (example: 06-01 14:30:45)'}),
+                                        },
+                                    ],
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
                                     type: 'bool',
                                     key: 'ServiceSettings.EnableLinkPreviews',
                                     label: defineMessage({id: 'admin.customization.enableLinkPreviewsTitle', defaultMessage: 'Enable website link previews:'}),
@@ -3937,27 +3958,6 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'custom',
                                     component: CustomURLSchemesSetting,
                                     key: 'DisplaySettings.CustomURLSchemes',
-                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                },
-                                {
-                                    type: 'dropdown',
-                                    key: 'DisplaySettings.DateTimeDisplayFormat',
-                                    label: defineMessage({id: 'admin.posts.dateTimeDisplayFormat.title', defaultMessage: 'Default date and time format:'}),
-                                    help_text: defineMessage({id: 'admin.posts.dateTimeDisplayFormat.desc', defaultMessage: 'Sets the default format for message timestamps. Users can override this in Account Settings > Display.'}),
-                                    options: [
-                                        {
-                                            value: 'compact',
-                                            display_name: defineMessage({id: 'datetime_display_format.compact', defaultMessage: 'Compact (example: 3:45 PM)'}),
-                                        },
-                                        {
-                                            value: 'time_seconds',
-                                            display_name: defineMessage({id: 'datetime_display_format.time_seconds', defaultMessage: 'Time with seconds (example: 3:45:05 PM)'}),
-                                        },
-                                        {
-                                            value: 'iso_datetime',
-                                            display_name: defineMessage({id: 'datetime_display_format.iso_datetime', defaultMessage: 'Date and time (example: 06-01 14:30:45)'}),
-                                        },
-                                    ],
                                     isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                                 },
                                 {
