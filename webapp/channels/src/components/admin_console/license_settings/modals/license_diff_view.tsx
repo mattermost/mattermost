@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import type {ClientLicense, License} from '@mattermost/types/config';
@@ -112,40 +112,40 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
     case LicenseSkus.Professional:
         return {
             mode: 'warning',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.entry_to_professional.title',
                 defaultMessage: 'This license changes your available features',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.entry_to_professional.description',
                 defaultMessage: 'Mattermost Professional adds paid-tier capabilities such as unlimited message history. Some features in Mattermost Entry are not included in Professional (see plan differences).',
-            },
+            }),
             showPlanDiffLink: true,
         };
     case LicenseSkus.Enterprise:
         return {
             mode: 'info',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.entry_to_enterprise.title',
                 defaultMessage: 'This license adds Enterprise capabilities, with feature changes',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.entry_to_enterprise.description',
                 defaultMessage: 'Mattermost Enterprise includes unlimited message history and adds enterprise-grade scale, compliance, and administration capabilities. Some features in Mattermost Entry are not included in Enterprise.',
-            },
+            }),
             showPlanDiffLink: true,
         };
     case LicenseSkus.EnterpriseAdvanced:
         return {
             mode: 'success',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.entry_to_advanced.title',
                 defaultMessage: 'This license adds Enterprise Advanced capabilities',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.entry_to_advanced.description',
                 defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations',
-            },
+            }),
             showPlanDiffLink: false,
         };
     default:
@@ -163,14 +163,14 @@ const getUpgradeBanner = (currentSkuShortName: string | undefined, newSkuShortNa
     if (currentSku === LicenseSkus.Professional && newSku === LicenseSkus.Enterprise) {
         return {
             mode: 'success',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.upgrade_professional_to_enterprise.title',
                 defaultMessage: 'This license adds Enterprise capabilities',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.upgrade_professional_to_enterprise.description',
                 defaultMessage: 'Mattermost Enterprise includes all features available in Mattermost Professional, plus enterprise scale and high availability, advanced compliance and administration features, and enterprise support options.',
-            },
+            }),
             showPlanDiffLink: false,
         };
     }
@@ -178,14 +178,14 @@ const getUpgradeBanner = (currentSkuShortName: string | undefined, newSkuShortNa
     if (currentSku === LicenseSkus.Professional && newSku === LicenseSkus.EnterpriseAdvanced) {
         return {
             mode: 'success',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.upgrade_professional_to_advanced.title',
                 defaultMessage: 'This license adds Enterprise Advanced capabilities',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.upgrade_professional_to_advanced.description',
                 defaultMessage: 'Mattermost Enterprise Advanced includes all Professional and Enterprise features — enterprise scale, advanced compliance and administration — plus Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations.',
-            },
+            }),
             showPlanDiffLink: false,
         };
     }
@@ -193,14 +193,14 @@ const getUpgradeBanner = (currentSkuShortName: string | undefined, newSkuShortNa
     if (currentSku === LicenseSkus.Enterprise && newSku === LicenseSkus.EnterpriseAdvanced) {
         return {
             mode: 'success',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.upgrade_enterprise_to_advanced.title',
                 defaultMessage: 'This license adds Enterprise Advanced capabilities',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.upgrade_enterprise_to_advanced.description',
                 defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, plus Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations.',
-            },
+            }),
             showPlanDiffLink: false,
         };
     }
@@ -216,14 +216,14 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
     if (currentSku === LicenseSkus.Enterprise && newSku === LicenseSkus.Professional) {
         return {
             mode: 'danger',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.downgrade.title',
                 defaultMessage: 'This license downgrades your plan',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.downgrade_enterprise_to_professional.description',
                 defaultMessage: 'You will lose access to Enterprise features including enterprise scale and high availability, advanced compliance and administration features, and enterprise support options.',
-            },
+            }),
             showPlanDiffLink: true,
         };
     }
@@ -231,14 +231,14 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
     if (currentSku === LicenseSkus.EnterpriseAdvanced && newSku === LicenseSkus.Enterprise) {
         return {
             mode: 'danger',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.downgrade.title',
                 defaultMessage: 'This license downgrades your plan',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.downgrade_advanced_to_enterprise.description',
                 defaultMessage: 'You will lose access to Mattermost Enterprise Advanced features, including Zero Trust security, sensitive information controls, and mobile security hardening.',
-            },
+            }),
             showPlanDiffLink: true,
         };
     }
@@ -246,14 +246,14 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
     if (currentSku === LicenseSkus.EnterpriseAdvanced && newSku === LicenseSkus.Professional) {
         return {
             mode: 'danger',
-            title: {
+            title: defineMessage({
                 id: 'admin.license.diff.banner.downgrade.title',
                 defaultMessage: 'This license downgrades your plan',
-            },
-            description: {
+            }),
+            description: defineMessage({
                 id: 'admin.license.diff.banner.downgrade_advanced_to_professional.description',
                 defaultMessage: 'You will lose access to Enterprise features for high availability administration, as well as Enterprise Advanced features including Zero Trust security, sensitive information controls, and advanced mobile security controls for mission-critical operations.',
-            },
+            }),
             showPlanDiffLink: true,
         };
     }
@@ -263,14 +263,14 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
 
 const getSameLicenseBanner = (): BannerConfig => ({
     mode: 'info',
-    title: {
+    title: defineMessage({
         id: 'admin.license.diff.banner.same_license.title',
         defaultMessage: 'This license is already active',
-    },
-    description: {
+    }),
+    description: defineMessage({
         id: 'admin.license.diff.banner.same_license.description',
         defaultMessage: 'The selected license matches the license currently applied to this workspace. Applying it again will not change any features or limits.',
-    },
+    }),
     showPlanDiffLink: false,
 });
 
