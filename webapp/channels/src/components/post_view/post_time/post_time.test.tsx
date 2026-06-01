@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {DateTimeDisplayFormat} from '@mattermost/types/config';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PostTime from './post_time';
@@ -30,7 +32,7 @@ describe('components/post_view/post_time/PostTime', () => {
         entities: {
             general: {
                 config: {
-                    DateTimeDisplayFormat: 'compact',
+                    DateTimeDisplayFormat: DateTimeDisplayFormat.COMPACT,
                 },
             },
             preferences: {
@@ -129,7 +131,7 @@ describe('components/post_view/post_time/PostTime', () => {
             entities: {
                 general: {
                     config: {
-                        DateTimeDisplayFormat: 'iso_datetime',
+                        DateTimeDisplayFormat: DateTimeDisplayFormat.ISO_DATETIME,
                     },
                 },
                 preferences: {

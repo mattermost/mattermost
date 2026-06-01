@@ -350,9 +350,9 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         a11yFocus(e.currentTarget as HTMLElement);
     }
 
-    updateSection = (section: string) => {
+    updateSection = (section?: string) => {
         this.updateState();
-        this.props.updateSection(section);
+        this.props.updateSection(section ?? '');
     };
 
     updateState = () => {
@@ -1159,7 +1159,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {themeSection}
                     {collapsedReplyThreads}
                     <DateTimeDisplayFormatSetting
-                        active={isDateAndTimeSectionActive(this.props.activeSection)}
+                        active={isDateAndTimeSectionActive(this.props.activeSection ?? '')}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         updateSection={this.updateSection}
                     />

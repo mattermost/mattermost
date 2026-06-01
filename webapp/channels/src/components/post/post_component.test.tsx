@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {PostPriority} from '@mattermost/types/posts';
+import {DateTimeDisplayFormat} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
@@ -729,7 +730,7 @@ describe('PostComponent', () => {
             entities: {
                 general: {
                     config: {
-                        DateTimeDisplayFormat: 'iso_datetime',
+                        DateTimeDisplayFormat: DateTimeDisplayFormat.ISO_DATETIME,
                     },
                 },
                 preferences: {

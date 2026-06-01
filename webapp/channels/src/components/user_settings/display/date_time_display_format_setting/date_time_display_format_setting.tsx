@@ -20,6 +20,8 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 import {Preferences} from 'utils/constants';
 import {getDateTimeDisplayFormatLabel, getDateTimeDisplayFormatShortLabel} from 'utils/datetime_display_format';
 
+import type {GlobalState} from 'types/store';
+
 type Props = {
     active: boolean;
     areAllSectionsInactive: boolean;
@@ -66,7 +68,7 @@ export default function DateTimeDisplayFormatSetting({
     const intl = useIntl();
     const dispatch = useDispatch();
     const userId = useSelector(getCurrentUserId);
-    const configFormat = useSelector((state) => getConfig(state).DateTimeDisplayFormat as DateTimeDisplayFormat) || configDateTimeDisplayFormat;
+    const configFormat = useSelector((state: GlobalState) => getConfig(state).DateTimeDisplayFormat as DateTimeDisplayFormat) || configDateTimeDisplayFormat;
     const effectiveFormat = useSelector(getDateTimeDisplayFormat);
 
     const [formatSelection, setFormatSelection] = useState(effectiveFormat);
