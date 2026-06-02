@@ -122,6 +122,35 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
         >
           <label
             class="control-label col-sm-4"
+            for="botUserId"
+          >
+            Post Author
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="botUserId"
+            >
+              <option
+                value=""
+              >
+                System Bot
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Select the bot account that authors posts from this webhook. Defaults to the System Bot. The webhook creator remains the owner regardless of this setting.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
             for="username"
           >
             Username
@@ -317,6 +346,35 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
               class="form__help"
             >
               This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="botUserId"
+          >
+            Post Author
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="botUserId"
+            >
+              <option
+                value=""
+              >
+                System Bot
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Select the bot account that authors posts from this webhook. Defaults to the System Bot. The webhook creator remains the owner regardless of this setting.
             </div>
           </div>
         </div>
@@ -546,6 +604,35 @@ exports[`components/integrations/EditIncomingWebhook should show AbstractIncomin
               class="form__help"
             >
               This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="botUserId"
+          >
+            Post Author
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="botUserId"
+            >
+              <option
+                value=""
+              >
+                System Bot
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Select the bot account that authors posts from this webhook. Defaults to the System Bot. The webhook creator remains the owner regardless of this setting.
             </div>
           </div>
         </div>

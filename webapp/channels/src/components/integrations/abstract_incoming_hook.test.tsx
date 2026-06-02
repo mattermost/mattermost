@@ -51,6 +51,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         icon_url: '',
         channel_locked: false,
         last_used: 0,
+        bot_user_id: '',
     };
     const enablePostUsernameOverride = true;
     const enablePostIconOverride = true;
@@ -63,6 +64,8 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         },
     );
 
+    const getBots = jest.fn();
+
     const requiredProps: AbstractIncomingWebhookProps = {
         team,
         header,
@@ -74,6 +77,8 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         enablePostIconOverride,
         action,
         canBypassChannelLock: true,
+        bots: [],
+        actions: {getBots},
     };
 
     const initialState: DeepPartial<GlobalState> = {
@@ -206,7 +211,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
             stateWithTwoTeamChannels as GlobalState,
         );
 
-        const channelSelect = screen.getByRole<HTMLSelectElement>('combobox');
+        const channelSelect = screen.getAllByRole<HTMLSelectElement>('combobox')[0];
         expect(channelSelect.value).toBe('other_channel_id');
 
         await userEvent.selectOptions(channelSelect, 'current_channel_id');

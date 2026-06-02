@@ -3,8 +3,8 @@
 
 import React, {PureComponent} from 'react';
 import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
@@ -96,8 +96,17 @@ interface Props {
     };
 }
 
-export default class AbstractIncomingWebhook extends PureComponent<Props, State> {
-    constructor(props: Props | Readonly<Props>) {
+const messages = defineMessages({
+    systemBot: {
+        id: 'add_incoming_webhook.postAuthor.systemBot',
+        defaultMessage: 'System Bot',
+    },
+});
+
+type PropsWithIntl = Props & WrappedComponentProps;
+
+class AbstractIncomingWebhook extends PureComponent<PropsWithIntl, State> {
+    constructor(props: PropsWithIntl | Readonly<PropsWithIntl>) {
         super(props);
 
         this.state = this.getStateFromHook(this.props.initialHook);
@@ -332,16 +341,19 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     onChange={this.updateBotUserId}
                                 >
                                     <option value=''>
-                                        {'System Bot'}
+                                        {this.props.intl.formatMessage(messages.systemBot)}
                                     </option>
-                                    {this.props.bots.map((bot) => (
-                                        <option
-                                            key={bot.user_id}
-                                            value={bot.user_id}
-                                        >
-                                            {bot.display_name ? `${bot.display_name} (@${bot.username})` : `@${bot.username}`}
-                                        </option>
-                                    ))}
+                                    {this.props.bots.map((bot) => {
+                                        const label = bot.display_name ? `${bot.display_name} (@${bot.username})` : `@${bot.username}`;
+                                        return (
+                                            <option
+                                                key={bot.user_id}
+                                                value={bot.user_id}
+                                            >
+                                                {label}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                                 <div className='form__help'>
                                     <FormattedMessage
@@ -469,3 +481,5 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         );
     }
 }
+
+export default injectIntl(AbstractIncomingWebhook);
