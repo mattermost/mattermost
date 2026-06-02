@@ -90,5 +90,3 @@ describe('loadConfigAndMe', () => {
         ]);
     });
 });
-
-describe('');
