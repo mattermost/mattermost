@@ -6,7 +6,7 @@ import {connect, type ConnectedProps} from 'react-redux';
 import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {patchUser, updateMe} from 'mattermost-redux/actions/users';
+import {patchUser, setStatus, updateMe} from 'mattermost-redux/actions/users';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
@@ -57,6 +57,7 @@ const mapStateToProps = (state: GlobalState, props: OwnProps) => {
 const mapDispatchToProps = {
     updateMe,
     patchUser,
+    setStatus,
 };
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
