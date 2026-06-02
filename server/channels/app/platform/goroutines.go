@@ -54,9 +54,7 @@ func (ps *PlatformService) GoBuffered(f func()) {
 func (ps *PlatformService) startExtractionWorkers() {
 	numWorkers := runtime.NumCPU()
 	for range numWorkers {
-		ps.extractionWG.Add(1)
-		go func() {
-			defer ps.extractionWG.Done()
+		ps.extractionWG.Go(func() {
 			for {
 				select {
 				case <-ps.extractionStop:
@@ -65,7 +63,7 @@ func (ps *PlatformService) startExtractionWorkers() {
 					f()
 				}
 			}
-		}()
+		})
 	}
 }
 
