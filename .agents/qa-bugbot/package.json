@@ -1,0 +1,21 @@
+{
+  "name": "qa-bugbot",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Chained Cursor SDK cloud agents: QA plan, test, fix loop on a target PR, then summarize.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/pipeline.ts",
+    "webhook": "tsx src/server.ts",
+    "simulate": "tsx src/simulate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cursor/sdk": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
