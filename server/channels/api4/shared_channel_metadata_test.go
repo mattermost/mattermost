@@ -694,12 +694,17 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.Len(t, finalAcks, 1, "Should maintain single acknowledgement after resync")
 
 		muA.Lock()
+		var serverAResyncPost *model.Post
 		for _, post := range syncedPostsServerA {
 			if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
-				require.Len(t, post.Metadata.Acknowledgements, 1, "Sync payload should not contain duplicate acknowledgements")
+				serverAResyncPost = post
+				break
 			}
 		}
 		muA.Unlock()
+		if serverAResyncPost != nil {
+			require.Len(t, serverAResyncPost.Metadata.Acknowledgements, 1, "Sync payload should not contain duplicate acknowledgements")
+		}
 
 		t.Logf("✅ Cross-cluster acknowledgement flow completed successfully:")
 		t.Logf("   1. Server A created post with ack request: %s", postIdToTrack)
