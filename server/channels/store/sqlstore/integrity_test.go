@@ -111,7 +111,7 @@ func createCompliance(ss store.Store, userId string) *model.Compliance {
 func createEmoji(ss store.Store, userId string) *model.Emoji {
 	m := model.Emoji{}
 	m.CreatorId = userId
-	m.Name = "emoji"
+	m.Name = "emoji" + model.NewId()
 	emoji, _ := ss.Emoji().Save(&m)
 	return emoji
 }
@@ -1239,26 +1239,47 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 		dbmap := store.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
+			user := createUser(rctx, ss)
+			emoji := createEmoji(ss, user.Id)
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+				require.NoError(t, err)
+			})
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
+				require.NoError(t, err)
+			})
+
 			result := checkUsersEmojiIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Empty(t, data.Records)
+			records := orphanedRecordsWithChildIDs(data.Records, emoji.Id)
+			require.Empty(t, records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(rctx, ss)
 			userId := user.Id
 			emoji := createEmoji(ss, userId)
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+				require.NoError(t, err)
+			})
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
+				require.NoError(t, err)
+			})
+
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersEmojiIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithChildIDs(data.Records, emoji.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &userId,
 				ChildId:  &emoji.Id,
-			}, data.Records[0])
-			dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+			}, records[0])
 		})
 	})
 }

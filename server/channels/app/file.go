@@ -2018,6 +2018,25 @@ func (a *App) sendFileDownloadRejectedEvent(info *model.FileInfo, userID string,
 	a.Publish(message)
 }
 
+// sendFileUploadRejectedEvent sends a websocket event to notify the user that their file upload was
+// rejected by a plugin. It mirrors sendFileDownloadRejectedEvent so the webapp can surface the
+// rejection as a toast instead of an inline composer error. When connectionID is provided, the event
+// is only sent to that specific connection.
+func (a *App) sendFileUploadRejectedEvent(info *model.FileInfo, userID string, connectionID string, rejectionReason string) {
+	if userID == "" {
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventFileUploadRejected, "", info.ChannelId, userID, nil, "")
+	if connectionID != "" {
+		message.GetBroadcast().ConnectionId = connectionID
+	}
+	message.Add("file_name", info.Name)
+	message.Add("rejection_reason", rejectionReason)
+	message.Add("channel_id", info.ChannelId)
+	a.Publish(message)
+}
+
 // RunFileWillBeDownloadedHook executes the FileWillBeDownloaded hook with a timeout.
 // Returns empty string to allow download, or a rejection reason to block it.
 func (a *App) RunFileWillBeDownloadedHook(rctx request.CTX, fileInfo *model.FileInfo, userID string, connectionID string, downloadType model.FileDownloadType) string {

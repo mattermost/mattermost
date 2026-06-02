@@ -30,14 +30,17 @@ import store from 'stores/redux_store';
 import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {setIntl} from 'utils/i18n';
 
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
     handleEvent,
+    handleFileUploadRejected,
     handleNewPostEvent,
     handleNewPostEvents,
     handlePluginEnabled,
@@ -2000,5 +2003,51 @@ describe('handleSharedChannelRemoteUpdatedEvent', () => {
         handleEvent(msg);
 
         expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleFileUploadRejected', () => {
+    beforeAll(() => {
+        setIntl(defaultIntl);
+    });
+
+    afterAll(() => {
+        setIntl(null);
+    });
+
+    const msg = {
+        event: WebSocketEvents.FileUploadRejected,
+        data: {
+            file_name: 'secret.tdf',
+            rejection_reason: 'blocked by policy',
+            channel_id: 'channel1',
+        },
+        broadcast: {},
+    };
+
+    test('opens an info toast with the rejection reason', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        expect(openModalAction).toBeDefined();
+        expect(openModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+        expect(openModalAction.dialogProps.position).toBe('bottom-center');
+        expect(openModalAction.dialogProps.content.message).toContain('blocked by policy');
+        expect(typeof openModalAction.dialogProps.onExited).toBe('function');
+    });
+
+    test('onExited closes the info toast', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        openModalAction.dialogProps.onExited();
+
+        const closeModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_CLOSE);
+        expect(closeModalAction).toBeDefined();
+        expect(closeModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
     });
 });
