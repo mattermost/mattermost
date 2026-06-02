@@ -29,6 +29,11 @@ func removeIncomingWebhookPermissions(t *testing.T, th *TestHelper, roleID strin
 	th.RemovePermissionFromRole(t, model.PermissionBypassIncomingWebhookChannelLock.Id, roleID)
 }
 
+func addOutgoingWebhookPermissionsWithOthers(t *testing.T, th *TestHelper, roleID string) {
+	th.AddPermissionToRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, roleID)
+	th.AddPermissionToRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, roleID)
+}
+
 func TestCreateIncomingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1070,8 +1075,9 @@ func TestUpdateIncomingHook(t *testing.T) {
 			require.NoError(t, err)
 
 			sameUserHook.UserId = th.BasicUser2.Id
-			_, _, err = th.Client.UpdateIncomingWebhook(context.Background(), sameUserHook)
-			require.NoError(t, err)
+			_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), sameUserHook)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
 		})
 
 		t.Run("UpdateHookOfDifferentUser", func(t *testing.T) {
@@ -1505,6 +1511,72 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 
 	hook2 := &model.OutgoingWebhook{Id: rhook.Id, ChannelId: channel.Id}
 	_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), hook2)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestUpdateIncomingWebhookChangeOwner(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer func() {
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	}()
+	addIncomingWebhookPermissionsWithOthers(t, th, model.TeamUserRoleId)
+
+	th.LoginBasic(t)
+	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+	created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicUser.Id, created.UserId)
+
+	created.UserId = th.BasicUser2.Id
+	updated, _, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicUser2.Id, updated.UserId)
+
+	th.RemovePermissionFromRole(t, model.PermissionManageOthersIncomingWebhooks.Id, model.TeamUserRoleId)
+	created.UserId = th.BasicUser.Id
+	_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestUpdateOutgoingWebhookChangeCreator(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer func() {
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(t, model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamUserRoleId)
+	addOutgoingWebhookPermissionsWithOthers(t, th, model.TeamUserRoleId)
+
+	th.LoginBasic(t)
+	ow := &model.OutgoingWebhook{
+		ChannelId:    th.BasicChannel.Id,
+		TeamId:       th.BasicTeam.Id,
+		CallbackURLs: []string{"http://example.com/owner"},
+		TriggerWords: []string{"ownerword"},
+	}
+	created, _, err := th.Client.CreateOutgoingWebhook(context.Background(), ow)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicUser.Id, created.CreatorId)
+
+	created.CreatorId = th.BasicUser2.Id
+	updated, _, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicUser2.Id, updated.CreatorId)
+
+	th.RemovePermissionFromRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamUserRoleId)
+	created.CreatorId = th.BasicUser.Id
+	_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), created)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }

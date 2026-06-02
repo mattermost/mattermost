@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, and triggers
+Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, triggers, or owner (requires manage others permission on the server)
 
 ::
 
@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start
+    webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start --creator [username]
 
 Options
 ~~~~~~~
@@ -29,6 +29,7 @@ Options
 
       --channel string             Channel name or ID
       --content-type string        Content-type
+      --creator string             Webhook creator's username, email, or user ID (requires manage others outgoing webhooks permission)
       --description string         Outgoing webhook description
       --display-name string        Outgoing webhook display name
   -h, --help                       help for modify-outgoing

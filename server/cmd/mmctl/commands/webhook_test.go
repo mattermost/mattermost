@@ -414,6 +414,61 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to modify incoming webhook", printer.GetErrorLines()[0])
 	})
+
+	s.Run("modify incoming webhook with --creator sets user", func() {
+		printer.Clean()
+
+		oldUserID := "oldUserID"
+		newUserID := "newUserID"
+		newUsername := "newOwner"
+		creatorArg := newUsername
+
+		mockIncomingWebhook := model.IncomingWebhook{
+			Id:            incomingWebhookID,
+			ChannelId:     channelID,
+			UserId:        oldUserID,
+			Username:      userName,
+			DisplayName:   displayName,
+			ChannelLocked: false,
+		}
+		expectedForUpdate := mockIncomingWebhook
+		expectedForUpdate.UserId = newUserID
+		expectedForUpdate.Username = newUsername
+
+		updatedIncomingWebhook := expectedForUpdate
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("channel", "", "")
+		cmd.Flags().String("display-name", "", "")
+		cmd.Flags().String("description", "", "")
+		cmd.Flags().String("icon", "", "")
+		cmd.Flags().Bool("lock-to-channel", false, "")
+		cmd.Flags().String("creator", "", "")
+		err := cmd.ParseFlags([]string{"--creator=" + creatorArg})
+		s.Require().NoError(err)
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), creatorArg, "").
+			Return(&model.User{Id: newUserID, Username: newUsername}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateIncomingWebhook(context.TODO(), &expectedForUpdate).
+			Return(&updatedIncomingWebhook, &model.Response{}, nil).
+			Times(1)
+
+		err = modifyIncomingWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
+		s.Require().NoError(err)
+		s.Len(printer.GetLines(), 1)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
@@ -597,6 +652,64 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to modify outgoing webhook", printer.GetErrorLines()[0])
+	})
+
+	s.Run("modify outgoing webhook with --creator sets creator", func() {
+		printer.Clean()
+
+		oldCreator := "oldCreator"
+		newCreator := "newCreator"
+		newUsername := "newOwner"
+		creatorArg := newUsername
+
+		mockOutgoingWebhook := model.OutgoingWebhook{
+			Id:           outgoingWebhookID,
+			CreatorId:    oldCreator,
+			Username:     "oldname",
+			TriggerWords: []string{"t"},
+			CallbackURLs: []string{"http://x"},
+			TriggerWhen:  0,
+		}
+		expectedForUpdate := mockOutgoingWebhook
+		expectedForUpdate.CreatorId = newCreator
+		expectedForUpdate.Username = newUsername
+
+		updatedOutgoingWebhook := expectedForUpdate
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("channel", "", "")
+		cmd.Flags().String("display-name", "", "")
+		cmd.Flags().String("description", "", "")
+		cmd.Flags().StringArray("trigger-word", []string{}, "")
+		cmd.Flags().String("trigger-when", "", "")
+		cmd.Flags().String("icon", "", "")
+		cmd.Flags().StringArray("url", []string{}, "")
+		cmd.Flags().String("content-type", "", "")
+		cmd.Flags().String("creator", "", "")
+		err := cmd.ParseFlags([]string{"--creator=" + creatorArg})
+		s.Require().NoError(err)
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			Return(&mockOutgoingWebhook, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), creatorArg, "").
+			Return(&model.User{Id: newCreator, Username: newUsername}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateOutgoingWebhook(context.TODO(), &expectedForUpdate).
+			Return(&updatedOutgoingWebhook, &model.Response{}, nil).
+			Times(1)
+
+		err = modifyOutgoingWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
+		s.Require().NoError(err)
+		s.Len(printer.GetLines(), 1)
 	})
 }
 
