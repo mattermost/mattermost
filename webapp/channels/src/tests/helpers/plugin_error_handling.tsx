@@ -3,11 +3,19 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {screen, userEvent} from 'tests/react_testing_utils';
 
 import type {PluginComponent} from 'types/store/plugins';
 
-export function testPluginComponentErrorHandling(renderCallback: (pluginComponent: PluginComponent & {component: any}) => React.JSX.Element) {
+/**
+ * testPluginComponentErrorHandling tests that a component that renders some number of components from plugins won't
+ * crash when an error occurs in those plugin components (either because they use Pluggable or PluggableErrorBoundary).
+ * It tests that the component both renders a fallback when the plugin component crashes and the actual component when
+ * it doesn't.
+ *
+ * @param renderCallback - A callback that receives a fake PluginComponent that should be rendered by the caller
+ */
+export function testPluginComponentErrorHandling(renderCallback: (pluginComponent: PluginComponent & {component: any}) => void) {
     describe('error handling', () => {
         const origError = console.error;
         beforeEach(() => {
@@ -36,11 +44,11 @@ export function testPluginComponentErrorHandling(renderCallback: (pluginComponen
                 return <span>{'TestComponent ' + obj.someField.thatDoesnt.exist.toString()}</span>;
             }
 
-            renderWithContext(renderCallback({
+            renderCallback({
                 id: 'testId',
                 component: TestComponent,
                 pluginId: 'testPluginId',
-            }));
+            });
 
             expect(screen.queryByText('An error occurred', {exact: false})).toBeVisible();
             expect(screen.queryByText('TestComponent 1,2,3')).toBeNull();

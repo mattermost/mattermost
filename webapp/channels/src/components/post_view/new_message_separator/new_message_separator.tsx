@@ -8,8 +8,9 @@ import * as PostList from 'mattermost-redux/utils/post_list';
 
 import NotificationSeparator from 'components/widgets/separator/notification-separator';
 
-import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+
+import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 
 type Props = {
     separatorId: string;

@@ -31,10 +31,12 @@ describe('components/post_view/new_message_separator', () => {
         expect(separator).toHaveClass('Separator NotificationSeparator');
     });
 
-    testPluginComponentErrorHandling((pluginComponent) => (
-        <NewMessageSeparator
-            {...baseProps}
-            newMessagesSeparatorActions={[pluginComponent]}
-        />
-    ));
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <NewMessageSeparator
+                {...baseProps}
+                newMessagesSeparatorActions={[pluginComponent]}
+            />,
+        );
+    });
 });

@@ -126,12 +126,14 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
         expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
     });
 
-    testPluginComponentErrorHandling((pluginComponent) => (
-        <PostOptions
-            {...baseProps}
-            isExpanded={true}
-            hover={true}
-            pluginActions={[pluginComponent]}
-        />
-    ));
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <PostOptions
+                {...baseProps}
+                isExpanded={true}
+                hover={true}
+                pluginActions={[pluginComponent]}
+            />,
+        );
+    });
 });

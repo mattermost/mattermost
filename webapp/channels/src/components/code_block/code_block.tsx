@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import CopyButton from 'components/copy_button';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
@@ -94,10 +95,11 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
 
             const Component = item.component as any;
             return (
-                <Component
-                    key={item.id}
-                    code={code}
-                />
+                <PluggableErrorBoundary key={item.id}>
+                    <Component
+                        code={code}
+                    />
+                </PluggableErrorBoundary>
             );
         }) : [];
 

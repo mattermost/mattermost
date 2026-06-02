@@ -20,11 +20,11 @@ import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
 import type {PostActionComponent} from 'types/store/plugins';
-import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 
 type Props = {
     post: Post;
