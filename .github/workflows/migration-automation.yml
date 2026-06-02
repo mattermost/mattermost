@@ -24,26 +24,30 @@ jobs:
  
     steps:
       - name: Checkout
-        # actions/checkout v4.2.2
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        # actions/checkout v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0             # full history — covers multi-commit pushes
           persist-credentials: false
  
       - name: Set up Python
-        # actions/setup-python v5.3.0
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        # actions/setup-python v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: '3.12'
  
       - name: Install dependencies
-        run: pip install anthropic
+        # Pin anthropic to a known-good version for reproducible builds.
+        # Bump intentionally when upgrading.
+        run: pip install anthropic==0.105.2
  
       - name: Detect and process new migrations
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PUSH_BASE_SHA: ${{ github.event.before }}
         run: |
+          set -euo pipefail
+ 
           # Collect newly-added .up.sql paths across ALL commits in this push.
           # Process substitution into a bash array — no shell injection.
           MIGRATIONS_GLOB='server/channels/db/migrations/postgres/*.up.sql'
