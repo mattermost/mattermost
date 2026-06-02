@@ -781,17 +781,17 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	readableCookie := readableAttachments[0].Actions[0].Cookie
 	require.NotEmpty(t, readableCookie)
 
-	attacker := th.CreateClient()
-	th.LoginBasic2WithClient(t, attacker)
+	nonMember := th.CreateClient()
+	th.LoginBasic2WithClient(t, nonMember)
 
 	t.Run("non-member cannot act on the private post without a cookie", func(t *testing.T) {
-		resp, err := attacker.DoPostAction(context.Background(), privatePost.Id, privateActionID)
+		resp, err := nonMember.DoPostAction(context.Background(), privatePost.Id, privateActionID)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("a cookie from a readable channel cannot authorize a different post", func(t *testing.T) {
-		resp, err := attacker.DoPostActionWithCookie(context.Background(), privatePost.Id, privateActionID, "", readableCookie)
+		resp, err := nonMember.DoPostActionWithCookie(context.Background(), privatePost.Id, privateActionID, "", readableCookie)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
