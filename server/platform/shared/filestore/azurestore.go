@@ -42,13 +42,13 @@ const azureBlockSize = 4 * 1024 * 1024
 // admin) and Microsoft Entra ID via DefaultAzureCredential (managed identity,
 // service principal, workload identity, or az login - whichever the host
 // environment provides).
-//
-// sharedKey is retained alongside the client when authMode is shared key, so
-// GeneratePublicLink can produce a Service SAS without a network call. With
-// default credential it is nil and GeneratePublicLink falls back to fetching
-// a user-delegation key from Entra ID before signing.
 type AzureFileBackend struct {
-	client         *azblob.Client
+	client *azblob.Client
+	// sharedKey holds the account credential when authMode is shared key, and is
+	// nil under default credential. GeneratePublicLink needs it to sign a Service
+	// SAS by hand, since GetSASURL does not allow to change the ContentDisposition
+	// if not at the blob level, and the parsing it does of the URL to retrieve
+	// container and blob names does not support custom endpoints.
 	sharedKey      *azblob.SharedKeyCredential
 	authMode       string
 	container      string
