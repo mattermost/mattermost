@@ -1318,6 +1318,7 @@
         .post__header-timestamp {
             flex: 0 0 auto;
             order: 1;
+            margin-right: 6px;
         }
 
         .badges-wrapper {
@@ -1335,6 +1336,7 @@
                 flex-basis: 100%;
                 order: 4;
                 margin-top: 2px;
+                margin-right: 0;
                 margin-bottom: 2px;
             }
         }
