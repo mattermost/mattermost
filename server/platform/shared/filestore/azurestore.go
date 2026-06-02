@@ -536,7 +536,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 	return total, nil
 }
 
-// GeneratePublicLink returns a time-limited, read-only URL to the blob at p
+// GeneratePublicLink returns a time-limited, read-only URL to the blob at path
 // using a Shared Access Signature. The SAS is auth-mode aware:
 //
 //   - shared-key auth signs a Service SAS in-process with the stored
@@ -546,12 +546,12 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 //
 // This is intended for the export-download flow (App.GeneratePresignURLForExport
 // and the /exportlink slash command). End users never reach this code path.
-func (b *AzureFileBackend) GeneratePublicLink(p string) (string, time.Duration, error) {
+func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
 	if b.presignExpires <= 0 {
 		return "", 0, errors.New("azure presign expiration is not configured")
 	}
 
-	prefixed := b.prefix(p)
+	prefixed := b.prefix(path)
 	now := time.Now().UTC()
 	expiry := now.Add(b.presignExpires)
 
@@ -581,7 +581,7 @@ func (b *AzureFileBackend) GeneratePublicLink(p string) (string, time.Duration, 
 		}
 		qps, err = values.SignWithSharedKey(b.sharedKey)
 		if err != nil {
-			return "", 0, fmt.Errorf("unable to sign service SAS for %q: %w", p, err)
+			return "", 0, fmt.Errorf("unable to sign service SAS for %q: %w", path, err)
 		}
 	case model.AzureAuthModeDefaultCredential:
 		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
@@ -602,17 +602,17 @@ func (b *AzureFileBackend) GeneratePublicLink(p string) (string, time.Duration, 
 			Expiry: new(expiry.Format(sas.TimeFormat)),
 		}, nil)
 		if udcErr != nil {
-			return "", 0, fmt.Errorf("unable to obtain user delegation key for %q: %w", p, udcErr)
+			return "", 0, fmt.Errorf("unable to obtain user delegation key for %q: %w", path, udcErr)
 		}
 		qps, err = values.SignWithUserDelegation(udc)
 		if err != nil {
-			return "", 0, fmt.Errorf("unable to sign user-delegation SAS for %q: %w", p, err)
+			return "", 0, fmt.Errorf("unable to sign user-delegation SAS for %q: %w", path, err)
 		}
 	default:
 		return "", 0, fmt.Errorf("unknown azure auth mode %q", b.authMode)
 	}
 
-	return b.newBlobClient(p).URL() + "?" + qps.Encode(), b.presignExpires, nil
+	return b.newBlobClient(path).URL() + "?" + qps.Encode(), b.presignExpires, nil
 }
 
 func (b *AzureFileBackend) RemoveFile(p string) error {
