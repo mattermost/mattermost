@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
 import type {ComponentProps} from 'react';
+import {connect} from 'react-redux';
 
 import {shouldUseUtcTimestamps} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
-import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
 
 import type {GlobalState} from 'types/store';
 

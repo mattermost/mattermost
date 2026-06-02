@@ -10,11 +10,11 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled, shouldUseUtcTimestamps} from 'mattermost-redux/selectors/entities/preferences';
 
-import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
-
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
+
+import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
 
 import type {GlobalState} from 'types/store';
 import type {FakePost} from 'types/store/rhs';

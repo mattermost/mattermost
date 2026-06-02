@@ -49,6 +49,10 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(displaySettings.clockDisplayEditButton);
 
+        // # Press Tab to move focus to Timestamp Display button
+        await page.keyboard.press('Tab');
+        await pw.toBeFocusedWithFocusVisible(displaySettings.timestampDisplayEditButton);
+
         // # Press Tab to move focus to Teammate Name Display button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(displaySettings.teammateNameDisplayEditButton);
@@ -140,6 +144,9 @@ test(
             - text: /.+/
             - heading "Clock Display" [level=4]
             - button "Clock Display Edit": Edit
+            - text: /.+/
+            - heading "Timestamp Display" [level=4]
+            - button "Timestamp Display Edit": Edit
             - text: /.+/
             - heading "Teammate Name Display" [level=4]
             - button "Teammate Name Display Edit": Edit

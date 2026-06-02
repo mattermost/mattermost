@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -16,8 +15,8 @@ import type {OnScrollArgs, OnItemsRenderedArgs} from 'components/dynamic_virtual
 import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
-import type {Props as TimestampProps} from 'components/timestamp';
 import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
+import type {Props as TimestampProps} from 'components/timestamp';
 
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
