@@ -793,15 +793,15 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             value: this.state.useUtcTimestamps,
             defaultDisplay: 'false',
             title: defineMessage({
-                id: 'user.settings.display.timestampDisplay',
-                defaultMessage: 'Timestamp Display',
+                id: 'user.settings.display.isoTimestampView',
+                defaultMessage: 'ISO timestamp view',
             }),
             firstOption: {
                 value: 'false',
                 radionButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.localTimestamp',
-                        defaultMessage: 'Local time (example: 4:00 PM or 1 minute ago)',
+                        defaultMessage: 'Off (example: 4:00 PM or 1 minute ago)',
                     }),
                 },
             },
@@ -809,14 +809,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 value: 'true',
                 radionButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.utcTimestamp',
-                        defaultMessage: 'UTC (example: 2024-06-01 14:30 UTC)',
+                        id: 'user.settings.display.isoTimestampViewOn',
+                        defaultMessage: 'On (example: 2024-06-01T14:30:00+00:00)',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.timestampDisplayDesc',
-                defaultMessage: 'Select how timestamps are displayed next to message authors.',
+                id: 'user.settings.display.isoTimestampViewDesc',
+                defaultMessage: 'Show post timestamps in ISO 8601 format with a UTC offset.',
             }),
         });
 

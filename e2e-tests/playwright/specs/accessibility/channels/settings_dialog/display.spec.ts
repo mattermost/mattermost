@@ -145,8 +145,8 @@ test(
             - heading "Clock Display" [level=4]
             - button "Clock Display Edit": Edit
             - text: /.+/
-            - heading "Timestamp Display" [level=4]
-            - button "Timestamp Display Edit": Edit
+            - heading "ISO timestamp view" [level=4]
+            - button "ISO timestamp view Edit": Edit
             - text: /.+/
             - heading "Teammate Name Display" [level=4]
             - button "Teammate Name Display Edit": Edit

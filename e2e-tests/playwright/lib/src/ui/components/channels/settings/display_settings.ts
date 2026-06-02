@@ -23,7 +23,7 @@ export type DisplaySettingsSection =
 const sectionTitles: Record<DisplaySettingsSection, string> = {
     theme: 'Theme',
     clockDisplay: 'Clock Display',
-    timestampDisplay: 'Timestamp Display',
+    timestampDisplay: 'ISO timestamp view',
     teammateNameDisplay: 'Teammate Name Display',
     availabilityStatusOnPosts: 'Show online availability on profile images',
     lastActiveTime: 'Share last active time',

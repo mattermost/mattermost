@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {formatUtcTimestamp, UTC_TIMESTAMP_PROPS} from './utc_timestamp_props';
+import {formatIsoTimestamp, formatUtcTimestamp, UTC_TIMESTAMP_PROPS} from './utc_timestamp_props';
 
-describe('formatUtcTimestamp', () => {
-    test('should format as ISO date with 24-hour UTC time', () => {
-        expect(formatUtcTimestamp(1577836800000)).toBe('2020-01-01 00:00 UTC');
-        expect(formatUtcTimestamp(1577880000000)).toBe('2020-01-01 12:00 UTC');
+describe('formatIsoTimestamp', () => {
+    test('should format as ISO 8601 date-time with explicit UTC offset', () => {
+        expect(formatIsoTimestamp(1577836800000)).toBe('2020-01-01T00:00:00+00:00');
+        expect(formatIsoTimestamp(1577880000000)).toBe('2020-01-01T12:00:00+00:00');
+    });
+
+    test('formatUtcTimestamp is an alias for formatIsoTimestamp', () => {
+        expect(formatUtcTimestamp(1577836800000)).toBe('2020-01-01T00:00:00+00:00');
     });
 });
 
 describe('UTC_TIMESTAMP_PROPS', () => {
-    test('should configure absolute UTC formatting without locale date order', () => {
+    test('should configure ISO timestamp formatting in UTC', () => {
         expect(UTC_TIMESTAMP_PROPS).toMatchObject({
             timeZone: 'UTC',
             useRelative: false,
@@ -19,6 +23,5 @@ describe('UTC_TIMESTAMP_PROPS', () => {
             useTime: false,
         });
         expect(UTC_TIMESTAMP_PROPS.children).toBeDefined();
-        expect(formatUtcTimestamp(1577836800000)).toBe('2020-01-01 00:00 UTC');
     });
 });

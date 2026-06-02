@@ -219,6 +219,6 @@ describe('components/post_view/post_time/PostTime connected', () => {
 
         renderWithContext(<ConnectedPostTime {...baseProps}/>, state);
 
-        expect(screen.getByText('2020-01-01 00:00 UTC')).toBeInTheDocument();
+        expect(screen.getByText('2020-01-01T00:00:00+00:00')).toBeInTheDocument();
     });
 });

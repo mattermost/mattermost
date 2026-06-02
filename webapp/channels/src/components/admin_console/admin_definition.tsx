@@ -3105,8 +3105,8 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'TeamSettings.EnableUtcTimestampsByDefault',
-                            label: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultTitle', defaultMessage: 'Enable UTC timestamps by default:'}),
-                            help_text: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultDescription', defaultMessage: 'When true, new users see UTC timestamps next to message authors by default. Users can override this in Account Settings > Display > Timestamp Display.'}),
+                            label: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultTitle', defaultMessage: 'Enable ISO timestamp view by default:'}),
+                            help_text: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultDescription', defaultMessage: 'When true, new users see post timestamps in ISO 8601 format with a UTC offset by default. Users can override this in Account Settings > Display > ISO timestamp view.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
