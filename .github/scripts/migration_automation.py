@@ -32,6 +32,11 @@ import anthropic
  
 MODEL = "claude-sonnet-4-6"
  
+# The marketplace URL intentionally points to /main so the script always uses
+# the latest version of Ben Cooke's review-migration skill.  Any push to
+# mattermost-ai-marketplace/main WILL change the skill used by this workflow —
+# that is by design.  To pin to a specific revision instead, replace "main"
+# with a commit SHA (e.g. "/abc1234/plugins/...").
 MARKETPLACE_BASE = (
     "https://raw.githubusercontent.com/mattermost/mattermost-ai-marketplace"
     "/main/plugins/review-migration/skills/review-migration"
@@ -93,6 +98,8 @@ def validate_env() -> dict:
     Exits with a clear error message if any required var is missing.
     """
     required = {
+        # ANTHROPIC_API_KEY is read directly by the Anthropic SDK — validated
+        # here so we fail fast with a clear message rather than an SDK error.
         "ANTHROPIC_API_KEY": "Anthropic API key (repo secret)",
         "GITHUB_STEP_SUMMARY": "Job summary file path (provided automatically by Actions)",
     }
@@ -185,8 +192,11 @@ def fetch_url(url: str) -> str:
  
 # ── Claude calls ──────────────────────────────────────────────────────────────
  
-def call_claude(system: str, user: str, *, api_key: str) -> str:
-    client = anthropic.Anthropic(api_key=api_key)
+def call_claude(system: str, user: str) -> str:
+    # No explicit api_key — the SDK reads ANTHROPIC_API_KEY from the environment
+    # automatically, keeping the key out of the call stack and reducing the
+    # chance of accidental logging.
+    client = anthropic.Anthropic()
  
     def _do():
         msg = client.messages.create(
@@ -206,8 +216,6 @@ def run_review(
     skill_md: str,
     reference_md: str,
     guide_text: str,
-    *,
-    api_key: str,
 ) -> str:
     system = f"""You are a Mattermost database migration reviewer.
  
@@ -233,17 +241,17 @@ template format from your instructions.
 {down_sql}
 ```
 """
-    return call_claude(system, user, api_key=api_key)
+    return call_claude(system, user)
  
  
-def run_release_notes(review: str, *, api_key: str) -> str:
+def run_release_notes(review: str) -> str:
     user = f"""Based on this migration review, produce the formatted release note
 block and one-line changelog summary.
  
 ## Migration Review:
 {review}
 """
-    return call_claude(RELEASE_NOTES_SKILL, user, api_key=api_key)
+    return call_claude(RELEASE_NOTES_SKILL, user)
  
  
 # ── Processing ────────────────────────────────────────────────────────────────
@@ -253,21 +261,17 @@ def process(
     skill_md: str,
     reference_md: str,
     guide_text: str,
-    *,
-    api_key: str,
 ) -> str:
     """Run both skills for one migration. Returns the combined markdown."""
-    up_sql = up_path.read_text()
+    up_sql = up_path.read_text(encoding="utf-8")
     down_path = up_path.with_name(up_path.name.replace(".up.sql", ".down.sql"))
-    down_sql = down_path.read_text() if down_path.exists() else "(no down migration)"
+    down_sql = down_path.read_text(encoding="utf-8") if down_path.exists() else "(no down migration)"
  
     print("  Running review-migration skill…")
-    review = run_review(
-        up_sql, down_sql, skill_md, reference_md, guide_text, api_key=api_key
-    )
+    review = run_review(up_sql, down_sql, skill_md, reference_md, guide_text)
  
     print("  Running migration-release-notes skill…")
-    release_notes = run_release_notes(review, api_key=api_key)
+    release_notes = run_release_notes(review)
  
     return f"{review}\n\n---\n\n## Release Note Draft\n\n{release_notes}"
  
@@ -297,7 +301,6 @@ def main() -> None:
  
     validate_migration_paths(new_files)
  
-    api_key = config["ANTHROPIC_API_KEY"]
     summary_path = config["GITHUB_STEP_SUMMARY"]
  
     print(f"Processing {len(new_files)} migration(s): {new_files}\n")
@@ -329,9 +332,7 @@ def main() -> None:
         up_path = Path(filepath)
         print(f"→ {up_path.name}")
         try:
-            content = process(
-                up_path, skill_md, reference_md, guide_text, api_key=api_key
-            )
+            content = process(up_path, skill_md, reference_md, guide_text)
         except anthropic.AuthenticationError as e:
             print(f"\nERROR: Anthropic authentication failed. "
                   f"Check that ANTHROPIC_API_KEY is valid.\nDetail: {e}")
