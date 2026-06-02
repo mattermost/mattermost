@@ -158,15 +158,6 @@ const (
 	// upper end of Azure SDK retry guidance.
 	maxAzureRequestTimeoutMilliseconds = 10 * 60 * 1000
 
-	// MaxAzurePresignExpiresSeconds is the hard ceiling on the lifetime of
-	// an Azure SAS issued by GeneratePublicLink. Service SAS has no service-
-	// side maximum, but user-delegation SAS is bounded by Azure's 7-day cap
-	// on the underlying user-delegation key. Capping at 7 days at config
-	// time keeps both auth modes within their supported range and prevents
-	// surprises when an admin flips between shared key and default
-	// credential.
-	MaxAzurePresignExpiresSeconds = 7 * 24 * 60 * 60
-
 	ImportSettingsDefaultDirectory     = "./import"
 	ImportSettingsDefaultRetentionDays = 30
 
@@ -4647,10 +4638,6 @@ func (s *FileSettings) isValid() *AppError {
 
 	if *s.ExportAzureRequestTimeoutMilliseconds <= 0 || *s.ExportAzureRequestTimeoutMilliseconds > maxAzureRequestTimeoutMilliseconds {
 		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_timeout.app_error", map[string]any{"Value": *s.ExportAzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
-	}
-
-	if *s.ExportAzurePresignExpiresSeconds <= 0 || *s.ExportAzurePresignExpiresSeconds > MaxAzurePresignExpiresSeconds {
-		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_presign_expires.app_error", map[string]any{"Value": *s.ExportAzurePresignExpiresSeconds, "Max": MaxAzurePresignExpiresSeconds}, "", http.StatusBadRequest)
 	}
 
 	if !(*s.ExportAzureAuthMode == AzureAuthModeSharedKey || *s.ExportAzureAuthMode == AzureAuthModeDefaultCredential) {
