@@ -288,6 +288,10 @@
     "translation": "Board channels cannot be accessed via /channels endpoints. Use the /boards API instead."
   },
   {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Board bookmarks are managed by the boards feature and cannot be created, updated, or deleted through the bookmarks API."
+  },
+  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks."
   },
@@ -11063,6 +11067,22 @@
     "translation": "Channel type must be BO (open board) or BP (private board)."
   },
   {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Board bookmarks cannot reference a file."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "Board bookmarks cannot set an image URL."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "Board bookmark link URL must be a site-relative path starting with /, must not contain ://, and must not exceed the maximum length."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Board bookmarks require a valid target id."
+  },
+  {
     "id": "model.channel_bookmark.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -11105,6 +11125,10 @@
   {
     "id": "model.channel_bookmark.is_valid.parent_id.app_error",
     "translation": "Invalid parent id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Target id is only allowed for bookmark types that reference another entity."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",
