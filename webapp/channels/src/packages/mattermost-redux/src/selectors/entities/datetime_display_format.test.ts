@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {TimestampFormat} from '@mattermost/types/config';
+import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {getShowTimestampSeconds, getTimestampFormat, shouldShowThreadDateSeparators} from 'mattermost-redux/selectors/entities/preferences';
-
-import type {GlobalState} from 'types/store';
 
 describe('timestamp format selectors', () => {
     const baseState: DeepPartial<GlobalState> = {
