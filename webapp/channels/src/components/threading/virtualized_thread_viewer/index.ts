@@ -37,11 +37,12 @@ function makeMapStateToProps() {
 
     return (state: GlobalState, ownProps: OwnProps) => {
         const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
-        const timestampDisplayMode = getTimestampDisplayMode(state);
         const useAbsoluteTimestamps = shouldUseAbsoluteTimestamps(state);
         const effectiveUseRelativeTimestamp = useRelativeTimestamp && !useAbsoluteTimestamps;
         const timeZone = getUserCurrentTimezone(getCurrentTimezoneFull(state));
-        const displayProps = getTimestampDisplayProps(timeZone, timestampDisplayMode);
+        const displayProps = useAbsoluteTimestamps ?
+            getTimestampDisplayProps(timeZone, getTimestampDisplayMode(state)) :
+            undefined;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);

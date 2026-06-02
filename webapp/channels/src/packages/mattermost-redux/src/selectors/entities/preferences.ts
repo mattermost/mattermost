@@ -270,8 +270,23 @@ export function getTimestampDisplayMode(state: GlobalState, userPreferences?: Pr
     return 'default';
 }
 
+const MESSAGE_DISPLAY = 'message_display';
+const MESSAGE_DISPLAY_COMPACT = 'compact';
+const MESSAGE_DISPLAY_DEFAULT = 'clean';
+
+export function isMessageDisplayCompact(state: GlobalState, userPreferences?: PreferencesType): boolean {
+    return get(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        MESSAGE_DISPLAY,
+        MESSAGE_DISPLAY_DEFAULT,
+        userPreferences,
+    ) === MESSAGE_DISPLAY_COMPACT;
+}
+
 export function shouldUseAbsoluteTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {
-    return getTimestampDisplayMode(state, userPreferences) !== 'default';
+    return !isMessageDisplayCompact(state, userPreferences) &&
+        getTimestampDisplayMode(state, userPreferences) !== 'default';
 }
 
 export function shouldUseUtcTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {

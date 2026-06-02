@@ -860,6 +860,35 @@ describe('getTimestampDisplayMode', () => {
         expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(true);
     });
 
+    it('should not use absolute timestamps when message display is compact', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        TimestampDisplayDefault: 'iso',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, 'message_display')]: {
+                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                            name: 'message_display',
+                            value: 'compact',
+                        },
+                        [getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.TIMESTAMP_DISPLAY)]: {
+                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                            name: Preferences.TIMESTAMP_DISPLAY,
+                            value: 'iso',
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('iso');
+        expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(false);
+    });
+
     it('should use full timestamp when config default is full', () => {
         const state = {
             entities: {

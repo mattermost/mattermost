@@ -235,6 +235,52 @@ describe('components/post_view/post_time/PostTime connected', () => {
         expect(screen.getByText('2020-01-01T01:00:00+01:00')).toBeInTheDocument();
     });
 
+    test('should render short timestamp in compact message display even when iso is selected', () => {
+        const ConnectedPostTime = require('./index').default;
+
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        TimestampDisplayDefault: 'default',
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {
+                        user1: {
+                            id: 'user1',
+                            timezone: {
+                                useAutomaticTimezone: 'false',
+                                automaticTimezone: '',
+                                manualTimezone: 'Europe/Berlin',
+                            },
+                        },
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        'display_settings--timestamp_display': {
+                            category: 'display_settings',
+                            name: 'timestamp_display',
+                            value: 'iso',
+                        },
+                        'display_settings--message_display': {
+                            category: 'display_settings',
+                            name: 'message_display',
+                            value: 'compact',
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<ConnectedPostTime {...baseProps}/>, state);
+
+        expect(screen.getByText('1:00 AM')).toBeInTheDocument();
+        expect(screen.queryByText('2020-01-01T01:00:00+01:00')).not.toBeInTheDocument();
+    });
+
     test('should render full timestamp in the user timezone when timestamp display is full', () => {
         const ConnectedPostTime = require('./index').default;
 
