@@ -29,6 +29,11 @@ type IncomingWebhook struct {
 	IconURL       string `json:"icon_url"`
 	ChannelLocked bool   `json:"channel_locked"`
 	LastUsed      int64  `json:"last_used"`
+	// BotUserId is the bot account that authors posts created through this
+	// webhook. When empty, posts are authored by the System Bot. UserId
+	// continues to track the webhook's creator (owner) independently of
+	// post authorship.
+	BotUserId string `json:"bot_user_id"`
 }
 
 func (o *IncomingWebhook) Auditable() map[string]any {
@@ -46,6 +51,7 @@ func (o *IncomingWebhook) Auditable() map[string]any {
 		"icon_url:":      o.IconURL,
 		"channel_locked": o.ChannelLocked,
 		"last_used":      o.LastUsed,
+		"bot_user_id":    o.BotUserId,
 	}
 }
 
@@ -106,6 +112,10 @@ func (o *IncomingWebhook) IsValid() *AppError {
 
 	if len(o.IconURL) > 1024 {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.icon_url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.BotUserId != "" && !IsValidId(o.BotUserId) {
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.bot_user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

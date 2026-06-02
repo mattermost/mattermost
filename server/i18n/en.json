@@ -2549,6 +2549,10 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.incoming_webhook.invalid_bot_user.app_error",
+    "translation": "The selected post author must be a valid bot account."
+  },
+  {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
   },
@@ -12205,6 +12209,10 @@
   {
     "id": "model.guest.is_valid.emails.app_error",
     "translation": "Invalid emails."
+  },
+  {
+    "id": "model.incoming_hook.bot_user_id.app_error",
+    "translation": "Invalid post author bot account."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",

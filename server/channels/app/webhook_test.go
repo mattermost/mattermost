@@ -98,6 +98,78 @@ func TestHandleIncomingWebhookRootId(t *testing.T) {
 	})
 }
 
+func TestHandleIncomingWebhookAuthor(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	findPost := func(t *testing.T, message string) *model.Post {
+		t.Helper()
+		list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 30)
+		require.Nil(t, err)
+		for _, p := range list.Posts {
+			if p.Message == message {
+				return p
+			}
+		}
+		require.FailNow(t, "expected to find webhook post", message)
+		return nil
+	}
+
+	t.Run("defaults to the system bot, decoupled from creator", func(t *testing.T) {
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		// Creator is retained on the webhook config.
+		require.Equal(t, th.BasicUser.Id, hook.UserId)
+		require.Empty(t, hook.BotUserId)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		appErr = th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "default author post"})
+		require.Nil(t, appErr)
+
+		post := findPost(t, "default author post")
+		assert.Equal(t, systemBot.UserId, post.UserId, "post should be authored by the system bot")
+		assert.NotEqual(t, th.BasicUser.Id, post.UserId, "post should not be authored by the creator")
+		assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
+	})
+
+	t.Run("uses a configured custom bot as the author", func(t *testing.T) {
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "webhook_author_" + model.NewId()[:10],
+			DisplayName: "Webhook Author",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+			ChannelId: th.BasicChannel.Id,
+			BotUserId: bot.UserId,
+		})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+		require.Equal(t, bot.UserId, hook.BotUserId)
+
+		appErr = th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "custom bot author post"})
+		require.Nil(t, appErr)
+
+		post := findPost(t, "custom bot author post")
+		assert.Equal(t, bot.UserId, post.UserId, "post should be authored by the configured bot")
+	})
+
+	t.Run("rejects a non-bot author", func(t *testing.T) {
+		_, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+			ChannelId: th.BasicChannel.Id,
+			BotUserId: th.BasicUser2.Id,
+		})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.incoming_webhook.invalid_bot_user.app_error", appErr.Id)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

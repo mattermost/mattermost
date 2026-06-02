@@ -393,6 +393,38 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 	return splits[0], nil
 }
 
+// validateIncomingWebhookBotUser ensures that, when set, the configured author
+// for an incoming webhook references an existing bot account. An empty value is
+// valid and means posts are authored by the System Bot.
+func (a *App) validateIncomingWebhookBotUser(botUserID string) *model.AppError {
+	if botUserID == "" {
+		return nil
+	}
+
+	if _, err := a.GetBot(request.EmptyContext(a.Log()), botUserID, false); err != nil {
+		return model.NewAppError("validateIncomingWebhookBotUser", "api.incoming_webhook.invalid_bot_user.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
+}
+
+// resolveIncomingWebhookAuthorID returns the user ID that should author posts
+// created through the given incoming webhook. Authorship is decoupled from the
+// webhook's creator (hook.UserId): a webhook may opt into a custom bot account,
+// otherwise posts default to the System Bot.
+func (a *App) resolveIncomingWebhookAuthorID(rctx request.CTX, hook *model.IncomingWebhook) (string, *model.AppError) {
+	if hook.BotUserId != "" {
+		return hook.BotUserId, nil
+	}
+
+	systemBot, err := a.GetSystemBot(rctx)
+	if err != nil {
+		return "", err
+	}
+
+	return systemBot.UserId, nil
+}
+
 func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -410,6 +442,10 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 
 	if hook.Username != "" && !model.IsValidUsername(hook.Username) {
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := a.validateIncomingWebhookBotUser(hook.BotUserId); appErr != nil {
+		return nil, appErr
 	}
 
 	webhook, err := a.Srv().Store().Webhook().SaveIncoming(hook)
@@ -443,6 +479,10 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 
 	if updatedHook.Username != "" && !model.IsValidUsername(updatedHook.Username) {
 		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := a.validateIncomingWebhookBotUser(updatedHook.BotUserId); appErr != nil {
+		return nil, appErr
 	}
 
 	updatedHook.Id = oldHook.Id
@@ -909,7 +949,15 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
+	// Posts are authored by a bot account (the System Bot by default), decoupled
+	// from the webhook creator (hook.UserId) which is retained for ownership and
+	// permission checks above.
+	authorID, err := a.resolveIncomingWebhookAuthorID(rctx, hook)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.CreateWebhookPost(rctx, authorID, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
 	if err != nil {
 		return err
 	}
