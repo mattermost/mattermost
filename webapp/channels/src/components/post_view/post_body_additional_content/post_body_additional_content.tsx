@@ -65,7 +65,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
             if (c.match(embed)) {
                 const Component = c.component;
                 return this.props.isEmbedVisible && (
-                    <PluggableErrorBoundary>
+                    <PluggableErrorBoundary pluginId={c.pluginId}>
                         <Component
                             embed={embed}
                             webSocketClient={webSocketClient}

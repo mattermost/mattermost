@@ -218,7 +218,7 @@ const PostOptions = (props: Props): JSX.Element => {
                     const Component = item.component;
                     return (
                         <li key={item.id}>
-                            <PluggableErrorBoundary>
+                            <PluggableErrorBoundary pluginId={item.pluginId}>
                                 <Component
                                     post={props.post}
                                 />

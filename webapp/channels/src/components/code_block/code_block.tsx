@@ -95,7 +95,10 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
 
             const Component = item.component as any;
             return (
-                <PluggableErrorBoundary key={item.id}>
+                <PluggableErrorBoundary
+                    key={item.id}
+                    pluginId={item.pluginId}
+                >
                     <Component
                         code={code}
                     />

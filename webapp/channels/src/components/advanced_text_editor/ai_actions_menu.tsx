@@ -290,7 +290,7 @@ const AIActionsMenu = ({
                         {activePluginItem?.component && (() => {
                             const PluginComponent = activePluginItem.component;
                             return (
-                                <PluggableErrorBoundary>
+                                <PluggableErrorBoundary pluginId={activePluginItem.pluginId}>
                                     <PluginComponent
                                         draft={draft}
                                         getSelectedText={getSelectedText}

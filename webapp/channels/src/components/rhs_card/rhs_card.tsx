@@ -99,7 +99,7 @@ export default class RhsCard extends React.Component<Props, State> {
         if (pluginPostCardTypes && Object.hasOwn(pluginPostCardTypes, postType)) {
             const PluginComponent = pluginPostCardTypes[postType].component;
             content = (
-                <PluggableErrorBoundary>
+                <PluggableErrorBoundary pluginId={pluginPostCardTypes[postType].pluginId}>
                     <PluginComponent post={selected}/>
                 </PluggableErrorBoundary>
             );

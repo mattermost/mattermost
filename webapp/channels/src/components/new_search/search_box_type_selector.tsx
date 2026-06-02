@@ -87,7 +87,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                         onClick={() => setSearchType(pluginId)}
                         role='radio'
                     >
-                        <ErrorBoundary>
+                        <ErrorBoundary pluginId={pluginId}>
                             <Component/>
                         </ErrorBoundary>
                     </SearchTypeItem>

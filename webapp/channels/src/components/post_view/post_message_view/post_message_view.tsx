@@ -136,7 +136,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         if (pluginPostTypes && Object.hasOwn(pluginPostTypes, postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
             return (
-                <PluggableErrorBoundary>
+                <PluggableErrorBoundary pluginId={pluginPostTypes[postType].pluginId}>
                     <PluginComponent
                         post={post}
                         compactDisplay={compactDisplay}

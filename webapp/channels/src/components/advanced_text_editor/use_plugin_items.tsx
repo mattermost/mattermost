@@ -51,7 +51,10 @@ const usePluginItems = (
 
             const Component = item.component as any;
             return (
-                <PluggableErrorBoundary key={item.id}>
+                <PluggableErrorBoundary
+                    key={item.id}
+                    pluginId={item.pluginId}
+                >
                     <Component
                         draft={draft}
                         getSelectedText={getSelectedText}

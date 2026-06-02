@@ -37,7 +37,10 @@ const NewMessageSeparator = ({
 
             const Component = item.component;
             return (
-                <PluggableErrorBoundary key={item.id}>
+                <PluggableErrorBoundary
+                    key={item.id}
+                    pluginId={item.pluginId}
+                >
                     <Component
                         lastViewedAt={lastViewedAt}
                         channelId={channelId}
