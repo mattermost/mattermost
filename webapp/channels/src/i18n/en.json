@@ -4978,6 +4978,7 @@
   "file_upload.limited": "Uploads limited to {count, number} files maximum. Please use additional posts for more files.",
   "file_upload.menuAriaLabel": "Upload type selector",
   "file_upload.pasted": "Image Pasted at ",
+  "file_upload.rejected.file": "File upload blocked: {reason}",
   "file_upload.upload_files": "Upload files",
   "file_upload.zeroBytesFile": "You are uploading an empty file: {filename}",
   "file_upload.zeroBytesFiles": "You are uploading empty files: {filenames}",
