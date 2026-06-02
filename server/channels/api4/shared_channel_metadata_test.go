@@ -683,8 +683,13 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// Trigger another sync to ensure no duplicates are created
 		service.NotifyChannelChanged(testChannel.Id)
 
-		// Verify acknowledgement count remains 1 (no duplicates)
+		// Wait for the resync attempt to finish. Echo prevention may skip sending
+		// updates when nothing changed, so do not require HTTP callbacks to arrive.
 		require.Eventually(t, func() bool {
+			if service.HasPendingTasksForTesting() {
+				return false
+			}
+
 			muA.Lock()
 			defer muA.Unlock()
 			for _, post := range syncedPostsServerA {
@@ -692,8 +697,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 					return len(post.Metadata.Acknowledgements) == 1
 				}
 			}
-			return len(syncedPostsServerA) > 0
-		}, 3*time.Second, 100*time.Millisecond, "Should maintain single acknowledgement after resync")
+			return true
+		}, 10*time.Second, 100*time.Millisecond, "Should maintain single acknowledgement after resync")
 
 		t.Logf("✅ Cross-cluster acknowledgement flow completed successfully:")
 		t.Logf("   1. Server A created post with ack request: %s", postIdToTrack)
