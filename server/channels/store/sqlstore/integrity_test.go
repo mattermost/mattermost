@@ -1003,7 +1003,8 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
 			team := createTeam(ss)
-			createTeamMember(rctx, ss, team.Id, model.NewId())
+			user := createUser(rctx, ss)
+			createTeamMember(rctx, ss, team.Id, user.Id)
 
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
@@ -1011,11 +1012,13 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 			require.Empty(t, orphanedRecordsWithParentIDs(data.Records, team.Id))
 			ss.Team().RemoveAllMembersByTeam(team.Id)
 			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
+			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			team := createTeam(ss)
-			createTeamMember(rctx, ss, team.Id, model.NewId())
+			user := createUser(rctx, ss)
+			createTeamMember(rctx, ss, team.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
@@ -1026,6 +1029,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 				ParentId: &team.Id,
 			}, records[0])
 			ss.Team().RemoveAllMembersByTeam(team.Id)
+			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 		})
 	})
 }
