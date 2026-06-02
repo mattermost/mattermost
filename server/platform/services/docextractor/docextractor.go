@@ -22,6 +22,13 @@ type ExtractSettings struct {
 	// the underlying converter may keep running in a detached goroutine until
 	// it finishes on its own, but it no longer holds up the caller.
 	Timeout time.Duration
+	// ReaderCloser, when set, transfers ownership of closing the input reader
+	// to this package. It is closed only after extraction has actually
+	// finished reading. This matters with Timeout set: on timeout the caller
+	// returns while the converter may still be reading on a detached
+	// goroutine, so the caller must NOT close the reader itself or it would
+	// race with (and close the file out from under) that goroutine.
+	ReaderCloser io.Closer
 }
 
 // Extract extract the text from a document using the system default extractors
@@ -54,6 +61,12 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 	if enabledExtractors.Match(filename) {
 		return extractWithTimeout(enabledExtractors, filename, r, settings)
 	}
+
+	// No extractor matched, so nothing will read r; close it here since
+	// extractWithTimeout (which otherwise owns the close) is never reached.
+	if settings.ReaderCloser != nil {
+		settings.ReaderCloser.Close()
+	}
 	return "", nil
 }
 
@@ -64,6 +77,9 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 // to be released even if the converter is still working.
 func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
 	if settings.Timeout <= 0 {
+		if settings.ReaderCloser != nil {
+			defer settings.ReaderCloser.Close()
+		}
 		return e.Extract(filename, r, settings.MaxFileSize)
 	}
 
@@ -73,6 +89,13 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 	}
 	resultCh := make(chan extractResult, 1)
 	go func() {
+		// This goroutine owns the reader for the lifetime of the extraction.
+		// After the timeout fires the caller returns, but the converter may
+		// still be reading r here, so the reader is closed only once this
+		// goroutine is done with it - never by the caller.
+		if settings.ReaderCloser != nil {
+			defer settings.ReaderCloser.Close()
+		}
 		text, err := e.Extract(filename, r, settings.MaxFileSize)
 		resultCh <- extractResult{text: text, err: err}
 	}()

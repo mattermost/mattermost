@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -252,6 +253,61 @@ func TestExtractTimeout(t *testing.T) {
 		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 0}, []Extractor{&slowExtractor{delay: 10 * time.Millisecond}})
 		require.NoError(t, err)
 		require.Equal(t, "done", text)
+	})
+}
+
+type recordingCloser struct {
+	closed atomic.Bool
+}
+
+func (c *recordingCloser) Close() error {
+	c.closed.Store(true)
+	return nil
+}
+
+// blockingExtractor blocks inside Extract until release is closed, simulating a
+// converter that is still using the reader after an extraction timeout fires.
+type blockingExtractor struct {
+	started chan struct{}
+	release chan struct{}
+}
+
+func (be *blockingExtractor) Name() string { return "blockingExtractor" }
+
+func (be *blockingExtractor) Match(filename string) bool { return true }
+
+func (be *blockingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+	close(be.started)
+	<-be.release
+	return "done", nil
+}
+
+func TestExtractReaderCloserOwnership(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	t.Run("reader is closed only after the detached extraction finishes on timeout", func(t *testing.T) {
+		closer := &recordingCloser{}
+		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{})}
+		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: closer}
+
+		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader([]byte("hi")), settings, []Extractor{be})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "timed out")
+
+		<-be.started
+		// The extraction goroutine is still running, so closing the reader now
+		// would race with it; it must stay open.
+		require.False(t, closer.closed.Load(), "reader must not be closed while the extraction goroutine is still running")
+
+		close(be.release)
+		require.Eventually(t, closer.closed.Load, 2*time.Second, 5*time.Millisecond, "reader should be closed once the extraction goroutine finishes")
+	})
+
+	t.Run("reader is closed on the synchronous path", func(t *testing.T) {
+		closer := &recordingCloser{}
+		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader([]byte("hi")), ExtractSettings{ReaderCloser: closer}, []Extractor{&slowExtractor{delay: 0}})
+		require.NoError(t, err)
+		require.True(t, closer.closed.Load(), "reader should be closed after synchronous extraction")
 	})
 }
 
