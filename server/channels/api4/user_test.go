@@ -2875,7 +2875,8 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = new("test@test.com")
+	samlAuthData := "test@test.com"
+	userAuth.AuthData = &samlAuthData
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -2883,6 +2884,40 @@ func TestUpdateUserAuth(t *testing.T) {
 	// AuthData and AuthService are set, password is set to empty
 	require.Equal(t, *userAuth.AuthData, *ruser.AuthData)
 	require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+
+	userAuth.AuthData = new("test@test.com")
+	userAuth.AuthService = "not-a-real-service"
+	_, resp, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	storedUser, appErr := th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
+	require.NotNil(t, storedUser.AuthData)
+	require.Equal(t, samlAuthData, *storedUser.AuthData)
+
+	userAuth.AuthData = new("test@test.com")
+	userAuth.AuthService = model.UserAuthServiceEmail
+	_, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	storedUser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
+	require.NotNil(t, storedUser.AuthData)
+	require.Equal(t, samlAuthData, *storedUser.AuthData)
+
+	userAuth.AuthData = nil
+	userAuth.AuthService = model.UserAuthServiceEmail
+	ruser, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Nil(t, ruser.AuthData)
+	require.Empty(t, ruser.AuthService)
+	storedUser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Nil(t, storedUser.AuthData)
+	require.Empty(t, storedUser.AuthService)
 
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
@@ -5030,6 +5065,91 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.Id, th.BasicUser.Id)
 		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
 		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
+	})
+}
+
+func TestLoginWithGuestMagicLinkTokenRejectsDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+		*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+	})
+
+	createGuestViaInvitation := func(t *testing.T) *model.User {
+		t.Helper()
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		invitationToken := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(invitationToken))
+
+		guestUser, appErr := th.App.AuthenticateUserForGuestMagicLink(th.Context, invitationToken.Token)
+		require.Nil(t, appErr)
+		require.True(t, guestUser.IsGuest())
+		return guestUser
+	}
+
+	createLoginToken := func(t *testing.T, email string) *model.Token {
+		t.Helper()
+		loginToken := model.NewToken(
+			model.TokenTypeGuestMagicLink,
+			model.MapToJSON(map[string]string{
+				"email": email,
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(loginToken))
+		return loginToken
+	}
+
+	loginWithMagicLinkToken := func(t *testing.T, token string) (*http.Response, error) {
+		t.Helper()
+		props := map[string]string{
+			"magic_link_token": token,
+		}
+		return th.Client.DoAPIPost(context.Background(), "/users/login", model.MapToJSON(props))
+	}
+
+	t.Run("rejects deactivated guest", func(t *testing.T) {
+		guestUser := createGuestViaInvitation(t)
+		loginToken := createLoginToken(t, guestUser.Email)
+
+		_, appErr := th.App.UpdateActive(th.Context, guestUser, false)
+		require.Nil(t, appErr)
+
+		resp, err := loginWithMagicLinkToken(t, loginToken.Token)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.inactive.app_error")
+		CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+		require.Empty(t, resp.Header.Get(model.HeaderToken))
+	})
+
+	t.Run("allows active guest", func(t *testing.T) {
+		guestUser := createGuestViaInvitation(t)
+		loginToken := createLoginToken(t, guestUser.Email)
+
+		resp, err := loginWithMagicLinkToken(t, loginToken.Token)
+		require.NoError(t, err)
+		defer closeBody(resp)
+
+		require.NotEmpty(t, resp.Header.Get(model.HeaderToken))
+
+		user, _, decodeErr := model.DecodeJSONFromResponse[*model.User](resp)
+		require.NoError(t, decodeErr)
+		assert.Equal(t, guestUser.Id, user.Id)
 	})
 }
 
