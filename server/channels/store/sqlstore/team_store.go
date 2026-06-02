@@ -456,18 +456,18 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, error) {
 }
 
 func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) sq.SelectBuilder {
-	var selectStr string
+	var columns []string
 	if countQuery {
-		selectStr = "count(*)"
+		columns = []string{"count(*)"}
 	} else {
-		selectStr = "t.*"
+		columns = teamSliceColumns(true, "t")
 		if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesTeams.PolicyId as PolicyID"
+			columns = append(columns, "RetentionPoliciesTeams.PolicyId as PolicyID")
 		}
 	}
 
 	query := s.getQueryBuilder().
-		Select(selectStr).
+		Select(columns...).
 		From("Teams as t")
 
 	// Don't order or limit if getting count

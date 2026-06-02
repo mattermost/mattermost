@@ -785,6 +785,43 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	preSaveHook := func(tm *model.TeamMember) (*model.TeamMember, error) {
+		// ABAC membership enforcement runs before the plugin hook so a denied join
+		// never reaches plugin code, and fails closed on every error path.
+		if ok, appErr := a.TeamAccessControlled(rctx, team.Id); appErr != nil {
+			return nil, appErr
+		} else if ok {
+			acs := a.Srv().Channels().AccessControl
+			if acs == nil {
+				// The team is policy-governed but the PDP is unavailable. Fail
+				// closed with the generic denial rather than admit an unevaluated
+				// join — never a silent allow.
+				return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+			}
+
+			// BuildAccessControlSubject is channel-coupled: its last arg resolves a
+			// channel-scoped role. Team membership evaluates identity attributes only,
+			// so pass an empty channelID and attach no scoped role.
+			s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, "")
+			if buildErr != nil {
+				return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.abac_subject_build_failed.app_error", nil,
+					fmt.Sprintf("failed to build subject: %v, user_id: %s, team_id: %s", buildErr, user.Id, team.Id), http.StatusInternalServerError)
+			}
+
+			decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+				Subject: *s,
+				Resource: model.Resource{
+					Type: model.AccessControlPolicyTypeTeam,
+					ID:   team.Id,
+				},
+				Action: model.AccessControlPolicyActionMembership,
+			})
+			if evalErr != nil {
+				return nil, evalErr
+			} else if !decision.Decision {
+				return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+			}
+		}
+
 		var rejectionReason string
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {

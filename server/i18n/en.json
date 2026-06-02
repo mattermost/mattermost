@@ -3719,6 +3719,14 @@
     "translation": "Unable to parse the request body."
   },
   {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "Failed to build access control subject for user."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "User does not have required attributes to join the team."
+  },
+  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },

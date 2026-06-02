@@ -1338,6 +1338,27 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Hide policy-governed teams from non-qualifying users browsing the directory.
+	// System admins are exempt so the System Console team list stays complete.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		userID := c.AppContext.Session().UserId
+		if c.Params.IncludeTotalCount {
+			var dropped int
+			teamsWithCount.Teams, dropped, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teamsWithCount.Teams, userID)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			teamsWithCount.TotalCount -= int64(dropped)
+		} else {
+			teams, _, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teams, userID)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+		}
+	}
+
 	var (
 		js  []byte
 		err error
@@ -1403,6 +1424,18 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// Hide policy-governed teams from non-qualifying users searching the directory.
+	// System admins are exempt so the System Console team search stays complete.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		var dropped int
+		teams, dropped, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teams, c.AppContext.Session().UserId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		totalCount -= int64(dropped)
 	}
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
