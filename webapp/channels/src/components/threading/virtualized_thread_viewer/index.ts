@@ -8,7 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {isCollapsedThreadsEnabled, getTimestampDisplayMode, shouldUseAbsoluteTimestamps} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled, getTimestampDisplayMode, shouldUseCustomTimestampDisplay} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
@@ -37,10 +37,10 @@ function makeMapStateToProps() {
 
     return (state: GlobalState, ownProps: OwnProps) => {
         const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
-        const useAbsoluteTimestamps = shouldUseAbsoluteTimestamps(state);
-        const effectiveUseRelativeTimestamp = useRelativeTimestamp && !useAbsoluteTimestamps;
+        const useCustomTimestampDisplay = shouldUseCustomTimestampDisplay(state);
+        const effectiveUseRelativeTimestamp = useRelativeTimestamp && !useCustomTimestampDisplay;
         const timeZone = getUserCurrentTimezone(getCurrentTimezoneFull(state));
-        const displayProps = useAbsoluteTimestamps ?
+        const displayProps = useCustomTimestampDisplay ?
             getTimestampDisplayProps(timeZone, getTimestampDisplayMode(state)) :
             undefined;
 

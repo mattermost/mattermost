@@ -284,9 +284,13 @@ export function isMessageDisplayCompact(state: GlobalState, userPreferences?: Pr
     ) === MESSAGE_DISPLAY_COMPACT;
 }
 
+export function shouldUseCustomTimestampDisplay(state: GlobalState, userPreferences?: PreferencesType): boolean {
+    return getTimestampDisplayMode(state, userPreferences) !== 'default';
+}
+
 export function shouldUseAbsoluteTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {
-    return !isMessageDisplayCompact(state, userPreferences) &&
-        getTimestampDisplayMode(state, userPreferences) !== 'default';
+    return shouldUseCustomTimestampDisplay(state, userPreferences) &&
+        !isMessageDisplayCompact(state, userPreferences);
 }
 
 export function shouldUseUtcTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {

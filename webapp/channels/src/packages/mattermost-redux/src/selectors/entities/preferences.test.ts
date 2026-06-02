@@ -886,6 +886,7 @@ describe('getTimestampDisplayMode', () => {
         } as unknown as GlobalState;
 
         expect(Selectors.getTimestampDisplayMode(state)).toEqual('iso');
+        expect(Selectors.shouldUseCustomTimestampDisplay(state)).toEqual(true);
         expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(false);
     });
 
