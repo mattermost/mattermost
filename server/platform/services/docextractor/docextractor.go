@@ -17,10 +17,15 @@ type ExtractSettings struct {
 	MaxFileSize      int64
 	MMPreviewURL     string
 	MMPreviewSecret  string
-	// Timeout bounds how long a single extraction may run. A value <= 0
-	// disables the timeout. When it elapses the extraction returns an error;
-	// the underlying converter may keep running in a detached goroutine until
-	// it finishes on its own, but it no longer holds up the caller.
+	// Timeout bounds how long a caller waits for a single extraction. A value
+	// <= 0 disables it. NOTE: this bounds wall-clock wait time (and thus how
+	// long an extraction occupies its caller's worker slot), NOT CPU work.
+	// The docconv converters are not context-aware, so on timeout the
+	// converter keeps running to completion on a detached goroutine and keeps
+	// consuming CPU until it finishes on its own. Under sustained load,
+	// detached extractions can therefore accumulate and run concurrently. The
+	// primary bound on the work of any single extraction is MaxFileSize, which
+	// limits how much input the converter reads.
 	Timeout time.Duration
 	// ReaderCloser, when set, transfers ownership of closing the input reader
 	// to this package. It is closed only after extraction has actually
@@ -70,11 +75,19 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 	return "", nil
 }
 
-// extractWithTimeout runs the extraction and aborts it if it exceeds
-// settings.Timeout. Because the underlying docconv converters are not
+// extractWithTimeout runs the extraction and stops waiting for it once
+// settings.Timeout elapses. Because the underlying docconv converters are not
 // context-aware, the extraction runs on a detached goroutine: on timeout we
-// stop waiting and return an error, allowing the caller (and its worker slot)
-// to be released even if the converter is still working.
+// stop waiting and return an error, releasing the caller (and its worker slot)
+// even though the converter keeps running.
+//
+// This decouples extraction from the caller, but it does NOT cap CPU: the
+// detached converter continues to completion in the background, so a sustained
+// stream of expensive documents can leave several detached extractions running
+// at once. The per-extraction work is bounded instead by MaxFileSize (input
+// size). Load-shedding on the number of in-flight detached extractions is a
+// possible future improvement; it is intentionally not done here so it does
+// not also throttle the backfill job that re-extracts skipped content.
 func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
 	if settings.Timeout <= 0 {
 		if settings.ReaderCloser != nil {
