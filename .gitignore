@@ -168,6 +168,10 @@ docker-compose.override.yaml
 .claude
 .cursorrules
 .cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+!.cursor/skills/
+!.cursor/skills/**
 !.cursor/README.md
 !.cursor/cursor.md
 !.cursor/Dockerfile

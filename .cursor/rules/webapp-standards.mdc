@@ -1,0 +1,13 @@
+---
+description: Webapp style and shared component conventions
+globs: webapp/**
+alwaysApply: false
+---
+
+# Webapp Guidance
+
+- Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing standards.
+- Prefer shared components from `@mattermost/shared` over hand-rolled equivalents.
+- Use `Button` from `@mattermost/shared/components/button` for text-based button UI instead of building bespoke `<button>` elements or styling.
+- Use `WithTooltip` from `@mattermost/shared/components/tooltip` for tooltips instead of wiring up Floating UI or other tooltip primitives directly.
+- Always import shared components via the full package name (`@mattermost/shared/...`), never via relative paths into `platform/shared/`.

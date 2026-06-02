@@ -1,0 +1,10 @@
+---
+description: Server workflow commands for modules and i18n
+globs: server/**
+alwaysApply: false
+---
+
+# Server Workflows
+
+- Never run `go mod tidy` directly. Run `make modules-tidy` from `server/` instead; it excludes private enterprise imports that would otherwise break tidy.
+- After editing `server/i18n/en.json`, run `make i18n-extract` from `server/`; it regenerates the file with strings in the required order.
