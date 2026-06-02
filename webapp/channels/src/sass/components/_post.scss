@@ -838,9 +838,9 @@
         }
 
         .post__header--wrap-time {
+            width: 100%;
             max-height: none;
             float: none;
-            width: 100%;
         }
 
         .badges-wrapper {
@@ -1218,8 +1218,8 @@
     }
 
     .post__main {
-        container-type: inline-size;
         container-name: post-content;
+        container-type: inline-size;
     }
 
     .center {
@@ -1316,8 +1316,8 @@
         }
 
         .post__header-timestamp {
-            order: 1;
             flex: 0 0 auto;
+            order: 1;
         }
 
         .badges-wrapper {
@@ -1332,8 +1332,8 @@
     @container post-content (max-width: 480px) {
         .post__header--wrap-time {
             .post__header-timestamp {
-                order: 4;
                 flex-basis: 100%;
+                order: 4;
                 margin-top: 2px;
                 margin-bottom: 2px;
             }
