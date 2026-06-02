@@ -8,7 +8,7 @@ import {TimestampFormat} from '@mattermost/types/config';
 
 export {TimestampFormat};
 
-export type TimestampDisplayContext = 'post' | 'thread_list' | 'thread_footer';
+export type TimestampDisplayContext = 'post' | 'thread_list' | 'thread_footer' | 'scheduled_post';
 export type TimestampDisplayTier = 'inline' | 'time_only';
 
 type FormatOptions = {
@@ -68,7 +68,7 @@ export function resolveTimestampDisplayTier(
         return explicitTier;
     }
 
-    if (context === 'thread_list' || context === 'thread_footer') {
+    if (context === 'thread_list' || context === 'thread_footer' || context === 'scheduled_post') {
         return 'inline';
     }
 
@@ -127,6 +127,21 @@ export function formatDateAndTimeInline(
     return `${dt.toFormat('LLL d yyyy')}, ${time}`;
 }
 
+export function formatAbsoluteDateAndTime(
+    value: Date,
+    {timeZone, useMilitaryTime = false, showTimestampSeconds = false}: FormatOptions,
+): string {
+    const dt = getDateTime(value, timeZone);
+    const now = getNow(timeZone);
+    const time = formatStandardTime(value, {timeZone, useMilitaryTime, showTimestampSeconds});
+
+    if (dt.hasSame(now, 'year')) {
+        return `${dt.toFormat('LLL d')}, ${time}`;
+    }
+
+    return `${dt.toFormat('LLL d yyyy')}, ${time}`;
+}
+
 export function formatRelativeTimestamp(
     value: Date,
     {timeZone, useMilitaryTime = false, showTimestampSeconds = false, intl}: FormatOptions & {intl: IntlShape},
@@ -173,6 +188,11 @@ export function formatInlineTimestamp(
     options: InlineFormatOptions,
 ): string {
     const context = options.context || 'post';
+
+    if (context === 'scheduled_post') {
+        return formatAbsoluteDateAndTime(value, {...options, showTimestampSeconds: false});
+    }
+
     const tier = resolveTimestampDisplayTier(format, context, options.tier, options.forceTimeOnly);
     const formatOptions = options.forceTimeOnly ? {...options, showTimestampSeconds: false} : options;
 

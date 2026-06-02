@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -13,8 +12,8 @@ import * as GlobalActions from 'actions/global_actions';
 import EventTimestamp from 'components/event_timestamp';
 import EventTimestampTooltip from 'components/event_timestamp/event_timestamp_tooltip';
 
-import type {TimestampDisplayContext, TimestampDisplayTier} from 'utils/datetime_display_format';
 import {Locations} from 'utils/constants';
+import type {TimestampDisplayContext, TimestampDisplayTier} from 'utils/datetime_display_format';
 
 type Props = {
 
@@ -73,7 +72,7 @@ export default class PostTime extends React.PureComponent<Props> {
                 value={eventTime}
                 className='post__time'
                 showTooltip={false}
-                context={context}
+                displayContext={context}
                 tier={tier}
                 isConsecutivePost={isConsecutivePost}
                 forceTimeOnly={forceTimeOnly}

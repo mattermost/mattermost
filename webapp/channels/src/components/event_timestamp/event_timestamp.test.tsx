@@ -69,7 +69,7 @@ describe('EventTimestamp', () => {
             <EventTimestamp
                 {...baseProps}
                 timestampFormat={TimestampFormat.STANDARD}
-                context='thread_list'
+                displayContext='thread_list'
                 showTooltip={false}
             />,
         );

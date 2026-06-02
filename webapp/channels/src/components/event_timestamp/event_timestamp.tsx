@@ -5,7 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {TimestampFormat} from '@mattermost/types/config';
+import type {TimestampFormat} from '@mattermost/types/config';
 
 import Timestamp, {supportsHourCycle} from 'components/timestamp';
 import SemanticTime from 'components/timestamp/semantic_time';
@@ -26,7 +26,7 @@ export type Props = {
     timeZone?: string;
     useMilitaryTime: boolean;
     showTooltip?: boolean;
-    context?: TimestampDisplayContext;
+    displayContext?: TimestampDisplayContext;
     tier?: TimestampDisplayTier;
     isConsecutivePost?: boolean;
     forceTimeOnly?: boolean;
@@ -40,19 +40,19 @@ function EventTimestamp({
     timeZone,
     useMilitaryTime,
     showTooltip = true,
-    context = 'post',
+    displayContext = 'post',
     tier,
     isConsecutivePost = false,
     forceTimeOnly = false,
 }: Props) {
     const intl = useIntl();
     const dateValue = value instanceof Date ? value : new Date(value);
-    const effectiveTier = resolveTimestampDisplayTier(timestampFormat, context, tier, forceTimeOnly);
+    const effectiveTier = resolveTimestampDisplayTier(timestampFormat, displayContext, tier, forceTimeOnly);
     const effectiveShowSeconds = showTimestampSeconds && !forceTimeOnly;
 
     let inlineContent: React.ReactNode;
 
-    if (context === 'post' && effectiveTier === 'time_only') {
+    if (displayContext === 'post' && effectiveTier === 'time_only') {
         inlineContent = (
             <Timestamp
                 value={dateValue}
@@ -74,7 +74,7 @@ function EventTimestamp({
             timeZone,
             useMilitaryTime,
             showTimestampSeconds,
-            context,
+            context: displayContext,
             tier: effectiveTier,
             forceTimeOnly,
             intl,

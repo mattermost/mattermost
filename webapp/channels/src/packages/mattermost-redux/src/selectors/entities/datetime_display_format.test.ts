@@ -19,6 +19,7 @@ describe('timestamp format selectors', () => {
             },
             preferences: {
                 myPreferences: {},
+                userPreferences: {},
             },
         },
     };
@@ -38,14 +39,14 @@ describe('timestamp format selectors', () => {
                     },
                 },
             },
-        } as GlobalState;
+        } as unknown as GlobalState;
 
         expect(getTimestampFormat(state)).toBe(TimestampFormat.RELATIVE);
         expect(shouldShowThreadDateSeparators(state)).toBe(false);
     });
 
     test('falls back to config default', () => {
-        const state = baseState as GlobalState;
+        const state = baseState as unknown as GlobalState;
 
         expect(getTimestampFormat(state)).toBe(TimestampFormat.DATE_AND_TIME);
         expect(shouldShowThreadDateSeparators(state)).toBe(false);
@@ -66,7 +67,7 @@ describe('timestamp format selectors', () => {
                     },
                 },
             },
-        } as GlobalState;
+        } as unknown as GlobalState;
 
         expect(getTimestampFormat(state)).toBe(TimestampFormat.DATE_AND_TIME);
     });
@@ -86,7 +87,7 @@ describe('timestamp format selectors', () => {
                     },
                 },
             },
-        } as GlobalState;
+        } as unknown as GlobalState;
 
         expect(getShowTimestampSeconds(state)).toBe(true);
     });

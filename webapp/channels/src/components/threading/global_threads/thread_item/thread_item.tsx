@@ -261,7 +261,7 @@ function ThreadItem({
                     <EventTimestamp
                         className='alt-hidden'
                         value={lastReplyAt}
-                        context='thread_list'
+                        displayContext='thread_list'
                         showTooltip={false}
                     />
                 </div>
@@ -330,7 +330,7 @@ function ThreadItem({
                     />
                     <EventTimestamp
                         value={lastReplyAt}
-                        context='thread_list'
+                        displayContext='thread_list'
                         showTooltip={false}
                     />
                 </span>

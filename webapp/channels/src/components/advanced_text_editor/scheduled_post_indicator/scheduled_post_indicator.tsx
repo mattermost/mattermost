@@ -12,7 +12,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     ShortScheduledPostIndicator,
 } from 'components/advanced_text_editor/scheduled_post_indicator/short_scheduled_post_indicator';
-import {SCHEDULED_POST_TIME_RANGES, scheduledPostTimeFormat} from 'components/drafts/panel/panel_header';
 import EventTimestamp from 'components/event_timestamp';
 
 import {Locations} from 'utils/constants';
@@ -66,11 +65,8 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
                     dateTime: (
                         <EventTimestamp
                             value={scheduledPostData.scheduledPost.scheduled_at}
-                            timestampProps={{
-                                ranges: SCHEDULED_POST_TIME_RANGES,
-                                useSemanticOutput: false,
-                                useTime: scheduledPostTimeFormat,
-                            }}
+                            displayContext='scheduled_post'
+                            showTooltip={false}
                         />
                     ),
                 }}

@@ -144,7 +144,7 @@ function ThreadFooter({
                             formatted: (
                                 <EventTimestamp
                                     value={lastReplyAt}
-                                    context='thread_footer'
+                                    displayContext='thread_footer'
                                     showTooltip={false}
                                 />
                             ),

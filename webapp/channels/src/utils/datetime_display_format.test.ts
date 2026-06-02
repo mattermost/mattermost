@@ -6,6 +6,7 @@ import {DateTime} from 'luxon';
 import {TimestampFormat} from '@mattermost/types/config';
 
 import {
+    formatAbsoluteDateAndTime,
     formatDateAndTimeInline,
     formatFullDateTimeForTooltip,
     formatInlineTimestamp,
@@ -51,6 +52,40 @@ describe('datetime_display_format', () => {
 
         const expected = DateTime.fromJSDate(value, {zone: timeZone}).toFormat('HH:mm');
         expect(formatted).toBe(expected);
+    });
+
+    test('formatAbsoluteDateAndTime never uses relative labels', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+        const tomorrow = new Date('2020-06-16T16:30:00.000Z');
+        const formatted = formatAbsoluteDateAndTime(tomorrow, {
+            timeZone,
+            useMilitaryTime: false,
+        });
+
+        const dt = DateTime.fromJSDate(tomorrow, {zone: timeZone});
+        expect(formatted).toBe(`${dt.toFormat('LLL d')}, ${dt.toFormat('h:mm a')}`);
+        expect(formatted).not.toMatch(/Today|Tomorrow|Yesterday/i);
+
+        jest.useRealTimers();
+    });
+
+    test('formatInlineTimestamp uses absolute date for scheduled posts', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+        const tomorrow = new Date('2020-06-16T16:30:00.000Z');
+        const formatted = formatInlineTimestamp(tomorrow, TimestampFormat.RELATIVE, {
+            timeZone,
+            useMilitaryTime: false,
+            context: 'scheduled_post',
+        });
+
+        const dt = DateTime.fromJSDate(tomorrow, {zone: timeZone});
+        expect(formatted).toBe(`${dt.toFormat('LLL d')}, ${dt.toFormat('h:mm a')}`);
+
+        jest.useRealTimers();
     });
 
     test('formatDateAndTimeInline includes year for other years', () => {
