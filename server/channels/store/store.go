@@ -1281,7 +1281,7 @@ type ReadReceiptStore interface {
 	GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error)
 }
 
-// AuditStorage appends to an UNLOGGED audit_storage table on a
+// AuditStorage appends to the audit_storage table on a
 // separate Postgres pool. Writes are intentionally fire-then-fail-fast: no
 // retry layer, no cache layer. Duplicates are allowed at write time and
 // deduped on read.

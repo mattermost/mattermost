@@ -16,9 +16,9 @@ import (
 const auditStorageTableName = "audit_storage"
 
 // SqlAuditStorage writes user-post delivery events to an independent
-// Postgres pool. The backing table is UNLOGGED — no WAL, no replication,
-// truncated on crash — and has no unique index, so duplicates are allowed.
-// Callers dedupe on read.
+// Postgres pool. The backing table is a regular LOGGED table (WAL-backed,
+// crash-durable, replication-friendly) and has no unique index, so
+// duplicates are allowed. Callers dedupe on read.
 //
 // Bulk paths use Postgres' unnest() with array parameters: a single
 // INSERT … SELECT statement expands an array of N values into N rows
