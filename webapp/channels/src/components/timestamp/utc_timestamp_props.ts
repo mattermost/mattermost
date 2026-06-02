@@ -3,22 +3,21 @@
 
 import type {Props as TimestampProps} from './timestamp';
 
-const ABSOLUTE_DATE: TimestampProps['useDate'] = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-};
+export function formatUtcTimestamp(value: Date | number): string {
+    const date = value instanceof Date ? value : new Date(value);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hour = String(date.getUTCHours()).padStart(2, '0');
+    const minute = String(date.getUTCMinutes()).padStart(2, '0');
 
-const ABSOLUTE_TIME: TimestampProps['useTime'] = {
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-    timeZoneName: 'short',
-};
+    return `${year}-${month}-${day} ${hour}:${minute} UTC`;
+}
 
 export const UTC_TIMESTAMP_PROPS: Partial<TimestampProps> = {
     timeZone: 'UTC',
     useRelative: false,
-    useDate: ABSOLUTE_DATE,
-    useTime: ABSOLUTE_TIME,
+    useDate: false,
+    useTime: false,
+    children: ({value}) => formatUtcTimestamp(value),
 };
