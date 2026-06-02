@@ -552,8 +552,14 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 	}
 
 	prefixed := b.prefix(path)
-	now := time.Now().UTC()
-	expiry := now.Add(b.presignExpires)
+
+	// Back-date the start by a small fixed amount to absorb minor clock skew
+	// between this host and Azure, matching the azure-sdk-for-go SAS examples:
+	// https://github.com/Azure/azure-sdk-for-go/blob/65c3b792856d9ad7ce0b59c127ce299358e41a01/sdk/storage/azblob/sas/examples_test.go#L71
+	// https://github.com/Azure/azure-sdk-for-go/blob/65c3b792856d9ad7ce0b59c127ce299358e41a01/sdk/storage/azblob/service/examples_test.go#L315
+	const clockSkew = 10 * time.Second
+	start := time.Now().UTC().Add(-clockSkew)
+	expiry := start.Add(b.presignExpires)
 
 	protocol := sas.ProtocolHTTPSandHTTP
 	if b.ssl {
@@ -562,6 +568,7 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 
 	values := sas.BlobSignatureValues{
 		Protocol:      protocol,
+		StartTime:     start,
 		ExpiryTime:    expiry,
 		Permissions:   (&sas.BlobPermissions{Read: true}).String(),
 		ContainerName: b.container,
@@ -586,17 +593,6 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 	case model.AzureAuthModeDefaultCredential:
 		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 		defer cancel()
-		// Back-date the key's validity by 5 minutes to absorb clock skew
-		// between this host and Entra ID. Azure caps user-delegation key
-		// lifetimes at 7 days, so when presignExpires is close to that
-		// ceiling we shave the back-date so the requested duration stays
-		// in range. Config.IsValid already enforces a 7-day max, this is
-		// defense in depth.
-		const maxKeyLifetime = model.MaxAzurePresignExpiresSeconds * time.Second
-		start := now.Add(-5 * time.Minute)
-		if expiry.Sub(start) > maxKeyLifetime {
-			start = expiry.Add(-maxKeyLifetime)
-		}
 		udc, udcErr := b.client.ServiceClient().GetUserDelegationCredential(ctx, service.KeyInfo{
 			Start:  new(start.Format(sas.TimeFormat)),
 			Expiry: new(expiry.Format(sas.TimeFormat)),
