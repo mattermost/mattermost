@@ -450,9 +450,18 @@ $mm-blocks-container-max-heights: (
                 background: $mm-blocks-surface-subtle;
             }
 
+            &__toggle {
+                display: flex;
+                flex-shrink: 0;
+                align-items: center;
+                align-self: stretch;
+                padding: 0;
+            }
+
             &__body {
                 min-width: 0;
                 flex: 1 1 auto;
+                cursor: pointer;
             }
 
             &__chevron {
@@ -478,6 +487,15 @@ $mm-blocks-container-max-heights: (
 
             .mm-blocks-collapsible-content {
                 max-height: none;
+
+                // Collapse animation needs overflow clipping; allow autocomplete dropdowns to escape when open.
+                &:focus-within {
+                    overflow: visible;
+
+                    .mm-blocks-collapsible-content__inner {
+                        overflow: visible;
+                    }
+                }
             }
         }
 

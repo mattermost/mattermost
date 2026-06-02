@@ -15,6 +15,8 @@ import type {
     MmContainerGap,
 } from '@mattermost/types/mm_blocks';
 
+import {makeIsEligibleForClick} from 'utils/utils';
+
 import {ButtonElement} from './button_element';
 import {MmBlocksChildLayoutContext} from './context';
 import {DividerBlock} from './divider_block';
@@ -271,6 +273,16 @@ type CollapsibleBlockProps = {
     onAction: ActionHandler;
 };
 
+const MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR = [
+    '.select-suggestion-container',
+    '.mm-blocks-select',
+    '.suggestion-list',
+    '.mm-blocks-image',
+    '.InlineActionButton',
+].join(', ');
+
+const isCollapsibleHeaderToggleClick = makeIsEligibleForClick(MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR);
+
 const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
     const initiallyCollapsed = block.collapsed !== false;
     const [collapsed, setCollapsed] = useState<boolean>(initiallyCollapsed);
@@ -301,6 +313,12 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
             setContentMaxHeight(inner.scrollHeight);
         });
     }, [collapsed]);
+    const handleHeaderBodyClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isCollapsibleHeaderToggleClick(e)) {
+            return;
+        }
+        toggleCollapsed();
+    }, [toggleCollapsed]);
     const handleContentTransitionEnd = useCallback((event: React.TransitionEvent<HTMLDivElement>) => {
         if (event.propertyName !== 'max-height' || event.target !== event.currentTarget) {
             return;
@@ -328,27 +346,34 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
 
     return (
         <div className={classNames('mm-blocks-collapsible', {'mm-blocks-collapsible--expanded': !collapsed})}>
-            <button
-                className='mm-blocks-collapsible-header style--none'
-                onClick={toggleCollapsed}
-                aria-expanded={!collapsed}
-                aria-controls={contentId}
-                type='button'
-            >
-                <span
-                    className='mm-blocks-collapsible-header__chevron'
-                    aria-hidden='true'
+            <div className='mm-blocks-collapsible-header'>
+                <button
+                    type='button'
+                    className='mm-blocks-collapsible-header__toggle style--none'
+                    onClick={toggleCollapsed}
+                    aria-expanded={!collapsed}
+                    aria-controls={contentId}
                 >
-                    <i className='icon icon-chevron-right'/>
-                </span>
-                <span className='mm-blocks-collapsible-header__body'>
+                    <span
+                        className='mm-blocks-collapsible-header__chevron'
+                        aria-hidden='true'
+                    >
+                        <i className='icon icon-chevron-right'/>
+                    </span>
+                </button>
+                {/* Chevron toggle is the keyboard-accessible control; body click expands/collapses for non-interactive header areas only. */}
+                {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
+                <div
+                    className='mm-blocks-collapsible-header__body'
+                    onClick={handleHeaderBodyClick}
+                >
                     <ContainerBlock
                         block={innerHeaderBlock}
                         postId={postId}
                         onAction={onAction}
                     />
-                </span>
-            </button>
+                </div>
+            </div>
             <div
                 id={contentId}
                 className='mm-blocks-collapsible-content'

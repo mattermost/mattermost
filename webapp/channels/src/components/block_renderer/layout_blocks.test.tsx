@@ -129,11 +129,33 @@ describe('BlockSwitch', () => {
         expect(content).toHaveAttribute('aria-hidden', 'true');
         expect(toggle.closest('.mm-blocks-collapsible')).not.toHaveClass('mm-blocks-collapsible--expanded');
 
-        await user.click(toggle);
+        await user.click(screen.getByText('Header line'));
         expect(screen.getByRole('button', {expanded: true})).toBeInTheDocument();
         expect(content).toHaveAttribute('aria-hidden', 'false');
         expect(toggle.closest('.mm-blocks-collapsible')).toHaveClass('mm-blocks-collapsible--expanded');
         expect(screen.getByText('Hidden body')).toBeInTheDocument();
+    });
+
+    it('does not toggle collapsible when clicking an interactive header element', async () => {
+        const user = userEvent.setup();
+        renderWithContext(
+            <BlockSwitch
+                block={{
+                    type: 'collapsible',
+                    collapsed: true,
+                    header: [{type: 'button', text: 'Header action', action_id: 'header_action'}],
+                    content: [{type: 'text', text: 'Hidden body'}],
+                }}
+                postId='post-collapse-action'
+                onAction={onAction}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', {name: 'Header action'}));
+
+        expect(screen.getByRole('button', {expanded: false})).toBeInTheDocument();
+        expect(document.getElementById('mm-blocks-collapsible-content-post-collapse-action')).toHaveAttribute('aria-hidden', 'true');
+        expect(onAction).toHaveBeenCalledWith('header_action', undefined, undefined, undefined);
     });
 });
 

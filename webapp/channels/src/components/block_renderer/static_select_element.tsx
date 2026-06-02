@@ -152,6 +152,7 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
                     inputClassName='mm-blocks-select'
                     value={value}
                     toggleFocus={handlePopupOpened}
+                    listPosition='auto'
                     disabled={interactionsDisabled || element.disabled === true || isExecuting}
                 />
             )}
