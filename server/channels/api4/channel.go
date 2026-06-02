@@ -432,6 +432,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if patch.GroupConstrained != nil && !oldChannel.SupportsGroupSync() {
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.group_constrained_not_allowed.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	switch oldChannel.Type {
 	case model.ChannelTypeOpen:
 		if updatingProperties {
