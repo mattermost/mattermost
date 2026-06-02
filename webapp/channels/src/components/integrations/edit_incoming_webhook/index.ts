@@ -7,8 +7,10 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {loadBots} from 'mattermost-redux/actions/bots';
 import {getIncomingHook, updateIncomingHook} from 'mattermost-redux/actions/integrations';
 import {Permissions} from 'mattermost-redux/constants';
+import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
@@ -33,6 +35,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         enablePostUsernameOverride,
         enablePostIconOverride,
         canBypassChannelLock,
+        bots: Object.values(getExternalBotAccounts(state)),
     };
 }
 
@@ -41,6 +44,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             updateIncomingHook,
             getIncomingHook,
+            getBots: () => loadBots(0, 1000),
         }, dispatch),
     };
 }

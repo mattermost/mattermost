@@ -8,6 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
+import type {Bot} from '@mattermost/types/bots';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -23,6 +24,7 @@ interface State {
     channelLocked: boolean;
     username: string;
     iconURL: string;
+    botUserId: string;
     saving: boolean;
     serverError: string;
     clientError: JSX.Element | null;
@@ -76,9 +78,22 @@ interface Props {
     canBypassChannelLock?: boolean;
 
     /**
+    * The bot accounts that can be selected as the post author.
+    */
+    bots: Bot[];
+
+    /**
     * The async function to run when the action button is pressed
     */
     action: (hook: IncomingWebhook) => Promise<void>;
+
+    actions: {
+
+        /**
+        * The function to load the available bot accounts.
+        */
+        getBots: () => void;
+    };
 }
 
 export default class AbstractIncomingWebhook extends PureComponent<Props, State> {
@@ -86,6 +101,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         super(props);
 
         this.state = this.getStateFromHook(this.props.initialHook);
+    }
+
+    componentDidMount() {
+        this.props.actions.getBots();
     }
 
     getStateFromHook = (hook?: IncomingWebhook) => {
@@ -96,6 +115,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             channelLocked: hook?.channel_locked || false,
             username: hook?.username || '',
             iconURL: hook?.icon_url || '',
+            botUserId: hook?.bot_user_id || '',
             saving: false,
             serverError: '',
             clientError: null,
@@ -136,6 +156,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             description: this.state.description,
             username: this.state.username,
             icon_url: this.state.iconURL,
+            bot_user_id: this.state.botUserId,
             id: this.props.initialHook?.id || '',
             create_at: this.props.initialHook?.create_at || 0,
             update_at: this.props.initialHook?.update_at || 0,
@@ -181,6 +202,12 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
     updateIconURL: ChangeEventHandler<HTMLInputElement> = (e) => {
         this.setState({
             iconURL: e.target.value,
+        });
+    };
+
+    updateBotUserId: ChangeEventHandler<HTMLSelectElement> = (e) => {
+        this.setState({
+            botUserId: e.target.value,
         });
     };
 
@@ -283,6 +310,43 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     <FormattedMessage
                                         id='add_incoming_webhook.channel.help'
                                         defaultMessage='This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.'
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-4'
+                                htmlFor='botUserId'
+                            >
+                                <FormattedMessage
+                                    id='add_incoming_webhook.postAuthor'
+                                    defaultMessage='Post Author'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-8'>
+                                <select
+                                    id='botUserId'
+                                    className='form-control'
+                                    value={this.state.botUserId}
+                                    onChange={this.updateBotUserId}
+                                >
+                                    <option value=''>
+                                        {'System Bot'}
+                                    </option>
+                                    {this.props.bots.map((bot) => (
+                                        <option
+                                            key={bot.user_id}
+                                            value={bot.user_id}
+                                        >
+                                            {bot.display_name ? `${bot.display_name} (@${bot.username})` : `@${bot.username}`}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_incoming_webhook.postAuthor.help'
+                                        defaultMessage='Select the bot account that authors posts from this webhook. Defaults to the System Bot. The webhook creator remains the owner regardless of this setting.'
                                     />
                                 </div>
                             </div>

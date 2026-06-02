@@ -146,6 +146,8 @@
   "add_incoming_webhook.doneHelp": "Your incoming webhook is set up. Please send data to the following URL (details at <link>Incoming Webhooks</link>).",
   "add_incoming_webhook.icon_url": "Profile Picture",
   "add_incoming_webhook.icon_url.help": "Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.",
+  "add_incoming_webhook.postAuthor": "Post Author",
+  "add_incoming_webhook.postAuthor.help": "Select the bot account that authors posts from this webhook. Defaults to the System Bot. The webhook creator remains the owner regardless of this setting.",
   "add_incoming_webhook.save": "Save",
   "add_incoming_webhook.saving": "Saving...",
   "add_incoming_webhook.url": "<b>URL</b>: {url}",

@@ -294,6 +294,7 @@ export class TestHelper {
             username: '',
             icon_url: '',
             channel_locked: false,
+            bot_user_id: '',
         };
         return Object.assign({}, defaultIncomingWebhook, override);
     }

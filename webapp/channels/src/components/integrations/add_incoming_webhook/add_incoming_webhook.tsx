@@ -4,6 +4,7 @@
 import React, {memo, useCallback, useState} from 'react';
 import {defineMessages} from 'react-intl';
 
+import type {Bot} from '@mattermost/types/bots';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -50,12 +51,22 @@ type Props = {
     */
     canBypassChannelLock?: boolean;
 
+    /**
+    * The bot accounts that can be selected as the post author.
+    */
+    bots: Bot[];
+
     actions: {
 
         /**
         * The function to call to add a new incoming webhook
         */
         createIncomingHook: (hook: IncomingWebhook) => Promise<ActionResult<IncomingWebhook>>;
+
+        /**
+        * The function to load the available bot accounts.
+        */
+        getBots: () => void;
     };
 };
 
@@ -64,6 +75,7 @@ const AddIncomingWebhook = ({
     enablePostUsernameOverride,
     enablePostIconOverride,
     canBypassChannelLock,
+    bots,
     actions,
 }: Props) => {
     const [serverError, setServerError] = useState('');
@@ -90,6 +102,8 @@ const AddIncomingWebhook = ({
             enablePostUsernameOverride={enablePostUsernameOverride}
             enablePostIconOverride={enablePostIconOverride}
             canBypassChannelLock={canBypassChannelLock}
+            bots={bots}
+            actions={actions}
             action={addIncomingHook}
             serverError={serverError}
         />
