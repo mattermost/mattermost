@@ -9,6 +9,7 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -210,6 +211,66 @@ func TestExtractWithExtraExtractors(t *testing.T) {
 		assert.Contains(t, text, "simple")
 		assert.Contains(t, text, "document")
 		assert.Contains(t, text, "contains")
+	})
+}
+
+type slowExtractor struct {
+	delay time.Duration
+}
+
+func (se *slowExtractor) Name() string { return "slowExtractor" }
+
+func (se *slowExtractor) Match(filename string) bool { return true }
+
+func (se *slowExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+	time.Sleep(se.delay)
+	return "done", nil
+}
+
+func TestExtractTimeout(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	data := []byte("hello world")
+
+	t.Run("aborts a slow extraction once the timeout elapses", func(t *testing.T) {
+		start := time.Now()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 50 * time.Millisecond}, []Extractor{&slowExtractor{delay: 10 * time.Second}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Contains(t, err.Error(), "timed out")
+		assert.Less(t, elapsed, 5*time.Second, "should return shortly after the timeout, not wait for the extraction")
+	})
+
+	t.Run("returns the result when extraction finishes within the timeout", func(t *testing.T) {
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 5 * time.Second}, []Extractor{&slowExtractor{delay: 10 * time.Millisecond}})
+		require.NoError(t, err)
+		require.Equal(t, "done", text)
+	})
+
+	t.Run("a zero timeout disables the bound", func(t *testing.T) {
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 0}, []Extractor{&slowExtractor{delay: 10 * time.Millisecond}})
+		require.NoError(t, err)
+		require.Equal(t, "done", text)
+	})
+}
+
+func TestDocumentMaxFileSize(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	data, err := testutils.ReadTestFile("sample-doc.docx")
+	require.NoError(t, err)
+
+	t.Run("a generous limit extracts the document content", func(t *testing.T) {
+		text, err := Extract(logger, "sample-doc.docx", bytes.NewReader(data), ExtractSettings{MaxFileSize: 10 * 1024 * 1024})
+		require.NoError(t, err)
+		assert.Contains(t, text, "simple")
+	})
+
+	t.Run("a tiny limit prevents the document content from being extracted", func(t *testing.T) {
+		text, err := Extract(logger, "sample-doc.docx", bytes.NewReader(data), ExtractSettings{MaxFileSize: 16})
+		require.NoError(t, err)
+		assert.NotContains(t, text, "simple")
 	})
 }
 

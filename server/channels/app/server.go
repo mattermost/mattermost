@@ -876,6 +876,13 @@ func (s *Server) GoBuffered(f func()) {
 	s.platform.GoBuffered(f)
 }
 
+// GoExtraction submits f to the bounded document extraction worker pool without
+// blocking the caller. It returns false if the pool is saturated and f was not
+// run, in which case the work is left for the periodic ExtractContent job.
+func (s *Server) GoExtraction(f func()) bool {
+	return s.platform.GoExtraction(f)
+}
+
 var corsAllowedMethods = []string{
 	"POST",
 	"GET",

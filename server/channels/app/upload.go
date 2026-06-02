@@ -349,12 +349,14 @@ func (a *App) UploadData(rctx request.CTX, us *model.UploadSession, rd io.Reader
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		a.Srv().Go(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
 				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
-		})
+		}) {
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; content will be backfilled by the ExtractContent job", mlog.String("fileInfoId", infoCopy.Id))
+		}
 	}
 
 	// delete upload session
