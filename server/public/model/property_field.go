@@ -41,6 +41,11 @@ const (
 	PermissionLevelNone     PermissionLevel = "none"
 	PermissionLevelSysadmin PermissionLevel = "sysadmin"
 	PermissionLevelMember   PermissionLevel = "member"
+	// PermissionLevelAdmin resolves to the admin of the field's target: sysadmin
+	// for system targets, team admin for team targets, channel admin for
+	// channel targets. The specific permission checked per scope is documented
+	// at hasPropertyFieldPermissionLevel in the app package.
+	PermissionLevelAdmin PermissionLevel = "admin"
 
 	PropertyFieldObjectTypePost     = "post"
 	PropertyFieldObjectTypeChannel  = "channel"
@@ -48,13 +53,15 @@ const (
 	PropertyFieldObjectTypeTemplate = "template"
 
 	PropertyFieldObjectTypeSystem = "system"
-
-	// NOTE: Temporarily using this until CPA is migrated to v2
-	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
-var validPermissionLevels = []PermissionLevel{PermissionLevelNone, PermissionLevelSysadmin, PermissionLevelMember}
+var validPermissionLevels = []PermissionLevel{
+	PermissionLevelNone,
+	PermissionLevelSysadmin,
+	PermissionLevelMember,
+	PermissionLevelAdmin,
+}
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
 var validPSAv2TargetTypes = []string{

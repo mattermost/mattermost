@@ -46,7 +46,7 @@ describe('User Management', () => {
 
         verifyManageUserSettingModal(testUser, true);
 
-        cy.get('#replyNotificationsTitle').should('be.visible').should('have.text', 'Reply notifications').click();
+        cy.findByRole('heading', {name: 'Reply notifications'}).scrollIntoView().click();
         cy.get('#notificationCommentsNever').should('be.checked');
         cy.get('#notificationCommentsAny').check();
         cy.get('button#saveSetting').last().scrollIntoView().click();
@@ -56,7 +56,7 @@ describe('User Management', () => {
 
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
         cy.get('[aria-label="Settings"]').click();
-        cy.get('#replyNotificationsTitle').should('be.visible').should('have.text', 'Reply notifications').click();
+        cy.findByRole('heading', {name: 'Reply notifications'}).scrollIntoView().click();
         cy.get('#notificationCommentsAny').should('be.checked');
         cy.apiLogout();
     });

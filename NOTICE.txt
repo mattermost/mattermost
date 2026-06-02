@@ -2608,42 +2608,6 @@ SOFTWARE.
 
 ---
 
-## Azure/azure-sdk-for-go
-
-This product contains 'Azure/azure-sdk-for-go' by Microsoft Azure.
-
-This repository is for active development of the Azure SDK for Go. For consumers of the SDK we recommend visiting our public developer docs at:
-
-* HOMEPAGE:
-  * https://docs.microsoft.com/azure/developer/go/
-
-* LICENSE: MIT License
-
-The MIT License (MIT)
-
-Copyright (c) Microsoft Corporation.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
----
-
 ## Go
 
 This product uses the Go programming language by the Go authors.
@@ -11240,7 +11204,7 @@ SOFTWARE.
 
 ## react-intl
 
-This product contains 'react-intl' by Eric Ferraiuolo.
+This product contains 'react-intl'.
 
 Internationalize React apps. This library provides React components and an API to format dates, numbers, and strings, including pluralization and handling translations.
 
@@ -11255,7 +11219,7 @@ Internationalize React apps. This library provides React components and an API t
 
 ## react-intl
 
-This product contains 'react-intl' by Eric Ferraiuolo.
+This product contains 'react-intl'.
 
 Internationalize React apps. This library provides React components and an API to format dates, numbers, and strings, including pluralization and handling translations.
 

@@ -18,6 +18,7 @@ func TestUserAccessTokenStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, rctx, ss) })
 	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, rctx, ss) })
 	t.Run("UserAccessTokenPagination", func(t *testing.T) { testUserAccessTokenPagination(t, rctx, ss) })
+	t.Run("UserAccessTokenExpiry", func(t *testing.T) { testUserAccessTokenExpiry(t, rctx, ss) })
 }
 
 func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -244,4 +245,114 @@ func testUserAccessTokenPagination(t *testing.T, rctx request.CTX, ss store.Stor
 	result, nErr = ss.UserAccessToken().GetByUser(model.NewId(), 0, 100)
 	require.NoError(t, nErr)
 	require.Len(t, result, 0, "Should return 0 tokens for non-existent user")
+}
+
+func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
+	now := model.GetMillis()
+
+	// Non-expiring token (ExpiresAt == 0)
+	nonExpiring := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      model.NewId(),
+		Description: "non-expiring",
+	}
+	_, err := ss.UserAccessToken().Save(nonExpiring)
+	require.NoError(t, err)
+
+	// Token already expired
+	expired := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      model.NewId(),
+		Description: "expired",
+		ExpiresAt:   now - 60*1000,
+	}
+	expiredSession := &model.Session{UserId: expired.UserId, Token: expired.Token}
+	_, sErr := ss.Session().Save(rctx, expiredSession)
+	require.NoError(t, sErr)
+	_, err = ss.UserAccessToken().Save(expired)
+	require.NoError(t, err)
+
+	// Token expiring in the future
+	future := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      model.NewId(),
+		Description: "future",
+		ExpiresAt:   now + 60*60*1000,
+	}
+	_, err = ss.UserAccessToken().Save(future)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		// Delete all three fixtures (expired included) so the test stays
+		// isolated even on early exit before DeleteByIds runs.
+		_ = ss.UserAccessToken().Delete(nonExpiring.Id)
+		_ = ss.UserAccessToken().Delete(future.Id)
+		_ = ss.UserAccessToken().Delete(expired.Id)
+	})
+
+	// The stored value should be persisted and returned
+	stored, err := ss.UserAccessToken().Get(expired.Id)
+	require.NoError(t, err)
+	require.Equal(t, expired.ExpiresAt, stored.ExpiresAt)
+
+	storedNonExpiring, err := ss.UserAccessToken().Get(nonExpiring.Id)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), storedNonExpiring.ExpiresAt)
+
+	// GetExpiredBefore should only return the expired token and must not leak
+	// the secret token value (the Token column is intentionally not selected).
+	expiredRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100)
+	require.NoError(t, err)
+	found := false
+	for _, row := range expiredRows {
+		// The Token column is never selected by GetExpiredBefore, so no row —
+		// not just the matched expired one — should ever carry the secret.
+		require.Empty(t, row.Token, "GetExpiredBefore must never return the secret Token value")
+		if row.Id == expired.Id {
+			require.Equal(t, expired.ExpiresAt, row.ExpiresAt)
+			found = true
+		}
+		require.NotEqual(t, nonExpiring.Id, row.Id, "non-expiring token must not be returned")
+		require.NotEqual(t, future.Id, row.Id, "future token must not be returned")
+	}
+	require.True(t, found, "expired token should be present in GetExpiredBefore results")
+
+	// Negative or zero limits short-circuit and return an empty slice without
+	// hitting the DB; verify the contract holds.
+	zeroLimit, err := ss.UserAccessToken().GetExpiredBefore(now, 0)
+	require.NoError(t, err)
+	require.Empty(t, zeroLimit)
+	negativeLimit, err := ss.UserAccessToken().GetExpiredBefore(now, -5)
+	require.NoError(t, err)
+	require.Empty(t, negativeLimit)
+
+	// DeleteByIds on the expired token removes it and its session but leaves
+	// the other two tokens alone.
+	deleted, err := ss.UserAccessToken().DeleteByIds([]string{expired.Id})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), deleted)
+
+	_, err = ss.UserAccessToken().Get(expired.Id)
+	require.Error(t, err, "expired token should be deleted")
+
+	_, err = ss.Session().Get(rctx, expiredSession.Token)
+	require.Error(t, err, "session for expired token should be deleted")
+
+	stillThere, err := ss.UserAccessToken().Get(nonExpiring.Id)
+	require.NoError(t, err)
+	require.Equal(t, nonExpiring.Id, stillThere.Id)
+
+	stillThere, err = ss.UserAccessToken().Get(future.Id)
+	require.NoError(t, err)
+	require.Equal(t, future.Id, stillThere.Id)
+
+	// DeleteByIds with an empty slice is a no-op, and with a non-matching id
+	// returns 0 without error.
+	deleted, err = ss.UserAccessToken().DeleteByIds(nil)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), deleted)
+
+	deleted, err = ss.UserAccessToken().DeleteByIds([]string{model.NewId()})
+	require.NoError(t, err)
+	require.Equal(t, int64(0), deleted)
 }

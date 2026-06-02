@@ -26,6 +26,7 @@ type TimerLayer struct {
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
+	ChannelGuardStore               store.ChannelGuardStore
 	ChannelJoinRequestStore         store.ChannelJoinRequestStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
@@ -63,6 +64,7 @@ type TimerLayer struct {
 	ScheduledPostStore              store.ScheduledPostStore
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
+	SessionAttributeStore           store.SessionAttributeStore
 	SharedChannelStore              store.SharedChannelStore
 	StatusStore                     store.StatusStore
 	SystemStore                     store.SystemStore
@@ -105,6 +107,10 @@ func (s *TimerLayer) Channel() store.ChannelStore {
 
 func (s *TimerLayer) ChannelBookmark() store.ChannelBookmarkStore {
 	return s.ChannelBookmarkStore
+}
+
+func (s *TimerLayer) ChannelGuard() store.ChannelGuardStore {
+	return s.ChannelGuardStore
 }
 
 func (s *TimerLayer) ChannelJoinRequest() store.ChannelJoinRequestStore {
@@ -255,6 +261,10 @@ func (s *TimerLayer) Session() store.SessionStore {
 	return s.SessionStore
 }
 
+func (s *TimerLayer) SessionAttribute() store.SessionAttributeStore {
+	return s.SessionAttributeStore
+}
+
 func (s *TimerLayer) SharedChannel() store.SharedChannelStore {
 	return s.SharedChannelStore
 }
@@ -343,6 +353,11 @@ type TimerLayerChannelStore struct {
 
 type TimerLayerChannelBookmarkStore struct {
 	store.ChannelBookmarkStore
+	Root *TimerLayer
+}
+
+type TimerLayerChannelGuardStore struct {
+	store.ChannelGuardStore
 	Root *TimerLayer
 }
 
@@ -531,6 +546,11 @@ type TimerLayerSessionStore struct {
 	Root *TimerLayer
 }
 
+type TimerLayerSessionAttributeStore struct {
+	store.SessionAttributeStore
+	Root *TimerLayer
+}
+
 type TimerLayerSharedChannelStore struct {
 	store.SharedChannelStore
 	Root *TimerLayer
@@ -629,6 +649,38 @@ func (s *TimerLayerAccessControlPolicyStore) Get(rctx request.CTX, id string) (*
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetActionsForPolicies(rctx, policyIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetActionsForPolicies", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetActionsForPolicy(rctx, policyID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetActionsForPolicy", success, elapsed)
 	}
 	return result, err
 }
@@ -1907,6 +1959,22 @@ func (s *TimerLayerChannelStore) GetDeletedByName(teamID string, name string) (*
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	start := time.Now()
+
+	result, resultVar1, resultVar2, err := s.ChannelStore.GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetDirectMessagesWithUnreadAndMentions", success, elapsed)
+	}
+	return result, resultVar1, resultVar2, err
+}
+
 func (s *TimerLayerChannelStore) GetFileCount(channelID string) (int64, error) {
 	start := time.Now()
 
@@ -2353,6 +2421,22 @@ func (s *TimerLayerChannelStore) GetTeamChannels(teamID string) (model.ChannelLi
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamChannels", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	start := time.Now()
+
+	result, resultVar1, resultVar2, err := s.ChannelStore.GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, userNotifyProps)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamChannelsWithUnreadAndMentions", success, elapsed)
+	}
+	return result, resultVar1, resultVar2, err
 }
 
 func (s *TimerLayerChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
@@ -3226,6 +3310,70 @@ func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.UpdateSortOrder", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.Delete", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
+	start := time.Now()
+
+	result, err := s.ChannelGuardStore.GetAll(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelGuardStore) GetForChannel(rctx request.CTX, channelID string) ([]*store.ChannelGuard, error) {
+	start := time.Now()
+
+	result, err := s.ChannelGuardStore.GetForChannel(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.GetForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelGuardStore) Save(rctx request.CTX, guard *store.ChannelGuard) error {
+	start := time.Now()
+
+	err := s.ChannelGuardStore.Save(rctx, guard)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.Save", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerChannelJoinRequestStore) CountPending(channelId string) (int64, error) {
@@ -8102,6 +8250,22 @@ func (s *TimerLayerPropertyFieldStore) CountForGroup(groupID string, includeDele
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) CountForGroupObjectType(groupID string, objectType string, includeDeleted bool) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.CountForGroupObjectType(groupID, objectType, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.CountForGroupObjectType", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) CountForTarget(groupID string, targetType string, targetID string, includeDeleted bool) (int64, error) {
 	start := time.Now()
 
@@ -10195,6 +10359,38 @@ func (s *TimerLayerSessionStore) UpdateRoles(userID string, roles string) (strin
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.UpdateRoles", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any, error) {
+	start := time.Now()
+
+	result, err := s.SessionAttributeStore.Get(sessionID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any) error {
+	start := time.Now()
+
+	err := s.SessionAttributeStore.Refresh(sessionID, attrs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Refresh", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerSharedChannelStore) Delete(channelID string) (bool, error) {
@@ -12704,6 +12900,22 @@ func (s *TimerLayerUserStore) DeactivateMagicLinkGuests() ([]string, error) {
 	return result, err
 }
 
+func (s *TimerLayerUserStore) DecrementFailedPasswordAttempts(userID string) error {
+	start := time.Now()
+
+	err := s.UserStore.DecrementFailedPasswordAttempts(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DecrementFailedPasswordAttempts", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 	start := time.Now()
 
@@ -13725,6 +13937,22 @@ func (s *TimerLayerUserStore) StoreMfaUsedTimestamps(userID string, ts []int) er
 	return err
 }
 
+func (s *TimerLayerUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.TryIncrementFailedPasswordAttempts", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 	start := time.Now()
 
@@ -13769,38 +13997,6 @@ func (s *TimerLayerUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.UpdateFailedPasswordAttempts", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
-	start := time.Now()
-
-	result, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.TryIncrementFailedPasswordAttempts", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerUserStore) DecrementFailedPasswordAttempts(userID string) error {
-	start := time.Now()
-
-	err := s.UserStore.DecrementFailedPasswordAttempts(userID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DecrementFailedPasswordAttempts", success, elapsed)
 	}
 	return err
 }
@@ -13963,6 +14159,38 @@ func (s *TimerLayerUserAccessTokenStore) DeleteAllForUser(userID string) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.DeleteAllForUser", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.UserAccessTokenStore.DeleteByIds(tokenIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.DeleteByIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+	start := time.Now()
+
+	result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.GetExpiredBefore", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerUserAccessTokenStore) Get(tokenID string) (*model.UserAccessToken, error) {
@@ -14711,6 +14939,10 @@ func (s *TimerLayer) TotalSearchDbConnections() int {
 	return s.Store.TotalSearchDbConnections()
 }
 
+func (s *TimerLayer) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
+	return s.Store.GetDiagnostics(ctx)
+}
+
 func (s *TimerLayer) UnlockFromMaster() {
 	s.Store.UnlockFromMaster()
 }
@@ -14728,6 +14960,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
+	newStore.ChannelGuardStore = &TimerLayerChannelGuardStore{ChannelGuardStore: childStore.ChannelGuard(), Root: &newStore}
 	newStore.ChannelJoinRequestStore = &TimerLayerChannelJoinRequestStore{ChannelJoinRequestStore: childStore.ChannelJoinRequest(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &TimerLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &TimerLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
@@ -14765,6 +14998,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.ScheduledPostStore = &TimerLayerScheduledPostStore{ScheduledPostStore: childStore.ScheduledPost(), Root: &newStore}
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
+	newStore.SessionAttributeStore = &TimerLayerSessionAttributeStore{SessionAttributeStore: childStore.SessionAttribute(), Root: &newStore}
 	newStore.SharedChannelStore = &TimerLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
 	newStore.StatusStore = &TimerLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
 	newStore.SystemStore = &TimerLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}

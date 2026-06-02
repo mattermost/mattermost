@@ -17,14 +17,9 @@ import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 
-import './policies.scss';
+import {MASKED_VALUE_TOKEN_LITERAL} from './editors/shared';
 
-// The server emits the eight-dash masked-token sentinel inside raw CEL expressions
-// when masking values the caller cannot see (e.g. `attr == "--------"`). The full
-// visual AST carries a typed `has_masked_values` flag per condition, but on the
-// policies list page we only have the raw expression strings — so we detect masking
-// by the quoted token substring.
-const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
+import './policies.scss';
 
 function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
     return policy.rules?.some((rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL)) ?? false;
@@ -252,7 +247,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                             if (props.onPolicySelected) {
                                                 props.onPolicySelected(policy);
                                             } else {
-                                                history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                                history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}

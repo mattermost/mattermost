@@ -16,7 +16,6 @@ import {
     CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
-    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -31,27 +30,6 @@ jest.mock('mattermost-redux/client');
 
 const TEMPLATE_FIELD_ID = 'template_field1';
 const LINKED_FIELD_ID = 'linked_field1';
-
-function makeTemplateField(options: Array<{id: string; name: string; color: string}>): PropertyField {
-    return {
-        id: TEMPLATE_FIELD_ID,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
-        name: 'classification',
-        type: 'select',
-        object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
-        target_id: '',
-        create_at: 1000,
-        update_at: 1000,
-        delete_at: 0,
-        created_by: 'user1',
-        updated_by: 'user1',
-        attrs: {
-            options: options.map((o, i) => ({id: o.id, name: o.name, color: o.color, rank: i + 1})),
-            managed: 'admin',
-        },
-    };
-}
 
 function makeLinkedField(actions: string[], options: Array<{id: string; name: string; color: string}> = []): PropertyField {
     return {
@@ -92,22 +70,17 @@ function makeSystemValue(optionId: string): PropertyValue<string> {
 }
 
 type StateOptions = {
-    templateField?: PropertyField | null;
     linkedField?: PropertyField | null;
     systemValue?: PropertyValue<string> | null;
     featureFlagEnabled?: boolean;
 };
 
 function makeState({
-    templateField = null,
     linkedField = null,
     systemValue = null,
     featureFlagEnabled = true,
 }: StateOptions = {}): DeepPartial<GlobalState> {
     const fieldsById: Record<string, PropertyField> = {};
-    if (templateField) {
-        fieldsById[templateField.id] = templateField;
-    }
     if (linkedField) {
         fieldsById[linkedField.id] = linkedField;
     }
@@ -152,13 +125,12 @@ describe('GlobalClassificationBanner', () => {
 
     test('renders top banner with level name and background color from template options', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value}),
+            makeState({linkedField: linked, systemValue: value}),
         );
 
         const banner = screen.getByTestId('global-classification-banner-top');
@@ -169,13 +141,12 @@ describe('GlobalClassificationBanner', () => {
 
     test('does not render when feature flag is off', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value, featureFlagEnabled: false}),
+            makeState({linkedField: linked, systemValue: value, featureFlagEnabled: false}),
         );
 
         expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
@@ -183,13 +154,12 @@ describe('GlobalClassificationBanner', () => {
 
     test('does not render when linked field has no display actions', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value}),
+            makeState({linkedField: linked, systemValue: value}),
         );
 
         expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
@@ -197,12 +167,11 @@ describe('GlobalClassificationBanner', () => {
 
     test('does not render when system property value is absent', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: null}),
+            makeState({linkedField: linked, systemValue: null}),
         );
 
         expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
@@ -210,13 +179,12 @@ describe('GlobalClassificationBanner', () => {
 
     test('does not render when option ID in value does not match any template option', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('nonexistent_id');
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value}),
+            makeState({linkedField: linked, systemValue: value}),
         );
 
         expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
@@ -224,13 +192,12 @@ describe('GlobalClassificationBanner', () => {
 
     test('renders bottom banner when linked field has display_banner_bottom action', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
             <GlobalClassificationBanner position='bottom'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value}),
+            makeState({linkedField: linked, systemValue: value}),
         );
 
         expect(screen.getByTestId('global-classification-banner-bottom')).toBeInTheDocument();
@@ -239,13 +206,12 @@ describe('GlobalClassificationBanner', () => {
 
     test('does not render bottom banner when linked field only has display_banner_top', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
             <GlobalClassificationBanner position='bottom'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value}),
+            makeState({linkedField: linked, systemValue: value}),
         );
 
         expect(screen.queryByTestId('global-classification-banner-bottom')).not.toBeInTheDocument();
@@ -253,26 +219,23 @@ describe('GlobalClassificationBanner', () => {
 
     test('renders top banner when both actions are present', () => {
         const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value}),
+            makeState({linkedField: linked, systemValue: value}),
         );
 
         expect(screen.getByTestId('global-classification-banner-top')).toBeInTheDocument();
     });
 
     test('does not render when linked field is not in store', () => {
-        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: null, systemValue: value}),
+            makeState({linkedField: null, systemValue: value}),
         );
 
         expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
@@ -292,13 +255,12 @@ describe('GlobalClassificationBanner', () => {
             {id: 'opt1', name: 'UNCLASSIFIED', color: '#007A33'},
             {id: 'opt2', name: 'TOP SECRET', color: '#FCE83A'},
         ];
-        const template = makeTemplateField(options);
         const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt2'); // points to TOP SECRET
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: linked, systemValue: value}),
+            makeState({linkedField: linked, systemValue: value}),
         );
 
         const banner = screen.getByTestId('global-classification-banner-top');
@@ -307,13 +269,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('triggers bootstrap fetch for linked fields when not in store', () => {
-        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
-        const template = makeTemplateField(options);
-
-        // Template is in store but linked field is not.
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
-            makeState({templateField: template, linkedField: null}),
+            makeState({linkedField: null}),
         );
 
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
