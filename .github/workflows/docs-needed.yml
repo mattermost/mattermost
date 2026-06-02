@@ -491,7 +491,13 @@ jobs:
             # and may contain newlines, quotes, or be very long. Strip control
             # characters and truncate to 72 chars (git convention).
             PR_TITLE_SHORT=$(printf '%s' "$PR_TITLE" | tr -d '\n\r' | cut -c1-72)
-            git commit -m "docs: draft for ${SOURCE_REPO}#${PR_NUMBER} - ${PR_TITLE_SHORT}"
+            # Use printf with a literal format string and positional arguments,
+            # then pipe to -F - so the message is never interpolated into a
+            # shell command string. This avoids any risk of shell metacharacters
+            # in PR_TITLE_SHORT being evaluated.
+            printf 'docs: draft for %s#%s - %s\n' \
+              "$SOURCE_REPO" "$PR_NUMBER" "$PR_TITLE_SHORT" \
+              | git commit -F -
             git push origin "$BRANCH"
           fi
  
