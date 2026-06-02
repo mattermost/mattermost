@@ -220,7 +220,7 @@ const defaultServerConfig: AdminConfig = {
         SiteName: 'Mattermost',
         MaxUsersPerTeam: 50,
         EnableJoinLeaveMessageByDefault: true,
-        EnableUtcTimestampsByDefault: false,
+        TimestampDisplayDefault: 'default',
         EnableUserCreation: true,
         EnableOpenServer: false,
         EnableUserDeactivation: false,

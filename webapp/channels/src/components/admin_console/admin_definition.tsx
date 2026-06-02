@@ -3103,10 +3103,24 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
-                            type: 'bool',
-                            key: 'TeamSettings.EnableUtcTimestampsByDefault',
-                            label: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultTitle', defaultMessage: 'Enable ISO timestamp view by default:'}),
-                            help_text: defineMessage({id: 'admin.team.enableUtcTimestampsByDefaultDescription', defaultMessage: 'When true, new users see post timestamps in ISO 8601 format using their timezone setting by default. Users can override this in Account Settings > Display > ISO timestamp view.'}),
+                            type: 'dropdown',
+                            key: 'TeamSettings.TimestampDisplayDefault',
+                            label: defineMessage({id: 'admin.team.timestampDisplayDefaultTitle', defaultMessage: 'Default post timestamp display:'}),
+                            help_text: defineMessage({id: 'admin.team.timestampDisplayDefaultDescription', defaultMessage: 'Choose how post timestamps are shown for new users by default. Users can override this in Account Settings > Display > Post timestamps.'}),
+                            options: [
+                                {
+                                    value: 'default',
+                                    display_name: defineMessage({id: 'admin.team.timestampDisplayDefaultStandard', defaultMessage: 'Standard'}),
+                                },
+                                {
+                                    value: 'iso',
+                                    display_name: defineMessage({id: 'admin.team.timestampDisplayDefaultIso', defaultMessage: 'ISO'}),
+                                },
+                                {
+                                    value: 'offset',
+                                    display_name: defineMessage({id: 'admin.team.timestampDisplayDefaultOffset', defaultMessage: 'With UTC offset'}),
+                                },
+                            ],
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {

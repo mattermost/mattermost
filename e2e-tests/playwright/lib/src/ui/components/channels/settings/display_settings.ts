@@ -23,7 +23,7 @@ export type DisplaySettingsSection =
 const sectionTitles: Record<DisplaySettingsSection, string> = {
     theme: 'Theme',
     clockDisplay: 'Clock Display',
-    timestampDisplay: 'ISO timestamp view',
+    timestampDisplay: 'Post timestamps',
     teammateNameDisplay: 'Teammate Name Display',
     availabilityStatusOnPosts: 'Show online availability on profile images',
     lastActiveTime: 'Share last active time',
@@ -71,7 +71,7 @@ export default class DisplaySettings {
         // Edit buttons for each setting section - IDs are {section}Edit pattern from webapp
         this.themeEditButton = container.locator('#themeEdit');
         this.clockDisplayEditButton = container.locator('#clockEdit');
-        this.timestampDisplayEditButton = container.locator('#utcTimestampsEdit');
+        this.timestampDisplayEditButton = container.locator('#timestampDisplayEdit');
         this.teammateNameDisplayEditButton = container.locator('#name_formatEdit');
         this.availabilityStatusOnPostsEditButton = container.locator('#availabilityStatusEdit');
         this.lastActiveTimeEditButton = container.locator('#lastactiveEdit');

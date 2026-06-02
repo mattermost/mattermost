@@ -41,7 +41,7 @@ type Props = {
     replyListIds: string[];
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
-    utcTimestampProps?: Partial<TimestampProps>;
+    customTimestampProps?: Partial<TimestampProps>;
     isMobileView: boolean;
     isThreadView: boolean;
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
@@ -373,7 +373,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
-                    timestampProps={this.props.utcTimestampProps || (this.props.useRelativeTimestamp ? THREADING_TIME : undefined)}
+                    timestampProps={this.props.customTimestampProps || (this.props.useRelativeTimestamp ? THREADING_TIME : undefined)}
                     threadId={this.props.selected.id}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                     isChannelAutotranslated={this.props.isChannelAutotranslated}

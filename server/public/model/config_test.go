@@ -705,11 +705,11 @@ func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	require.Equal(t, new(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
 }
 
-func TestTeamSettingsDefaultUtcTimestamps(t *testing.T) {
+func TestTeamSettingsDefaultTimestampDisplay(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	require.Equal(t, new(false), c1.TeamSettings.EnableUtcTimestampsByDefault)
+	require.Equal(t, new(TimestampDisplayDefaultSetting), c1.TeamSettings.TimestampDisplayDefault)
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {

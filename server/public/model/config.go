@@ -111,6 +111,10 @@ const (
 	CollapsedThreadsDefaultOff = "default_off"
 	CollapsedThreadsAlwaysOn   = "always_on"
 
+	TimestampDisplayDefaultSetting = "default"
+	TimestampDisplayIso            = "iso"
+	TimestampDisplayOffset         = "offset"
+
 	EmailBatchingBufferSize = 256
 	EmailBatchingInterval   = 30
 
@@ -2517,7 +2521,7 @@ type TeamSettings struct {
 	SiteName                        *string `access:"site_customization"`
 	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
-	EnableUtcTimestampsByDefault    *bool   `access:"site_users_and_teams"`
+	TimestampDisplayDefault         *string `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
 	EnableUserDeactivation          *bool   `access:"experimental_features"`
@@ -2556,8 +2560,8 @@ func (s *TeamSettings) SetDefaults() {
 		s.EnableJoinLeaveMessageByDefault = new(true)
 	}
 
-	if s.EnableUtcTimestampsByDefault == nil {
-		s.EnableUtcTimestampsByDefault = new(false)
+	if s.TimestampDisplayDefault == nil {
+		s.TimestampDisplayDefault = new(TimestampDisplayDefaultSetting)
 	}
 
 	if s.EnableUserCreation == nil {
@@ -4503,6 +4507,12 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if !(*s.TeammateNameDisplay == ShowFullName || *s.TeammateNameDisplay == ShowNicknameFullName || *s.TeammateNameDisplay == ShowUsername) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.TimestampDisplayDefault != TimestampDisplayDefaultSetting &&
+		*s.TimestampDisplayDefault != TimestampDisplayIso &&
+		*s.TimestampDisplayDefault != TimestampDisplayOffset {
+		return NewAppError("Config.IsValid", "model.config.is_valid.timestamp_display_default.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*s.SiteName) > SitenameMaxLength {

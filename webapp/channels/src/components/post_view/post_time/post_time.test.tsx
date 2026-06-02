@@ -195,14 +195,14 @@ describe('components/post_view/post_time/PostTime connected', () => {
         teamUrl: '/team1',
     };
 
-    test('should render ISO timestamp in the user timezone when use_utc_timestamps preference is enabled', () => {
+    test('should render ISO timestamp in the user timezone when timestamp display is iso', () => {
         const ConnectedPostTime = require('./index').default;
 
         const state = {
             entities: {
                 general: {
                     config: {
-                        EnableUtcTimestampsByDefault: 'false',
+                        TimestampDisplayDefault: 'default',
                     },
                 },
                 users: {
@@ -220,10 +220,10 @@ describe('components/post_view/post_time/PostTime connected', () => {
                 },
                 preferences: {
                     myPreferences: {
-                        'display_settings--use_utc_timestamps': {
+                        'display_settings--timestamp_display': {
                             category: 'display_settings',
-                            name: 'use_utc_timestamps',
-                            value: 'true',
+                            name: 'timestamp_display',
+                            value: 'iso',
                         },
                     },
                 },
@@ -233,5 +233,45 @@ describe('components/post_view/post_time/PostTime connected', () => {
         renderWithContext(<ConnectedPostTime {...baseProps}/>, state);
 
         expect(screen.getByText('2020-01-01T01:00:00+01:00')).toBeInTheDocument();
+    });
+
+    test('should render offset timestamp in the user timezone when timestamp display is offset', () => {
+        const ConnectedPostTime = require('./index').default;
+
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        TimestampDisplayDefault: 'default',
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {
+                        user1: {
+                            id: 'user1',
+                            timezone: {
+                                useAutomaticTimezone: 'false',
+                                automaticTimezone: '',
+                                manualTimezone: 'Europe/Berlin',
+                            },
+                        },
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        'display_settings--timestamp_display': {
+                            category: 'display_settings',
+                            name: 'timestamp_display',
+                            value: 'offset',
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<ConnectedPostTime {...baseProps}/>, state);
+
+        expect(screen.getByText('2020-01-01 at 01:00:00 (UTC+01)')).toBeInTheDocument();
     });
 });

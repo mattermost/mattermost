@@ -38,7 +38,7 @@ type Props = {
     postId: string;
     teamUrl: string;
     timestampProps?: ComponentProps<typeof Timestamp>;
-    useUtcTimestamps?: boolean;
+    useAbsoluteTimestamp?: boolean;
 }
 
 export default class PostTime extends React.PureComponent<Props> {
@@ -61,7 +61,7 @@ export default class PostTime extends React.PureComponent<Props> {
             postId,
             teamUrl,
             timestampProps = {},
-            useUtcTimestamps,
+            useAbsoluteTimestamp,
         } = this.props;
 
         const postTime = (
@@ -95,7 +95,7 @@ export default class PostTime extends React.PureComponent<Props> {
         return (
             <WithTooltip
                 title={
-                    useUtcTimestamps ? (
+                    useAbsoluteTimestamp ? (
                         <Timestamp
                             value={eventTime}
                             useSemanticOutput={false}

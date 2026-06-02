@@ -821,13 +821,13 @@ describe('shouldShowJoinLeaveMessages', () => {
     });
 });
 
-describe('shouldUseUtcTimestamps', () => {
-    it('should default to false', () => {
+describe('getTimestampDisplayMode', () => {
+    it('should default to standard display', () => {
         const state = {
             entities: {
                 general: {
                     config: {
-                        EnableUtcTimestampsByDefault: 'false',
+                        TimestampDisplayDefault: 'default',
                     },
                 },
                 preferences: {
@@ -836,15 +836,17 @@ describe('shouldUseUtcTimestamps', () => {
             },
         } as unknown as GlobalState;
 
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('default');
         expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(false);
+        expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(false);
     });
 
-    it('set config to true, return true', () => {
+    it('should use iso when config default is iso', () => {
         const state = {
             entities: {
                 general: {
                     config: {
-                        EnableUtcTimestampsByDefault: 'true',
+                        TimestampDisplayDefault: 'iso',
                     },
                 },
                 preferences: {
@@ -853,7 +855,28 @@ describe('shouldUseUtcTimestamps', () => {
             },
         } as unknown as GlobalState;
 
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('iso');
         expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(true);
+        expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(true);
+    });
+
+    it('should use offset when config default is offset', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        TimestampDisplayDefault: 'offset',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('offset');
+        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(false);
+        expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(true);
     });
 
     it('if user preference is set, admin default is not used', () => {
@@ -861,30 +884,30 @@ describe('shouldUseUtcTimestamps', () => {
             entities: {
                 general: {
                     config: {
-                        EnableUtcTimestampsByDefault: 'true',
+                        TimestampDisplayDefault: 'iso',
                     },
                 },
                 preferences: {
                     myPreferences: {
-                        [getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_UTC_TIMESTAMPS)]: {
+                        [getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.TIMESTAMP_DISPLAY)]: {
                             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-                            name: Preferences.USE_UTC_TIMESTAMPS,
-                            value: 'false',
+                            name: Preferences.TIMESTAMP_DISPLAY,
+                            value: 'default',
                         },
                     },
                 },
             },
         } as unknown as GlobalState;
 
-        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(false);
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('default');
     });
 
-    it('if user preference is true, return true even when admin default is false', () => {
+    it('should migrate legacy use_utc_timestamps preference to iso', () => {
         const state = {
             entities: {
                 general: {
                     config: {
-                        EnableUtcTimestampsByDefault: 'false',
+                        TimestampDisplayDefault: 'default',
                     },
                 },
                 preferences: {
@@ -899,6 +922,7 @@ describe('shouldUseUtcTimestamps', () => {
             },
         } as unknown as GlobalState;
 
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('iso');
         expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(true);
     });
 });

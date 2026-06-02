@@ -215,11 +215,57 @@ export function shouldShowJoinLeaveMessages(state: GlobalState) {
     return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
 }
 
-export function shouldUseUtcTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {
-    const config = getConfig(state);
-    const enableUtcTimestampsByDefault = config.EnableUtcTimestampsByDefault === 'true';
+export type TimestampDisplayMode = 'default' | 'iso' | 'offset';
 
-    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_UTC_TIMESTAMPS, enableUtcTimestampsByDefault, userPreferences);
+function getConfigTimestampDisplayDefault(config: ReturnType<typeof getConfig>): string {
+    if (config.TimestampDisplayDefault === Preferences.TIMESTAMP_DISPLAY_ISO ||
+        config.TimestampDisplayDefault === Preferences.TIMESTAMP_DISPLAY_OFFSET) {
+        return config.TimestampDisplayDefault;
+    }
+
+    return Preferences.TIMESTAMP_DISPLAY_DEFAULT;
+}
+
+function resolveTimestampDisplayValue(
+    state: GlobalState,
+    userPreferences?: PreferencesType,
+): string {
+    const value = get(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.TIMESTAMP_DISPLAY,
+        '',
+        userPreferences,
+    );
+
+    if (value) {
+        return value;
+    }
+
+    if (getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_UTC_TIMESTAMPS, false, userPreferences)) {
+        return Preferences.TIMESTAMP_DISPLAY_ISO;
+    }
+
+    return '';
+}
+
+export function getTimestampDisplayMode(state: GlobalState, userPreferences?: PreferencesType): TimestampDisplayMode {
+    const configDefault = getConfigTimestampDisplayDefault(getConfig(state));
+    const value = resolveTimestampDisplayValue(state, userPreferences) || configDefault;
+
+    if (value === Preferences.TIMESTAMP_DISPLAY_ISO || value === Preferences.TIMESTAMP_DISPLAY_OFFSET) {
+        return value;
+    }
+
+    return 'default';
+}
+
+export function shouldUseAbsoluteTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {
+    return getTimestampDisplayMode(state, userPreferences) !== 'default';
+}
+
+export function shouldUseUtcTimestamps(state: GlobalState, userPreferences?: PreferencesType): boolean {
+    return getTimestampDisplayMode(state, userPreferences) === 'iso';
 }
 
 // shouldShowUnreadsCategory returns true if the user has unereads grouped separately with the new sidebar enabled.

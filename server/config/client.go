@@ -24,7 +24,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
-	props["EnableUtcTimestampsByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableUtcTimestampsByDefault)
+	props["TimestampDisplayDefault"] = *c.TeamSettings.TimestampDisplayDefault
 	props["EnableChannelCategorySorting"] = strconv.FormatBool(*c.TeamSettings.EnableChannelCategorySorting)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
@@ -302,7 +302,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
-	props["EnableUtcTimestampsByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableUtcTimestampsByDefault)
+	props["TimestampDisplayDefault"] = *c.TeamSettings.TimestampDisplayDefault
 
 	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
 	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion

@@ -36,6 +36,10 @@ const Preferences = {
     DISPLAY_PREFER_USERNAME: 'username',
     MENTION_KEYS: 'mention_keys',
     USE_MILITARY_TIME: 'use_military_time',
+    TIMESTAMP_DISPLAY: 'timestamp_display',
+    TIMESTAMP_DISPLAY_DEFAULT: 'default',
+    TIMESTAMP_DISPLAY_ISO: 'iso',
+    TIMESTAMP_DISPLAY_OFFSET: 'offset',
     USE_UTC_TIMESTAMPS: 'use_utc_timestamps',
 
     CATEGORY_CUSTOM_STATUS: 'custom_status',

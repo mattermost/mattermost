@@ -4,14 +4,14 @@
 import type {ComponentProps} from 'react';
 import {connect} from 'react-redux';
 
-import {shouldUseUtcTimestamps} from 'mattermost-redux/selectors/entities/preferences';
+import {getTimestampDisplayMode} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import {getIsMobileView} from 'selectors/views/browser';
+import {getTimestampDisplayProps} from 'components/timestamp/timestamp_display_props';
 
-import {getIsoTimestampProps} from 'components/timestamp/utc_timestamp_props';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store';
 
@@ -23,14 +23,15 @@ type OwnProps = {
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-    const useUtcTimestamps = shouldUseUtcTimestamps(state);
+    const timestampDisplayMode = getTimestampDisplayMode(state);
     const timeZone = getUserCurrentTimezone(getCurrentTimezoneFull(state));
+    const displayProps = getTimestampDisplayProps(timeZone, timestampDisplayMode);
 
     return {
         isMobileView: getIsMobileView(state),
         teamUrl: ownProps.teamName ? `/${ownProps.teamName}` : getCurrentRelativeTeamUrl(state),
-        useUtcTimestamps,
-        timestampProps: useUtcTimestamps ? {...ownProps.timestampProps, ...getIsoTimestampProps(timeZone)} : ownProps.timestampProps,
+        useAbsoluteTimestamp: Boolean(displayProps),
+        timestampProps: displayProps ? {...ownProps.timestampProps, ...displayProps} : ownProps.timestampProps,
     };
 }
 

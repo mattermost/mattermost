@@ -8,15 +8,15 @@ import type {Post} from '@mattermost/types/posts';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {isCollapsedThreadsEnabled, shouldUseUtcTimestamps} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled, getTimestampDisplayMode, shouldUseAbsoluteTimestamps} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
+
+import {getTimestampDisplayProps} from 'components/timestamp/timestamp_display_props';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
-
-import {getIsoTimestampProps} from 'components/timestamp/utc_timestamp_props';
 
 import type {GlobalState} from 'types/store';
 import type {FakePost} from 'types/store/rhs';
@@ -37,9 +37,11 @@ function makeMapStateToProps() {
 
     return (state: GlobalState, ownProps: OwnProps) => {
         const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
-        const useUtcTimestamps = shouldUseUtcTimestamps(state);
-        const effectiveUseRelativeTimestamp = useRelativeTimestamp && !useUtcTimestamps;
+        const timestampDisplayMode = getTimestampDisplayMode(state);
+        const useAbsoluteTimestamps = shouldUseAbsoluteTimestamps(state);
+        const effectiveUseRelativeTimestamp = useRelativeTimestamp && !useAbsoluteTimestamps;
         const timeZone = getUserCurrentTimezone(getCurrentTimezoneFull(state));
+        const displayProps = getTimestampDisplayProps(timeZone, timestampDisplayMode);
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
@@ -64,7 +66,7 @@ function makeMapStateToProps() {
             newMessagesSeparatorActions,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
             useRelativeTimestamp: effectiveUseRelativeTimestamp,
-            utcTimestampProps: useUtcTimestamps ? getIsoTimestampProps(timeZone) : undefined,
+            customTimestampProps: displayProps,
         };
     };
 }

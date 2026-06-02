@@ -41,7 +41,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         display: [
             {key: 'theme', label: 'Theme', type: 'radio'},
             {key: 'clock', label: 'Clock Display', type: 'radio'},
-            {key: 'utcTimestamps', label: 'ISO timestamp view', type: 'radio'},
+            {key: 'timestampDisplay', label: 'Post timestamps', type: 'radio'},
             {key: 'name_format', label: 'Teammate Name Display', type: 'none'},
             {key: 'availabilityStatus', label: 'Show online availability on profile images', type: 'radio'},
             {key: 'lastactive', label: 'Share last active time', type: 'radio'},

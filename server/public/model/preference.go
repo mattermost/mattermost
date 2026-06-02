@@ -87,6 +87,7 @@ const (
 	PreferenceNameColorizeUsernames       = "colorize_usernames"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
+	PreferenceNameTimestampDisplay        = "timestamp_display"
 	PreferenceNameUseUtcTimestamps        = "use_utc_timestamps"
 
 	PreferenceNameShowUnreadSection = "show_unread_section"

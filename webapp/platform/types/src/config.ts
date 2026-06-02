@@ -81,7 +81,7 @@ export type ClientConfig = {
     EnableGuestMagicLink: string;
     EnableIncomingWebhooks: string;
     EnableJoinLeaveMessageByDefault: string;
-    EnableUtcTimestampsByDefault: string;
+    TimestampDisplayDefault: string;
     EnableLatex: string;
     EnableInlineLatex: string;
     EnableLdap: string;
@@ -473,7 +473,7 @@ export type TeamSettings = {
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;
     EnableJoinLeaveMessageByDefault: boolean;
-    EnableUtcTimestampsByDefault: boolean;
+    TimestampDisplayDefault: string;
     EnableChannelCategorySorting: boolean;
 };
 

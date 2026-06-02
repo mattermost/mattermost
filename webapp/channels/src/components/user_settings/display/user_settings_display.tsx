@@ -36,7 +36,7 @@ const Preferences = Constants.Preferences;
 function getDisplayStateFromProps(props: Props) {
     return {
         militaryTime: props.militaryTime,
-        useUtcTimestamps: props.useUtcTimestamps,
+        timestampDisplay: props.timestampDisplay,
         teammateNameDisplay: props.teammateNameDisplay,
         availabilityStatusOnPosts: props.availabilityStatusOnPosts,
         channelDisplayMode: props.channelDisplayMode,
@@ -105,7 +105,7 @@ type Props = OwnProps & {
     shouldAutoUpdateTimezone: boolean | string;
     lockTeammateNameDisplay: boolean;
     militaryTime: string;
-    useUtcTimestamps: string;
+    timestampDisplay: string;
     teammateNameDisplay: string;
     availabilityStatusOnPosts: string;
     channelDisplayMode: string;
@@ -134,7 +134,7 @@ type State = {
     [key: string]: any;
     isSaving: boolean;
     militaryTime: string;
-    useUtcTimestamps: string;
+    timestampDisplay: string;
     teammateNameDisplay: string;
     availabilityStatusOnPosts: string;
     channelDisplayMode: string;
@@ -232,11 +232,11 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.USE_MILITARY_TIME,
             value: this.state.militaryTime,
         };
-        const useUtcTimestampsPreference = {
+        const timestampDisplayPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.USE_UTC_TIMESTAMPS,
-            value: this.state.useUtcTimestamps,
+            name: Preferences.TIMESTAMP_DISPLAY,
+            value: this.state.timestampDisplay,
         };
         const availabilityStatusOnPostsPreference = {
             user_id: userId,
@@ -303,7 +303,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const preferences = [
             timePreference,
-            useUtcTimestampsPreference,
+            timestampDisplayPreference,
             channelDisplayModePreference,
             messageDisplayPreference,
             collapsedReplyThreadsPreference,
@@ -787,36 +787,45 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
         });
 
-        const utcTimestampsSection = this.createSection({
-            section: 'utcTimestamps',
-            display: 'useUtcTimestamps',
-            value: this.state.useUtcTimestamps,
-            defaultDisplay: 'false',
+        const timestampDisplaySection = this.createSection({
+            section: 'timestampDisplay',
+            display: 'timestampDisplay',
+            value: this.state.timestampDisplay,
+            defaultDisplay: Preferences.TIMESTAMP_DISPLAY_DEFAULT,
             title: defineMessage({
-                id: 'user.settings.display.isoTimestampView',
-                defaultMessage: 'ISO timestamp view',
+                id: 'user.settings.display.timestampDisplayTitle',
+                defaultMessage: 'Post timestamps',
             }),
             firstOption: {
-                value: 'false',
+                value: Preferences.TIMESTAMP_DISPLAY_DEFAULT,
                 radionButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.localTimestamp',
-                        defaultMessage: 'Off (example: 4:00 PM or 1 minute ago)',
+                        id: 'user.settings.display.timestampDisplayDefault',
+                        defaultMessage: 'Standard (example: 4:00 PM or 1 minute ago)',
                     }),
                 },
             },
             secondOption: {
-                value: 'true',
+                value: Preferences.TIMESTAMP_DISPLAY_ISO,
                 radionButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.isoTimestampViewOn',
-                        defaultMessage: 'On (example: 2024-06-01T15:30:00+01:00)',
+                        id: 'user.settings.display.timestampDisplayIso',
+                        defaultMessage: 'ISO (example: 2024-06-01T15:30:00+01:00)',
+                    }),
+                },
+            },
+            thirdOption: {
+                value: Preferences.TIMESTAMP_DISPLAY_OFFSET,
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.display.timestampDisplayOffset',
+                        defaultMessage: 'With UTC offset (example: 2024-06-01 at 15:30:00 (UTC+01))',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.isoTimestampViewDesc',
-                defaultMessage: 'Show post timestamps in ISO 8601 format using your timezone setting.',
+                id: 'user.settings.display.timestampDisplayDesc',
+                defaultMessage: 'Select how timestamps are displayed next to message authors using your timezone setting.',
             }),
         });
 
@@ -1245,7 +1254,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {themeSection}
                     {collapsedReplyThreads}
                     {clockSection}
-                    {utcTimestampsSection}
+                    {timestampDisplaySection}
                     {teammateNameDisplaySection}
                     {availabilityStatusOnPostsSection}
                     {lastActiveSection}
