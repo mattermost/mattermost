@@ -85,7 +85,7 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
-	postCardTypeCheckWithContext(where, c, post.Type)
+	postsAPITypeCheckWithContext(where, c, post.Type)
 	if c.Err != nil {
 		return
 	}
@@ -684,9 +684,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
-		// Cards: collaborative model — any channel member with edit_post can view edit history
-	} else if c.AppContext.Session().UserId != originalPost.UserId {
+	if c.AppContext.Session().UserId != originalPost.UserId {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
@@ -740,17 +738,9 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		c.Err = appErr
 		return
 	}
-	auditRec.AddEventPriorState(post)
-	auditRec.AddEventObjectType("post")
 
 	switch {
 	case c.AppContext.Session().UserId == post.UserId:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
-			c.SetPermissionError(model.PermissionDeletePost)
-			return
-		}
-	case post.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
-		// Cards: collaborative model — any user with delete_post can delete any card
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
 			c.SetPermissionError(model.PermissionDeletePost)
 			return
@@ -761,6 +751,14 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 			return
 		}
 	}
+
+	postsAPITypeCheckWithContext("deletePost", c, post.Type)
+	if c.Err != nil {
+		return
+	}
+
+	auditRec.AddEventPriorState(post)
+	auditRec.AddEventObjectType("post")
 
 	if permanent {
 		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
@@ -1068,6 +1066,11 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postsAPITypeCheckWithContext("updatePost", c, originalPost.Type)
+	if c.Err != nil {
+		return
+	}
+
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
 	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
 	if c.Err != nil {
@@ -1110,10 +1113,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
-		// Cards: collaborative model — skip ownership check
-		// PermissionEditPost already checked above
-	} else if c.AppContext.Session().UserId != originalPost.UserId {
+	if c.AppContext.Session().UserId != originalPost.UserId {
 		// We don't need to check the member here, since we already checked it above
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
@@ -1218,15 +1218,10 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		c.SetPermissionError(model.PermissionEditPost)
 		return false
 	}
-	auditRec.AddEventPriorState(originalPost)
-	auditRec.AddEventObjectType("post")
 
 	var permission *model.Permission
 	switch {
 	case c.AppContext.Session().UserId == originalPost.UserId:
-		permission = model.PermissionEditPost
-	case originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
-		// Cards: collaborative model — any member can edit any card
 		permission = model.PermissionEditPost
 	default:
 		permission = model.PermissionEditOthersPosts
@@ -1237,6 +1232,14 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		c.SetPermissionError(permission)
 		return false
 	}
+
+	postsAPITypeCheckWithContext("patchPost", c, originalPost.Type)
+	if c.Err != nil {
+		return false
+	}
+
+	auditRec.AddEventPriorState(originalPost)
+	auditRec.AddEventObjectType("post")
 
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
 	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)

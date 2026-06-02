@@ -58,6 +58,8 @@ type Routes struct {
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
+	Cards           *mux.Router // 'api/v4/cards'
+	Card            *mux.Router // 'api/v4/cards/{post_id:[A-Za-z0-9]+}'
 	PostsForChannel *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts'
 	PostsForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts'
 	PostForUser     *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
@@ -233,6 +235,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.Cards = api.BaseRoutes.APIRoot.PathPrefix("/cards").Subrouter()
+	api.BaseRoutes.Card = api.BaseRoutes.Cards.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.PostsForUser = api.BaseRoutes.User.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.PostForUser = api.BaseRoutes.PostsForUser.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
@@ -347,6 +351,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitTeam()
 	api.InitChannel()
 	api.InitPost()
+	api.InitCard()
 	api.InitFile()
 	api.InitUpload()
 	api.InitSystem()

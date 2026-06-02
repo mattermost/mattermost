@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -258,6 +259,44 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		assert.Equal(t, model.ScheduledPostErrorCodeNoChannelPermission, scheduledPosts[1].ErrorCode)
 		assert.Greater(t, scheduledPosts[1].ProcessedAt, int64(0))
+	})
+
+	t.Run("rejects card-typed scheduled posts regardless of IntegratedBoards flag", func(t *testing.T) {
+		// PostsAPITypeCheck must reject Type=card whether or not the
+		// IntegratedBoards flag is enabled — card posts only travel through
+		// the dedicated /cards endpoints.
+		for _, integratedBoards := range []bool{false, true} {
+			t.Run(fmt.Sprintf("IntegratedBoards=%v", integratedBoards), func(t *testing.T) {
+				th := SetupConfig(t, func(cfg *model.Config) {
+					cfg.FeatureFlags.IntegratedBoards = integratedBoards
+				}).InitBasic(t)
+
+				th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+				scheduledAt := model.GetMillis() + 1000
+				cardScheduled := &model.ScheduledPost{
+					Draft: model.Draft{
+						CreateAt:  model.GetMillis(),
+						UserId:    th.BasicUser.Id,
+						ChannelId: th.BasicChannel.Id,
+						Message:   "card scheduled post",
+						Type:      model.PostTypeCard,
+					},
+					ScheduledAt: scheduledAt,
+				}
+				_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(cardScheduled)
+				assert.NoError(t, err)
+
+				time.Sleep(1 * time.Second)
+				th.App.ProcessScheduledPosts(th.Context)
+
+				scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+				assert.NoError(t, err)
+				assert.Len(t, scheduledPosts, 1)
+				assert.Equal(t, model.ScheduledPostErrorInvalidPost, scheduledPosts[0].ErrorCode)
+				assert.Greater(t, scheduledPosts[0].ProcessedAt, int64(0))
+			})
+		}
 	})
 }
 

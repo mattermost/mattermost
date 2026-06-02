@@ -329,6 +329,14 @@ func (c *Client4) postRoute(postId string) clientRoute {
 	return c.postsRoute().Join(postId)
 }
 
+func (c *Client4) cardsRoute() clientRoute {
+	return newClientRoute("cards")
+}
+
+func (c *Client4) cardRoute(postId string) clientRoute {
+	return c.cardsRoute().Join(postId)
+}
+
 func (c *Client4) filesRoute() clientRoute {
 	return newClientRoute("files")
 }
@@ -3495,6 +3503,16 @@ func (c *Client4) CreatePost(ctx context.Context, post *Post) (*Post, *Response,
 	return DecodeJSONFromResponse[*Post](r)
 }
 
+// CreateCard creates a card post (type 'card') via POST /api/v4/cards. CreatePost with PostTypeCard is also supported when Integrated Boards is enabled.
+func (c *Client4) CreateCard(ctx context.Context, post *Post) (*Post, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.cardsRoute(), post)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 // CreatePostEphemeral creates a ephemeral post based on the provided post struct which is send to the given user id.
 func (c *Client4) CreatePostEphemeral(ctx context.Context, post *PostEphemeral) (*Post, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.postsEphemeralRoute(), post)
@@ -3515,9 +3533,29 @@ func (c *Client4) UpdatePost(ctx context.Context, postId string, post *Post) (*P
 	return DecodeJSONFromResponse[*Post](r)
 }
 
+// UpdateCard updates a card post. The post must have type card.
+func (c *Client4) UpdateCard(ctx context.Context, postId string, post *Post) (*Post, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.cardRoute(postId), post)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 // PatchPost partially updates a post. Any missing fields are not updated.
 func (c *Client4) PatchPost(ctx context.Context, postId string, patch *PostPatch) (*Post, *Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.postRoute(postId).Join("patch"), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
+// PatchCard partially updates a card post.
+func (c *Client4) PatchCard(ctx context.Context, postId string, patch *PostPatch) (*Post, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.cardRoute(postId).Join("patch"), patch)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3600,11 +3638,33 @@ func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, err
 	return BuildResponse(r), nil
 }
 
+// DeleteCard deletes a card post.
+func (c *Client4) DeleteCard(ctx context.Context, postId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.cardRoute(postId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // PermanentDeletePost permanently deletes a post and its files from the provided post id string.
 func (c *Client4) PermanentDeletePost(ctx context.Context, postId string) (*Response, error) {
 	values := url.Values{}
 	values.Set("permanent", c.boolString(true))
 	r, err := c.doAPIDeleteWithQuery(ctx, c.postRoute(postId), values)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// PermanentDeleteCard permanently deletes a card post.
+func (c *Client4) PermanentDeleteCard(ctx context.Context, postId string) (*Response, error) {
+	values := url.Values{}
+	values.Set("permanent", c.boolString(true))
+	r, err := c.doAPIDeleteWithQuery(ctx, c.cardRoute(postId), values)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -3689,11 +3749,17 @@ func (c *Client4) GetPostsByIds(ctx context.Context, postIds []string) ([]*Post,
 
 // GetEditHistoryForPost gets a list of posts by taking a post ids
 func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*Post, *Response, error) {
-	js, err := json.Marshal(postId)
+	r, err := c.doAPIGet(ctx, c.postRoute(postId).Join("edit_history"), "")
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal edit history request: %w", err)
+		return nil, BuildResponse(r), err
 	}
-	r, err := c.doAPIGet(ctx, c.postRoute(postId).Join("edit_history"), string(js))
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Post](r)
+}
+
+// GetCardEditHistoryForPost returns edit history for a card post.
+func (c *Client4) GetCardEditHistoryForPost(ctx context.Context, postId string) ([]*Post, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.cardRoute(postId).Join("edit_history"), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

@@ -10,34 +10,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostCardTypeCheckWithApp(t *testing.T) {
+func TestPostsAPITypeCheck(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	t.Run("returns error for card post when IntegratedBoards is disabled", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = false
-		})
-
-		appErr := PostCardTypeCheckWithApp("test", th.App, model.PostTypeCard)
+	t.Run("rejects card post type", func(t *testing.T) {
+		appErr := PostsAPITypeCheck("test", model.PostTypeCard)
 		assert.NotNil(t, appErr)
-		assert.Equal(t, "api.post.create_post.card_type_disabled.app_error", appErr.Id)
+		assert.Equal(t, "api.post.disallowed_type.app_error", appErr.Id)
 	})
 
-	t.Run("returns nil for card post when IntegratedBoards is enabled", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = true
-		})
-
-		appErr := PostCardTypeCheckWithApp("test", th.App, model.PostTypeCard)
+	t.Run("allows empty type", func(t *testing.T) {
+		appErr := PostsAPITypeCheck("test", "")
 		assert.Nil(t, appErr)
 	})
 
-	t.Run("returns nil for non-card post when IntegratedBoards is disabled", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = false
-		})
-
-		appErr := PostCardTypeCheckWithApp("test", th.App, "")
+	t.Run("allows regular post types", func(t *testing.T) {
+		appErr := PostsAPITypeCheck("test", model.PostTypeDefault)
 		assert.Nil(t, appErr)
 	})
 }

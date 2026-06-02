@@ -6,10 +6,15 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+// postsAPIDisallowedTypes lists post types that own a dedicated /api/v4 endpoint
+// and must therefore be rejected on the generic /api/v4/posts routes.
+var postsAPIDisallowedTypes = []string{model.PostTypeCard}
 
 func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
 	user, appErr := a.GetUser(userId)
@@ -115,11 +120,10 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 	return nil
 }
 
-// PostCardTypeCheckWithApp validates whether a card post can be created
-// based on the IntegratedBoards feature flag.
-func PostCardTypeCheckWithApp(where string, a *App, postType string) *model.AppError {
-	if postType == model.PostTypeCard && !a.Config().FeatureFlags.IntegratedBoards {
-		return model.NewAppError(where, "api.post.create_post.card_type_disabled.app_error", nil, "", http.StatusBadRequest)
+// PostsAPITypeCheck rejects post types that have their own dedicated /api/v4 endpoint.
+func PostsAPITypeCheck(where, postType string) *model.AppError {
+	if slices.Contains(postsAPIDisallowedTypes, postType) {
+		return model.NewAppError(where, "api.post.disallowed_type.app_error", map[string]any{"PostType": postType}, "", http.StatusBadRequest)
 	}
 	return nil
 }
