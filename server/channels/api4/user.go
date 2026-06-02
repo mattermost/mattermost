@@ -2070,6 +2070,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+
+		if authErr := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); authErr != nil {
+			c.LogAuditWithUserId(user.Id, "failure - guest_magic_link")
+			c.Err = authErr
+			return
+		}
 	} else {
 		model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
 		c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
