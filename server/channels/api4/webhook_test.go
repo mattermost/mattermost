@@ -243,6 +243,22 @@ func TestIncomingWebhookValidateUser(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("update validates the retained owner even when the payload also changes the owner", func(t *testing.T) {
+		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
+		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
+		require.NoError(t, err)
+
+		// The owner is immutable on update, so changing it alongside the channel must not
+		// let the supplied user stand in for the retained owner's channel access.
+		privateChannel := th.CreatePrivateChannel(t)
+		created.ChannelId = privateChannel.Id
+		created.UserId = th.TeamAdminUser.Id
+
+		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestGetIncomingWebhooks(t *testing.T) {
