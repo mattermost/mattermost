@@ -12,6 +12,45 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+func (s LocalCachePropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
+	created, err := s.PropertyFieldStore.Create(field)
+	if err != nil {
+		return nil, err
+	}
+
+	s.InvalidateFieldsForGroup(created.GroupID)
+	return created, nil
+}
+
+func (s LocalCachePropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
+	updated, err := s.PropertyFieldStore.Update(groupID, fields, expectedUpdateAts)
+	if err != nil {
+		return nil, err
+	}
+
+	// The returned slice includes both the requested fields and any linked
+	// fields the store propagated to. Invalidate each distinct group so all
+	// affected GetForGroup caches are cleared.
+	invalidated := make(map[string]bool, len(updated))
+	for _, field := range updated {
+		if invalidated[field.GroupID] {
+			continue
+		}
+		invalidated[field.GroupID] = true
+		s.InvalidateFieldsForGroup(field.GroupID)
+	}
+	return updated, nil
+}
+
+func (s LocalCachePropertyFieldStore) Delete(groupID string, id string) error {
+	if err := s.PropertyFieldStore.Delete(groupID, id); err != nil {
+		return err
+	}
+
+	s.InvalidateFieldsForGroup(groupID)
+	return nil
+}
+
 type LocalCachePropertyFieldStore struct {
 	store.PropertyFieldStore
 	rootStore *LocalCacheStore

@@ -37,4 +37,58 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		assert.Equal(t, fakeFields, fields)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
 	})
+
+	t.Run("Create invalidates the group cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
+
+		_, err = cachedStore.PropertyField().Create(&fakeField)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
+	})
+
+	t.Run("Update invalidates the group cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
+
+		_, err = cachedStore.PropertyField().Update(groupID, fakeFields, nil)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
+	})
+
+	t.Run("Delete invalidates the group cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
+
+		err = cachedStore.PropertyField().Delete(groupID, fakeField.ID)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
+	})
 }
