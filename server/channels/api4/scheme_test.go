@@ -467,7 +467,7 @@ func TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager(t *testing.T)
 	require.Equal(t, knownInviteID, privateTeam.InviteId)
 	require.Equal(t, knownEmail, privateTeam.Email)
 
-	th.LoginSystemManager(t)
+	th.LoginSystemManager()
 
 	t.Run("system manager response is sanitized", func(t *testing.T) {
 		teams, _, err := th.SystemManagerClient.GetTeamsForScheme(context.Background(), scheme.Id, 0, 100)
