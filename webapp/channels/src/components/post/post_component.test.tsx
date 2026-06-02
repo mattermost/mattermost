@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {DateTimeDisplayFormat} from '@mattermost/types/config';
+import {TimestampFormat} from '@mattermost/types/config';
 import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -726,11 +726,11 @@ describe('PostComponent', () => {
     });
 
     describe('post timestamp visibility', () => {
-        const isoTimestampState: DeepPartial<GlobalState> = {
+        const dateAndTimeState: DeepPartial<GlobalState> = {
             entities: {
                 general: {
                     config: {
-                        DateTimeDisplayFormat: DateTimeDisplayFormat.ISO_DATETIME,
+                        DefaultTimestampFormat: TimestampFormat.DATE_AND_TIME,
                     },
                 },
                 preferences: {
@@ -739,19 +739,18 @@ describe('PostComponent', () => {
             },
         };
 
-        test('should hide consecutive post timestamp until hover when using a non-compact timestamp format', async () => {
+        test('should hide consecutive post timestamp until hover', async () => {
             const user = userEvent.setup();
             const props = {
                 ...baseProps,
                 compactDisplay: true,
-                isCompactDateTimeDisplay: false,
                 isConsecutivePost: true,
                 hasReplies: false,
                 previousPostIsComment: false,
                 location: Locations.CENTER,
             };
 
-            const {container} = renderWithContext(<PostComponent {...props}/>, isoTimestampState);
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
 
             expect(container.querySelector('.post__time')).not.toBeInTheDocument();
 
@@ -760,18 +759,96 @@ describe('PostComponent', () => {
             expect(container.querySelector('.post__time')).toBeInTheDocument();
         });
 
-        test('should always show timestamp on non-consecutive posts when using a non-compact timestamp format', () => {
+        test('should show timestamp on non-consecutive posts', () => {
             const props = {
                 ...baseProps,
                 compactDisplay: true,
-                isCompactDateTimeDisplay: false,
                 isConsecutivePost: false,
                 location: Locations.CENTER,
             };
 
-            const {container} = renderWithContext(<PostComponent {...props}/>, isoTimestampState);
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
 
             expect(container.querySelector('.post__time')).toBeInTheDocument();
+        });
+
+        test('should show date context for compact posts in RHS thread', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isConsecutivePost: false,
+                location: Locations.RHS_COMMENT,
+                post: TestHelper.getPostMock({
+                    channel_id: channel.id,
+                    create_at: new Date('2020-06-01T16:32:00.000Z').getTime(),
+                    root_id: 'root_post_id',
+                }),
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
+
+            expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
+            expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
+            expect(container.querySelector('.post__header-timestamp')).toBeInTheDocument();
+
+            jest.useRealTimers();
+        });
+
+        test('should show date context for consecutive compact posts in RHS thread', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isConsecutivePost: true,
+                location: Locations.RHS_COMMENT,
+                post: TestHelper.getPostMock({
+                    channel_id: channel.id,
+                    create_at: new Date('2020-06-01T16:32:00.000Z').getTime(),
+                    root_id: 'root_post_id',
+                }),
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
+
+            expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
+            expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
+
+            jest.useRealTimers();
+        });
+
+        test('should not stack timestamp for standard format', () => {
+            const standardState: DeepPartial<GlobalState> = {
+                entities: {
+                    general: {
+                        config: {
+                            DefaultTimestampFormat: TimestampFormat.STANDARD,
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                },
+            };
+
+            const props = {
+                ...baseProps,
+                compactDisplay: false,
+                isConsecutivePost: false,
+                location: Locations.CENTER,
+                post: TestHelper.getPostMock({
+                    channel_id: channel.id,
+                    create_at: new Date('2020-06-01T16:32:00.000Z').getTime(),
+                }),
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, standardState);
+
+            expect(container.querySelector('.post__header--wrap-time')).not.toBeInTheDocument();
         });
     });
 });

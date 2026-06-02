@@ -6,7 +6,6 @@ import React, {memo} from 'react';
 import type {Post} from '@mattermost/types/posts';
 
 import PostComponent from 'components/post';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
 
@@ -16,7 +15,6 @@ type Props = {
     onCardClick: (post: Post) => void;
     post: Post;
     previousPostId: string;
-    timestampProps?: Partial<TimestampProps>;
     isChannelAutotranslated: boolean;
 }
 
@@ -26,7 +24,6 @@ function Reply({
     onCardClick,
     post,
     previousPostId,
-    timestampProps,
     isChannelAutotranslated,
 }: Props) {
     return (
@@ -36,7 +33,6 @@ function Reply({
             isLastPost={isLastPost}
             post={post}
             previousPostId={previousPostId}
-            timestampProps={timestampProps}
             location={Locations.RHS_COMMENT}
             isChannelAutotranslated={isChannelAutotranslated}
         />

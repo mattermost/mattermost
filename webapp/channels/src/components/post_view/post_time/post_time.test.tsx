@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {DateTimeDisplayFormat} from '@mattermost/types/config';
+import {TimestampFormat} from '@mattermost/types/config';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -32,7 +32,7 @@ describe('components/post_view/post_time/PostTime', () => {
         entities: {
             general: {
                 config: {
-                    DateTimeDisplayFormat: DateTimeDisplayFormat.COMPACT,
+                    DefaultTimestampFormat: TimestampFormat.STANDARD,
                 },
             },
             preferences: {
@@ -109,47 +109,6 @@ describe('components/post_view/post_time/PostTime', () => {
         await user.hover(screen.getByRole('link'));
 
         expect(await screen.findByRole('tooltip')).toHaveTextContent(/Wednesday, January 1, 2020 at 12:00:00 PM/);
-    });
-
-    test('should handle timestampProps correctly', () => {
-        const props = {
-            ...baseProps,
-            timestampProps: {
-                className: 'custom-timestamp',
-                hourCycle: 'h23' as const,
-            },
-        };
-
-        renderWithContext(<PostTime {...props}/>, initialState);
-
-        const timeElement = screen.getByText('00:00');
-        expect(timeElement).toHaveClass('custom-timestamp');
-    });
-
-    test('should render compact timestamp when forceCompactFormat is true', () => {
-        const isoState = {
-            entities: {
-                general: {
-                    config: {
-                        DateTimeDisplayFormat: DateTimeDisplayFormat.ISO_DATETIME,
-                    },
-                },
-                preferences: {
-                    myPreferences: {},
-                },
-            },
-        };
-
-        renderWithContext(
-            <PostTime
-                {...baseProps}
-                forceCompactFormat={true}
-            />,
-            isoState,
-        );
-
-        expect(screen.getByText('12:00 AM')).toBeInTheDocument();
-        expect(screen.queryByText(/2020-01-01/)).not.toBeInTheDocument();
     });
 
     test('should have correct accessibility attributes', () => {

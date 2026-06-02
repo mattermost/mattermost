@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
@@ -13,6 +14,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants/index';
+import {getTimestampFormat} from 'mattermost-redux/selectors/entities/preferences';
 import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
@@ -39,12 +41,12 @@ import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
 import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
 import {getArchiveIconComponent} from 'utils/channel_utils';
+import {shouldWrapPostTimestamp} from 'utils/datetime_display_format';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -66,7 +68,6 @@ export type Props = {
     team?: Team;
     currentUserId: string;
     compactDisplay?: boolean;
-    isCompactDateTimeDisplay?: boolean;
     colorizeUsernames?: boolean;
     isFlagged: boolean;
     previewCollapsed?: string;
@@ -113,7 +114,6 @@ export type Props = {
         closeModal: (modalId: string) => void;
         highlightPostInChannelPopout: (postId: string) => void;
     };
-    timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
     isPostBeingEdited?: boolean;
     isCollapsedThreadsEnabled?: boolean;
@@ -526,7 +526,12 @@ function PostComponent(props: Props) {
     );
 
     const isCenterConsecutivePost = props.isConsecutivePost && props.location === Locations.CENTER;
-    const alwaysShowNonCompactTimestamp = !props.isCompactDateTimeDisplay && !isCenterConsecutivePost;
+    const isRHSCompactConsecutivePost = isRHS && props.compactDisplay && Boolean(props.isConsecutivePost);
+    const timestampFormat = useSelector(getTimestampFormat);
+    const forceTimeOnly =
+        (props.compactDisplay && props.location === Locations.CENTER) ||
+        (Boolean(props.isConsecutivePost) && !isRHSCompactConsecutivePost);
+    const wrapTimestamp = shouldWrapPostTimestamp(timestampFormat, forceTimeOnly);
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -554,6 +559,7 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    const showPostTime = (!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER;
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -795,28 +801,38 @@ function PostComponent(props: Props) {
                     <div className='post__img'>
                         {profilePic}
                     </div>
-                    <div>
+                    <div className='post__main'>
                         <div
-                            className='post__header'
+                            className={classNames('post__header', {'post__header--wrap-time': wrapTimestamp})}
                             ref={postHeaderRef}
                         >
                             <PostUserProfile
                                 {...props}
                                 isSystemMessage={isSystemMessage}
                             />
-                            <div className='badges-wrapper col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER || alwaysShowNonCompactTimestamp) &&
+                            {wrapTimestamp && showPostTime &&
+                                <div className='post__header-timestamp'>
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
                                         eventTime={post.create_at}
                                         postId={post.id}
                                         location={props.location}
-                                        forceCompactFormat={
-                                            props.compactDisplay ||
-                                            (props.isConsecutivePost && props.location === Locations.CENTER)
-                                        }
-                                        timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
+                                        isConsecutivePost={isCenterConsecutivePost}
+                                        forceTimeOnly={forceTimeOnly}
+                                    />
+                                </div>
+                            }
+                            <div className='badges-wrapper col d-flex align-items-center'>
+                                {!wrapTimestamp && showPostTime &&
+                                    <PostTime
+                                        isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
+                                        teamName={props.team?.name}
+                                        eventTime={post.create_at}
+                                        postId={post.id}
+                                        location={props.location}
+                                        isConsecutivePost={isCenterConsecutivePost}
+                                        forceTimeOnly={forceTimeOnly}
                                     />
                                 }
                                 {priority}

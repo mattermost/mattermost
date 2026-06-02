@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CollapsedThreads, DateTimeDisplayFormat} from '@mattermost/types/config';
+import {CollapsedThreads, TimestampFormat} from '@mattermost/types/config';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -111,33 +111,94 @@ export const getTeammateNameDisplaySetting: (state: GlobalState) => string = cre
     },
 );
 
-export const getDateTimeDisplayFormat: (state: GlobalState) => DateTimeDisplayFormat = createSelector(
-    'getDateTimeDisplayFormat',
+function resolveTimestampFormatFromValue(value: string | undefined, configValue: string | undefined): TimestampFormat {
+    if (value === TimestampFormat.STANDARD ||
+        value === TimestampFormat.RELATIVE ||
+        value === TimestampFormat.DATE_AND_TIME) {
+        return value;
+    }
+
+    if (value === 'compact' || value === 'time_seconds') {
+        return TimestampFormat.STANDARD;
+    }
+
+    if (value === 'iso_datetime') {
+        return TimestampFormat.DATE_AND_TIME;
+    }
+
+    if (configValue === TimestampFormat.RELATIVE ||
+        configValue === TimestampFormat.DATE_AND_TIME) {
+        return configValue as TimestampFormat;
+    }
+
+    if (configValue === 'iso_datetime') {
+        return TimestampFormat.DATE_AND_TIME;
+    }
+
+    return TimestampFormat.STANDARD;
+}
+
+export const getTimestampFormat: (state: GlobalState) => TimestampFormat = createSelector(
+    'getTimestampFormat',
     getConfig,
+    (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.TIMESTAMP_FORMAT),
     (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT),
-    (config, userPreference) => {
-        if (userPreference?.value === DateTimeDisplayFormat.COMPACT ||
-            userPreference?.value === DateTimeDisplayFormat.TIME_SECONDS ||
-            userPreference?.value === DateTimeDisplayFormat.ISO_DATETIME) {
-            return userPreference.value;
-        }
-
-        const configValue = config?.DateTimeDisplayFormat;
-        if (configValue === DateTimeDisplayFormat.TIME_SECONDS ||
-            configValue === DateTimeDisplayFormat.ISO_DATETIME) {
-            return configValue;
-        }
-
-        return DateTimeDisplayFormat.COMPACT;
+    (config, userPreference, legacyUserPreference) => {
+        const userValue = userPreference?.value || legacyUserPreference?.value;
+        return resolveTimestampFormatFromValue(userValue, config?.DefaultTimestampFormat as string | undefined);
     },
 );
 
-export function isCompactDateTimeDisplayFormat(state: GlobalState): boolean {
-    return getDateTimeDisplayFormat(state) === DateTimeDisplayFormat.COMPACT;
+/** @deprecated Use getTimestampFormat */
+export const getDateTimeDisplayFormat = getTimestampFormat;
+
+export function shouldShowThreadDateSeparators(state: GlobalState): boolean {
+    return getTimestampFormat(state) === TimestampFormat.STANDARD;
 }
 
+/** @deprecated Use TimestampFormat.STANDARD checks */
+export function isCompactDateTimeDisplayFormat(state: GlobalState): boolean {
+    return getTimestampFormat(state) === TimestampFormat.STANDARD;
+}
+
+export function getShowTimestampSeconds(state: GlobalState): boolean {
+    const userPreference = getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.SHOW_TIMESTAMP_SECONDS);
+    if (userPreference?.value === 'true') {
+        return true;
+    }
+    if (userPreference?.value === 'false') {
+        return false;
+    }
+
+    const legacyFormatPreference = getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT);
+    if (legacyFormatPreference?.value === 'time_seconds') {
+        return true;
+    }
+
+    const config = getConfig(state);
+    return config?.ShowTimestampSeconds === 'true';
+}
+
+export function getUseMilitaryTime(state: GlobalState): boolean {
+    const userPreference = getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME);
+    if (userPreference?.value === 'true') {
+        return true;
+    }
+    if (userPreference?.value === 'false') {
+        return false;
+    }
+
+    return false;
+}
+
+export function getTimestampFormatUserPreference(state: GlobalState): string | undefined {
+    return getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.TIMESTAMP_FORMAT)?.value ||
+        getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)?.value;
+}
+
+/** @deprecated Use getTimestampFormatUserPreference */
 export function getDateTimeDisplayFormatUserPreference(state: GlobalState): string | undefined {
-    return getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)?.value;
+    return getTimestampFormatUserPreference(state);
 }
 
 export const getThemePreferences = makeGetCategory('getThemePreferences', Preferences.CATEGORY_THEME);

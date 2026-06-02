@@ -3864,23 +3864,30 @@ const AdminDefinition: AdminDefinitionType = {
                             settings: [
                                 {
                                     type: 'dropdown',
-                                    key: 'DisplaySettings.DateTimeDisplayFormat',
-                                    label: defineMessage({id: 'admin.posts.dateTimeDisplayFormat.title', defaultMessage: 'Default date and time format:'}),
-                                    help_text: defineMessage({id: 'admin.posts.dateTimeDisplayFormat.desc', defaultMessage: 'Sets the default format for message timestamps. Users can override this in Account Settings > Display.'}),
+                                    key: 'DisplaySettings.DefaultTimestampFormat',
+                                    label: defineMessage({id: 'admin.posts.defaultTimestampFormat.title', defaultMessage: 'Default timestamp format:'}),
+                                    help_text: defineMessage({id: 'admin.posts.defaultTimestampFormat.desc', defaultMessage: 'Sets the default format for message timestamps. Users can override this in Account Settings > Display.'}),
                                     options: [
                                         {
-                                            value: 'compact',
-                                            display_name: defineMessage({id: 'datetime_display_format.compact', defaultMessage: 'Compact (example: 3:45 PM)'}),
+                                            value: 'standard',
+                                            display_name: defineMessage({id: 'timestamp_format.standard', defaultMessage: 'Standard (example: 4:32 PM)'}),
                                         },
                                         {
-                                            value: 'time_seconds',
-                                            display_name: defineMessage({id: 'datetime_display_format.time_seconds', defaultMessage: 'Time with seconds (example: 3:45:05 PM)'}),
+                                            value: 'relative',
+                                            display_name: defineMessage({id: 'timestamp_format.relative', defaultMessage: 'Relative (example: 3 hours ago · Yesterday at 4:32 PM)'}),
                                         },
                                         {
-                                            value: 'iso_datetime',
-                                            display_name: defineMessage({id: 'datetime_display_format.iso_datetime', defaultMessage: 'Date and time (example: 06-01 14:30:45)'}),
+                                            value: 'date_and_time',
+                                            display_name: defineMessage({id: 'timestamp_format.date_and_time', defaultMessage: 'Date and Time (example: Jun 1, 4:32 PM)'}),
                                         },
                                     ],
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'DisplaySettings.ShowTimestampSeconds',
+                                    label: defineMessage({id: 'admin.posts.showTimestampSeconds.title', defaultMessage: 'Show seconds in timestamps:'}),
+                                    help_text: defineMessage({id: 'admin.posts.showTimestampSeconds.desc', defaultMessage: 'Sets the default for showing seconds in message timestamps. Users can override this in Account Settings > Display.'}),
                                     isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                                 },
                                 {

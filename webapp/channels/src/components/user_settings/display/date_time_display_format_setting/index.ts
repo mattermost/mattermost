@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {DateTimeDisplayFormat} from '@mattermost/types/config';
+import {TimestampFormat} from '@mattermost/types/config';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
@@ -18,8 +18,10 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
 
     return {
-        configDateTimeDisplayFormat: (config.DateTimeDisplayFormat as DateTimeDisplayFormat) || DateTimeDisplayFormat.COMPACT,
+        configTimestampFormat: (config.DefaultTimestampFormat as TimestampFormat) || TimestampFormat.STANDARD,
+        configShowTimestampSeconds: config.ShowTimestampSeconds === 'true',
         militaryTime: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT),
+        showTimestampSeconds: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.SHOW_TIMESTAMP_SECONDS, 'false'),
     };
 }
 

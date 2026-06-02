@@ -6,7 +6,7 @@ import {
     AdminConfig,
     ClusterSettings,
     CollapsedThreads,
-    DateTimeDisplayFormat,
+    TimestampFormat,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -729,7 +729,8 @@ const defaultServerConfig: AdminConfig = {
     DisplaySettings: {
         CustomURLSchemes: [],
         MaxMarkdownNodes: 0,
-        DateTimeDisplayFormat: DateTimeDisplayFormat.COMPACT,
+        DefaultTimestampFormat: TimestampFormat.STANDARD,
+        ShowTimestampSeconds: false,
     },
     GuestAccountsSettings: {
         Enable: false,

@@ -20,7 +20,6 @@ import {
     get,
     getBool,
     isCollapsedThreadsEnabled,
-    isCompactDateTimeDisplayFormat,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
@@ -208,7 +207,6 @@ function makeMapStateToProps() {
             previousPostIsComment,
             isFlagged: isPostFlagged(state, post.id),
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
-            isCompactDateTimeDisplay: isCompactDateTimeDisplayFormat(state),
             colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT) === 'true',
             shouldShowActionsMenu: shouldShowActionsMenu(state, post),
             currentTeam,

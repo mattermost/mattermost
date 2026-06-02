@@ -12,8 +12,8 @@ import * as GlobalActions from 'actions/global_actions';
 
 import EventTimestamp from 'components/event_timestamp';
 import EventTimestampTooltip from 'components/event_timestamp/event_timestamp_tooltip';
-import type Timestamp from 'components/timestamp';
 
+import type {TimestampDisplayContext, TimestampDisplayTier} from 'utils/datetime_display_format';
 import {Locations} from 'utils/constants';
 
 type Props = {
@@ -36,14 +36,17 @@ type Props = {
      */
     postId: string;
     teamUrl: string;
-    timestampProps?: ComponentProps<typeof Timestamp>;
-    forceCompactFormat?: boolean;
+    context?: TimestampDisplayContext;
+    tier?: TimestampDisplayTier;
+    isConsecutivePost?: boolean;
+    forceTimeOnly?: boolean;
 }
 
 export default class PostTime extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {
         eventTime: 0,
         location: Locations.CENTER,
+        context: 'post',
     };
 
     handleClick = () => {
@@ -59,17 +62,21 @@ export default class PostTime extends React.PureComponent<Props> {
             location,
             postId,
             teamUrl,
-            timestampProps = {},
-            forceCompactFormat = false,
+            context = 'post',
+            tier,
+            isConsecutivePost = false,
+            forceTimeOnly = false,
         } = this.props;
 
         const postTime = (
             <EventTimestamp
                 value={eventTime}
                 className='post__time'
-                timestampProps={timestampProps}
                 showTooltip={false}
-                forceCompactFormat={forceCompactFormat}
+                context={context}
+                tier={tier}
+                isConsecutivePost={isConsecutivePost}
+                forceTimeOnly={forceTimeOnly}
             />
         );
 

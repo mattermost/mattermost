@@ -22,7 +22,6 @@ import {selectPost} from 'actions/views/rhs';
 import EventTimestamp from 'components/event_timestamp';
 import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
-import {THREADING_TIME} from 'components/threading/common/options';
 import Avatars from 'components/widgets/users/avatars';
 
 import type {GlobalState} from 'types/store';
@@ -145,7 +144,7 @@ function ThreadFooter({
                             formatted: (
                                 <EventTimestamp
                                     value={lastReplyAt}
-                                    timestampProps={THREADING_TIME}
+                                    context='thread_footer'
                                     showTooltip={false}
                                 />
                             ),

@@ -5,11 +5,10 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {connect} from 'react-redux';
 
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {getUseMilitaryTime} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import {Preferences} from 'utils/constants';
 import {formatFullDateTimeForTooltip} from 'utils/datetime_display_format';
 
 import type {GlobalState} from 'types/store';
@@ -34,9 +33,8 @@ function EventTimestampTooltip({value, timeZone, useMilitaryTime}: Props) {
 function mapStateToProps(state: GlobalState) {
     const userTimezone = getCurrentTimezoneFull(state);
     const timeZone = getUserCurrentTimezone(userTimezone) || undefined;
-    const useMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
 
-    return {timeZone, useMilitaryTime};
+    return {timeZone, useMilitaryTime: getUseMilitaryTime(state)};
 }
 
 export default connect(mapStateToProps)(EventTimestampTooltip);

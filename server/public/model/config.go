@@ -111,9 +111,9 @@ const (
 	CollapsedThreadsDefaultOff = "default_off"
 	CollapsedThreadsAlwaysOn   = "always_on"
 
-	DateTimeDisplayFormatCompact     = "compact"
-	DateTimeDisplayFormatTimeSeconds = "time_seconds"
-	DateTimeDisplayFormatISODatetime = "iso_datetime"
+	DateTimeDisplayFormatStandard   = "standard"
+	DateTimeDisplayFormatRelative   = "relative"
+	DateTimeDisplayFormatDateAndTime = "date_and_time"
 
 	EmailBatchingBufferSize = 256
 	EmailBatchingInterval   = 30
@@ -3931,9 +3931,10 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes        []string `access:"site_posts"`
-	MaxMarkdownNodes        *int     `access:"site_posts"`
-	DateTimeDisplayFormat   *string  `access:"site_posts"`
+	CustomURLSchemes         []string `access:"site_posts"`
+	MaxMarkdownNodes         *int     `access:"site_posts"`
+	DefaultTimestampFormat *string `access:"site_posts"`
+	ShowTimestampSeconds   *bool   `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -3946,8 +3947,12 @@ func (s *DisplaySettings) SetDefaults() {
 		s.MaxMarkdownNodes = new(0)
 	}
 
-	if s.DateTimeDisplayFormat == nil {
-		s.DateTimeDisplayFormat = new(DateTimeDisplayFormatCompact)
+	if s.DefaultTimestampFormat == nil {
+		s.DefaultTimestampFormat = new(DateTimeDisplayFormatStandard)
+	}
+
+	if s.ShowTimestampSeconds == nil {
+		s.ShowTimestampSeconds = new(false)
 	}
 }
 
@@ -5206,10 +5211,10 @@ func (s *DisplaySettings) isValid() *AppError {
 		}
 	}
 
-	if *s.DateTimeDisplayFormat != DateTimeDisplayFormatCompact &&
-		*s.DateTimeDisplayFormat != DateTimeDisplayFormatTimeSeconds &&
-		*s.DateTimeDisplayFormat != DateTimeDisplayFormatISODatetime {
-		return NewAppError("Config.IsValid", "model.config.is_valid.display.datetime_display_format.app_error", nil, "", http.StatusBadRequest)
+	if *s.DefaultTimestampFormat != DateTimeDisplayFormatStandard &&
+		*s.DefaultTimestampFormat != DateTimeDisplayFormatRelative &&
+		*s.DefaultTimestampFormat != DateTimeDisplayFormatDateAndTime {
+		return NewAppError("Config.IsValid", "model.config.is_valid.display.timestamp_format.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

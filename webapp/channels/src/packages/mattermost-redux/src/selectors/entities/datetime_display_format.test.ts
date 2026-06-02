@@ -1,63 +1,93 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DateTimeDisplayFormat} from '@mattermost/types/config';
+import {TimestampFormat} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {Preferences} from 'mattermost-redux/constants';
-import {getDateTimeDisplayFormat, isCompactDateTimeDisplayFormat} from 'mattermost-redux/selectors/entities/preferences';
+import {getShowTimestampSeconds, getTimestampFormat, shouldShowThreadDateSeparators} from 'mattermost-redux/selectors/entities/preferences';
 
-describe('getDateTimeDisplayFormat', () => {
-    const baseState = {
+import type {GlobalState} from 'types/store';
+
+describe('timestamp format selectors', () => {
+    const baseState: DeepPartial<GlobalState> = {
         entities: {
             general: {
                 config: {
-                    DateTimeDisplayFormat: DateTimeDisplayFormat.ISO_DATETIME,
+                    DefaultTimestampFormat: TimestampFormat.DATE_AND_TIME,
+                    ShowTimestampSeconds: 'false',
                 },
             },
             preferences: {
                 myPreferences: {},
             },
         },
-    } as any;
+    };
 
-    test('returns user preference when set', () => {
+    test('uses user preference when set', () => {
         const state = {
             ...baseState,
             entities: {
                 ...baseState.entities,
                 preferences: {
                     myPreferences: {
-                        [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.DATETIME_DISPLAY_FORMAT}`]: {
-                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-                            name: Preferences.DATETIME_DISPLAY_FORMAT,
-                            value: DateTimeDisplayFormat.TIME_SECONDS,
+                        'display_settings--timestamp_format': {
+                            category: 'display_settings',
+                            name: 'timestamp_format',
+                            value: TimestampFormat.RELATIVE,
                         },
                     },
                 },
             },
-        };
+        } as GlobalState;
 
-        expect(getDateTimeDisplayFormat(state)).toBe(DateTimeDisplayFormat.TIME_SECONDS);
+        expect(getTimestampFormat(state)).toBe(TimestampFormat.RELATIVE);
+        expect(shouldShowThreadDateSeparators(state)).toBe(false);
     });
 
-    test('returns config default when user preference is unset', () => {
-        expect(getDateTimeDisplayFormat(baseState)).toBe(DateTimeDisplayFormat.ISO_DATETIME);
+    test('falls back to config default', () => {
+        const state = baseState as GlobalState;
+
+        expect(getTimestampFormat(state)).toBe(TimestampFormat.DATE_AND_TIME);
+        expect(shouldShowThreadDateSeparators(state)).toBe(false);
     });
 
-    test('returns compact when config is invalid', () => {
+    test('maps legacy preference values', () => {
         const state = {
             ...baseState,
             entities: {
                 ...baseState.entities,
-                general: {
-                    config: {
-                        DateTimeDisplayFormat: 'invalid',
+                preferences: {
+                    myPreferences: {
+                        'display_settings--datetime_display_format': {
+                            category: 'display_settings',
+                            name: 'datetime_display_format',
+                            value: 'iso_datetime',
+                        },
                     },
                 },
             },
-        };
+        } as GlobalState;
 
-        expect(getDateTimeDisplayFormat(state)).toBe(DateTimeDisplayFormat.COMPACT);
-        expect(isCompactDateTimeDisplayFormat(state)).toBe(true);
+        expect(getTimestampFormat(state)).toBe(TimestampFormat.DATE_AND_TIME);
+    });
+
+    test('show seconds from legacy time_seconds format', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                preferences: {
+                    myPreferences: {
+                        'display_settings--datetime_display_format': {
+                            category: 'display_settings',
+                            name: 'datetime_display_format',
+                            value: 'time_seconds',
+                        },
+                    },
+                },
+            },
+        } as GlobalState;
+
+        expect(getShowTimestampSeconds(state)).toBe(true);
     });
 });

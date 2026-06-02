@@ -5,12 +5,16 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {DateTimeDisplayFormat} from '@mattermost/types/config';
+import {TimestampFormat} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {deletePreferences, savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getDateTimeDisplayFormat} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getShowTimestampSeconds,
+    getTimestampFormat,
+    getUseMilitaryTime,
+} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -18,30 +22,34 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Preferences} from 'utils/constants';
-import {getDateTimeDisplayFormatLabel, getDateTimeDisplayFormatShortLabel} from 'utils/datetime_display_format';
+import {getTimestampFormatLabel, getTimestampFormatShortLabel} from 'utils/datetime_display_format';
 
 import type {GlobalState} from 'types/store';
+
+import './date_time_display_format_setting.scss';
 
 type Props = {
     active: boolean;
     areAllSectionsInactive: boolean;
     updateSection: (section?: string) => void;
-    configDateTimeDisplayFormat: DateTimeDisplayFormat;
+    configTimestampFormat: TimestampFormat;
+    configShowTimestampSeconds: boolean;
     militaryTime: string;
+    showTimestampSeconds: string;
 };
 
 export const DATE_AND_TIME_SECTION = 'date_and_time';
 
 const FORMAT_OPTIONS = [
-    DateTimeDisplayFormat.COMPACT,
-    DateTimeDisplayFormat.TIME_SECONDS,
-    DateTimeDisplayFormat.ISO_DATETIME,
+    TimestampFormat.STANDARD,
+    TimestampFormat.RELATIVE,
+    TimestampFormat.DATE_AND_TIME,
 ];
 
 export function isDateAndTimeSectionActive(activeSection: string): boolean {
     return activeSection === DATE_AND_TIME_SECTION ||
         activeSection === 'clock' ||
-        activeSection === Preferences.DATETIME_DISPLAY_FORMAT;
+        activeSection === Preferences.TIMESTAMP_FORMAT;
 }
 
 function getClockDisplayShortLabel(militaryTime: string, intl: ReturnType<typeof useIntl>) {
@@ -62,17 +70,23 @@ export default function DateTimeDisplayFormatSetting({
     active,
     areAllSectionsInactive,
     updateSection,
-    configDateTimeDisplayFormat,
+    configTimestampFormat,
+    configShowTimestampSeconds,
     militaryTime,
+    showTimestampSeconds,
 }: Props) {
     const intl = useIntl();
     const dispatch = useDispatch();
     const userId = useSelector(getCurrentUserId);
-    const configFormat = useSelector((state: GlobalState) => getConfig(state).DateTimeDisplayFormat as DateTimeDisplayFormat) || configDateTimeDisplayFormat;
-    const effectiveFormat = useSelector(getDateTimeDisplayFormat);
+    const configFormat = useSelector((state: GlobalState) => getConfig(state).DefaultTimestampFormat as TimestampFormat) || configTimestampFormat;
+    const configSeconds = useSelector((state: GlobalState) => getConfig(state).ShowTimestampSeconds === 'true') || configShowTimestampSeconds;
+    const effectiveFormat = useSelector(getTimestampFormat);
+    const effectiveShowSeconds = useSelector(getShowTimestampSeconds);
+    const effectiveMilitaryTime = useSelector(getUseMilitaryTime);
 
     const [formatSelection, setFormatSelection] = useState(effectiveFormat);
     const [clockSelection, setClockSelection] = useState(militaryTime);
+    const [secondsSelection, setSecondsSelection] = useState(showTimestampSeconds);
     const minRef = useRef<SettingItemMinComponent>(null);
 
     useEffect(() => {
@@ -89,45 +103,88 @@ export default function DateTimeDisplayFormatSetting({
         setClockSelection(militaryTime);
     }, [militaryTime]);
 
+    useEffect(() => {
+        setSecondsSelection(showTimestampSeconds);
+    }, [showTimestampSeconds]);
+
     const handleUpdateSection = useCallback((section?: string) => {
         if (!section) {
             setFormatSelection(effectiveFormat);
             setClockSelection(militaryTime);
+            setSecondsSelection(showTimestampSeconds);
         }
         updateSection(section);
-    }, [effectiveFormat, militaryTime, updateSection]);
+    }, [effectiveFormat, militaryTime, showTimestampSeconds, updateSection]);
 
     const handleSubmit = useCallback(async () => {
-        const preferencesToSave: PreferenceType[] = [{
+        const preferencesToSave: PreferenceType[] = [];
+        const preferencesToDelete: PreferenceType[] = [];
+
+        const clockPreference: PreferenceType = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
             name: Preferences.USE_MILITARY_TIME,
             value: clockSelection,
-        }];
+        };
+
+        const secondsPreference: PreferenceType = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.SHOW_TIMESTAMP_SECONDS,
+            value: secondsSelection,
+        };
 
         const formatPreference: PreferenceType = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.DATETIME_DISPLAY_FORMAT,
+            name: Preferences.TIMESTAMP_FORMAT,
             value: formatSelection,
         };
 
+        if (clockSelection === Preferences.USE_MILITARY_TIME_DEFAULT) {
+            preferencesToDelete.push(clockPreference);
+        } else {
+            preferencesToSave.push(clockPreference);
+        }
+
+        if (secondsSelection === (configSeconds ? 'true' : 'false')) {
+            preferencesToDelete.push(secondsPreference);
+        } else {
+            preferencesToSave.push(secondsPreference);
+        }
+
         if (formatSelection === configFormat) {
-            await dispatch(deletePreferences(userId, [formatPreference]));
+            preferencesToDelete.push(formatPreference);
         } else {
             preferencesToSave.push(formatPreference);
         }
 
-        await dispatch(savePreferences(userId, preferencesToSave));
+        if (preferencesToDelete.length > 0) {
+            await dispatch(deletePreferences(userId, preferencesToDelete));
+        }
+
+        if (preferencesToSave.length > 0) {
+            await dispatch(savePreferences(userId, preferencesToSave));
+        }
+
         updateSection('');
-    }, [clockSelection, configFormat, dispatch, formatSelection, updateSection, userId]);
+    }, [clockSelection, configFormat, configSeconds, dispatch, formatSelection, secondsSelection, updateSection, userId]);
 
     const summary = intl.formatMessage({
         id: 'user.settings.display.dateAndTimeSummary',
-        defaultMessage: '{clock}, {format}',
+        defaultMessage: '{clock}{secondsPrefix}{formatPrefix}',
     }, {
-        clock: getClockDisplayShortLabel(militaryTime, intl),
-        format: getDateTimeDisplayFormatShortLabel(effectiveFormat, intl),
+        clock: getClockDisplayShortLabel(effectiveMilitaryTime ? 'true' : 'false', intl),
+        secondsPrefix: effectiveShowSeconds ? intl.formatMessage({
+            id: 'user.settings.display.dateAndTimeSummarySeconds',
+            defaultMessage: ', with seconds',
+        }) : '',
+        formatPrefix: intl.formatMessage({
+            id: 'user.settings.display.dateAndTimeSummaryFormat',
+            defaultMessage: ' · {format}',
+        }, {
+            format: getTimestampFormatShortLabel(effectiveFormat, intl),
+        }),
     });
 
     if (active) {
@@ -180,33 +237,49 @@ export default function DateTimeDisplayFormatSetting({
                             <br/>
                         </div>
                     </fieldset>,
-                    <React.Fragment key='dateTimeDisplayFormatSetting'>
+                    <React.Fragment key='timestampFormatSetting'>
                         <hr/>
-                        <fieldset>
+                        <fieldset className='timestamp-format-setting'>
                             <legend className='form-legend'>
                                 <FormattedMessage
-                                    id='user.settings.display.dateTimeDisplayFormatTitle'
+                                    id='user.settings.display.timestampFormatTitle'
                                     defaultMessage='Timestamp Format'
                                 />
                             </legend>
-                            {FORMAT_OPTIONS.map((format) => (
-                                <div
-                                    className='radio'
-                                    key={format}
-                                >
-                                    <label>
-                                        <input
-                                            id={`dateTimeDisplayFormat-${format}`}
-                                            type='radio'
-                                            name='dateTimeDisplayFormat'
-                                            checked={formatSelection === format}
-                                            onChange={() => setFormatSelection(format)}
-                                        />
-                                        {getDateTimeDisplayFormatLabel(format, intl)}
-                                    </label>
-                                    <br/>
-                                </div>
-                            ))}
+                            <div className='timestamp-format-options'>
+                                {FORMAT_OPTIONS.map((format) => (
+                                    <div
+                                        className='radio'
+                                        key={format}
+                                    >
+                                        <label>
+                                            <input
+                                                id={`timestampFormat-${format}`}
+                                                type='radio'
+                                                name='timestampFormat'
+                                                checked={formatSelection === format}
+                                                onChange={() => setFormatSelection(format)}
+                                            />
+                                            {getTimestampFormatLabel(format, intl)}
+                                        </label>
+                                        <br/>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className='checkbox'>
+                                <label>
+                                    <input
+                                        id='dateAndTimeShowSeconds'
+                                        type='checkbox'
+                                        checked={secondsSelection === 'true'}
+                                        onChange={() => setSecondsSelection(secondsSelection === 'true' ? 'false' : 'true')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.display.showTimestampSeconds'
+                                        defaultMessage='Show seconds in timestamps (example: 4:00:07 PM)'
+                                    />
+                                </label>
+                            </div>
                         </fieldset>
                     </React.Fragment>,
                 ]}

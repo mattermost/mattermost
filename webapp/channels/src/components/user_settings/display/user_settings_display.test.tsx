@@ -12,7 +12,7 @@ import UserSettingsDisplay from './user_settings_display';
 
 jest.mock('./date_time_display_format_setting/index', () => ({
     __esModule: true,
-    isDateAndTimeSectionActive: (section: string) => section === 'date_and_time' || section === 'clock' || section === 'datetime_display_format',
+    isDateAndTimeSectionActive: (section: string) => section === 'date_and_time' || section === 'clock' || section === 'timestamp_format',
     default: ({active, updateSection}: {active: boolean; updateSection: (section?: string) => void}) => (
         active ? (
             <div data-testid='date-and-time-setting'>

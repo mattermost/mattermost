@@ -87,6 +87,8 @@ const (
 	PreferenceNameColorizeUsernames       = "colorize_usernames"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
+	PreferenceNameTimestampFormat       = "timestamp_format"
+	PreferenceNameShowTimestampSeconds    = "show_timestamp_seconds"
 	PreferenceNameDateTimeDisplayFormat   = "datetime_display_format"
 
 	PreferenceNameShowUnreadSection = "show_unread_section"
@@ -161,11 +163,17 @@ func (o *Preference) IsValid() *AppError {
 		}
 	}
 
-	if o.Category == PreferenceCategoryDisplaySettings && o.Name == PreferenceNameDateTimeDisplayFormat {
-		if o.Value != DateTimeDisplayFormatCompact &&
-			o.Value != DateTimeDisplayFormatTimeSeconds &&
-			o.Value != DateTimeDisplayFormatISODatetime {
-			return NewAppError("Preference.IsValid", "model.config.is_valid.display.datetime_display_format.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+	if o.Category == PreferenceCategoryDisplaySettings && o.Name == PreferenceNameTimestampFormat {
+		if o.Value != DateTimeDisplayFormatStandard &&
+			o.Value != DateTimeDisplayFormatRelative &&
+			o.Value != DateTimeDisplayFormatDateAndTime {
+			return NewAppError("Preference.IsValid", "model.config.is_valid.display.timestamp_format.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+		}
+	}
+
+	if o.Category == PreferenceCategoryDisplaySettings && o.Name == PreferenceNameShowTimestampSeconds {
+		if o.Value != "true" && o.Value != "false" {
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.value.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
 	}
 

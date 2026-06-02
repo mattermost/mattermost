@@ -2,64 +2,57 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ComponentProps} from 'react';
 import {useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {DateTimeDisplayFormat} from '@mattermost/types/config';
+import {TimestampFormat} from '@mattermost/types/config';
 
 import Timestamp, {supportsHourCycle} from 'components/timestamp';
 import SemanticTime from 'components/timestamp/semantic_time';
 
 import {
-    formatEventTimestamp,
     formatFullDateTimeForTooltip,
+    formatInlineTimestamp,
+    resolveTimestampDisplayTier,
+    type TimestampDisplayContext,
+    type TimestampDisplayTier,
 } from 'utils/datetime_display_format';
 
 export type Props = {
     value: number | Date;
     className?: string;
-    timestampProps?: ComponentProps<typeof Timestamp>;
-    dateTimeDisplayFormat: DateTimeDisplayFormat;
+    timestampFormat: TimestampFormat;
+    showTimestampSeconds: boolean;
     timeZone?: string;
     useMilitaryTime: boolean;
     showTooltip?: boolean;
-    forceCompactFormat?: boolean;
+    context?: TimestampDisplayContext;
+    tier?: TimestampDisplayTier;
+    isConsecutivePost?: boolean;
+    forceTimeOnly?: boolean;
 };
-
-const CONTEXT_TIMESTAMP_PROP_KEYS = new Set([
-    'units',
-    'ranges',
-    'useDate',
-    'useTime',
-    'day',
-    'month',
-    'year',
-    'weekday',
-    'useRelative',
-]);
-
-function hasContextTimestampProps(timestampProps: ComponentProps<typeof Timestamp>): boolean {
-    return Object.keys(timestampProps).some((key) => CONTEXT_TIMESTAMP_PROP_KEYS.has(key));
-}
 
 function EventTimestamp({
     value,
     className,
-    timestampProps = {},
-    dateTimeDisplayFormat,
+    timestampFormat,
+    showTimestampSeconds,
     timeZone,
     useMilitaryTime,
     showTooltip = true,
-    forceCompactFormat = false,
+    context = 'post',
+    tier,
+    isConsecutivePost = false,
+    forceTimeOnly = false,
 }: Props) {
     const intl = useIntl();
     const dateValue = value instanceof Date ? value : new Date(value);
-    const useContextTimestampProps = hasContextTimestampProps(timestampProps);
-    const inlineFormat = forceCompactFormat || useContextTimestampProps ? DateTimeDisplayFormat.COMPACT : dateTimeDisplayFormat;
+    const effectiveTier = resolveTimestampDisplayTier(timestampFormat, context, tier, forceTimeOnly);
+    const effectiveShowSeconds = showTimestampSeconds && !forceTimeOnly;
 
     let inlineContent: React.ReactNode;
-    if (inlineFormat === DateTimeDisplayFormat.COMPACT) {
+
+    if (context === 'post' && effectiveTier === 'time_only') {
         inlineContent = (
             <Timestamp
                 value={dateValue}
@@ -67,14 +60,24 @@ function EventTimestamp({
                 timeZone={timeZone}
                 hourCycle={useMilitaryTime ? 'h23' : 'h12'}
                 hour12={supportsHourCycle ? undefined : !useMilitaryTime}
-                {...(useContextTimestampProps ? {} : {useDate: false})}
-                {...timestampProps}
+                useDate={false}
+                useTime={{
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    ...(effectiveShowSeconds ? {second: '2-digit'} : {}),
+                }}
+                style={isConsecutivePost ? 'narrow' : undefined}
             />
         );
     } else {
-        const formatted = formatEventTimestamp(dateValue, dateTimeDisplayFormat, {
+        const formatted = formatInlineTimestamp(dateValue, timestampFormat, {
             timeZone,
             useMilitaryTime,
+            showTimestampSeconds,
+            context,
+            tier: effectiveTier,
+            forceTimeOnly,
+            intl,
         });
 
         inlineContent = (
