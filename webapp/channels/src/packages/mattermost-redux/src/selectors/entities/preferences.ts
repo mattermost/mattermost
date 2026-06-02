@@ -215,15 +215,25 @@ export function shouldShowJoinLeaveMessages(state: GlobalState) {
     return getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, Preferences.ADVANCED_FILTER_JOIN_LEAVE, enableJoinLeaveMessage);
 }
 
-export type TimestampDisplayMode = 'default' | 'iso' | 'offset';
+export type TimestampDisplayMode = 'default' | 'iso' | 'full';
 
 function getConfigTimestampDisplayDefault(config: ReturnType<typeof getConfig>): string {
-    if (config.TimestampDisplayDefault === Preferences.TIMESTAMP_DISPLAY_ISO ||
-        config.TimestampDisplayDefault === Preferences.TIMESTAMP_DISPLAY_OFFSET) {
-        return config.TimestampDisplayDefault;
+    const configDefault = normalizeTimestampDisplayValue(config.TimestampDisplayDefault || '');
+
+    if (configDefault === Preferences.TIMESTAMP_DISPLAY_ISO ||
+        configDefault === Preferences.TIMESTAMP_DISPLAY_FULL) {
+        return configDefault;
     }
 
     return Preferences.TIMESTAMP_DISPLAY_DEFAULT;
+}
+
+function normalizeTimestampDisplayValue(value: string): string {
+    if (value === 'offset') {
+        return Preferences.TIMESTAMP_DISPLAY_FULL;
+    }
+
+    return value;
 }
 
 function resolveTimestampDisplayValue(
@@ -239,7 +249,7 @@ function resolveTimestampDisplayValue(
     );
 
     if (value) {
-        return value;
+        return normalizeTimestampDisplayValue(value);
     }
 
     if (getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_UTC_TIMESTAMPS, false, userPreferences)) {
@@ -253,7 +263,7 @@ export function getTimestampDisplayMode(state: GlobalState, userPreferences?: Pr
     const configDefault = getConfigTimestampDisplayDefault(getConfig(state));
     const value = resolveTimestampDisplayValue(state, userPreferences) || configDefault;
 
-    if (value === Preferences.TIMESTAMP_DISPLAY_ISO || value === Preferences.TIMESTAMP_DISPLAY_OFFSET) {
+    if (value === Preferences.TIMESTAMP_DISPLAY_ISO || value === Preferences.TIMESTAMP_DISPLAY_FULL) {
         return value;
     }
 

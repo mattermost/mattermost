@@ -113,7 +113,7 @@ const (
 
 	TimestampDisplayDefaultSetting = "default"
 	TimestampDisplayIso            = "iso"
-	TimestampDisplayOffset         = "offset"
+	TimestampDisplayFull           = "full"
 
 	EmailBatchingBufferSize = 256
 	EmailBatchingInterval   = 30
@@ -4511,7 +4511,7 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if *s.TimestampDisplayDefault != TimestampDisplayDefaultSetting &&
 		*s.TimestampDisplayDefault != TimestampDisplayIso &&
-		*s.TimestampDisplayDefault != TimestampDisplayOffset {
+		*s.TimestampDisplayDefault != TimestampDisplayFull {
 		return NewAppError("Config.IsValid", "model.config.is_valid.timestamp_display_default.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -101,7 +101,7 @@ export const Preferences = {
     TIMESTAMP_DISPLAY: 'timestamp_display',
     TIMESTAMP_DISPLAY_DEFAULT: 'default',
     TIMESTAMP_DISPLAY_ISO: 'iso',
-    TIMESTAMP_DISPLAY_OFFSET: 'offset',
+    TIMESTAMP_DISPLAY_FULL: 'full',
     USE_UTC_TIMESTAMPS: 'use_utc_timestamps',
     USE_UTC_TIMESTAMPS_DEFAULT: 'false',
     UNREAD_SCROLL_POSITION: 'unread_scroll_position',

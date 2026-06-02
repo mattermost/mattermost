@@ -2,23 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {
+    formatFullTimestamp,
     formatIsoTimestamp,
-    formatOffsetTimestamp,
-    formatUtcOffsetLabel,
-    getOffsetTimestampProps,
+    getFullTimestampProps,
     getTimestampDisplayProps,
 } from './timestamp_display_props';
-
-describe('formatUtcOffsetLabel', () => {
-    test('should format whole-hour offsets without minutes', () => {
-        expect(formatUtcOffsetLabel('+01:00')).toBe('UTC+01');
-        expect(formatUtcOffsetLabel('-05:00')).toBe('UTC-05');
-    });
-
-    test('should preserve fractional offsets', () => {
-        expect(formatUtcOffsetLabel('+05:30')).toBe('UTC+05:30');
-    });
-});
 
 describe('formatIsoTimestamp', () => {
     test('should format as ISO 8601 date-time with explicit offset', () => {
@@ -27,9 +15,10 @@ describe('formatIsoTimestamp', () => {
     });
 });
 
-describe('formatOffsetTimestamp', () => {
-    test('should format as date at time with UTC offset label', () => {
-        expect(formatOffsetTimestamp(1577836800000, 'Europe/Berlin')).toBe('2020-01-01 at 01:00:00 (UTC+01)');
+describe('formatFullTimestamp', () => {
+    test('should format as date at time without timezone offset', () => {
+        expect(formatFullTimestamp(1577836800000, 'UTC')).toBe('2020-01-01 at 00:00:00');
+        expect(formatFullTimestamp(1577836800000, 'Europe/Berlin')).toBe('2020-01-01 at 01:00:00');
     });
 });
 
@@ -38,9 +27,9 @@ describe('getTimestampDisplayProps', () => {
         expect(getTimestampDisplayProps('UTC', 'default')).toBeUndefined();
     });
 
-    test('should return offset props for offset mode', () => {
-        const props = getOffsetTimestampProps('Europe/Berlin');
+    test('should return full timestamp props for full mode', () => {
+        const props = getFullTimestampProps('Europe/Berlin');
         expect(props.timeZone).toBe('Europe/Berlin');
-        expect(formatOffsetTimestamp(1577836800000, 'Europe/Berlin')).toBe('2020-01-01 at 01:00:00 (UTC+01)');
+        expect(formatFullTimestamp(1577836800000, 'Europe/Berlin')).toBe('2020-01-01 at 01:00:00');
     });
 });

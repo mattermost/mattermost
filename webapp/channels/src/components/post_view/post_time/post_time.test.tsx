@@ -235,7 +235,7 @@ describe('components/post_view/post_time/PostTime connected', () => {
         expect(screen.getByText('2020-01-01T01:00:00+01:00')).toBeInTheDocument();
     });
 
-    test('should render offset timestamp in the user timezone when timestamp display is offset', () => {
+    test('should render full timestamp in the user timezone when timestamp display is full', () => {
         const ConnectedPostTime = require('./index').default;
 
         const state = {
@@ -263,7 +263,7 @@ describe('components/post_view/post_time/PostTime connected', () => {
                         'display_settings--timestamp_display': {
                             category: 'display_settings',
                             name: 'timestamp_display',
-                            value: 'offset',
+                            value: 'full',
                         },
                     },
                 },
@@ -272,6 +272,6 @@ describe('components/post_view/post_time/PostTime connected', () => {
 
         renderWithContext(<ConnectedPostTime {...baseProps}/>, state);
 
-        expect(screen.getByText('2020-01-01 at 01:00:00 (UTC+01)')).toBeInTheDocument();
+        expect(screen.getByText('2020-01-01 at 01:00:00')).toBeInTheDocument();
     });
 });

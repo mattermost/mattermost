@@ -860,7 +860,26 @@ describe('getTimestampDisplayMode', () => {
         expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(true);
     });
 
-    it('should use offset when config default is offset', () => {
+    it('should use full timestamp when config default is full', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        TimestampDisplayDefault: 'full',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('full');
+        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(false);
+        expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(true);
+    });
+
+    it('should migrate legacy offset config value to full', () => {
         const state = {
             entities: {
                 general: {
@@ -874,9 +893,7 @@ describe('getTimestampDisplayMode', () => {
             },
         } as unknown as GlobalState;
 
-        expect(Selectors.getTimestampDisplayMode(state)).toEqual('offset');
-        expect(Selectors.shouldUseUtcTimestamps(state)).toEqual(false);
-        expect(Selectors.shouldUseAbsoluteTimestamps(state)).toEqual(true);
+        expect(Selectors.getTimestampDisplayMode(state)).toEqual('full');
     });
 
     it('if user preference is set, admin default is not used', () => {

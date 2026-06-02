@@ -815,11 +815,11 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
             },
             thirdOption: {
-                value: Preferences.TIMESTAMP_DISPLAY_OFFSET,
+                value: Preferences.TIMESTAMP_DISPLAY_FULL,
                 radionButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.timestampDisplayOffset',
-                        defaultMessage: 'With UTC offset (example: 2024-06-01 at 15:30:00 (UTC+01))',
+                        id: 'user.settings.display.timestampDisplayFull',
+                        defaultMessage: 'Full timestamp (example: 2024-06-01 at 15:30:00)',
                     }),
                 },
             },

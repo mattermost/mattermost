@@ -7,29 +7,14 @@ import type {TimestampDisplayMode} from 'mattermost-redux/selectors/entities/pre
 
 import type {Props as TimestampProps} from './timestamp';
 
-export function formatUtcOffsetLabel(offset: string): string {
-    const match = /^([+-])(\d{2}):(\d{2})$/.exec(offset);
-    if (!match) {
-        return `UTC${offset}`;
-    }
-
-    const [, sign, hours, minutes] = match;
-    if (minutes === '00') {
-        return `UTC${sign}${hours}`;
-    }
-
-    return `UTC${sign}${hours}:${minutes}`;
-}
-
 export function formatIsoTimestamp(value: Date | number, timeZone = 'UTC'): string {
     const formatted = moment(value).tz(timeZone);
     return `${formatted.format('YYYY-MM-DD')}T${formatted.format('HH:mm:ss')}${formatted.format('Z')}`;
 }
 
-export function formatOffsetTimestamp(value: Date | number, timeZone = 'UTC'): string {
+export function formatFullTimestamp(value: Date | number, timeZone = 'UTC'): string {
     const formatted = moment(value).tz(timeZone);
-    const offsetLabel = formatUtcOffsetLabel(formatted.format('Z'));
-    return `${formatted.format('YYYY-MM-DD')} at ${formatted.format('HH:mm:ss')} (${offsetLabel})`;
+    return `${formatted.format('YYYY-MM-DD')} at ${formatted.format('HH:mm:ss')}`;
 }
 
 export function getIsoTimestampProps(timeZone: string): Partial<TimestampProps> {
@@ -42,13 +27,13 @@ export function getIsoTimestampProps(timeZone: string): Partial<TimestampProps> 
     };
 }
 
-export function getOffsetTimestampProps(timeZone: string): Partial<TimestampProps> {
+export function getFullTimestampProps(timeZone: string): Partial<TimestampProps> {
     return {
         timeZone,
         useRelative: false,
         useDate: false,
         useTime: false,
-        children: ({value}) => formatOffsetTimestamp(value, timeZone),
+        children: ({value}) => formatFullTimestamp(value, timeZone),
     };
 }
 
@@ -56,8 +41,8 @@ export function getTimestampDisplayProps(timeZone: string, mode: TimestampDispla
     if (mode === 'iso') {
         return getIsoTimestampProps(timeZone);
     }
-    if (mode === 'offset') {
-        return getOffsetTimestampProps(timeZone);
+    if (mode === 'full') {
+        return getFullTimestampProps(timeZone);
     }
     return undefined;
 }

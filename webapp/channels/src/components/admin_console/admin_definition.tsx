@@ -3117,8 +3117,8 @@ const AdminDefinition: AdminDefinitionType = {
                                     display_name: defineMessage({id: 'admin.team.timestampDisplayDefaultIso', defaultMessage: 'ISO'}),
                                 },
                                 {
-                                    value: 'offset',
-                                    display_name: defineMessage({id: 'admin.team.timestampDisplayDefaultOffset', defaultMessage: 'With UTC offset'}),
+                                    value: 'full',
+                                    display_name: defineMessage({id: 'admin.team.timestampDisplayDefaultFull', defaultMessage: 'Full timestamp'}),
                                 },
                             ],
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
