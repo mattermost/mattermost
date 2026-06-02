@@ -13,7 +13,7 @@ let mockListPosition: string | undefined;
 jest.mock('components/suggestion/suggestion_box', () => {
     const ReactMod = require('react');
     const MockSuggestionBox = ReactMod.forwardRef(function MockSuggestionBox(props: any, ref: any) {
-        const inputRef = ReactMod.useRef<HTMLInputElement>(null);
+        const inputRef = ReactMod.useRef(null);
         mockOnItemSelected = props.onItemSelected;
         mockListPosition = props.listPosition;
 
