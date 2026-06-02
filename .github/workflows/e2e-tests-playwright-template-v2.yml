@@ -190,7 +190,7 @@ jobs:
             webapp/**/node_modules
             webapp/platform/client/lib
             webapp/platform/types/lib
-          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
+          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}-2
       - name: ci/build-platform-pkgs
         # Full webapp install is needed for tsc + workspace linking; the
         # postinstall builds platform/{client,types}/lib. We only cache those.
@@ -311,7 +311,7 @@ jobs:
             webapp/**/node_modules
             webapp/platform/client/lib
             webapp/platform/types/lib
-          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
+          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}-2
           fail-on-cache-miss: true
       - name: ci/restore-playwright-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
