@@ -195,7 +195,7 @@ describe('components/post_view/post_time/PostTime connected', () => {
         teamUrl: '/team1',
     };
 
-    test('should render UTC timestamp when use_utc_timestamps preference is enabled', () => {
+    test('should render ISO timestamp in the user timezone when use_utc_timestamps preference is enabled', () => {
         const ConnectedPostTime = require('./index').default;
 
         const state = {
@@ -203,6 +203,19 @@ describe('components/post_view/post_time/PostTime connected', () => {
                 general: {
                     config: {
                         EnableUtcTimestampsByDefault: 'false',
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {
+                        user1: {
+                            id: 'user1',
+                            timezone: {
+                                useAutomaticTimezone: 'false',
+                                automaticTimezone: '',
+                                manualTimezone: 'Europe/Berlin',
+                            },
+                        },
                     },
                 },
                 preferences: {
@@ -219,6 +232,6 @@ describe('components/post_view/post_time/PostTime connected', () => {
 
         renderWithContext(<ConnectedPostTime {...baseProps}/>, state);
 
-        expect(screen.getByText('2020-01-01T00:00:00+00:00')).toBeInTheDocument();
+        expect(screen.getByText('2020-01-01T01:00:00+01:00')).toBeInTheDocument();
     });
 });

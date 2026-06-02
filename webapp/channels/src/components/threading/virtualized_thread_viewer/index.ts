@@ -9,12 +9,14 @@ import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/sel
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled, shouldUseUtcTimestamps} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
+import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
-import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
+import {getIsoTimestampProps} from 'components/timestamp/utc_timestamp_props';
 
 import type {GlobalState} from 'types/store';
 import type {FakePost} from 'types/store/rhs';
@@ -37,6 +39,7 @@ function makeMapStateToProps() {
         const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
         const useUtcTimestamps = shouldUseUtcTimestamps(state);
         const effectiveUseRelativeTimestamp = useRelativeTimestamp && !useUtcTimestamps;
+        const timeZone = getUserCurrentTimezone(getCurrentTimezoneFull(state));
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
@@ -61,7 +64,7 @@ function makeMapStateToProps() {
             newMessagesSeparatorActions,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
             useRelativeTimestamp: effectiveUseRelativeTimestamp,
-            utcTimestampProps: useUtcTimestamps ? UTC_TIMESTAMP_PROPS : undefined,
+            utcTimestampProps: useUtcTimestamps ? getIsoTimestampProps(timeZone) : undefined,
         };
     };
 }

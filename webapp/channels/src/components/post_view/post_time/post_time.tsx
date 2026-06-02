@@ -11,7 +11,6 @@ import {isMobile} from '@mattermost/shared/utils/user_agent';
 import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
-import {UTC_TIMESTAMP_PROPS} from 'components/timestamp/utc_timestamp_props';
 
 import {Locations} from 'utils/constants';
 
@@ -100,7 +99,7 @@ export default class PostTime extends React.PureComponent<Props> {
                         <Timestamp
                             value={eventTime}
                             useSemanticOutput={false}
-                            {...UTC_TIMESTAMP_PROPS}
+                            {...timestampProps}
                         />
                     ) : (
                         <Timestamp

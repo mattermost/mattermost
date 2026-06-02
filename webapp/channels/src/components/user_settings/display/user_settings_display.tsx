@@ -810,13 +810,13 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 radionButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.isoTimestampViewOn',
-                        defaultMessage: 'On (example: 2024-06-01T14:30:00+00:00)',
+                        defaultMessage: 'On (example: 2024-06-01T15:30:00+01:00)',
                     }),
                 },
             },
             description: defineMessage({
                 id: 'user.settings.display.isoTimestampViewDesc',
-                defaultMessage: 'Show post timestamps in ISO 8601 format with a UTC offset.',
+                defaultMessage: 'Show post timestamps in ISO 8601 format using your timezone setting.',
             }),
         });
 

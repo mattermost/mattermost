@@ -12,10 +12,12 @@ export function formatIsoTimestamp(value: Date | number, timeZone = 'UTC'): stri
 
 export const formatUtcTimestamp = formatIsoTimestamp;
 
-export const UTC_TIMESTAMP_PROPS: Partial<TimestampProps> = {
-    timeZone: 'UTC',
-    useRelative: false,
-    useDate: false,
-    useTime: false,
-    children: ({value}) => formatIsoTimestamp(value, 'UTC'),
-};
+export function getIsoTimestampProps(timeZone: string): Partial<TimestampProps> {
+    return {
+        timeZone,
+        useRelative: false,
+        useDate: false,
+        useTime: false,
+        children: ({value}) => formatIsoTimestamp(value, timeZone),
+    };
+}
