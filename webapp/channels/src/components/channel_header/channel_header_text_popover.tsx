@@ -53,6 +53,8 @@ const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_Y_OF_POPOVER) - (
 
 interface Props {
     text: string;
+    /** Inline header bar text; defaults to full `text`. */
+    headerMessage?: string;
     channelMentionsNameMap?: ChannelNamesMap;
 }
 export function ChannelHeaderTextPopover(props: Props) {
@@ -60,6 +62,7 @@ export function ChannelHeaderTextPopover(props: Props) {
 
     const rootElementRef = useRef<HTMLDivElement>(null);
 
+    const headerMessage = props.headerMessage ?? props.text;
     const isTextOverflowing = checkIfTextIsOverflowing(rootElementRef?.current, props.text);
 
     const markdownOptions = useMemo(() => {
@@ -129,7 +132,7 @@ export function ChannelHeaderTextPopover(props: Props) {
                 onClick={handleClick}
             >
                 <Markdown
-                    message={props.text}
+                    message={headerMessage}
                     options={markdownOptions.inHeader}
                     imageProps={IMAGE_MARKDOWN_OPTIONS}
                 />

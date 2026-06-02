@@ -10,9 +10,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Constants} from 'utils/constants';
 import {isChannelNamesMap} from 'utils/text_formatting';
 
+import {previewChannelHeaderText} from './channel_header_preview';
 import {ChannelHeaderTextPopover} from './channel_header_text_popover';
-
-const token = 'fOuNdMyLeAkeDaPIkEyrZW5fMTIzNDU=';
 
 interface Props {
     teamId?: Team['id'];
@@ -20,20 +19,35 @@ interface Props {
     dmUser?: UserProfile;
 }
 
+function resolveHeaderText(props: Props): string {
+    const isBotDMChannel =
+        props.channel.type === Constants.DM_CHANNEL && (props.dmUser?.is_bot ?? false);
+
+    if (isBotDMChannel) {
+        return props.dmUser?.bot_description ?? '';
+    }
+
+    return props.channel?.header ?? '';
+}
+
 export default function ChannelHeaderText(props: Props) {
-    const isBotDMChannel = props.channel.type === Constants.DM_CHANNEL && (props.dmUser?.is_bot ?? false);
-    const headerText = isBotDMChannel ? props.dmUser?.bot_description ?? '' : props.channel?.header ?? '';
+    const headerText = resolveHeaderText(props);
     const hasHeaderText = headerText.trim().length > 0;
 
     if (!hasHeaderText) {
         return null;
     }
 
+    const previewText = previewChannelHeaderText(headerText);
+
     return (
         <ChannelHeaderTextPopover
             text={headerText}
+            headerMessage={previewText}
             channelMentionsNameMap={
-                isChannelNamesMap(props.channel?.props?.channel_mentions) ? props.channel.props.channel_mentions : undefined
+                isChannelNamesMap(props.channel?.props?.channel_mentions)
+                    ? props.channel.props.channel_mentions
+                    : undefined
             }
         />
     );
