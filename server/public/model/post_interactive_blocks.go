@@ -73,11 +73,13 @@ func appendHumanStringsFromMmBlockMap(m map[string]any, out *[]string) {
 				if !ok {
 					continue
 				}
-				appendHumanStringsFromMmBlockMap(cm, out)
+				colItems, ok := cm["items"].([]any)
+				if !ok {
+					continue
+				}
+				appendHumanStringsFromMmBlocksArray(colItems, out)
 			}
 		}
-	case "column":
-		appendHumanStringsFromMmBlocksArray(m["items"], out)
 	}
 }
 
@@ -230,11 +232,15 @@ func walkMmBlockMapForImageURLs(m map[string]any, out *[]string) {
 				if !ok {
 					continue
 				}
-				walkMmBlockMapForImageURLs(cm, out)
+				colItems, ok := cm["items"].([]any)
+				if !ok {
+					continue
+				}
+				for _, item := range colItems {
+					walkMmBlocksArrayForImageURLs(item, out)
+				}
 			}
 		}
-	case "column":
-		walkMmBlocksArrayForImageURLs(m["items"], out)
 	}
 }
 
