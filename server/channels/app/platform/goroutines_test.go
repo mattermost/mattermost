@@ -39,7 +39,7 @@ func TestGoExtraction(t *testing.T) {
 		select {
 		case <-done:
 		case <-time.After(5 * time.Second):
-			t.Fatal("submitted extraction tasks did not run")
+			require.Fail(t, "submitted extraction tasks did not run")
 		}
 	})
 
