@@ -406,6 +406,14 @@
                   items:
                     type: string
                   description: The IDs of the channels to assign the policy to.
+                team_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    The IDs of the teams to assign the policy to. Requires the
+                    `manage_system` permission. Any unknown team ID is rejected
+                    with a 400.
       responses:
         "200":
           description: Policy assigned to channels successfully.
@@ -452,6 +460,14 @@
                   items:
                     type: string
                   description: The IDs of the channels to unassign the policy from.
+                team_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    The IDs of the teams to unassign the policy from. Requires the
+                    `manage_system` permission. Any unknown team ID is rejected
+                    with a 400.
       responses:
         "200":
           description: Policy unassigned from channels successfully.

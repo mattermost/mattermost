@@ -46,6 +46,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods(http.MethodPut)
 	api.BaseRoutes.Team.Handle("/stats", api.APISessionRequired(getTeamStats)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/access_control/policy", api.APISessionRequired(getTeamAccessControlPolicy)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -174,6 +175,61 @@ func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
 	}
 
 	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
+}
+
+func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+	teamID := c.Params.TeamId
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) &&
+		!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+		c.SetPermissionError(model.PermissionManageTeamAccessRules)
+		return
+	}
+
+	enforced, appErr := c.App.TeamAccessControlled(c.AppContext, teamID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// A team child policy shares the team's id. Absence (404) means no policy is
+	// assigned; NotImplemented means ABAC is unavailable on this server. Either way
+	// there's nothing to enforce, so report a nil policy rather than erroring.
+	var policy *model.AccessControlPolicy
+	p, appErr := c.App.GetAccessControlPolicy(c.AppContext, teamID)
+	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound && appErr.StatusCode != http.StatusNotImplemented {
+			c.Err = appErr
+			return
+		}
+	} else {
+		policy = p
+		if shouldRedactExpressions(c) {
+			c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+		}
+	}
+
+	resp := struct {
+		Policy   *model.AccessControlPolicy `json:"policy"`
+		Enforced bool                       `json:"enforced"`
+	}{
+		Policy:   policy,
+		Enforced: enforced,
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
