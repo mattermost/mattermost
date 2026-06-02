@@ -44,7 +44,12 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to process (manual trigger for testing)'
+        description: >-
+          PR number to process. Intended use cases:
+          (1) smoke-test the workflow after merging without having to apply a label;
+          (2) re-run after a transient failure (e.g. Claude API timeout, push error)
+          without bouncing the Docs/Needed label;
+          (3) validate the workflow against a known PR during development or review.
         required: true
         type: string
  
