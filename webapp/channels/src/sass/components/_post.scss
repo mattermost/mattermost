@@ -2026,20 +2026,20 @@
         position: relative;
 
         &::after {
-            content: '';
             position: absolute;
             z-index: 1;
             right: 0;
             bottom: 0;
             left: 0;
             height: 40%;
-            max-height: 64px;
             min-height: 28px;
+            max-height: 64px;
             background: linear-gradient(
                 to bottom,
                 rgba(var(--center-channel-bg-rgb), 0) 0%,
                 var(--center-channel-bg) 100%
             );
+            content: '';
             pointer-events: none;
         }
     }
