@@ -205,6 +205,20 @@ function removePostsAndEmbedsForChannels(state: IDMappedObjects<Post>, channelId
 
 export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAction) {
     switch (action.type) {
+    case PostTypes.INVALIDATE_CHANNEL_POSTS: {
+        const {channelId} = action;
+        if (!channelId) {
+            return state;
+        }
+        const nextState: IDMappedObjects<Post> = {};
+        for (const id in state) {
+            if (state[id].channel_id !== channelId) {
+                nextState[id] = state[id];
+            }
+        }
+        return nextState;
+    }
+
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
         return handlePostReceived({...state}, action.data);
@@ -625,6 +639,15 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         const {channelId} = action;
         if (!channelId) {
             return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
+    }
+    case PostTypes.INVALIDATE_CHANNEL_POSTS: {
+        const {channelId} = action;
+        if (!channelId) {
+            return state;
         }
         const nextState = {...state};
         Reflect.deleteProperty(nextState, channelId);

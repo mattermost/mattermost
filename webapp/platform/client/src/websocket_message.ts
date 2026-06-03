@@ -81,6 +81,8 @@ export type WebSocketMessage = (
     Messages.PropertyFieldCreated |
     Messages.PropertyFieldUpdated |
     Messages.PropertyFieldDeleted |
+    Messages.PostPolicyChanged |
+    Messages.UserPolicyAttributesChanged |
 
     Messages.EmojiAdded |
 

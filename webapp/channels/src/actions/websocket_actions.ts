@@ -692,6 +692,12 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.PropertyFieldDeleted:
         dispatch(handlePropertyFieldDeleted(msg));
         break;
+    case WebSocketEvents.PostPolicyChanged:
+        dispatch(handlePostPolicyChangedEvent(msg));
+        break;
+    case WebSocketEvents.UserPolicyAttributesChanged:
+        dispatch(handleUserPolicyAttributesChangedEvent());
+        break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
@@ -1318,6 +1324,52 @@ export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValue
         });
 
         doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
+    };
+}
+
+// refetchChannelPostsForPolicyChange clears the channel's posts from redux
+// and refetches them. Used by post_policy_changed and
+// user_policy_attributes_changed handlers because a plain `getPosts` refetch
+// is rejected by the post reducer's shouldUpdatePost check when update_at
+// hasn't changed — and a policy/attribute change shifts which posts are
+// blanked without bumping any post's update_at.
+function refetchChannelPostsForPolicyChange(channelId: string): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        const state = doGetState();
+        const loadedPostsForChannel = state.entities.posts.postsInChannel[channelId];
+        if (!loadedPostsForChannel) {
+            return;
+        }
+        doDispatch({
+            type: PostTypes.INVALIDATE_CHANNEL_POSTS,
+            channelId,
+        });
+        doDispatch(getPosts(channelId));
+    };
+}
+
+export function handlePostPolicyChangedEvent(msg: WebSocketMessages.PostPolicyChanged): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const channelId = msg.data?.channel_id;
+        if (typeof channelId !== 'string' || channelId === '') {
+            return;
+        }
+        doDispatch(refetchChannelPostsForPolicyChange(channelId));
+    };
+}
+
+export function handleUserPolicyAttributesChangedEvent(): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        const state = doGetState();
+        // Refresh every channel that has posts loaded in redux. A policy
+        // referencing the changed user attribute could exist on any of them;
+        // checking on the server is cheaper than walking the policy graph
+        // here, and the request count is bounded by how many channels the
+        // user actually has open.
+        const postsInChannel = state.entities.posts.postsInChannel;
+        for (const channelId of Object.keys(postsInChannel)) {
+            doDispatch(refetchChannelPostsForPolicyChange(channelId));
+        }
     };
 }
 

@@ -396,6 +396,15 @@ export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.Propert
     values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
 }>;
 
+// Post Policy live-update events. Fired when a post_filter policy is
+// added / edited / deleted (channel-scoped), or when a user's CPA values
+// change while PostPolicy is on (user-scoped).
+export type PostPolicyChanged = BaseWebSocketMessage<WebSocketEvents.PostPolicyChanged, {
+    channel_id: string;
+}>;
+
+export type UserPolicyAttributesChanged = BaseWebSocketMessage<WebSocketEvents.UserPolicyAttributesChanged>;
+
 // Emoji messages
 
 export type EmojiAdded = BaseWebSocketMessage<WebSocketEvents.EmojiAdded, {

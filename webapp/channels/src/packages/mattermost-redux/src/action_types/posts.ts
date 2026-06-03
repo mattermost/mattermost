@@ -55,6 +55,12 @@ export default keyMirror({
     MOVE_HISTORY_INDEX_FORWARD: null,
 
     RESET_POSTS_IN_CHANNEL: null,
+    // Hard-clear all posts in a channel from both `posts` and
+    // `postsInChannel`. Used when a policy or attribute change
+    // invalidates the previously-filtered post bodies and we need a
+    // clean refetch without being blocked by `shouldUpdatePost`
+    // (which rejects equal-`update_at` updates).
+    INVALIDATE_CHANNEL_POSTS: null,
 
     CREATE_ACK_POST_SUCCESS: null,
 
