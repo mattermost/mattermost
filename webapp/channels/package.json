@@ -53,7 +53,7 @@
     "lodash": "4.17.23",
     "luxon": "3.6.1",
     "mark.js": "8.11.1",
-    "marked": "github:mattermost/marked#ac58045c620edf3bbecb48131086e578c9a26167",
+    "marked": "github:mattermost/marked#c211e4ca4a8182f82cc16738d9fbcd7d026ce011",
     "memoize-one": "6.0.0",
     "moment-timezone": "0.5.38",
     "monaco-editor": "0.52.2",
