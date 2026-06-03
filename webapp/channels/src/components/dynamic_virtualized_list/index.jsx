@@ -664,7 +664,6 @@ export class DynamicVirtualizedList extends PureComponent {
                     localOlderPostsToRenderStartIndex === stopIndex + 1;
 
                 const isLoader = this.props.itemData[index] === this.props.loaderId;
-                const isVisible = this.props.itemData[index] === this.props.visibleId;
                 const itemId = this.props.itemData[index];
 
                 // It's important to read style after fetching item metadata.
@@ -673,8 +672,7 @@ export class DynamicVirtualizedList extends PureComponent {
                 if (
                     (index >= startIndex && index < stopIndex + 1) ||
                     isItemInLocalPosts ||
-                    isLoader ||
-                    isVisible
+                    isLoader
                 ) {
                     const item = createElement(this.props.children, {
                         data: this.props.itemData,
