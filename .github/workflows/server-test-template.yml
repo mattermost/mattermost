@@ -88,7 +88,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Restore test timing data
-        if: inputs.shard-total > 1
+        if: inputs.shard-total > 1 && !(github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release-'))
         id: timing-cache
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
@@ -153,6 +153,7 @@ jobs:
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version: ${{ inputs.go-version }}
+          cache: false
 
       - name: Split tests across shards
         if: inputs.shard-total > 1
