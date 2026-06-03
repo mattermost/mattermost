@@ -4891,6 +4891,14 @@
     "translation": "Either trigger_words or channel_id must be set."
   },
   {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "The webhook user must be a member of the target team or channel."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "You cannot assign a webhook to a user with higher privileges than your own."
+  },
+  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Unable to update webhook across teams."
   },
