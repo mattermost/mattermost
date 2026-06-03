@@ -19,8 +19,8 @@ export class DynamicVirtualizedList extends PureComponent {
         atBottom: true,
     };
 
-    _innerRefWidth = undefined;
     _itemStyleCache = {};
+    _innerRef = null;
     _outerRef = null;
     _scrollCorrectionInProgress = false;
     _scrollByCorrection = null;
@@ -203,7 +203,6 @@ export class DynamicVirtualizedList extends PureComponent {
         }
 
         if (prevProps.width !== this.props.width) {
-            this._innerRefWidth = this.props.innerRef.current.clientWidth;
             this._widthChange(prevProps.height, prevState.scrollOffset);
         }
 
@@ -619,9 +618,19 @@ export class DynamicVirtualizedList extends PureComponent {
         });
     };
 
+    _innerRefSetter = (ref) => {
+        const {innerRef} = this.props;
+        this._innerRef = ref;
+
+        if (typeof innerRef === 'function') {
+            innerRef(ref);
+        } else if (innerRef != null && typeof innerRef === 'object' && Object.prototype.hasOwnProperty.call(innerRef, 'current')) {
+            innerRef.current = ref;
+        }
+    };
+
     _outerRefSetter = (ref) => {
         const {outerRef} = this.props;
-        this._innerRefWidth = this.props.innerRef.current.clientWidth;
         this._outerRef = ref;
 
         if (typeof outerRef === 'function') {
@@ -632,7 +641,7 @@ export class DynamicVirtualizedList extends PureComponent {
     };
 
     _renderItems = () => {
-        const width = this._innerRefWidth;
+        const width = this._innerRef?.clientWidth;
         const [startIndex, stopIndex] = this._getRangeToRender();
         const itemCount = this.props.itemData.length;
         const items = [];
@@ -702,7 +711,6 @@ export class DynamicVirtualizedList extends PureComponent {
         const {
             className,
             id,
-            innerRef,
             style,
             innerListStyle,
         } = this.props;
@@ -730,7 +738,7 @@ export class DynamicVirtualizedList extends PureComponent {
             createElement(
                 'div',
                 {
-                    ref: innerRef,
+                    ref: this._innerRefSetter,
                     role: 'list',
                     className: 'innerList',
                     style: innerListStyle,

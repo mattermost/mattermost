@@ -35,7 +35,7 @@ declare module 'components/dynamic_virtualized_list' {
         initRangeToRender: number[];
         initScrollToIndex: () => InitialScrollIndex;
         initialScrollOffset?: number;
-        innerRef: React.Ref<any>;
+        innerRef: React.MutableRefObject<HTMLDivElement | null> | React.RefCallback<HTMLDivElement>;
         itemData: ItemType[];
         onItemsRendered: (args: OnItemsRenderedArgs) => void;
         onScroll: (scrollArgs: OnScrollArgs) => void;
