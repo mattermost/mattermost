@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
@@ -916,11 +917,25 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 }
 
 // writeWebhookTemplatedValues persists per-post property values rendered by
-// the inline-templating layer. For each (fieldName → renderedString) pair it
-// looks up the matching channel-post PropertyField, validates the type
-// (v1 supports text only) and JSON-encodes the rendered string as the
-// PropertyValue. All values are written together via UpsertPropertyValues so
-// either every field lands or none does.
+// the inline-templating layer. For each (fieldName → renderedString) pair
+// it looks up the matching channel-post PropertyField, coerces the
+// rendered string into the field-type's canonical JSON shape via
+// coerceTemplatedValue, and batches the lot into a single
+// UpsertPropertyValues call.
+//
+// Templated references that cannot land at the property store are
+// silently discarded with a server-side warning log; the surrounding
+// webhook post is still created. This applies to:
+//
+//   - unknown field names (sql.ErrNoRows from GetPropertyFieldByName)
+//   - unknown select/multiselect option tokens
+//   - unparseable date strings
+//   - unresolvable user/multiuser tokens
+//   - unsupported field types (future-proofing for new PropertyFieldType
+//     constants the coercer does not yet know about)
+//
+// Genuine failures (DB error on the field lookup, upsert failure) are
+// surfaced as AppErrors so operators see real problems.
 func (a *App) writeWebhookTemplatedValues(rctx request.CTX, channelID, postID string, rendered map[string]string) *model.AppError {
 	if len(rendered) == 0 {
 		return nil
@@ -933,16 +948,26 @@ func (a *App) writeWebhookTemplatedValues(rctx request.CTX, channelID, postID st
 
 	values := make([]*model.PropertyValue, 0, len(rendered))
 	for name, s := range rendered {
-		field, appErr := a.GetPropertyFieldByName(rctx, group.ID, channelID, name)
-		if appErr != nil {
-			return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.unknown_field.app_error", map[string]any{"field": name}, "", http.StatusBadRequest).Wrap(appErr)
+		field, fieldErr := a.GetPropertyFieldByName(rctx, group.ID, channelID, name)
+		if fieldErr != nil {
+			if errors.Is(fieldErr, sql.ErrNoRows) {
+				rctx.Logger().Warn(
+					"Discarding templated property value for unknown channel-post field",
+					mlog.String("field_name", name),
+					mlog.String("channel_id", channelID),
+					mlog.String("post_id", postID),
+				)
+				continue
+			}
+			return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.unknown_field.app_error", map[string]any{"field": name}, "", http.StatusInternalServerError).Wrap(fieldErr)
 		}
-		if field.Type != model.PropertyFieldTypeText {
-			return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.unsupported_type.app_error", map[string]any{"field": name, "type": string(field.Type)}, "", http.StatusBadRequest)
-		}
-		encoded, jsonErr := json.Marshal(s)
-		if jsonErr != nil {
-			return model.NewAppError("writeWebhookTemplatedValues", "api.webhook.template.values.encode.app_error", map[string]any{"field": name}, "", http.StatusInternalServerError).Wrap(jsonErr)
+
+		encoded, ok := a.coerceTemplatedValue(rctx, field, s, channelID, postID)
+		if !ok {
+			// coerceTemplatedValue already logged a warning describing
+			// why it bailed (unknown option, missing user, date parse,
+			// unsupported type, ...).
+			continue
 		}
 		values = append(values, &model.PropertyValue{
 			TargetID:   postID,
@@ -951,6 +976,10 @@ func (a *App) writeWebhookTemplatedValues(rctx request.CTX, channelID, postID st
 			FieldID:    field.ID,
 			Value:      encoded,
 		})
+	}
+
+	if len(values) == 0 {
+		return nil
 	}
 
 	if _, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypePost, postID, ""); appErr != nil {

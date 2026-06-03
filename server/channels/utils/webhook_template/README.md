@@ -167,6 +167,41 @@ object**.
 If a templated value renders to an empty string, the target field is set
 to empty. Use Sprig's `default` to substitute a fallback (see below).
 
+### Indexing arrays
+
+Go's `text/template` does **not** accept bracket indexing — `{{.alerts[0]}}`
+is a parse error. Use the built-in `index` action (or the Sprig `first` /
+`last` / `slice` helpers) instead.
+
+| Want to read                  | Template                                            |
+|-------------------------------|-----------------------------------------------------|
+| `messages[0]`                 | `{{index .messages 0}}`                             |
+| `messages[0].text`            | `{{(index .messages 0).text}}`                      |
+| `messages[0]["text"]`         | `{{index .messages 0 "text"}}`                      |
+| `matrix[0][1]`                | `{{index (index .matrix 0) 1}}`                     |
+| Nested map path               | `{{index .users 0 "address" "city"}}`               |
+| First / last element (Sprig)  | `{{(first .alerts).summary}}` · `{{(last .alerts).summary}}` |
+| Re-root onto an element       | `{{with index .alerts 0}}{{.summary}}{{end}}`       |
+| Iterate every element         | `{{range .alerts}}{{.summary}}\n{{end}}`            |
+
+**URL-encoding caveat.** `index` requires literal spaces between its
+arguments. Spaces are not safe in a URL query value, so they must be
+percent-encoded as `%20`:
+
+```
+# Unencoded (does not work — the server will reject the URL or truncate
+# at the space):
+POST /hooks/abc?tmpl=1&text={{index .alerts 0}}
+
+# URL-encoded (correct):
+POST /hooks/abc?tmpl=1&text={{index%20.alerts%200}}
+```
+
+Most HTTP clients and the Go `url.QueryEscape` helper do this for you.
+A useful rule of thumb: build templated query values via
+`url.QueryEscape("…template…")` rather than concatenating strings by
+hand.
+
 ### Forbidden directives
 
 For safety, the following actions are rejected before parsing — using
@@ -345,14 +380,63 @@ Every templated webhook request emits an audit event
 The audit record's status reflects whether all templates rendered
 successfully (`success`) or one of them failed (`fail`).
 
-## v2: property values on posts
+## Property values on posts
 
-A follow-up release will extend templating so the rendered values can
-populate per-post property values (the same property fields used by
-ABAC post policies). The interface is expected to be a new
-`?values.<field_name>={{...}}` query parameter; until that ships,
-templating can only drive the fields listed in this README.
+Templating can also populate per-post property values (the same
+PropertyField definitions used by ABAC post policies and any other
+property-aware feature) via a `?values.<field_name>={{...}}` query
+parameter. Each rendered value is mapped to the channel-post
+PropertyField with the matching name and persisted alongside the post
+through `UpsertPropertyValues`.
 
-The renderer in this package is designed to be reused by v2: parameter
-extraction, denylist enforcement, limits, and error mapping all live
-behind exported helpers and do not depend on the HTTP layer.
+```bash
+curl -X POST -H 'Content-Type: application/json' \
+  -d '{"level":"high","summary":"Disk full"}' \
+  'https://mm.example.com/hooks/abc123?template=1&text={{.summary}}&values.severity={{.level}}'
+```
+
+The hook above creates a post with text `Disk full` and writes the
+rendered value `"high"` against the channel-post `severity` property
+field.
+
+### Supported field types
+
+The coercer translates the rendered string into the canonical JSON
+shape stored on each PropertyValue type:
+
+| Field type    | Rendered string handled as                                                              | Stored as                       |
+|---------------|------------------------------------------------------------------------------------------|----------------------------------|
+| `text`        | Any string                                                                               | bare JSON string                 |
+| `select`      | An existing option ID (exact match) or an existing option name (case-insensitive)        | bare JSON string of the ID       |
+| `multiselect` | Comma-separated list of tokens; each token resolved like `select`                        | JSON array of resolved IDs       |
+| `date`        | RFC3339 timestamp (`2026-03-04T05:06:07Z`) or bare ISO date (`2026-03-04`), normalised   | RFC3339 string (UTC)             |
+| `user`        | A 26-char Mattermost user ID (passthrough) or an existing username (looked up)            | bare JSON string of the user ID  |
+| `multiuser`   | Comma-separated list of tokens; each token resolved like `user`                          | JSON array of resolved user IDs  |
+
+### Discard-on-mismatch policy
+
+Templated value writes are designed to fail open: any individual
+mismatch is logged at warn level on the server and the offending value
+is dropped, while the surrounding webhook post is still created and
+every other resolvable value is still written. The following cases are
+all warn-and-discard rather than 4xx:
+
+- the named property field does not exist on the channel
+- a `select` / `multiselect` token does not match any option (each
+  unresolved option in a multiselect is dropped individually)
+- a `date` rendered string does not parse as RFC3339 or `YYYY-MM-DD`
+- a `user` / `multiuser` token is neither a valid user ID nor an
+  existing username
+- the field's type is one the coercer does not yet support
+
+Real errors (DB connectivity failures, upsert failures) still surface
+as HTTP 5xx; only the per-value "this rendered string cannot land at
+the store" cases are quietly discarded.
+
+### Auditing
+
+The audit record gains a `templated_values` meta entry listing the
+field names that were sent in the request (not the rendered values),
+so operators can correlate which fields a producer attempted to set.
+Discarded values are visible only in the server log; they do not
+appear in the audit record.
