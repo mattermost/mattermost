@@ -505,7 +505,6 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
     api.logPluginAction("GetChannel", mlog.String("channel_id", channelID))
-    channel, appErr := api.app.GetChannel(api.ctx, channelID)
 	return api.app.GetChannel(api.ctx, channelID)
 }
 
@@ -882,16 +881,23 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
-	api.logPluginAction("GetPostsForChannel",
-    mlog.String("channel_id", channelID),
-    mlog.Int("page", page),
-    mlog.Int("per_page", perPage),
-)
-	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
-	if list != nil {
-		list = list.ForPlugin()
-	}
-	return list, appErr
+    api.logPluginAction("GetPostsForChannel",
+        mlog.String("channel_id", channelID),
+        mlog.Int("page", page),
+        mlog.Int("per_page", perPage),
+    )
+    // NOTE: Full permission enforcement will be added once the
+    // PluginChannelPermissions store layer is implemented.
+    // See: https://github.com/mattermost/mattermost/issues/XXXXX
+    list, appErr := api.app.GetPostsPage(model.GetPostsOptions{
+        ChannelId: channelID,
+        Page:      page,
+        PerPage:   perPage,
+    })
+    if appErr != nil {
+        return nil, appErr
+    }
+    return list, nil
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
