@@ -114,7 +114,16 @@ const (
 	WebsocketEventPropertyFieldUpdated       WebsocketEventType = "property_field_updated"
 	WebsocketEventPropertyFieldDeleted       WebsocketEventType = "property_field_deleted"
 	WebsocketEventPropertyValuesUpdated      WebsocketEventType = "property_values_updated"
-	WebsocketEventFileDownloadRejected       WebsocketEventType = "file_download_rejected"
+	// Channel-scoped event emitted on SavePolicy / DeletePolicy when the
+	// policy carries the post_filter action. Frontend handler invalidates
+	// the channel's post cache and refetches the visible window so the
+	// new policy is applied immediately.
+	WebsocketEventPostPolicyChanged WebsocketEventType = "post_policy_changed"
+	// User-scoped event emitted on CPA save when PostPolicy is on. The
+	// frontend refetches loaded channels that have at least one post_filter
+	// policy so attribute changes take effect without a reload.
+	WebsocketEventUserPolicyAttributesChanged WebsocketEventType = "user_policy_attributes_changed"
+	WebsocketEventFileDownloadRejected        WebsocketEventType = "file_download_rejected"
 	WebsocketEventShowToast                  WebsocketEventType = "show_toast"
 	WebsocketEventSharedChannelRemoteUpdated WebsocketEventType = "shared_channel_remote_updated"
 

@@ -304,7 +304,24 @@ func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[
 	message.Add("values", updatedFieldValueMap)
 	a.Publish(message)
 
+	a.broadcastUserPolicyAttributesChangedIfNeeded(userID)
+
 	return updatedValues, nil
+}
+
+// broadcastUserPolicyAttributesChangedIfNeeded emits a user-scoped WS event
+// when the user's CPA values change while PostPolicy is on. The frontend
+// uses this to refetch posts in any loaded channel that may now resolve
+// to a different visibility for the user under post_filter policies that
+// reference the user's attributes.
+func (a *App) broadcastUserPolicyAttributesChangedIfNeeded(userID string) {
+	if !a.Config().FeatureFlags.PostPolicy {
+		return
+	}
+	ev := model.NewWebSocketEvent(
+		model.WebsocketEventUserPolicyAttributesChanged, "", "", userID, nil, "",
+	)
+	a.Publish(ev)
 }
 
 func (a *App) DeleteCPAValues(rctx request.CTX, userID string) *model.AppError {
@@ -321,6 +338,8 @@ func (a *App) DeleteCPAValues(rctx request.CTX, userID string) *model.AppError {
 	message.Add("user_id", userID)
 	message.Add("values", map[string]json.RawMessage{})
 	a.Publish(message)
+
+	a.broadcastUserPolicyAttributesChangedIfNeeded(userID)
 
 	return nil
 }
