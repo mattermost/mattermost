@@ -115,6 +115,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/composite-identity
@@ -172,6 +173,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/setup-node
@@ -247,6 +249,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
@@ -292,6 +295,7 @@ jobs:
         # overwrites the workspace with inputs.commit_sha.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           sparse-checkout: .github/actions
           sparse-checkout-cone-mode: true
       - name: ci/runner-prep-for-openldap
@@ -299,6 +303,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
@@ -388,6 +393,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/run-summary
         id: summary
         continue-on-error: true

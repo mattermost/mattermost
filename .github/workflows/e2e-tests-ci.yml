@@ -39,6 +39,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: ci/resolve-pr-and-commit
@@ -131,6 +132,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           fetch-depth: 0
       - name: ci/check-relevant-changes
