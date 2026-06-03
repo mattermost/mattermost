@@ -165,6 +165,8 @@ const PostMessagePreview = (props: Props) => {
                         <EventTimestamp
                             value={previewPost.create_at}
                             className='post-preview__time'
+                            displayContext='thread_list'
+                            showTooltip={false}
                         />
                         {previewPost.metadata?.priority && isPostPriorityEnabled && (
                             <span className='d-flex mr-2 ml-1'>

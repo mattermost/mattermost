@@ -142,6 +142,8 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             <span>{' • '}</span>
                             <EventTimestamp
                                 value={fileInfo.create_at}
+                                displayContext='thread_list'
+                                showTooltip={false}
                             />
                         </div>
                     </div>
