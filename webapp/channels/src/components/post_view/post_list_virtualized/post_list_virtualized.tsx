@@ -11,7 +11,7 @@ import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
 import type {CanLoadMorePosts} from 'actions/views/channel';
 
 import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
-import type {OnItemsRenderedArgs} from 'components/dynamic_virtualized_list';
+import type {OnItemsRenderedArgs, DynamicVirtualizedChildProps} from 'components/dynamic_virtualized_list';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
 import PostListRow from 'components/post_view/post_list_row';
 import ScrollToBottomArrows from 'components/post_view/scroll_to_bottom_arrows';
@@ -319,7 +319,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         });
     };
 
-    renderRow = ({data, itemId, style}: {data: string[]; itemId: string; style: Record<string, string>}) => {
+    renderRow = ({data, itemId}: DynamicVirtualizedChildProps) => {
         const index = data.indexOf(itemId);
         let className = '';
         const basePaddingClass = 'post-row__padding';
@@ -342,10 +342,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         const isLastPost = itemId === this.state.postListIds[0];
 
         return (
-            <div
-                style={style}
-                className={className}
-            >
+            <div className={className}>
                 <PostListRow
                     listId={itemId}
                     previousListId={getPreviousPostId(data, index)}

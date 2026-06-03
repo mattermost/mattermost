@@ -17,9 +17,14 @@ declare module 'components/dynamic_virtualized_list' {
         visibleStopIndex: number;
     }
 
+    export interface DynamicVirtualizedChildProps {
+        data: any;
+        itemId: any;
+    }
+
     interface DynamicVirtualizedListProps {
         canLoadMorePosts: (id: 'BEFORE_ID' | 'AFTER_ID' | undefined) => Promise<void>;
-        children: ({data: any, itemId: any, style: any}) => JSX.Element;
+        children: (childProps: DynamicVirtualizedChildProps) => JSX.Element;
         height: number;
         initRangeToRender: number[];
         initScrollToIndex: () => any;
