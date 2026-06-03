@@ -238,7 +238,6 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 			return nil, errors.Wrap(err, "error while running pre-migrations")
 		}
 
-		// LOL1
 		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
