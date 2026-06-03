@@ -142,6 +142,7 @@ type Client interface {
 	UpdateJobStatus(ctx context.Context, jobId string, status string, force bool) (*model.Response, error)
 	CreateIncomingWebhook(ctx context.Context, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error)
 	UpdateIncomingWebhook(ctx context.Context, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error)
+	MoveIncomingWebhook(ctx context.Context, hookID string, newOwnerID string) (*model.IncomingWebhook, *model.Response, error)
 	GetIncomingWebhooks(ctx context.Context, page int, perPage int, etag string) ([]*model.IncomingWebhook, *model.Response, error)
 	GetIncomingWebhooksForTeam(ctx context.Context, teamID string, page int, perPage int, etag string) ([]*model.IncomingWebhook, *model.Response, error)
 	GetIncomingWebhook(ctx context.Context, hookID string, etag string) (*model.IncomingWebhook, *model.Response, error)

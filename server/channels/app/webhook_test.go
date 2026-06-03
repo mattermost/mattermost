@@ -170,6 +170,63 @@ func TestHandleIncomingWebhookAuthor(t *testing.T) {
 	})
 }
 
+func TestMoveIncomingWebhook(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	t.Run("transfers ownership to another active user and persists it", func(t *testing.T) {
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		moved, appErr := th.App.MoveIncomingWebhook(th.Context, hook.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, th.BasicUser2.Id, moved.UserId)
+
+		fetched, appErr := th.App.GetIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, th.BasicUser2.Id, fetched.UserId, "new owner should be persisted")
+	})
+
+	t.Run("rejects a bot as the new owner", func(t *testing.T) {
+		bot := th.CreateBot(t)
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		_, appErr = th.App.MoveIncomingWebhook(th.Context, hook.Id, bot.UserId)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.webhook.move_incoming.invalid_bot_owner.app_error", appErr.Id)
+	})
+
+	t.Run("rejects an inactive new owner", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		_, appErr = th.App.MoveIncomingWebhook(th.Context, hook.Id, user.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.webhook.move_incoming.inactive_owner.app_error", appErr.Id)
+	})
+
+	t.Run("rejects a new owner without access to the channel", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, privateChannel, &model.IncomingWebhook{ChannelId: privateChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		outsider := th.CreateUser(t)
+		_, appErr = th.App.MoveIncomingWebhook(th.Context, hook.Id, outsider.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.webhook.move_incoming.owner_channel_permissions.app_error", appErr.Id)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -501,6 +501,58 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	return newWebhook, nil
 }
 
+// MoveIncomingWebhook transfers ownership of an incoming webhook to another
+// user. Ownership (UserId) is independent of post authorship (see BotUserId),
+// and is used for management and the restricted-channel permission check. The
+// new owner must be an existing, active, non-bot user that can read the
+// webhook's channel.
+func (a *App) MoveIncomingWebhook(rctx request.CTX, hookID, newOwnerID string) (*model.IncomingWebhook, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
+		return nil, model.NewAppError("MoveIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	hook, err := a.GetIncomingWebhook(hookID)
+	if err != nil {
+		return nil, err
+	}
+
+	newOwner, err := a.GetUser(newOwnerID)
+	if err != nil {
+		return nil, err
+	}
+
+	if newOwner.IsBot {
+		return nil, model.NewAppError("MoveIncomingWebhook", "api.webhook.move_incoming.invalid_bot_owner.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if newOwner.DeleteAt != 0 {
+		return nil, model.NewAppError("MoveIncomingWebhook", "api.webhook.move_incoming.inactive_owner.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	channel, err := a.GetChannel(rctx, hook.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ownership gates posting only for restricted (non-open) channels, mirroring
+	// HandleIncomingWebhook. Require the new owner to be able to read those so
+	// the transfer doesn't leave the webhook unable to post.
+	if channel.Type != model.ChannelTypeOpen {
+		if hasPermission, _ := a.HasPermissionToChannel(rctx, newOwner.Id, channel.Id, model.PermissionReadChannelContent); !hasPermission {
+			return nil, model.NewAppError("MoveIncomingWebhook", "api.webhook.move_incoming.owner_channel_permissions.app_error", map[string]any{"user": newOwner.Id, "channel": channel.Id}, "", http.StatusForbidden)
+		}
+	}
+
+	hook.UserId = newOwner.Id
+
+	newWebhook, nErr := a.Srv().Store().Webhook().UpdateIncoming(hook)
+	if nErr != nil {
+		return nil, model.NewAppError("MoveIncomingWebhook", "app.webhooks.update_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+	a.Srv().Platform().InvalidateCacheForWebhook(hook.Id)
+	return newWebhook, nil
+}
+
 func (a *App) DeleteIncomingWebhook(hookID string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("DeleteIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)

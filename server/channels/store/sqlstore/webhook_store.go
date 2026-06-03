@@ -103,7 +103,7 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 	hook.UpdateAt = model.GetMillis()
 
 	_, err := s.GetMaster().NamedExec(`UPDATE IncomingWebhooks SET
-			CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
+			CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, UserId=:UserId, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
 			Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked, BotUserId=:BotUserId
 			WHERE Id=:Id`, hook)
 	if err != nil {

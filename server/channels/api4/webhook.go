@@ -17,6 +17,7 @@ func (api *API) InitWebhook() {
 	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(getIncomingHook)).Methods(http.MethodGet)
 	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(updateIncomingHook)).Methods(http.MethodPut)
 	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(deleteIncomingHook)).Methods(http.MethodDelete)
+	api.BaseRoutes.IncomingHook.Handle("/move/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(moveIncomingHook)).Methods(http.MethodPost)
 
 	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(createOutgoingHook)).Methods(http.MethodPost)
 	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(getOutgoingHooks)).Methods(http.MethodGet)
@@ -375,6 +376,64 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("incoming_webhook")
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func moveIncomingHook(c *Context, w http.ResponseWriter, _ *http.Request) {
+	c.RequireHookId()
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	hook, err := c.App.GetIncomingWebhook(c.Params.HookId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, hook.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventMoveIncomingHook, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "hook_id", c.Params.HookId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
+	auditRec.AddEventPriorState(hook)
+	auditRec.AddEventObjectType("incoming_webhook")
+	auditRec.AddMeta("channel_id", channel.Id)
+	auditRec.AddMeta("team_id", hook.TeamId)
+	c.LogAudit("attempt")
+
+	restrictedChannel := false
+	if channel.Type != model.ChannelTypeOpen {
+		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		restrictedChannel = !hasChannelPermission
+	}
+
+	// Transferring ownership is a manage-others action regardless of whether the
+	// caller currently owns the webhook.
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOthersIncomingWebhooks) || restrictedChannel {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PermissionManageOthersIncomingWebhooks)
+		return
+	}
+
+	movedHook, err := c.App.MoveIncomingWebhook(c.AppContext, hook.Id, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddEventResultState(movedHook)
+	auditRec.Success()
+	c.LogAudit("success")
+
+	if err := json.NewEncoder(w).Encode(movedHook); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {

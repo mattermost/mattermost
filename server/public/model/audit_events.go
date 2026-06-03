@@ -503,6 +503,7 @@ const (
 	AuditEventGetIncomingHook         = "getIncomingHook"         // get incoming webhook details
 	AuditEventGetOutgoingHook         = "getOutgoingHook"         // get outgoing webhook details
 	AuditEventLocalCreateIncomingHook = "localCreateIncomingHook" // create incoming webhook locally
+	AuditEventMoveIncomingHook        = "moveIncomingHook"        // transfer incoming webhook ownership
 	AuditEventRegenOutgoingHookToken  = "regenOutgoingHookToken"  // regenerate authentication token
 	AuditEventUpdateIncomingHook      = "updateIncomingHook"      // update incoming webhook
 	AuditEventUpdateOutgoingHook      = "updateOutgoingHook"      // update outgoing webhook

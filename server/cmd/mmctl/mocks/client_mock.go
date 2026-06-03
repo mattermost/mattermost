@@ -1814,6 +1814,22 @@ func (mr *MockClientMockRecorder) MoveCommand(arg0, arg1, arg2 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveCommand", reflect.TypeOf((*MockClient)(nil).MoveCommand), arg0, arg1, arg2)
 }
 
+// MoveIncomingWebhook mocks base method.
+func (m *MockClient) MoveIncomingWebhook(arg0 context.Context, arg1, arg2 string) (*model.IncomingWebhook, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MoveIncomingWebhook", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.IncomingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// MoveIncomingWebhook indicates an expected call of MoveIncomingWebhook.
+func (mr *MockClientMockRecorder) MoveIncomingWebhook(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveIncomingWebhook", reflect.TypeOf((*MockClient)(nil).MoveIncomingWebhook), arg0, arg1, arg2)
+}
+
 // PatchBot mocks base method.
 func (m *MockClient) PatchBot(arg0 context.Context, arg1 string, arg2 *model.BotPatch) (*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()

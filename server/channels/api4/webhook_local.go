@@ -17,6 +17,7 @@ func (api *API) InitWebhookLocal() {
 	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(getIncomingHook)).Methods(http.MethodGet)
 	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(updateIncomingHook)).Methods(http.MethodPut)
 	api.BaseRoutes.IncomingHook.Handle("", api.APILocal(deleteIncomingHook)).Methods(http.MethodDelete)
+	api.BaseRoutes.IncomingHook.Handle("/move/{user_id:[A-Za-z0-9]+}", api.APILocal(moveIncomingHook)).Methods(http.MethodPost)
 
 	api.BaseRoutes.OutgoingHooks.Handle("", api.APILocal(localCreateOutgoingHook)).Methods(http.MethodPost)
 	api.BaseRoutes.OutgoingHooks.Handle("", api.APILocal(getOutgoingHooks)).Methods(http.MethodGet)

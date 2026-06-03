@@ -4666,6 +4666,16 @@ func (c *Client4) UpdateIncomingWebhook(ctx context.Context, hook *IncomingWebho
 	return DecodeJSONFromResponse[*IncomingWebhook](r)
 }
 
+// MoveIncomingWebhook transfers ownership of an incoming webhook to the given user.
+func (c *Client4) MoveIncomingWebhook(ctx context.Context, hookID, newOwnerID string) (*IncomingWebhook, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.incomingWebhookRoute(hookID).Join("move", newOwnerID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*IncomingWebhook](r)
+}
+
 // GetIncomingWebhooks returns a page of incoming webhooks on the system. Page counting starts at 0.
 func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int, etag string) ([]*IncomingWebhook, *Response, error) {
 	values := url.Values{}

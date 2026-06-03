@@ -1,22 +1,33 @@
-.. _mmctl_webhook:
+.. _mmctl_webhook_move-incoming:
 
-mmctl webhook
--------------
+mmctl webhook move-incoming
+---------------------------
 
-Management of webhooks
+Move incoming webhook
 
 Synopsis
 ~~~~~~~~
 
 
-Management of webhooks
+Transfer ownership of an existing incoming webhook to another user. The new owner must be an active, non-bot user with access to the webhook's channel. Post authorship is unaffected.
+
+::
+
+  mmctl webhook move-incoming [webhookID] [newOwner] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    webhook move-incoming w16zb5tu3n1zkqo18goqry1je newowner@example.com
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for webhook
+  -h, --help   help for move-incoming
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,13 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl webhook create-incoming <mmctl_webhook_create-incoming.rst>`_ 	 - Create incoming webhook
-* `mmctl webhook create-outgoing <mmctl_webhook_create-outgoing.rst>`_ 	 - Create outgoing webhook
-* `mmctl webhook delete <mmctl_webhook_delete.rst>`_ 	 - Delete webhooks
-* `mmctl webhook list <mmctl_webhook_list.rst>`_ 	 - List webhooks
-* `mmctl webhook modify-incoming <mmctl_webhook_modify-incoming.rst>`_ 	 - Modify incoming webhook
-* `mmctl webhook modify-outgoing <mmctl_webhook_modify-outgoing.rst>`_ 	 - Modify outgoing webhook
-* `mmctl webhook move-incoming <mmctl_webhook_move-incoming.rst>`_ 	 - Move incoming webhook
-* `mmctl webhook show <mmctl_webhook_show.rst>`_ 	 - Show a webhook
+* `mmctl webhook <mmctl_webhook.rst>`_ 	 - Management of webhooks
 
