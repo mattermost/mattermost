@@ -66,8 +66,10 @@ func (a *App) hydratePostValues(rctx request.CTX, posts []*model.Post) ([]*model
 		cursor = model.PropertyValueSearchCursor{PropertyValueID: last.ID, CreateAt: last.CreateAt}
 	}
 
-	// Lookup table: field ID → field name. One paged sweep over the group.
-	fieldNameByID := make(map[string]string)
+	// Lookup table: field ID → full field. We keep the whole *PropertyField so
+	// resolvePostValueForCEL can branch on Type and consult Attrs["options"]
+	// for select / multiselect resolution.
+	fieldByID := make(map[string]*model.PropertyField)
 	fieldCursor := model.PropertyFieldSearchCursor{}
 	for {
 		fields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
@@ -79,7 +81,7 @@ func (a *App) hydratePostValues(rctx request.CTX, posts []*model.Post) ([]*model
 			return nil, appErr
 		}
 		for _, f := range fields {
-			fieldNameByID[f.ID] = f.Name
+			fieldByID[f.ID] = f
 		}
 		if len(fields) < pageSize {
 			break
@@ -87,15 +89,15 @@ func (a *App) hydratePostValues(rctx request.CTX, posts []*model.Post) ([]*model
 		last := fields[len(fields)-1]
 		fieldCursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
 	}
-	// Pivot values into post-keyed maps of {field name → decoded value}.
+	// Pivot values into post-keyed maps of {field name → CEL-facing value}.
 	byPostID := make(map[string]map[string]any, len(posts))
 	for _, v := range values {
-		name, ok := fieldNameByID[v.FieldID]
+		field, ok := fieldByID[v.FieldID]
 		if !ok {
 			continue
 		}
-		var decoded any
-		if err := json.Unmarshal(v.Value, &decoded); err != nil {
+		decoded, err := resolvePostValueForCEL(field, v.Value)
+		if err != nil {
 			// Skip malformed values rather than failing the whole fetch.
 			rctx.Logger().Warn("failed to decode property value for post policy",
 				mlog.String("post_id", v.TargetID),
@@ -108,13 +110,118 @@ func (a *App) hydratePostValues(rctx request.CTX, posts []*model.Post) ([]*model
 			bucket = make(map[string]any)
 			byPostID[v.TargetID] = bucket
 		}
-		bucket[name] = decoded
+		bucket[field.Name] = decoded
 	}
 
 	for _, p := range posts {
 		out = append(out, &model.PostWithValues{Post: p, Values: byPostID[p.Id]})
 	}
 	return out, nil
+}
+
+// resolvePostValueForCEL converts a raw PropertyValue JSON blob into the
+// value shape exposed to CEL via `post.attributes.<name>`:
+//
+//   - text / number / boolean / scalar: pass through (plain JSON decode).
+//   - select: the stored shape is a JSON-encoded option ID. The ID is
+//     resolved to the option's user-visible Name so rules can read like
+//     `post.attributes.classification == "Confidential"` instead of
+//     pinning to opaque ULIDs. Unknown IDs (option deleted after a value
+//     was set) fall through as the raw ID — rules then simply stop
+//     matching, which is the safer behaviour than panicking or returning
+//     an empty string.
+//   - multiselect: the stored shape is a JSON array of option IDs.
+//     Each ID is resolved to its Name and the result is a `[]any` of
+//     strings so rules can read `"Engineering" in post.attributes.teams`.
+//     Unknown IDs fall through as raw IDs (same rationale as select).
+//
+// Mirrors the postgres AttributeView materialised view (migration
+// 000137_update_attribute_view) that performs the same resolution for
+// user CPA so `user.attributes.*` and `post.attributes.*` behave
+// consistently across select / multiselect fields.
+func resolvePostValueForCEL(field *model.PropertyField, raw []byte) (any, error) {
+	if len(raw) == 0 || field == nil {
+		return nil, nil
+	}
+	switch field.Type {
+	case model.PropertyFieldTypeSelect:
+		var id string
+		if err := json.Unmarshal(raw, &id); err != nil {
+			// Stored value isn't a JSON string — fall through to the
+			// generic decode so a stray non-conforming row doesn't take
+			// the whole policy evaluation out.
+			var decoded any
+			if err := json.Unmarshal(raw, &decoded); err != nil {
+				return nil, err
+			}
+			return decoded, nil
+		}
+		if id == "" {
+			return id, nil
+		}
+		return lookupPostOptionName(field, id), nil
+	case model.PropertyFieldTypeMultiselect:
+		var ids []string
+		if err := json.Unmarshal(raw, &ids); err != nil {
+			var decoded any
+			if err := json.Unmarshal(raw, &decoded); err != nil {
+				return nil, err
+			}
+			return decoded, nil
+		}
+		// structpb.NewValue requires []any (not []string) for repeated
+		// scalars, so we materialise as []any from the start.
+		names := make([]any, len(ids))
+		for i, id := range ids {
+			names[i] = lookupPostOptionName(field, id)
+		}
+		return names, nil
+	}
+	var decoded any
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		return nil, err
+	}
+	return decoded, nil
+}
+
+// lookupPostOptionName returns the user-visible Name attached to the given
+// option ID in the field's Attrs[options] list. Returns the raw ID
+// unchanged when:
+//   - the field has no options attribute (malformed),
+//   - the options blob fails to (re)marshal/unmarshal,
+//   - or the ID is not present in the options list (option deleted).
+//
+// Returning the raw ID rather than an empty string is deliberate: it makes
+// the failure mode visible in policy mismatches instead of silently
+// matching everything against "".
+func lookupPostOptionName(field *model.PropertyField, id string) string {
+	if field == nil || field.Attrs == nil {
+		return id
+	}
+	raw, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return id
+	}
+	// Options can arrive as []*CustomProfileAttributesSelectOption,
+	// []map[string]any, or any other slice shape PSAv2 emits. Marshal +
+	// unmarshal into a minimal {id,name} pair to normalise.
+	optsBytes, err := json.Marshal(raw)
+	if err != nil {
+		return id
+	}
+	var opts []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(optsBytes, &opts); err != nil {
+		return id
+	}
+	for _, o := range opts {
+		if o.ID == id {
+			return o.Name
+		}
+	}
+	return id
 }
 
 // blankedPostFor returns a clone of the given post with user-visible content
