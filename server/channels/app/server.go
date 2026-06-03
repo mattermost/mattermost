@@ -563,6 +563,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.runJobs()
 	}
 
+	// LOL2
 	s.doAppMigrations()
 
 	s.initPostMetadata()

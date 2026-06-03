@@ -233,6 +233,12 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	}
 
 	if !store.skipMigrations {
+		err = store.preMigration()
+		if err != nil {
+			return nil, errors.Wrap(err, "error while running pre-migrations")
+		}
+
+		// LOL1
 		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
@@ -1137,4 +1143,125 @@ func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 
 func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 	return ss.stores.ContentFlagging
+}
+
+func (ss *SqlStore) preMigration() error {
+	type sqlMigration struct {
+		name string
+		// minDBMigration is the schema migration version that must already have
+		// been applied (recorded in db_migrations) before this pre-migration is
+		// allowed to run. A pre-migration that touches data in a table created
+		// by schema migration N should set this to N.
+		minDBMigration int
+		handler        func() error
+	}
+
+	migrations := []sqlMigration{
+		{"renumber_roles_schemeid_migrations", 144, ss.doRenumberRolesSchemeIdMigrations},
+	}
+
+	if len(migrations) == 0 {
+		return nil
+	}
+
+	// preMigration runs before the schema migrations, so on a fresh install the
+	// Systems table (created by schema migration 000015) does not yet exist.
+	// In that case there is no prior data to migrate, so we skip. Systems
+	// existing also implies db_migrations exists (Morph created it).
+	exists, err := ss.systemsTableExists()
+	if err != nil {
+		return errors.Wrap(err, "failed to check if Systems table exists")
+	}
+	if !exists {
+		return nil
+	}
+
+	for _, m := range migrations {
+		applied, err := ss.isDBMigrationApplied(m.minDBMigration)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check DB migration %d status", m.minDBMigration)
+		}
+		if !applied {
+			continue
+		}
+
+		done, err := ss.isPreMigrationComplete(m.name)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check pre-migration %q status", m.name)
+		}
+		if done {
+			continue
+		}
+
+		if err := m.handler(); err != nil {
+			return errors.Wrapf(err, "failed to run pre-migration %q", m.name)
+		}
+
+		if err := ss.markPreMigrationComplete(m.name); err != nil {
+			return errors.Wrapf(err, "failed to mark pre-migration %q complete", m.name)
+		}
+	}
+
+	return nil
+}
+
+func (ss *SqlStore) doRenumberRolesSchemeIdMigrations() error {
+	if _, err := ss.GetMaster().Exec("UPDATE db_migrations SET Version = 156 WHERE Version = 142 AND Name = 'add_schemeid_to_roles'"); err != nil {
+		return errors.Wrap(err, "failed to renumber add_schemeid_to_roles")
+	}
+	if _, err := ss.GetMaster().Exec("UPDATE db_migrations SET Version = 157 WHERE Version = 143 AND Name = 'backfill_roles_schemeid'"); err != nil {
+		return errors.Wrap(err, "failed to renumber backfill_roles_schemeid")
+	}
+	if _, err := ss.GetMaster().Exec("UPDATE db_migrations SET Version = 158 WHERE Version = 144 AND Name = 'add_roles_schemeid_index'"); err != nil {
+		return errors.Wrap(err, "failed to renumber add_roles_schemeid_index")
+	}
+	return nil
+}
+
+func (ss *SqlStore) isDBMigrationApplied(version int) (bool, error) {
+	var exists bool
+	if err := ss.GetMaster().Get(&exists, `
+		SELECT EXISTS (
+			SELECT 1 FROM db_migrations WHERE Version >= $1
+		)
+	`, version); err != nil {
+		return false, errors.Wrap(err, "unable to query db_migrations")
+	}
+	return exists, nil
+}
+
+func (ss *SqlStore) systemsTableExists() (bool, error) {
+	var exists bool
+	if err := ss.GetMaster().Get(&exists, `
+		SELECT EXISTS (
+			SELECT 1 FROM information_schema.tables
+			WHERE LOWER(table_name) = 'systems'
+		)
+	`); err != nil {
+		return false, errors.Wrap(err, "unable to query information_schema.tables")
+	}
+	return exists, nil
+}
+
+func (ss *SqlStore) isPreMigrationComplete(name string) (bool, error) {
+	var value string
+	err := ss.GetMaster().Get(&value, "SELECT Value FROM Systems WHERE Name = $1", name)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, errors.Wrap(err, "unable to select from Systems")
+	}
+	return value == "true", nil
+}
+
+func (ss *SqlStore) markPreMigrationComplete(name string) error {
+	if _, err := ss.GetMaster().Exec(
+		`INSERT INTO Systems (Name, Value) VALUES ($1, $2)
+		 ON CONFLICT (Name) DO UPDATE SET Value = $2`,
+		name, "true",
+	); err != nil {
+		return errors.Wrap(err, "failed to upsert system property")
+	}
+	return nil
 }
