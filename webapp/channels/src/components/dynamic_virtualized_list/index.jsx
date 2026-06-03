@@ -30,9 +30,7 @@ export class DynamicVirtualizedList extends PureComponent {
     _correctedInstances = 0;
 
     static defaultProps = {
-        innerTagName: 'div',
         itemData: undefined,
-        outerTagName: 'div',
         overscanCountForward: 30,
         overscanCountBackward: 10,
     };
@@ -684,8 +682,6 @@ export class DynamicVirtualizedList extends PureComponent {
             className,
             id,
             innerRef,
-            innerTagName,
-            outerTagName,
             style,
             innerListStyle,
         } = this.props;
@@ -695,7 +691,7 @@ export class DynamicVirtualizedList extends PureComponent {
         const items = this._renderItems();
 
         return createElement(
-            outerTagName,
+            'div',
             {
                 className,
                 id,
@@ -711,7 +707,7 @@ export class DynamicVirtualizedList extends PureComponent {
                 },
             },
             createElement(
-                innerTagName,
+                'div',
                 {
                     ref: innerRef,
                     role: 'list',
