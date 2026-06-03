@@ -11,7 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Posts} from 'mattermost-redux/constants';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
-import type {OnScrollArgs, OnItemsRenderedArgs, DynamicVirtualizedChildProps} from 'components/dynamic_virtualized_list';
+import type {OnScrollArgs, OnItemsRenderedArgs, InitialScrollIndex, DynamicVirtualizedChildProps} from 'components/dynamic_virtualized_list';
 import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import NewRepliesBanner from 'components/new_replies_banner';
 import FloatingTimestamp from 'components/post_view/floating_timestamp';
@@ -161,7 +161,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         return Promise.resolve();
     }
 
-    initScrollToIndex = (): {index: number; position: string; offset?: number} => {
+    initScrollToIndex = (): InitialScrollIndex => {
         const {highlightedPostId, replyListIds} = this.props;
 
         if (highlightedPostId) {

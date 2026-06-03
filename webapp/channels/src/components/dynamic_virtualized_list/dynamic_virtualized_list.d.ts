@@ -2,6 +2,12 @@
 // See LICENSE.txt for license information.
 
 declare module 'components/dynamic_virtualized_list' {
+    export type InitialScrollIndex = {
+        index: number;
+        position: 'start' | 'center' | 'end';
+        offset?: number;
+    }
+
     export type OnScrollArgs = {
         scrollDirection: 'backward' | 'forward';
         scrollOffset: number;
@@ -27,7 +33,7 @@ declare module 'components/dynamic_virtualized_list' {
         children: (childProps: DynamicVirtualizedChildProps) => JSX.Element;
         height: number;
         initRangeToRender: number[];
-        initScrollToIndex: () => any;
+        initScrollToIndex: () => InitialScrollIndex;
         initialScrollOffset?: number;
         innerRef: React.Ref<any>;
         itemData: ItemType[];
