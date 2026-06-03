@@ -526,10 +526,11 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 
 // MoveIncomingWebhook transfers ownership of an incoming webhook to another
 // user. Ownership (UserId) is independent of post authorship (see BotUserId),
-// and is used for management and the restricted-channel permission check. The
-// new owner must be an existing, active, non-bot user that can read the
-// webhook's channel.
-func (a *App) MoveIncomingWebhook(rctx request.CTX, hookID, newOwnerID string) (*model.IncomingWebhook, *model.AppError) {
+// but it is the user whose access governs the webhook, so reassigning it must
+// uphold the same attribution guarantees as webhook creation: the new owner
+// must be an existing, active, non-bot user who can read the webhook's channel
+// and does not hold privileges the requester lacks.
+func (a *App) MoveIncomingWebhook(rctx request.CTX, session model.Session, hookID, newOwnerID string) (*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("MoveIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -557,13 +558,11 @@ func (a *App) MoveIncomingWebhook(rctx request.CTX, hookID, newOwnerID string) (
 		return nil, err
 	}
 
-	// Ownership gates posting only for restricted (non-open) channels, mirroring
-	// HandleIncomingWebhook. Require the new owner to be able to read those so
-	// the transfer doesn't leave the webhook unable to post.
-	if channel.Type != model.ChannelTypeOpen {
-		if hasPermission, _ := a.HasPermissionToChannel(rctx, newOwner.Id, channel.Id, model.PermissionReadChannelContent); !hasPermission {
-			return nil, model.NewAppError("MoveIncomingWebhook", "api.webhook.move_incoming.owner_channel_permissions.app_error", map[string]any{"user": newOwner.Id, "channel": channel.Id}, "", http.StatusForbidden)
-		}
+	// Reuse the creation-time validation so a transfer cannot attribute the
+	// webhook's posts to a user without channel access or to a higher-privileged
+	// user than the requester.
+	if appErr := a.ValidateIncomingWebhookUser(rctx, session, newOwner, channel); appErr != nil {
+		return nil, appErr
 	}
 
 	hook.UserId = newOwner.Id

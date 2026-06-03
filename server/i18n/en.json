@@ -5263,10 +5263,6 @@
     "translation": "A webhook cannot be owned by a bot account."
   },
   {
-    "id": "api.webhook.move_incoming.owner_channel_permissions.app_error",
-    "translation": "The new webhook owner does not have permission to read the webhook's channel."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Unable to update webhook across teams."
   },

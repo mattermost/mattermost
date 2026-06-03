@@ -437,7 +437,7 @@ func moveIncomingHook(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	movedHook, err := c.App.MoveIncomingWebhook(c.AppContext, hook.Id, c.Params.UserId)
+	movedHook, err := c.App.MoveIncomingWebhook(c.AppContext, *c.AppContext.Session(), hook.Id, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
