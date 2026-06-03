@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useFloating, offset, flip, shift, useDismiss, useInteractions, FloatingPortal} from '@floating-ui/react';
+import {useFloating, offset, flip, shift, useDismiss, useInteractions, FloatingPortal, autoUpdate} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -101,7 +101,6 @@ const RowIcon = styled.span`
 
 interface LinkPopoverProps {
     editor: Editor;
-    anchorEl: HTMLElement | null;
     onClose: () => void;
 }
 
@@ -120,7 +119,22 @@ function getExistingLinkData(editor: Editor): {href: string; text: string} | nul
     return {href: attrs.href || '', text};
 }
 
-const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
+function getEditorSelectionRect(editor: Editor): DOMRect {
+    try {
+        const {from, to} = editor.state.selection;
+        const start = editor.view.coordsAtPos(from);
+        const end = editor.view.coordsAtPos(to);
+        const left = Math.min(start.left, end.left);
+        const right = Math.max(start.right, end.right);
+        const top = Math.min(start.top, end.top);
+        const bottom = Math.max(start.bottom, end.bottom);
+        return new DOMRect(left, top, right - left, bottom - top);
+    } catch {
+        return (editor.view.dom as HTMLElement).getBoundingClientRect();
+    }
+}
+
+const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
     const {formatMessage} = useIntl();
     const isEditing = editor.isActive('link');
     const existingData = getExistingLinkData(editor);
@@ -128,17 +142,35 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     const [displayText, setDisplayText] = useState(() => existingData?.text || getSelectionText(editor));
     const [url, setUrl] = useState(() => existingData?.href || '');
 
-    const {refs, floatingStyles, context} = useFloating({
+    const virtualReference = useMemo(() => ({
+        getBoundingClientRect: () => getEditorSelectionRect(editor),
+        contextElement: editor.view.dom as HTMLElement,
+    }), [editor]);
+
+    const {refs, floatingStyles, context, update} = useFloating({
         open: true,
         onOpenChange: (open) => {
             if (!open) {
                 onClose();
             }
         },
-        placement: 'top-start',
-        middleware: [offset(4), flip(), shift({padding: 8})],
-        elements: {reference: anchorEl ?? undefined},
+        placement: 'bottom-start',
+        middleware: [offset(8), flip(), shift({padding: 8})],
+        whileElementsMounted: autoUpdate,
     });
+
+    useEffect(() => {
+        refs.setPositionReference(virtualReference);
+    }, [refs, virtualReference]);
+
+    useEffect(() => {
+        editor.on('selectionUpdate', update);
+        editor.on('transaction', update);
+        return () => {
+            editor.off('selectionUpdate', update);
+            editor.off('transaction', update);
+        };
+    }, [editor, update]);
 
     const dismiss = useDismiss(context);
     const {getFloatingProps} = useInteractions([dismiss]);

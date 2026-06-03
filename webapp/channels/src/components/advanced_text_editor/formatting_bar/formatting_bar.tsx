@@ -4,7 +4,7 @@
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -181,7 +181,6 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const [linkPopoverOpen, setLinkPopoverOpen] = useState(false);
-    const linkButtonRef = useRef<HTMLButtonElement | null>(null);
 
     const additionalControlsCount = useMemo(() => {
         return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
@@ -291,11 +290,9 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
 
     const renderFormattingIcon = (mode: MarkdownMode, key?: React.Key) => {
         const isActive = getEditor ? activeModes[mode] : undefined;
-        const iconRef = mode === 'link' && getEditor ? linkButtonRef : undefined;
         return (
             <FormattingIcon
                 key={key ?? mode}
-                ref={iconRef}
                 mode={mode}
                 className='control'
                 onClick={makeFormattingHandler(mode)}
@@ -381,7 +378,6 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
             {linkPopoverOpen && editorInstance && !editorInstance.isDestroyed && (
                 <LinkPopover
                     editor={editorInstance}
-                    anchorEl={linkButtonRef.current ?? (editorInstance.view.dom as HTMLElement)}
                     onClose={() => setLinkPopoverOpen(false)}
                 />
             )}
