@@ -663,7 +663,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		}
 		switch typed := v.(type) {
 		case string:
-			for _, tok := range strings.Split(typed, ",") {
+			for tok := range strings.SplitSeq(typed, ",") {
 				tok = strings.TrimSpace(tok)
 				if tok == "" || declaredFileIDs[tok] || seenCandidate[tok] || !model.IsValidId(tok) {
 					continue

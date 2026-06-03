@@ -3134,7 +3134,7 @@ func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
 		// Regression guard: a dialog with more than MaxDialogFileIds ID-shaped values
 		// that are NOT files (user/channel select IDs) must not trip the file-count cap.
 		submission := make(map[string]any)
-		for i := 0; i < model.MaxDialogFileIds+5; i++ {
+		for i := range model.MaxDialogFileIds + 5 {
 			submission[fmt.Sprintf("select_%d", i)] = model.NewId()
 		}
 		submit := baseSubmit

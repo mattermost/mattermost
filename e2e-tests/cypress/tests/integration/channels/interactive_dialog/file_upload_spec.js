@@ -14,8 +14,6 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
-
 const webhookUtils = require('../../../../utils/webhook_utils');
 
 let createdCommand;
@@ -220,10 +218,10 @@ describe('Interactive Dialog - File Upload', () => {
 
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
-            cy.wait(TIMEOUTS.HALF_SEC);
-
-            // # Submit without uploading any files (both file fields are required)
-            cy.get('#appsModalSubmit').click();
+            // # Submit without uploading any files (both file fields are required).
+            // Assert the button is interactive first — no uploads are in progress so it
+            // is enabled immediately; this is a deterministic gate, not a fixed wait.
+            cy.get('#appsModalSubmit').should('be.enabled').click();
         });
 
         // * Verify that the apps form modal is still visible (validation blocked submission)

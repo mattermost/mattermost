@@ -1333,7 +1333,6 @@
   "admin.featureDiscovery.WarningDescription": "Your License is being updated to give you full access to all the Enterprise Features. This page will automatically refresh once the license update is complete. Please wait ",
   "admin.featureDiscovery.WarningTitle": "Your trial has started and updates are being made to your license.",
   "admin.file_upload.chooseFile": "Choose File",
-  "admin.file_upload.chooseFiles": "Choose Files",
   "admin.file_upload.noFile": "No file uploaded",
   "admin.file_upload.uploadFile": "Upload",
   "admin.file.enableFileAttachments": "Allow File Sharing:",

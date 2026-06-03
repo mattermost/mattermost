@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -389,9 +390,9 @@ const AppsFormFileUpload: React.FC<Props> = ({
                 {/* Choose file button */}
                 <div className='apps-form-file-upload__buttons'>
                     <div className='file__upload'>
-                        <button
+                        <Button
                             type='button'
-                            className='btn btn-tertiary'
+                            emphasis='tertiary'
                             disabled={disabled || isUploading}
                             onClick={handleChooseClick}
                         >
@@ -399,7 +400,7 @@ const AppsFormFileUpload: React.FC<Props> = ({
                                 id={allowMultiple ? 'admin.file_upload.chooseFiles' : 'admin.file_upload.chooseFile'}
                                 defaultMessage={allowMultiple ? 'Choose Files' : 'Choose File'}
                             />
-                        </button>
+                        </Button>
                         <input
                             ref={fileInputRef}
                             id={id}
