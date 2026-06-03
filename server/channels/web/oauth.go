@@ -649,7 +649,7 @@ func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.VoIPDeviceId != "" && !model.IsValidVoIPDeviceID(req.VoIPDeviceId) {
+	if req.VoIPDeviceId != "" && !model.IsValidVoIPDeviceId(req.VoIPDeviceId) {
 		c.SetInvalidParam("voip_device_id")
 		return
 	}
@@ -672,8 +672,8 @@ func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", req.VoIPDeviceId)
 
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
-		DeviceID:     req.DeviceId,
-		VoIPDeviceID: req.VoIPDeviceId,
+		DeviceId:     req.DeviceId,
+		VoIPDeviceId: req.VoIPDeviceId,
 		IsOAuthUser:  true,
 	})
 	if err != nil {

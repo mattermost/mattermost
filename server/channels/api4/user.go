@@ -2135,14 +2135,14 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	password := props["password"]
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
-	voipDeviceId := props["voip_device_id"]
+	voIPDeviceId := props["voip_device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 	magicLinkToken := props["magic_link_token"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
-	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voipDeviceId)
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voIPDeviceId)
 
 	var user *model.User
 	var err *model.AppError
@@ -2208,8 +2208,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isMobileDevice := utils.IsMobileRequest(r)
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
-		DeviceID:     deviceId,
-		VoIPDeviceID: voipDeviceId,
+		DeviceId:     deviceId,
+		VoIPDeviceId: voIPDeviceId,
 		IsMobile:     isMobileDevice,
 	})
 	if err != nil {
@@ -2268,7 +2268,7 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
-		DeviceID:    deviceId,
+		DeviceId:    deviceId,
 		IsOAuthUser: isOAuthUser,
 		IsSaml:      isSamlUser,
 	})
@@ -2641,7 +2641,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	receivedProps := model.MapFromJSON(r.Body)
 	deviceId := receivedProps["device_id"]
-	voipDeviceId := receivedProps["voip_device_id"]
+	voIPDeviceId := receivedProps["voip_device_id"]
 
 	newProps := map[string]string{}
 
@@ -2664,8 +2664,8 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
-	if deviceId != "" || voipDeviceId != "" {
-		attachDeviceIds(c, w, r, deviceId, voipDeviceId)
+	if deviceId != "" || voIPDeviceId != "" {
+		attachDeviceIds(c, w, r, deviceId, voIPDeviceId)
 	}
 
 	if c.Err != nil {
@@ -2681,30 +2681,30 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceId, voipDeviceId string) {
+func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceId, voIPDeviceId string) {
 	auditRec := c.MakeAuditRecord(model.AuditEventAttachDeviceId, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
-	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voipDeviceId)
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voIPDeviceId)
 
-	if deviceId != "" && !model.IsValidStandardDeviceID(deviceId) {
+	if deviceId != "" && !model.IsValidStandardDeviceId(deviceId) {
 		c.SetInvalidParam("device_id")
 		return
 	}
-	if voipDeviceId != "" && !model.IsValidVoIPDeviceID(voipDeviceId) {
+	if voIPDeviceId != "" && !model.IsValidVoIPDeviceId(voIPDeviceId) {
 		c.SetInvalidParam("voip_device_id")
 		return
 	}
 
 	// Logout other sessions for the same device(s).
 	if deviceId != "" {
-		if err := c.App.RevokeSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
+		if err := c.App.RevokeOtherSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
 			c.Err = err
 			return
 		}
 	}
-	if voipDeviceId != "" {
-		if err := c.App.RevokeSessionsForVoIPDeviceId(c.AppContext, c.AppContext.Session().UserId, voipDeviceId, c.AppContext.Session().Id); err != nil {
+	if voIPDeviceId != "" {
+		if err := c.App.RevokeOtherSessionsForVoIPDeviceId(c.AppContext, c.AppContext.Session().UserId, voIPDeviceId, c.AppContext.Session().Id); err != nil {
 			c.Err = err
 			return
 		}
@@ -2745,11 +2745,11 @@ func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceI
 	if deviceId == "" {
 		deviceId = c.AppContext.Session().DeviceId
 	}
-	if voipDeviceId == "" {
-		voipDeviceId = c.AppContext.Session().VoIPDeviceId
+	if voIPDeviceId == "" {
+		voIPDeviceId = c.AppContext.Session().VoIPDeviceId
 	}
 
-	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, voipDeviceId, c.AppContext.Session().ExpiresAt); err != nil {
+	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, voIPDeviceId, c.AppContext.Session().ExpiresAt); err != nil {
 		c.Err = err
 		return
 	}

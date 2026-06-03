@@ -165,16 +165,16 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		// We made a copy to avoid decoding and parsing all the time
 		tmpMessage := msg.DeepCopy()
 
-		deviceID := session.DeviceId
-		voipUsable := session.VoIPDeviceId != "" && session.Props[model.SessionPropLastRemovedVoIPDeviceId] != session.VoIPDeviceId
-		if tmpMessage.Transport == model.PushTransportVoIP && voipUsable {
-			deviceID = session.VoIPDeviceId
+		deviceId := session.DeviceId
+		voIPUsable := session.VoIPDeviceId != "" && session.Props[model.SessionPropLastRemovedVoIPDeviceId] != session.VoIPDeviceId
+		if tmpMessage.Transport == model.PushTransportVoIP && voIPUsable {
+			deviceId = session.VoIPDeviceId
 		} else {
 			// No VoIP token for this session — downgrade so the proxy dispatches
 			// via the standard alert path instead of the VoIP one.
 			tmpMessage.Transport = model.PushTransportStandard
 		}
-		tmpMessage.SetDeviceIdAndPlatform(deviceID)
+		tmpMessage.SetDeviceIdAndPlatform(deviceId)
 		tmpMessage.AckId = model.NewId()
 		signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
 			AckId:    tmpMessage.AckId,
@@ -544,6 +544,9 @@ func (a *App) sendToPushProxy(rctx request.CTX, msg *model.PushNotification, ses
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
+		// Record the removed token under the prop matching the transport so
+		// the voIPUsable check above skips this token on subsequent pushes
+		// without affecting the other channel.
 		removedProp := model.SessionPropLastRemovedDeviceId
 		removedValue := session.DeviceId
 		if msg.Transport == model.PushTransportVoIP {
@@ -764,7 +767,7 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 	return msg, nil
 }
 
-func (a *App) SendTestPushNotification(rctx request.CTX, deviceID string) string {
+func (a *App) SendTestPushNotification(rctx request.CTX, deviceId string) string {
 	if !a.canSendPushNotifications() {
 		return "false"
 	}
@@ -775,7 +778,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceID string) string
 		ServerId: a.ServerId(),
 		Badge:    -1,
 	}
-	msg.SetDeviceIdAndPlatform(deviceID)
+	msg.SetDeviceIdAndPlatform(deviceId)
 
 	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
@@ -785,7 +788,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceID string) string
 			mlog.String("push_type", msg.Type),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonPushProxySendError),
-			mlog.String("device", model.RedactDeviceID(deviceID)),
+			mlog.String("device", model.RedactDeviceId(deviceId)),
 			mlog.Err(err),
 		)
 		return "unknown"
@@ -801,7 +804,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceID string) string
 			mlog.String("push_type", msg.Type),
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonPushProxyError),
-			mlog.String("device", model.RedactDeviceID(deviceID)),
+			mlog.String("device", model.RedactDeviceId(deviceId)),
 			mlog.Err(errors.New(pushResponse[model.PushStatusErrorMsg])),
 		)
 		return "unknown"

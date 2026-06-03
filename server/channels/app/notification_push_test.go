@@ -1109,13 +1109,13 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 
 	const (
 		standardToken = model.PushNotifyAppleReactNative + ":standardtoken"
-		voipToken     = model.PushNotifyAppleReactNative + ":voiptoken"
+		voIPToken     = model.PushNotifyAppleReactNative + ":voiptoken"
 	)
 
 	for _, tc := range []struct {
 		name              string
-		deviceID          string
-		voipDeviceID      string
+		deviceId          string
+		voIPDeviceId      string
 		sessionProps      map[string]string
 		transport         model.PushTransport
 		expectSent        bool
@@ -1124,8 +1124,8 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 	}{
 		{
 			name:              "VoIP transport with VoIP token registered uses VoIP token",
-			deviceID:          standardToken,
-			voipDeviceID:      voipToken,
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
 			transport:         model.PushTransportVoIP,
 			expectSent:        true,
 			expectedDeviceID:  "voiptoken",
@@ -1133,8 +1133,8 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 		},
 		{
 			name:              "VoIP transport without VoIP token downgrades to standard",
-			deviceID:          standardToken,
-			voipDeviceID:      "",
+			deviceId:          standardToken,
+			voIPDeviceId:      "",
 			transport:         model.PushTransportVoIP,
 			expectSent:        true,
 			expectedDeviceID:  "standardtoken",
@@ -1142,12 +1142,12 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 		},
 		{
 			name:         "VoIP transport with invalidated VoIP token downgrades to standard",
-			deviceID:     standardToken,
-			voipDeviceID: voipToken,
+			deviceId:     standardToken,
+			voIPDeviceId: voIPToken,
 			// The proxy previously reported "remove" for this VoIP token, so
 			// the session is marked. Subsequent VoIP-transport pushes must
 			// fall back to the standard alert path on the standard token.
-			sessionProps:      map[string]string{model.SessionPropLastRemovedVoIPDeviceId: voipToken},
+			sessionProps:      map[string]string{model.SessionPropLastRemovedVoIPDeviceId: voIPToken},
 			transport:         model.PushTransportVoIP,
 			expectSent:        true,
 			expectedDeviceID:  "standardtoken",
@@ -1155,8 +1155,8 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 		},
 		{
 			name:              "standard transport ignores VoIP token even when present",
-			deviceID:          standardToken,
-			voipDeviceID:      voipToken,
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
 			transport:         model.PushTransportStandard,
 			expectSent:        true,
 			expectedDeviceID:  "standardtoken",
@@ -1176,8 +1176,8 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 
 			_, err := th.App.CreateSession(th.Context, &model.Session{
 				UserId:       th.BasicUser.Id,
-				DeviceId:     tc.deviceID,
-				VoIPDeviceId: tc.voipDeviceID,
+				DeviceId:     tc.deviceId,
+				VoIPDeviceId: tc.voIPDeviceId,
 				Props:        tc.sessionProps,
 				ExpiresAt:    model.GetMillis() + 100000,
 			})
@@ -1202,9 +1202,6 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 	}
 }
 
-// When the proxy reports remove for a VoIP-transport push, we must record
-// it in SessionPropLastRemovedVoIPDeviceId (not the standard-token prop)
-// and stop trying that VoIP token on subsequent pushes.
 func TestSendPushNotificationsVoIPRemoveTracking(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -1681,14 +1678,14 @@ func TestAllPushNotifications(t *testing.T) {
 		u := th.CreateUser(t)
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		// We don't need to track the 2nd session.
 		_, err = th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
@@ -1916,13 +1913,13 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		sess1 := &model.Session{
 			Id:        "id1",
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		sess2 := &model.Session{
 			Id:        "id2",
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		mockSessionStore.On("GetSessionsWithActiveDeviceIds", u.Id).Return([]*model.Session{sess1, sess2}, nil)

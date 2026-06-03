@@ -213,25 +213,28 @@ func TestRevokeSessionsForDeviceTokens(t *testing.T) {
 	// the other VoIPDeviceId), and the invariants they must hold are the
 	// same. Drive them through a single table.
 	type variant struct {
-		name     string
-		setToken func(s *model.Session, token string)
-		revoke   func(userID, token, currentSessionID string) error
+		name          string
+		setToken      func(s *model.Session, token string)
+		revoke        func(userID, token, currentSessionID string) error
+		emptyTokenErr error
 	}
 
 	variants := []variant{
 		{
-			name:     "RevokeSessionsForDeviceId",
+			name:     "RevokeOtherSessionsForDeviceId",
 			setToken: func(s *model.Session, token string) { s.DeviceId = token },
 			revoke: func(userID, token, currentSessionID string) error {
-				return th.Service.RevokeSessionsForDeviceId(th.Context, userID, token, currentSessionID)
+				return th.Service.RevokeOtherSessionsForDeviceId(th.Context, userID, token, currentSessionID)
 			},
+			emptyTokenErr: ErrEmptyDeviceId,
 		},
 		{
-			name:     "RevokeSessionsForVoIPDeviceId",
+			name:     "RevokeOtherSessionsForVoIPDeviceId",
 			setToken: func(s *model.Session, token string) { s.VoIPDeviceId = token },
 			revoke: func(userID, token, currentSessionID string) error {
-				return th.Service.RevokeSessionsForVoIPDeviceId(th.Context, userID, token, currentSessionID)
+				return th.Service.RevokeOtherSessionsForVoIPDeviceId(th.Context, userID, token, currentSessionID)
 			},
+			emptyTokenErr: ErrEmptyVoIPDeviceId,
 		},
 	}
 
@@ -281,15 +284,13 @@ func TestRevokeSessionsForDeviceTokens(t *testing.T) {
 					"session on a different user must not be revoked")
 			})
 
-			t.Run("empty token is a no-op, not a mass revoke", func(t *testing.T) {
-				// Callers should validate non-empty before calling, but if a
-				// "" token leaks through it must not match every session
-				// that has no token in this slot.
+			t.Run("empty token returns an error and revokes nothing", func(t *testing.T) {
 				webSession := createSession(t, v, th.BasicUser.Id, "")
 
-				require.NoError(t, v.revoke(th.BasicUser.Id, "", ""))
+				err := v.revoke(th.BasicUser.Id, "", "")
+				require.ErrorIs(t, err, v.emptyTokenErr)
 				assert.True(t, sessionExists(t, webSession.Id),
-					"empty-token revoke must be a no-op")
+					"empty-token revoke must not match sessions with no token in this slot")
 			})
 
 			t.Run("leaves siblings of the same user with different tokens alone", func(t *testing.T) {

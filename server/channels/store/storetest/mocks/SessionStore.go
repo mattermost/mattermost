@@ -325,9 +325,9 @@ func (_m *SessionStore) Save(rctx request.CTX, session *model.Session) (*model.S
 	return r0, r1
 }
 
-// UpdateDeviceId provides a mock function with given fields: id, deviceID, voipDeviceID, expiresAt
-func (_m *SessionStore) UpdateDeviceId(id string, deviceID string, voipDeviceID string, expiresAt int64) error {
-	ret := _m.Called(id, deviceID, voipDeviceID, expiresAt)
+// UpdateDeviceId provides a mock function with given fields: id, deviceId, voIPDeviceId, expiresAt
+func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, voIPDeviceId string, expiresAt int64) error {
+	ret := _m.Called(id, deviceId, voIPDeviceId, expiresAt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateDeviceId")
@@ -335,7 +335,7 @@ func (_m *SessionStore) UpdateDeviceId(id string, deviceID string, voipDeviceID 
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string, int64) error); ok {
-		r0 = rf(id, deviceID, voipDeviceID, expiresAt)
+		r0 = rf(id, deviceId, voIPDeviceId, expiresAt)
 	} else {
 		r0 = ret.Error(0)
 	}

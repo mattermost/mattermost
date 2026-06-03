@@ -154,7 +154,7 @@ func TestIsIntegration(t *testing.T) {
 	}
 }
 
-func TestIsValidVoIPDeviceID(t *testing.T) {
+func TestIsValidVoIPDeviceId(t *testing.T) {
 	testCases := []struct {
 		Description string
 		Value       string
@@ -179,12 +179,12 @@ func TestIsValidVoIPDeviceID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			assert.Equal(t, tc.Valid, IsValidVoIPDeviceID(tc.Value))
+			assert.Equal(t, tc.Valid, IsValidVoIPDeviceId(tc.Value))
 		})
 	}
 }
 
-func TestIsValidStandardDeviceID(t *testing.T) {
+func TestIsValidStandardDeviceId(t *testing.T) {
 	testCases := []struct {
 		Description string
 		Value       string
@@ -215,7 +215,7 @@ func TestIsValidStandardDeviceID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			assert.Equal(t, tc.Valid, IsValidStandardDeviceID(tc.Value))
+			assert.Equal(t, tc.Valid, IsValidStandardDeviceId(tc.Value))
 		})
 	}
 }

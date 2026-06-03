@@ -59,8 +59,8 @@ type MobileSessionMetadata struct {
 // than a positional argument list so future additions don't keep changing
 // the DoLogin signature and rippling through every caller.
 type LoginOptions struct {
-	DeviceID     string
-	VoIPDeviceID string
+	DeviceId     string
+	VoIPDeviceId string
 	IsMobile     bool
 	IsOAuthUser  bool
 	IsSaml       bool
@@ -320,18 +320,18 @@ var standardDevicePlatforms = []string{
 	PushNotifyAndroidReactNative,
 }
 
-// voipDevicePlatforms is the allowlist for VoIPDeviceId. Android isn't here
+// voIPDevicePlatforms is the allowlist for VoIPDeviceId. Android isn't here
 // yet — once it grows a VoIP equivalent, add it or unify as a single allowlist.
-var voipDevicePlatforms = []string{
+var voIPDevicePlatforms = []string{
 	PushNotifyAppleReactNative,
 	PushNotifyAppleReactNative + "beta",
 }
 
-// IsValidDeviceID checks that deviceID has the "<platform>[-v<N>]:<token>"
+// IsValidDeviceId checks that deviceId has the "<platform>[-v<N>]:<token>"
 // shape and <platform> is in the allowlist. The "-v<N>" suffix is only
 // stripped when it's terminal and N is a non-negative integer.
-func IsValidDeviceID(deviceID string, allowed []string) bool {
-	platform, token, ok := strings.Cut(deviceID, ":")
+func IsValidDeviceId(deviceId string, allowed []string) bool {
+	platform, token, ok := strings.Cut(deviceId, ":")
 	if !ok || token == "" {
 		return false
 	}
@@ -343,21 +343,21 @@ func IsValidDeviceID(deviceID string, allowed []string) bool {
 	return slices.Contains(allowed, platform)
 }
 
-func IsValidStandardDeviceID(deviceID string) bool {
-	return IsValidDeviceID(deviceID, standardDevicePlatforms)
+func IsValidStandardDeviceId(deviceId string) bool {
+	return IsValidDeviceId(deviceId, standardDevicePlatforms)
 }
 
-func IsValidVoIPDeviceID(deviceID string) bool {
-	return IsValidDeviceID(deviceID, voipDevicePlatforms)
+func IsValidVoIPDeviceId(deviceId string) bool {
+	return IsValidDeviceId(deviceId, voIPDevicePlatforms)
 }
 
-// RedactDeviceID returns "<platform>:<first-8>…" for safe inclusion in logs.
+// RedactDeviceId returns "<platform>:<first-8>…" for safe inclusion in logs.
 // Returns "" for empty input and the original prefix for malformed input.
-func RedactDeviceID(deviceID string) string {
-	if deviceID == "" {
+func RedactDeviceId(deviceId string) string {
+	if deviceId == "" {
 		return ""
 	}
-	platform, token, ok := strings.Cut(deviceID, ":")
+	platform, token, ok := strings.Cut(deviceId, ":")
 	if !ok || token == "" {
 		return platform
 	}

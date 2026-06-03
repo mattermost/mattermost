@@ -144,24 +144,24 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
 
-	if opts.DeviceID != "" && !model.IsValidStandardDeviceID(opts.DeviceID) {
+	if opts.DeviceId != "" && !model.IsValidStandardDeviceId(opts.DeviceId) {
 		return nil, model.NewAppError("DoLogin", "api.user.attach_device_id.invalid_device_id.app_error", nil, "", http.StatusBadRequest)
 	}
-	if opts.VoIPDeviceID != "" && !model.IsValidVoIPDeviceID(opts.VoIPDeviceID) {
+	if opts.VoIPDeviceId != "" && !model.IsValidVoIPDeviceId(opts.VoIPDeviceId) {
 		return nil, model.NewAppError("DoLogin", "api.user.attach_device_id.invalid_voip_device_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Presence of a device or VoIP token is authoritative for mobile-ness:
 	// trust the explicit signal over the user-agent sniff.
-	if opts.DeviceID != "" || opts.VoIPDeviceID != "" {
+	if opts.DeviceId != "" || opts.VoIPDeviceId != "" {
 		opts.IsMobile = true
 	}
 
 	session := &model.Session{
 		UserId:       user.Id,
 		Roles:        user.GetRawRoles(),
-		DeviceId:     opts.DeviceID,
-		VoIPDeviceId: opts.VoIPDeviceID,
+		DeviceId:     opts.DeviceId,
+		VoIPDeviceId: opts.VoIPDeviceId,
 		IsOAuth:      false,
 		Props: map[string]string{
 			model.UserAuthServiceIsMobile: strconv.FormatBool(opts.IsMobile),
@@ -171,7 +171,7 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 	}
 	session.GenerateCSRF()
 
-	if opts.DeviceID != "" || opts.VoIPDeviceID != "" || opts.IsMobile {
+	if opts.IsMobile {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 	} else if opts.IsOAuthUser || opts.IsSaml {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
@@ -179,14 +179,14 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)
 	}
 
-	if opts.DeviceID != "" {
-		if err := a.RevokeSessionsForDeviceId(rctx, user.Id, opts.DeviceID, ""); err != nil {
+	if opts.DeviceId != "" {
+		if err := a.RevokeOtherSessionsForDeviceId(rctx, user.Id, opts.DeviceId, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
 			return nil, err
 		}
 	}
-	if opts.VoIPDeviceID != "" {
-		if err := a.RevokeSessionsForVoIPDeviceId(rctx, user.Id, opts.VoIPDeviceID, ""); err != nil {
+	if opts.VoIPDeviceId != "" {
+		if err := a.RevokeOtherSessionsForVoIPDeviceId(rctx, user.Id, opts.VoIPDeviceId, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
 			return nil, err
 		}

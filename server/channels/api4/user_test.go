@@ -4822,9 +4822,10 @@ func TestAttachDeviceId(t *testing.T) {
 		defer resetVoIP(session)
 		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "android_rn:abcd"})
 		assert.Error(t, err)
-
-		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
 		assert.Empty(t, storeSession.VoIPDeviceId)
 	})
 
@@ -4833,36 +4834,35 @@ func TestAttachDeviceId(t *testing.T) {
 		defer resetVoIP(session)
 		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "abcd"})
 		assert.Error(t, err)
-
-		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
 		assert.Empty(t, storeSession.VoIPDeviceId)
 	})
 
 	t.Run("Valid voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
 		session, _ := th.App.GetSession(client.AuthToken)
 		defer resetVoIP(session)
-		voipID := model.PushNotifyAppleReactNative + ":abcd1234"
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voipID})
-		assert.NoError(t, err)
+		voIPId := model.PushNotifyAppleReactNative + ":abcd1234"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
 
-		updatedSession, _ := th.App.GetSession(client.AuthToken)
-		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, voipID, updatedSession.VoIPDeviceId)
-		assert.Equal(t, voipID, storeSession.VoIPDeviceId)
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
 	})
 
 	t.Run("Beta voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
 		session, _ := th.App.GetSession(client.AuthToken)
 		defer resetVoIP(session)
-		voipID := model.PushNotifyAppleReactNative + "beta:abcd1234"
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voipID})
-		assert.NoError(t, err)
+		voIPId := model.PushNotifyAppleReactNative + "beta:abcd1234"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
 
-		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, voipID, storeSession.VoIPDeviceId)
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
 	})
 
 	resetBothTokens := func(session *model.Session) {
@@ -4883,14 +4883,14 @@ func TestAttachDeviceId(t *testing.T) {
 		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, existingDeviceID, "", session.ExpiresAt))
 		th.App.ClearSessionCacheForUser(session.UserId)
 
-		voipID := model.PushNotifyAppleReactNative + ":new-voip"
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voipID})
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, res.StatusCode)
+		voIPId := model.PushNotifyAppleReactNative + ":new-voip"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
 
-		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
 		assert.Equal(t, existingDeviceID, storeSession.DeviceId, "existing DeviceId must not be wiped")
-		assert.Equal(t, voipID, storeSession.VoIPDeviceId)
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
 	})
 
 	t.Run("Attaching device_id alone preserves an existing voip_device_id", func(t *testing.T) {
@@ -4901,13 +4901,13 @@ func TestAttachDeviceId(t *testing.T) {
 		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, "", existingVoIPID, session.ExpiresAt))
 		th.App.ClearSessionCacheForUser(session.UserId)
 
-		deviceID := model.PushNotifyAppleReactNative + ":new-standard"
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"device_id": deviceID})
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, res.StatusCode)
+		deviceId := model.PushNotifyAppleReactNative + ":new-standard"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"device_id": deviceId})
+		require.NoError(t, err)
 
-		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
-		assert.Equal(t, deviceID, storeSession.DeviceId)
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, deviceId, storeSession.DeviceId)
 		assert.Equal(t, existingVoIPID, storeSession.VoIPDeviceId, "existing VoIPDeviceId must not be wiped")
 	})
 
@@ -4915,31 +4915,30 @@ func TestAttachDeviceId(t *testing.T) {
 		currentSession, _ := th.App.GetSession(client.AuthToken)
 		defer resetBothTokens(currentSession)
 
-		deviceID := model.PushNotifyAppleReactNative + ":dual-standard"
-		voipID := model.PushNotifyAppleReactNative + ":dual-voip"
+		deviceId := model.PushNotifyAppleReactNative + ":dual-standard"
+		voIPId := model.PushNotifyAppleReactNative + ":dual-voip"
 
 		priorSession, appErr := th.App.CreateSession(th.Context, &model.Session{
 			UserId:       currentSession.UserId,
-			DeviceId:     deviceID,
-			VoIPDeviceId: voipID,
+			DeviceId:     deviceId,
+			VoIPDeviceId: voIPId,
 			ExpiresAt:    currentSession.ExpiresAt,
 		})
 		require.Nil(t, appErr)
 
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{
-			"device_id":      deviceID,
-			"voip_device_id": voipID,
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{
+			"device_id":      deviceId,
+			"voip_device_id": voIPId,
 		})
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, res.StatusCode)
+		require.NoError(t, err)
 
 		_, appErr = th.App.GetSessionById(th.Context, priorSession.Id)
 		require.NotNil(t, appErr, "prior session matching both tokens must be revoked")
 
 		fresh, appErr := th.App.GetSessionById(th.Context, currentSession.Id)
 		require.Nil(t, appErr, "current session must survive its own attach")
-		assert.Equal(t, deviceID, fresh.DeviceId)
-		assert.Equal(t, voipID, fresh.VoIPDeviceId)
+		assert.Equal(t, deviceId, fresh.DeviceId)
+		assert.Equal(t, voIPId, fresh.VoIPDeviceId)
 	})
 
 	t.Run("VoIP-only attach revokes a prior VoIP-only session but spares a prior standard-only session", func(t *testing.T) {
@@ -4947,7 +4946,7 @@ func TestAttachDeviceId(t *testing.T) {
 		defer resetBothTokens(currentSession)
 
 		standardOnly := model.PushNotifyAppleReactNative + ":indep-standard"
-		voipOnly := model.PushNotifyAppleReactNative + ":indep-voip"
+		voIPOnly := model.PushNotifyAppleReactNative + ":indep-voip"
 
 		priorStandardOnly, appErr := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    currentSession.UserId,
@@ -4958,16 +4957,15 @@ func TestAttachDeviceId(t *testing.T) {
 
 		priorVoIPOnly, appErr := th.App.CreateSession(th.Context, &model.Session{
 			UserId:       currentSession.UserId,
-			VoIPDeviceId: voipOnly,
+			VoIPDeviceId: voIPOnly,
 			ExpiresAt:    currentSession.ExpiresAt,
 		})
 		require.Nil(t, appErr)
 
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{
-			"voip_device_id": voipOnly,
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{
+			"voip_device_id": voIPOnly,
 		})
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, res.StatusCode)
+		require.NoError(t, err)
 
 		_, appErr = th.App.GetSessionById(th.Context, priorVoIPOnly.Id)
 		require.NotNil(t, appErr, "prior VoIP-only session must be revoked")

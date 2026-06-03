@@ -260,8 +260,8 @@ func testSessionUpdateDeviceIdClearsOnEmpty(t *testing.T, rctx request.CTX, ss s
 	require.NoError(t, err)
 
 	standardToken := model.PushNotifyAppleReactNative + ":standard"
-	voipToken := model.PushNotifyAppleReactNative + ":voip"
-	err = ss.Session().UpdateDeviceId(s.Id, standardToken, voipToken, s.ExpiresAt)
+	voIPToken := model.PushNotifyAppleReactNative + ":voip"
+	err = ss.Session().UpdateDeviceId(s.Id, standardToken, voIPToken, s.ExpiresAt)
 	require.NoError(t, err)
 
 	err = ss.Session().UpdateDeviceId(s.Id, "", "", s.ExpiresAt)

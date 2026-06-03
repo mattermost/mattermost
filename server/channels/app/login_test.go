@@ -142,7 +142,7 @@ func TestGetUserForLogin(t *testing.T) {
 	})
 }
 
-func TestDoLoginVoIPDeviceID(t *testing.T) {
+func TestDoLoginVoIPDeviceId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -185,10 +185,10 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 		assertExpiryHours(t, session, webHours)
 	})
 
-	t.Run("DeviceID-only login produces a mobile session with the standard token", func(t *testing.T) {
+	t.Run("DeviceId-only login produces a mobile session with the standard token", func(t *testing.T) {
 		token := "apple_rn:standardhappy"
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			DeviceID: token,
+			DeviceId: token,
 		})
 		require.Nil(t, err)
 		require.NotNil(t, session)
@@ -199,10 +199,10 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 		assertExpiryHours(t, session, mobileHours)
 	})
 
-	t.Run("VoIPDeviceID-only login produces a mobile session with the VoIP token", func(t *testing.T) {
+	t.Run("VoIPDeviceId-only login produces a mobile session with the VoIP token", func(t *testing.T) {
 		token := "apple_rn:voiphappy"
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			VoIPDeviceID: token,
+			VoIPDeviceId: token,
 		})
 		require.Nil(t, err)
 		require.NotNil(t, session)
@@ -210,7 +210,7 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 		assert.Empty(t, session.DeviceId)
 		assert.Equal(t, token, session.VoIPDeviceId)
 		assert.Equal(t, "true", session.Props[model.UserAuthServiceIsMobile],
-			"presence of VoIPDeviceID must imply IsMobile")
+			"presence of VoIPDeviceId must imply IsMobile")
 		assertExpiryHours(t, session, mobileHours)
 	})
 
@@ -218,7 +218,7 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 		before := sessionCount(t)
 
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			VoIPDeviceID: "bogus",
+			VoIPDeviceId: "bogus",
 		})
 
 		require.NotNil(t, err)
@@ -234,7 +234,7 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 		before := sessionCount(t)
 
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			VoIPDeviceID: "android_rn:abcdef0123",
+			VoIPDeviceId: "android_rn:abcdef0123",
 		})
 
 		require.NotNil(t, err)
@@ -243,14 +243,14 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 		assert.Equal(t, before, sessionCount(t))
 	})
 
-	t.Run("rejects malformed standard DeviceID even when VoIP token is valid", func(t *testing.T) {
+	t.Run("rejects malformed standard DeviceId even when VoIP token is valid", func(t *testing.T) {
 		// Validation order must not short-circuit on the first valid field —
 		// a bad standard token should fail the whole login.
 		before := sessionCount(t)
 
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			DeviceID:     "bogus",
-			VoIPDeviceID: "apple_rn:abcdef0123",
+			DeviceId:     "bogus",
+			VoIPDeviceId: "apple_rn:abcdef0123",
 		})
 
 		require.NotNil(t, err)
@@ -260,16 +260,16 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 	})
 
 	t.Run("revokes prior session that registered the same VoIP token", func(t *testing.T) {
-		voipToken := "apple_rn:revoke-by-voip"
+		voIPToken := "apple_rn:revoke-by-voip"
 
 		prior, appErr := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			VoIPDeviceID: voipToken,
+			VoIPDeviceId: voIPToken,
 		})
 		require.Nil(t, appErr)
 		require.NotNil(t, prior)
 
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			VoIPDeviceID: voipToken,
+			VoIPDeviceId: voIPToken,
 		})
 		require.Nil(t, err)
 		require.NotNil(t, session)
@@ -287,27 +287,27 @@ func TestDoLoginVoIPDeviceID(t *testing.T) {
 		// Two prior sessions: one matched by standard DeviceId, one by VoIPDeviceId.
 		// A dual-token login must revoke both.
 		standardToken := "apple_rn:dual-standard"
-		voipToken := "apple_rn:dual-voip"
+		voIPToken := "apple_rn:dual-voip"
 
 		priorStandard, appErr := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			DeviceID: standardToken,
+			DeviceId: standardToken,
 		})
 		require.Nil(t, appErr)
 
 		priorVoIP, appErr := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			VoIPDeviceID: voipToken,
+			VoIPDeviceId: voIPToken,
 		})
 		require.Nil(t, appErr)
 
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{
-			DeviceID:     standardToken,
-			VoIPDeviceID: voipToken,
+			DeviceId:     standardToken,
+			VoIPDeviceId: voIPToken,
 		})
 		require.Nil(t, err)
 		require.NotNil(t, session)
 
 		assert.Equal(t, standardToken, session.DeviceId)
-		assert.Equal(t, voipToken, session.VoIPDeviceId)
+		assert.Equal(t, voIPToken, session.VoIPDeviceId)
 
 		_, getErr := th.App.GetSessionById(th.Context, priorStandard.Id)
 		require.NotNil(t, getErr, "prior session matched by DeviceId must be revoked")
