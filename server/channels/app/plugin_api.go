@@ -45,7 +45,6 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 // a plugin accessed after the fact.
 func (api *PluginAPI) logPluginAction(method string, fields ...mlog.Field) {
     allFields := append([]mlog.Field{
-        mlog.String("plugin_id", api.id),
         mlog.String("method", method),
     }, fields...)
     api.logger.Debug("Plugin API call", allFields...)
@@ -507,6 +506,7 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
     api.logPluginAction("GetChannel", mlog.String("channel_id", channelID))
     channel, appErr := api.app.GetChannel(api.ctx, channelID)
+	return api.app.GetChannel(api.ctx, channelID)
 }
 
 func (api *PluginAPI) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
