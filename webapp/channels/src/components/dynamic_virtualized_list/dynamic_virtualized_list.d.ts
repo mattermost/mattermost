@@ -30,7 +30,7 @@ declare module 'components/dynamic_virtualized_list' {
         onScroll: (scrollArgs: OnScrollArgs) => void;
         overscanCountBackward: number;
         overscanCountForward: number;
-        scrollToFailed: (index: number) => void;
+        scrollToFailed?: (index: number) => void;
         style: CSSProperties;
         width: number;
 
@@ -39,7 +39,6 @@ declare module 'components/dynamic_virtualized_list' {
         correctScrollToBottom?: boolean;
         innerListStyle?: CSSProperties;
         loaderId?: string;
-        scrollToFailed?: (index: number) => void;
     }
 
     export class DynamicVirtualizedList extends React.PureComponent<DynamicVirtualizedListProps> {
