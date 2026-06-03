@@ -11,6 +11,8 @@ import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 
+import {getConnectionId} from 'selectors/general';
+
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
@@ -51,6 +53,11 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
         });
 
         xhr.setRequestHeader('Accept', 'application/json');
+
+        const connectionId = getConnectionId(getState());
+        if (connectionId) {
+            xhr.setRequestHeader('Connection-Id', connectionId);
+        }
 
         const formData = new FormData();
         formData.append('channel_id', channelId);
@@ -96,8 +103,13 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     onSuccess(response, channelId, rootId);
                 } else if (xhr.status >= 400 && xhr.readyState === 4) {
                     let errorMessage = '';
+                    let pluginRejected = false;
                     try {
                         const errorResponse = JSON.parse(xhr.response);
+
+                        // Plugin upload rejections are surfaced as a toast via the
+                        // file_upload_rejected websocket event, so suppress the inline composer error.
+                        pluginRejected = errorResponse?.id === 'app.upload.run_plugins_hook.rejected';
                         errorMessage =
                         (errorResponse?.id && errorResponse?.message) ? localizeMessage({id: errorResponse.id, defaultMessage: errorResponse.message}) : localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
                     } catch (e) {
@@ -111,7 +123,9 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                         rootId,
                     });
 
-                    onError?.(errorMessage, clientId, channelId, rootId);
+                    // Pass an empty message on plugin rejection so the in-progress upload is cleared
+                    // without showing the inline error; the websocket-driven toast explains the rejection.
+                    onError?.(pluginRejected ? '' : errorMessage, clientId, channelId, rootId);
                 }
             };
         }

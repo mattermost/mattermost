@@ -1980,6 +1980,83 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/members/{user_id}/mark_read":
+    post:
+      tags:
+        - channels
+      summary: Mark multiple channels as read
+      description: |
+        Mark multiple channels as viewed for the given user.
+        ##### Permissions
+        Must be logged in as the user or have `edit_other_users` permission.
+      operationId: MarkChannelsReadForUser
+      parameters:
+        - in: path
+          name: user_id
+          description: User ID to mark channels read for
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        required: true
+      responses:
+        "200":
+          description: Channels marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  last_viewed_at_times:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/channels/stats/member_count":
+    post:
+      tags:
+        - channels
+      summary: Get member counts for multiple channels
+      description: |
+        Get channel member counts for a list of channel IDs.
+        ##### Permissions
+        Must have access to member count for all requested channels.
+      operationId: GetChannelsMemberCount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        required: true
+      responses:
+        "200":
+          description: Channel member counts retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int64
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   "/api/v4/channels/members/{user_id}/view":
     post:
       tags:
@@ -2043,6 +2120,52 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/channels/members/{user_id}/direct/read":
+    put:
+      tags:
+        - channels
+      summary: Mark all direct and group messages as read
+      description: |
+        Mark all direct and group messages as read for a user.
+
+        ##### Permissions
+
+        Must be logged in as user or have `edit_other_users` permission.
+
+        __Minimum server version__: 11.3
+      operationId: MarkAllDirectMessagesRead
+      parameters:
+        - in: path
+          name: user_id
+          description: User ID to mark messages as read for
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Direct messages marked as read successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Value should be "OK" if successful
+                  last_viewed_at_times:
+                    type: object
+                    description: A JSON object mapping channel IDs to the last viewed times
+                    additionalProperties:
+                      type: integer
+                      format: int64
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/teams/{team_id}/channels/members":
     get:
       tags:
@@ -2840,43 +2963,6 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
-  "/api/v4/sharedchannels/{channel_id}/remotes":
-    get:
-      tags:
-        - channels
-      summary: Get remote clusters for a shared channel
-      description: |
-        Gets the remote clusters information for a shared channel.
-
-        __Minimum server version__: 10.10
-
-        ##### Permissions
-        Must be authenticated and have the `read_channel` permission for the channel.
-      operationId: GetSharedChannelRemotes
-      parameters:
-        - name: channel_id
-          in: path
-          description: Channel GUID
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Remote clusters retrieval successful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RemoteClusterInfo"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
   "/api/v4/channels/{channel_id}/common_teams":
     get:
       tags:
@@ -2908,6 +2994,53 @@
                 type: array
                 items:
                   $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/convert_to_channel":
+    post:
+      tags:
+        - channels
+        - group message
+      summary: Convert group message to private channel
+      description: |
+        Converts a group message channel into a private channel in the specified team.
+        ##### Permissions
+        Must have `create_private_channel` permission in the destination team.
+      operationId: ConvertGroupMessageToChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Group message channel ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - team_id
+              properties:
+                channel_id:
+                  type: string
+                team_id:
+                  type: string
+      responses:
+        "200":
+          description: Conversion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Channel"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

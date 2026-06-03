@@ -5,6 +5,7 @@
 # If you rename this workflow, be sure to update those workflows as well.
 name: Server CI
 on:
+  workflow_dispatch:  # Allow manual/API triggering for linked plugin CI
   push:
     branches:
       - master
@@ -81,6 +82,23 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  check-go-fix:
+    name: Check go fix
+    needs: go
+    runs-on: ubuntu-22.04
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Run go fix
+        run: go fix ./...
+      - name: Check go fix
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please run 'go fix ./...' and commit the changes"; git diff; exit 1; fi
   check-style:
     name: check-style
     needs: go
@@ -177,6 +195,38 @@ jobs:
         run: make store-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+  check-default-roles-permissions:
+    name: Check default roles permissions
+    needs: go
+    runs-on: ubuntu-22.04
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Generate default roles permissions
+        env:
+          IS_CI: "true"
+        run: make default-roles-permissions
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the default roles permissions using make default-roles-permissions"; exit 1; fi
   check-mmctl-docs:
     name: Check mmctl docs
     needs: go
@@ -230,6 +280,7 @@ jobs:
       artifact-pattern: postgres-server-test-logs-shard-*
       artifact-name: postgres-server-test-logs
       save-timing-cache: true
+      all-shards-passed: ${{ needs.test-postgres-normal.result == 'success' }}
 
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
@@ -245,6 +296,21 @@ jobs:
       fips-enabled: false
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
+
+  test-opensearch-v2:
+    name: OpenSearch v2 Compatibility
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: OpenSearch v2 Compatibility
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: opensearch-v2-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      opensearch-version: "2.19.0"
+      test-target: "test-server-opensearch"
 
   # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
   # Sharded for fast iteration. Weekly workflow provides regular full coverage.
@@ -330,6 +396,7 @@ jobs:
           make build-cmd
           make package
       - name: Persist dist artifacts
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: server-dist-artifact

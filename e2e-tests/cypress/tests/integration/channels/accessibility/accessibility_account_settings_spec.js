@@ -34,6 +34,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'desktopAndMobile', label: 'Desktop and mobile notifications', type: 'radio'},
             {key: 'desktopNotificationSound', label: 'Desktop notification sounds', type: 'radio'},
             {key: 'email', label: 'Email notifications', type: 'radio'},
+            {key: 'channelMentionAutoFollow', label: 'Auto-follow threads on channel-wide mentions', type: 'radio'},
             {key: 'keywordsAndMentions', label: 'Keywords that trigger notifications', type: 'checkbox'},
             {key: 'keywordsAndHighlight', label: 'Keywords that get highlighted (without notifications)', type: 'checkbox'},
             {key: 'replyNotifications', label: 'Reply notifications', type: 'radio'},

@@ -75,6 +75,7 @@ func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Rea
 			if rejStr != "" {
 				rejErr = model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected",
 					map[string]any{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
+				a.sendFileUploadRejectedEvent(info, info.CreatorId, rctx.ConnectionId(), rejStr)
 				return false
 			}
 			if newInfo != nil {
@@ -302,7 +303,7 @@ func (a *App) UploadData(rctx request.CTX, us *model.UploadSession, rd io.Reader
 	info.CreatorId = us.UserId
 	info.ChannelId = us.ChannelId
 	info.Path = us.Path
-	info.RemoteId = model.NewPointer(us.RemoteId)
+	info.RemoteId = new(us.RemoteId)
 	if us.ReqFileId != "" {
 		info.Id = us.ReqFileId
 	}

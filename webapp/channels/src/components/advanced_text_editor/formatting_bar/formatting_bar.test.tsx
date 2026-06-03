@@ -105,4 +105,26 @@ describe('FormattingBar', () => {
 
         expect(fireEvent.mouseDown(screen.getByLabelText('code'))).toBe(false);
     });
+
+    test('should only render separator before bold when AI actions menu is present', () => {
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Wide, ...splitFormattingBarControls('wide')});
+
+        const {container, rerender} = renderWithContext(
+            <FormattingBar
+                {...baseProps}
+                aiActionsMenu={<button type='button'>{'AI Actions'}</button>}
+            />,
+        );
+
+        expect(container.querySelectorAll('[data-testid="formatting-bar-separator"]')).toHaveLength(2);
+
+        rerender(
+            <FormattingBar
+                {...baseProps}
+                aiActionsMenu={null}
+            />,
+        );
+
+        expect(container.querySelectorAll('[data-testid="formatting-bar-separator"]')).toHaveLength(1);
+    });
 });

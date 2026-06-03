@@ -54,6 +54,11 @@ const (
 	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
+// Boards
+const (
+	AuditEventCreateBoard = "createBoard" // create board channel
+)
+
 // Views
 const (
 	AuditEventCreateView          = "createView"          // create view in channel
@@ -79,6 +84,9 @@ const (
 	AuditEventAddChannelMember                   = "addChannelMember"                   // add member to channel
 	AuditEventConvertGroupMessageToChannel       = "convertGroupMessageToChannel"       // convert group message to private channel
 	AuditEventCreateChannel                      = "createChannel"                      // create public or private channel
+	AuditEventCreateChannelJoinRequest           = "createChannelJoinRequest"           // request to join a discoverable private channel
+	AuditEventUpdateChannelJoinRequest           = "updateChannelJoinRequest"           // approve or deny a channel join request
+	AuditEventWithdrawChannelJoinRequest         = "withdrawChannelJoinRequest"         // requester cancels their channel join request
 	AuditEventCreateDirectChannel                = "createDirectChannel"                // create direct message channel between two users
 	AuditEventCreateGroupChannel                 = "createGroupChannel"                 // create group message channel with multiple users
 	AuditEventDeleteChannel                      = "deleteChannel"                      // delete channel
@@ -458,6 +466,8 @@ const (
 	AuditEventLogin                        = "login"                        // user login to system
 	AuditEventLoginWithDesktopToken        = "loginWithDesktopToken"        // user login to system with desktop token
 	AuditEventLogout                       = "logout"                       // user logout from system
+	AuditEventMarkMessagesRead             = "markAllMessagesRead"          // user marked all direct and group messages as read
+	AuditEventMarkTeamRead                 = "markFullTeamRead"             // user marked an entire team as read
 	AuditEventMigrateAuthToLdap            = "migrateAuthToLdap"            // migrate user authentication method to LDAP
 	AuditEventMigrateAuthToSaml            = "migrateAuthToSaml"            // migrate user authentication method to SAML
 	AuditEventPatchUser                    = "patchUser"                    // update user properties
@@ -467,6 +477,7 @@ const (
 	AuditEventRevokeAllSessionsAllUsers    = "revokeAllSessionsAllUsers"    // revoke all active sessions for all users
 	AuditEventRevokeAllSessionsForUser     = "revokeAllSessionsForUser"     // revoke all active sessions for specific user
 	AuditEventRevokeSession                = "revokeSession"                // revoke specific user session
+	AuditEventRejectExpiredUserAccessToken = "rejectExpiredUserAccessToken" // rejected an API request because the personal access token has expired
 	AuditEventRevokeUserAccessToken        = "revokeUserAccessToken"        // revoke user personal access token
 	AuditEventSendPasswordReset            = "sendPasswordReset"            // send password reset email to user
 	AuditEventSendVerificationEmail        = "sendVerificationEmail"        // send email verification link to user
@@ -505,4 +516,5 @@ const (
 	AuditEventKeepFlaggedPost              = "keepFlaggedPost"              // keep flagged post
 	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
+	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 )

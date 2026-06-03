@@ -19,7 +19,7 @@ import {LayoutModes, useFormattingBarControls} from './hooks';
 import LinkPopover from './link_popover';
 import TextStyleDropdown from './text_style_dropdown';
 
-export const Separator = styled.div`
+export const Separator = styled.div.attrs({'data-testid': 'formatting-bar-separator'})`
     display: block;
     position: relative;
     width: 1px;

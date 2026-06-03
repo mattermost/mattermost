@@ -510,6 +510,26 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
+	// RegisterChannelGuard claims the channel for this plugin, signaling to the server that the
+	// channel has plugin-managed semantics and that the server's default behaviors are unsafe
+	// without plugin involvement.
+	//
+	// The calling plugin's ID is implicit. Multiple plugins may co-guard the same channel; each
+	// claim is an independent row. Subsequent calls from the same plugin are idempotent; calls from
+	// a different plugin add a new claim.
+	//
+	// @tag Channel
+	// Minimum server version: 11.8
+	RegisterChannelGuard(channelID string) *model.AppError
+
+	// UnregisterChannelGuard releases this plugin's claim on the channel. Only the registering
+	// plugin can unregister its own claim; other plugins' claims on the same channel are
+	// unaffected.
+	//
+	// @tag Channel
+	// Minimum server version: 11.8
+	UnregisterChannelGuard(channelID string) *model.AppError
+
 	// SearchChannels returns the channels on a team matching the provided search term.
 	//
 	// @tag Channel
@@ -1340,6 +1360,14 @@ type API interface {
 	// This is the inbound counterpart of the OnSharedChannelsAttachmentSyncMsg hook.
 	// The remoteID identifies which of the plugin's registered remotes this attachment is from
 	// (the value returned by RegisterPluginForSharedChannels).
+	//
+	// The post-receive (ReceiveSharedChannelSyncMsg) and file-receive calls for the same
+	// post-and-attachment pair may be issued in either order or concurrently; the framework
+	// binds the file to its post regardless of arrival order. Repeated calls with the same
+	// (fi.Id, channelID, fi.CreatorId) return the existing FileInfo without producing
+	// duplicates, allowing transports with at-least-once delivery semantics to redeliver
+	// safely. Repeats whose fi.Id matches an existing record under a different channel or
+	// creator are rejected.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 11.7

@@ -191,6 +191,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t,
 	)
 
+	if connectionId := r.Header.Get(model.ConnectionId); connectionId != "" {
+		c.AppContext = c.AppContext.WithConnectionId(connectionId)
+	}
+
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -349,6 +353,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
+	}
+
+	if c.Err == nil {
+		c.App.RefreshRequestProvidedSessionAttributesIfNeeded(c.AppContext, r)
 	}
 
 	if c.Err == nil {

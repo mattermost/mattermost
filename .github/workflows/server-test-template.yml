@@ -37,6 +37,10 @@ on:
         required: false
         type: string
         default: "9.0.0"
+      opensearch-version:
+        required: false
+        type: string
+        default: "3.0.0"
       test-target:
         required: false
         type: string
@@ -93,9 +97,15 @@ jobs:
             server/prev-gotestsum.json
           # Always restore from master — timing is only saved on the default
           # branch and is stable enough for shard balancing.
-          key: server-test-timing-master
+          # NOTE: the v2 prefix invalidates pre-existing caches that were
+          # poisoned by shard failures (a killed shard loses its gotestsum.json,
+          # so the merged report was missing those packages' timings; on the
+          # next run they all defaulted to 1ms and bin-packed onto the lightest
+          # shard, overloading it and perpetuating the cycle). See also the
+          # all-shards-passed guard in server-test-merge-template.yml.
+          key: server-test-timing-v2-master
           restore-keys: |
-            server-test-timing-
+            server-test-timing-v2-
 
       - name: Setup BUILD_IMAGE
         id: build
@@ -116,6 +126,7 @@ jobs:
       - name: Run docker compose
         env:
           ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
+          OPENSEARCH_VERSION: ${{ inputs.opensearch-version }}
           POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
