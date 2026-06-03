@@ -68,9 +68,21 @@ func (ps *PlatformService) startExtractionWorkers() {
 }
 
 // stopExtractionWorkers signals the extraction workers to exit and waits for
-// any in-flight extraction to finish. Tasks still queued are discarded.
+// any in-flight extraction to finish. Queued-but-not-started tasks are drained
+// and discarded so a worker cannot dequeue and run them after shutdown has been
+// signaled.
 func (ps *PlatformService) stopExtractionWorkers() {
 	close(ps.extractionStop)
+
+drain:
+	for {
+		select {
+		case <-ps.extractionQueue:
+		default:
+			break drain
+		}
+	}
+
 	ps.extractionWG.Wait()
 }
 

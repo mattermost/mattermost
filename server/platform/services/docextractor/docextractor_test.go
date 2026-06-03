@@ -254,6 +254,23 @@ func TestExtractTimeout(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "done", text)
 	})
+
+	t.Run("a panic in the detached extraction is converted to an error", func(t *testing.T) {
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: time.Second}, []Extractor{&panickingExtractor{}})
+		require.Error(t, err)
+		require.Empty(t, text)
+		require.Contains(t, err.Error(), "panic")
+	})
+}
+
+type panickingExtractor struct{}
+
+func (pe *panickingExtractor) Name() string { return "panickingExtractor" }
+
+func (pe *panickingExtractor) Match(filename string) bool { return true }
+
+func (pe *panickingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+	panic("boom")
 }
 
 type recordingCloser struct {
@@ -294,7 +311,13 @@ func TestExtractReaderCloserOwnership(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "timed out")
 
-		<-be.started
+		// Wait (with a deadline) for the detached extraction to start so the
+		// test fails fast instead of hanging if it never runs.
+		select {
+		case <-be.started:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "extraction did not start within the deadline")
+		}
 		// The extraction goroutine is still running, so closing the reader now
 		// would race with it; it must stay open.
 		require.False(t, closer.closed.Load(), "reader must not be closed while the extraction goroutine is still running")

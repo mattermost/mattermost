@@ -109,6 +109,15 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 		if settings.ReaderCloser != nil {
 			defer settings.ReaderCloser.Close()
 		}
+		// This goroutine is detached, so an unrecovered panic in an extractor
+		// would crash the whole server. Convert it into an error instead.
+		// resultCh is buffered (cap 1), so this send never blocks even if the
+		// caller already timed out and stopped receiving.
+		defer func() {
+			if rec := recover(); rec != nil {
+				resultCh <- extractResult{err: fmt.Errorf("panic during document text extraction: %v", rec)}
+			}
+		}()
 		text, err := e.Extract(filename, r, settings.MaxFileSize)
 		resultCh <- extractResult{text: text, err: err}
 	}()
