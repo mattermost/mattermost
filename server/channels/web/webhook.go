@@ -104,7 +104,19 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		rawJSONBody = buf
-		incomingWebhookPayload, appErr = decodePayload(bytes.NewReader(rawJSONBody))
+
+		// When inline templating is engaged (feature flag on + gate
+		// truthy), use the tolerant decoder so type-mismatched fields
+		// (e.g. {"priority":"high"} colliding with *PostPriority) are
+		// silently dropped at the typed parse, leaving them available
+		// to the templating overlay via the body's map[string]any.
+		useTolerant := c.App.Config().FeatureFlags.IncomingWebhookTemplates &&
+			webhook_template.IsGateTruthy(r.URL.Query())
+		if useTolerant {
+			incomingWebhookPayload, appErr = decodePayloadTolerant(bytes.NewReader(rawJSONBody))
+		} else {
+			incomingWebhookPayload, appErr = decodePayload(bytes.NewReader(rawJSONBody))
+		}
 		if appErr != nil {
 			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.decode.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 			return
@@ -274,5 +286,18 @@ func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.App
 		return nil, decodeError
 	}
 
+	return incomingWebhookPayload, nil
+}
+
+// decodePayloadTolerant is the templating-mode counterpart to decodePayload.
+// It accepts JSON bodies whose individual keys may have shapes that do not
+// match the corresponding IncomingWebhookRequest field: those keys are
+// silently dropped during the typed decode so they remain available to the
+// subsequent templating overlay.
+func decodePayloadTolerant(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {
+	incomingWebhookPayload, decodeError := model.IncomingWebhookRequestFromJSONTolerant(payload)
+	if decodeError != nil {
+		return nil, decodeError
+	}
 	return incomingWebhookPayload, nil
 }

@@ -159,3 +159,74 @@ func TestIncomingWebhookRequestFromJSONRootId(t *testing.T) {
 	require.NotNil(t, iwr)
 	require.Equal(t, id, iwr.RootId)
 }
+
+func TestIncomingWebhookRequestFromJSONTolerant(t *testing.T) {
+	t.Run("clean body uses the strict path", func(t *testing.T) {
+		payload := `{"text":"hello","username":"bot"}`
+		iwr, err := IncomingWebhookRequestFromJSONTolerant(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.Equal(t, "hello", iwr.Text)
+		require.Equal(t, "bot", iwr.Username)
+	})
+
+	t.Run("type-mismatched priority is dropped, others survive", func(t *testing.T) {
+		// "priority" collides with *PostPriority in the typed struct.
+		// Strict decode would fail; tolerant decode drops the field and
+		// keeps everything else intact.
+		payload := `{"text":"hello","priority":"high","username":"bot"}`
+		iwr, err := IncomingWebhookRequestFromJSONTolerant(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.Equal(t, "hello", iwr.Text)
+		require.Equal(t, "bot", iwr.Username)
+		require.Nil(t, iwr.Priority)
+	})
+
+	t.Run("foreign payload with no matching keys yields empty struct", func(t *testing.T) {
+		// Grafana-style alert payload — nothing matches IncomingWebhookRequest
+		// keys; the typed struct stays zero-valued and the call succeeds.
+		payload := `{"alerts":[{"summary":"Disk full"}],"status":"firing"}`
+		iwr, err := IncomingWebhookRequestFromJSONTolerant(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.Equal(t, "", iwr.Text)
+		require.Nil(t, iwr.Priority)
+		require.Empty(t, iwr.Attachments)
+	})
+
+	t.Run("priority as object still parses", func(t *testing.T) {
+		// When the body carries the typed priority shape, it should be
+		// preserved by the tolerant path (the fast strict path catches it).
+		payload := `{"text":"hi","priority":{"priority":"urgent"}}`
+		iwr, err := IncomingWebhookRequestFromJSONTolerant(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr.Priority)
+		require.NotNil(t, iwr.Priority.Priority)
+		require.Equal(t, "urgent", *iwr.Priority.Priority)
+	})
+
+	t.Run("invalid JSON still errors", func(t *testing.T) {
+		payload := `not json`
+		_, err := IncomingWebhookRequestFromJSONTolerant(strings.NewReader(payload))
+		require.NotNil(t, err)
+	})
+
+	t.Run("attachment type mismatch drops only that field", func(t *testing.T) {
+		// "attachments" as a string instead of an array — the typed field
+		// stays nil but the rest of the payload is preserved.
+		payload := `{"text":"hi","attachments":"oops","username":"bot"}`
+		iwr, err := IncomingWebhookRequestFromJSONTolerant(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.Equal(t, "hi", iwr.Text)
+		require.Equal(t, "bot", iwr.Username)
+		require.Empty(t, iwr.Attachments)
+	})
+
+	t.Run("control char escape fallback still works", func(t *testing.T) {
+		// Force the body to fail strict parse only via a control char in
+		// a string. The strict variant succeeds via the escape fallback;
+		// the tolerant path must too.
+		payload := "{\"text\":\"hi\nthere\"}"
+		iwr, err := IncomingWebhookRequestFromJSONTolerant(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.Contains(t, iwr.Text, "hi")
+	})
+}
