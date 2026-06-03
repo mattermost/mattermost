@@ -5,6 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import {SyncableType} from '@mattermost/types/groups';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
@@ -19,6 +20,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getHistory} from 'utils/browser_history';
 
+import {TeamAccessControl} from './team_access_control_policy';
 import {TeamGroups} from './team_groups';
 import TeamMembers from './team_members/index';
 import {TeamModes} from './team_modes';
@@ -36,6 +38,7 @@ export type Props = {
     allGroups: Record<string, Group>;
     isDisabled?: boolean;
     isLicensedForLDAPGroups?: boolean;
+    abacSupported?: boolean;
     actions: {
         setNavigationBlocked: (blocked: boolean) => void;
         getTeam: (teamId: string) => Promise<ActionResult>;
@@ -50,6 +53,11 @@ export type Props = {
         updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
         deleteTeam: (teamId: string) => Promise<ActionResult>;
         unarchiveTeam: (teamId: string) => Promise<ActionResult>;
+        getTeamAccessControlPolicy: (teamId: string) => Promise<ActionResult>;
+        getAccessControlPolicy: (id: string) => Promise<ActionResult>;
+        assignTeamToAccessControlPolicy: (policyId: string, teamId: string) => Promise<ActionResult>;
+        unassignTeamsFromAccessControlPolicy: (policyId: string, teamIds: string[]) => Promise<ActionResult>;
+        searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
     };
 };
 
@@ -76,6 +84,9 @@ type State = {
     previousServerError: JSX.Element | undefined;
     isLocalArchived: boolean;
     showArchiveConfirmModal: boolean;
+    policyEnforced: boolean;
+    accessControlPolicies: AccessControlPolicy[];
+    accessControlPoliciesToRemove: string[];
 };
 
 export default class TeamDetails extends React.PureComponent<Props, State> {
@@ -104,6 +115,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             previousServerError: undefined,
             isLocalArchived: team ? team.delete_at > 0 : true,
             showArchiveConfirmModal: false,
+            policyEnforced: Boolean(team?.policy_enforced),
+            accessControlPolicies: [],
+            accessControlPoliciesToRemove: [],
         };
     }
 
@@ -117,7 +131,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 allowedDomainsChecked: Boolean(team?.allowed_domains),
                 allowedDomains: team?.allowed_domains || '',
                 isLocalArchived: team ? team.delete_at > 0 : true,
+                policyEnforced: Boolean(team?.policy_enforced),
             });
+            if (this.props.abacSupported && prevProps.team?.id !== team?.id && team?.id) {
+                this.fetchAccessControlPolicies(team.id);
+            }
         }
     }
 
@@ -126,7 +144,85 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         actions.getTeam(teamID).
             then(() => actions.getGroups(teamID)).
             then(() => this.setState({groups: this.props.groups}));
+        if (this.props.abacSupported) {
+            this.fetchAccessControlPolicies(teamID);
+        }
     }
+
+    private fetchAccessControlPolicies = (teamId: string) => {
+        if (!teamId) {
+            return;
+        }
+
+        this.props.actions.getTeamAccessControlPolicy(teamId).then((result) => {
+            if (!result.data) {
+                return;
+            }
+
+            const {policy, enforced} = result.data as {policy: AccessControlPolicy | null; enforced: boolean};
+            if (!policy) {
+                this.setState({accessControlPolicies: [], policyEnforced: enforced});
+                return;
+            }
+
+            // The team child policy references its parent(s) by id via imports;
+            // resolve each so the table can show parent policy names.
+            const parentIds = policy.imports || [];
+            if (parentIds.length === 0) {
+                this.setState({accessControlPolicies: [], policyEnforced: enforced});
+                return;
+            }
+
+            const policies: AccessControlPolicy[] = [];
+            Promise.all(parentIds.map((policyId) =>
+                this.props.actions.getAccessControlPolicy(policyId).then((policyResult) => {
+                    if (policyResult.data) {
+                        policies.push(policyResult.data as AccessControlPolicy);
+                    }
+                }),
+            )).then(() => {
+                this.setState({accessControlPolicies: policies, policyEnforced: enforced});
+            });
+        });
+    };
+
+    setPolicyEnforced = (policyEnforced: boolean) => {
+        this.setState({policyEnforced, saveNeeded: true});
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    onPolicySelected = (policy: AccessControlPolicy) => {
+        const {accessControlPolicies} = this.state;
+        if (accessControlPolicies.find((p) => p.id === policy.id)) {
+            return;
+        }
+        this.setState({
+            accessControlPolicies: [...accessControlPolicies, policy],
+            policyEnforced: true,
+            saveNeeded: true,
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    onPolicyRemove = (policyId: string) => {
+        const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+        this.setState({
+            accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
+            accessControlPolicies: accessControlPolicies.filter((policy) => policy.id !== policyId),
+            saveNeeded: true,
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    onPolicyRemoveAll = () => {
+        const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+        this.setState({
+            accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, ...accessControlPolicies.map((p) => p.id)],
+            accessControlPolicies: [],
+            saveNeeded: true,
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
 
     setNewGroupRole = (gid: string) => {
         const groups = cloneDeep(this.state.groups).map((g) => {
@@ -290,7 +386,53 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             }
         }
 
-        this.setState({usersToRemoveCount: 0, rolesToUpdate: {}, usersToAdd: {}, usersToRemove: {}, serverError, saving: false, saveNeeded}, () => {
+        if (this.props.abacSupported) {
+            const {policyEnforced, accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+
+            if (policyEnforced && accessControlPolicies.length === 0) {
+                serverError = (
+                    <FormError
+                        error={
+                            <FormattedMessage
+                                id='admin.team_settings.team_detail.policy_required_error'
+                                defaultMessage='You must select a membership policy when attribute based team access is enabled.'
+                            />}
+                    />
+                );
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+
+            if (accessControlPolicies.length > 0) {
+                try {
+                    await Promise.all(
+                        accessControlPolicies.map((policy) =>
+                            actions.assignTeamToAccessControlPolicy(policy.id, teamID),
+                        ),
+                    );
+                } catch (error) {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
+                }
+            }
+
+            if (accessControlPoliciesToRemove.length > 0) {
+                try {
+                    await Promise.all(
+                        accessControlPoliciesToRemove.map((policyId) =>
+                            actions.unassignTeamsFromAccessControlPolicy(policyId, [teamID]),
+                        ),
+                    );
+                } catch (error) {
+                    serverError = <FormError error={error.message}/>;
+                    saveNeeded = true;
+                }
+            }
+        }
+
+        this.setState({usersToRemoveCount: 0, rolesToUpdate: {}, usersToAdd: {}, usersToRemove: {}, accessControlPoliciesToRemove: serverError ? this.state.accessControlPoliciesToRemove : [], serverError, saving: false, saveNeeded}, () => {
             actions.setNavigationBlocked(saveNeeded);
             if (!saveNeeded && !serverError) {
                 getHistory().push('/admin_console/user_management/teams');
@@ -473,9 +615,25 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     onToggle={this.setToggles}
                     isDisabled={this.props.isDisabled}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
+                    abacSupported={this.props.abacSupported}
+                    policyEnforced={this.state.policyEnforced}
+                    policyEnforcedToggleAvailable={this.state.accessControlPolicies.length === 0}
+                    onPolicyEnforcedToggle={this.setPolicyEnforced}
                 />
 
-                {isLicensedForLDAPGroups &&
+                {this.props.abacSupported && this.state.policyEnforced &&
+                    <TeamAccessControl
+                        parentPolicies={this.state.accessControlPolicies}
+                        actions={{
+                            onPolicySelected: this.onPolicySelected,
+                            onPolicyRemoveAll: this.onPolicyRemoveAll,
+                            onPolicyRemove: this.onPolicyRemove,
+                            searchPolicies: this.props.actions.searchPolicies,
+                        }}
+                    />
+                }
+
+                {isLicensedForLDAPGroups && !this.state.policyEnforced &&
                     <TeamGroups
                         syncChecked={syncChecked}
                         team={team}

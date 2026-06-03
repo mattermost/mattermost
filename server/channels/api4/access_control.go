@@ -917,6 +917,13 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventAssignAccessPolicy, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", assignments.TeamID)
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
+	model.AddEventParameterToAuditRec(auditRec, "team_ids", assignments.TeamIds)
+
 	// The app layer's GetTeams silently drops unknown IDs from a partial list and
 	// returns 404 for an all-invalid one, so neither surfaces a usable 400. Validate
 	// existence here so any unknown team_ids entry is rejected as a bad request.
@@ -924,12 +931,6 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventAssignAccessPolicy, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
-	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
-	model.AddEventParameterToAuditRec(auditRec, "team_ids", assignments.TeamIds)
 
 	if len(assignments.ChannelIds) != 0 {
 		_, appErr := c.App.AssignAccessControlPolicyToChannels(c.AppContext, policyID, assignments.ChannelIds)
@@ -1000,18 +1001,23 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
-	}
-
-	if appErr := validateTeamIdsExist(c, assignments.TeamIds); appErr != nil {
-		c.Err = appErr
-		return
+		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUnassignAccessPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", assignments.TeamID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
 	model.AddEventParameterToAuditRec(auditRec, "team_ids", assignments.TeamIds)
+
+	if appErr := validateTeamIdsExist(c, assignments.TeamIds); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	// Pre-flight: ensure scope is set before removing channels. This handles
 	// pre-scope policies (created before the scope field existed) by capturing

@@ -216,6 +216,7 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().
 		Select(teamMemberSliceColumns()...).From("TeamMembers").LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
+		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
 		OrderBy("TeamMembers.UserId ASC")
 
 	if opts.Query != "" {
@@ -245,7 +246,7 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 
 	members := []*model.TeamMember{}
 	if err := s.GetReplica().Select(&members, q, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find team members with for team id=%s", teamID)
+		return nil, errors.Wrapf(err, "failed to find team members for team id=%s", teamID)
 	}
 
 	return members, nil

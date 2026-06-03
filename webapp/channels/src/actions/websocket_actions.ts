@@ -553,6 +553,10 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
+    case WebSocketEvents.TeamAccessControlUpdated:
+        dispatch(handleTeamAccessControlUpdatedEvent(msg));
+        break;
+
     case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
@@ -874,6 +878,20 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // consumers (e.g. the channel invite modal banner) refetch the
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+    };
+}
+
+export function handleTeamAccessControlUpdatedEvent(msg: WebSocketMessages.TeamAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.team) {
+            return;
+        }
+
+        const team = JSON.parse(msg.data.team) as Team;
+
+        // Refresh the team record so consumers see the latest policy_enforced
+        // flag (and any other access-control-derived fields).
+        doDispatch({type: TeamTypes.RECEIVED_TEAM, data: team});
     };
 }
 

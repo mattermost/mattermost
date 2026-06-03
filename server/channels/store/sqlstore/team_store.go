@@ -630,13 +630,16 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	teams := []*model.Team{}
 
-	selectString := "Teams.*"
+	// Use the shared column list so PolicyEnforced/PolicyIsActive are hydrated
+	// from their EXISTS subqueries — the directory visibility filter relies on
+	// PolicyEnforced being set on teams returned by this listing path.
+	columns := teamSliceColumns(true)
 	if opts != nil && opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-		selectString += ", RetentionPoliciesTeams.PolicyId as PolicyID"
+		columns = append(columns, "RetentionPoliciesTeams.PolicyId as PolicyID")
 	}
 
 	builder := s.getQueryBuilder().
-		Select(selectString).
+		Select(columns...).
 		From("Teams").
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).

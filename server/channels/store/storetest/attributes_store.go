@@ -470,6 +470,24 @@ func testAttributesStoreGetTeamMembersToRemove(t *testing.T, rctx request.CTX, s
 			require.Greater(t, m.UserId, first[0].UserId, "cursor must exclude already-seen members")
 		}
 	})
+
+	t.Run("Get team members to remove excludes soft-deleted members", func(t *testing.T) {
+		// TeamMembers are soft-deleted, so a former member keeps a row with
+		// DeleteAt != 0. Such rows must never be returned as removal candidates.
+		removed := users[0]
+		require.NoError(t, ss.Team().RemoveMember(rctx, teamID, removed.Id), "couldn't soft-delete team member")
+		t.Cleanup(func() {
+			_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: removed.Id}, 1000)
+			require.NoError(t, nErr, "couldn't restore team member")
+		})
+
+		members, err := ss.Attributes().GetTeamMembersToRemove(rctx, teamID, model.SubjectSearchOptions{})
+		require.NoError(t, err, "couldn't get team members to remove")
+		require.Len(t, members, 2, "soft-deleted member must be excluded")
+		for _, m := range members {
+			require.NotEqual(t, removed.Id, m.UserId, "soft-deleted member must not appear")
+		}
+	})
 }
 
 func testAttributesStoreSearchUsersBySubjectID(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {

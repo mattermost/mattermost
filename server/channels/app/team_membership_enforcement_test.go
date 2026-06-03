@@ -150,6 +150,29 @@ func TestJoinUserToTeamAccessControlEnforcement(t *testing.T) {
 			require.NotNil(t, appErr)
 			require.Equal(t, "api.team.add_user.to.team.rejected", appErr.Id)
 		})
+
+		t.Run("AddUserToTeamByToken", func(t *testing.T) {
+			team := newEnforcedTeam(t)
+			user := th.CreateUser(t)
+			token := model.NewToken(
+				model.TokenTypeTeamInvitation,
+				model.MapToJSON(map[string]string{"teamId": team.Id}),
+			)
+			require.NoError(t, th.App.Srv().Store().Token().Save(token))
+			defer func() { _ = th.App.DeleteToken(token) }()
+
+			_, _, appErr := th.App.AddUserToTeamByToken(th.Context, user.Id, token.Token)
+			require.NotNil(t, appErr)
+			require.Equal(t, "api.team.add_user.to.team.rejected", appErr.Id)
+		})
+
+		t.Run("AddUserToTeamByInviteId", func(t *testing.T) {
+			team := newEnforcedTeam(t)
+			user := th.CreateUser(t)
+			_, _, appErr := th.App.AddUserToTeamByInviteId(th.Context, team.InviteId, user.Id)
+			require.NotNil(t, appErr)
+			require.Equal(t, "api.team.add_user.to.team.rejected", appErr.Id)
+		})
 	})
 
 	t.Run("batch add surfaces ABAC denial per-user without aborting the batch (graceful)", func(t *testing.T) {

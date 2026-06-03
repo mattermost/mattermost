@@ -260,4 +260,83 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(screen.getByText('Name')).toBeInTheDocument();
         expect(screen.getByText('Applies to')).toBeInTheDocument();
     });
+
+    test('Applies to renders both channel and team counts', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: ['c1', 'c2', 'c3', 't1', 't2'], channel_count: 3, team_count: 2},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('3 channels')).toBeInTheDocument();
+        expect(screen.getByText('2 teams')).toBeInTheDocument();
+    });
+
+    test('Applies to omits the team side when team_count is zero', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: ['c1', 'c2'], channel_count: 2, team_count: 0},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('2 channels')).toBeInTheDocument();
+        expect(screen.queryByText(/team/)).not.toBeInTheDocument();
+    });
+
+    test('Applies to omits the channel side when channel_count is zero', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: ['t1', 't2', 't3'], channel_count: 0, team_count: 3},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('3 teams')).toBeInTheDocument();
+        expect(screen.queryByText(/channel/)).not.toBeInTheDocument();
+    });
+
+    test('Applies to shows None when both counts are zero', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: [], channel_count: 0, team_count: 0},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('None')).toBeInTheDocument();
+    });
 });

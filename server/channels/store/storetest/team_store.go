@@ -164,6 +164,28 @@ func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store)
 		require.False(t, got.PolicyEnforced)
 		require.False(t, got.PolicyIsActive)
 	})
+
+	// GetAllPage feeds the team directory listing; the directory visibility filter
+	// short-circuits on PolicyEnforced, so this listing path must hydrate it.
+	t.Run("GetAllPage hydrates PolicyEnforced", func(t *testing.T) {
+		enforced := saveTeam()
+		savePolicy(enforced.Id, model.AccessControlPolicyTypeTeam, true)
+		plain := saveTeam()
+
+		teams, err := ss.Team().GetAllPage(0, 1000, nil)
+		require.NoError(t, err)
+
+		byID := make(map[string]*model.Team, len(teams))
+		for _, tm := range teams {
+			byID[tm.Id] = tm
+		}
+
+		require.Contains(t, byID, enforced.Id)
+		require.True(t, byID[enforced.Id].PolicyEnforced, "team with an active team policy must report PolicyEnforced from GetAllPage")
+		require.True(t, byID[enforced.Id].PolicyIsActive)
+		require.Contains(t, byID, plain.Id)
+		require.False(t, byID[plain.Id].PolicyEnforced)
+	})
 }
 
 func testTeamStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {

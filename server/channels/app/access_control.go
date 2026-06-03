@@ -2167,7 +2167,14 @@ func (a *App) publishTeamPolicyEnforcedUpdate(rctx request.CTX, teamID string) {
 		)
 	}
 
-	teamJSON, jsonErr := json.Marshal(team)
+	// Sanitize before broadcasting to the whole team: this event reaches every
+	// connected member, including those without InviteUser, so Email/InviteId
+	// must be stripped. Sanitize() preserves PolicyEnforced/PolicyActions.
+	sanitizedTeam := &model.Team{}
+	*sanitizedTeam = *team
+	sanitizedTeam.Sanitize()
+
+	teamJSON, jsonErr := json.Marshal(sanitizedTeam)
 	if jsonErr != nil {
 		rctx.Logger().Warn("Failed to marshal team after access control policy change",
 			mlog.String("team_id", teamID),

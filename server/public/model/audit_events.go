@@ -6,10 +6,10 @@ package model
 // Access Control & Security
 const (
 	AuditEventApplyIPFilters            = "applyIPFilters"            // apply IP address filtering
-	AuditEventAssignAccessPolicy        = "assignAccessPolicy"        // assign access control policy to channels
+	AuditEventAssignAccessPolicy        = "assignAccessPolicy"        // assign access control policy to channels and/or teams
 	AuditEventCreateAccessControlPolicy = "createAccessControlPolicy" // create access control policy
 	AuditEventDeleteAccessControlPolicy = "deleteAccessControlPolicy" // delete access control policy
-	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
+	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels and/or teams
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 
@@ -19,9 +19,6 @@ const (
 	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
 	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
 	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
-
-	AuditEventAssignPolicyToTeam     = "assignPolicyToTeam"
-	AuditEventUnassignPolicyFromTeam = "unassignPolicyFromTeam"
 
 	AuditEventTeamMembershipDenied       = "teamMembershipDenied"       // policy gate rejected a join attempt
 	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // member removed by policy evaluation

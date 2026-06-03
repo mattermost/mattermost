@@ -1395,8 +1395,12 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Hide policy-governed teams from non-qualifying users browsing the directory.
-	// System admins are exempt so the System Console team list stays complete.
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	// System admins are normally exempt so the System Console team list stays
+	// complete; both surfaces share this endpoint, so the directory opts in via
+	// for_directory to be filtered like any other user (non-admins are filtered
+	// regardless). Hiding from admins here is discovery UX, not a boundary — the
+	// join gate still denies them.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.Params.ForDirectory {
 		userID := c.AppContext.Session().UserId
 		if c.Params.IncludeTotalCount {
 			var dropped int
