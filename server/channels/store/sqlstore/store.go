@@ -1193,6 +1193,7 @@ func (ss *SqlStore) preMigration() error {
 			continue
 		}
 
+		ss.logger.Debug("Running pre-migration", mlog.String("name", m.name), mlog.Int("min_db_migration", m.minDBMigration))
 		if err := m.handler(); err != nil {
 			return errors.Wrapf(err, "failed to run pre-migration %q", m.name)
 		}
@@ -1200,6 +1201,7 @@ func (ss *SqlStore) preMigration() error {
 		if err := ss.markPreMigrationComplete(m.name); err != nil {
 			return errors.Wrapf(err, "failed to mark pre-migration %q complete", m.name)
 		}
+		ss.logger.Debug("Completed pre-migration", mlog.String("name", m.name))
 	}
 
 	return nil
