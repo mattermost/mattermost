@@ -101,7 +101,11 @@ function Row({
                     )}
                 </div>
                 <Span>
-                    <EventTimestamp value={acknowledgedAt}/>
+                    <EventTimestamp
+                        value={acknowledgedAt}
+                        displayContext='thread_list'
+                        showTooltip={false}
+                    />
                 </Span>
             </Info>
         </Item>
