@@ -4,32 +4,54 @@
 package app
 
 import (
+	"encoding/json"
+
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// AuditPostDelivered emits a single postDelivered audit record for one
-// (recipient, post, mechanism) tuple. Errors during emission never
-// propagate — audit failure must not fail the user-facing request.
+// AuditPostDelivered persists a single postDelivered audit row to the
+// Audits database table for one (recipient, post, mechanism) tuple.
+// Errors during emission never propagate — audit failure must not
+// fail the user-facing request.
 //
 // Pass the session user's ID as recipientUserID from API handlers (the
 // viewer of the post). Pass the actual recipient's ID in app-layer paths
 // (push/email/webhook recipient, fan-out member).
 //
 // channelID may be empty if not readily available; mechanism must be one of
-// the model.AuditMech* string constants.
+// the model.AuditMech* string constants. Mechanism, post_id, and (when
+// present) channel_id are JSON-encoded into the Audit.ExtraInfo column.
 func (a *App) AuditPostDelivered(rctx request.CTX, recipientUserID, postID, channelID, mechanism string) {
 	if recipientUserID == "" || postID == "" {
 		return
 	}
-	rec := a.MakeAuditRecord(rctx, model.AuditEventPostDelivered, model.AuditStatusSuccess)
-	rec.Actor.UserId = recipientUserID
-	model.AddEventParameterToAuditRec(rec, "mechanism", mechanism)
-	model.AddEventParameterToAuditRec(rec, "post_id", postID)
-	if channelID != "" {
-		model.AddEventParameterToAuditRec(rec, "channel_id", channelID)
+
+	params := map[string]string{
+		"mechanism": mechanism,
+		"post_id":   postID,
 	}
-	a.LogAuditRec(rctx, rec, nil)
+	if channelID != "" {
+		params["channel_id"] = channelID
+	}
+	extraInfo, err := json.Marshal(params)
+	if err != nil {
+		rctx.Logger().Warn("Failed to marshal post-delivery audit parameters", mlog.Err(err))
+		return
+	}
+
+	audit := &model.Audit{
+		UserId:    recipientUserID,
+		Action:    model.AuditEventPostDelivered,
+		ExtraInfo: string(extraInfo),
+		IpAddress: rctx.IPAddress(),
+		SessionId: rctx.Session().Id,
+	}
+
+	if err := a.Srv().Store().Audit().Save(audit); err != nil {
+		rctx.Logger().Warn("Failed to persist post-delivery audit", mlog.Err(err))
+	}
 }
 
 // AuditPostDeliveredBulk emits one postDelivered record per post for a
