@@ -47,7 +47,7 @@ func (api *PluginAPI) logPluginAction(method string, fields ...mlog.Field) {
     allFields := append([]mlog.Field{
         mlog.String("method", method),
     }, fields...)
-    api.logger.Debug("Plugin API call", allFields...)
+    api.logger.Info("Plugin API call", allFields...)
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {
@@ -896,6 +896,9 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
     })
     if appErr != nil {
         return nil, appErr
+    }
+    if list != nil {
+        list = list.ForPlugin()
     }
     return list, nil
 }
