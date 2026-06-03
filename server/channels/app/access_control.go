@@ -737,3 +737,28 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 
 	ch.attributeViewRefreshLast = time.Now()
 }
+
+// RefreshAttributeView forces an immediate refresh of the materialized
+// AttributeView, bypassing the attributeViewRefreshInterval throttle.
+// Use after a write that must be reflected in subsequent access-control
+// evaluations — for example a CPA value change that policy rules
+// reference, where waiting up to 30s for the next periodic refresh would
+// leave the next REST fetch (triggered by the
+// `user_policy_attributes_changed` WS event) evaluating against the
+// stale subject.
+//
+// Best-effort: errors are logged but not returned, so the caller (e.g.
+// PatchCPAValues) does not fail just because the follow-up refresh
+// could not run.
+func (a *App) RefreshAttributeView(rctx request.CTX) {
+	ch := a.Srv().Channels()
+
+	ch.attributeViewRefreshMut.Lock()
+	defer ch.attributeViewRefreshMut.Unlock()
+
+	if err := a.Srv().Store().Attributes().RefreshAttributes(); err != nil {
+		rctx.Logger().Warn("Failed to force-refresh attribute materialized view", mlog.Err(err))
+		return
+	}
+	ch.attributeViewRefreshLast = time.Now()
+}

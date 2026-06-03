@@ -1329,12 +1329,22 @@ export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValue
 
 // refetchChannelPostsForPolicyChange clears the channel's posts from redux
 // and refetches them. Used by post_policy_changed and
-// user_policy_attributes_changed handlers because a plain `getPosts` refetch
-// is rejected by the post reducer's shouldUpdatePost check when update_at
-// hasn't changed — and a policy/attribute change shifts which posts are
-// blanked without bumping any post's update_at.
-function refetchChannelPostsForPolicyChange(channelId: string): ThunkActionFunc<void> {
-    return (doDispatch, doGetState) => {
+// user_policy_attributes_changed handlers.
+//
+// Two complications drove this implementation:
+//   1. `shouldUpdatePost` rejects equal-`update_at` updates, so a plain
+//      refetch would not replace the blanked posts already in store. We
+//      first dispatch INVALIDATE_CHANNEL_POSTS to clear the channel from
+//      `posts.posts` and `postsInChannel`, leaving the reducer free to
+//      accept the freshly-fetched posts as if they were new.
+//   2. The server sets `Cache-Control: no-cache, max-age=31556926, public`
+//      on the channel-posts endpoint. Browsers can (and do) serve the
+//      same URL from cache for the same session, so reusing
+//      `getPosts(channelId)` returns the previously-cached (stale)
+//      response. We bypass the HTTP cache with a `_t` cache-buster
+//      and dispatch RECEIVED_POSTS / RECEIVED_POSTS_IN_CHANNEL by hand.
+function refetchChannelPostsForPolicyChange(channelId: string): ThunkActionFunc<Promise<void>> {
+    return async (doDispatch, doGetState) => {
         const state = doGetState();
         const loadedPostsForChannel = state.entities.posts.postsInChannel[channelId];
         if (!loadedPostsForChannel) {
@@ -1344,7 +1354,28 @@ function refetchChannelPostsForPolicyChange(channelId: string): ThunkActionFunc<
             type: PostTypes.INVALIDATE_CHANNEL_POSTS,
             channelId,
         });
-        doDispatch(getPosts(channelId));
+
+        const collapsed = isCollapsedThreadsEnabled(state) ? 'true' : 'false';
+        const cb = Date.now();
+        const url = `/api/v4/channels/${channelId}/posts?page=0&per_page=60&skipFetchThreads=false&collapsedThreads=${collapsed}&collapsedThreadsExtended=false&_t=${cb}`;
+        try {
+            const res = await fetch(url, {credentials: 'include', cache: 'no-store'});
+            if (!res.ok) {
+                return;
+            }
+            const posts = await res.json();
+            doDispatch({type: PostTypes.RECEIVED_POSTS, data: posts, channelId});
+            doDispatch({
+                type: PostTypes.RECEIVED_POSTS_IN_CHANNEL,
+                data: posts,
+                channelId,
+                recent: true,
+                oldest: posts.prev_post_id === '',
+            });
+        } catch {
+            // Best-effort: leave the channel cleared; next user-driven fetch
+            // will repopulate.
+        }
     };
 }
 
@@ -1367,7 +1398,8 @@ export function handleUserPolicyAttributesChangedEvent(): ThunkActionFunc<void> 
         // here, and the request count is bounded by how many channels the
         // user actually has open.
         const postsInChannel = state.entities.posts.postsInChannel;
-        for (const channelId of Object.keys(postsInChannel)) {
+        const channelIds = Object.keys(postsInChannel);
+        for (const channelId of channelIds) {
             doDispatch(refetchChannelPostsForPolicyChange(channelId));
         }
     };

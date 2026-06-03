@@ -304,7 +304,7 @@ func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[
 	message.Add("values", updatedFieldValueMap)
 	a.Publish(message)
 
-	a.broadcastUserPolicyAttributesChangedIfNeeded(userID)
+	a.broadcastUserPolicyAttributesChangedIfNeeded(rctx, userID)
 
 	return updatedValues, nil
 }
@@ -314,10 +314,16 @@ func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[
 // uses this to refetch posts in any loaded channel that may now resolve
 // to a different visibility for the user under post_filter policies that
 // reference the user's attributes.
-func (a *App) broadcastUserPolicyAttributesChangedIfNeeded(userID string) {
+//
+// Before broadcasting, force-refresh the materialized AttributeView so the
+// next REST fetch triggered by the event (on the client side) evaluates
+// against the freshly-written CPA values, not the stale subject that the
+// 30-second periodic refresh would otherwise leave in place.
+func (a *App) broadcastUserPolicyAttributesChangedIfNeeded(rctx request.CTX, userID string) {
 	if !a.Config().FeatureFlags.PostPolicy {
 		return
 	}
+	a.RefreshAttributeView(rctx)
 	ev := model.NewWebSocketEvent(
 		model.WebsocketEventUserPolicyAttributesChanged, "", "", userID, nil, "",
 	)
@@ -339,7 +345,7 @@ func (a *App) DeleteCPAValues(rctx request.CTX, userID string) *model.AppError {
 	message.Add("values", map[string]json.RawMessage{})
 	a.Publish(message)
 
-	a.broadcastUserPolicyAttributesChangedIfNeeded(userID)
+	a.broadcastUserPolicyAttributesChangedIfNeeded(rctx, userID)
 
 	return nil
 }
