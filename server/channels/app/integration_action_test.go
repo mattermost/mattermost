@@ -2978,3 +2978,182 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 	assert.Equal(t, "true", stored.GetProp(model.PostPropsFromPlugin), "from_plugin must be retained across plugin update response")
 	assert.Equal(t, "AA", stored.GetProp("A"), "plugin-supplied prop applied")
 }
+
+func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := model.SubmitDialogResponse{}
+		b, _ := json.Marshal(resp)
+		_, _ = w.Write(b)
+	}))
+	defer ts.Close()
+
+	baseSubmit := model.SubmitDialogRequest{
+		URL:        ts.URL,
+		UserId:     th.BasicUser.Id,
+		ChannelId:  th.BasicChannel.Id,
+		TeamId:     th.BasicTeam.Id,
+		CallbackId: "someid",
+		State:      "somestate",
+		Submission: map[string]any{"name1": "value1"},
+	}
+
+	t.Run("empty FileIds passes validation", func(t *testing.T) {
+		submit := baseSubmit
+		submit.FileIds = nil
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("deduplication happens before count check", func(t *testing.T) {
+		// Create one valid file
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		// Build FileIds with the same ID repeated MaxDialogFileIds+1 times.
+		// After dedup this should be 1 ID, which is within the limit.
+		ids := make([]string, model.MaxDialogFileIds+1)
+		for i := range ids {
+			ids[i] = fileInfo.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("too many file IDs after dedup returns error", func(t *testing.T) {
+		ids := make([]string, model.MaxDialogFileIds+1)
+		for i := range ids {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			ids[i] = fi.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_file_ids")
+	})
+
+	t.Run("duplicates that would exceed limit raw but not after dedup passes", func(t *testing.T) {
+		// Create exactly MaxDialogFileIds unique files
+		uniqueIds := make([]string, model.MaxDialogFileIds)
+		for i := range uniqueIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			uniqueIds[i] = fi.Id
+		}
+		// Add a duplicate so raw count is MaxDialogFileIds+1
+		ids := make([]string, 0, len(uniqueIds)+1)
+		ids = append(ids, uniqueIds...)
+		ids = append(ids, uniqueIds[0])
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("valid file ID owned by submitting user passes", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("file ID not found returns 400 invalid_file_id", func(t *testing.T) {
+		submit := baseSubmit
+		submit.FileIds = []string{model.NewId()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "invalid_file_id")
+	})
+
+	t.Run("file owned by different user returns 403 file_not_owned", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("unowned file ID smuggled via submission (empty FileIds) is rejected", func(t *testing.T) {
+		// A client puts another user's file ID in a submission value while sending no
+		// FileIds. Integrations read submission values, so this must still be blocked.
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"single_document": fileInfo.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("own file ID referenced only via submission passes", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"single_document": fileInfo.Id}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("ID-shaped submission value that is not a real file is treated as text", func(t *testing.T) {
+		// A textarea value that happens to be a valid-format ID but isn't a file must
+		// not block submission.
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"notes": model.NewId()}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("many ID-shaped non-file submission values are not rejected (e.g. select fields)", func(t *testing.T) {
+		// Regression guard: a dialog with more than MaxDialogFileIds ID-shaped values
+		// that are NOT files (user/channel select IDs) must not trip the file-count cap.
+		submission := make(map[string]any)
+		for i := 0; i < model.MaxDialogFileIds+5; i++ {
+			submission[fmt.Sprintf("select_%d", i)] = model.NewId()
+		}
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = submission
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("unowned file ID smuggled via a submission array is rejected", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"attachments": []any{fileInfo.Id}}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+}

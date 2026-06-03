@@ -615,6 +615,102 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	url := request.URL
 	request.URL = ""
 
+	// Validate submitted file IDs exist and belong to the submitting user.
+	// Dedup without sorting so the order the user selected the files is preserved
+	// when the request is forwarded to the integration.
+	request.FileIds = model.RemoveDuplicateStringsNonSort(request.FileIds)
+	if len(request.FileIds) > model.MaxDialogFileIds {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
+			map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+	}
+	declaredFileIDs := make(map[string]bool, len(request.FileIds))
+	for _, fileID := range request.FileIds {
+		declaredFileIDs[fileID] = true
+		fileInfo, appErr := a.GetFileInfo(rctx, fileID)
+		if appErr != nil {
+			// Only remap not-found errors as client validation failures. Forbidden
+			// (e.g. cloud-plan inaccessible file) and internal/store errors keep their
+			// original status so they are not misreported as a bad request.
+			if appErr.StatusCode == http.StatusNotFound {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_file_id", map[string]any{"FileId": fileID}, "", http.StatusBadRequest).Wrap(appErr)
+			}
+			return nil, appErr
+		}
+		if fileInfo.CreatorId != request.UserId {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileID}, "", http.StatusForbidden)
+		}
+	}
+
+	// Defense in depth: integrations read raw field values from request.Submission
+	// (e.g. submission["my_file"]), not request.FileIds. Because the submit request
+	// does not carry the dialog's element definitions, the server cannot tell which
+	// submission fields are file pickers, so a malicious client could smuggle another
+	// user's file ID through a submission value while sending a benign FileIds list.
+	// Collect ID-shaped tokens from submission values (recursing into arrays/objects),
+	// resolve them in a single batch, and enforce the same ownership check on any that
+	// are real files. Tokens that don't resolve to a file (e.g. user/channel select
+	// IDs, or ID-shaped free text) are ordinary values and ignored.
+	//
+	// The scan is bounded so a value packed with ID-shaped strings can't drive an
+	// unbounded query; legitimate dialogs reference far fewer real files.
+	const maxSubmissionFileIDScan = 256
+	candidateFileIDs := make([]string, 0)
+	seenCandidate := make(map[string]bool)
+	var collectIDs func(v any)
+	collectIDs = func(v any) {
+		if len(candidateFileIDs) >= maxSubmissionFileIDScan {
+			return
+		}
+		switch typed := v.(type) {
+		case string:
+			for _, tok := range strings.Split(typed, ",") {
+				tok = strings.TrimSpace(tok)
+				if tok == "" || declaredFileIDs[tok] || seenCandidate[tok] || !model.IsValidId(tok) {
+					continue
+				}
+				seenCandidate[tok] = true
+				candidateFileIDs = append(candidateFileIDs, tok)
+				if len(candidateFileIDs) >= maxSubmissionFileIDScan {
+					return
+				}
+			}
+		case []any:
+			for _, e := range typed {
+				collectIDs(e)
+			}
+		case map[string]any:
+			for _, e := range typed {
+				collectIDs(e)
+			}
+		}
+	}
+	for _, raw := range request.Submission {
+		collectIDs(raw)
+	}
+
+	if len(candidateFileIDs) > 0 {
+		// allowFromCache=false: the file-info cache is keyed by post, not by file ID.
+		submissionFiles, nErr := a.Srv().Store().FileInfo().GetByIds(candidateFileIDs, false, false, false)
+		if nErr != nil {
+			// Defense-in-depth scan: a transient store error must not block an otherwise
+			// valid submission whose tokens may just be coincidental ID-shaped text. The
+			// primary FileIds ownership check above already ran fail-closed.
+			rctx.Logger().Warn("Could not resolve submission file IDs for ownership check", mlog.Err(nErr))
+		} else {
+			for _, fileInfo := range submissionFiles {
+				if fileInfo.CreatorId != request.UserId {
+					return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileInfo.Id}, "", http.StatusForbidden)
+				}
+			}
+			// Only tokens that are real files count toward the limit; combine with the
+			// declared FileIds so the per-submission ceiling is MaxDialogFileIds total.
+			if len(declaredFileIDs)+len(submissionFiles) > model.MaxDialogFileIds {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
+					map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	// Preserve Type field for field refresh functionality, otherwise default to dialog_submission
 	if request.Type != "refresh" {
 		request.Type = "dialog_submission"
@@ -631,6 +727,8 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("user_id", request.UserId),
 		mlog.String("channel_id", request.ChannelId),
 		mlog.String("team_id", request.TeamId),
+		mlog.String("state", request.State),
+		mlog.Bool("cancelled", request.Cancelled),
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
@@ -650,6 +748,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 
 	var response model.SubmitDialogResponse
 	if len(body) == 0 {
+		rctx.Logger().Info("SubmitDialogResponse empty body")
 		// Don't fail, an empty response is acceptable
 		return &response, nil
 	}
