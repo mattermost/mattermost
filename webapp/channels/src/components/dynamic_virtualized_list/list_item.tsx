@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import type {ReactNode} from 'react';
 import React, {memo, useLayoutEffect, useRef} from 'react';
 
 import {ListItemSizeObserver} from './list_item_size_observer';
-
-const RESIZE_DEBOUNCE_TIME = 200; // in ms
 
 const listItemSizeObserver = ListItemSizeObserver.getInstance();
 
@@ -49,7 +46,7 @@ const ListItem = (props: Props) => {
 
     // This effects adds the observer which calls height change callback debounced
     useLayoutEffect(() => {
-        const debouncedOnHeightChange = debounce((changedHeight: number) => {
+        const debouncedOnHeightChange = (changedHeight: number) => {
             // Check if component is still mounted as it may have been
             // unmounted by the time the debounced function is called
             if (!rowRef.current) {
@@ -63,7 +60,7 @@ const ListItem = (props: Props) => {
             heightRef.current = changedHeight;
 
             props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection);
-        }, RESIZE_DEBOUNCE_TIME);
+        };
 
         function itemRowSizeObserverCallback(changedHeight: number) {
             if (!rowRef.current) {
@@ -85,7 +82,6 @@ const ListItem = (props: Props) => {
         return () => {
             // We remove the observer here from a row
             cleanupSizeObserver?.();
-            debouncedOnHeightChange?.cancel();
             props.onUnmount(props.itemId, indexRef.current);
         };
     }, [props.itemId]);
