@@ -329,7 +329,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         }
     };
 
-    renderRow = ({data, itemId}: DynamicVirtualizedChildProps<string>) => {
+    renderRow = ({data, itemId}: DynamicVirtualizedChildProps) => {
         const index = data.indexOf(itemId);
         let className = '';
         let a11yIndex = 0;

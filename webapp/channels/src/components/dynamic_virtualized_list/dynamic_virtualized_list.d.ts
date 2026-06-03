@@ -23,12 +23,12 @@ declare module 'components/dynamic_virtualized_list' {
         visibleStopIndex: number;
     }
 
-    export interface DynamicVirtualizedChildProps<ItemType> {
-        data: ItemType[];
-        itemId: ItemType;
+    export interface DynamicVirtualizedChildProps {
+        data: string[];
+        itemId: string;
     }
 
-    interface DynamicVirtualizedListProps<ItemType> {
+    interface DynamicVirtualizedListProps {
         canLoadMorePosts: (id: 'BEFORE_ID' | 'AFTER_ID' | undefined) => Promise<void>;
         children: (childProps: DynamicVirtualizedChildProps) => JSX.Element;
         height: number;
@@ -36,7 +36,7 @@ declare module 'components/dynamic_virtualized_list' {
         initScrollToIndex: () => InitialScrollIndex;
         initialScrollOffset?: number;
         innerRef: React.MutableRefObject<HTMLDivElement | null> | React.RefCallback<HTMLDivElement>;
-        itemData: ItemType[];
+        itemData: string[];
         onItemsRendered: (args: OnItemsRenderedArgs) => void;
         onScroll: (scrollArgs: OnScrollArgs) => void;
         overscanCountBackward: number;

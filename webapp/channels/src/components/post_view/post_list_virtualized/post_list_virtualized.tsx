@@ -319,7 +319,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         });
     };
 
-    renderRow = ({data, itemId}: DynamicVirtualizedChildProps<string>) => {
+    renderRow = ({data, itemId}: DynamicVirtualizedChildProps) => {
         const index = data.indexOf(itemId);
         let className = '';
         const basePaddingClass = 'post-row__padding';
