@@ -66,7 +66,7 @@ const virtListStyles = {
     overflowAnchor: 'none',
     bottom: '0px',
     maxHeight: '100%',
-};
+} as const;
 
 const innerStyles = {
     paddingTop: '28px',

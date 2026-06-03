@@ -11,23 +11,96 @@ import ListItem from './list_item';
 
 const atBottomMargin = 10;
 
-export class DynamicVirtualizedList extends PureComponent {
-    _listMetaData = {
+export type InitialScrollIndex = {
+    index: number;
+    position: 'start' | 'center' | 'end';
+    offset?: number;
+};
+
+export type OnScrollArgs = {
+    scrollDirection: 'backward' | 'forward';
+    scrollOffset: number;
+    scrollUpdateWasRequested: boolean;
+    clientHeight: number;
+    scrollHeight: number;
+};
+
+export type OnItemsRenderedArgs = {
+    overscanStartIndex: number;
+    overscanStopIndex: number;
+    visibleStartIndex: number;
+    visibleStopIndex: number;
+};
+
+export interface DynamicVirtualizedChildProps {
+    data: string[];
+    itemId: string;
+}
+
+export interface DynamicVirtualizedListProps {
+    canLoadMorePosts: (id: 'BEFORE_ID' | 'AFTER_ID' | undefined) => Promise<void>;
+    children: (childProps: DynamicVirtualizedChildProps) => JSX.Element;
+    height: number;
+    initRangeToRender: number[];
+    initScrollToIndex: () => InitialScrollIndex;
+    initialScrollOffset?: number;
+    innerRef?: React.MutableRefObject<HTMLDivElement | null> | React.RefCallback<HTMLDivElement>;
+    itemData: string[];
+    onItemsRendered: (args: OnItemsRenderedArgs) => void;
+    onScroll: (scrollArgs: OnScrollArgs) => void;
+    outerRef?: React.MutableRefObject<HTMLDivElement | null> | React.RefCallback<HTMLDivElement>;
+    overscanCountBackward: number;
+    overscanCountForward: number;
+    scrollToFailed: (index: number) => void;
+    style: React.CSSProperties;
+    width: number;
+
+    id?: string;
+    className?: string;
+    correctScrollToBottom?: boolean;
+    innerListStyle?: React.CSSProperties;
+    loaderId?: string;
+}
+
+interface State {
+    scrollDirection: 'backward' | 'forward';
+    scrolledToInitIndex: boolean;
+    scrollOffset: number;
+    scrollUpdateWasRequested: boolean;
+    scrollDelta: number;
+    scrollHeight: number;
+    localOlderPostsToRender: unknown[];
+}
+
+interface ListMetadata {
+    itemOffsetMap: Partial<Record<string, number>>;
+    itemSizeMap: Partial<Record<string, number>>;
+    totalMeasuredSize: number;
+    atBottom: boolean;
+}
+
+interface DynamicVirtualizedListSnapshot {
+    previousScrollTop: number;
+    previousScrollHeight: number;
+}
+
+export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedListProps, State> {
+    private _listMetaData: ListMetadata = {
         itemOffsetMap: {},
         itemSizeMap: {},
         totalMeasuredSize: 0,
         atBottom: true,
     };
 
-    _itemStyleCache = {};
-    _innerRef = null;
-    _outerRef = null;
-    _scrollCorrectionInProgress = false;
-    _scrollByCorrection = null;
-    _keepScrollPosition = false;
-    _keepScrollToBottom = false;
-    _mountingCorrections = 0;
-    _correctedInstances = 0;
+    private _itemStyleCache: Partial<Record<string, unknown>> = {};
+    private _innerRef: HTMLDivElement | null = null;
+    private _outerRef: HTMLDivElement | null = null;
+    private _scrollCorrectionInProgress = false;
+    private _scrollByCorrection: number | null = null;
+    private _keepScrollPosition = false;
+    private _keepScrollToBottom = false;
+    private _mountingCorrections = 0;
+    private _correctedInstances = 0;
 
     static defaultProps = {
         itemData: undefined,
@@ -36,7 +109,8 @@ export class DynamicVirtualizedList extends PureComponent {
     };
 
     state = {
-        scrollDirection: 'backward',
+        scrollDirection: 'backward' as State['scrollDirection'],
+        scrolledToInitIndex: false,
         scrollOffset: typeof this.props.initialScrollOffset === 'number' ? this.props.initialScrollOffset : 0,
         scrollUpdateWasRequested: false,
         scrollDelta: 0,
@@ -47,11 +121,11 @@ export class DynamicVirtualizedList extends PureComponent {
     // Always use explicit constructor for React components.
     // It produces less code after transpilation. (#26)
     // eslint-disable-next-line no-useless-constructor
-    constructor(props) {
+    constructor(props: DynamicVirtualizedListProps) {
         super(props);
     }
 
-    scrollBy = (scrollOffset, scrollBy) => () => {
+    private scrollBy = (scrollOffset: number, scrollBy: number | undefined) => () => {
         const element = this._outerRef;
         if (element) {
             if (typeof element.scrollBy === 'function' && scrollBy) {
@@ -64,27 +138,26 @@ export class DynamicVirtualizedList extends PureComponent {
         this._scrollCorrectionInProgress = false;
     };
 
-    scrollTo(scrollOffset, scrollByValue, useAnimationFrame = false) {
+    public scrollTo(scrollOffset: number, scrollByValue?: number, useAnimationFrame = false) {
         this._scrollCorrectionInProgress = true;
         this.setState(
             (prevState) => ({
                 scrollDirection: prevState.scrollOffset >= scrollOffset ? 'backward' : 'forward',
                 scrollOffset,
                 scrollUpdateWasRequested: true,
-                scrollByValue,
             }),
             () => {
                 if (useAnimationFrame) {
                     this._scrollByCorrection = window.requestAnimationFrame(
                         this.scrollBy(
                             this.state.scrollOffset,
-                            this.state.scrollByValue,
+                            scrollByValue,
                         ),
                     );
                 } else {
                     this.scrollBy(
                         this.state.scrollOffset,
-                        this.state.scrollByValue,
+                        scrollByValue,
                     )();
                 }
             },
@@ -93,7 +166,7 @@ export class DynamicVirtualizedList extends PureComponent {
         this.forceUpdate();
     }
 
-    scrollToItem(index, align = 'auto', offset = 0) {
+    scrollToItem(index: number, align: string, offset = 0) {
         const {scrollOffset} = this.state;
 
         //Ideally the below scrollTo works fine but firefox has 6px issue and stays 6px from bottom when corrected
@@ -141,7 +214,10 @@ export class DynamicVirtualizedList extends PureComponent {
         this._commitHook();
     }
 
-    getSnapshotBeforeUpdate(_, prevState) {
+    getSnapshotBeforeUpdate(
+        prevProps: DynamicVirtualizedListProps,
+        prevState: State,
+    ): DynamicVirtualizedListSnapshot | null {
         if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
             prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
         ) {
@@ -159,7 +235,11 @@ export class DynamicVirtualizedList extends PureComponent {
         return null;
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    componentDidUpdate(
+        prevProps: DynamicVirtualizedListProps,
+        prevState: State,
+        snapshot: DynamicVirtualizedListSnapshot | null,
+    ) {
         if (this.state.scrolledToInitIndex) {
             const {
                 scrollDirection,
@@ -209,7 +289,7 @@ export class DynamicVirtualizedList extends PureComponent {
         if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
             prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
         ) {
-            if (this._outerRef) {
+            if (this._outerRef && snapshot) {
                 const postlistScrollHeight = this._outerRef.scrollHeight;
 
                 const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
@@ -283,7 +363,11 @@ export class DynamicVirtualizedList extends PureComponent {
                         this.props,
                         overscanStopIndex + 1,
                         this._listMetaData,
+
+                        // @ts-expect-error This is a pre-existing issue that's been around since the initial commit
+                        // of mattermost/dynamic-virtualized-list
                     ).size;
+
                     if (!sizeOfNextElement && this.state.scrolledToInitIndex) {
                         this.setState((prevState) => {
                             if (
@@ -340,11 +424,11 @@ export class DynamicVirtualizedList extends PureComponent {
     // List implementations can override this method to be notified.
     _dataChange = () => {
         if (this._listMetaData.totalMeasuredSize < this.props.height) {
-            this.props.canLoadMorePosts();
+            this.props.canLoadMorePosts(undefined);
         }
     };
 
-    _heightChange = (prevHeight, prevOffset) => {
+    _heightChange = (prevHeight: number, prevOffset: number) => {
         const wasAtBottom =
             prevOffset + prevHeight >=
             this._listMetaData.totalMeasuredSize - atBottomMargin;
@@ -354,7 +438,7 @@ export class DynamicVirtualizedList extends PureComponent {
         }
     };
 
-    _widthChange = (prevHeight, prevOffset) => {
+    _widthChange = (prevHeight: number, prevOffset: number) => {
         const wasAtBottom =
             prevOffset + prevHeight >=
             this._listMetaData.totalMeasuredSize - atBottomMargin;
@@ -368,7 +452,7 @@ export class DynamicVirtualizedList extends PureComponent {
     // So that pure component sCU will prevent re-renders.
     // We maintain this cache, and pass a style prop rather than index,
     // So that List can clear cached styles and force item re-render if necessary.
-    _getItemStyle = (index) => {
+    _getItemStyle = (index: number) => {
         const {itemData} = this.props;
 
         const itemStyleCache = this._itemStyleCache;
@@ -389,7 +473,7 @@ export class DynamicVirtualizedList extends PureComponent {
         return style;
     };
 
-    _getRangeToRender(scrollTop) {
+    _getRangeToRender(scrollTop = -1) {
         const {itemData, overscanCountForward, overscanCountBackward} =
             this.props;
         const {scrollDirection, scrollOffset} = this.state;
@@ -471,7 +555,7 @@ export class DynamicVirtualizedList extends PureComponent {
         }
     };
 
-    _handleNewMeasurements = (key, newSize, forceScrollCorrection) => {
+    _handleNewMeasurements = (key: string, newSize: number, forceScrollCorrection: boolean) => {
         const {itemSizeMap} = this._listMetaData;
         const {itemData} = this.props;
         const index = itemData.findIndex((item) => item === key);
@@ -551,7 +635,7 @@ export class DynamicVirtualizedList extends PureComponent {
         this._generateOffsetMeasurements();
     };
 
-    _onItemRowUnmount = (itemId, index) => {
+    _onItemRowUnmount = (itemId: string, index: number) => {
         const {props} = this;
         if (props.itemData[index] === itemId) {
             return;
@@ -579,7 +663,7 @@ export class DynamicVirtualizedList extends PureComponent {
         }
     };
 
-    _onScrollVertical = (event) => {
+    _onScrollVertical = (event: React.UIEvent<HTMLDivElement>) => {
         if (!this.state.scrolledToInitIndex) {
             return;
         }
@@ -599,7 +683,7 @@ export class DynamicVirtualizedList extends PureComponent {
             });
         }
 
-        this.setState((prevState) => {
+        this.setState((prevState: State) => {
             if (prevState.scrollOffset === scrollTop) {
                 // Scroll position may have been updated by cDM/cDU,
                 // In which case we don't need to trigger another render,
@@ -607,6 +691,7 @@ export class DynamicVirtualizedList extends PureComponent {
             }
 
             return {
+                ...prevState,
                 scrollDirection:
                     prevState.scrollOffset < scrollTop ? 'forward' : 'backward',
                 scrollOffset: scrollTop,
@@ -618,7 +703,7 @@ export class DynamicVirtualizedList extends PureComponent {
         });
     };
 
-    _innerRefSetter = (ref) => {
+    _innerRefSetter = (ref: HTMLDivElement | null) => {
         const {innerRef} = this.props;
         this._innerRef = ref;
 
@@ -629,7 +714,7 @@ export class DynamicVirtualizedList extends PureComponent {
         }
     };
 
-    _outerRefSetter = (ref) => {
+    _outerRefSetter = (ref: HTMLDivElement | null) => {
         const {outerRef} = this.props;
         this._outerRef = ref;
 
@@ -747,7 +832,7 @@ export class DynamicVirtualizedList extends PureComponent {
     }
 }
 
-const getItemMetadata = (props, index, listMetaData) => {
+const getItemMetadata = (props: DynamicVirtualizedListProps, index: number, listMetaData: ListMetadata) => {
     const {itemOffsetMap, itemSizeMap} = listMetaData;
     const {itemData} = props;
 
@@ -766,14 +851,16 @@ const getItemMetadata = (props, index, listMetaData) => {
     return {offset, size};
 };
 
-const getItemOffset = (props, index, listMetaData) => getItemMetadata(props, index, listMetaData).offset;
+const getItemOffset = (props: DynamicVirtualizedListProps, index: number, listMetaData: ListMetadata) => {
+    return getItemMetadata(props, index, listMetaData).offset;
+};
 
 const getOffsetForIndexAndAlignment = (
-    props,
-    index,
-    align,
-    scrollOffset,
-    listMetaData,
+    props: DynamicVirtualizedListProps,
+    index: number,
+    align: string,
+    scrollOffset: number,
+    listMetaData: ListMetadata,
 ) => {
     const {height} = props;
     const itemMetadata = getItemMetadata(props, index, listMetaData);
@@ -803,7 +890,13 @@ const getOffsetForIndexAndAlignment = (
     }
 };
 
-const findNearestItem = (props, listMetaData, high, low, scrollOffset) => {
+const findNearestItem = (
+    props: DynamicVirtualizedListProps,
+    listMetaData: ListMetadata,
+    high: number,
+    low: number,
+    scrollOffset: number,
+) => {
     let index = low;
     while (low <= high) {
         var currentOffset = getItemMetadata(props, low, listMetaData).offset;
@@ -817,7 +910,7 @@ const findNearestItem = (props, listMetaData, high, low, scrollOffset) => {
     return index;
 };
 
-const getStartIndexForOffset = (props, offset, listMetaData) => {
+const getStartIndexForOffset = (props: DynamicVirtualizedListProps, offset: number, listMetaData: ListMetadata) => {
     const {totalMeasuredSize} = listMetaData;
     const {itemData} = props;
 
@@ -832,10 +925,10 @@ const getStartIndexForOffset = (props, offset, listMetaData) => {
 };
 
 const getStopIndexForStartIndex = (
-    props,
-    startIndex,
-    scrollOffset,
-    listMetaData,
+    props: DynamicVirtualizedListProps,
+    startIndex: number,
+    scrollOffset: number,
+    listMetaData: ListMetadata,
 ) => {
     const {itemData} = props;
 
@@ -857,7 +950,7 @@ const getStopIndexForStartIndex = (
     return stopIndex;
 };
 
-const getItemSize = (props, index, listMetaData) => {
+const getItemSize = (props: DynamicVirtualizedListProps, index: number, listMetaData: ListMetadata) => {
     // Do not hard-code item dimensions.
     // We don't know them initially.
     // Even once we do, changes in item content or list size should reflow.

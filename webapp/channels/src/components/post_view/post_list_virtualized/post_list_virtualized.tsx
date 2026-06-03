@@ -44,7 +44,7 @@ const virtListStyles = {
     position: 'absolute',
     bottom: '0',
     maxHeight: '100%',
-};
+} as const;
 
 const OFFSET_TO_SHOW_TOAST = -50;
 
