@@ -115,6 +115,7 @@ const (
 	WebsocketEventPropertyFieldDeleted       WebsocketEventType = "property_field_deleted"
 	WebsocketEventPropertyValuesUpdated      WebsocketEventType = "property_values_updated"
 	WebsocketEventFileDownloadRejected       WebsocketEventType = "file_download_rejected"
+	WebsocketEventFileUploadRejected         WebsocketEventType = "file_upload_rejected"
 	WebsocketEventShowToast                  WebsocketEventType = "show_toast"
 	WebsocketEventSharedChannelRemoteUpdated WebsocketEventType = "shared_channel_remote_updated"
 	WebsocketEventChannelJoinRequestCreated  WebsocketEventType = "channel_join_request_created"
