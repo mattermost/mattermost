@@ -4058,3 +4058,37 @@ func TestPatchChannelDefaultCategoryMovesOutOfChannels(t *testing.T) {
 		}
 	}
 }
+
+func TestPatchChannelDefaultCategoryReapplyIsIdempotent(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableChannelCategorySorting = true
+	})
+
+	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+	patch := &model.ChannelPatch{DefaultCategoryName: new("Reapply Category")}
+	channel, appErr := th.App.PatchChannel(th.Context, channel, patch, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	// Patching again re-runs the default category logic while the channel is already in the target
+	// category. This must not error or list the channel twice in the category.
+	_, appErr = th.App.PatchChannel(th.Context, channel, &model.ChannelPatch{Header: new("updated header")}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	for _, category := range categories.Categories {
+		if category.DisplayName == "Reapply Category" {
+			count := 0
+			for _, channelID := range category.Channels {
+				if channelID == channel.Id {
+					count++
+				}
+			}
+			assert.Equal(t, 1, count, "channel should appear exactly once in the default category")
+		}
+	}
+}

@@ -4596,7 +4596,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 			if err != nil {
 				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
-		} else {
+		} else if !slices.Contains(targetCategory.Channels, channel.Id) {
 			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
 			categoriesToUpdate = append(categoriesToUpdate, targetCategory)
 		}
