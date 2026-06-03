@@ -374,7 +374,7 @@ export class DynamicVirtualizedList extends PureComponent {
         const itemStyleCache = this._itemStyleCache;
 
         let style;
-        if (Object.prototype.hasOwnProperty.call(itemStyleCache, itemData[index])) {
+        if (Object.hasOwn(itemStyleCache, itemData[index])) {
             style = itemStyleCache[itemData[index]];
         } else {
             style = {
@@ -624,7 +624,7 @@ export class DynamicVirtualizedList extends PureComponent {
 
         if (typeof innerRef === 'function') {
             innerRef(ref);
-        } else if (innerRef != null && typeof innerRef === 'object' && Object.prototype.hasOwnProperty.call(innerRef, 'current')) {
+        } else if (innerRef != null && typeof innerRef === 'object' && Object.hasOwn(innerRef, 'current')) {
             innerRef.current = ref;
         }
     };
@@ -635,7 +635,7 @@ export class DynamicVirtualizedList extends PureComponent {
 
         if (typeof outerRef === 'function') {
             outerRef(ref);
-        } else if (outerRef != null && typeof outerRef === 'object' && Object.prototype.hasOwnProperty.call(outerRef, 'current')) {
+        } else if (outerRef != null && typeof outerRef === 'object' && Object.hasOwn(outerRef, 'current')) {
             outerRef.current = ref;
         }
     };
