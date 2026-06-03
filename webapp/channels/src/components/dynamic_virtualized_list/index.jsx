@@ -21,7 +21,7 @@ export class DynamicVirtualizedList extends PureComponent {
 
     _innerRefWidth = undefined;
     _itemStyleCache = {};
-    _outerRef;
+    _outerRef = null;
     _scrollCorrectionInProgress = false;
     _scrollByCorrection = null;
     _keepScrollPosition = false;
@@ -53,10 +53,12 @@ export class DynamicVirtualizedList extends PureComponent {
 
     scrollBy = (scrollOffset, scrollBy) => () => {
         const element = this._outerRef;
-        if (typeof element.scrollBy === 'function' && scrollBy) {
-            element.scrollBy(0, scrollBy);
-        } else if (scrollOffset) {
-            element.scrollTop = scrollOffset;
+        if (element) {
+            if (typeof element.scrollBy === 'function' && scrollBy) {
+                element.scrollBy(0, scrollBy);
+            } else if (scrollOffset) {
+                element.scrollTop = scrollOffset;
+            }
         }
 
         this._scrollCorrectionInProgress = false;
@@ -97,6 +99,10 @@ export class DynamicVirtualizedList extends PureComponent {
         //Ideally the below scrollTo works fine but firefox has 6px issue and stays 6px from bottom when corrected
         //so manually keeping scroll position bottom for now
         const element = this._outerRef;
+        if (!element) {
+            return;
+        }
+
         if (index === 0 && align === 'end') {
             this.scrollTo(element.scrollHeight - this.props.height);
             return;
@@ -126,7 +132,10 @@ export class DynamicVirtualizedList extends PureComponent {
 
         if (typeof initialScrollOffset === 'number' && this._outerRef !== null) {
             const element = this._outerRef;
-            element.scrollTop = initialScrollOffset;
+
+            if (element) {
+                element.scrollTop = initialScrollOffset;
+            }
         }
 
         this._commitHook();
@@ -137,12 +146,15 @@ export class DynamicVirtualizedList extends PureComponent {
             prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
         ) {
             const element = this._outerRef;
-            const previousScrollTop = element.scrollTop;
-            const previousScrollHeight = element.scrollHeight;
-            return {
-                previousScrollTop,
-                previousScrollHeight,
-            };
+
+            if (element) {
+                const previousScrollTop = element.scrollTop;
+                const previousScrollHeight = element.scrollHeight;
+                return {
+                    previousScrollTop,
+                    previousScrollHeight,
+                };
+            }
         }
         return null;
     }
@@ -198,15 +210,17 @@ export class DynamicVirtualizedList extends PureComponent {
         if (prevState.localOlderPostsToRender[0] !== this.state.localOlderPostsToRender[0] ||
             prevState.localOlderPostsToRender[1] !== this.state.localOlderPostsToRender[1]
         ) {
-            const postlistScrollHeight = this._outerRef.scrollHeight;
+            if (this._outerRef) {
+                const postlistScrollHeight = this._outerRef.scrollHeight;
 
-            const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
+                const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
 
-            this.scrollTo(
-                scrollValue,
-                scrollValue - snapshot.previousScrollTop,
-                true,
-            );
+                this.scrollTo(
+                    scrollValue,
+                    scrollValue - snapshot.previousScrollTop,
+                    true,
+                );
+            }
         }
     }
 
@@ -480,6 +494,10 @@ export class DynamicVirtualizedList extends PureComponent {
         }
 
         const element = this._outerRef;
+        if (!element) {
+            return;
+        }
+
         const wasAtBottom =
             this.props.height + element.scrollTop >=
             this._listMetaData.totalMeasuredSize - atBottomMargin;
@@ -544,6 +562,9 @@ export class DynamicVirtualizedList extends PureComponent {
             delete this._listMetaData.itemSizeMap[itemId];
             delete this._listMetaData.itemOffsetMap[itemId];
             const element = this._outerRef;
+            if (!element) {
+                return;
+            }
 
             const atBottom =
                 element.offsetHeight + element.scrollTop >=
