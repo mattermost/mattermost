@@ -1,3 +1,5 @@
+/* eslint-disable headers/header-format */
+
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7,7 +9,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-/* eslint-disable header/header */
 
 /**
  * Constructs an enumeration with keys equal to their value.
