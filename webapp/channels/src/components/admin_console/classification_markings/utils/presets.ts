@@ -14,6 +14,7 @@ export type ClassificationPreset = {
     levels: ClassificationLevel[];
 };
 
+export const PRESET_EMPTY = '';
 export const PRESET_CUSTOM = 'custom';
 
 export const presets: ClassificationPreset[] = [

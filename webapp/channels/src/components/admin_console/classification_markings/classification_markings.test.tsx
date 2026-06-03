@@ -32,7 +32,7 @@ import {
     DISPLAY_BANNER_TOP,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
-import {PRESET_CUSTOM, presets} from './utils/presets';
+import {PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 const MOCK_USER_ID = 'current_user_id_12345678';
 const BASE_STATE = {entities: {users: {currentUserId: MOCK_USER_ID}}};
@@ -527,7 +527,7 @@ describe('ClassificationMarkings component', () => {
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
     });
 
-    test('should not show Custom option in preset dropdown when a named preset is active', async () => {
+    test('should not show Custom option when a named preset is active and no custom edits exist', async () => {
         const usPreset = presets.find((p) => p.id === 'us')!;
         const field = makePropertyField({
             attrs: {
@@ -547,7 +547,8 @@ describe('ClassificationMarkings component', () => {
 
         await screen.findByText('Classification levels');
 
-        // The selected value in the dropdown should be US, not Custom
+        // The selected value should be US, and Custom should not appear anywhere
+        expect(screen.getByText('United States')).toBeInTheDocument();
         expect(screen.queryByText('Custom classification levels')).not.toBeInTheDocument();
     });
 
