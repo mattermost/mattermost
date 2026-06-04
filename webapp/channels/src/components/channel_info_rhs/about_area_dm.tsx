@@ -113,10 +113,10 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
                 </UserInfo>
             </UserInfoContainer>
 
-            {!dmUser.user.is_bot && (
+            {!dmUser.user.is_bot && channel.header && (
                 <ChannelHeader>
                     <EditableArea
-                        content={channel.header && (
+                        content={(
                             <LineLimiter
                                 maxLines={4}
                                 lineHeight={20}
@@ -129,7 +129,6 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
                         editable={true}
                         onEdit={actions.editChannelHeader}
                         editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
-                        emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
                     />
                 </ChannelHeader>
             )}

@@ -1,0 +1,19 @@
+{
+  "name": "incident-cc-orchestrator",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Cursor SDK orchestrator for YVETTE-2 (Incident Command Center) - chains Planner -> Designer -> Implementer -> Reviewer -> Release across cloud agents on a shared branch.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx orchestrate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cursor/sdk": "latest"
+  },
+  "devDependencies": {
+    "tsx": "latest",
+    "typescript": "latest",
+    "@types/node": "latest"
+  }
+}

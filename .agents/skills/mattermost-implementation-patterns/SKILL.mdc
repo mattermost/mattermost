@@ -1,0 +1,128 @@
+---
+name: mattermost-implementation-patterns
+description: >-
+  Implements features in the Mattermost monorepo following established server
+  (api4/app/store), webapp (Redux/Client4/components), API docs, migration, and
+  plugin patterns. Use when adding or changing API endpoints, server business
+  logic, SQL store code, database migrations, web UI, Redux actions, Client4
+  methods, OpenAPI docs, or plugins in mattermost/server or mattermost/webapp.
+---
+
+# Mattermost implementation patterns
+
+Read this skill before writing code. Match surrounding files in the area you touch.
+
+## Repo map
+
+| Area | Path | Role |
+|------|------|------|
+| HTTP API | `server/channels/api4/` | Routes, permission checks, JSON, audit |
+| Business logic | `server/channels/app/` | Rules, plugins, websockets, orchestration |
+| Persistence | `server/channels/store/` + `store/sqlstore/` | Interfaces + SQL |
+| Models / API types | `server/public/model/` | Shared structs, permissions, errors |
+| Web UI | `webapp/channels/src/components/` | React |
+| Redux | `webapp/channels/src/actions/`, `webapp/platform/mattermost-redux/` | Thunks, entity state |
+| HTTP client | `webapp/platform/client/` | `Client4` |
+| OpenAPI | `api/v4/source/` | Public API reference |
+| Migrations | `server/channels/db/migrations/postgres/` | Schema changes |
+| Plugins | `server/public/plugin/` | Hook RPC, plugin API |
+
+Always load area-specific rules:
+
+- `@AGENTS.md` (root PR + Cloud Agent notes)
+- `@server/AGENTS.md` (Go modules, i18n)
+- `@webapp/AGENTS.md` (shared components)
+- `@server/channels/README.md` (SQL/API performance)
+- `@server/channels/db/migrations/README.md` (migration safety)
+
+For layer-by-layer templates and examples, see [reference.md](reference.md).
+
+## Implementation workflow
+
+1. **Find the vertical slice** — Search for the closest existing feature (same entity or route family). Copy its file layout and naming.
+2. **Work bottom-up or top-down consistently** — Typical order for a new REST feature:
+   - `model` (if new types/permissions)
+   - `store` interface + `sqlstore` implementation
+   - `app` method(s)
+   - `api4` handler + `Init*` registration
+   - `Client4` method
+   - Redux action + reducer/selector if UI needs it
+   - Component
+   - `api/v4/source/*.yaml` if the route is public API
+3. **Permissions first** — Enforce in `api4` (and mirror checks in `app` when reused from jobs/plugins). Use `SessionHasPermissionTo*` / `SetPermissionError`; do not skip checks.
+4. **Keep layers thin** — `api4`: decode, audit, permission, call `App`, encode. `app`: business rules, hooks, side effects. `store`: SQL only.
+5. **Tests at the layer you changed** — `api4/*_test.go`, `app/*_test.go`, `store/storetest/`, or RTL component tests. Run targeted tests before widening scope.
+
+## Server: new REST endpoint (checklist)
+
+- [ ] Add route in `func (api *API) InitFoo()` using `api.BaseRoutes.*` and the right wrapper:
+  - `APISessionRequired` — logged-in user (most routes)
+  - `APIHandler` — no session
+  - `APISessionRequiredMfa`, `APISessionRequiredDisableWhenBusy`, `RemoteClusterTokenRequired` — only when matching neighbors
+- [ ] Handler signature: `func name(c *Context, w http.ResponseWriter, r *http.Request)`
+- [ ] Decode with `json.NewDecoder(r.Body).Decode`; invalid input → `c.SetInvalidParam` / `SetInvalidParamWithErr`
+- [ ] Set `auditRec` for mutating operations (`c.MakeAuditRecord`, `defer c.LogAuditRecWithLevel`)
+- [ ] Call `c.App.*(c.AppContext, ...)`; on error set `c.Err` and return
+- [ ] Respond with `json.NewEncoder(w).Encode` and appropriate `w.WriteHeader`
+- [ ] Register `InitFoo()` from the API init chain (grep an existing `InitPost`-style call)
+- [ ] Add `api4` test using `TestMainHelper` / `th := Setup(t)` patterns from sibling `*_test.go`
+
+## Server: app + store
+
+- [ ] Add store method on the `*Store` interface in `server/channels/store/store.go`
+- [ ] Implement in `server/channels/store/sqlstore/*_store.go` (`Sql*Store`, `request.CTX` on mutating methods)
+- [ ] Add `storetest` coverage when behavior is non-trivial
+- [ ] App method returns `*model.AppError` for user-facing failures; use `model.NewAppError` with an i18n id
+- [ ] After `i18n/en.json` edits: `make i18n-extract` (from `server/`)
+- [ ] Never run `go mod tidy`; use `make modules-tidy`
+
+## Database migrations
+
+Follow `server/channels/db/migrations/README.md` strictly.
+
+- [ ] One concern per migration; next sequence in `db/migrations/postgres/`
+- [ ] Files: `{seq}_{description}.up.sql` and `.down.sql`
+- [ ] Run `make migrations-extract` after adding files
+- [ ] No full-table locks: use `CREATE INDEX CONCURRENTLY`, phased column adds, batch jobs — not monolithic `UPDATE`
+- [ ] Do not edit shipped migrations; add a new one to fix mistakes
+- [ ] Release note required for schema changes (see PR template)
+
+## Webapp: UI + data
+
+Follow `webapp/STYLE_GUIDE.md` and `webapp/AGENTS.md`.
+
+- [ ] Functional components; `useSelector` / `useDispatch` (not new `connect`)
+- [ ] `@mattermost/shared` for `Button`, `WithTooltip`; `@mattermost/components` for `GenericModal`
+- [ ] Co-located `ComponentName.scss`, BEM root `.ComponentName`
+- [ ] All user-visible strings via `FormattedMessage` / `useIntl` (not `localizeMessage`)
+- [ ] New API surface: method on `Client4` in `webapp/platform/client`
+- [ ] Redux thunk returns `{data}` or `{error}`; prefer `bindClientFunc` for Client4 calls
+- [ ] Server-backed state in `mattermost-redux` / `state.entities`; UI-only persisted state in `state.views`
+- [ ] Tests: RTL via `utils/react_testing_utils`, `renderWithContext`, `userEvent`, no snapshots
+
+## Plugins and hooks
+
+- [ ] Server hooks: implement on plugin struct in `server/public/plugin/hooks.go`; business flow calls hooks from `app` (e.g. `MessageWillBePosted`)
+- [ ] Do not duplicate permission logic inside plugins; enforce before hooks when possible
+- [ ] Webapp plugin hooks: see `webapp/channels/src/actions/hooks.ts` for client-side hook runners
+
+## API documentation
+
+When adding or changing a public REST route:
+
+- [ ] Update the appropriate file under `api/v4/source/` (e.g. `channels.yaml`, `posts.yaml`)
+- [ ] Add definitions to `api/v4/source/definitions.yaml` when needed
+- [ ] Verify with `make build` in `api/`
+
+## Pull requests
+
+Follow `.github/PULL_REQUEST_TEMPLATE.md`: remove HTML comments, omit empty sections, always include the `release-note` block (`NONE` if no user/API/schema impact).
+
+## Anti-patterns
+
+- Business logic or SQL in `api4` handlers
+- Direct `Client4` usage in React components (use actions)
+- `go mod tidy` instead of `make modules-tidy`
+- New migrations that rewrite large tables in one transaction
+- Hand-rolled buttons/tooltips/modals when shared components exist
+- Copy-pasting permission checks from one-off “temporary” api4 patterns unless intentionally matching that legacy path
