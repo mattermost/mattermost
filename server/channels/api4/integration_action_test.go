@@ -118,7 +118,7 @@ func TestPostActionCookies(t *testing.T) {
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Title:     "some-title",
 							TitleLink: "https://some-url.com",
@@ -273,7 +273,7 @@ func TestOpenDialog(t *testing.T) {
 
 	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		time.Sleep(2 * time.Second)
@@ -541,7 +541,7 @@ func newAttachmentActionPostInChannel(t *testing.T, th *TestHelper, channelID, u
 		ChannelId: channelID,
 		UserId:    userID,
 		Props: model.StringInterface{
-			model.PostPropsAttachments: []*model.MessageAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Text: "hello",
 					Actions: []*model.PostAction{
@@ -559,7 +559,7 @@ func newAttachmentActionPostInChannel(t *testing.T, th *TestHelper, channelID, u
 	require.Nil(t, appErr)
 
 	withCookies := model.AddPostActionCookies(created, th.App.PostActionCookieSecret())
-	attachments, ok := withCookies.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	attachments, ok := withCookies.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 	require.NotEmpty(t, attachments)
 	require.NotEmpty(t, attachments[0].Actions)
@@ -588,7 +588,7 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)
 	readablePost, _ := newAttachmentActionPostInChannel(t, th, th.BasicChannel.Id, th.BasicUser.Id, ts.URL)
-	readableAttachments, ok := readablePost.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	readableAttachments, ok := readablePost.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 	readableCookie := readableAttachments[0].Actions[0].Cookie
 	require.NotEmpty(t, readableCookie)
@@ -609,7 +609,7 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	})
 
 	t.Run("a member can still act using the post's own cookie", func(t *testing.T) {
-		legitAttachments, ok := privatePost.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+		legitAttachments, ok := privatePost.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		legitCookie := legitAttachments[0].Actions[0].Cookie
 		require.NotEmpty(t, legitCookie)
