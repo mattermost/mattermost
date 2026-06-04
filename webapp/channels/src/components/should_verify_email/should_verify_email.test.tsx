@@ -25,8 +25,22 @@ describe('components/ShouldVerifyEmail', () => {
     const renderComponent = (url = '/should_verify_email?email=test%40example.com') => {
         const history = createMemoryHistory({initialEntries: [url]});
 
-        return renderWithContext(<ShouldVerifyEmail/>, {}, {history});
+        return {
+            ...renderWithContext(<ShouldVerifyEmail/>, {}, {history}),
+            history,
+        };
     };
+
+    test('shows the verification prompt and returns to login', async () => {
+        const {history} = renderComponent();
+
+        expect(screen.getByText('You’re almost done!')).toBeVisible();
+        expect(screen.getByText('Please verify your email address. Check your inbox for an email.')).toBeVisible();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Return to log in'}));
+
+        expect(history.location.pathname).toBe('/');
+    });
 
     test('resends the verification email and disables the button while sending', async () => {
         let resolveResend: (result: {data: boolean}) => void;
@@ -63,6 +77,31 @@ describe('components/ShouldVerifyEmail', () => {
         expect(mockedSendVerificationEmail).toHaveBeenCalledWith('test@example.com');
         expect(await screen.findByText('Failed to send verification email')).toBeVisible();
         expect(screen.getByRole('button', {name: 'Resend Email'})).not.toBeDisabled();
+    });
+
+    test('clears the previous resend status while retrying', async () => {
+        let resolveRetry: (result: {data: boolean}) => void;
+        const retryPromise = new Promise<{data: boolean}>((resolve) => {
+            resolveRetry = resolve;
+        });
+        mockedSendVerificationEmail.
+            mockReturnValueOnce(async () => ({data: true})).
+            mockReturnValueOnce(async () => retryPromise);
+
+        renderComponent();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Resend Email'}));
+
+        expect(await screen.findByText('Verification email sent')).toBeVisible();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Resend Email'}));
+
+        expect(screen.queryByText('Verification email sent')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Sending email/})).toBeDisabled();
+
+        resolveRetry!({data: true});
+
+        expect(await screen.findByText('Verification email sent')).toBeVisible();
     });
 
     test('disables the resend button when no email is provided', async () => {
