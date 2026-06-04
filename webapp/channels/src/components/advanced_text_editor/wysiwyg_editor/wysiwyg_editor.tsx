@@ -9,6 +9,7 @@ import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
+import {splitListItem} from '@tiptap/pm/schema-list';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -163,8 +164,29 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 return true;
             },
             handleKeyDown: (view, event) => {
+                // Detect structural context up front so we can gate the parent
+                // onKeyDown forward: keys like Enter / Shift+Enter inside a
+                // list, blockquote, code block, table, or heading are handled
+                // natively by the editor and must NOT reach the textarea-era
+                // key handler (it rewrites the draft string on Shift+Enter via
+                // isUnhandledLineBreakKeyCombo, which corrupts list state).
+                const {state} = view;
+                const {$from} = state.selection;
+                const parentNode = $from.node($from.depth);
+                const grandparentNode = $from.depth > 1 ? $from.node($from.depth - 1) : null;
+
+                const insideList = grandparentNode?.type.name === 'listItem';
+                const insideBlockquote = grandparentNode?.type.name === 'blockquote' ||
+                    ($from.depth > 2 && $from.node($from.depth - 2)?.type.name === 'blockquote');
+                const insideCodeBlock = parentNode.type.name === 'codeBlock';
+                const insideTable = ['tableCell', 'tableHeader'].includes(grandparentNode?.type.name ?? '');
+                const insideHeading = parentNode.type.name === 'heading';
+
+                const editorOwnsKey = event.key === 'Enter' &&
+                    (insideList || insideBlockquote || insideCodeBlock || insideTable || insideHeading);
+
                 const forward = onKeyDownRef.current;
-                if (forward) {
+                if (forward && !editorOwnsKey) {
                     let consumed = false;
                     let propagationStopped = false;
                     const synthetic = {
@@ -201,6 +223,15 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     }
                 }
 
+                // Shift+Enter inside a list splits the item (new bullet),
+                // matching the legacy WYSIWYG behavior. Without this, Tiptap's
+                // default HardBreak takes over and produces a soft line break.
+                if (event.key === 'Enter' && event.shiftKey && insideList) {
+                    event.preventDefault();
+                    splitListItem(state.schema.nodes.listItem)(state, view.dispatch);
+                    return true;
+                }
+
                 if (event.key === 'Tab') {
                     const {state} = view;
                     const {$from} = state.selection;
@@ -220,7 +251,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 }
 
                 if (event.key === 'ArrowUp' && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
-                    const {state} = view;
                     const isEmpty = state.doc.textContent.length === 0 && state.doc.childCount <= 1;
                     if (isEmpty) {
                         event.preventDefault();
@@ -232,18 +262,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 if (event.key !== 'Enter') {
                     return false;
                 }
-
-                const {state} = view;
-                const {$from} = state.selection;
-                const parentNode = $from.node($from.depth);
-                const grandparentNode = $from.depth > 1 ? $from.node($from.depth - 1) : null;
-
-                const insideList = grandparentNode?.type.name === 'listItem';
-                const insideBlockquote = grandparentNode?.type.name === 'blockquote' ||
-                    ($from.depth > 2 && $from.node($from.depth - 2)?.type.name === 'blockquote');
-                const insideCodeBlock = parentNode.type.name === 'codeBlock';
-                const insideTable = ['tableCell', 'tableHeader'].includes(grandparentNode?.type.name ?? '');
-                const insideHeading = parentNode.type.name === 'heading';
 
                 const ctrlOrMeta = event.metaKey || event.ctrlKey;
 
