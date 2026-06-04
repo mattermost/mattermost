@@ -1254,8 +1254,9 @@ func (ss *SqlStore) tableExists(tableName string) (bool, error) {
 		SELECT EXISTS (
 			SELECT 1 FROM information_schema.tables
 			WHERE LOWER(table_name) = $1
+		    AND table_schema = current_schema()
 		)
-	`, tableName); err != nil {
+	`, strings.ToLower(tableName)); err != nil {
 		return false, errors.Wrap(err, "unable to query information_schema.tables")
 	}
 	return exists, nil

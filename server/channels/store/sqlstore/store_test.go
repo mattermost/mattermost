@@ -1257,18 +1257,13 @@ func TestTableExists(t *testing.T) {
 	})
 
 	t.Run("match is case-insensitive on stored table name", func(t *testing.T) {
-		// The query LOWERs the stored table_name and compares against the
-		// parameter as-is, so a lowercase input matches regardless of how
-		// the table name is stored in information_schema.
 		exists, err := ss.tableExists("systems")
 		require.NoError(t, err)
 		assert.True(t, exists)
 
-		// Uppercase parameter will not match because only the stored
-		// column is lowered in the query.
 		exists, err = ss.tableExists("SYSTEMS")
 		require.NoError(t, err)
-		assert.False(t, exists)
+		assert.True(t, exists)
 	})
 }
 
