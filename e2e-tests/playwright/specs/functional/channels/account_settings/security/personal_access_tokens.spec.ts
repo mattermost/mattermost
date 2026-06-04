@@ -65,12 +65,12 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         // * The expiry select offers "No expiry", every preset, and a custom option
         const expirySelect = modal.locator('#newTokenExpiry');
         await expect(expirySelect).toBeVisible();
-        await expect(expirySelect.getByRole('option', {name: 'No expiry'})).toHaveCount(1);
-        await expect(expirySelect.getByRole('option', {name: '7 days'})).toHaveCount(1);
-        await expect(expirySelect.getByRole('option', {name: '30 days'})).toHaveCount(1);
-        await expect(expirySelect.getByRole('option', {name: '90 days'})).toHaveCount(1);
-        await expect(expirySelect.getByRole('option', {name: '1 year'})).toHaveCount(1);
-        await expect(expirySelect.getByRole('option', {name: /Custom date/})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: 'No expiry'})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: '7 days'})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: '30 days'})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: '90 days'})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: '1 year'})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: /Custom date/})).toHaveCount(1);
 
         // * The custom date input is hidden until the custom option is chosen
         await expect(modal.locator('#newTokenExpiryCustom')).toBeHidden();
@@ -132,11 +132,11 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
 
         // * "No expiry" and presets longer than the maximum are hidden; the enforced hint shows
         const expirySelect = modal.locator('#newTokenExpiry');
-        await expect(expirySelect.getByRole('option', {name: 'No expiry'})).toHaveCount(0);
-        await expect(expirySelect.getByRole('option', {name: '90 days'})).toHaveCount(0);
-        await expect(expirySelect.getByRole('option', {name: '1 year'})).toHaveCount(0);
-        await expect(expirySelect.getByRole('option', {name: '7 days'})).toHaveCount(1);
-        await expect(expirySelect.getByRole('option', {name: '30 days'})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: 'No expiry'})).toHaveCount(0);
+        await expect(expirySelect.locator('option', {hasText: '90 days'})).toHaveCount(0);
+        await expect(expirySelect.locator('option', {hasText: '1 year'})).toHaveCount(0);
+        await expect(expirySelect.locator('option', {hasText: '7 days'})).toHaveCount(1);
+        await expect(expirySelect.locator('option', {hasText: '30 days'})).toHaveCount(1);
         await expect(
             modal.getByText('Your administrator requires all personal access tokens to have an expiry date.'),
         ).toBeVisible();
