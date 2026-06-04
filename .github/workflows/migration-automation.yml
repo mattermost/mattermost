@@ -48,8 +48,10 @@ jobs:
         run: |
           set -euo pipefail
  
-          # Collect newly-added .up.sql paths across ALL commits in this push.
-          # Process substitution into a bash array — no shell injection.
+          # Filter on .up.sql only: each migration is identified by its up
+          # file; the paired .down.sql is read by the script if present.
+          # Triggering on up files avoids duplicate runs when both files
+          # arrive in the same push.
           MIGRATIONS_GLOB='server/channels/db/migrations/postgres/*.up.sql'
           mapfile -t files < <(
             git diff --name-only --diff-filter=A \
