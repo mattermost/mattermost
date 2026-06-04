@@ -107,7 +107,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, er
 func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	var conditions []string
 	var conditionsSql string
-	var additionalJoin string
+	var joins []string
 	var args []any
 
 	if !options.IncludeDeleted {
@@ -118,8 +118,17 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 		args = append(args, options.OwnerId)
 	}
 	if options.OnlyOrphaned {
-		additionalJoin = "JOIN Users o ON (o.Id = b.OwnerId)"
+		joins = append(joins, "LEFT JOIN Users o ON (o.Id = b.OwnerId)")
 		conditions = append(conditions, "o.DeleteAt != 0")
+	}
+	search := strings.TrimSpace(options.Search)
+	if search != "" {
+		if !options.OnlyOrphaned {
+			joins = append(joins, "LEFT JOIN Users o ON (o.Id = b.OwnerId)")
+		}
+		searchTerm := wildcardSearchTerm(sanitizeSearchTerm(search, "*"))
+		conditions = append(conditions, "(LOWER(u.Username) LIKE ? ESCAPE '*' OR LOWER(u.FirstName) LIKE ? ESCAPE '*' OR LOWER(b.Description) LIKE ? ESCAPE '*' OR LOWER(o.Username) LIKE ? ESCAPE '*')")
+		args = append(args, searchTerm, searchTerm, searchTerm, searchTerm)
 	}
 
 	if len(conditions) > 0 {
@@ -141,7 +150,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 			    Bots b
 			JOIN
 			    Users u ON (u.Id = b.UserId)
-			` + additionalJoin + `
+			` + strings.Join(joins, "\n") + `
 			` + conditionsSql + `
 			ORDER BY
 			    b.CreateAt ASC,

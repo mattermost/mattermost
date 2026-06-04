@@ -67,6 +67,7 @@ type BotGetOptions struct {
 	OwnerId        string
 	IncludeDeleted bool
 	OnlyOrphaned   bool
+	Search         string
 	Page           int
 	PerPage        int
 }
