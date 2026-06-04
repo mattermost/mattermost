@@ -1264,7 +1264,7 @@ func (a *App) DeactivateGuests(rctx request.CTX) *model.AppError {
 	}
 
 	for _, userID := range userIDs {
-		if err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
+		if _, err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
 			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -1291,7 +1291,7 @@ func (a *App) DeactivateMagicLinkGuests(rctx request.CTX) *model.AppError {
 	}
 
 	for _, userID := range userIDs {
-		if err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
+		if _, err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
 			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

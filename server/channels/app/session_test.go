@@ -498,3 +498,166 @@ func TestSetExtraSessionProps(t *testing.T) {
 		assert.Equal(t, "true", storeSession.Props["testProp"])
 	})
 }
+
+func setupPushServer(t *testing.T, th *TestHelper) *testPushNotificationHandler {
+	t.Helper()
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	t.Cleanup(pushServer.Close)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SendPushNotifications = true
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		*cfg.MobileEphemeralModeSettings.Enable = true
+	})
+	return handler
+}
+
+func TestSendMobileWipeSignal(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("do not send push when MobileEphemeralMode is disabled", func(t *testing.T) {
+		handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+		pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+		defer pushServer.Close()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendPushNotifications = true
+			*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			*cfg.MobileEphemeralModeSettings.Enable = false
+		})
+
+		session := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
+		err := th.App.sendMobileWipeSignal(th.Context, session)
+		require.NoError(t, err)
+		require.Equal(t, 0, handler.numReqs())
+	})
+
+	t.Run("do not send push when push notifications are disabled", func(t *testing.T) {
+		handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+		pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+		defer pushServer.Close()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendPushNotifications = false
+			*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			*cfg.MobileEphemeralModeSettings.Enable = true
+		})
+
+		session := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
+		err := th.App.sendMobileWipeSignal(th.Context, session)
+		require.ErrorIs(t, err, errPushNotificationsDisabled)
+		require.Equal(t, 0, handler.numReqs())
+	})
+
+	t.Run("do not send push for non-mobile sessions", func(t *testing.T) {
+		handler := setupPushServer(t, th)
+
+		session := &model.Session{UserId: th.BasicUser.Id, ExpiresAt: model.GetMillis() + 100000}
+		err := th.App.sendMobileWipeSignal(th.Context, session)
+		require.NoError(t, err)
+		require.Equal(t, 0, handler.numReqs())
+	})
+
+	t.Run("send silent wipe push for mobile sessions", func(t *testing.T) {
+		handler := setupPushServer(t, th)
+
+		activeSession := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
+		err := th.App.sendMobileWipeSignal(th.Context, activeSession)
+		require.NoError(t, err)
+
+		expiredSession := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() - 100000}
+		err = th.App.sendMobileWipeSignal(th.Context, expiredSession)
+		require.NoError(t, err)
+
+		require.Equal(t, 2, handler.numReqs())
+		n := handler.notifications()[0]
+		require.Equal(t, model.PushTypeSession, n.Type)
+		require.Equal(t, 1, n.ContentAvailable)
+		require.Equal(t, model.PushSoundNone, n.Sound)
+		require.Empty(t, n.Message)
+	})
+}
+
+func TestRevokeAllSessionsSendsWipeSignal(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	handler := setupPushServer(t, th)
+
+	// active mobile session — should receive a wipe push
+	_, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "android:testdevice",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	// expired mobile session — must also receive a wipe push to clear stale local data
+	_, appErr = th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "apple:expireddevice",
+		ExpiresAt: model.GetMillis() - 100000,
+	})
+	require.Nil(t, appErr)
+
+	// desktop session — no push expected
+	_, appErr = th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	appErr = th.App.RevokeAllSessions(th.Context, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	require.Equal(t, 2, handler.numReqs())
+}
+
+func TestRevokeSessionsFromAllUsersSendsWipeSignal(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	handler := setupPushServer(t, th)
+
+	_, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "apple:device1",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser2.Id,
+		DeviceId:  "android:device2",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	// expired mobile session — must also receive a wipe push to clear stale local data
+	_, appErr = th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "android:expireddevice",
+		ExpiresAt: model.GetMillis() - 100000,
+	})
+	require.Nil(t, appErr)
+
+	appErr = th.App.RevokeSessionsFromAllUsers(th.Context)
+	require.Nil(t, appErr)
+
+	require.Equal(t, 3, handler.numReqs())
+}
+
+func TestRevokeSessionSendsWipeSignal(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	handler := setupPushServer(t, th)
+
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "apple:device1",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	appErr = th.App.RevokeSession(th.Context, session)
+	require.Nil(t, appErr)
+
+	require.Equal(t, 1, handler.numReqs())
+}
