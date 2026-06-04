@@ -18,3 +18,14 @@ export const TEAM_NAME_PATH_PATTERN = '[a-z0-9\\-_]+';
 // - User ID
 // - Email
 export const IDENTIFIER_PATH_PATTERN = '[@a-zA-Z\\-_0-9][@a-zA-Z\\-_0-9.:]*';
+
+// admin_console is excluded because it can have integrations as subpaths
+// (admin_console/integrations/bot_accounts) and is not a team backstage route.
+const BACKSTAGE_ROUTE_PATTERN = new RegExp(`^/(?!admin_console)${TEAM_NAME_PATH_PATTERN}/(?:integrations|emoji)(?:/|$)`);
+
+// Backstage routes (integrations, custom emoji) render a static light surface and should not
+// carry the themed `app__body` class. System console and team creation/selection live on their
+// own routes outside the themed shell and are already excluded.
+export function isBackstageRoute(pathname: string): boolean {
+    return BACKSTAGE_ROUTE_PATTERN.test(pathname);
+}
