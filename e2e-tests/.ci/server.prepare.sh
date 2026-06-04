@@ -25,7 +25,14 @@ if [ "$TEST" = "cypress" ]; then
   # Create user in Cypress container and work around the node image's assumption that the app files are owned by user 1000
   mme2e_log "Creating user for Cypress container"
   ${MME2E_DC_SERVER} exec -T -u 0 -- cypress bash -c "id $MME2E_UID || useradd -u $MME2E_UID -m nodeci"
-  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npm i
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<EOF
+echo HARRISON1
+pwd
+ls
+echo HARRISON2
+cd webapp/
+npm install --cache /tmp/empty-cache
+EOF
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress cypress install
   mme2e_log "Prepare Cypress: populating fixtures"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
