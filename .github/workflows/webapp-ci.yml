@@ -172,9 +172,10 @@ jobs:
         uses: ./.github/actions/webapp-setup
       - name: ci/test
         env:
+          MATRIX_SHARD: ${{ matrix.shard }}
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci -- --config jest.config.channels.js --coverageDirectory=coverage/shard-${{ matrix.shard }} --shard=${{ matrix.shard }}/4
+          npm run test-ci -- --config jest.config.channels.js --coverageDirectory="coverage/shard-${MATRIX_SHARD}" --shard="${MATRIX_SHARD}/4"
       - name: ci/upload-coverage-artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
