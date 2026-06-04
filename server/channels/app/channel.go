@@ -4560,17 +4560,18 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 			}
 		}
 
-		// Find the original category if the channel is already in a category. This includes the
-		// default Channels category, so a channel currently shown there is moved rather than duplicated.
+		// Find the original category if the channel is already in a category
 		var originalCategory *model.SidebarCategoryWithChannels
 		for _, category := range categories.Categories {
-			if category == targetCategory {
-				continue
-			}
-			if (category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryChannels) && slices.Contains(category.Channels, channel.Id) {
+			if category.Type != model.SidebarCategoryDirectMessages && slices.Contains(category.Channels, channel.Id) {
 				originalCategory = category
 				break
 			}
+		}
+
+		// The channel is already in the target category, so there's nothing to move.
+		if originalCategory != nil && originalCategory == targetCategory {
+			return
 		}
 
 		var categoriesToUpdate []*model.SidebarCategoryWithChannels
@@ -4596,7 +4597,7 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 			if err != nil {
 				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
-		} else if !slices.Contains(targetCategory.Channels, channel.Id) {
+		} else {
 			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
 			categoriesToUpdate = append(categoriesToUpdate, targetCategory)
 		}
