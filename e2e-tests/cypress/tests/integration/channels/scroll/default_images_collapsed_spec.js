@@ -33,8 +33,8 @@ describe('Scroll', () => {
 
         cy.uiGetPostTextBox().clear().type('{enter}');
 
-        // * Observe image preview is collapsed
-        cy.uiGetFileThumbnail(filename).should('not.exist');
+        // * Observe image preview is collapsed (thumbnail not in DOM when collapsed; scope to last post so find doesn't retry)
+        cy.getLastPost().find(`[aria-label="file thumbnail ${filename.toLowerCase()}"]`).should('not.exist');
 
         // # Save height of the last post
         cy.getLastPost().then((lastPost) => {
@@ -52,7 +52,7 @@ describe('Scroll', () => {
         });
 
         // * Observe image preview is collapsed after reloading the page
-        cy.uiGetFileThumbnail(filename).should('not.exist');
+        cy.getLastPost().find(`[aria-label="file thumbnail ${filename.toLowerCase()}"]`).should('not.exist');
 
         // # Sanity check that it's visible when collapsed preview is disabled
         cy.apiSaveCollapsePreviewsPreference('false');

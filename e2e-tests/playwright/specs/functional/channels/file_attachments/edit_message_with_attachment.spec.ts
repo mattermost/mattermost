@@ -26,8 +26,8 @@ test('MM-T2268 Edit Message with Attachment', async ({pw}) => {
     // * Verify the posted message is correct
     await post.toContainText('Test');
 
-    // * Verify attachment exists (image thumbnail)
-    const attachment = post.container.getByLabel(/file thumbnail/i);
+    // * Verify attachment exists (image thumbnail - target the button wrapper, not the inner img)
+    const attachment = post.container.getByRole('button', {name: /file thumbnail/i});
     await expect(attachment).toBeVisible();
 
     // * Verify edited indicator does not exist initially
@@ -50,8 +50,8 @@ test('MM-T2268 Edit Message with Attachment', async ({pw}) => {
     // * Verify the new text shows
     await updatedPost.toContainText('Test with some edit');
 
-    // * Verify attachment still exists (image thumbnail)
-    const updatedAttachment = updatedPost.container.getByLabel(/file thumbnail/i);
+    // * Verify attachment still exists (image thumbnail - target the button wrapper, not the inner img)
+    const updatedAttachment = updatedPost.container.getByRole('button', {name: /file thumbnail/i});
     await expect(updatedAttachment).toBeVisible();
 
     // * Verify edited indicator now exists

@@ -3,10 +3,10 @@
 
 import React from 'react';
 
-import SizeAwareImage from 'components/size_aware_image';
-
 import {renderWithContext, act} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import SizeAwareImage from './size_aware_image';
 
 function simulateImageLoad(img: HTMLImageElement, naturalWidth: number, naturalHeight: number) {
     Object.defineProperty(img, 'naturalWidth', {value: naturalWidth, configurable: true});
@@ -53,7 +53,6 @@ describe('components/SizeAwareImage', () => {
     test('should render an svg when first mounted with dimensions and img display set to none', () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
-        // since download and copy icons use svgs now, attachment svg should be searched as a direct child of image-loading__container
         const svgElement = container.querySelector('.image-loading__container > svg');
         expect(svgElement).not.toBeNull();
         expect(svgElement?.getAttribute('viewBox')).toEqual('0 0 300 200');
@@ -96,14 +95,14 @@ describe('components/SizeAwareImage', () => {
         expect(miniPreviewImg?.getAttribute('src')).toEqual('data:mime_type;base64,mini_preview');
     });
 
-    test('should have display set to initial in loaded state', () => {
+    test('should have display set to flex in loaded state', () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
         const img = container.querySelector('img')!;
         simulateImageLoad(img, 300, 200);
 
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('inline-block');
+        expect(filePreviewButton.style.display).toEqual('flex');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -128,7 +127,7 @@ describe('components/SizeAwareImage', () => {
 
         // Verify loaded state through DOM: file-preview__button should be visible
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('inline-block');
+        expect(filePreviewButton.style.display).toEqual('flex');
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 
@@ -161,52 +160,17 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
 
-        // Simulate loading a small image (< 48px)
+        // Simulate loading a small image (below the default 216px threshold)
         const img = container.querySelector('img')!;
         simulateImageLoad(img, 24, 24);
 
-        const smallContainer = container.querySelector('div.small-image__container');
+        const smallContainer = container.querySelector('div.small-image__container') as HTMLElement;
         expect(smallContainer).not.toBeNull();
-        expect(smallContainer?.className).
-            toEqual('small-image__container cursor--pointer a11y--active small-image__container--min-width');
+        expect(smallContainer.style.minWidth).toEqual('50px');
+        expect(smallContainer.style.minHeight).toEqual('50px');
     });
 
-    test('should properly set container div width for small image', () => {
-        const props = {
-            ...baseProps,
-            handleSmallImageContainer: true,
-            dimensions: {height: 24, width: 24},
-        };
-
-        // Test with a very small image (width < MIN_IMAGE_SIZE) - no custom width style, has min-width class
-        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-        const img = container.querySelector('img')!;
-        simulateImageLoad(img, 24, 24);
-
-        expect((container.querySelector('div.small-image__container') as HTMLElement)?.style.width).
-            toEqual('');
-        expect(container.querySelector('div.small-image__container')?.classList.contains('small-image__container--min-width')).
-            toEqual(true);
-    });
-
-    test('should properly set container div width for wider small image', () => {
-        const props = {
-            ...baseProps,
-            handleSmallImageContainer: true,
-            dimensions: {height: 30, width: 220},
-        };
-
-        // The dimensions indicate a small image (height < 48), so isSmallImage is set at construction
-        // Width 220 means container width = 222px (imageWidth + 2px border)
-        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-
-        // The component sets isSmallImage based on dimensions at construction time
-        // since height=30 < MIN_IMAGE_SIZE=48, it will be a small image container
-        const smallContainer = container.querySelector('div.small-image__container');
-        expect(smallContainer).not.toBeNull();
-    });
-
-    test('should properly set img style when it is small', () => {
+    test('should properly set img class when handleSmallImageContainer is true and image is small', () => {
         const props = {
             ...baseProps,
             handleSmallImageContainer: true,
@@ -222,11 +186,26 @@ describe('components/SizeAwareImage', () => {
         expect(container.querySelector('img')?.className).toBe(`${props.className} small-image--inside-container`);
     });
 
+    test('should render small-image container for image below the small-image threshold', () => {
+        const props = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+            dimensions: {height: 30, width: 220},
+        };
+
+        // Default smallImageThreshold is 216; height=30 is below that, so the small container should render
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        const smallContainer = container.querySelector('div.small-image__container');
+        expect(smallContainer).not.toBeNull();
+    });
+
     test('should load download and copy link buttons when an image is mounted', () => {
         const fileURL = 'https://example.com/image.png';
         const props = {
             ...baseProps,
             fileURL,
+            dimensions: undefined,
         };
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container).toMatchSnapshot();
@@ -237,6 +216,7 @@ describe('components/SizeAwareImage', () => {
         const props = {
             ...baseProps,
             fileURL,
+            dimensions: undefined,
         };
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('.size-aware-image__download')?.getAttribute('href')).toBe(fileURL);
@@ -248,6 +228,7 @@ describe('components/SizeAwareImage', () => {
         const props = {
             ...baseProps,
             fileURL,
+            dimensions: undefined,
             getFilePublicLink,
         };
 
@@ -264,9 +245,73 @@ describe('components/SizeAwareImage', () => {
         const props = {
             ...baseProps,
             enablePublicLink: false,
+            dimensions: undefined,
         };
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('button.size-aware-image__copy_link')).toBeNull();
+    });
+
+    test('should respect custom smallImageThreshold prop', () => {
+        const props = {
+            ...baseProps,
+            smallImageThreshold: 100,
+            handleSmallImageContainer: true,
+            dimensions: {height: 120, width: 120},
+        };
+
+        // 120 >= custom threshold of 100, so the image should NOT be wrapped in small-image__container
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+        const img = container.querySelector('img')!;
+        simulateImageLoad(img, 120, 120);
+
+        expect(container.querySelector('div.small-image__container')).toBeNull();
+    });
+
+    test('should respect custom minContainerSize prop', () => {
+        const props = {
+            ...baseProps,
+            minContainerSize: 80,
+            handleSmallImageContainer: true,
+            dimensions: {height: 24, width: 24},
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+        const smallContainer = container.querySelector('div.small-image__container') as HTMLElement;
+        expect(smallContainer).not.toBeNull();
+        expect(smallContainer.style.minWidth).toEqual('80px');
+        expect(smallContainer.style.minHeight).toEqual('80px');
+    });
+
+    test('should not render utility buttons for external small images', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: undefined,
+            enablePublicLink: true,
+            dimensions: undefined,
+            handleSmallImageContainer: true,
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+        const img = container.querySelector('img')!;
+        simulateImageLoad(img, 24, 24);
+
+        expect(container.querySelector('.image-preview-utility-buttons-container')).toBeNull();
+    });
+
+    test('should set correct image style for SVG files', () => {
+        const props = {
+            ...baseProps,
+            dimensions: undefined,
+            fileInfo: TestHelper.getFileInfoMock({
+                name: 'test.svg',
+                extension: 'svg',
+            }),
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+        const img = container.querySelector('img') as HTMLImageElement;
+        expect(img.style.width).toEqual('100%');
+        expect(img.style.height).toEqual('auto');
     });
 });
