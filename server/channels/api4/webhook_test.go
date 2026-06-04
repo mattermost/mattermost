@@ -148,18 +148,19 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 
 func TestIncomingWebhookValidateUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
-	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
-	addIncomingWebhookPermissionsWithOthers(t, th, model.TeamAdminRoleId)
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	th.AddPermissionToRole(model.PermissionManageIncomingWebhooks.Id, model.TeamAdminRoleId)
 
-	th.LoginTeamAdmin(t)
+	th.LoginTeamAdmin()
 
 	t.Run("cannot assign a user who is not a member of the team or channel", func(t *testing.T) {
-		nonMember := th.CreateUser(t)
+		nonMember := th.CreateUser()
 
 		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: nonMember.Id}
 		_, resp, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
@@ -168,7 +169,7 @@ func TestIncomingWebhookValidateUser(t *testing.T) {
 	})
 
 	t.Run("cannot assign a user with higher privileges than the requester", func(t *testing.T) {
-		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.SystemAdminUser, th.BasicChannel, false)
 		require.Nil(t, appErr)
 
@@ -190,7 +191,7 @@ func TestIncomingWebhookValidateUser(t *testing.T) {
 		created, _, err := th.Client.CreateIncomingWebhook(context.Background(), hook)
 		require.NoError(t, err)
 
-		privateChannel := th.CreatePrivateChannel(t)
+		privateChannel := th.CreatePrivateChannel()
 		created.ChannelId = privateChannel.Id
 
 		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), created)
@@ -205,7 +206,7 @@ func TestIncomingWebhookValidateUser(t *testing.T) {
 
 		// The owner is immutable on update, so changing it alongside the channel must not
 		// let the supplied user stand in for the retained owner's channel access.
-		privateChannel := th.CreatePrivateChannel(t)
+		privateChannel := th.CreatePrivateChannel()
 		created.ChannelId = privateChannel.Id
 		created.UserId = th.TeamAdminUser.Id
 
