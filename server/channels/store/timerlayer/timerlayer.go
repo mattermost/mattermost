@@ -10377,10 +10377,10 @@ func (s *TimerLayerSessionStore) UpdateRoles(userID string, roles string) (strin
 	return result, err
 }
 
-func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any, error) {
+func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any, map[string]int64, error) {
 	start := time.Now()
 
-	result, err := s.SessionAttributeStore.Get(sessionID)
+	result, resultVar1, err := s.SessionAttributeStore.Get(sessionID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10390,13 +10390,13 @@ func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any,
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Get", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
-func (s *TimerLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any) error {
+func (s *TimerLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any, updatedAt int64) error {
 	start := time.Now()
 
-	err := s.SessionAttributeStore.Refresh(sessionID, attrs)
+	err := s.SessionAttributeStore.Refresh(sessionID, attrs, updatedAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

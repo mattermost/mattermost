@@ -2359,6 +2359,7 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 
 	t.Run("populates session attributes from the cache", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
 
 		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 		require.Nil(t, appErr)
@@ -2367,7 +2368,7 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
 			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
 			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
-		}))
+		}, model.GetMillis()))
 
 		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
 		require.Nil(t, appErr)

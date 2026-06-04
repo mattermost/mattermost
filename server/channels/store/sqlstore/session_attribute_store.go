@@ -19,10 +19,10 @@ func newSqlSessionAttributeStore(sqlStore *SqlStore) store.SessionAttributeStore
 	return &SqlSessionAttributeStore{SqlStore: sqlStore}
 }
 
-func (s *SqlSessionAttributeStore) Refresh(_ string, _ map[string]any) error {
+func (s *SqlSessionAttributeStore) Refresh(_ string, _ map[string]any, _ int64) error {
 	return nil
 }
 
-func (s *SqlSessionAttributeStore) Get(_ string) (map[string]any, error) {
-	return map[string]any{}, nil
+func (s *SqlSessionAttributeStore) Get(_ string) (map[string]any, map[string]int64, error) {
+	return map[string]any{}, map[string]int64{}, nil
 }

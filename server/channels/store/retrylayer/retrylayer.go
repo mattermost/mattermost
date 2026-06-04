@@ -13104,32 +13104,32 @@ func (s *RetryLayerSessionStore) UpdateRoles(userID string, roles string) (strin
 
 }
 
-func (s *RetryLayerSessionAttributeStore) Get(sessionID string) (map[string]any, error) {
+func (s *RetryLayerSessionAttributeStore) Get(sessionID string) (map[string]any, map[string]int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionAttributeStore.Get(sessionID)
+		result, resultVar1, err := s.SessionAttributeStore.Get(sessionID)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
 }
 
-func (s *RetryLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any) error {
+func (s *RetryLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any, updatedAt int64) error {
 
 	tries := 0
 	for {
-		err := s.SessionAttributeStore.Refresh(sessionID, attrs)
+		err := s.SessionAttributeStore.Refresh(sessionID, attrs, updatedAt)
 		if err == nil {
 			return nil
 		}
