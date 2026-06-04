@@ -172,13 +172,15 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
 
-		// publishChannelPolicyEnforcedForChannelPoliciesWithImport iterates
-		// over child channel policies; with no children there is no fan-out
-		// to channel cache invalidation.
+		// A parent save fans out to both its channel and team children;
+		// with no children of either kind, neither search yields a broadcast.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
 		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
