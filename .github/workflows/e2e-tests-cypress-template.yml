@@ -146,6 +146,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
@@ -207,6 +208,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
@@ -263,6 +265,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/download-results
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
@@ -309,6 +313,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
@@ -358,6 +363,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:

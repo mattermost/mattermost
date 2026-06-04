@@ -2157,6 +2157,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+
+		if authErr := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); authErr != nil {
+			c.LogAuditWithUserId(user.Id, "failure - guest_magic_link")
+			c.Err = authErr
+			return
+		}
 	} else {
 		model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
 		c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
@@ -2906,10 +2912,6 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
-	// TODO: remove once the API officially supports setting expires_at; until
-	// then, strip any client-supplied value so that JSON-decoded requests cannot
-	// set an arbitrary (or zero) expiry through the create-token endpoint.
-	accessToken.ExpiresAt = 0
 
 	token, err := c.App.CreateUserAccessToken(c.AppContext, &accessToken)
 	if err != nil {

@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Calculate version
         id: calculate
         working-directory: server/
@@ -59,6 +61,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate mocks
@@ -76,6 +80,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go mod tidy
@@ -93,6 +99,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go fix
@@ -110,6 +118,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
@@ -125,6 +135,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run make-gen-serialized
@@ -142,6 +154,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run mattermost-vet-api
@@ -157,6 +171,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
@@ -172,6 +188,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Generate email templates
         run: |
           npm install -g mjml@4.9.0
@@ -189,6 +207,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate store layers
@@ -219,6 +239,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate default roles permissions
@@ -238,6 +260,8 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Check docs
@@ -382,6 +406,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
