@@ -62,6 +62,7 @@ jobs:
   generate-test-variables:
     runs-on: ubuntu-24.04
     permissions:
+      contents: read
       issues: write
       pull-requests: write
     defaults:

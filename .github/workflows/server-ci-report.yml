@@ -70,7 +70,6 @@ jobs:
       actions: read
       pull-requests: write
       checks: write
-      issues: write
     strategy:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:

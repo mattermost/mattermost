@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      actions: write
       # Needed to upload the results to code-scanning dashboard.
       security-events: write
       # Needed to publish results and get a badge (see publish_results below).

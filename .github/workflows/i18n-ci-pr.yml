@@ -18,7 +18,6 @@ permissions:
   contents: read
 
 jobs:
-  # Caller job permissions are passed to the reusable workflow run (checkout + changed-files only).
   pr-ci:
     permissions:
       contents: read

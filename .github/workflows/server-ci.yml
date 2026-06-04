@@ -35,6 +35,9 @@ jobs:
   go:
     name: Compute Go Version
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
