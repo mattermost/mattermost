@@ -15,33 +15,31 @@ jest.mock('mattermost-redux/actions/users', () => ({
 }));
 
 const mockedSendVerificationEmail = jest.mocked(sendVerificationEmail);
+const historyPush = jest.fn();
 
 describe('components/ShouldVerifyEmail', () => {
     beforeEach(() => {
         mockedSendVerificationEmail.mockReset();
         mockedSendVerificationEmail.mockReturnValue(async () => ({data: true}));
+        historyPush.mockReset();
+        (global as any).historyMock.push = historyPush;
     });
 
     const renderComponent = (url = '/should_verify_email?email=test%40example.com') => {
         const history = createMemoryHistory({initialEntries: [url]});
 
-        return {
-            ...renderWithContext(<ShouldVerifyEmail/>, {}, {history}),
-            history,
-        };
+        return renderWithContext(<ShouldVerifyEmail/>, {}, {history});
     };
 
     test('shows the verification prompt and returns to login', async () => {
-        const {history} = renderComponent();
+        renderComponent();
 
         expect(screen.getByText('You’re almost done!')).toBeVisible();
         expect(screen.getByText('Please verify your email address. Check your inbox for an email.')).toBeVisible();
 
         await userEvent.click(screen.getByRole('button', {name: 'Return to log in'}));
 
-        await waitFor(() => {
-            expect(history.location.pathname).toBe('/');
-        });
+        expect(historyPush).toHaveBeenCalledWith('/');
     });
 
     test('resends the verification email and disables the button while sending', async () => {
