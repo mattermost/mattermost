@@ -23,12 +23,13 @@ on:
         type: string
         required: false
 
-permissions:
-  contents: read
-  statuses: write
+permissions: {}
 
 jobs:
   resolve-pr:
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
@@ -122,6 +123,9 @@ jobs:
 
 
   check-changes:
+    permissions:
+      contents: read
+      pull-requests: read
     needs: resolve-pr
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     runs-on: ubuntu-24.04

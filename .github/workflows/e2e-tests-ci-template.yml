@@ -97,8 +97,12 @@ on:
       playwright_report_url:
         value: ${{ jobs.report.outputs.playwright_report_url }}
 
+permissions: {}
+
 jobs:
   update-initial-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
@@ -112,6 +116,8 @@ jobs:
           status: pending
 
   generate-build-variables:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - update-initial-status
@@ -139,6 +145,8 @@ jobs:
           echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - generate-build-variables
@@ -183,6 +191,9 @@ jobs:
           fi
 
   test:
+    permissions:
+      contents: read
+      actions: write
     continue-on-error: true # Individual runner failures shouldn't prevent the completion of an E2E run
     strategy:
       fail-fast: false # Individual runner failures shouldn't prevent the completion of an E2E run
@@ -327,6 +338,9 @@ jobs:
           retention-days: 1
 
   report:
+    permissions:
+      actions: write
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - test
@@ -475,6 +489,8 @@ jobs:
           [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
 
   update-failure-final-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     if: failure() || cancelled()
     needs:
@@ -498,6 +514,8 @@ jobs:
 
 
   update-success-final-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     if: success()
     needs:

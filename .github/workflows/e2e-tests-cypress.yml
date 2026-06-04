@@ -62,9 +62,7 @@ on:
       CWS_EXTRA_HTTP_HEADERS:
         required: false
 
-permissions:
-  contents: read
-  statuses: write
+permissions: {}
 
 jobs:
   generate-build-variables:

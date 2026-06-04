@@ -14,7 +14,13 @@ concurrency:
 # and it _always_ cancels pending workflows. So master CI builds
 # always kept getting canceled.
 
+permissions:
+  contents: read
+
 jobs:
+  # Caller job permissions are passed to the reusable workflow run (checkout + changed-files only).
   pr-ci:
+    permissions:
+      contents: read
     uses: ./.github/workflows/i18n-ci-template.yml
     secrets: inherit

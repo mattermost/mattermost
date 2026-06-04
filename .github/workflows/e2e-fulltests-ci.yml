@@ -56,6 +56,8 @@ concurrency:
   group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.FIPS_ENABLED }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   generate-test-variables:
     runs-on: ubuntu-24.04

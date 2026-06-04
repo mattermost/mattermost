@@ -67,6 +67,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   test:
