@@ -4,8 +4,17 @@ migration_automation.py
  
 Triggered by GitHub Actions when a new .up.sql file lands on master.
  
-For each new migration file:
-  1. Reads the .up.sql and .down.sql from the repo
+Each Mattermost migration ships as a pair of files: NNNNNN_slug.up.sql
+(applied on upgrade) and NNNNNN_slug.down.sql (applied on rollback).  The
+workflow filters on .up.sql files only because:
+  - The .up.sql is the canonical identifier for a new migration.
+  - Both files are committed together, so detecting the up file is enough
+    to locate the pair.
+  - We never want to trigger a separate review run for a down migration
+    that arrives without a matching up migration.
+ 
+For each new .up.sql file detected:
+  1. Reads the .up.sql and its paired .down.sql (if present) from the repo
   2. Fetches the review-migration skill from the AI marketplace
   3. Calls Claude to produce the schema review report
   4. Calls Claude to produce the RST release note draft + changelog summary
@@ -92,14 +101,16 @@ For multiple SQL dialects use a separate labeled ``.. code-block:: sql`` block f
  
 # ── Startup validation ────────────────────────────────────────────────────────
  
-def validate_env() -> dict:
+def validate_env() -> str:
     """
-    Validate required env vars and return a config dict.
+    Validate required env vars and return the GITHUB_STEP_SUMMARY path.
     Exits with a clear error message if any required var is missing.
+ 
+    ANTHROPIC_API_KEY is validated here so we fail fast with a readable
+    message rather than an opaque SDK error, but it is not returned —
+    the Anthropic SDK reads it directly from the environment.
     """
     required = {
-        # ANTHROPIC_API_KEY is read directly by the Anthropic SDK — validated
-        # here so we fail fast with a clear message rather than an SDK error.
         "ANTHROPIC_API_KEY": "Anthropic API key (repo secret)",
         "GITHUB_STEP_SUMMARY": "Job summary file path (provided automatically by Actions)",
     }
@@ -114,7 +125,7 @@ def validate_env() -> dict:
             print(m)
         sys.exit(1)
  
-    return {var: os.environ[var] for var in required}
+    return os.environ["GITHUB_STEP_SUMMARY"]
  
  
 # ── Input validation ──────────────────────────────────────────────────────────
@@ -292,7 +303,7 @@ def write_summary(summary_path: str, sections: list[tuple[str, str]]) -> None:
 # ── Main ──────────────────────────────────────────────────────────────────────
  
 def main() -> None:
-    config = validate_env()
+    summary_path = validate_env()
  
     new_files = [f for f in sys.argv[1:] if f.strip()]
     if not new_files:
@@ -300,8 +311,6 @@ def main() -> None:
         return
  
     validate_migration_paths(new_files)
- 
-    summary_path = config["GITHUB_STEP_SUMMARY"]
  
     print(f"Processing {len(new_files)} migration(s): {new_files}\n")
  
