@@ -802,6 +802,21 @@ func (r *Role) IsValidWithoutId() error {
 		return fmt.Errorf("role description exceeds maximum length of %d", RoleDescriptionMaxLength)
 	}
 
+	if unknown := r.UnknownPermissions(); len(unknown) > 0 {
+		return fmt.Errorf("unknown permission %q", unknown[0])
+	}
+
+	return nil
+}
+
+// UnknownPermissions returns the permissions on the role that are not recognized
+// by this server build, i.e. permissions present in neither AllPermissions nor
+// DeprecatedPermissions. This is normally empty, but a server that was upgraded to
+// a newer release (which introduced new permissions and wrote them into roles) and
+// subsequently downgraded will hold permissions the older binary does not know
+// about. Callers can use this to preserve such permissions rather than failing,
+// avoiding a fatal permissions migration on downgrade (see MM-68830).
+func (r *Role) UnknownPermissions() []string {
 	check := func(perms []*Permission, permission string) bool {
 		for _, p := range perms {
 			if permission == p.Id {
@@ -810,13 +825,14 @@ func (r *Role) IsValidWithoutId() error {
 		}
 		return false
 	}
+
+	var unknown []string
 	for _, permission := range r.Permissions {
 		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) {
-			return fmt.Errorf("unknown permission %q", permission)
+			unknown = append(unknown, permission)
 		}
 	}
-
-	return nil
+	return unknown
 }
 
 func CleanRoleNames(roleNames []string) ([]string, bool) {

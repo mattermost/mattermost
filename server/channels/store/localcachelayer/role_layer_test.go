@@ -53,6 +53,19 @@ func TestRoleStoreCache(t *testing.T) {
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 2)
 	})
 
+	t.Run("first call not cached, save preserving unknown permissions, and then not cached again", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		cachedStore.Role().GetByName(context.Background(), "role-name")
+		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
+		cachedStore.Role().SavePreservingUnknownPermissions(&fakeRole)
+		cachedStore.Role().GetByName(context.Background(), "role-name")
+		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 2)
+	})
+
 	t.Run("first call not cached, delete, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()

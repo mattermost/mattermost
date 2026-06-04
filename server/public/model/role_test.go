@@ -430,6 +430,34 @@ func TestRoleIsValidWithoutId(t *testing.T) {
 	})
 }
 
+func TestRoleUnknownPermissions(t *testing.T) {
+	t.Run("returns nil when all permissions are known", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, PermissionCreateEmojis.Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("tolerates deprecated permissions", func(t *testing.T) {
+		require.NotEmpty(t, DeprecatedPermissions)
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, DeprecatedPermissions[0].Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("returns only the permissions this build does not recognize", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, "manage_own_agent_from_the_future", "another_unknown"},
+		}
+		assert.ElementsMatch(t, []string{"manage_own_agent_from_the_future", "another_unknown"}, r.UnknownPermissions())
+	})
+
+	t.Run("empty permissions yields no unknowns", func(t *testing.T) {
+		assert.Empty(t, (&Role{}).UnknownPermissions())
+	})
+}
+
 func TestRoleIsValid(t *testing.T) {
 	validRole := func() *Role {
 		return &Role{

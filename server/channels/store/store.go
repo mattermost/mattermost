@@ -870,6 +870,12 @@ type PluginStore interface {
 
 type RoleStore interface {
 	Save(role *model.Role) (*model.Role, error)
+	// SavePreservingUnknownPermissions behaves like Save but tolerates and persists
+	// permissions this server build does not recognize instead of rejecting the role.
+	// It is used by the permissions migrations so that a server which was downgraded
+	// from a newer release does not fail fatally on permissions it no longer knows
+	// about (see MM-68830). Unrecognized permissions are logged and preserved.
+	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
 	GetByName(ctx context.Context, name string) (*model.Role, error)
