@@ -86,6 +86,7 @@ jobs:
         if: github.event.workflow_run.head_repository.full_name != github.repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           sparse-checkout: server/build/
           sparse-checkout-cone-mode: true
 
