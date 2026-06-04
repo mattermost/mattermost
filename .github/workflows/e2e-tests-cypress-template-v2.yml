@@ -231,7 +231,9 @@ jobs:
         # postinstall builds platform/{client,types}/lib. We only cache those.
         # if: steps.cache-platform-pkgs.outputs.cache-hit != 'true'
         working-directory: webapp
-        run: make node_modules
+        run: |
+          echo "HARRISON $CI"
+          npm ci --include=dev # make node_modules
       - name: ci/cache-cypress-deps
         # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
         # cypress's postinstall, not into node_modules). Both must be cached;
@@ -349,7 +351,9 @@ jobs:
         # postinstall builds platform/{client,types}/lib. We only cache those.
         # if: steps.cache-platform-pkgs.outputs.cache-hit != 'true'
         working-directory: webapp
-        run: make node_modules
+        run: |
+          echo "HARRISON $CI"
+          npm ci --include=dev # make node_modules
       - name: ci/restore-cypress-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
