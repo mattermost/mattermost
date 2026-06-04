@@ -7705,6 +7705,10 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Could not restore ranked operators in policy expression."
+  },
+  {
     "id": "app.pap.save_policy.advanced_expression_blocked",
     "translation": "This rule expression cannot be safely edited while restricted values are present."
   },
