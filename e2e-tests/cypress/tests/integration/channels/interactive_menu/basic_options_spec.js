@@ -577,6 +577,11 @@ describe('Interactive Menu', () => {
     });
 });
 
+// Matches `.mm-blocks-select` in block_renderer.scss (interactive menus render as mm_blocks).
+const MM_BLOCKS_SELECT_HEIGHT = '36px';
+const MM_BLOCKS_SELECT_WIDTH = '220px';
+const MM_BLOCKS_SELECT_PADDING_RIGHT = '24px';
+
 function verifyMessageAttachmentListContent(isRhs, text) {
     cy.findByTestId('autoCompleteSelector').should('be.visible');
 
@@ -592,13 +597,13 @@ function verifyMessageAttachmentListContent(isRhs, text) {
     // * Verify exact height, width and padding of suggestion container and its input
     cy.get('.select-suggestion-container').
         should('be.visible').
-        and('have.css', 'height', '32px').
-        and('have.css', 'width', '220px');
+        and('have.css', 'height', MM_BLOCKS_SELECT_HEIGHT).
+        and('have.css', 'width', MM_BLOCKS_SELECT_WIDTH);
 
     cy.findByPlaceholderText('Select an option...').scrollIntoView().
-        and('have.css', 'height', '32px').
-        and('have.css', 'width', '220px').
-        and('have.css', 'padding-right', '30px');
+        and('have.css', 'height', MM_BLOCKS_SELECT_HEIGHT).
+        and('have.css', 'width', MM_BLOCKS_SELECT_WIDTH).
+        and('have.css', 'padding-right', MM_BLOCKS_SELECT_PADDING_RIGHT);
 
     if (!isRhs) {
         cy.findByPlaceholderText('Select an option...').scrollIntoView().invoke('attr', 'value').then((value) => {

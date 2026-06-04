@@ -1157,8 +1157,10 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             const collapsible = post.locator('.mm-blocks-collapsible');
             await expect(collapsible).toBeVisible();
 
-            const toggle = collapsible.getByRole('button', {name: new RegExp(headerLabel)});
+            // Chevron is the named toggle control; header text lives in a sibling region (layout_blocks.tsx).
+            const toggle = collapsible.locator('.mm-blocks-collapsible-header__toggle');
             await expect(toggle).toBeVisible();
+            await expect(collapsible.getByText(headerLabel)).toBeVisible();
             await expect(toggle).toHaveAttribute('aria-expanded', 'false');
             await expect(collapsible.getByText(bodyLabel)).not.toBeVisible();
 
@@ -1215,8 +1217,9 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await expect(post).toBeVisible({timeout: 20000});
 
             const collapsible = post.locator('.mm-blocks-collapsible');
-            const toggle = collapsible.getByRole('button', {name: new RegExp(headerLabel)});
+            const toggle = collapsible.locator('.mm-blocks-collapsible-header__toggle');
 
+            await expect(collapsible.getByText(headerLabel)).toBeVisible();
             await expect(toggle).toHaveAttribute('aria-expanded', 'true');
             await expect(collapsible.getByText(bodyLabel)).toBeVisible();
 
