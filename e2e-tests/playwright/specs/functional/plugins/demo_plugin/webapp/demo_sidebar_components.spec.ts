@@ -65,7 +65,7 @@ test('should show Demo Plugin Item in Browse or create channels menu and trigger
     await channelsPage.toBeVisible();
 
     // 3. Click the "Browse or create channels" button in the channel sidebar header
-    await channelsPage.page.getByRole('button', {name: 'Browse or create channels'}).click();
+    await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
 
     // 4. Verify the menu is open and contains the Demo Plugin Item entry
     const menu = channelsPage.page.getByRole('menu', {name: 'Browse or create channels'});

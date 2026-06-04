@@ -15,27 +15,25 @@ test('should show demo plugin settings sections and save changes with alert conf
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 3. Open Settings via the gear icon in the top navigation
-    await channelsPage.page.getByRole('button', {name: 'Settings'}).click();
-    const settingsDialog = channelsPage.page.getByRole('dialog', {name: 'Settings'});
-    await expect(settingsDialog).toBeVisible();
+    // 3. Open Settings via the library method
+    const settingsModal = await channelsPage.openSettings();
 
     // 4. Navigate to the Demo Plugin settings tab
-    await expect(settingsDialog.getByText('PLUGIN PREFERENCES')).toBeVisible();
-    await settingsDialog.getByRole('tab', {name: /Demo Plugin/i}).click();
+    await expect(settingsModal.container.getByText('PLUGIN PREFERENCES')).toBeVisible();
+    await settingsModal.container.getByRole('tab', {name: /Demo Plugin/i}).click();
 
     // 5. Verify Demo Plugin Settings panel and all four section titles
-    await expect(settingsDialog.getByRole('heading', {name: 'Demo Plugin Settings', level: 3})).toBeVisible();
-    await expect(settingsDialog.getByRole('heading', {name: 'Example action', level: 4})).toBeVisible();
-    await expect(settingsDialog.getByRole('heading', {name: 'Test section number 1', level: 4})).toBeVisible();
-    await expect(settingsDialog.getByRole('heading', {name: 'Test section number 2', level: 4})).toBeVisible();
-    await expect(settingsDialog.getByRole('heading', {name: 'Test section disabled', level: 4})).toBeVisible();
+    await expect(settingsModal.container.getByRole('heading', {name: 'Demo Plugin Settings', level: 3})).toBeVisible();
+    await expect(settingsModal.container.getByRole('heading', {name: 'Example action', level: 4})).toBeVisible();
+    await expect(settingsModal.container.getByRole('heading', {name: 'Test section number 1', level: 4})).toBeVisible();
+    await expect(settingsModal.container.getByRole('heading', {name: 'Test section number 2', level: 4})).toBeVisible();
+    await expect(settingsModal.container.getByRole('heading', {name: 'Test section disabled', level: 4})).toBeVisible();
 
     // 6. Verify Example action section has its button
-    await expect(settingsDialog.getByRole('button', {name: 'Here is the button text'})).toBeVisible();
+    await expect(settingsModal.container.getByRole('button', {name: 'Here is the button text'})).toBeVisible();
 
     // 7. Verify Edit buttons visible for active sections (disabled section has none)
-    const editButtons = settingsDialog.locator('.section-min__edit');
+    const editButtons = settingsModal.container.locator('.section-min__edit');
     await expect(editButtons).toHaveCount(2);
 
     // 8. Expand Section 1, select Option 2, save
@@ -48,13 +46,13 @@ test('should show demo plugin settings sections and save changes with alert conf
     channelsPage.page.on('dialog', dialogHandler);
 
     await editButtons.first().click();
-    await settingsDialog.getByRole('radio', {name: 'Option 2'}).first().click();
+    await settingsModal.container.getByRole('radio', {name: 'Option 2'}).first().click();
     await channelsPage.page.getByTestId('saveSetting').click();
     expect(alerts[0]).toBe('saving {setting1}: 2');
 
     // 9. Expand Section 2, select Option 1, save
     await editButtons.nth(1).click();
-    await settingsDialog.getByRole('radio', {name: 'Option 1'}).first().click();
+    await settingsModal.container.getByRole('radio', {name: 'Option 1'}).first().click();
     await channelsPage.page.getByTestId('saveSetting').click();
     expect(alerts[1]).toBe('saving {setting3}: 1');
 

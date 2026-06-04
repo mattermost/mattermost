@@ -40,7 +40,7 @@ test('should open Root Modal from channel header dropdown More actions', async (
     await channelsPage.toBeVisible();
 
     // 3. Open channel header dropdown
-    await channelsPage.page.getByRole('button', {name: 'town square channel menu'}).click();
+    await channelsPage.centerView.header.openChannelMenu();
 
     // 4. Hover "More actions" to reveal the submenu, then click "Demo Plugin"
     const moreActionsItem = channelsPage.page.getByRole('menuitem', {name: 'More actions'});

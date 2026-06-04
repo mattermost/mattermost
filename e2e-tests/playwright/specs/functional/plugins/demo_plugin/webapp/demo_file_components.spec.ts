@@ -5,7 +5,7 @@ import {Client4} from '@mattermost/client';
 
 import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
-import {assertRootModal, closeRootModal, setupDemoPlugin} from '../helpers';
+import {assertRootModal, closeRootModal, setupDemoPlugin, uploadFileViaYourComputer} from '../helpers';
 
 async function uploadDemoFile(client: Client4, channelId: string): Promise<void> {
     const file = getFileFromAsset('sample-file.demo');
@@ -127,4 +127,34 @@ test('should render custom preview for .demo files', async ({pw}) => {
     // 6. Close via the plugin's Close button
     await pluginCloseButton.click();
     await expect(previewDialog).not.toBeVisible();
+});
+
+test('should upload a file via "Your computer" from the demo plugin attachment submenu', async ({pw}) => {
+    // 1. Setup
+    const {adminClient, user, team} = await pw.initSetup();
+    await setupDemoPlugin(adminClient, pw);
+
+    // 2. Login and navigate to Town Square
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    // 3. Upload a file via the UI — the demo plugin intercepts the attachment button
+    // and shows a submenu. uploadFileViaYourComputer clicks "Your computer" to reach
+    // the native file chooser.
+    await uploadFileViaYourComputer(
+        channelsPage.page,
+        channelsPage.centerView.postCreate.attachmentButton,
+        'sample_text_file.txt',
+    );
+
+    // 4. Verify the file preview appears in the compose area before sending
+    await channelsPage.centerView.postCreate.waitUntilFilePreviewContains(['sample_text_file.txt']);
+
+    // 5. Send the message with file
+    await channelsPage.centerView.postCreate.postMessage('file upload test');
+
+    // 6. Verify the file attachment appears in the channel post
+    const lastPost = await channelsPage.centerView.getLastPost();
+    await expect(lastPost.container.getByText('sample_text_file.txt')).toBeVisible();
 });

@@ -15,13 +15,11 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 3. Locate the demo plugin button in the right App Bar
-    // The plugin registers a button with a stable plugin-scoped ID in the App Bar
-    const appBarButton = channelsPage.page.locator('[id="app-bar-icon-com.mattermost.demo-plugin"]');
-    await expect(appBarButton).toBeVisible();
+    // 3. Locate and click the demo plugin button in the right App Bar
+    await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
 
     // 4. Click the App Bar button
-    await appBarButton.click();
+    await channelsPage.appBar.demoPluginButton.click();
 
     // 5. Verify the RHS opens with expected content
     const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
