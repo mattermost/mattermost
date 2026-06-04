@@ -179,6 +179,9 @@ jobs:
           BUILD_ID: "${{ inputs.BUILD_ID }}"
           TEST: "${{ inputs.TEST }}"
           TEST_FILTER: "${{ inputs.TEST_FILTER }}"
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           set -e -o pipefail
           make generate-test-cycle | tee generate-test-cycle.out
@@ -187,7 +190,7 @@ jobs:
           if [ -n "$TEST_CYCLE_ID" ]; then
             echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
           else
-            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+            echo "status_check_url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
           fi
 
   test:
@@ -426,14 +429,18 @@ jobs:
       - name: ci/upload-results-to-s3
         if: (inputs.TEST == 'playwright')
         id: upload-to-s3
+        env:
+          AWS_REGION: us-east-1
+          AWS_S3_BUCKET: mattermost-cypress-report
+          INPUT_PR_NUMBER: ${{ inputs.PR_NUMBER }}
+          INPUT_TEST: ${{ inputs.TEST }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           echo "🔍 Checking if results directory exists..."
 
-          PR_NUMBER="${{ inputs.PR_NUMBER }}"
-          LOCAL_RESULTS_PATH="${{ inputs.TEST }}/results/"
-          LOCAL_LOGS_PATH="${{ inputs.TEST }}/logs/"
-          RUN_ID="${{ github.run_id }}"
-          S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}/${RUN_ID}"
+          LOCAL_RESULTS_PATH="${INPUT_TEST}/results/"
+          LOCAL_LOGS_PATH="${INPUT_TEST}/logs/"
+          S3_PATH="server-pr-${INPUT_PR_NUMBER}/e2e-reports/${INPUT_TEST}/${GITHUB_RUN_ID}"
 
           echo "📤 Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
 
@@ -447,9 +454,6 @@ jobs:
           echo "✅ Report uploaded to: $REPORT_URL"
 
           echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
-        env:
-          AWS_REGION: us-east-1
-          AWS_S3_BUCKET: mattermost-cypress-report
 
       - name: ci/report-calculate-results
         id: calculate-results
@@ -484,9 +488,11 @@ jobs:
           echo "$COMMIT_STATUS_MESSAGE"
       - name: ci/e2e-test-assert-results
         if: "${{ inputs.testcase_failure_fatal }}"
+        env:
+          CALCULATE_FAILED: ${{ steps.calculate-results.outputs.failed }}
         run: |
           # Assert that the run contained 0 failures
-          [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
+          [ "${CALCULATE_FAILED}" = "0" ]
 
   update-failure-final-status:
     permissions:
