@@ -6,14 +6,8 @@ engine behind Mattermost's long, variable-height message lists.
 
 ## Origin
 
-This code originated from [`mattermost/dynamic-virtualized-list`](https://github.com/mattermost/dynamic-virtualized-list)
-("React components for efficiently rendering dynamically sized lists", MIT-licensed). That
-package was built from a fork of an alpha version of [`react-window`](https://github.com/bvaughn/react-window),
-but took a substantially different approach — using relative rather than absolute positioning —
-to render items whose sizes aren't known ahead of time.
-
-It has since been **vendored into this monorepo** rather than consumed as an npm
-dependency, so this directory is now the canonical source.
+This package was built from a fork of an alpha version of [`react-window`](https://github.com/bvaughn/react-window),
+but took a substantially different approach — using relative rather than absolute positioning to render items whose sizes aren't known ahead of time.
 
 ## Files
 
