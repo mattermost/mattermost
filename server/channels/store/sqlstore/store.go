@@ -1159,15 +1159,17 @@ func (ss *SqlStore) preMigration() error {
 		{"renumber_roles_schemeid_migrations", 144, ss.doRenumberRolesSchemeIdMigrations},
 	}
 
-	if len(migrations) == 0 {
+	// To check for empty DB and skip
+	exists, err := ss.tableExists("db_migrations")
+	if err != nil {
+		return errors.Wrap(err, "failed to check if db_migrations table exists")
+	}
+	if !exists {
 		return nil
 	}
 
-	// preMigration runs before the schema migrations, so on a fresh install the
-	// Systems table (created by schema migration 000015) does not yet exist.
-	// In that case there is no prior data to migrate, so we skip. Systems
-	// existing also implies db_migrations exists (Morph created it).
-	exists, err := ss.systemsTableExists()
+	// Checking for systems table because that's where the run status of individual pre migrations are stored
+	exists, err = ss.tableExists("systems")
 	if err != nil {
 		return errors.Wrap(err, "failed to check if Systems table exists")
 	}
@@ -1206,16 +1208,31 @@ func (ss *SqlStore) preMigration() error {
 	return nil
 }
 
+// This is for resolving the issue described here - https://mattermost.atlassian.net/browse/MM-68848?focusedCommentId=217769
+// Briefly describing here for quick reference -
+// The DB migrations originally numbered 156, 157 and 158 were cherrypicked onto v10.11 release branch but their numbers
+// were changed. When upgrading from v10.11.17 to v11.7, the migrations which were actually supposed to be 142, 143 and 144
+// could never run due to migration version conflict in db_migrations table.
+// This pre-migration functon fixes that issue. When someone upgrades from v10.11 to new release, this function fixes the migration
+// numbers to what they originally were. For example, 142 gets renamed to 156. This lets the missing migrations run successfully and complete the upgrade.
 func (ss *SqlStore) doRenumberRolesSchemeIdMigrations() error {
-	if _, err := ss.GetMaster().Exec("UPDATE db_migrations SET Version = 156 WHERE Version = 142 AND Name = 'add_schemeid_to_roles'"); err != nil {
-		return errors.Wrap(err, "failed to renumber add_schemeid_to_roles")
+	query := `
+UPDATE db_migrations
+SET Version = CASE
+    WHEN Version = 142 AND Name = 'add_schemeid_to_roles'    THEN 156
+    WHEN Version = 143 AND Name = 'backfill_roles_schemeid'  THEN 157
+    WHEN Version = 144 AND Name = 'add_roles_schemeid_index' THEN 158
+END
+WHERE (Version, Name) IN (
+    (142, 'add_schemeid_to_roles'),
+    (143, 'backfill_roles_schemeid'),
+    (144, 'add_roles_schemeid_index')
+)`
+
+	if _, err := ss.GetMaster().Exec(query); err != nil {
+		return errors.Wrap(err, "failed to renumber schema ID related migrations")
 	}
-	if _, err := ss.GetMaster().Exec("UPDATE db_migrations SET Version = 157 WHERE Version = 143 AND Name = 'backfill_roles_schemeid'"); err != nil {
-		return errors.Wrap(err, "failed to renumber backfill_roles_schemeid")
-	}
-	if _, err := ss.GetMaster().Exec("UPDATE db_migrations SET Version = 158 WHERE Version = 144 AND Name = 'add_roles_schemeid_index'"); err != nil {
-		return errors.Wrap(err, "failed to renumber add_roles_schemeid_index")
-	}
+
 	return nil
 }
 
@@ -1231,14 +1248,14 @@ func (ss *SqlStore) isDBMigrationApplied(version int) (bool, error) {
 	return exists, nil
 }
 
-func (ss *SqlStore) systemsTableExists() (bool, error) {
+func (ss *SqlStore) tableExists(tableName string) (bool, error) {
 	var exists bool
 	if err := ss.GetMaster().Get(&exists, `
 		SELECT EXISTS (
 			SELECT 1 FROM information_schema.tables
-			WHERE LOWER(table_name) = 'systems'
+			WHERE LOWER(table_name) = $1
 		)
-	`); err != nil {
+	`, tableName); err != nil {
 		return false, errors.Wrap(err, "unable to query information_schema.tables")
 	}
 	return exists, nil

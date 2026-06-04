@@ -1106,37 +1106,6 @@ func TestSkipMigrationsOption(t *testing.T) {
 	}
 }
 
-func TestSystemsTableExists(t *testing.T) {
-	if enableFullyParallelTests {
-		t.Parallel()
-	}
-
-	logger := mlog.CreateConsoleTestLogger(t)
-
-	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
-	if err != nil {
-		t.Skip(err)
-	}
-
-	t.Run("returns false when schema migrations have been skipped", func(t *testing.T) {
-		ss, err := New(*settings, logger, nil, SkipMigrations())
-		require.NoError(t, err)
-
-		exists, err := ss.systemsTableExists()
-		require.NoError(t, err)
-		assert.False(t, exists)
-	})
-
-	t.Run("returns true once schema migrations have run", func(t *testing.T) {
-		ss, err := New(*settings, logger, nil)
-		require.NoError(t, err)
-
-		exists, err := ss.systemsTableExists()
-		require.NoError(t, err)
-		assert.True(t, exists)
-	})
-}
-
 func TestIsDBMigrationApplied(t *testing.T) {
 	if enableFullyParallelTests {
 		t.Parallel()
@@ -1248,6 +1217,59 @@ func TestDoRenumberRolesSchemeIdMigrations(t *testing.T) {
 
 	// Running again is a safe no-op: WHERE clauses match nothing now.
 	require.NoError(t, ss.doRenumberRolesSchemeIdMigrations())
+}
+
+func TestTableExists(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	t.Run("returns true for an existing table", func(t *testing.T) {
+		exists, err := ss.tableExists("systems")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("returns true for another existing table", func(t *testing.T) {
+		exists, err := ss.tableExists("db_migrations")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("returns false for a non-existent table", func(t *testing.T) {
+		exists, err := ss.tableExists("this_table_does_not_exist")
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
+
+	t.Run("returns false for empty table name", func(t *testing.T) {
+		exists, err := ss.tableExists("")
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
+
+	t.Run("match is case-insensitive on stored table name", func(t *testing.T) {
+		// The query LOWERs the stored table_name and compares against the
+		// parameter as-is, so a lowercase input matches regardless of how
+		// the table name is stored in information_schema.
+		exists, err := ss.tableExists("systems")
+		require.NoError(t, err)
+		assert.True(t, exists)
+
+		// Uppercase parameter will not match because only the stored
+		// column is lowered in the query.
+		exists, err = ss.tableExists("SYSTEMS")
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
 }
 
 func TestPreMigration(t *testing.T) {
