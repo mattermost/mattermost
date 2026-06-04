@@ -68,7 +68,7 @@ const ShouldVerifyEmail = () => {
                                 <SaveButton
                                     extraClasses='should-verify-body-content-button-resend large'
                                     saving={isWaiting}
-                                    disabled={!email}
+                                    disabled={!email || isWaiting}
                                     onClick={handleResendButtonOnClick}
                                     defaultMessage={formatMessage({id: 'email_verify.resend', defaultMessage: 'Resend Email'})}
                                     savingMessage={formatMessage({id: 'email_verify.sending', defaultMessage: 'Sending email…'})}
