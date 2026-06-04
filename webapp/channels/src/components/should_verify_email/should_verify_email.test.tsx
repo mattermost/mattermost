@@ -16,6 +16,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 
 const mockedSendVerificationEmail = jest.mocked(sendVerificationEmail);
 const historyPush = jest.fn();
+const OK_RESPONSE = {status: 'OK'} as const;
 
 type GlobalWithHistoryMock = typeof globalThis & {
     historyMock: {
@@ -28,7 +29,7 @@ const getHistoryMock = () => (globalThis as GlobalWithHistoryMock).historyMock;
 describe('components/ShouldVerifyEmail', () => {
     beforeEach(() => {
         mockedSendVerificationEmail.mockReset();
-        mockedSendVerificationEmail.mockReturnValue(async () => ({data: true}));
+        mockedSendVerificationEmail.mockReturnValue(async () => ({data: OK_RESPONSE}));
         historyPush.mockReset();
         getHistoryMock().push = historyPush;
     });
@@ -51,8 +52,8 @@ describe('components/ShouldVerifyEmail', () => {
     });
 
     test('resends the verification email and disables the button while sending', async () => {
-        let resolveResend: (result: {data: boolean}) => void;
-        const resendPromise = new Promise<{data: boolean}>((resolve) => {
+        let resolveResend: (result: {data: typeof OK_RESPONSE}) => void;
+        const resendPromise = new Promise<{data: typeof OK_RESPONSE}>((resolve) => {
             resolveResend = resolve;
         });
         mockedSendVerificationEmail.mockReturnValueOnce(async () => resendPromise);
@@ -67,7 +68,7 @@ describe('components/ShouldVerifyEmail', () => {
         expect(mockedSendVerificationEmail).toHaveBeenCalledWith('test@example.com');
         expect(screen.getByRole('button', {name: /Sending email/})).toBeDisabled();
 
-        resolveResend!({data: true});
+        resolveResend!({data: OK_RESPONSE});
 
         await waitFor(() => {
             expect(screen.getByText('Verification email sent')).toBeVisible();
@@ -88,12 +89,12 @@ describe('components/ShouldVerifyEmail', () => {
     });
 
     test('clears the previous resend status while retrying', async () => {
-        let resolveRetry: (result: {data: boolean}) => void;
-        const retryPromise = new Promise<{data: boolean}>((resolve) => {
+        let resolveRetry: (result: {data: typeof OK_RESPONSE}) => void;
+        const retryPromise = new Promise<{data: typeof OK_RESPONSE}>((resolve) => {
             resolveRetry = resolve;
         });
         mockedSendVerificationEmail.
-            mockReturnValueOnce(async () => ({data: true})).
+            mockReturnValueOnce(async () => ({data: OK_RESPONSE})).
             mockReturnValueOnce(async () => retryPromise);
 
         renderComponent();
@@ -107,7 +108,7 @@ describe('components/ShouldVerifyEmail', () => {
         expect(screen.queryByText('Verification email sent')).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: /Sending email/})).toBeDisabled();
 
-        resolveRetry!({data: true});
+        resolveRetry!({data: OK_RESPONSE});
 
         expect(await screen.findByText('Verification email sent')).toBeVisible();
     });
