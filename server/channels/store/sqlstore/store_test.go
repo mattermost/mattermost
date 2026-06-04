@@ -1217,6 +1217,15 @@ func TestDoRenumberRolesSchemeIdMigrations(t *testing.T) {
 
 	// Running again is a safe no-op: WHERE clauses match nothing now.
 	require.NoError(t, ss.doRenumberRolesSchemeIdMigrations())
+
+	rows = []row{}
+	require.NoError(t, ss.GetMaster().Select(&rows,
+		"SELECT Version, Name FROM db_migrations WHERE Version IN (142, 143, 144, 156, 157, 158) ORDER BY Version"))
+	assert.Equal(t, []row{
+		{156, "add_schemeid_to_roles"},
+		{157, "backfill_roles_schemeid"},
+		{158, "add_roles_schemeid_index"},
+	}, rows)
 }
 
 func TestTableExists(t *testing.T) {
