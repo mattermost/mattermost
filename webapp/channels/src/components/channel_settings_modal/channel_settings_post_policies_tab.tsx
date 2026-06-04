@@ -1,16 +1,52 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getPostFilterRules, buildRulesWithPostFilterRules} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
+import {Client4} from 'mattermost-redux/client';
+
+import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 
 import './channel_settings_post_policies_tab.scss';
+
+// A post policy rule must reference both namespaces — the post side
+// decides applicability ("does this rule apply to this post?") and the
+// user side decides the predicate ("should this user see it?"). A rule
+// missing either side is semantically broken (matches everything on one
+// axis), so we block save with this regex-based check before hitting
+// the server-side CEL validator.
+const POST_ATTR_RE = /\bpost\.attributes\.\w+/;
+const USER_ATTR_RE = /\buser\.attributes\.\w+/;
+
+type AttributeOption = {
+    attribute: string;
+    values: string[];
+};
+
+const optionNames = (options?: PropertyFieldOption[]): string[] => {
+    if (!options) {
+        return [];
+    }
+    return options.map((o) => o.name).filter((n): n is string => Boolean(n));
+};
+
+const toPostAttribute = (f: PropertyField): AttributeOption => {
+    const options = (f.attrs?.options as PropertyFieldOption[] | undefined);
+    return {
+        attribute: f.name,
+        // For select/multiselect, surface the user-visible option names
+        // (mirrors Slice 11's server-side option-ID -> name resolution
+        // so what authors complete is what the evaluator compares).
+        values: f.type === 'select' || f.type === 'multiselect' ? optionNames(options) : [],
+    };
+};
 
 type Card = {
     localId: string;
@@ -57,37 +93,77 @@ function ChannelSettingsPostPoliciesTab({
     const [cards, setCards] = useState<Card[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState<string>('');
+    const [userAttributes, setUserAttributes] = useState<AttributeOption[]>([]);
+    const [postAttributes, setPostAttributes] = useState<AttributeOption[]>([]);
 
     // Load existing channel policy and seed the cards from its post_filter
-    // rules. A 404 (no policy yet) is treated as an empty list.
+    // rules. A 404 (no policy yet) is treated as an empty list. CPA fields
+    // (for `user.attributes.*` autocomplete) and channel-scoped post
+    // property fields (for `post.attributes.*` autocomplete) are fetched
+    // in parallel; failures here are non-fatal — the editor still works
+    // without completion, the user just types names by hand.
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
-            try {
-                const result = await actions.getChannelPolicy(channel.id);
-                if (cancelled) {
-                    return;
+            const policyPromise = (async () => {
+                try {
+                    const result = await actions.getChannelPolicy(channel.id);
+                    if (cancelled) {
+                        return;
+                    }
+                    if (result.data) {
+                        setPolicy(result.data);
+                        setCards(getPostFilterRules(result.data.rules).map(cardFromRule));
+                    } else {
+                        setPolicy(null);
+                        setCards([]);
+                    }
+                } catch (error) {
+                    if (cancelled) {
+                        return;
+                    }
+                    const message = error instanceof Error ? error.message : String(error);
+                    if (message.includes('404') || message.toLowerCase().includes('not found')) {
+                        setPolicy(null);
+                        setCards([]);
+                        return;
+                    }
+                    setLoadError(message);
                 }
-                if (result.data) {
-                    setPolicy(result.data);
-                    setCards(getPostFilterRules(result.data.rules).map(cardFromRule));
-                } else {
-                    setPolicy(null);
-                    setCards([]);
-                }
-                setLoaded(true);
-            } catch (error) {
-                if (cancelled) {
-                    return;
-                }
-                const message = error instanceof Error ? error.message : String(error);
-                if (message.includes('404') || message.toLowerCase().includes('not found')) {
-                    setPolicy(null);
-                    setCards([]);
-                    setLoaded(true);
-                    return;
-                }
-                setLoadError(message);
+            })();
+
+            const userAttrsPromise = actions.getAccessControlFields('', 100).
+                then((result) => {
+                    if (cancelled || !result.data) {
+                        return;
+                    }
+                    setUserAttributes(result.data.map((f) => ({
+                        attribute: f.name,
+                        // CPA value-completion is intentionally empty (matches the
+                        // admin-console behaviour) — surfacing every possible value
+                        // creates noise and we don't have a per-channel allow list.
+                        values: [],
+                    })));
+                }).
+                catch(() => undefined);
+
+            const postFieldsPromise = Client4.getPropertyFields(
+                'channel_post_properties',
+                'post',
+                'channel',
+                channel.id,
+                {perPage: 100},
+            ).
+                then((fields: PropertyField[]) => {
+                    if (cancelled) {
+                        return;
+                    }
+                    setPostAttributes(fields.map(toPostAttribute));
+                }).
+                catch(() => undefined);
+
+            await Promise.all([policyPromise, userAttrsPromise, postFieldsPromise]);
+            if (!cancelled) {
                 setLoaded(true);
             }
         };
@@ -99,10 +175,35 @@ function ChannelSettingsPostPoliciesTab({
 
     // Surface unsaved-changes state to the parent modal so the tab-switch
     // guard kicks in when any card is dirty.
+    //
+    // Two gotchas this effect has to navigate:
+    //
+    //   1. EMPTY draft (user clicked "+ Add policy" but hasn't typed) has
+    //      nothing to save and must not gate the modal close — otherwise
+    //      the X button needs two clicks (one to set hasBeenWarned, one
+    //      to actually close). Treat a draft as dirty only once it has
+    //      content.
+    //   2. Spurious post-load flip. When the load resolves, CELEditor's
+    //      monaco-mount path mirrors the freshly-loaded value back through
+    //      onChange (the model's onDidChangeContent fires when monaco
+    //      re-syncs to the new prop value, and may normalise whitespace /
+    //      line endings). That briefly makes c.expression !== c.initialExpression
+    //      even though the user hasn't touched anything. We defend against
+    //      it by (a) not surfacing dirty until `loaded` is true, and (b)
+    //      trimming both sides of the saved-card comparison so a stray
+    //      trailing newline doesn't count as a diff.
     useEffect(() => {
-        const dirty = cards.some((c) => c.isDraft || c.expression !== c.initialExpression);
+        if (!loaded) {
+            return;
+        }
+        const dirty = cards.some((c) => {
+            if (c.isDraft) {
+                return c.expression.trim() !== '';
+            }
+            return c.expression.trim() !== c.initialExpression.trim();
+        });
         setAreThereUnsavedChanges?.(dirty);
-    }, [cards, setAreThereUnsavedChanges]);
+    }, [cards, loaded, setAreThereUnsavedChanges]);
 
     const updateCard = useCallback((localId: string, patch: Partial<Card>) => {
         setCards((prev) => prev.map((c) => (c.localId === localId ? {...c, ...patch} : c)));
@@ -154,8 +255,23 @@ function ChannelSettingsPostPoliciesTab({
         if (!target) {
             return;
         }
-        if (!target.expression.trim()) {
+        const trimmed = target.expression.trim();
+        if (!trimmed) {
             updateCard(localId, {error: formatMessage({id: 'channel_settings.post_policies.empty_error', defaultMessage: 'Expression cannot be empty.'})});
+            return;
+        }
+        // Both sides required: a rule without a post attribute matches
+        // every post, and a rule without a user attribute matches every
+        // user — either case makes the rule meaningless. Surface this
+        // before hitting the server (the server's CEL validator only
+        // checks parseability, not this semantic constraint).
+        if (!POST_ATTR_RE.test(trimmed) || !USER_ATTR_RE.test(trimmed)) {
+            updateCard(localId, {
+                error: formatMessage({
+                    id: 'channel_settings.post_policies.both_sides_required_error',
+                    defaultMessage: 'A post policy must reference at least one post.attributes.<field> and one user.attributes.<field>.',
+                }),
+            });
             return;
         }
 
@@ -253,17 +369,22 @@ function ChannelSettingsPostPoliciesTab({
                         >
                             {formatMessage({id: 'channel_settings.post_policies.expression_label', defaultMessage: 'CEL expression'})}
                         </label>
-                        <textarea
+                        <div
                             id={`post-policy-expression-${card.localId}`}
                             data-testid={`post-policy-expression-${idx}`}
-                            className='ChannelSettingsModal__postPoliciesTextarea'
-                            value={card.expression}
-                            placeholder='post.attributes.secretlevel == "L1" && user.attributes.rank == "R1"'
-                            spellCheck={false}
-                            rows={3}
-                            onChange={(e) => updateCard(card.localId, {expression: e.target.value, error: undefined})}
-                            disabled={card.saving}
-                        />
+                            className='ChannelSettingsModal__postPoliciesEditor'
+                        >
+                            <CELEditor
+                                value={card.expression}
+                                onChange={(value) => updateCard(card.localId, {expression: value, error: undefined})}
+                                placeholder={'post.attributes.secretlevel == "L1" && user.attributes.rank == "R1"'}
+                                channelId={channel.id}
+                                disabled={card.saving}
+                                userAttributes={userAttributes}
+                                postAttributes={postAttributes}
+                                showTestButton={false}
+                            />
+                        </div>
                         {card.error && (
                             <p
                                 className='ChannelSettingsModal__postPoliciesCardError'

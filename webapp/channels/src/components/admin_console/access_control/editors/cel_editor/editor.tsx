@@ -80,6 +80,26 @@ interface CELEditorProps {
         attribute: string;
         values: string[];
     }>;
+    // Optional channel-scoped post property fields, populated when the
+    // editor is hosted from a Post Policy context (Channel Settings →
+    // Post Policies tab). When provided, `post` and `post.attributes`
+    // become valid completion roots, mirroring how `userAttributes`
+    // populates the `user.attributes` namespace. For select / multiselect
+    // fields, `values` should contain the option **names** (not IDs) so
+    // value-completion after `==` matches what the server resolves
+    // through Slice 11's hydration.
+    postAttributes?: Array<{
+        attribute: string;
+        values: string[];
+    }>;
+    // Hide the "Test access rule" button + modal. Defaults to true so
+    // the admin-console access-rules editor keeps its current UX. Set
+    // false from Post Policy contexts: the test modal enumerates users
+    // matching the rule, which only makes sense for user-only rules.
+    // Post policies depend on both a `post` and a `user` at evaluation
+    // time, so "which users match?" is undefined without picking a
+    // specific post first — there is no meaningful UI for that today.
+    showTestButton?: boolean;
 }
 
 // TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
@@ -94,6 +114,8 @@ function CELEditor({
     teamId,
     disabled = false,
     userAttributes,
+    postAttributes,
+    showTestButton = true,
 }: CELEditorProps): JSX.Element {
     const intl = useIntl();
     const [editorState, setEditorState] = useState({
@@ -108,15 +130,44 @@ function CELEditor({
         isWaitingForValidation: false,
     });
 
-    const schemas = {
-        user: ['attributes'],
-        'user.attributes': userAttributes.
-            map((attr) => attr.attribute).
-            filter((attr) => !attr.includes(' ') && attr.trim() !== ''),
-    };
+    // Build the schema map handed to the Monaco language provider:
+    //   - schemas[root]            = list of subpath names (e.g. ['attributes'])
+    //   - schemas[root.subpath]    = {leaf: allowed-values | true}
+    //
+    // Object.keys(schemas['user.attributes']) drives dot-completion, and
+    // each leaf's array drives value-completion after `==`. `post` is
+    // contributed only when the host passes postAttributes (Post Policy
+    // context).
+    const schemas = useMemo(() => {
+        const valueMap = (attrs: Array<{attribute: string; values: string[]}>) => {
+            const out: Record<string, string[] | boolean> = {};
+            for (const attr of attrs) {
+                if (attr.attribute.includes(' ') || !attr.attribute.trim()) {
+                    continue;
+                }
+                out[attr.attribute] = attr.values.length > 0 ? attr.values : true;
+            }
+            return out;
+        };
+
+        const base: Record<string, string[] | Record<string, string[] | boolean>> = {
+            user: ['attributes'],
+            'user.attributes': valueMap(userAttributes),
+        };
+        if (postAttributes) {
+            base.post = ['attributes'];
+            base['post.attributes'] = valueMap(postAttributes);
+        }
+        return base;
+    }, [userAttributes, postAttributes]);
 
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+    // We hold the model in state so the MonacoLanguageProvider can route
+    // schemas to the correct completion-provider entry. Without this,
+    // multiple CELEditors on the same screen share a single completion
+    // provider and Monaco returns N copies of every suggestion.
+    const [model, setModel] = useState<monaco.editor.ITextModel | null>(null);
     const [showHelpModal, setShowHelpModal] = useState(false);
 
     // Store the handleChange callback in a ref to avoid recreating the editor
@@ -223,6 +274,7 @@ function CELEditor({
         // Create the editor instance
         const editor = monaco.editor.create(editorRef.current, MONACO_EDITOR_OPTIONS);
         monacoRef.current = editor;
+        setModel(editor.getModel());
 
         // Set the initial value from the expression state
         editor.setValue(editorState.expression);
@@ -254,6 +306,7 @@ function CELEditor({
             cursorChangeDisposable?.dispose();
             editor.dispose();
             monacoRef.current = null;
+            setModel(null);
         };
     }, []); // Only run once on mount
 
@@ -336,7 +389,10 @@ function CELEditor({
 
     return (
         <div className={`cel-editor ${className}`}>
-            <MonacoLanguageProvider schemas={schemas}/>
+            <MonacoLanguageProvider
+                schemas={schemas}
+                model={model}
+            />
 
             <div
                 className='cel-editor__container'
@@ -392,12 +448,14 @@ function CELEditor({
                         />
                     </div>
                 </div>
-                <TestButton
-                    onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
-                    disabled={disabled || !editorState.expression || !editorState.isValid || editorState.isValidating}
-                />
+                {showTestButton && (
+                    <TestButton
+                        onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
+                        disabled={disabled || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                    />
+                )}
             </div>
-            {editorState.showTestResults && (
+            {showTestButton && editorState.showTestResults && (
                 <TestResultsModal
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
                     isStacked={true}

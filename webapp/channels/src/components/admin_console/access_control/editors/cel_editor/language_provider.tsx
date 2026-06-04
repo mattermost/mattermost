@@ -17,182 +17,232 @@ interface SchemaMap {
 
 interface MonacoLanguageProviderProps {
     schemas: SchemaMap;
+
+    // Monaco model owned by this editor instance. Required so the
+    // module-level completion provider can pick the right schemas when
+    // multiple CELEditors are mounted concurrently (e.g., the Post
+    // Policies tab renders one editor per rule card).
+    model: monaco.editor.ITextModel | null;
 }
 
-export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
-    useEffect(() => {
-        // Register our custom expression language
-        if (
-            !monaco.languages.
-                getLanguages().
-                some((lang) => lang.id === POLICY_LANGUAGE_NAME)
-        ) {
-            monaco.languages.register({id: POLICY_LANGUAGE_NAME});
+// Module-level state — see `ensureLanguageRegistered` for the why.
+//
+// SCHEMAS_BY_MODEL maps a Monaco model URI string to that model's current
+// schemas. Each MonacoLanguageProvider instance is responsible for
+// inserting / removing its own entry as its host editor mounts / unmounts.
+// The completion provider is registered exactly ONCE per module load and
+// looks up schemas from this map at invocation time.
+const SCHEMAS_BY_MODEL = new Map<string, SchemaMap>();
+let languageRegistered = false;
 
-            // Define language tokenizer
-            monaco.languages.setMonarchTokensProvider(POLICY_LANGUAGE_NAME, {
-                tokenizer: {
-                    root: [
+// ensureLanguageRegistered is idempotent: it registers the `expressionLanguage`
+// language id, its Monarch tokenizer, and a single completion item provider.
+//
+// WHY MODULE-LEVEL: `monaco.languages.registerCompletionItemProvider` is
+// scoped by language id, not by editor. Registering it from inside the
+// component's useEffect adds a NEW provider on every mount — Monaco
+// invokes all registered providers and concatenates their suggestions,
+// so with N editors visible the user sees N copies of "post", N copies
+// of "user", etc. Registering exactly once eliminates the duplicates.
+function ensureLanguageRegistered() {
+    if (languageRegistered) {
+        return;
+    }
+    languageRegistered = true;
 
-                        // Comments
-                        [/\/\/.*$/, 'comment'],
+    if (!monaco.languages.getLanguages().some((lang) => lang.id === POLICY_LANGUAGE_NAME)) {
+        monaco.languages.register({id: POLICY_LANGUAGE_NAME});
 
-                        // Object and property paths
-                        [/[a-zA-Z][\w$]*(?=\.)/, 'variable'],
-                        [/\./, 'delimiter'],
-                        [/[a-zA-Z][\w$]*/, 'property'],
+        monaco.languages.setMonarchTokensProvider(POLICY_LANGUAGE_NAME, {
+            tokenizer: {
+                root: [
 
-                        // Operators
-                        [/&&|\|\||==|!=/, 'operator'],
+                    // Comments
+                    [/\/\/.*$/, 'comment'],
 
-                        // Whitespace
-                        [/[ \t\r\n]+/, 'white'],
+                    // Object and property paths
+                    [/[a-zA-Z][\w$]*(?=\.)/, 'variable'],
+                    [/\./, 'delimiter'],
+                    [/[a-zA-Z][\w$]*/, 'property'],
 
-                        // Parentheses
-                        [/[()]/, '@brackets'],
+                    // Operators
+                    [/&&|\|\||==|!=/, 'operator'],
 
-                        // String literals
-                        [/"([^"\\]|\\.)*$/, 'string.invalid'],
-                        [/"/, {token: 'string.quote', bracket: '@open', next: '@string'}],
-                        [/'([^'\\]|\\.)*$/, 'string.invalid'],
-                        [
-                            /'/,
-                            {token: 'string.quote', bracket: '@open', next: '@string2'},
-                        ],
+                    // Whitespace
+                    [/[ \t\r\n]+/, 'white'],
 
-                        // Numbers
-                        [/\d+/, 'number'],
+                    // Parentheses
+                    [/[()]/, '@brackets'],
+
+                    // String literals
+                    [/"([^"\\]|\\.)*$/, 'string.invalid'],
+                    [/"/, {token: 'string.quote', bracket: '@open', next: '@string'}],
+                    [/'([^'\\]|\\.)*$/, 'string.invalid'],
+                    [
+                        /'/,
+                        {token: 'string.quote', bracket: '@open', next: '@string2'},
                     ],
-                    string: [
-                        [/[^\\"]+/, 'string'],
-                        [/"/, {token: 'string.quote', bracket: '@close', next: '@pop'}],
-                    ],
-                    string2: [
-                        [/[^'\\]+/, 'string'],
-                        [/'/, {token: 'string.quote', bracket: '@close', next: '@pop'}],
-                    ],
-                },
-            });
+
+                    // Numbers
+                    [/\d+/, 'number'],
+                ],
+                string: [
+                    [/[^\\"]+/, 'string'],
+                    [/"/, {token: 'string.quote', bracket: '@close', next: '@pop'}],
+                ],
+                string2: [
+                    [/[^'\\]+/, 'string'],
+                    [/'/, {token: 'string.quote', bracket: '@close', next: '@pop'}],
+                ],
+            },
+        });
+    }
+
+    // Get properties from a schema path. Returns leaf names for dot
+    // completion; for object-shaped schema items, the keys of the object
+    // are the property names.
+    const getPropertiesFromPath = (schemas: SchemaMap, path: string): string[] => {
+        const schemaItem = schemas[path];
+
+        if (!schemaItem) {
+            return [];
         }
 
-        // Get properties from a schema path
-        const getPropertiesFromPath = (path: string): string[] => {
-            const schemaItem = schemas[path];
+        if (Array.isArray(schemaItem)) {
+            return schemaItem;
+        } else if (typeof schemaItem === 'object') {
+            return Object.keys(schemaItem);
+        }
 
-            if (!schemaItem) {
-                return [];
+        return [];
+    };
+
+    // Get allowed values for a property at a fully-qualified path.
+    const getValuesForPath = (schemas: SchemaMap, fullPath: string): string[] | null => {
+        const directValue = schemas[fullPath];
+
+        if (Array.isArray(directValue)) {
+            return directValue;
+        }
+
+        const pathParts = fullPath.split('.');
+
+        if (pathParts.length >= 2) {
+            const property = pathParts.pop();
+            if (!property) {
+                return null;
+            }
+            const parentPath = pathParts.join('.');
+
+            const schemaItem = schemas[parentPath];
+
+            if (!schemaItem || Array.isArray(schemaItem) || typeof schemaItem === 'boolean') {
+                return null;
             }
 
-            if (Array.isArray(schemaItem)) {
-                return schemaItem;
-            } else if (typeof schemaItem === 'object') {
-                return Object.keys(schemaItem);
+            const propValue = (schemaItem as SchemaValue)[property];
+
+            if (Array.isArray(propValue)) {
+                return propValue;
+            } else if (propValue === true) {
+                return null; // Property exists but no predefined values
             }
+        }
 
-            return [];
-        };
+        return null;
+    };
 
-        // Get allowed values for a property or path
-        const getValuesForPath = (fullPath: string): string[] | null => {
-            // Check if the path exists directly in schemas
-            const directValue = schemas[fullPath];
-
-            if (Array.isArray(directValue)) {
-                return directValue;
-            }
-
-            // Otherwise, try to parse it as parent.property
-            const pathParts = fullPath.split('.');
-
-            if (pathParts.length >= 2) {
-                const property = pathParts.pop();
-                if (!property) {
-                    return null;
+    monaco.languages.registerCompletionItemProvider(
+        POLICY_LANGUAGE_NAME,
+        {
+            triggerCharacters: ['.', ' ', '"', "'", '='],
+            provideCompletionItems: (model, position) => {
+                // Pick this model's schemas at completion time. If the
+                // model isn't registered (e.g., the provider unmounted
+                // mid-flight), bail with no suggestions rather than
+                // returning a stale set from a different editor.
+                const schemas = SCHEMAS_BY_MODEL.get(model.uri.toString());
+                if (!schemas) {
+                    return {suggestions: []};
                 }
-                const parentPath = pathParts.join('.');
 
-                const schemaItem = schemas[parentPath];
+                const lineNumber = position.lineNumber;
+                const column = position.column;
+                const lineContent = model.getLineContent(lineNumber);
+                const textBeforePosition = lineContent.substring(0, column - 1);
 
-                if (!schemaItem || Array.isArray(schemaItem) || typeof schemaItem === 'boolean') {
-                    return null;
-                }
+                // Check if we're after an operator that expects a value
+                // Pattern: path followed by an operator that expects a value
+                const valueOperatorPattern =
+                    /(\w+(?:\.\w+)*)\s+(==|!=|>|<|>=|<=)\s+["']?(\w*)$/;
+                const valueMatch = textBeforePosition.match(valueOperatorPattern);
 
-                const propValue = schemaItem[property];
+                if (valueMatch) {
+                    const [, fullPath, , currentValue] = valueMatch;
 
-                if (Array.isArray(propValue)) {
-                    return propValue;
-                } else if (propValue === true) {
-                    return null; // Property exists but no predefined values
-                }
-            }
+                    const allowedValues = getValuesForPath(schemas, fullPath);
 
-            return null;
-        };
-
-        // Create a completion item provider for our language
-        const disposable = monaco.languages.registerCompletionItemProvider(
-            'expressionLanguage',
-            {
-                triggerCharacters: ['.', ' ', '"', "'", '='],
-                provideCompletionItems: (model, position) => {
-                    const lineNumber = position.lineNumber;
-                    const column = position.column;
-                    const lineContent = model.getLineContent(lineNumber);
-                    const textBeforePosition = lineContent.substring(0, column - 1);
-
-                    // Check if we're after an operator that expects a value
-                    // Pattern: path followed by an operator that expects a value
-                    const valueOperatorPattern =
-                        /(\w+(?:\.\w+)*)\s+(==|!=|>|<|>=|<=)\s+["']?(\w*)$/;
-                    const valueMatch = textBeforePosition.match(valueOperatorPattern);
-
-                    if (valueMatch) {
-                        const [, fullPath, , currentValue] = valueMatch;
-
-                        // Get values for this full path
-                        const allowedValues = getValuesForPath(fullPath);
-
-                        if (allowedValues && allowedValues.length > 0) {
-                            // Create range that includes the characters already typed
-                            const wordStartColumn = column - currentValue.length;
-
-                            return {
-                                suggestions: allowedValues.
-                                    filter((val) =>
-                                        val.
-                                            toString().
-                                            toLowerCase().
-                                            startsWith(currentValue.toLowerCase()),
-                                    ).
-                                    map((val) => ({
-                                        label: val.toString(),
-                                        kind: monaco.languages.CompletionItemKind.Value,
-                                        insertText: `"${val}"`,
-                                        range: {
-                                            startLineNumber: lineNumber,
-                                            startColumn: wordStartColumn,
-                                            endLineNumber: lineNumber,
-                                            endColumn: column,
-                                        },
-                                    })),
-                            };
-                        }
-                    }
-
-                    // Check if we should suggest operators
-                    // Pattern: an entity (word possibly with dots) followed by space
-                    const operatorPattern = /(\w+(?:\.\w+)*)\s+$/;
-                    const operatorMatch = textBeforePosition.match(operatorPattern);
-
-                    if (operatorMatch) {
-                        // We have an entity followed by space - suggest operators
-                        const operators = ['&&', '||', '==', '!=', 'in'];
+                    if (allowedValues && allowedValues.length > 0) {
+                        const wordStartColumn = column - currentValue.length;
 
                         return {
-                            suggestions: operators.map((op) => ({
-                                label: op,
-                                kind: monaco.languages.CompletionItemKind.Operator,
-                                insertText: op + ' ',
+                            suggestions: allowedValues.
+                                filter((val) =>
+                                    val.
+                                        toString().
+                                        toLowerCase().
+                                        startsWith(currentValue.toLowerCase()),
+                                ).
+                                map((val) => ({
+                                    label: val.toString(),
+                                    kind: monaco.languages.CompletionItemKind.Value,
+                                    insertText: `"${val}"`,
+                                    range: {
+                                        startLineNumber: lineNumber,
+                                        startColumn: wordStartColumn,
+                                        endLineNumber: lineNumber,
+                                        endColumn: column,
+                                    },
+                                })),
+                        };
+                    }
+                }
+
+                // Operator suggestion: entity (word possibly with dots) followed by space
+                const operatorPattern = /(\w+(?:\.\w+)*)\s+$/;
+                const operatorMatch = textBeforePosition.match(operatorPattern);
+
+                if (operatorMatch) {
+                    const operators = ['&&', '||', '==', '!=', 'in'];
+
+                    return {
+                        suggestions: operators.map((op) => ({
+                            label: op,
+                            kind: monaco.languages.CompletionItemKind.Operator,
+                            insertText: op + ' ',
+                            range: {
+                                startLineNumber: lineNumber,
+                                startColumn: column,
+                                endLineNumber: lineNumber,
+                                endColumn: column,
+                            },
+                        })),
+                    };
+                }
+
+                // Dot completion (property access)
+                const dotMatch = textBeforePosition.match(/(\w+)(?:\.(\w+))*\.$/);
+                if (dotMatch) {
+                    const fullPath = dotMatch[0].slice(0, -1);
+
+                    const properties = getPropertiesFromPath(schemas, fullPath);
+
+                    if (properties.length > 0) {
+                        return {
+                            suggestions: properties.map((field) => ({
+                                label: field,
+                                kind: monaco.languages.CompletionItemKind.Field,
+                                insertText: field,
                                 range: {
                                     startLineNumber: lineNumber,
                                     startColumn: column,
@@ -202,74 +252,65 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
                             })),
                         };
                     }
+                }
 
-                    // Check for dot completion (property access)
-                    const dotMatch = textBeforePosition.match(/(\w+)(?:\.(\w+))*\.$/);
-                    if (dotMatch) {
-                        const fullPath = dotMatch[0].slice(0, -1); // Remove trailing dot
+                // Root objects when not after a dot or space.
+                const wordMatch = textBeforePosition.match(
+                    /(?:^|\s+|[&|=!<>()]|\()(\w*)$/,
+                );
+                if (wordMatch) {
+                    const word = wordMatch[1] || '';
+                    const wordStartColumn = column - word.length;
 
-                        // Get properties for this path
-                        const properties = getPropertiesFromPath(fullPath);
-
-                        if (properties.length > 0) {
-                            return {
-                                suggestions: properties.map((field) => ({
-                                    label: field,
-                                    kind: monaco.languages.CompletionItemKind.Field,
-                                    insertText: field,
-                                    range: {
-                                        startLineNumber: lineNumber,
-                                        startColumn: column,
-                                        endLineNumber: lineNumber,
-                                        endColumn: column,
-                                    },
-                                })),
-                            };
-                        }
-                    }
-
-                    // When not after a dot or space, suggest root objects
-                    const wordMatch = textBeforePosition.match(
-                        /(?:^|\s+|[&|=!<>()]|\()(\w*)$/,
+                    const rootSchemas = Object.keys(schemas).filter(
+                        (key) => !key.includes('.'),
                     );
-                    if (wordMatch) {
-                        const word = wordMatch[1] || '';
-                        const wordStartColumn = column - word.length;
 
-                        // Filter schemas that are root objects (don't contain dots)
-                        const rootSchemas = Object.keys(schemas).filter(
-                            (key) => !key.includes('.'),
-                        );
+                    const suggestions = rootSchemas.
+                        filter((schema) =>
+                            schema.toLowerCase().startsWith(word.toLowerCase()),
+                        ).
+                        map((schema) => ({
+                            label: schema,
+                            kind: monaco.languages.CompletionItemKind.Class,
+                            insertText: schema,
+                            range: {
+                                startLineNumber: lineNumber,
+                                startColumn: wordStartColumn,
+                                endLineNumber: lineNumber,
+                                endColumn: column,
+                            },
+                        }));
 
-                        const suggestions = rootSchemas.
-                            filter((schema) =>
-                                schema.toLowerCase().startsWith(word.toLowerCase()),
-                            ).
-                            map((schema) => ({
-                                label: schema,
-                                kind: monaco.languages.CompletionItemKind.Class,
-                                insertText: schema,
-                                range: {
-                                    startLineNumber: lineNumber,
-                                    startColumn: wordStartColumn,
-                                    endLineNumber: lineNumber,
-                                    endColumn: column,
-                                },
-                            }));
+                    return {suggestions};
+                }
 
-                        return {suggestions};
-                    }
-
-                    return {suggestions: []};
-                },
+                return {suggestions: []};
             },
-        );
+        },
+    );
+}
 
-        // Cleanup function
+export function MonacoLanguageProvider({schemas, model}: MonacoLanguageProviderProps) {
+    // Ensure the single global provider is registered. Idempotent —
+    // first caller pays the cost, the rest are no-ops.
+    ensureLanguageRegistered();
+
+    useEffect(() => {
+        if (!model) {
+            return undefined;
+        }
+        const key = model.uri.toString();
+        SCHEMAS_BY_MODEL.set(key, schemas);
         return () => {
-            disposable.dispose();
+            // Only remove if this is still our entry — a fast remount
+            // could otherwise delete a fresh entry written by the next
+            // generation of the same provider.
+            if (SCHEMAS_BY_MODEL.get(key) === schemas) {
+                SCHEMAS_BY_MODEL.delete(key);
+            }
         };
-    }, [schemas]);
+    }, [schemas, model]);
 
     return null; // This component doesn't render anything
 }
