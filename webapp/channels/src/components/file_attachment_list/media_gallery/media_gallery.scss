@@ -1,7 +1,7 @@
 .MediaGallery {
-    container-type: inline-size;
-    margin: 8px 0;
     max-width: 700px;
+    margin: 8px 0;
+    container-type: inline-size;
 
     &__grid {
         column-gap: 8px;
@@ -31,10 +31,10 @@
     display: block;
     overflow: hidden;
     width: 100%;
-    aspect-ratio: var(--tile-ratio, 16 / 9);
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 8px;
     margin-bottom: 8px;
+    aspect-ratio: var(--tile-ratio, 16 / 9);
     background: rgba(var(--center-channel-color-rgb), 0.04);
     break-inside: avoid;
     cursor: pointer;
@@ -58,9 +58,9 @@
         right: 0;
         display: flex;
         padding: 6px;
+        gap: 4px;
         opacity: 0;
         transition: opacity 120ms ease;
-        gap: 4px;
     }
 
     &:hover .MediaGallery__tile__overlay,
