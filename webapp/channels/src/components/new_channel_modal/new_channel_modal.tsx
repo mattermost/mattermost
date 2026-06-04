@@ -19,8 +19,9 @@ import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveICurrentChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -97,6 +98,24 @@ const NewChannelModal = () => {
     const dispatch = useDispatch();
 
     const [type, setType] = useState<string>(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
+
+    // Discoverable Private Channels — only available when the FF is on AND the
+    // creator has the team-scope discoverability permission (the server
+    // applies the same check on createChannel with discoverable=true). The
+    // toggle is hidden entirely otherwise so a user without permission
+    // doesn't see a control they can't exercise.
+    const discoverableFeatureEnabled = useSelector(isDiscoverableChannelsEnabled);
+    const canCreateDiscoverableChannel = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY));
+    const showDiscoverableOption = discoverableFeatureEnabled && canCreateDiscoverableChannel && type === Constants.PRIVATE_CHANNEL;
+    const [discoverable, setDiscoverable] = useState(false);
+    const discoverableTitle = formatMessage({
+        id: 'channel_settings.discoverable.title',
+        defaultMessage: 'Discoverable (Users can request to join)',
+    });
+    const discoverableDescription = formatMessage({
+        id: 'channel_settings.discoverable.description',
+        defaultMessage: 'Non-members can see this channel in Browse Channels, the channel switcher, and shared permalinks. Message contents stay hidden until they join.',
+    });
     const [displayName, setDisplayName] = useState('');
     const [url, setURL] = useState('');
     const [purpose, setPurpose] = useState('');
@@ -200,6 +219,12 @@ const NewChannelModal = () => {
                 update_at: 0,
                 default_category_name: defaultCategoryName,
                 managed_category_name: managedCategoryName,
+
+                // Only send `discoverable: true` when the toggle is actually
+                // rendered (private + FF on + has permission) AND the user
+                // checked it. The server rejects discoverable=true on a public
+                // channel; we never include the field for OPEN_CHANNEL.
+                ...(showDiscoverableOption && discoverable ? {discoverable: true} : {}),
                 ...(classificationEnabled && selectedClassificationId && bannerText ? {
 
                     // Leave banner_info disabled: the classification banner renders
@@ -476,6 +501,41 @@ const NewChannelModal = () => {
                     pluginOptions={pluginOptions}
                     onChange={handleOnTypeChange}
                 />
+                {showDiscoverableOption && (
+                    <div
+                        className='new-channel-modal-discoverable'
+                        data-testid='new-channel-discoverable-section'
+                    >
+                        <div className='channel_banner_header'>
+                            <div className='channel_banner_header__text'>
+                                <label
+                                    className='Input_legend'
+                                    aria-label={discoverableTitle}
+                                >
+                                    {discoverableTitle}
+                                </label>
+                                <label
+                                    className='Input_subheading'
+                                    aria-label={discoverableTitle}
+                                >
+                                    {discoverableDescription}
+                                </label>
+                            </div>
+                            <div className='channel_banner_header__toggle'>
+                                <Toggle
+                                    id='newChannelDiscoverableToggle'
+                                    overrideTestId={true}
+                                    ariaLabel={discoverableTitle}
+                                    size='btn-md'
+                                    toggled={discoverable}
+                                    onToggle={() => setDiscoverable((v) => !v)}
+                                    tabIndex={0}
+                                    toggleClassName='btn-toggle-primary'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {showDefaultCategorySelector && (
                     <div className='new-channel-modal-managed-category'>
                         <CategorySelector

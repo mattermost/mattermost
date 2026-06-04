@@ -14,7 +14,7 @@
     }
 
     .Input_subheading {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-family: Open Sans, sans-serif;
         font-size: 12px;
         font-weight: 400;
@@ -110,6 +110,36 @@
 
     &__typeSelector {
         margin-top: 16px;
+    }
+
+    // Discoverable Private Channels — same header/toggle layout as Channel Banner
+    // in the Configuration tab (no extra fields when toggled on).
+    &__discoverableSection {
+        display: flex;
+        flex-direction: column;
+        margin-top: 24px;
+        gap: 8px;
+
+        .channel_banner_header {
+            display: flex;
+        }
+
+        .channel_banner_header__text {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+
+    &__discoverableReadOnly {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-style: italic;
+        font-weight: 400;
+        line-height: 16px;
     }
 
     &__purposeContainer, &__headerContainer {

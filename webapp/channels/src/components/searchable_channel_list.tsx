@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {ChannelIcon} from 'components/channel_type_icon';
@@ -45,10 +45,21 @@ interface Props extends WrappedComponentProps {
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
     showRecommendedFilter?: boolean;
+
+    // Discoverable Private Channels: when the FF is on, the parent passes
+    // these so each row can render the right state machine without per-row
+    // API calls. The two callbacks are no-ops on the parent if the FF is
+    // off (children never render the affordance in that case).
+    showDiscoverableFilters?: boolean;
+    myPendingJoinRequests?: Record<string, ChannelJoinRequest>;
+    handleRequestToJoin?: (channel: Channel, done: () => void) => void;
+    handleWithdrawRequest?: (channel: Channel, done: () => void) => void;
 }
 
 type State = {
     joiningChannel: string;
+    requestingChannel: string;
+    withdrawingChannel: string;
     page: number;
     nextDisabled: boolean;
     channelSearchValue: string;
@@ -71,6 +82,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
         this.state = {
             joiningChannel: '',
+            requestingChannel: '',
+            withdrawingChannel: '',
             page: 0,
             nextDisabled: false,
             channelSearchValue: '',
@@ -117,12 +130,48 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         }
     };
 
+    handleRequestToJoin = (channel: Channel, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!this.props.handleRequestToJoin) {
+            return;
+        }
+        this.setState({requestingChannel: channel.id});
+        this.props.handleRequestToJoin(channel, () => {
+            this.setState({requestingChannel: ''});
+        });
+    };
+
+    handleWithdrawRequest = (channel: Channel, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!this.props.handleWithdrawRequest) {
+            return;
+        }
+        this.setState({withdrawingChannel: channel.id});
+        this.props.handleWithdrawRequest(channel, () => {
+            this.setState({withdrawingChannel: ''});
+        });
+    };
+
     isMemberOfChannel(channelId: string) {
         return this.props.myChannelMemberships[channelId];
     }
 
+    // A channel is in the discoverable "Request to Join" surface when the FF
+    // is on, the channel is private + discoverable, and the user is not a
+    // member. The combined check folds the FF gate into one place so the
+    // row rendering code stays linear.
+    private isDiscoverableNonMember(channel: Channel) {
+        return Boolean(this.props.showDiscoverableFilters) &&
+            channel.type === Constants.PRIVATE_CHANNEL &&
+            channel.discoverable === true &&
+            !this.isMemberOfChannel(channel.id);
+    }
+
+    private getPendingRequest(channelId: string): ChannelJoinRequest | undefined {
+        return this.props.myPendingJoinRequests?.[channelId];
+    }
+
     createChannelRow = (channel: Channel) => {
-        const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
         const channelTypeIcon = (
             <ChannelIcon
                 channel={channel}
@@ -146,6 +195,34 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         ) : null;
 
+        const isMember = Boolean(this.isMemberOfChannel(channel.id));
+        const isDiscoverable = this.isDiscoverableNonMember(channel);
+        const pendingRequest = isDiscoverable ? this.getPendingRequest(channel.id) : undefined;
+
+        const ariaLabel = pendingRequest ?
+            this.props.intl.formatMessage(
+                {
+                    id: 'more_channels.requested.aria',
+                    defaultMessage: '{channelName}, join request pending',
+                },
+                {channelName: channel.display_name},
+            ) :
+            `${channel.display_name}, ${channel.purpose}`.toLowerCase();
+
+        const discoverableIndicator = isDiscoverable ? (
+            <div
+                id='discoverableIndicatorContainer'
+                data-testid='discoverable-indicator'
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.discoverable.aria', defaultMessage: 'Discoverable private channel'})}
+            >
+                <AccountPlusOutlineIcon size={14}/>
+                <FormattedMessage
+                    id='more_channels.discoverable'
+                    defaultMessage='Discoverable'
+                />
+            </div>
+        ) : null;
+
         const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
             messages.channelPurpose,
             {memberCount, channelPurpose: channel.purpose || ''},
@@ -158,6 +235,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             >
                 {membershipIndicator}
                 {membershipIndicator ? <span className='dot'/> : null}
+                {discoverableIndicator}
+                {discoverableIndicator ? <span className='dot'/> : null}
                 <AccountOutlineIcon size={14}/>
                 <span data-testid={`channelMemberCount-${channel.name}`} >{memberCount}</span>
                 {channel.purpose.length > 0 ? <span className='dot'/> : null}
@@ -165,31 +244,95 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         );
 
-        const joinViewChannelButtonEmphasis = this.isMemberOfChannel(channel.id) ? 'secondary' : 'primary';
-        const joinViewChannelButtonClass = this.isMemberOfChannel(channel.id) ? 'outlineButton' : 'primaryButton';
+        // Row state machine for the action area, in declarative order:
+        //
+        //   isMember               -> View (existing behavior; click row = navigate)
+        //   discoverable + pending -> "Withdraw" on row hover (withdraws request)
+        //   discoverable           -> "Request to Join" (calls handleRequestToJoin)
+        //   default                -> Join (existing public-channel behavior)
+        //
+        const renderJoinOrViewButton = () => {
+            const joinViewChannelButtonEmphasis = isMember ? 'secondary' : 'primary';
+            const joinViewChannelButtonClass = isMember ? 'outlineButton' : 'primaryButton';
+            return (
+                <Button
+                    id='joinViewChannelButton'
+                    onClick={(e) => this.handleJoin(channel, e)}
+                    emphasis={joinViewChannelButtonEmphasis}
+                    size='sm'
+                    className={joinViewChannelButtonClass}
+                    disabled={Boolean(this.state.joiningChannel)}
+                    tabIndex={-1}
+                    aria-label={isMember ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
+                >
+                    <LoadingWrapper
+                        loading={this.state.joiningChannel === channel.id}
+                        text={messages.joiningButton}
+                    >
+                        <FormattedMessage
+                            id={isMember ? 'more_channels.view' : 'joinChannel.JoinButton'}
+                            defaultMessage={isMember ? 'View' : 'Join'}
+                        />
+                    </LoadingWrapper>
+                </Button>
+            );
+        };
 
-        const joinViewChannelButton = (
+        const renderRequestToJoinButton = () => (
             <Button
-                id='joinViewChannelButton'
-                onClick={(e) => this.handleJoin(channel, e)}
-                emphasis={joinViewChannelButtonEmphasis}
+                id='requestToJoinChannelButton'
+                onClick={(e) => this.handleRequestToJoin(channel, e)}
+                emphasis='primary'
                 size='sm'
-                className={joinViewChannelButtonClass}
-                disabled={Boolean(this.state.joiningChannel)}
+                className='primaryButton'
+                disabled={this.state.requestingChannel === channel.id}
                 tabIndex={-1}
-                aria-label={this.isMemberOfChannel(channel.id) ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
             >
                 <LoadingWrapper
-                    loading={this.state.joiningChannel === channel.id}
-                    text={messages.joiningButton}
+                    loading={this.state.requestingChannel === channel.id}
+                    text={messages.requesting}
                 >
                     <FormattedMessage
-                        id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
-                        defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
+                        id='more_channels.requestToJoin'
+                        defaultMessage='Request to join'
                     />
                 </LoadingWrapper>
             </Button>
         );
+
+        const renderWithdrawButton = () => (
+            <Button
+                id='withdrawRequestButton'
+                onClick={(e) => this.handleWithdrawRequest(channel, e)}
+                emphasis='tertiary'
+                size='sm'
+                disabled={this.state.withdrawingChannel === channel.id}
+                tabIndex={-1}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'})}
+            >
+                <LoadingWrapper
+                    loading={this.state.withdrawingChannel === channel.id}
+                    text={messages.withdrawing}
+                >
+                    <FormattedMessage
+                        id='more_channels.withdraw'
+                        defaultMessage='Withdraw'
+                    />
+                </LoadingWrapper>
+            </Button>
+        );
+
+        let actionElement: React.ReactNode;
+        if (isMember) {
+            actionElement = renderJoinOrViewButton();
+        } else if (pendingRequest) {
+            actionElement = renderWithdrawButton();
+        } else if (isDiscoverable) {
+            actionElement = renderRequestToJoinButton();
+        } else {
+            actionElement = renderJoinOrViewButton();
+        }
 
         const sharedChannelIcon = channel.shared ? (
             <SharedChannelIndicator
@@ -198,6 +341,28 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             />
         ) : null;
 
+        // Row click behavior:
+        // - Members: navigate (existing).
+        // - Discoverable with pending request: no-op on row click; Withdraw
+        //   on hover is the only affordance to avoid accidental withdraw.
+        // - Discoverable without pending: open Request to Join.
+        // - Otherwise: handleJoin (existing public-channel path).
+        const handleRowClick = (e: React.MouseEvent) => {
+            if (isMember) {
+                this.handleJoin(channel, e);
+                return;
+            }
+            if (pendingRequest) {
+                e.stopPropagation();
+                return;
+            }
+            if (isDiscoverable) {
+                this.handleRequestToJoin(channel, e);
+                return;
+            }
+            this.handleJoin(channel, e);
+        };
+
         return (
             <div
                 className='more-modal__row'
@@ -205,7 +370,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id={`ChannelRow-${channel.name}`}
                 data-testid={`ChannelRow-${channel.name}`}
                 aria-label={ariaLabel}
-                onClick={(e) => this.handleJoin(channel, e)}
+                onClick={handleRowClick}
                 tabIndex={0}
             >
                 <div className='more-modal__details'>
@@ -217,8 +382,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     {channelPurposeContainer}
                 </div>
                 <div className='more-modal__actions'>
-                    {joinViewChannelButton}
-                    {this.state.joiningChannel === channel.id && !this.isMemberOfChannel(channel.id) && (
+                    {actionElement}
+                    {this.state.joiningChannel === channel.id && !isMember && (
                         <span
                             className='sr-only'
                             role='alert'
@@ -323,6 +488,22 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     defaultMessage={'No recommended channels'}
                 />
             );
+        case Filter.Discoverable:
+            return (
+                <FormattedMessage
+                    id={'more_channels.noDiscoverable'}
+                    tagName='strong'
+                    defaultMessage={'No discoverable private channels'}
+                />
+            );
+        case Filter.MyPendingRequests:
+            return (
+                <FormattedMessage
+                    id={'more_channels.noPendingRequests'}
+                    tagName='strong'
+                    defaultMessage={'You have no pending join requests'}
+                />
+            );
         default:
             return (
                 <FormattedMessage
@@ -361,6 +542,20 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.show_recommended_channels'
                     defaultMessage='Recommended channels'
+                />
+            );
+        case Filter.Discoverable:
+            return (
+                <FormattedMessage
+                    id='more_channels.show_discoverable_channels'
+                    defaultMessage='Discoverable private channels'
+                />
+            );
+        case Filter.MyPendingRequests:
+            return (
+                <FormattedMessage
+                    id='more_channels.show_my_pending_requests'
+                    defaultMessage='My pending requests'
                 />
             );
         default:
@@ -530,6 +725,43 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             );
         }
 
+        // Discoverable Private Channels filters. Only rendered when the FF
+        // is on so non-enterprise / flag-off deployments don't see new menu
+        // items they can't act on.
+        if (this.props.showDiscoverableFilters) {
+            channelDropdownItems.push(
+                <Menu.Separator key='channelsMoreDropdownDiscoverableSeparator'/>,
+                <Menu.Item
+                    key='channelsMoreDropdownDiscoverable'
+                    id='channelsMoreDropdownDiscoverable'
+                    onClick={() => this.filterChange(Filter.Discoverable)}
+                    leadingElement={<AccountPlusOutlineIcon size={16}/>}
+                    labels={
+                        <FormattedMessage
+                            id='suggestion.discoverable'
+                            defaultMessage='Discoverable private channels'
+                        />
+                    }
+                    trailingElements={this.props.filter === Filter.Discoverable ? checkIcon : null}
+                    aria-label={this.props.intl.formatMessage({id: 'suggestion.discoverable', defaultMessage: 'Discoverable private channels'})}
+                />,
+                <Menu.Item
+                    key='channelsMoreDropdownMyPending'
+                    id='channelsMoreDropdownMyPending'
+                    onClick={() => this.filterChange(Filter.MyPendingRequests)}
+                    leadingElement={<ClockOutlineIcon size={16}/>}
+                    labels={
+                        <FormattedMessage
+                            id='suggestion.my_pending_requests'
+                            defaultMessage='My pending requests'
+                        />
+                    }
+                    trailingElements={this.props.filter === Filter.MyPendingRequests ? checkIcon : null}
+                    aria-label={this.props.intl.formatMessage({id: 'suggestion.my_pending_requests', defaultMessage: 'My pending requests'})}
+                />,
+            );
+        }
+
         channelDropdownItems.push(
             <Menu.Separator key='channelsMoreDropdownSeparator'/>,
             <Menu.Item
@@ -678,6 +910,14 @@ const messages = defineMessages({
     joiningButton: {
         id: 'joinChannel.joiningButton',
         defaultMessage: 'Joining...',
+    },
+    requesting: {
+        id: 'more_channels.requesting',
+        defaultMessage: 'Requesting...',
+    },
+    withdrawing: {
+        id: 'more_channels.withdrawing',
+        defaultMessage: 'Withdrawing...',
     },
     noMore: {
         id: 'more_channels.noMore',

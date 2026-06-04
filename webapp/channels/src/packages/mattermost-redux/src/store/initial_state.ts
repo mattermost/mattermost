@@ -72,6 +72,12 @@ const state: GlobalState = {
             messageCounts: {},
             channelsMemberCount: {},
             restrictedDMs: {},
+            joinRequests: {
+                myPendingByChannel: {},
+                byChannel: {},
+                countsByChannel: {},
+                myList: [],
+            },
         },
         channelBookmarks: {
             byChannelId: {},

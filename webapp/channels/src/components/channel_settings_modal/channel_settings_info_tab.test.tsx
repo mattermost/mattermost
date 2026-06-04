@@ -35,6 +35,7 @@ jest.mock('components/admin_console/team_channel_settings/convert_confirm_modal'
 let mockChannelPropertiesPermission = true;
 let mockConvertToPublicPermission = true;
 let mockConvertToPrivatePermission = true;
+let mockDiscoverabilityPermission = true;
 
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveITeamPermission: jest.fn().mockReturnValue(true),
@@ -47,6 +48,9 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
         }
         if (permission === 'convert_private_channel_to_public') {
             return mockConvertToPublicPermission;
+        }
+        if (permission === 'manage_private_channel_discoverability') {
+            return mockDiscoverabilityPermission;
         }
         return true;
     }),
@@ -139,6 +143,7 @@ describe('ChannelSettingsInfoTab', () => {
         mockChannelPropertiesPermission = true;
         mockConvertToPublicPermission = true;
         mockConvertToPrivatePermission = true;
+        mockDiscoverabilityPermission = true;
     });
 
     it('should render with the correct initial values', () => {
@@ -645,5 +650,120 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Verify error state is shown
         expect(screen.getByText(/There are errors in the form above/)).toBeInTheDocument();
+    });
+
+    // ---------------------------------------------------------------
+    // Discoverable Private Channels — toggle visibility, gating, save
+    // ---------------------------------------------------------------
+
+    const privateChannel = TestHelper.getChannelMock({
+        id: 'channel1',
+        team_id: 'team1',
+        display_name: 'Private Channel',
+        name: 'private-channel',
+        purpose: 'For private things',
+        header: 'Private header',
+        type: 'P',
+    });
+
+    // Feature-flag-enabled state. The selector reads
+    // config.FeatureFlagDiscoverableChannels === 'true'.
+    const stateWithDiscoverableFlag = {
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagDiscoverableChannels: 'true',
+                },
+            },
+        },
+    };
+
+    describe('Discoverable toggle', () => {
+        it('does not render on a public channel even when the feature flag is on', () => {
+            renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>, stateWithDiscoverableFlag);
+            expect(screen.queryByTestId('channel-settings-discoverable-toggle')).not.toBeInTheDocument();
+        });
+
+        it('does not render when the feature flag is off, even on a private channel', () => {
+            renderWithContext(<ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>);
+            expect(screen.queryByTestId('channel-settings-discoverable-toggle')).not.toBeInTheDocument();
+        });
+
+        it('renders on a private channel when the feature flag is on', () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                stateWithDiscoverableFlag,
+            );
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeInTheDocument();
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'false');
+        });
+
+        it('reflects the channel\'s existing discoverable value on mount', () => {
+            const alreadyDiscoverable = {...privateChannel, discoverable: true};
+            renderWithContext(
+                <ChannelSettingsInfoTab channel={alreadyDiscoverable} setAreThereUnsavedChanges={jest.fn()}/>,
+                stateWithDiscoverableFlag,
+            );
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'true');
+        });
+
+        it('disables the toggle when the user lacks manage_private_channel_discoverability', () => {
+            mockDiscoverabilityPermission = false;
+            renderWithContext(
+                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                stateWithDiscoverableFlag,
+            );
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeDisabled();
+            expect(screen.getByText(/Only channel admins can change this/)).toBeInTheDocument();
+        });
+
+        it('includes discoverable: true in the patchChannel payload when toggled on and saved', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {discoverable: true}});
+
+            renderWithContext(
+                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                stateWithDiscoverableFlag,
+            );
+
+            await act(async () => {
+                await userEvent.click(screen.getByTestId('channel-settings-discoverable-toggle'));
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            // SaveChangesPanel becomes visible only when there are unsaved changes
+            const saveButton = screen.getByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', {discoverable: true});
+        });
+
+        it('omits the discoverable field from the patch when the toggle is unchanged', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            renderWithContext(
+                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                stateWithDiscoverableFlag,
+            );
+
+            // Touch a different field so SaveChangesPanel renders, but leave
+            // the discoverable toggle alone. The patch should NOT include
+            // discoverable — only fields that changed.
+            await act(async () => {
+                const headerInput = screen.getByTestId('channel_settings_header_textbox');
+                await userEvent.clear(headerInput);
+                await userEvent.type(headerInput, 'New header text');
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', {header: 'New header text'});
+            const calls = patchChannel.mock.calls;
+            const lastPatch = calls[calls.length - 1][1];
+            expect(lastPatch).not.toHaveProperty('discoverable');
+        });
+
     });
 });

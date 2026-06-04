@@ -3,7 +3,7 @@
 
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import type {Limits, Subscription} from '@mattermost/types/cloud';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Draft} from '@mattermost/types/drafts';
@@ -272,6 +272,22 @@ export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.Team
     team: JsonEncodedValue<TeamType>;
 }>;
 
+// Discoverable Private Channels — join request messages
+//
+// Both events carry the request row as a JSON-encoded string under `request`,
+// plus the unencoded channel id under `channel_id` so consumers can route
+// without parsing the body when they only need to invalidate caches.
+
+export type ChannelJoinRequestCreated = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestCreated, {
+    request: JsonEncodedValue<ChannelJoinRequest>;
+    channel_id: string;
+}>;
+
+export type ChannelJoinRequestUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestUpdated, {
+    request: JsonEncodedValue<ChannelJoinRequest>;
+    channel_id: string;
+}>;
+
 // Team and team member messages
 
 export type Team =
@@ -509,12 +525,6 @@ export type FileDownloadRejected = BaseWebSocketMessage<WebSocketEvents.FileDown
     channel_id: string;
     post_id: string;
     download_type: string;
-}>;
-
-export type FileUploadRejected = BaseWebSocketMessage<WebSocketEvents.FileUploadRejected, {
-    file_name: string;
-    rejection_reason: string;
-    channel_id: string;
 }>;
 
 export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {
