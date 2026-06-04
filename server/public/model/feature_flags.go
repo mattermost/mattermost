@@ -41,6 +41,9 @@ type FeatureFlags struct {
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
+	// Enable the multi-image / video MediaGallery layout for post attachments
+	MediaGallery bool
+
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
@@ -164,6 +167,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
+	f.MediaGallery = true
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false

@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {useSelector} from 'react-redux';
 
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import FileAttachment from 'components/file_attachment';
@@ -12,12 +14,19 @@ import SingleImageView from 'components/single_image_view';
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getFileType} from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
+import MediaGallery from './media_gallery';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 type Props = OwnProps & PropsFromRedux;
 
 export default function FileAttachmentList(props: Props) {
-    const handleImageClick = (indexClicked: number) => {
+    const mediaGalleryEnabled = useSelector((state: GlobalState) =>
+        getFeatureFlagValue(state, 'MediaGallery') === 'true');
+
+    const handleImageClick = useCallback((indexClicked: number) => {
         props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
@@ -27,7 +36,7 @@ export default function FileAttachmentList(props: Props) {
                 startIndex: indexClicked,
             },
         });
-    };
+    }, [props.actions, props.post.id, props.fileInfos]);
 
     const {
         compactDisplay,
@@ -42,6 +51,30 @@ export default function FileAttachmentList(props: Props) {
 
     if (fileInfos.length === 0) {
         return null;
+    }
+
+    if (mediaGalleryEnabled && !isInPermalink && !props.firstFileRejected) {
+        const isMulti = fileInfos.length > 1;
+        const isSingleVideo = fileInfos.length === 1 &&
+            !fileInfos[0].archived &&
+            getFileType(fileInfos[0].extension) === FileTypes.VIDEO;
+
+        if (isMulti || isSingleVideo) {
+            const galleryEligible = sortedFileInfos.some((f) => {
+                const t = getFileType(f.extension);
+                return t === FileTypes.IMAGE || t === FileTypes.VIDEO;
+            });
+            if (galleryEligible) {
+                return (
+                    <MediaGallery
+                        fileInfos={sortedFileInfos}
+                        postId={props.post.id}
+                        compactDisplay={compactDisplay}
+                        onItemClick={handleImageClick}
+                    />
+                );
+            }
+        }
     }
 
     // For single image files, use SingleImageView UNLESS the file is rejected
