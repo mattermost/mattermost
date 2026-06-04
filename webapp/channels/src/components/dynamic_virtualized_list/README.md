@@ -15,4 +15,3 @@ but took a substantially different approach — using relative rather than absol
 | --- | --- |
 | `list_item.tsx` | Wrapper around each rendered row that reports its measured size back to the list. |
 | `list_item_size_observer.ts` | Tracks rendered item sizes so the list can position rows without pre-measuring them. |
- |
