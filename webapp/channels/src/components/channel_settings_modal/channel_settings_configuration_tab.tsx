@@ -640,18 +640,24 @@ function ChannelSettingsConfigurationTab({
                 <>
                     <div className='channel_banner_header'>
                         <div className='channel_banner_header__text'>
-                            <span className='Input_legend'>
+                            <label
+                                className='Input_legend'
+                                htmlFor='channelClassificationToggle'
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.title'
                                     defaultMessage='Classification'
                                 />
-                            </span>
-                            <span className='Input_subheading'>
+                            </label>
+                            <label
+                                className='Input_subheading'
+                                htmlFor='channelClassificationToggle'
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.description'
                                     defaultMessage='When enabled, a classification level can be set for the channel with configurable indicators.'
                                 />
-                            </span>
+                            </label>
                         </div>
 
                         <div className='channel_banner_header__toggle'>
