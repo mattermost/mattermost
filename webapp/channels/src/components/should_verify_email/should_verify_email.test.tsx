@@ -39,7 +39,9 @@ describe('components/ShouldVerifyEmail', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Return to log in'}));
 
-        expect(history.location.pathname).toBe('/');
+        await waitFor(() => {
+            expect(history.location.pathname).toBe('/');
+        });
     });
 
     test('resends the verification email and disables the button while sending', async () => {
