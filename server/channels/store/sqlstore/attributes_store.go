@@ -228,10 +228,17 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 	argCount++
 	query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.TeamId = $%d", argCount), teamID))
 
+	// An explicit limit is capped at MaxPerPage; an unset limit (0) intentionally
+	// returns every removal candidate for the team. The membership-sync caller
+	// consumes the full set in one pass, so capping an unset limit here would
+	// permanently leave members beyond the cap in a team they no longer qualify
+	// for. The result is naturally bounded by the team's membership.
 	if opts.Limit > 0 {
-		query = query.Limit(uint64(opts.Limit))
-	} else if opts.Limit > MaxPerPage {
-		query = query.Limit(uint64(MaxPerPage))
+		limit := opts.Limit
+		if limit > MaxPerPage {
+			limit = MaxPerPage
+		}
+		query = query.Limit(uint64(limit))
 	}
 
 	if opts.Cursor.TargetID != "" {

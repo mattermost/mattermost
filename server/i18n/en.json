@@ -76,6 +76,10 @@
     "translation": "All users in the simulation must be members of the team or channel in the request."
   },
   {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "Team membership access control feature is not enabled."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },

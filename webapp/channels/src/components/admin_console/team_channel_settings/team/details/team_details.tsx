@@ -87,6 +87,12 @@ type State = {
     policyEnforced: boolean;
     accessControlPolicies: AccessControlPolicy[];
     accessControlPoliciesToRemove: string[];
+
+    // Ids of the policies already assigned on the server when the page loaded.
+    // Used to assign only newly-added policies on save — re-assigning one that
+    // is already imported is rejected server-side, and that error would
+    // otherwise surface on an unchanged re-save.
+    originalPolicyIds: string[];
 };
 
 export default class TeamDetails extends React.PureComponent<Props, State> {
@@ -118,6 +124,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             policyEnforced: Boolean(team?.policy_enforced),
             accessControlPolicies: [],
             accessControlPoliciesToRemove: [],
+            originalPolicyIds: [],
         };
     }
 
@@ -161,7 +168,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
             const {policy, enforced} = result.data as {policy: AccessControlPolicy | null; enforced: boolean};
             if (!policy) {
-                this.setState({accessControlPolicies: [], policyEnforced: enforced});
+                this.setState({accessControlPolicies: [], policyEnforced: enforced, originalPolicyIds: []});
                 return;
             }
 
@@ -169,7 +176,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             // resolve each so the table can show parent policy names.
             const parentIds = policy.imports || [];
             if (parentIds.length === 0) {
-                this.setState({accessControlPolicies: [], policyEnforced: enforced});
+                this.setState({accessControlPolicies: [], policyEnforced: enforced, originalPolicyIds: []});
                 return;
             }
 
@@ -181,7 +188,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     }
                 }),
             )).then(() => {
-                this.setState({accessControlPolicies: policies, policyEnforced: enforced});
+                this.setState({accessControlPolicies: policies, policyEnforced: enforced, originalPolicyIds: policies.map((p) => p.id)});
             });
         });
     };
@@ -405,28 +412,32 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 return;
             }
 
-            if (accessControlPolicies.length > 0) {
-                try {
-                    await Promise.all(
-                        accessControlPolicies.map((policy) =>
-                            actions.assignTeamToAccessControlPolicy(policy.id, teamID),
-                        ),
-                    );
-                } catch (error) {
-                    serverError = <FormError error={error.message}/>;
+            // Assign only policies not already on the server. These thunks resolve
+            // with {error} rather than throwing, so inspect the results — a bare
+            // try/catch would silently swallow failures and redirect as success.
+            const policiesToAssign = accessControlPolicies.filter((policy) => !this.state.originalPolicyIds.includes(policy.id));
+            if (policiesToAssign.length > 0) {
+                const result = await Promise.all(
+                    policiesToAssign.map((policy) =>
+                        actions.assignTeamToAccessControlPolicy(policy.id, teamID),
+                    ),
+                );
+                const resultWithError = result.find((r) => r.error);
+                if (resultWithError) {
+                    serverError = <FormError error={resultWithError.error?.message}/>;
                     saveNeeded = true;
                 }
             }
 
             if (accessControlPoliciesToRemove.length > 0) {
-                try {
-                    await Promise.all(
-                        accessControlPoliciesToRemove.map((policyId) =>
-                            actions.unassignTeamsFromAccessControlPolicy(policyId, [teamID]),
-                        ),
-                    );
-                } catch (error) {
-                    serverError = <FormError error={error.message}/>;
+                const result = await Promise.all(
+                    accessControlPoliciesToRemove.map((policyId) =>
+                        actions.unassignTeamsFromAccessControlPolicy(policyId, [teamID]),
+                    ),
+                );
+                const resultWithError = result.find((r) => r.error);
+                if (resultWithError) {
+                    serverError = <FormError error={resultWithError.error?.message}/>;
                     saveNeeded = true;
                 }
             }

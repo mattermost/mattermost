@@ -1527,7 +1527,9 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
 	data := []*model.TeamForExport{}
 	query, args, err := s.getQueryBuilder().
-		Select(teamSliceColumns(true)...).
+		// Export doesn't consume policy-enforcement state, so omit the per-row
+		// PolicyEnforced/PolicyIsActive subqueries that teamSliceColumns(true) adds.
+		Select(teamSliceColumns(false)...).
 		Column("Schemes.Name as SchemeName").
 		From("Teams").
 		LeftJoin("Schemes ON Teams.SchemeId = Schemes.Id").

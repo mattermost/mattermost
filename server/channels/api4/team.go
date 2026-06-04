@@ -199,17 +199,21 @@ func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reque
 	// A team child policy shares the team's id. Absence (404) means no policy is
 	// assigned; NotImplemented means ABAC is unavailable on this server. Either way
 	// there's nothing to enforce, so report a nil policy rather than erroring.
+	// The fetch is gated on the team membership flag too: a row created while the
+	// feature was dark must not leak through this endpoint before it goes live.
 	var policy *model.AccessControlPolicy
-	p, appErr := c.App.GetAccessControlPolicy(c.AppContext, teamID)
-	if appErr != nil {
-		if appErr.StatusCode != http.StatusNotFound && appErr.StatusCode != http.StatusNotImplemented {
-			c.Err = appErr
-			return
-		}
-	} else {
-		policy = p
-		if shouldRedactExpressions(c) {
-			c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+	if c.App.TeamMembershipAccessControlEnabled() {
+		p, appErr := c.App.GetAccessControlPolicy(c.AppContext, teamID)
+		if appErr != nil {
+			if appErr.StatusCode != http.StatusNotFound && appErr.StatusCode != http.StatusNotImplemented {
+				c.Err = appErr
+				return
+			}
+		} else {
+			policy = p
+			if shouldRedactExpressions(c) {
+				c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+			}
 		}
 	}
 

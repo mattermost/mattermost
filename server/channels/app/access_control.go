@@ -575,7 +575,11 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 	// Parent deletes leave child rows in place (their dangling Imports are
 	// reconciled lazily); we only fan out a refresh per affected resource.
 	switch {
-	case policy != nil && policy.Type == model.AccessControlPolicyTypeChannel:
+	case policy == nil:
+		// GetPolicy is expected to return a non-nil policy on success, but the
+		// surrounding code already guards against nil; keep the switch consistent
+		// so a future (nil, nil) return can never dereference policy.Type.
+	case policy.Type == model.AccessControlPolicyTypeChannel:
 		a.publishChannelPolicyEnforcedUpdate(rctx, id)
 	case policy.Type == model.AccessControlPolicyTypeTeam:
 		a.publishTeamPolicyEnforcedUpdate(rctx, id)
@@ -1613,6 +1617,13 @@ func (a *App) AssignAccessControlPolicyToTeams(rctx request.CTX, parentID string
 		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_access_control_policy_to_teams.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
+	// Defense in depth: never create team child policy rows while team membership
+	// ABAC is dark. Without this a row written by a non-API caller (import, job)
+	// would silently go live when the flag is later enabled.
+	if !a.TeamMembershipAccessControlEnabled() {
+		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_access_control_policy_to_teams.app_error", nil, "Team membership access control is not enabled", http.StatusNotImplemented)
+	}
+
 	policy, appErr := a.GetAccessControlPolicy(rctx, parentID)
 	if appErr != nil {
 		return nil, appErr
@@ -1668,6 +1679,10 @@ func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamI
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	if !a.TeamMembershipAccessControlEnabled() {
+		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, "Team membership access control is not enabled", http.StatusNotImplemented)
 	}
 
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{

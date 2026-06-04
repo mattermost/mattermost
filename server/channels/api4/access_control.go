@@ -403,15 +403,34 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 // team id. GetTeams silently drops unknown ids (partial list) or returns 404 (all
 // invalid), so the handler must confirm existence itself to reject bad input here.
 func validateTeamIdsExist(c *Context, teamIDs []string) *model.AppError {
+	if len(teamIDs) == 0 {
+		return nil
+	}
+
 	for _, teamID := range teamIDs {
 		if !model.IsValidId(teamID) {
 			return model.NewAppError("validateTeamIdsExist", "api.context.invalid_body_param.app_error", map[string]any{"Name": "team_ids"}, "", http.StatusBadRequest)
 		}
-		if _, appErr := c.App.GetTeam(teamID); appErr != nil {
-			if appErr.StatusCode == http.StatusNotFound {
-				return model.NewAppError("validateTeamIdsExist", "api.context.invalid_body_param.app_error", map[string]any{"Name": "team_ids"}, "", http.StatusBadRequest)
-			}
-			return appErr
+	}
+
+	// One batch lookup instead of a GetTeam per id. GetTeams returns 404 only when
+	// every id is unknown (treated as a bad request here) and otherwise drops
+	// unknown ids from a partial list, so confirm each requested id is present.
+	teams, appErr := c.App.GetTeams(teamIDs)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return model.NewAppError("validateTeamIdsExist", "api.context.invalid_body_param.app_error", map[string]any{"Name": "team_ids"}, "", http.StatusBadRequest)
+		}
+		return appErr
+	}
+
+	found := make(map[string]bool, len(teams))
+	for _, team := range teams {
+		found[team.Id] = true
+	}
+	for _, teamID := range teamIDs {
+		if !found[teamID] {
+			return model.NewAppError("validateTeamIdsExist", "api.context.invalid_body_param.app_error", map[string]any{"Name": "team_ids"}, "", http.StatusBadRequest)
 		}
 	}
 	return nil
@@ -882,6 +901,14 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Team-resource assignment ships behind its own dark-launch flag. Reject it
+	// outright when team membership ABAC is not fully enabled so inert team child
+	// policy rows can't be created and later go live when the flag is flipped on.
+	if len(assignments.TeamIds) != 0 && !c.App.TeamMembershipAccessControlEnabled() {
+		c.Err = model.NewAppError("assignAccessPolicy", "api.access_control_policy.team_membership.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 
 	// Assigning a parent policy to a team resource is a system-level operation —
@@ -973,6 +1000,13 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&assignments)
 	if err != nil {
 		c.SetInvalidParamWithErr("assignments", err)
+		return
+	}
+
+	// Mirror the assign path: team-resource unassignment is gated by the same
+	// dark-launch flag so the feature can be rolled back cleanly.
+	if len(assignments.TeamIds) != 0 && !c.App.TeamMembershipAccessControlEnabled() {
+		c.Err = model.NewAppError("unassignAccessPolicy", "api.access_control_policy.team_membership.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 

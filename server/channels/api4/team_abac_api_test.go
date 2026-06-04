@@ -23,6 +23,7 @@ func enableTeamABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	})
 	m := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().Channels().AccessControl = m
@@ -130,6 +131,15 @@ func TestAssignAccessPolicyTeamIds(t *testing.T) {
 		require.Equal(t, http.StatusOK, status)
 		m.AssertExpectations(t)
 	})
+
+	t.Run("team_ids is rejected with 501 when team membership ABAC is disabled", func(t *testing.T) {
+		enableTeamABAC(t, th)
+		// Dark-launch guard: even a sysadmin cannot create team child policy rows
+		// while the sub-flag is off, so they can't go live on a later flag flip.
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.TeamMembershipAccessControl = false })
+		status := doAssign(t, th.SystemAdminClient, parent.ID, assignBody{TeamIds: []string{th.BasicTeam.Id}})
+		require.Equal(t, http.StatusNotImplemented, status)
+	})
 }
 
 func TestUnassignAccessPolicyTeamIds(t *testing.T) {
@@ -155,6 +165,13 @@ func TestUnassignAccessPolicyTeamIds(t *testing.T) {
 		// (warn + continue) and returns success.
 		status := doUnassign(t, th.SystemAdminClient, policyID, assignBody{TeamIds: []string{th.BasicTeam.Id}})
 		require.Equal(t, http.StatusOK, status)
+	})
+
+	t.Run("team_ids is rejected with 501 when team membership ABAC is disabled", func(t *testing.T) {
+		enableTeamABAC(t, th)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.TeamMembershipAccessControl = false })
+		status := doUnassign(t, th.SystemAdminClient, policyID, assignBody{TeamIds: []string{th.BasicTeam.Id}})
+		require.Equal(t, http.StatusNotImplemented, status)
 	})
 }
 
@@ -232,6 +249,27 @@ func TestGetTeamAccessControlPolicy(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("disabled flag hides a policy row created while dark", func(t *testing.T) {
+		enableTeamABAC(t, th)
+		// A child policy persisted while the feature was on must not leak through
+		// this endpoint once the sub-flag is turned off again (dark-launch/rollback).
+		saveTeamMembershipPolicy(t, th, th.BasicTeam.Id)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.TeamMembershipAccessControl = false })
+
+		resp, err := getPolicy(t, th.SystemAdminClient, th.BasicTeam.Id)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var body struct {
+			Policy   *model.AccessControlPolicy `json:"policy"`
+			Enforced bool                       `json:"enforced"`
+		}
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+		require.Nil(t, body.Policy)
+		require.False(t, body.Enforced)
 	})
 }
 

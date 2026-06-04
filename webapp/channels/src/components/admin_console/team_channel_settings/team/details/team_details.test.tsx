@@ -197,4 +197,83 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
         });
     });
+
+    test('surfaces a policy action error on save instead of silently succeeding', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+
+        // The thunk resolves with {error} rather than throwing — the handler must
+        // inspect the result, render the error, and not navigate away as success.
+        const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({error: {message: 'policy update failed'}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                unassignTeamsFromAccessControlPolicy,
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByLabelText('Remove policy'));
+        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('policy update failed')).toBeInTheDocument();
+        });
+    });
+
+    test('does not re-assign an already-assigned policy on save', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const assignTeamToAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
+        const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                assignTeamToAccessControlPolicy,
+                unassignTeamsFromAccessControlPolicy,
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
+        });
+
+        // Removing the only policy disables the toggle, which lets us save without
+        // re-touching the already-assigned parent1. The assign action must never
+        // fire for a policy that was already on the server when the page loaded.
+        await userEvent.click(screen.getByLabelText('Remove policy'));
+        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+        });
+        expect(assignTeamToAccessControlPolicy).not.toHaveBeenCalled();
+    });
 });
