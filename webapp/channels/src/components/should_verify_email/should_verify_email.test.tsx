@@ -17,12 +17,20 @@ jest.mock('mattermost-redux/actions/users', () => ({
 const mockedSendVerificationEmail = jest.mocked(sendVerificationEmail);
 const historyPush = jest.fn();
 
+type GlobalWithHistoryMock = typeof globalThis & {
+    historyMock: {
+        push: jest.Mock;
+    };
+};
+
+const getHistoryMock = () => (globalThis as GlobalWithHistoryMock).historyMock;
+
 describe('components/ShouldVerifyEmail', () => {
     beforeEach(() => {
         mockedSendVerificationEmail.mockReset();
         mockedSendVerificationEmail.mockReturnValue(async () => ({data: true}));
         historyPush.mockReset();
-        (global as any).historyMock.push = historyPush;
+        getHistoryMock().push = historyPush;
     });
 
     const renderComponent = (url = '/should_verify_email?email=test%40example.com') => {
