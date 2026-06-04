@@ -16,8 +16,6 @@ import (
 var (
 	// ErrMmBlocksActionNotFound is returned when the action id is missing or not an executable mm_blocks action.
 	ErrMmBlocksActionNotFound = errors.New("mm_blocks action not found")
-	// ErrMmBlocksOpenURLEmpty is returned when an openURL action has no url.
-	ErrMmBlocksOpenURLEmpty = errors.New("openURL action requires a non-empty url")
 )
 
 // MmBlocksActionResolved is the outcome of resolving an mm_blocks action for execution.
@@ -107,7 +105,7 @@ func ResolveMmBlocksAction(spec *MmBlocksActionSpec, actionID string, clientQuer
 	switch spec.Type {
 	case MmBlocksActionTypeOpenURL:
 		if spec.URL == "" {
-			return nil, ErrMmBlocksOpenURLEmpty
+			return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
 		}
 		gotoURL, err := MergeQueryIntoURL(spec.URL, spec.Query)
 		if err != nil {
@@ -208,13 +206,8 @@ func AddMmBlocksActionCookies(p *Post, secret []byte) {
 		}
 	}
 
-	// Deep copy and merge action query into URL for external entries (same effective payload as legacy per-action cookies).
-	actionsCopy := cloneJSONMap(actionsTop)
-	if actionsCopy == nil {
-		return
-	}
-	actionsForEnc := make(map[string]map[string]any, len(actionsCopy))
-	for actionID, val := range actionsCopy {
+	actionsForEnc := make(map[string]map[string]any, len(actionsTop))
+	for actionID, val := range actionsTop {
 		entryMap, ok := coerceToStringAnyMap(val)
 		if !ok {
 			continue
@@ -239,23 +232,11 @@ func AddMmBlocksActionCookies(p *Post, secret []byte) {
 	if err != nil {
 		return
 	}
-	enc, err := encryptPostActionCookie(string(b), secret)
+	enc, err := EncryptPostActionCookie(string(b), secret)
 	if err != nil {
 		return
 	}
 	p.AddProp(PostPropsMmBlocksActions, enc)
-}
-
-func cloneJSONMap(m map[string]any) map[string]any {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return nil
-	}
-	var out map[string]any
-	if err := json.Unmarshal(b, &out); err != nil {
-		return nil
-	}
-	return out
 }
 
 // StripMmBlocksActionSecrets removes server-only fields from props.mm_blocks_actions for wire serialization.

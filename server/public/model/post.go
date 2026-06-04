@@ -739,28 +739,27 @@ type AllStringsOptions struct {
 // strings from interactive blocks (mm_blocks, Block Kit blocks, Adaptive cards).
 // It is intended for mention checks, search indexing, and similar uses alongside integration metadata.
 func (o *Post) AllStrings(opts AllStringsOptions) []string {
-	var out []string
-	appendNonWhitespaceOnlyMessage(&out, o.Message)
+	out := appendNonWhitespaceOnlyMessage(nil, o.Message)
 	for _, attachment := range o.Attachments() {
 		if attachment == nil {
 			continue
 		}
-		appendNonWhitespaceOnlyMessage(&out, attachment.AuthorName)
-		appendNonWhitespaceOnlyMessage(&out, attachment.Title)
-		appendNonWhitespaceOnlyMessage(&out, attachment.Text)
-		appendNonWhitespaceOnlyMessage(&out, attachment.Pretext)
-		appendNonWhitespaceOnlyMessage(&out, attachment.Footer)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.AuthorName)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Title)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Text)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Pretext)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Footer)
 		for _, field := range attachment.Fields {
 			if field == nil {
 				continue
 			}
-			appendNonWhitespaceOnlyMessage(&out, field.Title)
+			out = appendNonWhitespaceOnlyMessage(out, field.Title)
 			if field.Value == nil {
 				continue
 			}
 			switch v := field.Value.(type) {
 			case string:
-				appendNonWhitespaceOnlyMessage(&out, v)
+				out = appendNonWhitespaceOnlyMessage(out, v)
 			default:
 				if s := strings.TrimSpace(fmt.Sprint(v)); s != "" {
 					out = append(out, s)
@@ -769,7 +768,7 @@ func (o *Post) AllStrings(opts AllStringsOptions) []string {
 		}
 	}
 	if !opts.OmitInteractiveBlocks {
-		appendHumanReadableInteractiveStrings(o, &out)
+		out = appendHumanReadableInteractiveStrings(o, out)
 	}
 	return out
 }
@@ -787,24 +786,23 @@ func (o *Post) InteractiveBlocksImageURLs(mmBlocksEnabled bool) []string {
 	var out []string
 	if mmBlocksEnabled {
 		if raw, ok := props[PostPropsMmBlocks]; ok {
-			out = append(out, collectMmBlockImageURLs(raw)...)
+			out = appendMmBlockImageURLs(out, raw)
 		}
 		if raw, ok := props[PostPropsBlockKitBlocks]; ok {
-			collectBlockKitImageURLs(raw, &out)
+			out = appendBlockKitImageURLs(out, raw)
 		}
 		if raw, ok := props[PostPropsAdaptiveCards]; ok {
-			collectAdaptiveCardImageURLs(raw, &out)
+			out = appendAdaptiveCardImageURLs(out, raw)
 		}
 	}
-	collectAttachmentsImageURLs(o.Attachments(), &out)
-	return out
+	return appendAttachmentsImageURLs(out, o.Attachments())
 }
 
-func appendNonWhitespaceOnlyMessage(out *[]string, s string) {
+func appendNonWhitespaceOnlyMessage(out []string, s string) []string {
 	if strings.TrimSpace(s) == "" {
-		return
+		return out
 	}
-	*out = append(*out, s)
+	return append(out, s)
 }
 
 // nonEmptyInteractivePayloadPropKeys lists non-empty interactive payload props (mm_blocks,

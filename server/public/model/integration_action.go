@@ -1222,7 +1222,7 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 			}
 
 			b, _ := json.Marshal(c)
-			action.Cookie, _ = encryptPostActionCookie(string(b), secret)
+			action.Cookie, _ = EncryptPostActionCookie(string(b), secret)
 		}
 	}
 
@@ -1231,7 +1231,9 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 	return p
 }
 
-func encryptPostActionCookie(plain string, secret []byte) (string, error) {
+// EncryptPostActionCookie encrypts a plaintext post action cookie payload.
+// Exposed for testing.
+func EncryptPostActionCookie(plain string, secret []byte) (string, error) {
 	if len(secret) == 0 {
 		return plain, nil
 	}
@@ -1259,12 +1261,6 @@ func encryptPostActionCookie(plain string, secret []byte) (string, error) {
 	base64.StdEncoding.Encode(encoded, combined)
 
 	return string(encoded), nil
-}
-
-// EncryptPostActionCookie encrypts a plaintext post action cookie payload.
-// Exposed for testing.
-func EncryptPostActionCookie(plain string, secret []byte) (string, error) {
-	return encryptPostActionCookie(plain, secret)
 }
 
 func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {

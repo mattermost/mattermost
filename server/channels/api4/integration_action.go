@@ -72,7 +72,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		var channelID string
 		if legacyCookie != nil {
 			channelID = legacyCookie.ChannelId
-		} else {
+		} else if mmBlocksCookie != nil {
 			channelID = mmBlocksCookie.ChannelId
 		}
 		channel, appErr := c.App.GetChannel(c.AppContext, channelID)

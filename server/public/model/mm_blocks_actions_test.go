@@ -97,7 +97,7 @@ func TestResolveMmBlocksAction(t *testing.T) {
 	t.Run("openURL empty url", func(t *testing.T) {
 		_, err := ResolveMmBlocksAction(&MmBlocksActionSpec{Type: MmBlocksActionTypeOpenURL}, "open1", nil)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrMmBlocksOpenURLEmpty)
+		assert.ErrorIs(t, err, ErrMmBlocksActionNotFound)
 	})
 
 	t.Run("external empty url", func(t *testing.T) {

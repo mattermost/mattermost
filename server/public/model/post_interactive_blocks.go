@@ -5,25 +5,27 @@ package model
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 )
 
-func appendHumanReadableInteractiveStrings(o *Post, out *[]string) {
+func appendHumanReadableInteractiveStrings(o *Post, out []string) []string {
 	props := o.GetProps()
 	if props == nil {
-		return
+		return out
 	}
 	if raw, ok := props[PostPropsMmBlocks]; ok {
-		appendHumanStringsFromMmBlocks(raw, out)
+		out = appendHumanStringsFromMmBlocks(raw, out)
 	}
 	if raw, ok := props[PostPropsBlockKitBlocks]; ok {
-		appendHumanStringsFromBlockKitTree(raw, out)
+		out = appendHumanStringsFromBlockKitTree(raw, out)
 	}
 	if raw, ok := props[PostPropsAdaptiveCards]; ok {
-		appendHumanStringsFromAdaptiveCardsTree(raw, out)
+		out = appendHumanStringsFromAdaptiveCardsTree(raw, out)
 	}
+	return out
 }
 
 func interactivePropJSONArray(raw any) ([]any, bool) {
@@ -40,32 +42,33 @@ func interactivePropJSONArrayNonEmpty(raw any) bool {
 	return ok && len(arr) > 0
 }
 
-func appendHumanStringsFromMmBlocks(raw any, out *[]string) {
+func appendHumanStringsFromMmBlocks(raw any, out []string) []string {
 	blocks, ok := interactivePropJSONArray(raw)
 	if !ok {
-		return
+		return out
 	}
 	for _, b := range blocks {
 		m, ok := b.(map[string]any)
 		if !ok {
 			continue
 		}
-		appendHumanStringsFromMmBlockMap(m, out)
+		out = appendHumanStringsFromMmBlockMap(m, out)
 	}
+	return out
 }
 
-func appendHumanStringsFromMmBlockMap(m map[string]any, out *[]string) {
+func appendHumanStringsFromMmBlockMap(m map[string]any, out []string) []string {
 	typ, _ := m["type"].(string)
 	switch typ {
 	case "text":
 		if s, ok := m["text"].(string); ok {
-			appendNonWhitespaceOnlyMessage(out, s)
+			out = appendNonWhitespaceOnlyMessage(out, s)
 		}
 	case "container":
-		appendHumanStringsFromMmBlocksArray(m["content"], out)
+		out = appendHumanStringsFromMmBlocksArray(m["content"], out)
 	case "collapsible":
-		appendHumanStringsFromMmBlocksArray(m["header"], out)
-		appendHumanStringsFromMmBlocksArray(m["content"], out)
+		out = appendHumanStringsFromMmBlocksArray(m["header"], out)
+		out = appendHumanStringsFromMmBlocksArray(m["content"], out)
 	case "column_set":
 		if cols, ok := m["columns"].([]any); ok {
 			for _, col := range cols {
@@ -77,30 +80,32 @@ func appendHumanStringsFromMmBlockMap(m map[string]any, out *[]string) {
 				if !ok {
 					continue
 				}
-				appendHumanStringsFromMmBlocksArray(colItems, out)
+				out = appendHumanStringsFromMmBlocksArray(colItems, out)
 			}
 		}
 	}
+	return out
 }
 
-func appendHumanStringsFromMmBlocksArray(raw any, out *[]string) {
+func appendHumanStringsFromMmBlocksArray(raw any, out []string) []string {
 	arr, ok := interactivePropJSONArray(raw)
 	if !ok {
-		return
+		return out
 	}
 	for _, el := range arr {
 		m, ok := el.(map[string]any)
 		if !ok {
 			continue
 		}
-		appendHumanStringsFromMmBlockMap(m, out)
+		out = appendHumanStringsFromMmBlockMap(m, out)
 	}
+	return out
 }
 
-func appendHumanStringsFromBlockKitTree(v any, out *[]string) {
+func appendHumanStringsFromBlockKitTree(v any, out []string) []string {
 	blocks, ok := v.([]any)
 	if !ok {
-		return
+		return out
 	}
 	for _, block := range blocks {
 		blockMap, ok := block.(map[string]any)
@@ -111,12 +116,12 @@ func appendHumanStringsFromBlockKitTree(v any, out *[]string) {
 		switch typ {
 		case "markdown":
 			if s, ok := blockMap["text"].(string); ok {
-				appendNonWhitespaceOnlyMessage(out, s)
+				out = appendNonWhitespaceOnlyMessage(out, s)
 			}
 		case "section":
 			if textBlock, ok := blockMap["text"].(map[string]any); ok {
 				if s, ok := textBlock["text"].(string); ok {
-					appendNonWhitespaceOnlyMessage(out, s)
+					out = appendNonWhitespaceOnlyMessage(out, s)
 				}
 			}
 			if fields, ok := blockMap["fields"].([]any); ok {
@@ -127,24 +132,25 @@ func appendHumanStringsFromBlockKitTree(v any, out *[]string) {
 					}
 					fieldText, ok := fieldMap["text"].(string)
 					if ok {
-						appendNonWhitespaceOnlyMessage(out, fieldText)
+						out = appendNonWhitespaceOnlyMessage(out, fieldText)
 					}
 				}
 			}
 		case "header":
 			if textBlock, ok := blockMap["text"].(map[string]any); ok {
 				if s, ok := textBlock["text"].(string); ok {
-					appendNonWhitespaceOnlyMessage(out, s)
+					out = appendNonWhitespaceOnlyMessage(out, s)
 				}
 			}
 		}
 	}
+	return out
 }
 
-func appendHumanStringsFromAdaptiveCardsTree(v any, out *[]string) {
+func appendHumanStringsFromAdaptiveCardsTree(v any, out []string) []string {
 	cards, ok := v.([]any)
 	if !ok {
-		return
+		return out
 	}
 	for _, card := range cards {
 		cardMap, ok := card.(map[string]any)
@@ -156,26 +162,27 @@ func appendHumanStringsFromAdaptiveCardsTree(v any, out *[]string) {
 			continue
 		}
 		for _, item := range body {
-			appendHumanStringsFromAdaptiveCardsItem(item, out)
+			out = appendHumanStringsFromAdaptiveCardsItem(item, out)
 		}
 	}
+	return out
 }
 
-func appendHumanStringsFromAdaptiveCardsItem(item any, out *[]string) {
+func appendHumanStringsFromAdaptiveCardsItem(item any, out []string) []string {
 	itemMap, ok := item.(map[string]any)
 	if !ok {
-		return
+		return out
 	}
 	typ, _ := itemMap["type"].(string)
 	switch typ {
 	case "TextBlock":
 		if s, ok := itemMap["text"].(string); ok {
-			appendNonWhitespaceOnlyMessage(out, s)
+			out = appendNonWhitespaceOnlyMessage(out, s)
 		}
 	case "Container":
 		if items, ok := itemMap["items"].([]any); ok {
 			for _, item := range items {
-				appendHumanStringsFromAdaptiveCardsItem(item, out)
+				out = appendHumanStringsFromAdaptiveCardsItem(item, out)
 			}
 		}
 	case "ColumnSet":
@@ -190,41 +197,41 @@ func appendHumanStringsFromAdaptiveCardsItem(item any, out *[]string) {
 					continue
 				}
 				for _, item := range itemMap {
-					appendHumanStringsFromAdaptiveCardsItem(item, out)
+					out = appendHumanStringsFromAdaptiveCardsItem(item, out)
 				}
 			}
 		}
 	}
+	return out
 }
 
-func collectMmBlockImageURLs(raw any) []string {
+func appendMmBlockImageURLs(out []string, raw any) []string {
 	blocks, ok := interactivePropJSONArray(raw)
 	if !ok {
-		return nil
+		return out
 	}
-	var out []string
 	for _, b := range blocks {
 		m, ok := b.(map[string]any)
 		if !ok {
 			continue
 		}
-		walkMmBlockMapForImageURLs(m, &out)
+		out = appendMmBlockMapImageURLs(out, m)
 	}
 	return out
 }
 
-func walkMmBlockMapForImageURLs(m map[string]any, out *[]string) {
+func appendMmBlockMapImageURLs(out []string, m map[string]any) []string {
 	typ, _ := m["type"].(string)
 	switch typ {
 	case "image":
 		if u, ok := m["url"].(string); ok {
-			*out = append(*out, u)
+			out = append(out, u)
 		}
 	case "container":
-		walkMmBlocksArrayForImageURLs(m["content"], out)
+		out = appendMmBlocksArrayImageURLs(out, m["content"])
 	case "collapsible":
-		walkMmBlocksArrayForImageURLs(m["header"], out)
-		walkMmBlocksArrayForImageURLs(m["content"], out)
+		out = appendMmBlocksArrayImageURLs(out, m["header"])
+		out = appendMmBlocksArrayImageURLs(out, m["content"])
 	case "column_set":
 		if cols, ok := m["columns"].([]any); ok {
 			for _, col := range cols {
@@ -237,31 +244,33 @@ func walkMmBlockMapForImageURLs(m map[string]any, out *[]string) {
 					continue
 				}
 				for _, item := range colItems {
-					walkMmBlocksArrayForImageURLs(item, out)
+					out = appendMmBlocksArrayImageURLs(out, item)
 				}
 			}
 		}
 	}
+	return out
 }
 
-func walkMmBlocksArrayForImageURLs(raw any, out *[]string) {
+func appendMmBlocksArrayImageURLs(out []string, raw any) []string {
 	arr, ok := interactivePropJSONArray(raw)
 	if !ok {
-		return
+		return out
 	}
 	for _, el := range arr {
 		m, ok := el.(map[string]any)
 		if !ok {
 			continue
 		}
-		walkMmBlockMapForImageURLs(m, out)
+		out = appendMmBlockMapImageURLs(out, m)
 	}
+	return out
 }
 
-func collectBlockKitImageURLs(v any, out *[]string) {
+func appendBlockKitImageURLs(out []string, v any) []string {
 	blocks, ok := interactivePropJSONArray(v)
 	if !ok {
-		return
+		return out
 	}
 	for _, block := range blocks {
 		blockMap, ok := block.(map[string]any)
@@ -278,21 +287,22 @@ func collectBlockKitImageURLs(v any, out *[]string) {
 				}
 
 				if u, ok := accessory["image_url"].(string); ok {
-					*out = append(*out, u)
+					out = append(out, u)
 				}
 			}
 		case "image":
 			if u, ok := blockMap["image_url"].(string); ok {
-				*out = append(*out, u)
+				out = append(out, u)
 			}
 		}
 	}
+	return out
 }
 
-func collectAdaptiveCardImageURLs(v any, out *[]string) {
+func appendAdaptiveCardImageURLs(out []string, v any) []string {
 	cards, ok := interactivePropJSONArray(v)
 	if !ok {
-		return
+		return out
 	}
 	for _, card := range cards {
 		cardMap, ok := card.(map[string]any)
@@ -304,22 +314,23 @@ func collectAdaptiveCardImageURLs(v any, out *[]string) {
 			continue
 		}
 		for _, item := range body {
-			collectAdaptiveCardImageURLsFromItem(item, out)
+			out = appendAdaptiveCardImageURLsFromItem(out, item)
 		}
 	}
+	return out
 }
 
-func collectAdaptiveCardImageURLsFromItem(item any, out *[]string) {
+func appendAdaptiveCardImageURLsFromItem(out []string, item any) []string {
 	itemMap, ok := item.(map[string]any)
 	if !ok {
-		return
+		return out
 	}
 	typ, _ := itemMap["type"].(string)
 	switch typ {
 	case "Container":
 		if items, ok := itemMap["items"].([]any); ok {
 			for _, item := range items {
-				collectAdaptiveCardImageURLsFromItem(item, out)
+				out = appendAdaptiveCardImageURLsFromItem(out, item)
 			}
 		}
 	case "ColumnSet":
@@ -334,60 +345,69 @@ func collectAdaptiveCardImageURLsFromItem(item any, out *[]string) {
 					continue
 				}
 				for _, item := range items {
-					collectAdaptiveCardImageURLsFromItem(item, out)
+					out = appendAdaptiveCardImageURLsFromItem(out, item)
 				}
 			}
 		}
 	case "Image":
 		if u, ok := itemMap["url"].(string); ok {
-			*out = append(*out, u)
+			out = append(out, u)
 		}
 	}
+	return out
 }
 
-func collectAttachmentsImageURLs(attachments []*MessageAttachment, out *[]string) {
+func appendAttachmentsImageURLs(out []string, attachments []*MessageAttachment) []string {
 	for _, attachment := range attachments {
 		if attachment == nil {
 			continue
 		}
 		if attachment.ImageURL != "" {
-			*out = append(*out, attachment.ImageURL)
+			out = append(out, attachment.ImageURL)
 		}
 		if attachment.ThumbURL != "" {
-			*out = append(*out, attachment.ThumbURL)
+			out = append(out, attachment.ThumbURL)
 		}
 		if attachment.AuthorIcon != "" {
-			*out = append(*out, attachment.AuthorIcon)
+			out = append(out, attachment.AuthorIcon)
 		}
 		if attachment.FooterIcon != "" {
-			*out = append(*out, attachment.FooterIcon)
+			out = append(out, attachment.FooterIcon)
 		}
 	}
+	return out
 }
 
 const mmactionScheme = "mmaction://"
 
-// collectMmactionIDsFromText collects action ids from mmaction:// markdown links only.
+// appendMmactionIDsFromText appends action ids from mmaction:// markdown links only.
 // Inline code, fenced code blocks, and other non-link text are ignored (same approach as mentions).
-func collectMmactionIDsFromText(text string, ids map[string]struct{}) {
+func appendMmactionIDsFromText(ids map[string]struct{}, text string) map[string]struct{} {
+	if ids == nil {
+		ids = make(map[string]struct{})
+	}
 	markdown.Inspect(text, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.InlineLink:
-			collectMmactionIDFromURL(v.Destination(), ids)
+			ids = appendMmactionIDFromURL(ids, v.Destination())
 		case *markdown.ReferenceLink:
 			if v.ReferenceDefinition != nil {
-				collectMmactionIDFromURL(v.ReferenceDefinition.Destination(), ids)
+				ids = appendMmactionIDFromURL(ids, v.ReferenceDefinition.Destination())
 			}
 		case *markdown.Autolink:
-			collectMmactionIDFromURL(v.Destination(), ids)
+			ids = appendMmactionIDFromURL(ids, v.Destination())
 		}
 		return true
 	})
+	return ids
 }
 
-func collectMmactionIDFromURL(url string, ids map[string]struct{}) {
+func appendMmactionIDFromURL(ids map[string]struct{}, url string) map[string]struct{} {
 	if !strings.HasPrefix(url, mmactionScheme) {
-		return
+		return ids
+	}
+	if ids == nil {
+		ids = make(map[string]struct{})
 	}
 	withoutScheme := url[len(mmactionScheme):]
 	actionID := withoutScheme
@@ -397,12 +417,11 @@ func collectMmactionIDFromURL(url string, ids map[string]struct{}) {
 	if actionID != "" && mmBlocksActionIDRegex.MatchString(actionID) {
 		ids[actionID] = struct{}{}
 	}
+	return ids
 }
 
 func mergeActionIDs(into, from map[string]struct{}) {
-	for id := range from {
-		into[id] = struct{}{}
-	}
+	maps.Copy(into, from)
 }
 
 func interactiveControlDisabled(m map[string]any) bool {
@@ -410,25 +429,28 @@ func interactiveControlDisabled(m map[string]any) bool {
 	return ok && disabled
 }
 
-func collectMmBlockActionIDsFromMap(m map[string]any, ids map[string]struct{}) {
+func appendMmBlockActionIDsFromMap(ids map[string]struct{}, m map[string]any) map[string]struct{} {
 	typ, _ := m["type"].(string)
 	switch typ {
 	case "text":
 		if s, ok := m["text"].(string); ok {
-			collectMmactionIDsFromText(s, ids)
+			ids = appendMmactionIDsFromText(ids, s)
 		}
 	case "button", "static_select":
 		if interactiveControlDisabled(m) {
 			break
 		}
 		if id, ok := m["action_id"].(string); ok && id != "" {
+			if ids == nil {
+				ids = make(map[string]struct{})
+			}
 			ids[id] = struct{}{}
 		}
 	case "container":
-		collectMmBlockActionIDsFromArray(m["content"], ids)
+		ids = appendMmBlockActionIDsFromArray(ids, m["content"])
 	case "collapsible":
-		collectMmBlockActionIDsFromArray(m["header"], ids)
-		collectMmBlockActionIDsFromArray(m["content"], ids)
+		ids = appendMmBlockActionIDsFromArray(ids, m["header"])
+		ids = appendMmBlockActionIDsFromArray(ids, m["content"])
 	case "column_set":
 		if cols, ok := m["columns"].([]any); ok {
 			for _, col := range cols {
@@ -440,150 +462,166 @@ func collectMmBlockActionIDsFromMap(m map[string]any, ids map[string]struct{}) {
 				if colTyp != "column" {
 					continue
 				}
-				collectMmBlockActionIDsFromArray(cm["items"], ids)
+				ids = appendMmBlockActionIDsFromArray(ids, cm["items"])
 			}
 		}
 	}
+	return ids
 }
 
-func collectMmBlockActionIDsFromArray(raw any, ids map[string]struct{}) {
+func appendMmBlockActionIDsFromArray(ids map[string]struct{}, raw any) map[string]struct{} {
 	arr, ok := interactivePropJSONArray(raw)
 	if !ok {
-		return
+		return ids
 	}
 	for _, el := range arr {
 		m, ok := el.(map[string]any)
 		if !ok {
 			continue
 		}
-		collectMmBlockActionIDsFromMap(m, ids)
+		ids = appendMmBlockActionIDsFromMap(ids, m)
 	}
+	return ids
 }
 
 // CollectMmBlockActionIDs returns action_id values referenced by interactive mm_blocks controls.
 func CollectMmBlockActionIDs(blocks []any) map[string]struct{} {
-	ids := make(map[string]struct{})
+	var ids map[string]struct{}
 	for _, b := range blocks {
 		m, ok := b.(map[string]any)
 		if !ok {
 			continue
 		}
-		collectMmBlockActionIDsFromMap(m, ids)
+		ids = appendMmBlockActionIDsFromMap(ids, m)
 	}
 	return ids
 }
 
-func collectBlockKitTextMmaction(raw any, ids map[string]struct{}) {
+func appendBlockKitTextMmaction(ids map[string]struct{}, raw any) map[string]struct{} {
 	if raw == nil {
-		return
+		return ids
 	}
 	switch v := raw.(type) {
 	case string:
-		collectMmactionIDsFromText(v, ids)
+		return appendMmactionIDsFromText(ids, v)
 	case map[string]any:
 		if s, ok := v["text"].(string); ok {
-			collectMmactionIDsFromText(s, ids)
+			return appendMmactionIDsFromText(ids, s)
 		}
 	}
+	return ids
 }
 
-func collectBlockKitAccessory(accessory map[string]any, ids map[string]struct{}) {
+func appendBlockKitAccessory(ids map[string]struct{}, accessory map[string]any) map[string]struct{} {
 	typ, _ := accessory["type"].(string)
 	switch typ {
 	case "button", "static_select":
 		if interactiveControlDisabled(accessory) {
-			return
+			return ids
 		}
 		if id, ok := accessory["action_id"].(string); ok && id != "" {
+			if ids == nil {
+				ids = make(map[string]struct{})
+			}
 			ids[id] = struct{}{}
 		}
 	}
+	return ids
 }
 
-func collectBlockKitActionElement(el any, ids map[string]struct{}) {
+func appendBlockKitActionElement(ids map[string]struct{}, el any) map[string]struct{} {
 	e, ok := el.(map[string]any)
 	if !ok {
-		return
+		return ids
 	}
 	typ, _ := e["type"].(string)
 	switch typ {
 	case "button", "static_select":
 		if interactiveControlDisabled(e) {
-			return
+			return ids
 		}
 		if id, ok := e["action_id"].(string); ok && id != "" {
+			if ids == nil {
+				ids = make(map[string]struct{})
+			}
 			ids[id] = struct{}{}
 		}
 	}
+	return ids
 }
 
-func collectBlockKitActionIDsFromBlock(m map[string]any, ids map[string]struct{}) {
+func appendBlockKitActionIDsFromBlock(ids map[string]struct{}, m map[string]any) map[string]struct{} {
 	typ, _ := m["type"].(string)
 	switch typ {
 	case "actions":
 		if elements, ok := m["elements"].([]any); ok {
 			for _, el := range elements {
-				collectBlockKitActionElement(el, ids)
+				ids = appendBlockKitActionElement(ids, el)
 			}
 		}
 	case "section":
-		collectBlockKitTextMmaction(m["text"], ids)
+		ids = appendBlockKitTextMmaction(ids, m["text"])
 		if accessory, ok := m["accessory"].(map[string]any); ok {
-			collectBlockKitAccessory(accessory, ids)
+			ids = appendBlockKitAccessory(ids, accessory)
 		}
 		if fields, ok := m["fields"].([]any); ok {
 			for _, field := range fields {
-				collectBlockKitTextMmaction(field, ids)
+				ids = appendBlockKitTextMmaction(ids, field)
 			}
 		}
 	case "markdown":
-		collectBlockKitTextMmaction(m["text"], ids)
+		ids = appendBlockKitTextMmaction(ids, m["text"])
 	case "header":
-		collectBlockKitTextMmaction(m["text"], ids)
+		ids = appendBlockKitTextMmaction(ids, m["text"])
 	}
+	return ids
 }
 
 // CollectBlockKitActionIDs returns action_id values from Block Kit blocks (props.blocks).
 func CollectBlockKitActionIDs(blocks []any) map[string]struct{} {
-	ids := make(map[string]struct{})
+	var ids map[string]struct{}
 	for _, b := range blocks {
 		m, ok := b.(map[string]any)
 		if !ok {
 			continue
 		}
-		collectBlockKitActionIDsFromBlock(m, ids)
+		ids = appendBlockKitActionIDsFromBlock(ids, m)
 	}
 	return ids
 }
 
-func collectAdaptiveCardActionElement(action any, ids map[string]struct{}) {
+func appendAdaptiveCardActionElement(ids map[string]struct{}, action any) map[string]struct{} {
 	ac, ok := action.(map[string]any)
 	if !ok {
-		return
+		return ids
 	}
 	typ, _ := ac["type"].(string)
 	if typ == "Action.Submit" {
 		if id, ok := ac["id"].(string); ok && id != "" {
+			if ids == nil {
+				ids = make(map[string]struct{})
+			}
 			ids[id] = struct{}{}
 		}
 	}
+	return ids
 }
 
-func collectAdaptiveCardActionIDsFromItem(item any, ids map[string]struct{}) {
+func appendAdaptiveCardActionIDsFromItem(ids map[string]struct{}, item any) map[string]struct{} {
 	itemMap, ok := item.(map[string]any)
 	if !ok {
-		return
+		return ids
 	}
 	typ, _ := itemMap["type"].(string)
 	switch typ {
 	case "TextBlock":
 		if s, ok := itemMap["text"].(string); ok {
-			collectMmactionIDsFromText(s, ids)
+			ids = appendMmactionIDsFromText(ids, s)
 		}
 	case "Container":
 		if items, ok := itemMap["items"].([]any); ok {
 			for _, nested := range items {
-				collectAdaptiveCardActionIDsFromItem(nested, ids)
+				ids = appendAdaptiveCardActionIDsFromItem(ids, nested)
 			}
 		}
 	case "ColumnSet":
@@ -595,7 +633,7 @@ func collectAdaptiveCardActionIDsFromItem(item any, ids map[string]struct{}) {
 				}
 				if items, ok := columnMap["items"].([]any); ok {
 					for _, nested := range items {
-						collectAdaptiveCardActionIDsFromItem(nested, ids)
+						ids = appendAdaptiveCardActionIDsFromItem(ids, nested)
 					}
 				}
 			}
@@ -603,15 +641,16 @@ func collectAdaptiveCardActionIDsFromItem(item any, ids map[string]struct{}) {
 	case "ActionSet":
 		if actions, ok := itemMap["actions"].([]any); ok {
 			for _, action := range actions {
-				collectAdaptiveCardActionElement(action, ids)
+				ids = appendAdaptiveCardActionElement(ids, action)
 			}
 		}
 	}
+	return ids
 }
 
 // CollectAdaptiveCardActionIDs returns action ids from Adaptive Cards (props.cards).
 func CollectAdaptiveCardActionIDs(cards []any) map[string]struct{} {
-	ids := make(map[string]struct{})
+	var ids map[string]struct{}
 	for _, card := range cards {
 		cardMap, ok := card.(map[string]any)
 		if !ok {
@@ -619,12 +658,12 @@ func CollectAdaptiveCardActionIDs(cards []any) map[string]struct{} {
 		}
 		if body, ok := cardMap["body"].([]any); ok {
 			for _, item := range body {
-				collectAdaptiveCardActionIDsFromItem(item, ids)
+				ids = appendAdaptiveCardActionIDsFromItem(ids, item)
 			}
 		}
 		if actions, ok := cardMap["actions"].([]any); ok {
 			for _, action := range actions {
-				collectAdaptiveCardActionElement(action, ids)
+				ids = appendAdaptiveCardActionElement(ids, action)
 			}
 		}
 	}
@@ -659,16 +698,14 @@ func CollectInteractiveActionIDs(props map[string]any) map[string]struct{} {
 func CollectInteractiveActionIDsFromPost(o *Post) map[string]struct{} {
 	ids := CollectInteractiveActionIDs(o.GetProps())
 	if o.Message != "" {
-		collectMmactionIDsFromText(o.Message, ids)
+		ids = appendMmactionIDsFromText(ids, o.Message)
 	}
 	return ids
 }
 
 // CollectMmactionIDsFromText returns action ids from mmaction:// links in a string.
 func CollectMmactionIDsFromText(text string) map[string]struct{} {
-	ids := make(map[string]struct{})
-	collectMmactionIDsFromText(text, ids)
-	return ids
+	return appendMmactionIDsFromText(nil, text)
 }
 
 // SubsetMmBlocksActions returns registry entries referenced by actionIDs.

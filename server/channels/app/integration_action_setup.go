@@ -420,8 +420,6 @@ func mmBlocksResolveAppError(actionID string, err error) *model.AppError {
 		return nil
 	}
 	switch {
-	case errors.Is(err, model.ErrMmBlocksOpenURLEmpty):
-		return model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, err.Error(), http.StatusNotFound)
 	case errors.Is(err, model.ErrMmBlocksActionNotFound):
 		return model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("mm_blocks action_id=%s", actionID), http.StatusNotFound)
 	default:
