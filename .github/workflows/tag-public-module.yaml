@@ -17,6 +17,8 @@ on:
         description: The commit sha to tag. Defaults to HEAD master
         required: false
 
+permissions: {}
+
 jobs:
   tag-public-module:
     permissions:

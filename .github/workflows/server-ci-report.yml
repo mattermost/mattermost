@@ -9,8 +9,13 @@ on:
     types:
       - completed
 
+permissions: {}
+
 jobs:
   generate-report-matrix:
+    permissions:
+      actions: read
+      contents: read
     runs-on: ubuntu-22.04
     outputs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
@@ -62,9 +67,9 @@ jobs:
     needs:
       - generate-report-matrix
     permissions:
+      actions: read
       pull-requests: write
       checks: write
-      issues: write
     strategy:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:

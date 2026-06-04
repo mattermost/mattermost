@@ -56,9 +56,7 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
-permissions:
-  contents: read
-  statuses: write
+permissions: {}
 
 jobs:
   generate-build-variables:

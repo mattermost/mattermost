@@ -39,6 +39,9 @@ jobs:
   test-race:
     name: Race Detector
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:

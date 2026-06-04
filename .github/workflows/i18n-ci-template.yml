@@ -4,6 +4,9 @@ name: i18n CI Template
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   check-files:
     name: Check only English translation files changed

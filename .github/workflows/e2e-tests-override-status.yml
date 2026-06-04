@@ -9,8 +9,14 @@ on:
         required: true
         type: string
 
+permissions: {}
+
 jobs:
   override-status:
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
     runs-on: ubuntu-24.04
     steps:
       - name: Validate inputs

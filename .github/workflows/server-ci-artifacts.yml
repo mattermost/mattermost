@@ -10,10 +10,14 @@ on:
 env:
   COSIGN_VERSION: 2.2.0
 
+permissions: {}
+
 jobs:
   ## We only need the condition on the first job
   ## This will run only when a pull request is created with server changes
   update-initial-status:
+    permissions:
+      statuses: write
     if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-22.04
     steps:
@@ -28,6 +32,9 @@ jobs:
           status: pending
 
   upload-artifacts:
+    permissions:
+      actions: read
+      contents: read
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
@@ -70,6 +77,9 @@ jobs:
           done
 
   build-docker:
+    permissions:
+      actions: read
+      contents: read
     runs-on: ubuntu-22.04
     needs:
       - upload-artifacts
@@ -159,6 +169,8 @@ jobs:
           ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }} --policy "$POLICY"
 
   update-failure-final-status:
+    permissions:
+      statuses: write
     if: (failure() || cancelled()) && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:
@@ -175,6 +187,8 @@ jobs:
           status: failure
 
   update-success-final-status:
+    permissions:
+      statuses: write
     if: success() && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:

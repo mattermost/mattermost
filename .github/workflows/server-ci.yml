@@ -28,10 +28,16 @@ concurrency:
   group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions:
+  contents: read
+
 jobs:
   go:
     name: Compute Go Version
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
@@ -281,6 +287,9 @@ jobs:
       fail-fast: false # Let all shards complete so we get full test results
       matrix:
         shard: [0, 1, 2, 3]
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -299,6 +308,9 @@ jobs:
     name: Merge Postgres Test Results
     needs: test-postgres-normal
     if: always()
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-merge-template.yml
     with:
       artifact-pattern: postgres-server-test-logs-shard-*
@@ -309,6 +321,9 @@ jobs:
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -324,6 +339,9 @@ jobs:
   test-opensearch-v2:
     name: OpenSearch v2 Compatibility
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -346,6 +364,9 @@ jobs:
       fail-fast: false
       matrix:
         shard: [0, 1, 2, 3]
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -361,6 +382,9 @@ jobs:
     name: Merge Postgres FIPS Test Results
     needs: test-postgres-normal-fips
     if: needs.test-postgres-normal-fips.result != 'skipped'
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-merge-template.yml
     with:
       artifact-pattern: postgres-server-fips-test-logs-shard-*
@@ -369,6 +393,9 @@ jobs:
   test-mmctl:
     name: Run mmctl tests
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
     with:
@@ -382,6 +409,9 @@ jobs:
     if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
     name: Run mmctl tests (FIPS)
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
     with:
@@ -395,6 +425,9 @@ jobs:
   build-mattermost-server:
     name: Build mattermost server app
     needs: go
+    permissions:
+      contents: read
+      actions: write
     runs-on: ubuntu-22.04
     container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
