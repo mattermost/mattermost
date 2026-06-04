@@ -61,7 +61,8 @@ func TestGetMattermostLog(t *testing.T) {
 	// ReconfigureLogger may create mattermost.log as soon as file logging is enabled.
 	// Flush and remove it so the next GetLogFile exercises the missing-file path.
 	th.Service.Logger().Flush()
-	if err := os.Remove(logLocation); err != nil && !os.IsNotExist(err) {
+	err = os.Remove(logLocation)
+	if err != nil && !os.IsNotExist(err) {
 		require.NoError(t, err)
 	}
 
