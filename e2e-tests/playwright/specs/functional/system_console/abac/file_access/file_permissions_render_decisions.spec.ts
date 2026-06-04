@@ -4,8 +4,18 @@
 import {expect, test, enableABAC, getAdminClient, getRandomId, TestBrowser} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
-import {setupCustomProfileAttributeFields, setupCustomProfileAttributeValuesForUser} from '../../../channels/custom_profile_attributes/helpers';
-import {createPermissionPolicy, deletePermissionPolicyByName, navigateToPermissionPoliciesPage, createUserForABAC, createPrivateChannelForABAC, enableUserManagedAttributes} from '../support';
+import {
+    setupCustomProfileAttributeFields,
+    setupCustomProfileAttributeValuesForUser,
+} from '../../../channels/custom_profile_attributes/helpers';
+import {
+    createPermissionPolicy,
+    deletePermissionPolicyByName,
+    navigateToPermissionPoliciesPage,
+    createUserForABAC,
+    createPrivateChannelForABAC,
+    enableUserManagedAttributes,
+} from '../support';
 
 import {setupUserAndChannel} from './helpers';
 
@@ -149,11 +159,19 @@ test.describe('ABAC Permission Policies - Render-time attribute-based & live upd
         const departmentAttr: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttr);
 
-        allowedUser = await createUserForABAC(adminClient, attributeFieldsMap, [{name: 'Department', type: 'text', value: 'Engineering'}]);
-        deniedUser = await createUserForABAC(adminClient, attributeFieldsMap, [{name: 'Department', type: 'text', value: 'Sales'}]);
+        allowedUser = await createUserForABAC(adminClient, attributeFieldsMap, [
+            {name: 'Department', type: 'text', value: 'Engineering'},
+        ]);
+        deniedUser = await createUserForABAC(adminClient, attributeFieldsMap, [
+            {name: 'Department', type: 'text', value: 'Sales'},
+        ]);
 
         const suffix = getRandomId();
-        team = await adminClient.createTeam({name: `abac-render-${suffix}`, display_name: `ABAC Render ${suffix}`, type: 'O'} as any);
+        team = await adminClient.createTeam({
+            name: `abac-render-${suffix}`,
+            display_name: `ABAC Render ${suffix}`,
+            type: 'O',
+        } as any);
         await adminClient.addToTeam(team.id, allowedUser.id);
         await adminClient.addToTeam(team.id, deniedUser.id);
 
@@ -199,17 +217,23 @@ test.describe('ABAC Permission Policies - Render-time attribute-based & live upd
         const allowed = await pw.testBrowser.login(allowedUser as any);
         await allowed.channelsPage.goto(team.name, channelName);
         await allowed.channelsPage.toBeVisible();
-        await expect.
-            poll(() => allowed.channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {timeout: 45000, intervals: [500, 1500, 3000]}).
-            toBe(true);
+        await expect
+            .poll(() => allowed.channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {
+                timeout: 45000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
 
         const denied = await pw.testBrowser.login(deniedUser as any);
         await denied.channelsPage.goto(team.name, channelName);
         await denied.channelsPage.toBeVisible();
         await expect(denied.channelsPage.centerView.postCreate.attachmentButton).toBeVisible({timeout: 45000});
-        await expect.
-            poll(() => denied.channelsPage.centerView.postCreate.attachmentButton.isDisabled(), {timeout: 45000, intervals: [500, 1500, 3000]}).
-            toBe(true);
+        await expect
+            .poll(() => denied.channelsPage.centerView.postCreate.attachmentButton.isDisabled(), {
+                timeout: 45000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
     });
 
     // (D) Render-allow corresponds to a real, server-accepted upload — proving
@@ -237,7 +261,9 @@ test.describe('ABAC Permission Policies - Render-time attribute-based & live upd
         test.setTimeout(150000);
         test.skip(!licensed, 'No ABAC license');
 
-        const liveUser = await createUserForABAC(sharedAdminClient, attributeFieldsMap, [{name: 'Department', type: 'text', value: 'Engineering'}]);
+        const liveUser = await createUserForABAC(sharedAdminClient, attributeFieldsMap, [
+            {name: 'Department', type: 'text', value: 'Engineering'},
+        ]);
         await sharedAdminClient.addToTeam(team.id, liveUser.id);
         await sharedAdminClient.addToChannel(liveUser.id, channelId);
 
@@ -246,17 +272,28 @@ test.describe('ABAC Permission Policies - Render-time attribute-based & live upd
         await channelsPage.toBeVisible();
 
         // Initially allowed (Engineering) → control enabled.
-        await expect.
-            poll(() => channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {timeout: 45000, intervals: [500, 1500, 3000]}).
-            toBe(true);
+        await expect
+            .poll(() => channelsPage.centerView.postCreate.attachmentButton.isEnabled(), {
+                timeout: 45000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
 
         // Admin revokes by changing the attribute; the CPA update event drives a
         // re-fetch of the render decision on the still-open page.
-        await setupCustomProfileAttributeValuesForUser(sharedAdminClient, [{name: 'Department', type: 'text', value: 'Sales'}], attributeFieldsMap, liveUser.id);
+        await setupCustomProfileAttributeValuesForUser(
+            sharedAdminClient,
+            [{name: 'Department', type: 'text', value: 'Sales'}],
+            attributeFieldsMap,
+            liveUser.id,
+        );
 
-        await expect.
-            poll(() => channelsPage.centerView.postCreate.attachmentButton.isDisabled(), {timeout: 60000, intervals: [1000, 2000, 3000]}).
-            toBe(true);
+        await expect
+            .poll(() => channelsPage.centerView.postCreate.attachmentButton.isDisabled(), {
+                timeout: 60000,
+                intervals: [1000, 2000, 3000],
+            })
+            .toBe(true);
     });
 
     // (B) Live: losing download access reconciles already-loaded posts to the
@@ -271,7 +308,9 @@ test.describe('ABAC Permission Policies - Render-time attribute-based & live upd
         test.setTimeout(150000);
         test.skip(!licensed, 'No ABAC license');
 
-        const liveUser = await createUserForABAC(sharedAdminClient, attributeFieldsMap, [{name: 'Department', type: 'text', value: 'Engineering'}]);
+        const liveUser = await createUserForABAC(sharedAdminClient, attributeFieldsMap, [
+            {name: 'Department', type: 'text', value: 'Engineering'},
+        ]);
         await sharedAdminClient.addToTeam(team.id, liveUser.id);
         await sharedAdminClient.addToChannel(liveUser.id, channelId);
 
@@ -280,16 +319,27 @@ test.describe('ABAC Permission Policies - Render-time attribute-based & live upd
         await channelsPage.toBeVisible();
 
         // Initially allowed → the admin's file is visible.
-        await expect.
-            poll(() => page.locator('[data-testid="fileAttachmentList"]').isVisible(), {timeout: 45000, intervals: [500, 1500, 3000]}).
-            toBe(true);
+        await expect
+            .poll(() => page.locator('[data-testid="fileAttachmentList"]').isVisible(), {
+                timeout: 45000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
 
         // Revoke download by changing the attribute; the open page reconciles the
         // post metadata and shows the redacted placeholder without a reload.
-        await setupCustomProfileAttributeValuesForUser(sharedAdminClient, [{name: 'Department', type: 'text', value: 'Sales'}], attributeFieldsMap, liveUser.id);
+        await setupCustomProfileAttributeValuesForUser(
+            sharedAdminClient,
+            [{name: 'Department', type: 'text', value: 'Sales'}],
+            attributeFieldsMap,
+            liveUser.id,
+        );
 
-        await expect.
-            poll(() => page.getByTestId('redactedFilesPlaceholder').isVisible(), {timeout: 60000, intervals: [1000, 2000, 3000]}).
-            toBe(true);
+        await expect
+            .poll(() => page.getByTestId('redactedFilesPlaceholder').isVisible(), {
+                timeout: 60000,
+                intervals: [1000, 2000, 3000],
+            })
+            .toBe(true);
     });
 });
