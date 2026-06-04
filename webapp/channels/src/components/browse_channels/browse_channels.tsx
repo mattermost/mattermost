@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import {Button, type ButtonEmphasis, type ButtonSize} from '@mattermost/shared/components/button';
-import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelJoinRequestApprovalResponse, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount, GetChannelJoinRequestsOptions} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -15,6 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
@@ -36,6 +37,8 @@ export enum Filter {
     Private = 'Private',
     Archived = 'Archived',
     Recommended = 'Recommended',
+    Discoverable = 'Discoverable',
+    MyPendingRequests = 'MyPendingRequests',
 }
 
 export type FilterType = keyof typeof Filter;
@@ -68,6 +71,11 @@ type Actions = {
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
+
+    // Discoverable Private Channels actions
+    getMyChannelJoinRequests: (opts?: GetChannelJoinRequestsOptions) => Promise<ActionResult>;
+    requestJoinChannel: (channelId: string, message?: string) => Promise<ActionResult<ChannelJoinRequest | ChannelJoinRequestApprovalResponse>>;
+    withdrawMyChannelJoinRequest: (channelId: string) => Promise<ActionResult<ChannelJoinRequest>>;
 }
 
 export type Props = {
@@ -85,6 +93,11 @@ export type Props = {
     channelsMemberCount?: Record<string, number>;
     accessControlEnabled: boolean;
     initialFilter?: FilterType;
+
+    // Discoverable Private Channels
+    discoverableFeatureEnabled: boolean;
+    myPendingJoinRequests: Record<string, ChannelJoinRequest>;
+
     actions: Actions;
 }
 
@@ -124,6 +137,14 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         if (!this.props.teamId) {
             this.loadComplete();
             return;
+        }
+
+        // Refresh the user's pending join requests so per-row affordances
+        // ("Request to join" vs. "Requested") are accurate on first render.
+        // Fire-and-forget — the result lands in redux via the
+        // RECEIVED_MY_CHANNEL_JOIN_REQUESTS action.
+        if (this.props.discoverableFeatureEnabled) {
+            this.props.actions.getMyChannelJoinRequests({status: 'pending'});
         }
 
         const promises: Array<Promise<ActionResult<Channel[]>>> = [
@@ -229,6 +250,33 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
     };
 
+    // Discoverable + no pending request → open the two-step Request to Join
+    // modal. The modal handles submit + success routing internally; the
+    // Browse row just needs to drop its loading state once the modal opens.
+    handleRequestToJoin = (channel: Channel, done: () => void) => {
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+            dialogType: RequestJoinChannelModal,
+            dialogProps: {
+                channel,
+                teamName: this.props.teamName,
+            },
+        });
+        if (done) {
+            done();
+        }
+    };
+
+    handleWithdrawRequest = async (channel: Channel, done: () => void) => {
+        const result = await this.props.actions.withdrawMyChannelJoinRequest(channel.id);
+        if (result?.error) {
+            this.setState({serverError: result.error.message});
+        }
+        if (done) {
+            done();
+        }
+    };
+
     search = (term: string) => {
         clearTimeout(this.searchTimeoutId);
 
@@ -267,11 +315,24 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         this.searchTimeoutId = searchTimeoutId;
     };
 
+    // Inclusive private-visibility rule:
+    //   - Member of the channel, OR
+    //   - Channel is discoverable AND the feature flag is on
+    // The server-side autocomplete + searchAllChannels already enforces this
+    // (PR #36580). The webapp check is a defense-in-depth filter on cached
+    // results and feeds the per-row state machine in SearchableChannelList.
+    private canSeePrivateChannel = (c: Channel) => {
+        if (this.isMemberOfChannel(c.id)) {
+            return true;
+        }
+        return this.props.discoverableFeatureEnabled && c.discoverable === true;
+    };
+
     setSearchResults = (channels: Channel[]) => {
-        // filter out private channels that the user is not a member of
-        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
+        // Loosened: include discoverable private channels for non-members.
+        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.canSeePrivateChannel(c));
         if (this.state.filter === Filter.Private) {
-            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
+            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.canSeePrivateChannel(c));
         }
         if (this.state.filter === Filter.Public) {
             searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
@@ -282,6 +343,19 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         if (this.state.filter === Filter.Recommended) {
             const recommendedIds = new Set(this.state.recommendedChannels.map((c) => c.id));
             searchedChannels = channels.filter((c) => recommendedIds.has(c.id));
+        }
+        if (this.state.filter === Filter.Discoverable) {
+            // Only discoverable private channels the user is not a member of.
+            // Members of a discoverable channel see it under their normal
+            // joined channels, not in the discovery surface.
+            searchedChannels = channels.filter((c) =>
+                c.type === Constants.PRIVATE_CHANNEL &&
+                c.discoverable === true &&
+                !this.isMemberOfChannel(c.id),
+            );
+        }
+        if (this.state.filter === Filter.MyPendingRequests) {
+            searchedChannels = channels.filter((c) => this.props.myPendingJoinRequests[c.id]);
         }
         if (this.props.shouldHideJoinedChannels) {
             searchedChannels = this.getChannelsWithoutJoined(searchedChannels);
@@ -329,7 +403,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     getChannelsWithoutJoined = (channelList: Channel[]) => channelList.filter((channel) => !this.isMemberOfChannel(channel.id));
 
     getActiveChannels = () => {
-        const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
+        const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels, myPendingJoinRequests} = this.props;
         const {search, searchedChannels, filter, recommendedChannels} = this.state;
 
         const allChannels = channels.concat(privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
@@ -339,12 +413,33 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
         const recommendedChannelsWithoutJoined = this.getChannelsWithoutJoined(recommendedChannels);
 
+        // Discoverable private channels the user is not yet a member of.
+        // These come from the privateChannels selector, which the connect
+        // HOC merges with whatever the server-side search/autocomplete has
+        // hydrated into redux.
+        const discoverableNonMember = privateChannels.filter((c) => c.discoverable === true && !this.isMemberOfChannel(c.id));
+
+        // Channels the current user has pending requests against. The
+        // requests slice maps channel_id -> ChannelJoinRequest, but the
+        // channel itself may not be in our local list if the user is not
+        // (and never was) a member. We resolve from the union of all known
+        // channel lists.
+        const knownChannelsById = new Map<string, Channel>();
+        for (const c of allChannels) {
+            knownChannelsById.set(c.id, c);
+        }
+        const myPending = Object.keys(myPendingJoinRequests).
+            map((id) => knownChannelsById.get(id)).
+            filter((c): c is Channel => Boolean(c));
+
         const filterOptions: Record<FilterType, Channel[]> = {
             [Filter.All]: shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels,
             [Filter.Archived]: shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels,
             [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels,
             [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels,
             [Filter.Recommended]: shouldHideJoinedChannels ? recommendedChannelsWithoutJoined : recommendedChannels,
+            [Filter.Discoverable]: discoverableNonMember,
+            [Filter.MyPendingRequests]: myPending,
         };
 
         if (search) {
@@ -352,7 +447,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
 
         const activeList = filterOptions[filter] || filterOptions[Filter.All];
-        if (filter === Filter.Recommended) {
+        if (filter === Filter.Recommended || filter === Filter.Discoverable || filter === Filter.MyPendingRequests) {
             return activeList;
         }
         return this.boostRecommendedChannels(activeList);
@@ -414,12 +509,16 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     isSearch={search}
                     search={this.search}
                     handleJoin={this.handleJoin}
+                    handleRequestToJoin={this.handleRequestToJoin}
+                    handleWithdrawRequest={this.handleWithdrawRequest}
                     noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
                     showRecommendedFilter={this.props.accessControlEnabled}
+                    showDiscoverableFilters={this.props.discoverableFeatureEnabled}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
                     myChannelMemberships={this.props.myChannelMemberships}
+                    myPendingJoinRequests={this.props.myPendingJoinRequests}
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
                     rememberHideJoinedChannelsChecked={shouldHideJoinedChannels}
