@@ -56,7 +56,7 @@
     .custom-textarea {
         // fix for a miscalculation due to the heavily overwritten custom-textarea class
         height: 0;
-        padding-right: calc(16px + var(--right-padding-for-scrollbar) + var(--right-padding-for-preview-button));
+        padding-right: calc(16px + var(--right-padding-for-scrollbar) + var(--right-padding-for-preview-button) + var(--right-padding-for-editor-actions));
         box-shadow: none;
 
         &:focus {
@@ -75,6 +75,7 @@
     }
 
     /* stylelint-disable length-zero-no-unit */
+    --right-padding-for-editor-actions: 0px;
     --right-padding-for-scrollbar: 0px;
     --right-padding-for-preview-button: 0px;
     /* stylelint-enable length-zero-no-unit */

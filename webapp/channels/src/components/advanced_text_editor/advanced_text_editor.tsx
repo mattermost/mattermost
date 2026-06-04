@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -226,6 +226,7 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const [editorActionsWidth, setEditorActionsWidth] = useState(0);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -767,6 +768,32 @@ const AdvancedTextEditor = ({
     }, [isInEditMode, isRHS]);
 
     const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
+    const editorStyle = {
+        '--right-padding-for-editor-actions': showFormattingSpacer ? '0px' : `${editorActionsWidth}px`,
+    } as React.CSSProperties;
+
+    useLayoutEffect(() => {
+        const editorActions = editorActionsRef.current;
+        if (!editorActions) {
+            return;
+        }
+
+        const updateEditorActionsWidth = () => {
+            const width = editorActions.offsetWidth;
+            setEditorActionsWidth((currentWidth) => (currentWidth === width ? currentWidth : width));
+        };
+
+        updateEditorActionsWidth();
+
+        if (typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        const resizeObserver = new ResizeObserver(updateEditorActionsWidth);
+        resizeObserver.observe(editorActions);
+
+        return () => resizeObserver.disconnect();
+    }, []);
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
 
@@ -795,6 +822,7 @@ const AdvancedTextEditor = ({
                     scroll: renderScrollbar,
                     'formatting-bar': showFormattingBar,
                 })}
+                style={editorStyle}
             >
                 {!wasNotifiedOfLogIn && (
                     <div
