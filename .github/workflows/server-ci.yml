@@ -59,6 +59,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate mocks
@@ -76,6 +78,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go mod tidy
@@ -93,6 +97,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go fix
@@ -110,6 +116,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
@@ -125,6 +133,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run make-gen-serialized
@@ -142,6 +152,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run mattermost-vet-api
@@ -189,6 +201,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate store layers
@@ -238,6 +252,8 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Check docs
@@ -382,6 +398,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:

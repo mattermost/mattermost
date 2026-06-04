@@ -1,0 +1,93 @@
+# Warms the Go module cache, build cache, and CI tool binaries used by all
+# server CI jobs. Runs once per day on master; all other CI jobs restore from
+# this cache (read-only) and never write back to it.
+#
+# The cache is keyed on the Go version and a hash of all go.mod/go.sum files.
+# PRs that change go.mod will miss the exact key and fall back to the most
+# recent warm entry for the same Go version via restore-keys, then download
+# only the delta.
+#
+# Run manually via workflow_dispatch to force a refresh (e.g. after a Go
+# version bump before the next scheduled run).
+name: Server CI Cache Warm
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Daily 2am UTC — 4 h before the nightly race run at 6am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm Go Module and Build Cache
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          # Note: this only warms the open-source platform cache. Enterprise
+          # builds have the same cold-start gap and can be addressed as a follow-up.
+
+      - name: Compute Go version
+        id: go
+        working-directory: server
+        run: echo "version=$(cat .go-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if cache already warm
+        id: cache-check
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            .go-mod-cache
+            .go-build-cache
+            server/bin
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
+          lookup-only: true
+
+      - name: Export Go cache paths
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        run: |
+          echo "GOMODCACHE=$GITHUB_WORKSPACE/.go-mod-cache" >> "$GITHUB_ENV"
+          echo "GOCACHE=$GITHUB_WORKSPACE/.go-build-cache" >> "$GITHUB_ENV"
+
+      - name: Create Go cache directories
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$GOMODCACHE" "$GOCACHE" server/bin
+          chmod -R a+rwX "$GOMODCACHE" "$GOCACHE" server/bin
+
+      - name: Warm cache inside build container
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        run: |
+          # No separate GOBIN mount needed: the workspace volume below maps the
+          # host's server/bin/ to /mattermost/server/bin/ inside the container.
+          # The Makefile's GOBIN=$(PWD)/bin resolves to that same path, so tool
+          # binaries installed during warming land in the cached workspace.
+          docker run --rm \
+            --env GOMODCACHE \
+            --env GOCACHE \
+            -v "$GOMODCACHE":"$GOMODCACHE" \
+            -v "$GOCACHE":"$GOCACHE" \
+            -v "$PWD:/mattermost" \
+            -w /mattermost/server \
+            "mattermost/mattermost-build-server:${{ steps.go.outputs.version }}" \
+            make go-cache # cache warming logic lives in the Makefile, not buried in CI
+          du -sh "$GOMODCACHE" "$GOCACHE" server/bin
+
+      - name: Fix file ownership (Docker writes files as root)
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        run: sudo chown -R "$USER:$USER" .go-mod-cache .go-build-cache server/bin
+
+      - name: Save cache
+        if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            .go-mod-cache
+            .go-build-cache
+            server/bin
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
