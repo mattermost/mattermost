@@ -460,12 +460,28 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     });
 
     test('should toggle boolean settings', async () => {
+        // Use a simplified schema without username/jobstable fields to avoid async complications
+        const simpleSchema = {
+            id: 'Config',
+            name: 'config',
+            name_default: 'Configuration',
+            settings: [
+                {
+                    key: 'FirstSettings.settingb',
+                    label: 'label-b',
+                    label_default: 'Setting Two',
+                    type: 'bool',
+                    default: true,
+                },
+            ],
+        } as unknown as AdminDefinitionSubSectionSchema;
+
         const {container} = renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
                 environmentConfig={environmentConfig}
-                schema={{...schema} as AdminDefinitionSubSectionSchema}
+                schema={simpleSchema}
                 patchConfig={jest.fn()}
             />,
         );

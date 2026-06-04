@@ -288,6 +288,10 @@
     "translation": "Board channels cannot be accessed via /channels endpoints. Use the /boards API instead."
   },
   {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Board bookmarks are managed by the boards feature and cannot be created, updated, or deleted through the bookmarks API."
+  },
+  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks."
   },
@@ -550,6 +554,10 @@
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "You are not allowed to set group_constrained on this channel type."
   },
   {
     "id": "api.channel.patch_update_channel.no_changes.app_error",
@@ -2663,6 +2671,10 @@
   {
     "id": "api.license.load_metric.app_error",
     "translation": "Failed to compute monthly active users."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Could not parse the license upload form."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -5229,6 +5241,14 @@
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Either trigger_words or channel_id must be set."
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "The webhook user must be a member of the target team or channel."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "You cannot assign a webhook to a user with higher privileges than your own."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -8345,6 +8365,10 @@
     "translation": "Unable to get property field by name."
   },
   {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Unable to get property fields for group."
+  },
+  {
     "id": "app.property_field.get_many.app_error",
     "translation": "Unable to get property fields."
   },
@@ -9525,6 +9549,18 @@
   {
     "id": "app.user_access_token.expired",
     "translation": "The personal access token has expired."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "The provided expires_at is in the past."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Personal access tokens must include an expiry date because the server enforces a maximum token lifetime."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "The provided expires_at exceeds the configured maximum personal access token lifetime ({{.Days}} days)."
   },
   {
     "id": "app.user_access_token.get_all.app_error",
@@ -11015,6 +11051,10 @@
     "translation": "Invalid display name."
   },
   {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Only public and private channels can be group constrained."
+  },
+  {
     "id": "model.channel.is_valid.header.app_error",
     "translation": "Invalid header."
   },
@@ -11049,6 +11089,22 @@
   {
     "id": "model.channel.is_valid_board.type.app_error",
     "translation": "Channel type must be BO (open board) or BP (private board)."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Board bookmarks cannot reference a file."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "Board bookmarks cannot set an image URL."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "Board bookmark link URL must be a site-relative path starting with /, must not contain ://, and must not exceed the maximum length."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Board bookmarks require a valid target id."
   },
   {
     "id": "model.channel_bookmark.is_valid.channel_id.app_error",
@@ -11093,6 +11149,10 @@
   {
     "id": "model.channel_bookmark.is_valid.parent_id.app_error",
     "translation": "Invalid parent id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Target id is only allowed for bookmark types that reference another entity."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",
@@ -11749,6 +11809,10 @@
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Invalid MaximumPersonalAccessTokenLifetimeDays. Must be between 0 (unlimited) and {{.Max}} days."
   },
   {
     "id": "model.config.is_valid.max_url_length.app_error",

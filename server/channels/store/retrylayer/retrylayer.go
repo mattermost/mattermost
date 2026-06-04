@@ -10582,6 +10582,27 @@ func (s *RetryLayerPropertyFieldStore) GetFieldByName(ctx context.Context, group
 
 }
 
+func (s *RetryLayerPropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetForGroup(ctx, groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 
 	tries := 0

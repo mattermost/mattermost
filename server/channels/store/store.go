@@ -1174,6 +1174,7 @@ type PropertyFieldStore interface {
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
+	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
