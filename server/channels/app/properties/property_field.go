@@ -487,6 +487,15 @@ func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, i
 	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
+func (ps *PropertyService) GetPropertyFieldsForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
+	fields, err := ps.fieldStore.GetForGroup(context.Background(), groupID)
+	if err != nil {
+		return nil, fmt.Errorf("GetPropertyFieldsForGroup: %w", err)
+	}
+
+	return ps.runPostGetPropertyFields(rctx, fields)
+}
+
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
 	field, err := ps.getPropertyFieldByName(groupID, targetID, name)
 	if err != nil {
@@ -572,7 +581,8 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 // asOptionSlice extracts the options from an attrs map as []map[string]any
 // via direct type assertion. By the time options reach the service layer,
 // they are always []any containing map[string]any elements (from JSON
-// deserialization or EnsureOptionIDs).
+// deserialization, EnsureOptionIDs, or AccessControlAttributeValidationHook.
+// sanitizeAndValidateOptions — all of which normalize to this shape).
 func asOptionSlice(attrs model.StringInterface) []map[string]any {
 	if attrs == nil {
 		return nil

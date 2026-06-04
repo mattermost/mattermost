@@ -137,6 +137,7 @@ export type ClientConfig = {
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
     FeatureFlagManagedChannelCategories: string;
+    FeatureFlagSessionAttributes: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -256,11 +257,12 @@ export type License = {
     id: string;
     issued_at: number;
     starts_at: number;
-    expires_at: string;
-    customer: LicenseCustomer;
+    expires_at: number;
+    customer?: LicenseCustomer;
     features: LicenseFeatures;
     sku_name: string;
-    short_sku_name: string;
+    sku_short_name: string;
+    is_gov_sku?: boolean;
 };
 
 export type LicenseCustomer = {

@@ -98,6 +98,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	SessionAttribute() SessionAttributeStore
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
@@ -1172,6 +1173,7 @@ type PropertyFieldStore interface {
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
+	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
@@ -1224,6 +1226,11 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type SessionAttributeStore interface {
+	Refresh(sessionID string, attrs map[string]any) error
+	Get(sessionID string) (map[string]any, error)
 }
 
 type AutoTranslationStore interface {

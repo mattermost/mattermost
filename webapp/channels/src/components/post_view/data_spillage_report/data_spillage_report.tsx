@@ -3,6 +3,7 @@
 
 import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {matchPath, useLocation} from 'react-router-dom';
 
 import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
@@ -60,6 +61,9 @@ type Props = {
 
 export function DataSpillageReport({post, isRHS}: Props) {
     const {formatMessage} = useIntl();
+    const {pathname} = useLocation();
+
+    const inGlobalThreadsView = matchPath(pathname, {path: '/:team/threads/:threadIdentifier?'}) != null;
 
     const reportedPostId = post.props.reported_post_id as string;
 
@@ -108,7 +112,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
         user: (<AtMention mentionName={reportingUser?.username || ''}/>),
     });
 
-    const mode = isRHS ? 'full' : 'short';
+    const mode = (isRHS && !inGlobalThreadsView) ? 'full' : 'short';
 
     const metadata = useMemo<PropertiesCardViewMetadata>(() => {
         const fieldMetadata: PropertiesCardViewMetadata = {

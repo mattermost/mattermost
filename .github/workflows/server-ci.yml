@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Calculate version
         id: calculate
         working-directory: server/
@@ -59,6 +61,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate mocks
@@ -76,6 +80,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go mod tidy
@@ -93,6 +99,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go fix
@@ -110,6 +118,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
@@ -125,6 +135,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run make-gen-serialized
@@ -142,6 +154,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run mattermost-vet-api
@@ -157,6 +171,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
@@ -172,6 +188,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Generate email templates
         run: |
           npm install -g mjml@4.9.0
@@ -189,12 +207,48 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+  check-default-roles-permissions:
+    name: Check default roles permissions
+    needs: go
+    runs-on: ubuntu-22.04
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Generate default roles permissions
+        env:
+          IS_CI: "true"
+        run: make default-roles-permissions
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the default roles permissions using make default-roles-permissions"; exit 1; fi
   check-mmctl-docs:
     name: Check mmctl docs
     needs: go
@@ -206,6 +260,8 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Check docs
@@ -264,6 +320,21 @@ jobs:
       fips-enabled: false
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
+
+  test-opensearch-v2:
+    name: OpenSearch v2 Compatibility
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: OpenSearch v2 Compatibility
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: opensearch-v2-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      opensearch-version: "2.19.0"
+      test-target: "test-server-opensearch"
 
   # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
   # Sharded for fast iteration. Weekly workflow provides regular full coverage.
@@ -335,6 +406,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -349,6 +422,7 @@ jobs:
           make build-cmd
           make package
       - name: Persist dist artifacts
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: server-dist-artifact

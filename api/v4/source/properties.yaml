@@ -47,21 +47,21 @@
                   description: The ID of the target
                 permission_field:
                   type: string
-                  enum: [none, sysadmin, member]
+                  enum: [none, sysadmin, member, admin]
                   description: >
                     Permission level for editing the field definition.
                     Only system admins can set this; ignored for non-admin users.
                   default: member
                 permission_values:
                   type: string
-                  enum: [none, sysadmin, member]
+                  enum: [none, sysadmin, member, admin]
                   description: >
                     Permission level for setting values on objects.
                     Only system admins can set this; ignored for non-admin users.
                   default: member
                 permission_options:
                   type: string
-                  enum: [none, sysadmin, member]
+                  enum: [none, sysadmin, member, admin]
                   description: >
                     Permission level for managing options on select/multiselect fields.
                     Only system admins can set this; ignored for non-admin users.

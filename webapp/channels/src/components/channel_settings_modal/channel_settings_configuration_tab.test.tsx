@@ -44,6 +44,16 @@ jest.mock('mattermost-redux/selectors/entities/shared_channels', () => {
     };
 });
 
+let mockManageChannelRolesPermission = false;
+jest.mock('mattermost-redux/selectors/entities/roles', () => ({
+    haveIChannelPermission: jest.fn().mockImplementation((_state, _teamId, _channelId, permission) => {
+        if (permission === 'manage_channel_roles') {
+            return mockManageChannelRolesPermission;
+        }
+        return false;
+    }),
+}));
+
 jest.mock('components/common/hooks/useChannelClassificationBanner');
 jest.mock('components/common/hooks/useClassificationMarkings');
 
@@ -52,10 +62,10 @@ const mockedUseChannelClassificationBanner = useChannelClassificationBanner as j
 
 // Default classification state: feature unavailable. Individual tests can override.
 beforeEach(() => {
+    mockManageChannelRolesPermission = false;
     mockedUseClassificationMarkings.mockReturnValue({
         available: false,
         loading: false,
-        templateField: null,
         channelField: null,
         levels: [],
     });
@@ -744,32 +754,25 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     describe('Classification', () => {
-        const SYSADMIN_USER_ID = 'sysadmin_user_1';
-        const sysAdminState = {
-            entities: {
-                users: {
-                    currentUserId: SYSADMIN_USER_ID,
-                    profiles: {
-                        [SYSADMIN_USER_ID]: {id: SYSADMIN_USER_ID, roles: 'system_admin system_user'},
-                    },
-                },
-            },
-        };
+        beforeEach(() => {
+            mockManageChannelRolesPermission = true;
+        });
 
         const TEMPLATE_FIELD_ID = 'template_field_1';
         const CHANNEL_FIELD_ID = 'channel_field_1';
         const LEVEL_UNCLASSIFIED = {id: 'lvl_unclass', name: 'UNCLASSIFIED', color: '#007A33', rank: 1};
         const LEVEL_SECRET = {id: 'lvl_secret', name: 'SECRET', color: '#C8102E', rank: 2};
 
-        const templateField = {
-            id: TEMPLATE_FIELD_ID,
-            group_id: 'classification_markings',
-            name: 'classification',
+        const channelField = {
+            id: CHANNEL_FIELD_ID,
+            group_id: 'access_control',
+            name: 'channel_classification',
             type: 'select' as const,
             attrs: {options: [LEVEL_UNCLASSIFIED, LEVEL_SECRET]},
             target_id: '',
             target_type: 'system',
-            object_type: 'template',
+            object_type: 'channel',
+            linked_field_id: TEMPLATE_FIELD_ID,
             create_at: 1,
             update_at: 1,
             delete_at: 0,
@@ -777,20 +780,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             updated_by: 'u1',
         };
 
-        const channelField = {
-            ...templateField,
-            id: CHANNEL_FIELD_ID,
-            name: 'channel_classification',
-            object_type: 'channel',
-            linked_field_id: TEMPLATE_FIELD_ID,
-            attrs: {},
-        };
-
         function enableClassification(initialBanner: {hasClassification: boolean; classificationId?: string; bannerText?: string} = {hasClassification: false}) {
             mockedUseClassificationMarkings.mockReturnValue({
                 available: true,
                 loading: false,
-                templateField,
                 channelField,
                 levels: [LEVEL_UNCLASSIFIED, LEVEL_SECRET],
             });
@@ -813,7 +806,6 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
             );
 
             expect(screen.getByText('Classification')).toBeInTheDocument();
@@ -821,12 +813,13 @@ describe('ChannelSettingsConfigurationTab', () => {
         });
 
         it('does not render the Classification section when feature is unavailable', () => {
-            renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>, sysAdminState);
+            renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
             expect(screen.queryByText('Classification')).not.toBeInTheDocument();
         });
 
-        it('does not render the Classification section for non-sysadmin users', () => {
+        it('does not render the Classification section for users without manage_channel_roles', () => {
+            mockManageChannelRolesPermission = false;
             enableClassification();
             renderWithContext(
                 <ChannelSettingsConfigurationTab
@@ -850,7 +843,6 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
             );
 
             await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
@@ -879,7 +871,6 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
             );
 
             const textInput = await screen.findByTestId('channel_banner_banner_text_textbox');
@@ -889,12 +880,16 @@ describe('ChannelSettingsConfigurationTab', () => {
             const saveButton = await screen.findByRole('button', {name: 'Save'});
             await userEvent.click(saveButton);
 
+            // banner_info.enabled stays at whatever the user set manually (false
+            // in this mock channel); the classification banner renders off the
+            // property value, not banner_info.enabled, so clearing the
+            // classification later makes the banner disappear.
             await waitFor(() => {
                 expect(patchChannel).toHaveBeenCalledWith(
                     'channel1',
                     expect.objectContaining({
                         banner_info: expect.objectContaining({
-                            enabled: true,
+                            enabled: false,
                             text: 'Updated text',
                         }),
                     }),
@@ -918,7 +913,6 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
             );
 
             // Edit only the banner text without changing the classification toggle or level.
@@ -952,7 +946,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
+                {},
                 {useMockedStore: true},
             );
 
@@ -964,7 +958,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             await waitFor(() => {
                 expect(Client4.patchPropertyValues).toHaveBeenCalledWith(
-                    'classification_markings',
+                    'access_control',
                     'channel',
                     'channel1',
                     [{field_id: CHANNEL_FIELD_ID, value: null}],
@@ -977,19 +971,118 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
         });
 
-        it('resets classification form to initial state when Reset is clicked', async () => {
+        it('preserves a saved regular banner color and shows Save when classification is re-enabled', async () => {
+            const {Client4} = require('mattermost-redux/client');
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            Client4.patchPropertyValues.mockResolvedValueOnce([]);
             enableClassification({
                 hasClassification: true,
                 classificationId: LEVEL_UNCLASSIFIED.id,
                 bannerText: `**${LEVEL_UNCLASSIFIED.name}**`,
             });
 
+            const classifiedChannel = TestHelper.getChannelMock({
+                ...mockChannel,
+                banner_info: {
+                    enabled: true,
+                    text: `**${LEVEL_UNCLASSIFIED.name}**`,
+                    background_color: LEVEL_UNCLASSIFIED.color,
+                },
+            });
+            const savedRegularBannerChannel = TestHelper.getChannelMock({
+                ...mockChannel,
+                banner_info: {
+                    enabled: true,
+                    text: `**${LEVEL_UNCLASSIFIED.name}**`,
+                    background_color: '#aa00aa',
+                },
+            });
+
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={classifiedChannel}
+                    canManageSharedChannels={true}
+                />,
+                {},
+                {useMockedStore: true},
+            );
+
+            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            await userEvent.clear(colorInput);
+            await userEvent.type(colorInput, '#AA00AA');
+
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith(
+                    'channel1',
+                    expect.objectContaining({
+                        banner_info: expect.objectContaining({
+                            enabled: true,
+                            background_color: '#aa00aa',
+                        }),
+                    }),
+                );
+            });
+            expect(Client4.patchPropertyValues).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                'channel1',
+                [{field_id: CHANNEL_FIELD_ID, value: null}],
+            );
+
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: false,
+                classificationBanner: undefined,
+                classificationId: undefined,
+                bannerText: undefined,
+            });
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={savedRegularBannerChannel}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#aa00aa');
+            });
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+            });
+        });
+
+        it('resets classification form to initial state when Reset is clicked', async () => {
+            enableClassification({
+                hasClassification: true,
+                classificationId: LEVEL_UNCLASSIFIED.id,
+                bannerText: `**${LEVEL_UNCLASSIFIED.name}**`,
+            });
+            const classifiedChannel = TestHelper.getChannelMock({
+                ...mockChannel,
+                banner_info: {
+                    enabled: true,
+                    text: `**${LEVEL_UNCLASSIFIED.name}**`,
+                    background_color: LEVEL_UNCLASSIFIED.color,
+                },
+            });
+
             renderWithContext(
                 <ChannelSettingsConfigurationTab
                     {...baseProps}
+                    channel={classifiedChannel}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
             );
 
             // Toggle off → triggers changes → Save panel appears with Reset.
@@ -1020,7 +1113,6 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
             );
 
             // Enable classification toggle — lowest-rank level is auto-selected.
@@ -1056,7 +1148,6 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                sysAdminState,
             );
 
             // Toggle off then on to create a classification state change.
