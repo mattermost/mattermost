@@ -291,7 +291,8 @@ jobs:
       contents: read
       actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       name: "Postgres (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -325,7 +326,6 @@ jobs:
       contents: read
       actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: Elasticsearch v8 Compatibility
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -343,7 +343,6 @@ jobs:
       contents: read
       actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: OpenSearch v2 Compatibility
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -368,7 +367,9 @@ jobs:
       contents: read
       actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       name: "Postgres FIPS (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -397,7 +398,8 @@ jobs:
       contents: read
       actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
-    secrets: inherit
+    secrets:
+      MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -413,7 +415,10 @@ jobs:
       contents: read
       actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10

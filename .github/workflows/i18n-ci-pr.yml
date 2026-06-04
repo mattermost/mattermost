@@ -22,4 +22,3 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/i18n-ci-template.yml
-    secrets: inherit
