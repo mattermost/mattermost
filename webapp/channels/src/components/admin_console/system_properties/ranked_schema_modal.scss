@@ -1,0 +1,107 @@
+.ranked-schema-modal {
+    .ranked-schema-modal__rows {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ranked-schema-modal__row {
+        display: flex;
+        flex-direction: column;
+        padding: 4px;
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+    }
+
+    .ranked-schema-modal__row-main {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ranked-schema-modal__drag-handle {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: grab;
+
+        &:active {
+            cursor: grabbing;
+        }
+    }
+
+    .ranked-schema-modal__steppers {
+        display: flex;
+        flex-direction: column;
+
+        .ranked-schema-modal__stepper {
+            display: inline-flex;
+            width: 20px;
+            height: 16px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            cursor: pointer;
+
+            &:hover:not(:disabled) {
+                color: var(--center-channel-color);
+            }
+
+            &:disabled {
+                cursor: not-allowed;
+                opacity: 0.3;
+            }
+        }
+    }
+
+    .ranked-schema-modal__name-input {
+        flex: 1;
+    }
+
+    .ranked-schema-modal__rank-input {
+        width: 72px;
+        flex: 0 0 auto;
+        text-align: center;
+
+        &[aria-invalid='true'] {
+            border-color: var(--error-text);
+        }
+    }
+
+    .ranked-schema-modal__remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+
+        &:hover {
+            color: var(--error-text);
+        }
+    }
+
+    .ranked-schema-modal__error {
+        margin: 4px 0 0 60px;
+        color: var(--error-text);
+        font-size: 12px;
+    }
+
+    .ranked-schema-modal__add {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 0;
+        border: none;
+        margin-top: 12px;
+        background: transparent;
+        color: var(--button-bg);
+        cursor: pointer;
+        font-weight: 600;
+        gap: 4px;
+    }
+}

@@ -1,0 +1,62 @@
+.user-property-rank-values {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+
+    .user-property-rank-values__chips {
+        display: flex;
+        min-height: 40px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 8px 12px;
+        gap: 6px;
+    }
+
+    .user-property-rank-values__chip {
+        display: inline-flex;
+        height: 24px;
+        align-items: center;
+        padding: 0 10px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 6px;
+
+        &:hover:not(:disabled) {
+            background: rgba(var(--center-channel-color-rgb), 0.12);
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.6;
+        }
+    }
+
+    .user-property-rank-values__chip-label {
+        line-height: 16px;
+    }
+
+    .user-property-rank-values__add-input {
+        min-width: 120px;
+        height: 24px;
+        flex: 1;
+        padding: 0 4px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        font-size: 12px;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    .user-property-rank-values__rank-current {
+        margin-right: 6px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}
