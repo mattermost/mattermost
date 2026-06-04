@@ -2912,10 +2912,6 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
-	// TODO: remove once the API officially supports setting expires_at; until
-	// then, strip any client-supplied value so that JSON-decoded requests cannot
-	// set an arbitrary (or zero) expiry through the create-token endpoint.
-	accessToken.ExpiresAt = 0
 
 	token, err := c.App.CreateUserAccessToken(c.AppContext, &accessToken)
 	if err != nil {
