@@ -974,7 +974,9 @@
                 type: object
                 properties:
                   policy:
-                    $ref: "#/components/schemas/AccessControlPolicy"
+                    nullable: true
+                    allOf:
+                      - $ref: "#/components/schemas/AccessControlPolicy"
                   enforced:
                     type: boolean
                     description: Whether the team currently enforces a membership access control policy.
