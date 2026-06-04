@@ -9,7 +9,6 @@ import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
-import {splitListItem} from '@tiptap/pm/schema-list';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -245,12 +244,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const insideCodeBlock = parentNode.type.name === 'codeBlock';
                 const insideTable = ['tableCell', 'tableHeader'].includes(grandparentNode?.type.name ?? '');
                 const insideHeading = parentNode.type.name === 'heading';
-
-                if (event.shiftKey && insideList) {
-                    event.preventDefault();
-                    splitListItem(state.schema.nodes.listItem)(state, view.dispatch);
-                    return true;
-                }
 
                 const ctrlOrMeta = event.metaKey || event.ctrlKey;
 

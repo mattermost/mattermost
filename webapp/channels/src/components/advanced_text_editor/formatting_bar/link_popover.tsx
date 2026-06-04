@@ -154,7 +154,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                 onClose();
             }
         },
-        placement: 'bottom-start',
+        placement: 'top-start',
         middleware: [offset(8), flip(), shift({padding: 8})],
         whileElementsMounted: autoUpdate,
     });
