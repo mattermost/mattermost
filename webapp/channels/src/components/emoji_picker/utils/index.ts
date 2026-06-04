@@ -58,12 +58,21 @@ function isEmojiIdEqual(firstEmoji: Emoji, secondEmoji: Emoji): boolean {
     return firstEmojiId === secondEmojId;
 }
 
+function normalizeEmojiSearchTerm(term: string): string {
+    return term.toLowerCase().replace(/[\s_+-]+/g, '');
+}
+
 export function getFilteredEmojis(allEmojis: Record<string, Emoji>, filter: string, recentEmojisString: string[], userSkinTone: string): Emoji[] {
+    const normalizedFilter = normalizeEmojiSearchTerm(filter);
+    if (filter.length > 0 && normalizedFilter.length === 0) {
+        return [];
+    }
+
     const filteredEmojisWithRecent = Object.values(allEmojis).filter((emoji) => {
         const aliases = isSystemEmoji(emoji) ? emoji.short_names : [emoji.name];
 
         for (let i = 0; i < aliases.length; i++) {
-            if (aliases[i].toLowerCase().includes(filter.toLowerCase())) {
+            if (normalizeEmojiSearchTerm(aliases[i]).includes(normalizedFilter)) {
                 return true;
             }
         }

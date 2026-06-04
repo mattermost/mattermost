@@ -301,4 +301,68 @@ func testEmojiSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		assert.Equal(t, shouldFind[i], found, emoji.Name)
 	}
+
+	separatorSuffix := model.NewId()
+	separatorEmojis := []model.Emoji{
+		{
+			CreatorId: model.NewId(),
+			Name:      "spider-man-" + separatorSuffix,
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      "spider_man_" + separatorSuffix,
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      "spider+man+" + separatorSuffix,
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId() + "_spider-man-" + separatorSuffix,
+		},
+	}
+
+	for i, emoji := range separatorEmojis {
+		data, err := ss.Emoji().Save(&emoji)
+		require.NoError(t, err)
+		separatorEmojis[i] = *data
+	}
+	defer func() {
+		for _, emoji := range separatorEmojis {
+			err := ss.Emoji().Delete(&emoji, time.Now().Unix())
+			require.NoError(t, err)
+		}
+	}()
+
+	result, err = ss.Emoji().Search("spider man", true, 100)
+	require.NoError(t, err)
+	shouldFind = []bool{true, true, true, false}
+	for i, emoji := range separatorEmojis {
+		found := false
+
+		for _, savedEmoji := range result {
+			if emoji.Id == savedEmoji.Id {
+				found = true
+				break
+			}
+		}
+
+		assert.Equal(t, shouldFind[i], found, emoji.Name)
+	}
+
+	result, err = ss.Emoji().Search("spider man", false, 100)
+	require.NoError(t, err)
+	shouldFind = []bool{true, true, true, true}
+	for i, emoji := range separatorEmojis {
+		found := false
+
+		for _, savedEmoji := range result {
+			if emoji.Id == savedEmoji.Id {
+				found = true
+				break
+			}
+		}
+
+		assert.Equal(t, shouldFind[i], found, emoji.Name)
+	}
 }
