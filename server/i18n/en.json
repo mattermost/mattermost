@@ -564,6 +564,10 @@
     "translation": "Failed to update the channel."
   },
   {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "You are not allowed to set group_constrained on this channel type."
+  },
+  {
     "id": "api.channel.patch_update_channel.no_changes.app_error",
     "translation": "No changes in the patch."
   },
@@ -2679,6 +2683,10 @@
   {
     "id": "api.license.load_metric.app_error",
     "translation": "Failed to compute monthly active users."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Could not parse the license upload form."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -5315,12 +5323,12 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
-    "id": "app.access_control.build_subject_for_session.get_session_attributes.app_error",
-    "translation": "Failed to retrieve the session attributes."
-  },
-  {
     "id": "app.access_control.get_channel_role.app_error",
     "translation": "Unable to get channel role for the user. Please try again."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Failed to retrieve the session attributes."
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -7773,12 +7781,12 @@
     "translation": "Could not query for expression."
   },
   {
-    "id": "app.pap.save_policy.advanced_expression_blocked",
-    "translation": "This rule expression cannot be safely edited while restricted values are present."
-  },
-  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "You do not have permission to make this change to the policy."
   },
   {
     "id": "app.pap.save_policy.invalid_value",
@@ -7791,14 +7799,6 @@
   {
     "id": "app.pap.save_policy.masked_token_in_expression",
     "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again."
-  },
-  {
-    "id": "app.pap.save_policy.masked_condition_deleted",
-    "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
-  },
-  {
-    "id": "app.pap.save_policy.masked_rule_deleted",
-    "translation": "You cannot remove a rule that contains attribute values you do not have permission to view."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
@@ -7815,10 +7815,6 @@
   {
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "You do not satisfy one or more conditions in this policy."
-  },
-  {
-    "id": "app.pap.save_policy.user_session_unsupported.app_error",
-    "translation": "Session attributes are not supported for policy simulation."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -11141,6 +11137,10 @@
   {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Only public and private channels can be group constrained."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
