@@ -357,7 +357,7 @@ func newAttachmentActionPostInChannel(t *testing.T, th *TestHelper, channelID, u
 		ChannelId: channelID,
 		UserId:    userID,
 		Props: model.StringInterface{
-			model.PostPropsAttachments: []*model.MessageAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Text: "hello",
 					Actions: []*model.PostAction{
@@ -375,7 +375,7 @@ func newAttachmentActionPostInChannel(t *testing.T, th *TestHelper, channelID, u
 	require.Nil(t, appErr)
 
 	withCookies := model.AddPostActionCookies(created, th.App.PostActionCookieSecret())
-	attachments, ok := withCookies.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	attachments, ok := withCookies.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 	require.NotEmpty(t, attachments)
 	require.NotEmpty(t, attachments[0].Actions)
@@ -386,7 +386,7 @@ func newAttachmentActionPostInChannel(t *testing.T, th *TestHelper, channelID, u
 
 func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -398,19 +398,19 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	privateChannel := th.CreatePrivateChannel(t)
+	privateChannel := th.CreatePrivateChannel()
 	privatePost, privateActionID := newAttachmentActionPostInChannel(t, th, privateChannel.Id, th.BasicUser.Id, ts.URL)
 
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)
 	readablePost, _ := newAttachmentActionPostInChannel(t, th, th.BasicChannel.Id, th.BasicUser.Id, ts.URL)
-	readableAttachments, ok := readablePost.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	readableAttachments, ok := readablePost.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 	readableCookie := readableAttachments[0].Actions[0].Cookie
 	require.NotEmpty(t, readableCookie)
 
 	nonMember := th.CreateClient()
-	th.LoginBasic2WithClient(t, nonMember)
+	th.LoginBasic2WithClient(nonMember)
 
 	t.Run("non-member cannot act on the private post without a cookie", func(t *testing.T) {
 		resp, err := nonMember.DoPostAction(context.Background(), privatePost.Id, privateActionID)
@@ -425,7 +425,7 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 	})
 
 	t.Run("a member can still act using the post's own cookie", func(t *testing.T) {
-		legitAttachments, ok := privatePost.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+		legitAttachments, ok := privatePost.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		legitCookie := legitAttachments[0].Actions[0].Cookie
 		require.NotEmpty(t, legitCookie)
