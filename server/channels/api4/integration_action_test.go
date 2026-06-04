@@ -721,3 +721,89 @@ func TestDoPostActionMalformedBody(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
+
+func newAttachmentActionPostInChannel(t *testing.T, th *TestHelper, channelID, userID, upstreamURL string) (*model.Post, string) {
+	t.Helper()
+	post := &model.Post{
+		Message:   "attachment action post",
+		ChannelId: channelID,
+		UserId:    userID,
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type:        model.PostActionTypeButton,
+							Name:        "click",
+							Integration: &model.PostActionIntegration{URL: upstreamURL},
+						},
+					},
+				},
+			},
+		},
+	}
+	created, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+	require.Nil(t, appErr)
+
+	withCookies := model.AddPostActionCookies(created, th.App.PostActionCookieSecret())
+	attachments, ok := withCookies.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	require.True(t, ok)
+	require.NotEmpty(t, attachments)
+	require.NotEmpty(t, attachments[0].Actions)
+	action := attachments[0].Actions[0]
+	require.NotEmpty(t, action.Id)
+	return withCookies, action.Id
+}
+
+func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("{}"))
+	}))
+	defer ts.Close()
+
+	privateChannel := th.CreatePrivateChannel(t)
+	privatePost, privateActionID := newAttachmentActionPostInChannel(t, th, privateChannel.Id, th.BasicUser.Id, ts.URL)
+
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
+	readablePost, _ := newAttachmentActionPostInChannel(t, th, th.BasicChannel.Id, th.BasicUser.Id, ts.URL)
+	readableAttachments, ok := readablePost.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	require.True(t, ok)
+	readableCookie := readableAttachments[0].Actions[0].Cookie
+	require.NotEmpty(t, readableCookie)
+
+	nonMember := th.CreateClient()
+	th.LoginBasic2WithClient(t, nonMember)
+
+	t.Run("non-member cannot act on the private post without a cookie", func(t *testing.T) {
+		resp, err := nonMember.DoPostAction(context.Background(), privatePost.Id, privateActionID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("a cookie from a readable channel cannot authorize a different post", func(t *testing.T) {
+		resp, err := nonMember.DoPostActionWithCookie(context.Background(), privatePost.Id, privateActionID, "", readableCookie)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("a member can still act using the post's own cookie", func(t *testing.T) {
+		legitAttachments, ok := privatePost.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+		require.True(t, ok)
+		legitCookie := legitAttachments[0].Actions[0].Cookie
+		require.NotEmpty(t, legitCookie)
+
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), privatePost.Id, privateActionID, "", legitCookie)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
