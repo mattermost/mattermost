@@ -381,9 +381,9 @@
     post:
       tags:
         - access control
-      summary: Assign an access control policy to channels
+      summary: Assign an access control policy to channels or teams
       description: |
-        Assigns an access control policy to a list of channels.
+        Assigns an access control policy to a list of channels and/or teams.
         ##### Permissions
         Must have the `manage_system` permission.
       operationId: AssignAccessControlPolicyToChannels
@@ -416,7 +416,7 @@
                     with a 400.
       responses:
         "200":
-          description: Policy assigned to channels successfully.
+          description: Policy assigned to the channels and/or teams successfully.
           content:
             application/json:
               schema:
@@ -435,9 +435,9 @@
     delete:
       tags:
         - access control
-      summary: Unassign an access control policy from channels
+      summary: Unassign an access control policy from channels or teams
       description: |
-        Unassigns an access control policy from a list of channels.
+        Unassigns an access control policy from a list of channels and/or teams.
         ##### Permissions
         Must have the `manage_system` permission.
       operationId: UnassignAccessControlPolicyFromChannels
@@ -470,7 +470,7 @@
                     with a 400.
       responses:
         "200":
-          description: Policy unassigned from channels successfully.
+          description: Policy unassigned from the channels and/or teams successfully.
           content:
             application/json:
               schema:

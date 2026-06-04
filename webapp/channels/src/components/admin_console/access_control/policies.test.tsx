@@ -277,8 +277,11 @@ describe('components/admin_console/access_control/PolicyList', () => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
 
-        expect(screen.getByText('3 channels')).toBeInTheDocument();
-        expect(screen.getByText('2 teams')).toBeInTheDocument();
+        // The channel and team counts render as sibling text nodes in one cell,
+        // so assert on the cell's combined text rather than a single element.
+        const cell = document.getElementById('customAppliedTo-policy1')!;
+        expect(cell).toHaveTextContent('3 channels');
+        expect(cell).toHaveTextContent('2 teams');
     });
 
     test('Applies to omits the team side when team_count is zero', async () => {
@@ -297,8 +300,11 @@ describe('components/admin_console/access_control/PolicyList', () => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
 
-        expect(screen.getByText('2 channels')).toBeInTheDocument();
-        expect(screen.queryByText(/team/)).not.toBeInTheDocument();
+        // Scope to the policy's "Applies to" cell — the page text elsewhere contains
+        // the word "team", so a global matcher false-positives.
+        const cell = document.getElementById('customAppliedTo-policy1')!;
+        expect(cell).toHaveTextContent('2 channels');
+        expect(cell).not.toHaveTextContent('team');
     });
 
     test('Applies to omits the channel side when channel_count is zero', async () => {
@@ -317,8 +323,11 @@ describe('components/admin_console/access_control/PolicyList', () => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
 
-        expect(screen.getByText('3 teams')).toBeInTheDocument();
-        expect(screen.queryByText(/channel/)).not.toBeInTheDocument();
+        // Scope to the policy's "Applies to" cell — the page description text
+        // also contains the word "channels", so a global matcher false-positives.
+        const cell = document.getElementById('customAppliedTo-policy1')!;
+        expect(cell).toHaveTextContent('3 teams');
+        expect(cell).not.toHaveTextContent('channel');
     });
 
     test('Applies to shows None when both counts are zero', async () => {

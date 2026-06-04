@@ -284,6 +284,10 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
 		})).Return([]*model.AccessControlPolicy{{ID: childChannelID, Type: model.AccessControlPolicyTypeChannel}}, int64(1), nil).Once()
+		// teamPolicyIDsWithImport is also called for parent-type deletes; no team children here.
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl
@@ -4768,6 +4772,43 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 
 		require.Nil(t, appErr)
 		mockChannelStore.AssertExpectations(t)
+	})
+
+	t.Run("parent policy fans out to both channel and team children", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
+
+		parentID := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:   parentID,
+			Type: model.AccessControlPolicyTypeParent,
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+
+		// Activating a parent must fan out to BOTH its channel and team children.
+		// With no children the import searches still run but broadcast nothing — the
+		// team search is what was previously missing on this path.
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockACS
+
+		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
+			{ID: parentID, Active: true},
+		})
+
+		require.Nil(t, appErr)
+		// The team import search proves the team fan-out is wired (previously absent).
+		mockACPStore.AssertExpectations(t)
 	})
 }
 

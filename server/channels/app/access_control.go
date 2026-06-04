@@ -160,8 +160,11 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	switch policy.Type {
 	case model.AccessControlPolicyTypeChannel:
 		a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
+	case model.AccessControlPolicyTypeTeam:
+		a.publishTeamPolicyEnforcedUpdate(rctx, policy.ID)
 	case model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
+		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 	}
 
 	return policy, nil
@@ -1617,13 +1620,6 @@ func (a *App) AssignAccessControlPolicyToTeams(rctx request.CTX, parentID string
 		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_access_control_policy_to_teams.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	// Defense in depth: never create team child policy rows while team membership
-	// ABAC is dark. Without this a row written by a non-API caller (import, job)
-	// would silently go live when the flag is later enabled.
-	if !a.TeamMembershipAccessControlEnabled() {
-		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_access_control_policy_to_teams.app_error", nil, "Team membership access control is not enabled", http.StatusNotImplemented)
-	}
-
 	policy, appErr := a.GetAccessControlPolicy(rctx, parentID)
 	if appErr != nil {
 		return nil, appErr
@@ -1679,10 +1675,6 @@ func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamI
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
-	}
-
-	if !a.TeamMembershipAccessControlEnabled() {
-		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, "Team membership access control is not enabled", http.StatusNotImplemented)
 	}
 
 	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
@@ -1862,8 +1854,11 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		switch policy.Type {
 		case model.AccessControlPolicyTypeChannel:
 			a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
+		case model.AccessControlPolicyTypeTeam:
+			a.publishTeamPolicyEnforcedUpdate(rctx, policy.ID)
 		case model.AccessControlPolicyTypeParent:
 			a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
+			a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 		}
 	}
 
@@ -1918,6 +1913,13 @@ func (a *App) publishTeamPolicyEnforcedUpdatesForTeams(rctx request.CTX, teamIDs
 		seen[teamID] = struct{}{}
 		a.publishTeamPolicyEnforcedUpdate(rctx, teamID)
 	}
+}
+
+// publishTeamPolicyEnforcedForTeamPoliciesWithImport broadcasts
+// team_access_control_updated for every team-type policy that lists importID in
+// its imports. Call only after the imported policy (parent) is persisted.
+func (a *App) publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx request.CTX, importID string) {
+	a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, a.teamPolicyIDsWithImport(rctx, importID))
 }
 
 func (a *App) teamPolicyIDsWithImport(rctx request.CTX, importID string) []string {

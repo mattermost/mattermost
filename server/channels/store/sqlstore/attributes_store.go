@@ -216,7 +216,7 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().
 		Select(teamMemberSliceColumns()...).From("TeamMembers").LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
-		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
+		Where("TeamMembers.DeleteAt = 0").
 		OrderBy("TeamMembers.UserId ASC")
 
 	if opts.Query != "" {
@@ -234,10 +234,7 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 	// permanently leave members beyond the cap in a team they no longer qualify
 	// for. The result is naturally bounded by the team's membership.
 	if opts.Limit > 0 {
-		limit := opts.Limit
-		if limit > MaxPerPage {
-			limit = MaxPerPage
-		}
+		limit := min(opts.Limit, MaxPerPage)
 		query = query.Limit(uint64(limit))
 	}
 
