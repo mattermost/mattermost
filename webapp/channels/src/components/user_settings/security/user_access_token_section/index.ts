@@ -24,7 +24,6 @@ function mapStateToProps(state: GlobalState) {
     const maxLifetimeDays = parseInt(config.MaximumPersonalAccessTokenLifetimeDays || '0', 10);
     return {
         userAccessTokens: state.entities.users.myUserAccessTokens,
-        enforceExpiry: config.EnforcePersonalAccessTokenExpiry === 'true',
         maxLifetimeDays: Number.isFinite(maxLifetimeDays) ? maxLifetimeDays : 0,
     };
 }

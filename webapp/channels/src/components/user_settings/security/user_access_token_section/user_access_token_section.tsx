@@ -85,7 +85,7 @@ export function deriveTokenStatus(token: {is_active: boolean; expires_at?: numbe
 
 export function mapServerErrorIdToMessage(errorId?: string, maxDays?: number): React.ReactNode | null {
     switch (errorId) {
-    case 'api.user.create_user_access_token.expires_at_required.app_error':
+    case 'app.user_access_token.expires_at_required.app_error':
     case 'expires_at_required':
         return (
             <FormattedMessage
@@ -93,7 +93,7 @@ export function mapServerErrorIdToMessage(errorId?: string, maxDays?: number): R
                 defaultMessage='An expiry date is required.'
             />
         );
-    case 'api.user.create_user_access_token.expires_at_in_past.app_error':
+    case 'app.user_access_token.expires_at_in_past.app_error':
     case 'expires_at_in_past':
         return (
             <FormattedMessage
@@ -101,7 +101,7 @@ export function mapServerErrorIdToMessage(errorId?: string, maxDays?: number): R
                 defaultMessage='Expiry must be in the future.'
             />
         );
-    case 'api.user.create_user_access_token.expires_at_too_far.app_error':
+    case 'app.user_access_token.expires_at_too_far.app_error':
     case 'expires_at_too_far':
         return (
             <FormattedMessage
@@ -121,7 +121,6 @@ type OwnProps = {
     areAllSectionsInactive: boolean;
     updateSection: (section: string) => void;
     userAccessTokens: {[tokenId: string]: {description: string; id: string; is_active: boolean; expires_at?: number}};
-    enforceExpiry: boolean;
     maxLifetimeDays: number;
     setRequireConfirm: (isRequiredConfirm: boolean, confirmCopyToken: (confirmAction: () => void) => void) => void;
     actions: {
@@ -211,7 +210,9 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
     };
 
     defaultExpiryPreset = (): ExpiryPreset => {
-        if (!this.props.enforceExpiry) {
+        // A configured maximum lifetime (> 0) implies tokens must expire, so the
+        // "No expiry" option is not offered and a bounded preset is the default.
+        if (this.props.maxLifetimeDays <= 0) {
             return 'none';
         }
         const presets: ExpiryPreset[] = ['30d', '7d'];
@@ -288,7 +289,8 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             return;
         }
 
-        const {enforceExpiry, maxLifetimeDays} = this.props;
+        const {maxLifetimeDays} = this.props;
+        const enforceExpiry = maxLifetimeDays > 0;
         const {expiryPreset} = this.state;
         const expiresAt = this.resolveExpiresAt();
 
@@ -765,7 +767,8 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
 
         let newTokenSection;
         if (this.state.tokenCreationState === TOKEN_CREATING) {
-            const {enforceExpiry, maxLifetimeDays} = this.props;
+            const {maxLifetimeDays} = this.props;
+            const enforceExpiry = maxLifetimeDays > 0;
             const {expiryPreset, customExpiryDate} = this.state;
             const maxCustomIso = maxLifetimeDays > 0 ? isoPlusDays(maxLifetimeDays) : undefined;
 

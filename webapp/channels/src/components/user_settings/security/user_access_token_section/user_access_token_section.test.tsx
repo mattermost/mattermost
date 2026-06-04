@@ -57,17 +57,18 @@ describe('user_access_token_section helpers', () => {
 
         test('maps expires_at_required (short and app_error variants)', () => {
             expect(renderNode(mapServerErrorIdToMessage('expires_at_required'))).toBe('An expiry date is required.');
-            expect(renderNode(mapServerErrorIdToMessage('api.user.create_user_access_token.expires_at_required.app_error'))).toBe('An expiry date is required.');
+            expect(renderNode(mapServerErrorIdToMessage('app.user_access_token.expires_at_required.app_error'))).toBe('An expiry date is required.');
         });
 
         test('maps expires_at_in_past (short and app_error variants)', () => {
             expect(renderNode(mapServerErrorIdToMessage('expires_at_in_past'))).toBe('Expiry must be in the future.');
-            expect(renderNode(mapServerErrorIdToMessage('api.user.create_user_access_token.expires_at_in_past.app_error'))).toBe('Expiry must be in the future.');
+            expect(renderNode(mapServerErrorIdToMessage('app.user_access_token.expires_at_in_past.app_error'))).toBe('Expiry must be in the future.');
         });
 
         test('maps expires_at_too_far with the maxDays interpolated', () => {
             expect(renderNode(mapServerErrorIdToMessage('expires_at_too_far', 30))).toBe('Expiry can be at most 30 days from now.');
             expect(renderNode(mapServerErrorIdToMessage('expires_at_too_far', 1))).toBe('Expiry can be at most 1 day from now.');
+            expect(renderNode(mapServerErrorIdToMessage('app.user_access_token.expires_at_too_far.app_error', 30))).toBe('Expiry can be at most 30 days from now.');
         });
 
         test('returns null for unknown or missing ids', () => {
@@ -143,7 +144,6 @@ describe('UserAccessTokenSection component', () => {
         areAllSectionsInactive: false,
         updateSection: jest.fn(),
         userAccessTokens: {},
-        enforceExpiry: false,
         maxLifetimeDays: 0,
         setRequireConfirm: jest.fn(),
         actions: {
@@ -221,16 +221,16 @@ describe('UserAccessTokenSection component', () => {
         });
     });
 
-    describe('enforceExpiry rendering', () => {
-        test('hides the "No expiry" option and shows the enforced hint when enforced', () => {
-            renderSection({enforceExpiry: true});
+    describe('expiry enforcement (implied by maxLifetimeDays > 0)', () => {
+        test('hides the "No expiry" option and shows the enforced hint when a maximum lifetime is set', () => {
+            renderSection({maxLifetimeDays: 30});
             startCreating();
             expect(screen.queryByText('No expiry')).not.toBeInTheDocument();
             expect(screen.getByText('Your administrator requires all personal access tokens to have an expiry date.')).toBeInTheDocument();
         });
 
-        test('offers the "No expiry" option when not enforced', () => {
-            renderSection({enforceExpiry: false});
+        test('offers the "No expiry" option when no maximum lifetime is set', () => {
+            renderSection({maxLifetimeDays: 0});
             startCreating();
             expect(screen.getByText('No expiry')).toBeInTheDocument();
         });
