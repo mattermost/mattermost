@@ -1,0 +1,34 @@
+.file-preview-modal {
+    &__image-controls-bar {
+        .modal .modal-image & {
+            background-color: black;
+        }
+    }
+}
+.file-preview-modal-image-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .file-preview-modal-main-actions__action-item {
+        color: white;
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.4;
+        }
+    }
+
+    &__rotate-ccw {
+        transform: scaleX(-1);
+    }
+
+    &__flip-button {
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    &__flip-label {
+        line-height: 1;
+    }
+}

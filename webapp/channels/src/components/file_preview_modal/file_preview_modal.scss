@@ -32,6 +32,20 @@
         }
     }
 
+    &__content-with-image-controls {
+        height: calc(100vh - 112px);
+        overflow: hidden;
+        cursor: grab;
+
+        @media screen and (max-width: 768px) {
+            height: calc(100% - 148px);
+        }
+    }
+
+    &__content-dragging {
+        cursor: grabbing;
+    }
+
     &__content-scrollable {
         padding: 0;
     }
@@ -60,6 +74,11 @@
         .modal .modal-image & {
             background-color: rgba(61, 60, 64, 0.75);
         }
+    }
+
+    &__image-controls-bar {
+        position: relative;
+        z-index: 1;
     }
 
     .modal.fade & {

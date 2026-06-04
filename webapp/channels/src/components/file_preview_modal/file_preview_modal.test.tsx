@@ -39,6 +39,7 @@ jest.mock('components/file_preview_modal/file_preview_modal_header/file_preview_
     <div>{'File Preview Modal Header'}</div>
 ));
 jest.mock('components/file_preview_modal/image_preview', () => () => <div>{'Image Preview'}</div>);
+jest.mock('components/file_preview_modal/image_controls_bar', () => () => <div>{'Image Controls Bar'}</div>);
 jest.mock('components/file_preview_modal/popover_bar', () => () => <div>{'Popover Bar'}</div>);
 
 describe('components/FilePreviewModal', () => {
@@ -146,9 +147,9 @@ describe('components/FilePreviewModal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should go to next or previous upon key press of right or left, respectively', () => {
+    test('should go to next or previous upon key press of right or left, respectively for non-image preview', () => {
         const fileInfos = [
-            TestHelper.getFileInfoMock({id: 'file_id_1', extension: 'gif'}),
+            TestHelper.getFileInfoMock({id: 'file_id_1', extension: 'txt'}),
             TestHelper.getFileInfoMock({id: 'file_id_2', extension: 'wma'}),
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];

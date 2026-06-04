@@ -132,11 +132,14 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
             </div>
           </div>
           <div
-            class="file-preview-modal__content"
+            class="file-preview-modal__content file-preview-modal__content-with-image-controls"
           >
             <div>
               Image Preview
             </div>
+          </div>
+          <div>
+            Image Controls Bar
           </div>
         </div>
       </div>
@@ -161,11 +164,14 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
             </div>
           </div>
           <div
-            class="file-preview-modal__content"
+            class="file-preview-modal__content file-preview-modal__content-with-image-controls"
           >
             <div>
               Image Preview
             </div>
+          </div>
+          <div>
+            Image Controls Bar
           </div>
         </div>
       </div>
@@ -277,11 +283,14 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
             </div>
           </div>
           <div
-            class="file-preview-modal__content"
+            class="file-preview-modal__content file-preview-modal__content-with-image-controls"
           >
             <div>
               Image Preview
             </div>
+          </div>
+          <div>
+            Image Controls Bar
           </div>
         </div>
       </div>
@@ -306,11 +315,14 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
             </div>
           </div>
           <div
-            class="file-preview-modal__content"
+            class="file-preview-modal__content file-preview-modal__content-with-image-controls"
           >
             <div>
               Image Preview
             </div>
+          </div>
+          <div>
+            Image Controls Bar
           </div>
         </div>
       </div>

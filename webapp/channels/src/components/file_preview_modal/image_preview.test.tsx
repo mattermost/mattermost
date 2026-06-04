@@ -86,7 +86,20 @@ describe('components/view_image/ImagePreview', () => {
             <ImagePreview {...props}/>,
         );
 
-        expect(screen.getByRole('link')).toHaveAttribute('href', '#');
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
         expect(screen.getByTestId('imagePreview')).toHaveAttribute('src', props.fileInfo.link);
+    });
+
+    test('should apply transform style', () => {
+        const props = {
+            ...baseProps,
+            transform: 'rotate(90deg) scale(1.2, 1.2)',
+        };
+
+        render(
+            <ImagePreview {...props}/>,
+        );
+
+        expect(screen.getByTestId('imagePreview')).toHaveStyle({transform: props.transform});
     });
 });
