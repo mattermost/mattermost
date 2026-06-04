@@ -548,7 +548,7 @@ func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID st
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
 func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
 	// Use ChannelMentionsAll (post.AllStrings) for ~mentions in message, attachments, and interactive payloads.
-	channelMentions := post.ChannelMentionsAll()
+	channelMentions := post.ChannelMentionsAllWithOptions(model.AllStringsOptions{OmitInteractiveBlocks: !a.Config().FeatureFlags.MmBlocksEnabled})
 	channelMentionsProp := make(map[string]any)
 
 	if len(channelMentions) > 0 {
@@ -2465,7 +2465,7 @@ func (a *App) countThreadMentions(rctx request.CTX, user *model.User, post *mode
 
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {
-			mentions := getExplicitMentions(p, keywords)
+			mentions := getExplicitMentions(p, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
 			if _, ok := mentions.Mentions[user.Id]; ok {
 				count += 1
 			}
@@ -2527,7 +2527,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 	count := 0
 	countRoot := 0
 	urgentCount := 0
-	if isPostMention(user, post, keywords, thread.Posts, mentionedByThread, checkForCommentMentions) {
+	if isPostMention(user, post, keywords, thread.Posts, mentionedByThread, checkForCommentMentions, a.Config().FeatureFlags.MmBlocksEnabled) {
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
@@ -2559,7 +2559,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 
 		mentionPostIds := make([]string, 0)
 		for _, postID := range postList.Order {
-			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
+			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions, a.Config().FeatureFlags.MmBlocksEnabled) {
 				count += 1
 				if postList.Posts[postID].RootId == "" {
 					mentionPostIds = append(mentionPostIds, postID)
@@ -2633,14 +2633,14 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	return mentioned
 }
 
-func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
+func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool, mmBlocksEnabled bool) bool {
 	// Prevent the user from mentioning themselves
 	if post.UserId == user.Id && post.GetProp(model.PostPropsFromWebhook) != "true" {
 		return false
 	}
 
 	// Check for keyword mentions
-	mentions := getExplicitMentions(post, keywords)
+	mentions := getExplicitMentions(post, keywords, mmBlocksEnabled)
 	if _, ok := mentions.Mentions[user.Id]; ok {
 		return true
 	}

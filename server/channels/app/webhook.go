@@ -313,7 +313,7 @@ func validateWebhookPostInteractiveActions(post *model.Post) *model.AppError {
 	return nil
 }
 
-func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
+func splitWebhookPost(post *model.Post, maxPostSize int, mmBlocksEnabled bool) ([]*model.Post, *model.AppError) {
 	// Fast path: message and full props already fit one post. Pairing was validated
 	// before split, so mm_blocks_actions need not be subset/refreshed here.
 	if utf8.RuneCountInString(post.Message) <= maxPostSize {
@@ -405,6 +405,9 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			break
 		}
 	}
+	if !mmBlocksEnabled {
+		return splits, nil
+	}
 
 	for _, propKey := range []string{model.PostPropsMmBlocks, model.PostPropsBlockKitBlocks, model.PostPropsAdaptiveCards} {
 		if items, ok := webhookPropsJSONArray(post.GetProp(propKey)); ok && len(items) > 0 {
@@ -479,11 +482,15 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		}
 	}
 
-	if err := validateWebhookPostInteractiveActions(post); err != nil {
-		return nil, err
+	mmBlocksEnabled := a.Config().FeatureFlags.MmBlocksEnabled
+
+	if mmBlocksEnabled {
+		if err := validateWebhookPostInteractiveActions(post); err != nil {
+			return nil, err
+		}
 	}
 
-	splits, err := splitWebhookPost(post, a.MaxPostSize())
+	splits, err := splitWebhookPost(post, a.MaxPostSize(), mmBlocksEnabled)
 	if err != nil {
 		return nil, err
 	}

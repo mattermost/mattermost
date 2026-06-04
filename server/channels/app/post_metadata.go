@@ -612,8 +612,8 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, isNewPost boo
 		return map[string]*model.PostImage{}
 	}
 
-	imageURLs := a.markdownImageURLsFromStrings(rctx, post.AllStrings())
-	imageURLs = append(imageURLs, post.InteractiveBlocksImageURLs()...)
+	imageURLs := a.markdownImageURLsFromStrings(rctx, post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !a.Config().FeatureFlags.MmBlocksEnabled}))
+	imageURLs = append(imageURLs, post.InteractiveBlocksImageURLs(a.Config().FeatureFlags.MmBlocksEnabled)...)
 
 	postImages := map[string]*model.PostImage{}
 
@@ -689,8 +689,8 @@ func getEmojiNamesForString(s string) []string {
 	return names
 }
 
-func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []string {
-	allStrings := post.AllStrings()
+func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction, mmBlocksEnabled bool) []string {
+	allStrings := post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled})
 	var names []string
 	for _, s := range allStrings {
 		names = append(names, getEmojiNamesForString(s)...)
@@ -707,7 +707,7 @@ func (a *App) getCustomEmojisForPost(rctx request.CTX, post *model.Post, reactio
 		return []*model.Emoji{}, nil
 	}
 
-	names := getEmojiNamesForPost(post, reactions)
+	names := getEmojiNamesForPost(post, reactions, a.Config().FeatureFlags.MmBlocksEnabled)
 	if len(names) == 0 {
 		return []*model.Emoji{}, nil
 	}

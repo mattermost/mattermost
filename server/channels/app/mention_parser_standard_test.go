@@ -110,7 +110,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, mapsToMentionKeywords(tc.Keywords, tc.Groups))
+			m := getExplicitMentions(post, mapsToMentionKeywords(tc.Keywords, tc.Groups), true)
 			assert.EqualValues(t, tc.Expected, m)
 		})
 	}

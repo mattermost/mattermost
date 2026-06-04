@@ -337,6 +337,9 @@ func (a *App) resolvePostActionSetupFromPost(
 	case model.PostActionIntegrationFormatMmBlock,
 		model.PostActionIntegrationFormatBlock,
 		model.PostActionIntegrationFormatCard:
+		if !a.Config().FeatureFlags.MmBlocksEnabled {
+			return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "mm_blocks are not enabled", http.StatusBadRequest)
+		}
 		mmSpec := post.GetMmBlocksActionSpec(actionID)
 		resolved, err := model.ResolveMmBlocksAction(mmSpec, actionID, clientQuery)
 		if appErr := mmBlocksResolveAppError(actionID, err); appErr != nil {

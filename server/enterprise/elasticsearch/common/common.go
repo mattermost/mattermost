@@ -95,7 +95,7 @@ type ESUser struct {
 	ChannelsIds                []string `json:"channel_id"`
 }
 
-func ESPostFromPost(post *model.Post, teamId string, channelType string) (*ESPost, error) {
+func ESPostFromPost(post *model.Post, teamId string, channelType string, mmBlocksEnabled bool) (*ESPost, error) {
 	p := &model.PostForIndexing{
 		TeamId:      teamId,
 		ChannelType: channelType,
@@ -104,10 +104,10 @@ func ESPostFromPost(post *model.Post, teamId string, channelType string) (*ESPos
 	if err != nil {
 		return nil, err
 	}
-	return ESPostFromPostForIndexing(p), nil
+	return ESPostFromPostForIndexing(p, mmBlocksEnabled), nil
 }
 
-func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
+func ESPostFromPostForIndexing(post *model.PostForIndexing, mmBlocksEnabled bool) *ESPost {
 	searchPost := ESPost{
 		Id:          post.Id,
 		TeamId:      post.TeamId,
@@ -123,12 +123,12 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 	// Message stays in its own field; everything else searchable (attachments, mm_blocks, Block Kit blocks,
 	// Adaptive cards) comes from model.Post.AllStrings (attachment Fallback is omitted), omitting the leading message segment when it is
 	// the same bytes as post.Message so it is not duplicated in the ES "attachments" text field.
-	allStrings := post.AllStrings()
-	parts := allStrings
-	if len(parts) > 0 && strings.TrimSpace(post.Message) != "" && parts[0] == post.Message {
-		parts = parts[1:]
+	allStrings := post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled})
+	allStringsButMessage := allStrings
+	if len(allStringsButMessage) > 0 && strings.TrimSpace(post.Message) != "" && allStringsButMessage[0] == post.Message {
+		allStringsButMessage = allStringsButMessage[1:]
 	}
-	searchPost.Attachments = strings.Join(parts, " ")
+	searchPost.Attachments = strings.Join(allStringsButMessage, " ")
 
 	var urlAccum []string
 	for _, s := range allStrings {

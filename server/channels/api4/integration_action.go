@@ -64,6 +64,11 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
 			return
 		}
+		if !c.App.Config().FeatureFlags.MmBlocksEnabled && mmBlocksCookie != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("mm_blocks are not enabled"))
+			return
+		}
+
 		var channelID string
 		if legacyCookie != nil {
 			channelID = legacyCookie.ChannelId

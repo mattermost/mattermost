@@ -1688,6 +1688,61 @@ func TestGetImagesForPost(t *testing.T) {
 		out := th.App.getImagesForPost(th.Context, post, false)
 		assert.Empty(t, out)
 	})
+
+	t.Run("skips interactive prop images when mmBlocksEnabled is false", func(t *testing.T) {
+		th := Setup(t)
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			cfg.FeatureFlags.MmBlocksEnabled = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/attach.png":
+				file, err := testutils.ReadTestFile("test.png")
+				require.NoError(t, err)
+				w.Header().Set("Content-Type", "image/png")
+				_, err = w.Write(file)
+				require.NoError(t, err)
+			default:
+				t.Fatalf("unexpected HTTP request: %s", r.URL.String())
+			}
+		}))
+		defer server.Close()
+
+		attachURL := server.URL + "/attach.png"
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "image", "url": server.URL + "/mm.png"},
+				},
+				model.PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "image", "image_url": server.URL + "/bk.png"},
+				},
+				model.PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "Image", "url": server.URL + "/ac.png"},
+						},
+					},
+				},
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{ImageURL: attachURL},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(th.Context, post, false)
+		require.Len(t, images, 1)
+		require.Contains(t, images, attachURL)
+	})
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {
@@ -1863,10 +1918,43 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			emojis := getEmojiNamesForPost(testCase.Post, testCase.Reactions)
+			emojis := getEmojiNamesForPost(testCase.Post, testCase.Reactions, true)
 			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
 		})
 	}
+
+	t.Run("omits interactive block emojis when mmBlocksEnabled is false", func(t *testing.T) {
+		post := &model.Post{
+			Message: "body :smile:",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm :coffee:"},
+				},
+				model.PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "mrkdwn",
+							"text": "block kit :rocket:",
+						},
+					},
+				},
+				model.PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "TextBlock", "text": "card :tada:"},
+						},
+					},
+				},
+			},
+		}
+		reactions := []*model.Reaction{{EmojiName: "wave"}}
+
+		emojis := getEmojiNamesForPost(post, reactions, false)
+
+		assert.ElementsMatch(t, []string{"smile", "wave"}, emojis)
+	})
 }
 
 func TestGetCustomEmojisForPost(t *testing.T) {
@@ -1946,9 +2034,57 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		assert.Nil(t, err, "failed to get emojis for post")
 		assert.ElementsMatch(t, emojisForPost, []*model.Emoji{}, "should have received no emojis")
 	})
+
+	t.Run("includes interactive block emojis when mmBlocksEnabled is true", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		messageEmoji := emojis[0]
+		blockEmoji := th.CreateEmoji(t)
+
+		post := &model.Post{
+			Message: ":" + messageEmoji.Name + ":",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm :" + blockEmoji.Name + ":"},
+				},
+			},
+		}
+
+		emojisForPost, err := th.App.getCustomEmojisForPost(th.Context, post, nil)
+		require.Nil(t, err)
+		assert.ElementsMatch(t, []*model.Emoji{messageEmoji, blockEmoji}, emojisForPost)
+	})
+
+	t.Run("omits interactive block emojis when mmBlocksEnabled is false", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		messageEmoji := emojis[0]
+		blockEmoji := th.CreateEmoji(t)
+
+		post := &model.Post{
+			Message: ":" + messageEmoji.Name + ":",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm :" + blockEmoji.Name + ":"},
+				},
+			},
+		}
+
+		emojisForPost, err := th.App.getCustomEmojisForPost(th.Context, post, nil)
+		require.Nil(t, err)
+		assert.ElementsMatch(t, []*model.Emoji{messageEmoji}, emojisForPost)
+	})
 }
 
-func TestGetFirstLinkGetImages(t *testing.T) {
+func TestGetFirstLink(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -3593,6 +3729,31 @@ func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
 		require.Equal(t, channel2.DisplayName, channelData["display_name"])
 		require.Equal(t, team2.Name, channelData["team_name"])
 		require.NotEqual(t, channel1.DisplayName, channelData["display_name"]) // Should NOT be from team1
+	})
+
+	t.Run("omits channel mentions from interactive blocks when mmBlocksEnabled is false", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "plain text only",
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "see ~off-topic in blocks"},
+				},
+			},
+		}
+
+		appErr := th.App.FillInPostProps(th.Context, post, th.BasicChannel)
+		require.Nil(t, appErr)
+		assert.Nil(t, post.GetProp(model.PostPropsChannelMentions))
 	})
 
 	t.Run("uses channel team_id for regular channels, ignores current_team_id", func(t *testing.T) {

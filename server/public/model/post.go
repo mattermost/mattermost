@@ -728,13 +728,17 @@ func (o *Post) HasUnsafeLinks() bool {
 	return ok && s == "true"
 }
 
+type AllStringsOptions struct {
+	OmitInteractiveBlocks bool
+}
+
 // AllStrings returns human-readable text from the post: the post Message as stored when it is not
 // whitespace-only (same bytes as Message so markdown structure is preserved), then message attachment
 // author name, title, text, pretext, footer, each attachment field title, each attachment field
 // value (strings trimmed; non-strings rendered like fmt.Sprint for indexing), plus
 // strings from interactive blocks (mm_blocks, Block Kit blocks, Adaptive cards).
 // It is intended for mention checks, search indexing, and similar uses alongside integration metadata.
-func (o *Post) AllStrings() []string {
+func (o *Post) AllStrings(opts AllStringsOptions) []string {
 	var out []string
 	appendNonWhitespaceOnlyMessage(&out, o.Message)
 	for _, attachment := range o.Attachments() {
@@ -764,7 +768,9 @@ func (o *Post) AllStrings() []string {
 			}
 		}
 	}
-	appendHumanReadableInteractiveStrings(o, &out)
+	if !opts.OmitInteractiveBlocks {
+		appendHumanReadableInteractiveStrings(o, &out)
+	}
 	return out
 }
 
@@ -773,20 +779,22 @@ func (o *Post) AllStrings() []string {
 // Direct mm_blocks image URLs, Block Kit image blocks, and Adaptive Card Image elements are included.
 // Markdown ![alt](url) in interactive text is not included; merge with URLs from Post.AllStrings separately.
 // Link preview restrictions (e.g. RestrictLinkPreviews) are not applied here; callers enforce policy when fetching metadata.
-func (o *Post) InteractiveBlocksImageURLs() []string {
+func (o *Post) InteractiveBlocksImageURLs(mmBlocksEnabled bool) []string {
 	props := o.GetProps()
 	if props == nil {
 		return nil
 	}
 	var out []string
-	if raw, ok := props[PostPropsMmBlocks]; ok {
-		out = append(out, collectMmBlockImageURLs(raw)...)
-	}
-	if raw, ok := props[PostPropsBlockKitBlocks]; ok {
-		collectBlockKitImageURLs(raw, &out)
-	}
-	if raw, ok := props[PostPropsAdaptiveCards]; ok {
-		collectAdaptiveCardImageURLs(raw, &out)
+	if mmBlocksEnabled {
+		if raw, ok := props[PostPropsMmBlocks]; ok {
+			out = append(out, collectMmBlockImageURLs(raw)...)
+		}
+		if raw, ok := props[PostPropsBlockKitBlocks]; ok {
+			collectBlockKitImageURLs(raw, &out)
+		}
+		if raw, ok := props[PostPropsAdaptiveCards]; ok {
+			collectAdaptiveCardImageURLs(raw, &out)
+		}
 	}
 	collectAttachmentsImageURLs(o.Attachments(), &out)
 	return out
@@ -1034,11 +1042,18 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
+// Deprecated: Use ChannelMentionsAllWithOptions instead.
 // ChannelMentionsAll returns all ~channel mentions from the same human-readable strings as
+// model.Post.AllStrings (message, attachments, interactive blocks are omitted).
+func (o *Post) ChannelMentionsAll() []string {
+	return ChannelMentionsFromStrings(o.AllStrings(AllStringsOptions{OmitInteractiveBlocks: false}))
+}
+
+// ChannelMentionsAllWithOptions returns all ~channel mentions from the same human-readable strings as
 // model.Post.AllStrings (message, attachments, mm_blocks, blocks, cards). This is used by
 // FillInPostProps to populate channel_mentions for rendering.
-func (o *Post) ChannelMentionsAll() []string {
-	return ChannelMentionsFromStrings(o.AllStrings())
+func (o *Post) ChannelMentionsAllWithOptions(opts AllStringsOptions) []string {
+	return ChannelMentionsFromStrings(o.AllStrings(opts))
 }
 
 // DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.

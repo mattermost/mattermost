@@ -291,6 +291,43 @@ func TestDoPostActionCookieHandling(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("mm_blocks cookie rejected when feature flag is disabled", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		mmActionID := "mm_blocks_act"
+		post := &model.Post{
+			Id:        model.NewId(),
+			Type:      model.PostTypeEphemeral,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": mmActionID},
+				},
+				model.PostPropsMmBlocksActions: map[string]any{
+					mmActionID: map[string]any{
+						"type": model.MmBlocksActionTypeExternal,
+						"url":  server.URL,
+					},
+				},
+			},
+		}
+		model.AddMmBlocksActionCookies(post, secret)
+		cookie, ok := post.GetProp(model.PostPropsMmBlocksActions).(string)
+		require.True(t, ok)
+		require.NotEmpty(t, cookie)
+
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, mmActionID, "", cookie, nil, model.PostActionIntegrationFormatMmBlock)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("mm_blocks cookie allows action when user can read channel", func(t *testing.T) {
 		mmActionID := "mm_blocks_act"
 		post := &model.Post{

@@ -913,7 +913,7 @@ func TestSplitWebhookPost(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			splits, err := splitWebhookPost(tc.Post, maxPostSize)
+			splits, err := splitWebhookPost(tc.Post, maxPostSize, true)
 			if tc.ExpectSplitError {
 				require.NotNil(t, err)
 				return
@@ -931,6 +931,87 @@ func TestSplitWebhookPost(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("mm blocks disabled does not distribute deferred mm_blocks", func(t *testing.T) {
+		post := &model.Post{
+			Message: strings.Repeat("本", maxPostSize*3/2),
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "block-a"},
+					map[string]any{"type": "text", "text": "block-b"},
+				},
+			},
+		}
+
+		splits, err := splitWebhookPost(post, maxPostSize, false)
+		require.Nil(t, err)
+		require.Len(t, splits, 2)
+		for _, split := range splits {
+			assert.Nil(t, split.GetProp(model.PostPropsMmBlocks))
+		}
+	})
+}
+
+func TestCreateWebhookPostFeatureFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		cfg.FeatureFlags.MmBlocksEnabled = false
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+	require.False(t, th.App.Config().FeatureFlags.MmBlocksEnabled)
+
+	t.Run("mm blocks disabled", func(t *testing.T) {
+		hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, hookErr)
+		defer func() { _ = th.App.DeleteIncomingWebhook(hook.Id) }()
+
+		t.Run("skips interactive validation for orphan mm_blocks_actions", func(t *testing.T) {
+			post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "hello", "user", "http://iconurl", "",
+				model.StringInterface{
+					model.PostPropsMmBlocksActions: map[string]any{
+						"act": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+				"", "", nil)
+			require.Nil(t, appErr)
+			require.NotNil(t, post)
+		})
+
+		t.Run("does not distribute mm_blocks on message split", func(t *testing.T) {
+			marker := "mm-blocks-off-" + model.NewId()
+			longMessage := marker + strings.Repeat("x", th.App.MaxPostSize()+100)
+
+			_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, longMessage, "user", "http://iconurl", "",
+				model.StringInterface{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "text", "text": "interactive body"},
+						map[string]any{"type": "button", "text": "Go", "action_id": "actx"},
+					},
+					model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
+						"actx",
+						"http://127.0.0.1/plugins/myplugin/x",
+						nil,
+					),
+				},
+				"", "", nil)
+			require.Nil(t, appErr)
+
+			list, listErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 20)
+			require.Nil(t, listErr)
+			for _, p := range list.Posts {
+				if strings.Contains(p.Message, marker) || p.Message == "" {
+					assert.Nil(t, p.GetProp(model.PostPropsMmBlocks), "mm_blocks must not be placed when feature flag is off")
+				}
+			}
+		})
+	})
 }
 
 func makePost(message int, attachments []int) *model.Post {
@@ -996,7 +1077,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			splits, err := splitWebhookPost(tc.post, maxPostSize)
+			splits, err := splitWebhookPost(tc.post, maxPostSize, true)
 			if tc.expected == nil {
 				require.NotNil(t, err)
 			} else {

@@ -34,9 +34,6 @@ func ChannelMentionsFromStrings(strs []string) []string {
 		}
 	}
 
-	if len(names) == 0 {
-		return nil
-	}
 	return names
 }
 
