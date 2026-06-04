@@ -4,7 +4,9 @@
 import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
+import type {MockStoreEnhanced} from 'redux-mock-store';
 
+import {ContentFlaggingTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext} from 'tests/react_testing_utils';
@@ -267,6 +269,82 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             });
             expect(Client4.removeFlaggedPost).not.toHaveBeenCalled();
             expect(onExited).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('store cleanup after remove', () => {
+        test('dispatches FLAGGED_POST_REMOVED after a successful removeFlaggedPost call', async () => {
+            const {store} = renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+                {},
+                {useMockedStore: true},
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+
+            await waitFor(() => {
+                expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+
+            await waitFor(() => {
+                expect((store as unknown as MockStoreEnhanced).getActions()).toContainEqual({
+                    type: ContentFlaggingTypes.FLAGGED_POST_REMOVED,
+                    data: {postId: flaggedPost.id},
+                });
+            });
+        });
+
+        test('does not dispatch FLAGGED_POST_REMOVED when removeFlaggedPost fails', async () => {
+            Client4.removeFlaggedPost = jest.fn().mockRejectedValue({message: 'boom'});
+
+            const {store} = renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+                {},
+                {useMockedStore: true},
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+
+            await waitFor(() => {
+                expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+
+            expect((store as unknown as MockStoreEnhanced).getActions()).not.toContainEqual(
+                expect.objectContaining({type: ContentFlaggingTypes.FLAGGED_POST_REMOVED}),
+            );
+        });
+
+        test('does not dispatch FLAGGED_POST_REMOVED for keep action', async () => {
+            const {store} = renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='keep'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+                {},
+                {useMockedStore: true},
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Keep message'}));
+
+            await waitFor(() => {
+                expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+
+            expect((store as unknown as MockStoreEnhanced).getActions()).not.toContainEqual(
+                expect.objectContaining({type: ContentFlaggingTypes.FLAGGED_POST_REMOVED}),
+            );
         });
     });
 
