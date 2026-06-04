@@ -247,6 +247,13 @@ func teamSliceColumns(isSelect bool, prefix ...string) []string {
 	return columns
 }
 
+// teamPolicyEnforcedExpr matches teams governed by an access control policy,
+// mirroring the PolicyEnforced column's EXISTS subquery. tableName is the Teams
+// table name or alias used by the surrounding query.
+func teamPolicyEnforcedExpr(tableName string) sq.Sqlizer {
+	return sq.Expr(fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team')", tableName))
+}
+
 func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		SqlStore: sqlStore,
@@ -546,6 +553,18 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 		teamFilters = sq.And{teamFilters, teamTypeFilter}
 	}
 
+	if opts.IncludePolicyEnforced != nil && *opts.IncludePolicyEnforced {
+		// Widen the (public or private) listing to also surface governed teams so
+		// the directory filter can evaluate them; ungoverned teams the caller
+		// couldn't otherwise list stay excluded.
+		governed := teamPolicyEnforcedExpr("t")
+		if teamFilters == nil {
+			teamFilters = governed
+		} else {
+			teamFilters = sq.Or{teamFilters, governed}
+		}
+	}
+
 	query = query.Where(teamFilters)
 
 	return query
@@ -654,7 +673,16 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 			builder = builder.Where("RetentionPoliciesTeams.TeamId IS NULL")
 		}
 		if opts.AllowOpenInvite != nil {
-			builder = builder.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+			if opts.IncludePolicyEnforced != nil && *opts.IncludePolicyEnforced {
+				// Widen the listing to also surface governed teams so the directory
+				// filter can evaluate them; ungoverned private teams stay excluded.
+				builder = builder.Where(sq.Or{
+					sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite},
+					teamPolicyEnforcedExpr("Teams"),
+				})
+			} else {
+				builder = builder.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+			}
 		}
 	}
 
@@ -730,7 +758,15 @@ func (s SqlTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) 
 		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 	if opts != nil && opts.AllowOpenInvite != nil {
-		query = query.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+		// Mirror GetAllPage's widening so the reported total matches the listing.
+		if opts.IncludePolicyEnforced != nil && *opts.IncludePolicyEnforced {
+			query = query.Where(sq.Or{
+				sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite},
+				teamPolicyEnforcedExpr("Teams"),
+			})
+		} else {
+			query = query.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+		}
 	}
 
 	queryString, args, err := query.ToSql()

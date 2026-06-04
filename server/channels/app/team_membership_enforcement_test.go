@@ -209,6 +209,21 @@ func TestJoinUserToTeamAccessControlEnforcement(t *testing.T) {
 		require.Nil(t, appErr)
 		acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
+
+	t.Run("public governed team admits any user without consulting the PDP (advisory mode)", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		team.AllowOpenInvite = true // public → advisory: the policy must not gate join
+		team, appErr := th.App.UpdateTeam(team)
+		require.Nil(t, appErr)
+		saveTestTeamPolicy(t, th, team.Id, model.AccessControlPolicyActionMembership)
+		user := th.CreateUser(t)
+		acs := setMockACS(t, th)
+		// AccessEvaluation intentionally not stubbed: advisory mode must never call it.
+
+		_, _, appErr = th.App.AddUserToTeam(th.Context, team.Id, user.Id, "")
+		require.Nil(t, appErr)
+		acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 }
 
 func TestFilterNonQualifyingTeamsForUser(t *testing.T) {
@@ -298,6 +313,28 @@ func TestFilterNonQualifyingTeamsForUser(t *testing.T) {
 		require.Nil(t, appErr, "a PDP error must not fail the whole listing")
 		require.Equal(t, 1, dropped)
 		require.Empty(t, out)
+	})
+
+	t.Run("public governed team stays visible to a non-qualifying non-member (advisory mode)", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		team.AllowOpenInvite = true // public → advisory: the team is never hidden
+		updated, appErr := th.App.UpdateTeam(team)
+		require.Nil(t, appErr)
+		saveTestTeamPolicy(t, th, updated.Id, model.AccessControlPolicyActionMembership)
+		reloaded, err := th.App.Srv().Store().Team().Get(updated.Id)
+		require.NoError(t, err)
+		require.True(t, reloaded.PolicyEnforced)
+		require.True(t, reloaded.AllowOpenInvite)
+
+		user := th.CreateUser(t)
+		acs := setMockACS(t, th)
+		// Decision intentionally not stubbed: a public team is never evaluated for hiding.
+
+		out, dropped, appErr := th.App.FilterNonQualifyingTeamsForUser(th.Context, []*model.Team{reloaded}, user.Id)
+		require.Nil(t, appErr)
+		require.Zero(t, dropped)
+		require.Len(t, out, 1)
+		acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
 	t.Run("decisions are memoised per request (one eval for a repeated governed team)", func(t *testing.T) {

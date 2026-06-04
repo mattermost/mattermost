@@ -785,40 +785,46 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	preSaveHook := func(tm *model.TeamMember) (*model.TeamMember, error) {
-		// ABAC membership enforcement runs before the plugin hook so a denied join
-		// never reaches plugin code, and fails closed on every error path.
-		if ok, appErr := a.TeamAccessControlled(rctx, team.Id); appErr != nil {
-			return nil, appErr
-		} else if ok {
-			acs := a.Srv().Channels().AccessControl
-			if acs == nil {
-				// The team is policy-governed but the PDP is unavailable. Fail
-				// closed with the generic denial rather than admit an unevaluated
-				// join — never a silent allow.
-				return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
-			}
+		// ABAC membership enforcement is mode-dependent: on a public team the policy
+		// is advisory and join always proceeds without consulting the PDP. Only
+		// non-public teams gate strictly. The public test mirrors isPublicTeam in
+		// the API layer, so any half-configured team falls through to strict.
+		if !(team.AllowOpenInvite && team.Type == model.TeamOpen) {
+			// Strict mode. ABAC enforcement runs before the plugin hook so a denied
+			// join never reaches plugin code, and fails closed on every error path.
+			if ok, appErr := a.TeamAccessControlled(rctx, team.Id); appErr != nil {
+				return nil, appErr
+			} else if ok {
+				acs := a.Srv().Channels().AccessControl
+				if acs == nil {
+					// The team is policy-governed but the PDP is unavailable. Fail
+					// closed with the generic denial rather than admit an unevaluated
+					// join — never a silent allow.
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+				}
 
-			// BuildAccessControlSubject is channel-coupled: its last arg resolves a
-			// channel-scoped role. Team membership evaluates identity attributes only,
-			// so pass an empty channelID and attach no scoped role.
-			s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, "")
-			if buildErr != nil {
-				return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.abac_subject_build_failed.app_error", nil,
-					fmt.Sprintf("failed to build subject: %v, user_id: %s, team_id: %s", buildErr, user.Id, team.Id), http.StatusInternalServerError)
-			}
+				// BuildAccessControlSubject is channel-coupled: its last arg resolves a
+				// channel-scoped role. Team membership evaluates identity attributes only,
+				// so pass an empty channelID and attach no scoped role.
+				s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, "")
+				if buildErr != nil {
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.abac_subject_build_failed.app_error", nil,
+						fmt.Sprintf("failed to build subject: %v, user_id: %s, team_id: %s", buildErr, user.Id, team.Id), http.StatusInternalServerError)
+				}
 
-			decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-				Subject: *s,
-				Resource: model.Resource{
-					Type: model.AccessControlPolicyTypeTeam,
-					ID:   team.Id,
-				},
-				Action: model.AccessControlPolicyActionMembership,
-			})
-			if evalErr != nil {
-				return nil, evalErr
-			} else if !decision.Decision {
-				return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+					Subject: *s,
+					Resource: model.Resource{
+						Type: model.AccessControlPolicyTypeTeam,
+						ID:   team.Id,
+					},
+					Action: model.AccessControlPolicyActionMembership,
+				})
+				if evalErr != nil {
+					return nil, evalErr
+				} else if !decision.Decision {
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+				}
 			}
 		}
 
@@ -950,6 +956,21 @@ func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// TeamMembershipAccessControlEnabled reports whether attribute-based team
+// membership is fully switched on: the TeamMembershipAccessControl feature flag,
+// an Enterprise Advanced license, and the ABAC config setting. It gates every
+// team membership ABAC surface — the join gate, directory hiding, and the
+// governed-team listing — so they activate together and stay dark otherwise.
+func (a *App) TeamMembershipAccessControlEnabled() bool {
+	if !a.Config().FeatureFlags.TeamMembershipAccessControl {
+		return false
+	}
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return false
+	}
+	return true
+}
+
 // TeamAccessControlled reports whether the team enforces an ABAC membership
 // policy. Mirrors ChannelAccessControlled, with one addition: it also gates on
 // the TeamMembershipAccessControl feature flag so team enforcement can ship
@@ -958,11 +979,7 @@ func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
 // no team join is ever ABAC-evaluated. A hydration error returns (false, err)
 // — fail-closed, never a silent (false, nil).
 func (a *App) TeamAccessControlled(rctx request.CTX, teamID string) (bool, *model.AppError) {
-	if !a.Config().FeatureFlags.TeamMembershipAccessControl {
-		return false, nil
-	}
-
-	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+	if !a.TeamMembershipAccessControlEnabled() {
 		return false, nil
 	}
 

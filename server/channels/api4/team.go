@@ -1378,6 +1378,12 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.AllowOpenInvite = new(false)
 	} else if listPublic {
 		opts.AllowOpenInvite = new(true)
+		if c.App.TeamMembershipAccessControlEnabled() {
+			// Governed teams the user might qualify for must enter the candidate
+			// list so the directory filter below can evaluate them; ungoverned
+			// private teams stay excluded by the open-invite filter.
+			opts.IncludePolicyEnforced = new(true)
+		}
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
 		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
@@ -1475,6 +1481,12 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		if props.Page != nil || props.PerPage != nil {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
 			return
+		}
+		if c.App.TeamMembershipAccessControlEnabled() {
+			// Surface governed teams alongside public ones so the directory filter
+			// below can show the ones this user qualifies for; ungoverned private
+			// teams stay excluded.
+			props.IncludePolicyEnforced = new(true)
 		}
 		teams, appErr = c.App.SearchPublicTeams(&props)
 	} else {

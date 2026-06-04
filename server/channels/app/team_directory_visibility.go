@@ -88,7 +88,9 @@ func (a *App) evaluateTeamMembership(rctx request.CTX, user *model.User, team *m
 // userID is neither a member of nor qualifies to join — the directory
 // non-disclosure invariant. Teams without an active policy are returned untouched,
 // and existing members always retain visibility regardless of the policy decision.
-// AllowOpenInvite is never read or mutated.
+// Hiding applies only to non-public teams: on a public team the policy is advisory,
+// so the team stays visible to everyone. Type and AllowOpenInvite are read to decide
+// public vs. non-public, but never mutated.
 //
 // Failure modes are fail-secure: a missing AccessControl service, a subject-build
 // failure, or any PDP error drops the offending team so a non-qualifying user can
@@ -100,10 +102,7 @@ func (a *App) FilterNonQualifyingTeamsForUser(rctx request.CTX, teams []*model.T
 		return teams, 0, nil
 	}
 
-	if !a.Config().FeatureFlags.TeamMembershipAccessControl {
-		return teams, 0, nil
-	}
-	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+	if !a.TeamMembershipAccessControlEnabled() {
 		return teams, 0, nil
 	}
 
@@ -127,6 +126,14 @@ func (a *App) FilterNonQualifyingTeamsForUser(rctx request.CTX, teams []*model.T
 		}
 
 		if !team.PolicyEnforced {
+			filtered = append(filtered, team)
+			continue
+		}
+
+		// Public teams enforce the policy in advisory mode: it never hides the team.
+		// Mirrors isPublicTeam in the API layer; any half-configured team falls
+		// through to strict hiding.
+		if team.AllowOpenInvite && team.Type == model.TeamOpen {
 			filtered = append(filtered, team)
 			continue
 		}
