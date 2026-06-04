@@ -2156,7 +2156,7 @@
                     display_name:
                       type: string
         "501":
-          description: Session attributes are not available (feature flag disabled or license requirement not met)
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/audits":
     get:
       tags:

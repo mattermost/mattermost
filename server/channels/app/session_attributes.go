@@ -160,8 +160,9 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 
 	if *a.Config().AccessControlSettings.EnforceDeviceIDConsistency {
 		cached, _, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
-		if err != nil {
-			cached = nil
+		if err != nil && !errors.Is(err, cache.ErrKeyNotFound) {
+			rctx.Logger().Warn("Failed to load cached session attributes for device ID consistency check", mlog.Err(err))
+			return
 		}
 
 		for name := range model.SessionAttributesDeviceIDFieldNames {
