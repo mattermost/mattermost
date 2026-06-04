@@ -5,7 +5,12 @@ import {render} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
-import {
+import type {UserProfile} from '@mattermost/types/users';
+
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import UserAccessTokenSection, {
     deriveTokenStatus,
     endOfLocalDayFromIsoDate,
     endOfLocalDayPlusDays,
@@ -112,6 +117,167 @@ describe('user_access_token_section helpers', () => {
     describe('PRESET_DAYS', () => {
         test('exposes the preset durations used by the UI', () => {
             expect(PRESET_DAYS).toEqual({'7d': 7, '30d': 30, '90d': 90, '1y': 365});
+        });
+    });
+});
+
+describe('UserAccessTokenSection component', () => {
+    // Same frozen "now" as the helper tests so date arithmetic
+    // (Date.now, custom-date comparisons) is deterministic.
+    const FROZEN_NOW = new Date(2026, 5, 15, 12, 0, 0).getTime();
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    beforeAll(() => {
+        jest.useFakeTimers().setSystemTime(FROZEN_NOW);
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
+    type SectionProps = React.ComponentProps<typeof UserAccessTokenSection>;
+
+    const getBaseProps = (overrides: Partial<SectionProps> = {}): SectionProps => ({
+        user: TestHelper.getUserMock({id: 'user_id', roles: ''}) as UserProfile,
+        active: true,
+        areAllSectionsInactive: false,
+        updateSection: jest.fn(),
+        userAccessTokens: {},
+        enforceExpiry: false,
+        maxLifetimeDays: 0,
+        setRequireConfirm: jest.fn(),
+        actions: {
+            getUserAccessTokensForUser: jest.fn(),
+            createUserAccessToken: jest.fn().mockResolvedValue({data: {}}),
+            revokeUserAccessToken: jest.fn().mockResolvedValue({}),
+            enableUserAccessToken: jest.fn().mockResolvedValue({}),
+            disableUserAccessToken: jest.fn().mockResolvedValue({}),
+            clearUserAccessTokens: jest.fn(),
+        },
+        ...overrides,
+    });
+
+    const renderSection = (overrides: Partial<SectionProps> = {}) => {
+        const props = getBaseProps(overrides);
+        const {container} = renderWithContext(<UserAccessTokenSection {...props}/>);
+        return {props, container};
+    };
+
+    const startCreating = () => {
+        fireEvent.click(screen.getByText('Create Token'));
+    };
+
+    const change = (container: HTMLElement, selector: string, value: string) => {
+        fireEvent.change(container.querySelector(selector)!, {target: {value}});
+    };
+
+    const clickSave = () => {
+        fireEvent.click(screen.getByText('Save'));
+    };
+
+    describe('create form validation branches', () => {
+        test('requires a description', () => {
+            renderSection();
+            startCreating();
+            clickSave();
+            expect(screen.getByText('Please enter a description.')).toBeInTheDocument();
+        });
+
+        test('requires a date when the custom preset is chosen but left empty', () => {
+            const {container} = renderSection();
+            startCreating();
+            change(container, '#newTokenDescription', 'my token');
+            change(container, '#newTokenExpiry', 'custom');
+            change(container, '#newTokenExpiryCustom', '');
+            clickSave();
+            expect(screen.getByText('An expiry date is required.')).toBeInTheDocument();
+        });
+
+        test('rejects a custom date in the past', () => {
+            const {container} = renderSection();
+            startCreating();
+            change(container, '#newTokenDescription', 'my token');
+            change(container, '#newTokenExpiry', 'custom');
+            change(container, '#newTokenExpiryCustom', '2020-01-01');
+            clickSave();
+            expect(screen.getByText('Expiry must be in the future.')).toBeInTheDocument();
+        });
+
+        test('rejects a custom date beyond maxLifetimeDays', () => {
+            const {container} = renderSection({maxLifetimeDays: 30});
+            startCreating();
+            change(container, '#newTokenDescription', 'my token');
+            change(container, '#newTokenExpiry', 'custom');
+            change(container, '#newTokenExpiryCustom', '2027-01-01');
+            clickSave();
+            expect(screen.getByText('Expiry can be at most 30 days from now.')).toBeInTheDocument();
+        });
+
+        test('does not submit when validation fails', () => {
+            const {props} = renderSection();
+            startCreating();
+            clickSave();
+            expect(props.actions.createUserAccessToken).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('enforceExpiry rendering', () => {
+        test('hides the "No expiry" option and shows the enforced hint when enforced', () => {
+            renderSection({enforceExpiry: true});
+            startCreating();
+            expect(screen.queryByText('No expiry')).not.toBeInTheDocument();
+            expect(screen.getByText('Your administrator requires all personal access tokens to have an expiry date.')).toBeInTheDocument();
+        });
+
+        test('offers the "No expiry" option when not enforced', () => {
+            renderSection({enforceExpiry: false});
+            startCreating();
+            expect(screen.getByText('No expiry')).toBeInTheDocument();
+        });
+    });
+
+    describe('maxLifetimeDays preset filtering', () => {
+        test('hides presets longer than the configured maximum and shows the hint', () => {
+            renderSection({maxLifetimeDays: 30});
+            startCreating();
+            expect(screen.getByText('7 days')).toBeInTheDocument();
+            expect(screen.getByText('30 days')).toBeInTheDocument();
+            expect(screen.queryByText('90 days')).not.toBeInTheDocument();
+            expect(screen.queryByText('1 year')).not.toBeInTheDocument();
+            expect(screen.getByText('Tokens can be valid for up to 30 days.')).toBeInTheDocument();
+        });
+
+        test('shows all presets when no maximum is configured', () => {
+            renderSection({maxLifetimeDays: 0});
+            startCreating();
+            expect(screen.getByText('7 days')).toBeInTheDocument();
+            expect(screen.getByText('30 days')).toBeInTheDocument();
+            expect(screen.getByText('90 days')).toBeInTheDocument();
+            expect(screen.getByText('1 year')).toBeInTheDocument();
+        });
+    });
+
+    describe('token list status display', () => {
+        test('shows an Active badge and "Never" for an active token without expiry', () => {
+            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: true}}});
+            expect(screen.getByText('Active')).toBeInTheDocument();
+            expect(screen.getByText(/Never/)).toBeInTheDocument();
+        });
+
+        test('shows an Expired badge for an active token whose expiry has passed', () => {
+            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: true, expires_at: FROZEN_NOW - DAY_MS}}});
+            expect(screen.getByText('Expired')).toBeInTheDocument();
+        });
+
+        test('shows a Disabled badge for an inactive token', () => {
+            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: false, expires_at: FROZEN_NOW + DAY_MS}}});
+            expect(screen.getByText('Disabled')).toBeInTheDocument();
+        });
+
+        test('shows an "expires soon" warning for a token within 7 days of expiry', () => {
+            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: true, expires_at: FROZEN_NOW + (3 * DAY_MS)}}});
+            expect(screen.getByText('Active')).toBeInTheDocument();
+            expect(screen.getByText('Expires in 3 days')).toBeInTheDocument();
         });
     });
 });
