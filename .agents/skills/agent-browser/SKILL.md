@@ -6,6 +6,24 @@ allowed-tools: Bash(npx agent-browser:*), Bash(agent-browser:*)
 
 # Browser Automation with agent-browser
 
+## Preferred Cursor Cloud Flow: computerUse Walkthroughs
+
+When the `computerUse` subagent is available, use it as the primary way to reproduce and verify browser-based bugs in Cursor Cloud. It operates against the real GUI browser and is better suited for walkthrough evidence than the older agent-browser CLI/S3 flow.
+
+Recommended workflow:
+
+1. Start the app or test environment normally.
+2. Navigate to the target page with `computerUse` and confirm the setup is ready.
+3. Start a screen recording with `RecordScreen` immediately before the reproduction or verification steps.
+4. Ask `computerUse` to perform the exact user steps and report visible results, console/network observations when relevant, and screenshot paths.
+5. Save the recording only when the walkthrough succeeds; discard failed recordings and retry after debugging.
+6. Review saved videos with the `videoReview` subagent before referencing them.
+7. Use `/opt/cursor/artifacts` for final walkthrough artifacts. Copy only the minimal screenshots or recordings that prove the behavior.
+
+Treat `/browserrepro` as a request to produce an authentic browser reproduction. Prefer `computerUse` plus `RecordScreen` for that reproduction when available; use agent-browser only as a fallback when computerUse is unavailable or when a CLI-only browser task is specifically needed.
+
+Treat `/s3artifacts` as legacy artifact-publishing guidance. Prefer Cursor walkthrough artifacts for user-facing evidence. Upload to S3 only when the workflow explicitly requires public URLs in a PR description, and only upload screenshots or screen captures.
+
 ## Core Workflow
 
 Every browser automation follows this pattern:
