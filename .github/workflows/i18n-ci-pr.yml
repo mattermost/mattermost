@@ -17,4 +17,3 @@ concurrency:
 jobs:
   pr-ci:
     uses: ./.github/workflows/i18n-ci-template.yml
-    secrets: inherit

@@ -41,7 +41,6 @@ jobs:
     name: Postgres with binary parameters
     needs: go
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: Postgres with binary parameters
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
@@ -58,7 +57,9 @@ jobs:
     name: Postgres FIPS
     needs: go
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       name: Postgres FIPS
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -73,7 +74,10 @@ jobs:
     name: Run mmctl tests (FIPS)
     needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10

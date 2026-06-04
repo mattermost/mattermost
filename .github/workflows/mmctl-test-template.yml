@@ -21,6 +21,15 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      # Only if fips-enabled is true
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+      # Only master / release and there is report
+      MM_E2E_ZEPHYR_API_KEY:
+        required: false
 
 jobs:
   test:

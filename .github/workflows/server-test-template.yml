@@ -64,6 +64,15 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      # Only if enablecoverage is true
+      CODECOV_TOKEN:
+        required: false
+      # Only if fips-enabled is true
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
 
 permissions:
   contents: read
