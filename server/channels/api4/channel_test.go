@@ -873,9 +873,9 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("Should block setting group_constrained on group and direct messages", func(t *testing.T) {
-		user1 := th.CreateUser(t)
-		user2 := th.CreateUser(t)
-		user3 := th.CreateUser(t)
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
 
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
