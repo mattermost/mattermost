@@ -21,6 +21,10 @@ on:
         required: false
         default: false
         type: boolean
+      build-image:
+        description: "The build image to use (e.g. mattermost-build-server-dev for in-flight Go bumps)"
+        required: true
+        type: string
 
 jobs:
   test:
@@ -43,12 +47,13 @@ jobs:
           persist-credentials: false
       - name: Setup BUILD_IMAGE
         id: build
+        env:
+          BUILD_IMAGE: ${{ inputs.build-image }}
         run: |
+          echo "BUILD_IMAGE=${BUILD_IMAGE}" >> "${GITHUB_OUTPUT}"
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
           fi
 
