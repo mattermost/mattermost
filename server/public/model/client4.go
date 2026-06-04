@@ -385,6 +385,10 @@ func (c *Client4) testS3Route() clientRoute {
 	return newClientRoute("file").Join("s3_test")
 }
 
+func (c *Client4) testFileStoreRoute() clientRoute {
+	return newClientRoute("file").Join("test")
+}
+
 func (c *Client4) databaseRoute() clientRoute {
 	return newClientRoute("database")
 }
@@ -4407,8 +4411,24 @@ func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, e
 }
 
 // TestS3Connection will attempt to connect to the AWS S3.
+//
+// Deprecated: use TestFileStoreConnection instead. The underlying endpoint
+// is kept for backwards compatibility but now routes through the same
+// backend-agnostic handler as TestFileStoreConnection.
 func (c *Client4) TestS3Connection(ctx context.Context, config *Config) (*Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.testS3Route(), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// TestFileStoreConnection attempts to connect to the configured file storage
+// backend (Amazon S3, Azure Blob Storage, or local), based on the FileSettings
+// in the supplied config.
+func (c *Client4) TestFileStoreConnection(ctx context.Context, config *Config) (*Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.testFileStoreRoute(), config)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -4559,6 +4579,33 @@ func (c *Client4) UploadLicenseFile(ctx context.Context, data []byte) (*Response
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// PreviewLicenseFile will validate and parse a license file without saving it.
+// This allows users to preview the license details before applying it.
+func (c *Client4) PreviewLicenseFile(ctx context.Context, data []byte) (*License, *Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("license", "test-license.mattermost-license")
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create form file for license preview: %w", err)
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, nil, fmt.Errorf("failed to copy license data to form file: %w", err)
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, nil, fmt.Errorf("failed to close multipart writer for license preview: %w", err)
+	}
+
+	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.licenseRoute().Join("preview"), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*License](r)
 }
 
 // RemoveLicenseFile will remove the server license it exists. Note that this will

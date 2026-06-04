@@ -69,12 +69,21 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		var cookiePostId string
 		var channelID string
 		if legacyCookie != nil {
+			cookiePostId = legacyCookie.PostId
 			channelID = legacyCookie.ChannelId
 		} else if mmBlocksCookie != nil {
+			cookiePostId = mmBlocksCookie.PostId
 			channelID = mmBlocksCookie.ChannelId
 		}
+
+		if cookiePostId != c.Params.PostId {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+
 		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
 		if appErr != nil {
 			c.Err = appErr

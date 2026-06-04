@@ -160,6 +160,26 @@ func (_m *Store) ChannelBookmark() store.ChannelBookmarkStore {
 	return r0
 }
 
+// ChannelGuard provides a mock function with no fields
+func (_m *Store) ChannelGuard() store.ChannelGuardStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelGuard")
+	}
+
+	var r0 store.ChannelGuardStore
+	if rf, ok := ret.Get(0).(func() store.ChannelGuardStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ChannelGuardStore)
+		}
+	}
+
+	return r0
+}
+
 // ChannelJoinRequest provides a mock function with no fields
 func (_m *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	ret := _m.Called()
@@ -1209,6 +1229,26 @@ func (_m *Store) Session() store.SessionStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.SessionStore)
+		}
+	}
+
+	return r0
+}
+
+// SessionAttribute provides a mock function with no fields
+func (_m *Store) SessionAttribute() store.SessionAttributeStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionAttribute")
+	}
+
+	var r0 store.SessionAttributeStore
+	if rf, ok := ret.Get(0).(func() store.SessionAttributeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SessionAttributeStore)
 		}
 	}
 

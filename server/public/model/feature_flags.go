@@ -140,6 +140,9 @@ type FeatureFlags struct {
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
 
+	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
+	SessionAttributes bool
+
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
 	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
 	// non-members find a private channel in Browse Channels and request to join it.
@@ -191,7 +194,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.AutoTranslation = true
 
-	f.ClassificationMarkings = false
+	f.ClassificationMarkings = true
 
 	f.BurnOnRead = true
 
@@ -207,6 +210,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AggregatePluginMetrics = false
 
 	f.ManagedChannelCategories = false
+
+	f.SessionAttributes = false
 
 	f.DiscoverableChannels = false
 

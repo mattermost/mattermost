@@ -1243,11 +1243,23 @@ func TestPatchTeam(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, r)
 
+		// Wait for auto-add to place the group member on the team before toggling group constraint.
+		require.Eventually(t, func() bool {
+			tm, resp, getErr := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+			return getErr == nil && resp.StatusCode == http.StatusOK && tm.UserId == groupUser.Id && tm.DeleteAt == 0
+		}, 5*time.Second, 100*time.Millisecond, "timed out waiting for group user to be added to the team")
+
 		patch := &model.TeamPatch{}
 		patch.GroupConstrained = new(true)
 		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
+
+		// PatchTeam kicks off async membership cleanup in a goroutine; wait for it to settle.
+		require.Eventually(t, func() bool {
+			tm, resp, getErr := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+			return getErr == nil && resp.StatusCode == http.StatusOK && tm.UserId == groupUser.Id && tm.DeleteAt == 0
+		}, 10*time.Second, 100*time.Millisecond, "timed out waiting for group-constrained membership cleanup to finish")
 
 		patch.GroupConstrained = new(false)
 		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)

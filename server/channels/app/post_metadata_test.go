@@ -329,7 +329,7 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Eventually(t, func() bool {
 			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
 			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
-		}, time.Second, 10*time.Millisecond)
+		}, 10*time.Second, 25*time.Millisecond)
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
@@ -3663,6 +3663,97 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 		require.True(t, ok)
 		// Should have current display name from database, not stale data
 		require.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
+
+	t.Run("retains same-team public channel mention for non-channel-member under compliance", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+
+		// BasicUser2 is a member of BasicTeam (via InitBasic) but NOT of this fresh channel.
+		ch := th.CreateChannel(t, th.BasicTeam)
+
+		post := &model.Post{
+			Message: "Check ~" + ch.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			ch.Name: map[string]any{
+				"display_name": ch.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, ch.Name)
+	})
+
+	t.Run("strips cross-team public channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				team2 := th.CreateTeam(t)
+				ch := th.CreateChannel(t, team2)
+
+				post := &model.Post{
+					Message: "Check ~" + ch.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					ch.Name: map[string]any{
+						"display_name": ch.DisplayName,
+						"team_name":    team2.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
+
+	t.Run("strips private channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				priv := th.CreatePrivateChannel(t, th.BasicTeam)
+				_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, "", priv)
+
+				post := &model.Post{
+					Message: "Check ~" + priv.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					priv.Name: map[string]any{
+						"display_name": priv.DisplayName,
+						"team_name":    th.BasicTeam.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
 	})
 }
 

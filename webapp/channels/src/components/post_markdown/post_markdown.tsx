@@ -114,8 +114,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             );
         }
 
-        // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.
-        const proxyImages = !this.props.post || !this.props.post.message_source || this.props.post.message === this.props.post.message_source;
         const channelNamesMap = isChannelNamesMap(this.props.post?.props?.channel_mentions) ? this.props.post?.props?.channel_mentions : undefined;
 
         this.props.pluginHooks?.forEach((o) => {
@@ -157,7 +155,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             <Markdown
                 imageProps={this.props.imageProps}
                 message={message}
-                proxyImages={proxyImages}
                 mentionKeys={this.props.mentionKeys}
                 highlightKeys={highlightKeys}
                 options={options}

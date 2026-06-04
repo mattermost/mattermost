@@ -62,6 +62,7 @@ type Store interface {
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
+	ChannelGuard() ChannelGuardStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -97,6 +98,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	SessionAttribute() SessionAttributeStore
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
@@ -843,10 +845,12 @@ type UserAccessTokenStore interface {
 	Save(token *model.UserAccessToken) (*model.UserAccessToken, error)
 	DeleteAllForUser(userID string) error
 	Delete(tokenID string) error
+	DeleteByIds(tokenIDs []string) (int64, error)
 	Get(tokenID string) (*model.UserAccessToken, error)
 	GetAll(offset int, limit int) ([]*model.UserAccessToken, error)
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
+	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
 	Search(term string) ([]*model.UserAccessToken, error)
 	UpdateTokenEnable(tokenID string) error
 	UpdateTokenDisable(tokenID string) error
@@ -1076,6 +1080,21 @@ type PostPriorityStore interface {
 	Delete(postID string) error
 }
 
+// ChannelGuard is a single claim row asserting that a plugin has registered as a guard for a given
+// channel. Plugins may co-claim a channel; one row per (ChannelId, PluginId) pair.
+type ChannelGuard struct {
+	ChannelId string
+	PluginId  string
+	CreatedAt int64
+}
+
+type ChannelGuardStore interface {
+	Save(rctx request.CTX, guard *ChannelGuard) error
+	Delete(rctx request.CTX, channelID, pluginID string) (rowsAffected int64, err error)
+	GetForChannel(rctx request.CTX, channelID string) ([]*ChannelGuard, error)
+	GetAll(rctx request.CTX) ([]*ChannelGuard, error)
+}
+
 type DraftStore interface {
 	Upsert(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
@@ -1154,6 +1173,7 @@ type PropertyFieldStore interface {
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
+	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
@@ -1206,6 +1226,11 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type SessionAttributeStore interface {
+	Refresh(sessionID string, attrs map[string]any) error
+	Get(sessionID string) (map[string]any, error)
 }
 
 type AutoTranslationStore interface {

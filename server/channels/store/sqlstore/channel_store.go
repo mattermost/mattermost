@@ -3260,6 +3260,9 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 			From("ChannelMembers").
 			Where(sq.Eq{"UserId": userID})))
 	} else {
+		// Non-guests see public channels, private channels they're a member of, and
+		// discoverable private channels (subject to a post-query ABAC visibility filter
+		// applied at the app layer for policy-enforced channels).
 		query = query.Where(sq.Or{
 			sq.NotEq{"c.Type": model.ChannelTypePrivate},
 			sq.And{
@@ -3267,6 +3270,10 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
 					From("ChannelMembers").
 					Where(sq.Eq{"UserId": userID})),
+			},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Eq{"c.Discoverable": true},
 			},
 		})
 	}
@@ -3311,11 +3318,18 @@ func (s SqlChannelStore) buildAutocompleteInTeamQuery(teamID, userID, term strin
 	if isGuest {
 		query = query.Where(sq.Expr("c.Id IN (?)", memberSubQuery))
 	} else {
+		// Non-guests see public channels, private channels they're a member of, and
+		// discoverable private channels (subject to a post-query ABAC visibility filter
+		// applied at the app layer for policy-enforced channels).
 		query = query.Where(sq.Or{
 			sq.NotEq{"c.Type": model.ChannelTypePrivate},
 			sq.And{
 				sq.Eq{"c.Type": model.ChannelTypePrivate},
 				sq.Expr("c.Id IN (?)", memberSubQuery),
+			},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Eq{"c.Discoverable": true},
 			},
 		})
 	}

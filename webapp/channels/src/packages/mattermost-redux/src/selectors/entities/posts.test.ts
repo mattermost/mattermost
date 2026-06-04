@@ -1116,6 +1116,34 @@ describe('Selectors.Posts', () => {
             expect(isPostCommentMention(modifiedThreadState, 'e')).toEqual(true);
         });
 
+        it('Should return false as thread reply is from webhook with current user id', () => {
+            const modifiedWebhookThreadState = {
+                ...modifiedState,
+                entities: {
+                    ...modifiedState.entities,
+                    posts: {
+                        ...modifiedState.entities.posts,
+                        posts: {
+                            ...modifiedState.entities.posts.posts,
+                            a: {
+                                ...modifiedState.entities.posts.posts.a,
+                                user_id: 'b',
+                            },
+                            c: {
+                                ...modifiedState.entities.posts.posts.c,
+                                user_id: user1.id,
+                                props: {
+                                    from_webhook: 'true',
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+
+            expect(isPostCommentMention(modifiedWebhookThreadState, 'e')).toEqual(false);
+        });
+
         it('Should return false as user commented in the thread but notify_props is for root only', () => {
             const modifiedCurrentUserForNotifyProps = {
                 ...testState.entities.users.profiles[user1.id],

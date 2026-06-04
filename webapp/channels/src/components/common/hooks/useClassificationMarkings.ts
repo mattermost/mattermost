@@ -16,23 +16,11 @@ import {
     CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
     CLASSIFICATIONS_GROUP_NAME,
-    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
-    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     optionsToLevels,
 } from 'components/admin_console/classification_markings/utils';
 import type {ClassificationLevel} from 'components/admin_console/classification_markings/utils/presets';
 
 import {isEnterpriseLicense} from 'utils/license_utils';
-
-export function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
-    const byId = state.entities.properties?.fields?.byId;
-    if (!byId) {
-        return undefined;
-    }
-    return Object.values(byId).find(
-        (f) => f.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && f.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME && f.delete_at === 0,
-    );
-}
 
 function selectChannelClassificationField(state: GlobalState): PropertyField | undefined {
     const byId = state.entities.properties?.fields?.byId;
@@ -47,7 +35,6 @@ function selectChannelClassificationField(state: GlobalState): PropertyField | u
 export type ClassificationMarkingsState = {
     available: boolean;
     loading: boolean;
-    templateField: PropertyField | null;
     channelField: PropertyField | null;
     levels: ClassificationLevel[];
 };
@@ -69,20 +56,11 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
     );
     const license = useSelector(getLicense);
     const hasEnterpriseLicense = isEnterpriseLicense(license);
-    const templateField = useSelector(selectClassificationTemplateField) ?? null;
     const channelField = useSelector(selectChannelClassificationField) ?? null;
 
     useEffect(() => {
         if (!featureEnabled || !hasEnterpriseLicense) {
             return;
-        }
-        if (!templateField) {
-            dispatch(fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
-                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
-            ));
         }
         if (!channelField) {
             dispatch(fetchPropertyFields(
@@ -92,19 +70,19 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
                 CLASSIFICATIONS_FIELD_TARGET_ID,
             ));
         }
-    }, [featureEnabled, hasEnterpriseLicense, templateField, channelField, dispatch]);
+    }, [featureEnabled, hasEnterpriseLicense, channelField, dispatch]);
 
     const levels = useMemo((): ClassificationLevel[] => {
-        if (!templateField) {
+        if (!channelField) {
             return [];
         }
-        const options = (templateField.attrs?.options as PropertyFieldOption[]) || [];
+        const options = (channelField.attrs?.options as PropertyFieldOption[]) || [];
         return optionsToLevels(options);
-    }, [templateField]);
+    }, [channelField]);
 
-    const loading = featureEnabled && hasEnterpriseLicense && !templateField;
+    const loading = featureEnabled && hasEnterpriseLicense && !channelField;
 
     const available = featureEnabled && hasEnterpriseLicense && levels.length > 0;
 
-    return {available, loading, templateField, channelField, levels};
+    return {available, loading, channelField, levels};
 }

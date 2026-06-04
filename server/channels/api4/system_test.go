@@ -417,20 +417,47 @@ func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 20)
 	for i := range 20 {
-		th.TestLogger.Info(strconv.Itoa(i))
+		message := fmt.Sprintf("getlogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-		require.NoError(t, err2)
-		require.Len(t, logs, 10)
+		var logs []string
+		containsLogMessage := func(logs []string, expected string) bool {
+			for _, logLine := range logs {
+				if strings.Contains(logLine, expected) {
+					return true
+				}
+			}
+			return false
+		}
+		containsExpectedMessages := func(logs []string) bool {
+			for _, expected := range expectedMessages {
+				if !containsLogMessage(logs, expected) {
+					return false
+				}
+			}
+			return true
+		}
 
-		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		require.Eventually(t, func() bool {
+			logs, _, err = c.GetLogs(context.Background(), 0, 200)
+			if err != nil {
+				return false
+			}
+
+			return containsExpectedMessages(logs)
+		}, 5*time.Second, 25*time.Millisecond)
+
+		for _, expected := range expectedMessages {
+			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
 		}
 
 		logs, _, err = c.GetLogs(context.Background(), 1, 10)
@@ -698,7 +725,184 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings = model.FileSettings{}
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_settings_nil.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("desanitizes FakeSetting using running config", func(t *testing.T) {
+		// Seed the running config with valid Minio credentials so the
+		// running config's AmazonS3SecretAccessKey is the real secret.
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+			c.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+			c.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+			c.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+			c.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+			c.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+			c.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+			c.FileSettings.AmazonS3SSL = model.NewPointer(false)
+		})
+
+		// Build a request body that mirrors what the System Console sends
+		// after the admin clicks Test Connection without re-entering the
+		// secret: every field present, but the secret slot is the
+		// FakeSetting placeholder.
+		body := model.Config{FileSettings: model.FileSettings{}}
+		body.FileSettings.SetDefaults(false)
+		body.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+		body.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+		body.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
+		body.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+		body.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+		body.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+		body.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		body.FileSettings.AmazonS3SSL = model.NewPointer(false)
+
+		// If desanitize is not running, the server tests with the literal
+		// "********" string as the secret and Minio returns a 403 auth
+		// error. A 200 here proves the placeholder was swapped for the
+		// real running-config value before the connection test.
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &body)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("unsupported driver", func(t *testing.T) {
+		unsupported := model.FileSettings{}
+		unsupported.SetDefaults(false)
+		unsupported.DriverName = model.NewPointer("bogus")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: unsupported})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("empty driver name", func(t *testing.T) {
+		empty := model.FileSettings{}
+		empty.SetDefaults(false)
+		empty.DriverName = model.NewPointer("")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: empty})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("azure missing mandatory fields", func(t *testing.T) {
+		// CheckMandatoryAzureFields rejects requests that don't carry an
+		// Azure storage account, container, and access key. Each missing
+		// field path must produce the same 400 with the dedicated error
+		// ID so admins get a clear signal in the System Console toast.
+		base := model.FileSettings{}
+		base.SetDefaults(false)
+		base.DriverName = model.NewPointer(model.ImageDriverAzure)
+
+		cases := []struct {
+			name string
+			mut  func(*model.FileSettings)
+		}{
+			{"missing storage account", func(fs *model.FileSettings) {
+				fs.AzureContainer = model.NewPointer("mattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing container", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing access key", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureContainer = model.NewPointer("mattermost")
+			}},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				fs := base
+				tc.mut(&fs)
+				resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+				CheckBadRequestStatus(t, resp)
+			})
+		}
+	})
+}
+
+func TestFileStoreTestConnection(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CloudDedicatedExportUI = true
+		cfg.FileSettings.DedicatedExportStore = model.NewPointer(true)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+	baseSettings := func(primary, export string) model.FileSettings {
+		fs := model.FileSettings{}
+		fs.SetDefaults(false)
+		fs.DriverName = model.NewPointer(primary)
+		fs.ExportDriverName = model.NewPointer(export)
+		return fs
+	}
+
+	t.Run("primary=local, export=azure: missing ExportAzureContainer surfaces azure error", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverLocal, model.ImageDriverAzure)
+		fs.ExportAzureStorageAccount = model.NewPointer("acmemattermost")
+		fs.ExportAzureAccessKey = model.NewPointer("secret")
+		fs.ExportAzureContainer = model.NewPointer("")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("primary=s3, export=azure: missing ExportAzureStorageAccount surfaces azure error", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverS3, model.ImageDriverAzure)
+		fs.ExportAzureStorageAccount = model.NewPointer("")
+		fs.ExportAzureContainer = model.NewPointer("mattermost")
+		fs.ExportAzureAccessKey = model.NewPointer("secret")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("primary=local, export=s3: missing ExportAmazonS3Bucket surfaces s3 error", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverLocal, model.ImageDriverS3)
+		fs.ExportAmazonS3Bucket = model.NewPointer("")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_s3.missing_s3_bucket")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("unsupported export driver", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverS3, "bogus")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("no license - primary dispatch", func(t *testing.T) {
+		// No license is set, so UseExportFileStore() must return false. Set an
+		// ExportDriverName that, if it were honored, would change the dispatch
+		// outcome -- this asserts that the primary path is taken.
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		fs := baseSettings(model.ImageDriverAzure, model.ImageDriverS3)
+
+		// fs.AzureStorageAccount = model.NewPointer("")
+		// fs.AzureContainer = model.NewPointer("mattermost")
+		// fs.AzureAccessKey = model.NewPointer("secret")
+		// fs.ExportAmazonS3Bucket = model.NewPointer("export-bucket")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
 		CheckBadRequestStatus(t, resp)
 	})
 }

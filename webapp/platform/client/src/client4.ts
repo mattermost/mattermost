@@ -3624,9 +3624,21 @@ export default class Client4 {
         );
     };
 
+    /**
+     * @deprecated Use testFileStoreConnection instead. The /file/s3_test
+     * endpoint is kept for backwards compatibility but now routes through
+     * the same backend-agnostic handler.
+     */
     testS3Connection = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/file/s3_test`,
+            {method: 'post', body: JSON.stringify(config)},
+        );
+    };
+
+    testFileStoreConnection = (config?: AdminConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/file/test`,
             {method: 'post', body: JSON.stringify(config)},
         );
     };
@@ -3911,6 +3923,21 @@ export default class Client4 {
 
         return this.doFetch<License>(
             `${this.getBaseRoute()}/license`,
+            request,
+        );
+    };
+
+    previewLicense = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('license', fileData);
+
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<License>(
+            `${this.getBaseRoute()}/license/preview`,
             request,
         );
     };
