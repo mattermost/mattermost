@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: cd/Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: cd/Create Sentry release
         uses: getsentry/action-release@dab6548b3c03c4717878099e43782cf5be654289 # v3.5.0
 
