@@ -68,6 +68,50 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		assert.Equal(t, channel.Id, mockService.channelNotifications[0])
 	})
 
+	t.Run("property_values_updated on a shared channel triggers a content sync", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		mockService := NewMockSharedChannelService(nil)
+		mockService.active = true
+		th.Service.SetSharedChannelService(mockService)
+
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, th.BasicTeam.Id, channel.Id, "", nil, "")
+
+		th.Service.SharedChannelSyncHandler(websocketEvent)
+		require.Len(t, mockService.channelNotifications, 1)
+		assert.Equal(t, channel.Id, mockService.channelNotifications[0])
+	})
+
+	t.Run("property_values_updated on a non-shared channel does not trigger sync", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		mockService := NewMockSharedChannelService(nil)
+		mockService.active = true
+		th.Service.SetSharedChannelService(mockService)
+
+		// BasicChannel from InitBasic is not shared.
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, th.BasicTeam.Id, th.BasicChannel.Id, "", nil, "")
+
+		th.Service.SharedChannelSyncHandler(websocketEvent)
+		assert.Empty(t, mockService.channelNotifications, "non-shared channel must not enqueue a sync")
+	})
+
+	t.Run("property_values_updated with empty channel id does not trigger sync", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		mockService := NewMockSharedChannelService(nil)
+		mockService.active = true
+		th.Service.SetSharedChannelService(mockService)
+
+		// DeletePropertyValuesForField broadcasts with empty channelID; eventHasChannel
+		// must short-circuit before we even look up a channel.
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+
+		th.Service.SharedChannelSyncHandler(websocketEvent)
+		assert.Empty(t, mockService.channelNotifications, "empty channelID must be gated by eventHasChannel")
+	})
+
 	t.Run("sync service doesn't panic when no RemoteId", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 

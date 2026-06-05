@@ -23,6 +23,7 @@ var sharedChannelEventsForSync = []model.WebsocketEventType{
 	model.WebsocketEventReactionRemoved,
 	model.WebsocketEventAcknowledgementAdded,
 	model.WebsocketEventAcknowledgementRemoved,
+	model.WebsocketEventPropertyValuesUpdated,
 }
 
 var sharedChannelEventsForInvitation = []model.WebsocketEventType{
