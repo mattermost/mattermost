@@ -65,6 +65,11 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = "true"
 
+	// ExperimentalViewArchivedChannels is deprecated and always enabled, but is still required by
+	// mobile clients that gate archived channel access on this value. Continue exposing it as "true"
+	// so those clients keep users in archived channels instead of redirecting them away.
+	props["ExperimentalViewArchivedChannels"] = "true"
+
 	props["SendEmailNotifications"] = strconv.FormatBool(*c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
 	props["RequireEmailVerification"] = strconv.FormatBool(*c.EmailSettings.RequireEmailVerification)

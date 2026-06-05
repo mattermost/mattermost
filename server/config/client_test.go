@@ -316,6 +316,16 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 		},
 		{
+			"ExperimentalViewArchivedChannels exposed as true for mobile backward compatibility",
+			&model.Config{},
+			"tag1",
+			nil,
+			map[string]string{
+				"ExperimentalViewArchivedChannels": "true",
+			},
+			nil,
+		},
+		{
 			"default EnableJoinLeaveMessage",
 			&model.Config{},
 			"tag1",
