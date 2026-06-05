@@ -432,7 +432,7 @@ const NewChannelModal = () => {
         <LoadingSpinner
             text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
         />
-    ) : formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'});
+    ) : (activePluginOption?.createButtonText ?? formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'}));
 
     return (
         <GenericModal
