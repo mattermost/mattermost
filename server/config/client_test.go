@@ -326,6 +326,20 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 		},
 		{
+			"ExperimentalViewArchivedChannels stays true even when the deprecated setting is false",
+			&model.Config{
+				TeamSettings: model.TeamSettings{
+					ExperimentalViewArchivedChannels: model.NewPointer(false),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"ExperimentalViewArchivedChannels": "true",
+			},
+			nil,
+		},
+		{
 			"default EnableJoinLeaveMessage",
 			&model.Config{},
 			"tag1",
