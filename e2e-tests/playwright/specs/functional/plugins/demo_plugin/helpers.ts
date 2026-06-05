@@ -58,11 +58,20 @@ export async function uploadFileViaYourComputer(
     filename: string,
 ): Promise<void> {
     const filePath = path.join(assetPath, filename);
+    const uploadResponsePromise = page.waitForResponse(
+        (r) =>
+            r.url().includes('/api/v4/files') &&
+            r.request().method() === 'POST' &&
+            r.status() >= 200 &&
+            r.status() < 300,
+        {timeout: 60_000},
+    );
     const fileChooserPromise = page.waitForEvent('filechooser');
     await attachmentButton.click();
     await page.getByText('Your computer').click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(filePath);
+    await uploadResponsePromise;
 }
 
 export async function sendDemoSlashCommand(page: Page, send: () => Promise<void>) {
