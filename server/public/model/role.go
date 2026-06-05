@@ -140,8 +140,7 @@ func init() {
 			PermissionAddUserToTeam,
 		},
 		PermissionSysconsoleWriteUserManagementGroups.Id: {
-			PermissionManagePrivateChannelMembers,
-			PermissionManagePublicChannelMembers,
+			PermissionManageChannelGroupSync,
 			PermissionConvertPublicChannelToPrivate,
 			PermissionConvertPrivateChannelToPublic,
 		},
