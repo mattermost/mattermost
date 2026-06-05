@@ -347,3 +347,5 @@ channels/db/migrations/postgres/000174_set_posts_statistics_targets.down.sql
 channels/db/migrations/postgres/000174_set_posts_statistics_targets.up.sql
 channels/db/migrations/postgres/000175_add_board_channel_types.down.sql
 channels/db/migrations/postgres/000175_add_board_channel_types.up.sql
+channels/db/migrations/postgres/000176_add_lastpropertyvalueupdateat_to_sharedchannelremotes.down.sql
+channels/db/migrations/postgres/000176_add_lastpropertyvalueupdateat_to_sharedchannelremotes.up.sql

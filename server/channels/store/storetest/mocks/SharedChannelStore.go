@@ -718,6 +718,24 @@ func (_m *SharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime i
 	return r0
 }
 
+// UpdateRemotePropertyValueCursor provides a mock function with given fields: id, lastUpdateAt
+func (_m *SharedChannelStore) UpdateRemotePropertyValueCursor(id string, lastUpdateAt int64) error {
+	ret := _m.Called(id, lastUpdateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRemotePropertyValueCursor")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(id, lastUpdateAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateUserLastSyncAt provides a mock function with given fields: userID, channelID, remoteID
 func (_m *SharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 	ret := _m.Called(userID, channelID, remoteID)

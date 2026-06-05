@@ -342,9 +342,9 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
 		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "DeleteAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
-			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId").
+			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId", "LastPropertyValueUpdateAt").
 		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.DeleteAt, remote.IsInviteAccepted, remote.IsInviteConfirmed,
-			remote.RemoteId, remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
+			remote.RemoteId, remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID, remote.LastPropertyValueUpdateAt).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
@@ -374,6 +374,7 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("LastPostCreateId", remote.LastPostCreateID).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
 		Set("LastPostId", remote.LastPostUpdateID).
+		Set("LastPropertyValueUpdateAt", remote.LastPropertyValueUpdateAt).
 		Where(sq.And{
 			sq.Eq{"Id": remote.Id},
 			sq.Eq{"ChannelId": remote.ChannelId},
@@ -417,6 +418,7 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "LastPostUpdateAt",
 		"COALESCE(" + prefix + "LastPostId,'') AS LastPostUpdateID",
 		prefix + "LastMembersSyncAt",
+		prefix + "LastPropertyValueUpdateAt",
 	}
 }
 
@@ -633,6 +635,38 @@ func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPos
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
 		return errors.Wrap(err, "failed to update cursor for SharedChannelRemote")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", id)
+	}
+	return nil
+}
+
+// UpdateRemotePropertyValueCursor updates the LastPropertyValueUpdateAt cursor for the
+// specified SharedChannelRemote. This cursor tracks the most recent PropertyValue.UpdateAt
+// that has been sync'd to the remote, enabling offline catch-up for property-only changes.
+func (s SqlSharedChannelStore) UpdateRemotePropertyValueCursor(id string, lastUpdateAt int64) error {
+	if lastUpdateAt <= 0 {
+		return fmt.Errorf("cursor empty")
+	}
+
+	squery, args, err := s.getQueryBuilder().
+		Update("SharedChannelRemotes").
+		Set("LastPropertyValueUpdateAt", lastUpdateAt).
+		Where(sq.Eq{"Id": id}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "update_shared_channel_remote_property_value_cursor_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update property value cursor for SharedChannelRemote")
 	}
 
 	count, err := result.RowsAffected()

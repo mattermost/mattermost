@@ -33,6 +33,7 @@ func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, rctx, ss) })
 	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, rctx, ss) })
 	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, rctx, ss) })
+	t.Run("UpdateSharedChannelRemotePropertyValueCursor", func(t *testing.T) { testUpdateSharedChannelRemotePropertyValueCursor(t, rctx, ss) })
 	t.Run("UpdateGlobalUserSyncCursor", func(t *testing.T) { testUpdateGlobalUserSyncCursor(t, rctx, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, rctx, ss) })
 
@@ -448,6 +449,31 @@ func testSaveSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store)
 
 		require.Equal(t, remote.ChannelId, remoteSaved.ChannelId)
 		require.Equal(t, remote.CreatorId, remoteSaved.CreatorId)
+
+		// Round-trip via GetRemote: LastPropertyValueUpdateAt should default to 0 and persist.
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), r.LastPropertyValueUpdateAt)
+	})
+
+	t.Run("Save shared channel remote with non-zero LastPropertyValueUpdateAt round-trips", func(t *testing.T) {
+		channel, err := createTestChannel(ss, rctx, "test_save_remote_with_property_cursor")
+		require.NoError(t, err)
+
+		ts := model.GetMillis()
+		remote := &model.SharedChannelRemote{
+			ChannelId:                 channel.Id,
+			CreatorId:                 model.NewId(),
+			RemoteId:                  model.NewId(),
+			LastPropertyValueUpdateAt: ts,
+		}
+
+		remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
+		require.NoError(t, err)
+
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, ts, r.LastPropertyValueUpdateAt, "explicit LastPropertyValueUpdateAt must round-trip through Save")
 	})
 
 	t.Run("Save invalid shared channel remote", func(t *testing.T) {
@@ -489,12 +515,19 @@ func testUpdateSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Stor
 
 		remoteSaved.IsInviteAccepted = true
 		remoteSaved.IsInviteConfirmed = true
+		ts := model.GetMillis()
+		remoteSaved.LastPropertyValueUpdateAt = ts
 
 		remoteUpdated, err := ss.SharedChannel().UpdateRemote(remoteSaved)
 		require.NoError(t, err, "couldn't update shared channel remote", err)
 
 		require.Equal(t, true, remoteUpdated.IsInviteAccepted)
 		require.Equal(t, true, remoteUpdated.IsInviteConfirmed)
+
+		// Confirm the new column is preserved through UpdateRemote.
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, ts, r.LastPropertyValueUpdateAt, "LastPropertyValueUpdateAt must round-trip through UpdateRemote")
 	})
 
 	t.Run("Update invalid shared channel remote", func(t *testing.T) {
@@ -1083,6 +1116,60 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 		emptyCursor := model.GetPostsSinceForSyncCursor{}
 		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, emptyCursor)
 		require.Error(t, err, "update with empty cursor should error", err)
+	})
+}
+
+func testUpdateSharedChannelRemotePropertyValueCursor(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel, err := createTestChannel(ss, rctx, "test_remote_update_property_value_cursor")
+	require.NoError(t, err)
+
+	remote := &model.SharedChannelRemote{
+		ChannelId: channel.Id,
+		CreatorId: model.NewId(),
+		RemoteId:  model.NewId(),
+	}
+
+	remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
+	require.NoError(t, err, "couldn't save remote", err)
+
+	t.Run("LastPropertyValueUpdateAt defaults to zero on save", func(t *testing.T) {
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), r.LastPropertyValueUpdateAt, "new remote should have zero property value cursor")
+	})
+
+	futureUpdateAt := model.GetMillis() + 3600000 // 1 hour in the future
+
+	t.Run("Update property value cursor for remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemotePropertyValueCursor(remoteSaved.Id, futureUpdateAt)
+		require.NoError(t, err, "update property value cursor should not error", err)
+
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, futureUpdateAt, r.LastPropertyValueUpdateAt)
+	})
+
+	t.Run("Update property value cursor for non-existent shared channel remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemotePropertyValueCursor(model.NewId(), futureUpdateAt)
+		require.Error(t, err, "update non-existent remote should error", err)
+	})
+
+	t.Run("Update with zero cursor errors and leaves stored value unchanged", func(t *testing.T) {
+		before, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+
+		err = ss.SharedChannel().UpdateRemotePropertyValueCursor(remoteSaved.Id, 0)
+		require.Error(t, err, "update with zero cursor should error", err)
+
+		after, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, before.LastPropertyValueUpdateAt, after.LastPropertyValueUpdateAt,
+			"failed cursor write must not change stored value")
+	})
+
+	t.Run("Update with negative cursor errors", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemotePropertyValueCursor(remoteSaved.Id, -1)
+		require.Error(t, err, "update with negative cursor should error", err)
 	})
 }
 

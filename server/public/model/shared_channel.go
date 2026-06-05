@@ -119,11 +119,12 @@ type SharedChannelRemote struct {
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteId          string `json:"remote_id"`
-	LastPostUpdateAt  int64  `json:"last_post_update_at"`
-	LastPostUpdateID  string `json:"last_post_id"`
-	LastPostCreateAt  int64  `json:"last_post_create_at"`
-	LastPostCreateID  string `json:"last_post_create_id"`
-	LastMembersSyncAt int64  `json:"last_members_sync_at"`
+	LastPostUpdateAt          int64  `json:"last_post_update_at"`
+	LastPostUpdateID          string `json:"last_post_id"`
+	LastPostCreateAt          int64  `json:"last_post_create_at"`
+	LastPostCreateID          string `json:"last_post_create_id"`
+	LastMembersSyncAt         int64  `json:"last_members_sync_at"`
+	LastPropertyValueUpdateAt int64  `json:"last_property_value_update_at"`
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
