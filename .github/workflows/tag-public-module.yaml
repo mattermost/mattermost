@@ -17,6 +17,8 @@ on:
         description: The commit sha to tag. Defaults to HEAD master
         required: false
 
+permissions: {}
+
 jobs:
   tag-public-module:
     permissions:
@@ -57,9 +59,9 @@ jobs:
         run: |
           echo "RELEASE_NOTES<<EOF" >> ${GITHUB_ENV}
           if [ -z "$COMMIT_SHA" ]; then
-            echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...$(git rev-parse HEAD) server/public)" >> ${GITHUB_ENV}
+            echo "$(git log --oneline --graph --decorate --abbrev-commit "server/public/${LATEST_MODULE_TAG}"...$(git rev-parse HEAD) server/public)" >> ${GITHUB_ENV}
           else
-            echo "$(git log --oneline --graph --decorate --abbrev-commit server/public/${{ env.LATEST_MODULE_TAG }}...${COMMIT_SHA} server/public)" >> ${GITHUB_ENV}
+            echo "$(git log --oneline --graph --decorate --abbrev-commit "server/public/${LATEST_MODULE_TAG}"...${COMMIT_SHA} server/public)" >> ${GITHUB_ENV}
           fi
           echo "EOF" >> ${GITHUB_ENV}
 
