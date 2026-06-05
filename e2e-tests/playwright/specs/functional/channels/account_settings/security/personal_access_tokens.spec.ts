@@ -194,7 +194,7 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
 
         // # Seed three tokens for the user: never-expiring, expiring soon, and disabled
         await adminClient.createUserAccessToken(user.id, 'never expires token');
-        await adminClient.createUserAccessToken(user.id, 'expiring soon token', Date.now() + (3 * DAY_MS));
+        await adminClient.createUserAccessToken(user.id, 'expiring soon token', Date.now() + 3 * DAY_MS);
         const disabledToken = await adminClient.createUserAccessToken(user.id, 'disabled token');
         await adminClient.disableUserAccessToken(disabledToken.id);
 
