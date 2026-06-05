@@ -80,7 +80,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, onItemClick}: Props) =
                 'MediaGallery--compact': compactDisplay,
                 'MediaGallery--single': isSingle,
             })}
-            data-testid='media-gallery'
+            data-testid='fileAttachmentList'
             data-post-id={postId}
         >
             <div

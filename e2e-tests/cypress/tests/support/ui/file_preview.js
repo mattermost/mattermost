@@ -2,6 +2,10 @@
 // See LICENSE.txt for license information.
 
 Cypress.Commands.add('uiGetFileThumbnail', (filename) => {
+    const tileSelector = `[data-testid="media-gallery-tile"][data-file-name="${filename}"]`;
+    if (Cypress.$(tileSelector).length) {
+        return cy.get(tileSelector);
+    }
     return cy.findByLabelText(`file thumbnail ${filename.toLowerCase()}`);
 });
 
@@ -37,6 +41,10 @@ Cypress.Commands.add('uiGetHeaderFilePreviewModal', () => {
 Cypress.Commands.add('uiOpenFilePreviewModal', (filename) => {
     if (filename) {
         cy.uiGetFileThumbnail(filename.toLowerCase()).click();
+        return;
+    }
+    if (Cypress.$('[data-testid="media-gallery-tile"]').length) {
+        cy.get('[data-testid="media-gallery-tile"]').first().click();
     } else {
         cy.findByTestId('fileAttachmentList').children().first().click();
     }

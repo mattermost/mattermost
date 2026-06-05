@@ -55,6 +55,7 @@ const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
             tabIndex={0}
             aria-label={label}
             data-testid='media-gallery-tile'
+            data-file-name={fileInfo.name || ''}
             style={tileStyle}
             onClick={handleActivate}
             onKeyDown={handleKeyDown}
