@@ -2,9 +2,14 @@
 // See LICENSE.txt for license information.
 
 Cypress.Commands.add('uiGetFileThumbnail', (filename) => {
-    const tileSelector = `[data-testid="media-gallery-tile"][data-file-name="${filename}"]`;
-    if (Cypress.$(tileSelector).length) {
-        return cy.get(tileSelector);
+    // Gallery tiles preserve original filename casing on data-file-name,
+    // while the legacy thumbnail aria-label is always lowercased
+    // (see file_preview.tsx). Match each accordingly.
+    const tileMatches = Cypress.$('[data-testid="media-gallery-tile"]').filter((_, el) => {
+        return el.getAttribute('data-file-name')?.toLowerCase() === filename.toLowerCase();
+    });
+    if (tileMatches.length) {
+        return cy.wrap(tileMatches);
     }
     return cy.findByLabelText(`file thumbnail ${filename.toLowerCase()}`);
 });
@@ -40,7 +45,7 @@ Cypress.Commands.add('uiGetHeaderFilePreviewModal', () => {
 
 Cypress.Commands.add('uiOpenFilePreviewModal', (filename) => {
     if (filename) {
-        cy.uiGetFileThumbnail(filename.toLowerCase()).click();
+        cy.uiGetFileThumbnail(filename).click();
         return;
     }
     if (Cypress.$('[data-testid="media-gallery-tile"]').length) {

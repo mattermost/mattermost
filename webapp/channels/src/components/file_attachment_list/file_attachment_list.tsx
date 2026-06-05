@@ -46,7 +46,10 @@ export default function FileAttachmentList(props: Props) {
         return null;
     }
 
-    if (!isInPermalink && !props.firstFileRejected) {
+    const hasDeletedFile = sortedFileInfos.some((f) => f.delete_at > 0);
+    const isEditHistory = Boolean(props.isEditHistory);
+
+    if (!isInPermalink && !props.firstFileRejected && !hasDeletedFile && !isEditHistory) {
         const isMulti = fileInfos.length > 1;
         const isSingleVideo = fileInfos.length === 1 &&
             !fileInfos[0].archived &&
