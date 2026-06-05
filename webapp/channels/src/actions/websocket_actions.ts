@@ -1274,7 +1274,7 @@ function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
+export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1286,6 +1286,15 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
                 type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
+
+            // The membership relation alone is not enough to render the member in the
+            // participant list: the member list selectors drop users whose profile is
+            // not loaded. This happens for remote users synced into a shared channel,
+            // since the viewer has never loaded their profile. Fetch it if missing.
+            if (!getUser(state, msg.data.user_id)) {
+                doDispatch(loadUser(msg.data.user_id));
+            }
+
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
                 doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
