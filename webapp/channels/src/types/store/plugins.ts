@@ -466,6 +466,7 @@ export type ChannelTypeOptionComponent = PluginComponent & {
     label: PluggableText;
     description: PluggableText;
     icon: React.ReactNode;
+    createButtonText?: PluggableText;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;

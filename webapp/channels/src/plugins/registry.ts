@@ -1337,6 +1337,7 @@ export default class PluginRegistry {
         'isAvailable',
         'extraContent',
         'onCreate',
+        'createButtonText',
     ], ({
         label,
         description,
@@ -1344,6 +1345,7 @@ export default class PluginRegistry {
         isAvailable,
         extraContent,
         onCreate,
+        createButtonText,
     }: {
         label: ReactResolvable;
         description: ReactResolvable;
@@ -1351,6 +1353,7 @@ export default class PluginRegistry {
         isAvailable: ChannelTypeOptionComponent['isAvailable'];
         extraContent?: ChannelTypeOptionComponent['extraContent'];
         onCreate: ChannelTypeOptionComponent['onCreate'];
+        createButtonText?: ReactResolvable;
     }) => {
         const id = generateId();
         dispatchPluginComponentWithData('ChannelTypeOption', {
@@ -1362,6 +1365,7 @@ export default class PluginRegistry {
             isAvailable,
             extraContent,
             onCreate,
+            createButtonText: createButtonText ? resolveReactElement(createButtonText) : undefined,
         });
 
         return id;
