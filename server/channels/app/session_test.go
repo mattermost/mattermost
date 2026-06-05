@@ -527,8 +527,7 @@ func TestSendMobileWipeSignal(t *testing.T) {
 		})
 
 		session := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
-		err := th.App.sendMobileWipeSignal(th.Context, session)
-		require.NoError(t, err)
+		th.App.sendMobileWipeSignal(th.Context, session)
 		require.Equal(t, 0, handler.numReqs())
 	})
 
@@ -543,17 +542,22 @@ func TestSendMobileWipeSignal(t *testing.T) {
 		})
 
 		session := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
-		err := th.App.sendMobileWipeSignal(th.Context, session)
-		require.ErrorIs(t, err, errPushNotificationsDisabled)
+		th.App.sendMobileWipeSignal(th.Context, session)
 		require.Equal(t, 0, handler.numReqs())
 	})
 
-	t.Run("do not send push for non-mobile sessions", func(t *testing.T) {
+	t.Run("do not send push for sessions without a device ID", func(t *testing.T) {
 		handler := setupPushServer(t, th)
 
+		// plain desktop session
 		session := &model.Session{UserId: th.BasicUser.Id, ExpiresAt: model.GetMillis() + 100000}
-		err := th.App.sendMobileWipeSignal(th.Context, session)
-		require.NoError(t, err)
+		th.App.sendMobileWipeSignal(th.Context, session)
+
+		// mobile-web session: isMobile prop set but no push token
+		mobileWebSession := &model.Session{UserId: th.BasicUser.Id, ExpiresAt: model.GetMillis() + 100000}
+		mobileWebSession.AddProp(model.UserAuthServiceIsMobile, "true")
+		th.App.sendMobileWipeSignal(th.Context, mobileWebSession)
+
 		require.Equal(t, 0, handler.numReqs())
 	})
 
@@ -561,12 +565,10 @@ func TestSendMobileWipeSignal(t *testing.T) {
 		handler := setupPushServer(t, th)
 
 		activeSession := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
-		err := th.App.sendMobileWipeSignal(th.Context, activeSession)
-		require.NoError(t, err)
+		th.App.sendMobileWipeSignal(th.Context, activeSession)
 
 		expiredSession := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() - 100000}
-		err = th.App.sendMobileWipeSignal(th.Context, expiredSession)
-		require.NoError(t, err)
+		th.App.sendMobileWipeSignal(th.Context, expiredSession)
 
 		require.Equal(t, 2, handler.numReqs())
 		n := handler.notifications()[0]
@@ -608,7 +610,7 @@ func TestRevokeAllSessionsSendsWipeSignal(t *testing.T) {
 	appErr = th.App.RevokeAllSessions(th.Context, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
-	require.Equal(t, 2, handler.numReqs())
+	require.Eventually(t, func() bool { return handler.numReqs() == 2 }, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestRevokeSessionsFromAllUsersSendsWipeSignal(t *testing.T) {
@@ -641,7 +643,7 @@ func TestRevokeSessionsFromAllUsersSendsWipeSignal(t *testing.T) {
 	appErr = th.App.RevokeSessionsFromAllUsers(th.Context)
 	require.Nil(t, appErr)
 
-	require.Equal(t, 3, handler.numReqs())
+	require.Eventually(t, func() bool { return handler.numReqs() == 3 }, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestRevokeSessionSendsWipeSignal(t *testing.T) {
@@ -659,5 +661,5 @@ func TestRevokeSessionSendsWipeSignal(t *testing.T) {
 	appErr = th.App.RevokeSession(th.Context, session)
 	require.Nil(t, appErr)
 
-	require.Equal(t, 1, handler.numReqs())
+	require.Eventually(t, func() bool { return handler.numReqs() == 1 }, 5*time.Second, 100*time.Millisecond)
 }
