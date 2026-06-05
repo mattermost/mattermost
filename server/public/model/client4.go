@@ -1891,8 +1891,12 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 // of a session token to access the REST API. Must have the 'create_user_access_token'
 // permission and if generating for another user, must have the 'edit_other_users'
 // permission. A non-blank description is required.
-func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string) (*UserAccessToken, *Response, error) {
-	requestBody := map[string]string{"description": description}
+//
+// expiresAt is the Unix-millis expiry for the token; 0 means the token does not
+// expire, subject to server policy (ServiceSettings.MaximumPersonalAccessTokenLifetimeDays:
+// a value > 0 requires tokens to expire within that many days and rejects 0).
+func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string, expiresAt int64) (*UserAccessToken, *Response, error) {
+	requestBody := &UserAccessToken{Description: description, ExpiresAt: expiresAt}
 	r, err := c.doAPIPostJSON(ctx, c.userRoute(userId).Join("tokens"), requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
