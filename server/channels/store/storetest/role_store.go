@@ -165,7 +165,9 @@ func testRoleStoreSavePreservingUnknownPermissions(t *testing.T, _ request.CTX, 
 		}
 
 		_, err := ss.Role().SavePreservingUnknownPermissions(r)
-		assert.Error(t, err)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
 	})
 }
 

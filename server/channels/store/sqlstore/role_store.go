@@ -121,7 +121,7 @@ func (s *SqlRoleStore) validateForSave(role *model.Role, preserveUnknownPermissi
 	if preserveUnknownPermissions {
 		if unknown := role.UnknownPermissions(); len(unknown) > 0 {
 			s.Logger().Warn(
-				"Preserving role permissions that are not recognized by this server version. This usually indicates the server was downgraded from a newer release; the permissions are kept so they are not lost on a future upgrade.",
+				"Preserving role permissions not recognized by this server version (server likely downgraded from a newer release)",
 				mlog.String("role", role.Name),
 				mlog.Array("permissions", unknown),
 			)
@@ -137,9 +137,9 @@ func (s *SqlRoleStore) validateForSave(role *model.Role, preserveUnknownPermissi
 				}
 			}
 
-			validationRole := *role
-			validationRole.Permissions = known
-			roleToValidate = &validationRole
+			roleCopy := *role
+			roleCopy.Permissions = known
+			roleToValidate = &roleCopy
 		}
 	}
 
@@ -197,8 +197,7 @@ func (s *SqlRoleStore) save(role *model.Role, preserveUnknownPermissions bool) (
 }
 
 func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) (*model.Role, error) {
-	// Check the role is valid before proceeding. createRole is also called directly
-	// from scheme_store (not only via save), so it must validate independently.
+	// Check the role is valid before proceeding.
 	if err := role.IsValidWithoutId(); err != nil {
 		return nil, store.NewErrInvalidInput("Role", "<any>", err.Error())
 	}

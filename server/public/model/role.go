@@ -803,19 +803,14 @@ func (r *Role) IsValidWithoutId() error {
 	}
 
 	if unknown := r.UnknownPermissions(); len(unknown) > 0 {
-		return fmt.Errorf("unknown permission %q", unknown[0])
+		return fmt.Errorf("unknown permissions: %s", strings.Join(unknown, ", "))
 	}
 
 	return nil
 }
 
-// UnknownPermissions returns the permissions on the role that are not recognized
-// by this server build, i.e. permissions present in neither AllPermissions nor
-// DeprecatedPermissions. This is normally empty, but a server that was upgraded to
-// a newer release (which introduced new permissions and wrote them into roles) and
-// subsequently downgraded will hold permissions the older binary does not know
-// about. Callers can use this to preserve such permissions rather than failing,
-// avoiding a fatal permissions migration on downgrade (see MM-68830).
+// UnknownPermissions returns the permissions on the role that are not present in
+// AllPermissions or DeprecatedPermissions (see MM-68830).
 func (r *Role) UnknownPermissions() []string {
 	check := func(perms []*Permission, permission string) bool {
 		for _, p := range perms {
