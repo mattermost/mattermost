@@ -19,8 +19,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	audittargets "github.com/mattermost/mattermost/server/v8/channels/audit/targets"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
+
+	"github.com/mattermost/logr/v2"
 )
 
 // Audit level aliases for convenient access within the app package.
@@ -32,10 +35,11 @@ import (
 // [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI]
 // for detailed documentation on when to use each level.
 var (
-	LevelAPI     = mlog.LvlAuditAPI
-	LevelContent = mlog.LvlAuditContent
-	LevelPerms   = mlog.LvlAuditPerms
-	LevelCLI     = mlog.LvlAuditCLI
+	LevelAPI      = mlog.LvlAuditAPI
+	LevelContent  = mlog.LvlAuditContent
+	LevelPerms    = mlog.LvlAuditPerms
+	LevelCLI      = mlog.LvlAuditCLI
+	LevelDelivery = mlog.LvlAuditDelivery
 )
 
 const (
@@ -127,6 +131,20 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
 	adt.OnQueueFull = s.onAuditTargetQueueFull
 	adt.OnError = s.onAuditError
+
+	// Register custom target types reachable from advanced-logging JSON.
+	// The closure captures s.Store().AuditStorage() once per audit
+	// configuration, which is fine because the store is wired before
+	// configureAudit runs and is replaced as a whole on reconfiguration.
+	adt.Factories = &mlog.Factories{
+		TargetFactory: func(targetType string, options json.RawMessage) (logr.Target, error) {
+			switch strings.ToLower(targetType) {
+			case audittargets.DeliveryDBTargetType:
+				return audittargets.NewDeliveryDBTarget(s.Store().AuditStorage()), nil
+			}
+			return nil, fmt.Errorf("audit target type %q is unrecognized", targetType)
+		},
+	}
 
 	var logConfigSrc config.LogConfigSrc
 	dsn := s.platform.Config().ExperimentalAuditSettings.GetAdvancedLoggingConfig()
