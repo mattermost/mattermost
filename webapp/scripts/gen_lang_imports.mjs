@@ -1,7 +1,8 @@
 #!/bin/node
 
 import * as fs from 'fs';
-import langmap from '../channels/src/i18n/langmap.js';
+
+import langmap from './langmap.mjs';
 
 let lines = '';
 const langIDs = [];
