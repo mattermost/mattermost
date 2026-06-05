@@ -8,6 +8,11 @@ on:
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
 
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
 jobs:
   check:
     runs-on: ubuntu-24.04
@@ -15,6 +20,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: ci/setup-node
@@ -25,6 +31,12 @@ jobs:
           cache-dependency-path: |
             e2e-tests/cypress/package-lock.json
             e2e-tests/playwright/package-lock.json
+            webapp/package-lock.json
+      - name: ci/npm-cache-verify
+        # Heal any partial/dangling entries left in the restored ~/.npm cache
+        # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
+        # failures in npm's cacache writer.
+        run: npm cache verify
 
       # Cypress check
       - name: ci/cypress/npm-install

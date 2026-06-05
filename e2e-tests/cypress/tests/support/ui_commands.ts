@@ -474,6 +474,7 @@ function updateChannelHeader(text: string) {
 
     // # Edit channel header in the modal
     cy.get('#channel_settings_header_textbox').
+        scrollIntoView().
         should('be.visible').
         clear().
         type(text);

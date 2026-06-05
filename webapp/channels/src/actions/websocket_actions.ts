@@ -41,6 +41,7 @@ import {
     AppsTypes,
     CloudTypes,
     ChannelBookmarkTypes,
+    PropertyTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
@@ -64,6 +65,7 @@ import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
+    getPostsAround,
     getPostThread,
     getPostThreads,
     postDeleted,
@@ -72,6 +74,10 @@ import {
     resetReloadPostsInChannel,
     resetReloadPostsInTranslatedChannels,
 } from 'mattermost-redux/actions/posts';
+import {
+    fetchPropertyFields,
+    fetchSystemPropertyValues,
+} from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
@@ -107,7 +113,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -149,6 +155,13 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
+import {
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
+} from 'components/admin_console/classification_markings/utils';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
@@ -327,6 +340,27 @@ export function reconnect() {
     // Refresh custom profile attributes on reconnect
     if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
         dispatch(getCustomProfileAttributeFields());
+    }
+
+    // Refresh classification fields and values on reconnect when the feature flag is active
+    if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
+        dispatch(
+            fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ),
+        );
+        dispatch(
+            fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ),
+        );
+        dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
     }
 
     if (state.websocket.lastDisconnectAt) {
@@ -633,6 +667,23 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
         break;
+    case WebSocketEvents.PropertyFieldCreated:
+    case WebSocketEvents.PropertyFieldUpdated:
+        dispatch(
+            handlePropertyFieldCreatedOrUpdated(
+                msg as
+                    | WebSocketMessages.PropertyFieldCreated
+                    | WebSocketMessages.PropertyFieldUpdated,
+            ),
+        );
+        break;
+    case WebSocketEvents.PropertyFieldDeleted:
+        dispatch(
+            handlePropertyFieldDeleted(
+                msg as WebSocketMessages.PropertyFieldDeleted,
+            ),
+        );
+        break;
     case WebSocketEvents.PropertyValuesUpdated:
         dispatch(handlePropertyValuesUpdated(msg));
         break;
@@ -712,6 +763,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.FileDownloadRejected:
         dispatch(handleFileDownloadRejected(msg));
         break;
+    case WebSocketEvents.FileUploadRejected:
+        dispatch(handleFileUploadRejected(msg));
+        break;
     case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
         break;
@@ -729,22 +783,35 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
+// The server publishes shared_channel_remote_updated from the onInvite callback after a remote
+// (cluster or plugin) accepts a channel invitation. The channel is already shared at that point,
+// and the channel_updated event that set shared=true ran earlier in the share flow, so the local
+// channel should already reflect shared=true when this arrives. If it doesn't, the event isn't
+// meaningful for us and we skip the fetch.
 function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
     const channelId = msg.data.channel_id || msg.broadcast.channel_id;
-    if (channelId) {
-        dispatch(fetchChannelRemotes(channelId, true));
+    if (!channelId) {
+        return;
     }
+
+    const channel = getChannel(getState(), channelId);
+    if (!channel?.shared) {
+        return;
+    }
+
+    dispatch(fetchChannelRemotes(channelId, true));
 }
 
-// handleChannelConvertedEvent handles updating of channel which is converted from public to private
+// handleChannelConvertedEvent handles updating of channel which is converted between public and private
 function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     const channelId = msg.data.channel_id;
     if (channelId) {
         const channel = getChannel(getState(), channelId);
         if (channel) {
+            const newType = msg.data.channel_type === General.OPEN_CHANNEL ? General.OPEN_CHANNEL : General.PRIVATE_CHANNEL;
             dispatch({
                 type: ChannelTypes.RECEIVED_CHANNEL,
-                data: {...channel, type: General.PRIVATE_CHANNEL},
+                data: {...channel, type: newType},
             });
         }
     }
@@ -940,6 +1007,39 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
     dispatch(receivedPost(post, crtEnabled));
 
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+    // This is to handle the case for Data Spillage handling. When a hidden flagged post is restored,
+    // this ensures the post is made visible if a) lies within the boundaries of loaded post blocks,
+    // or b) is newer than all loaded blocks. This ensures an old restored post doesn't become visible on
+    // channel page and cause issue when user scrolls up and loads the older posts in order.
+    if (!post.root_id) {
+        const state = getState();
+        const channelBlocks = state.entities.posts.postsInChannel[post.channel_id];
+        if (channelBlocks && !channelBlocks.some((b) => b.order.includes(post.id))) {
+            const postsDict = state.entities.posts.posts;
+
+            let globalNewest = 0;
+
+            const inLoadedRange = channelBlocks.some((block) => {
+                if (block.order.length === 0) {
+                    return false;
+                }
+                const newest = postsDict[block.order[0]];
+                const oldest = postsDict[block.order[block.order.length - 1]];
+                if (!newest || !oldest) {
+                    return false;
+                }
+
+                globalNewest = Math.max(globalNewest, newest.create_at);
+                return post.create_at >= oldest.create_at && post.create_at <= newest.create_at;
+            });
+
+            const currentChannelId = getCurrentChannelId(state);
+            if (inLoadedRange || (post.create_at > globalNewest && post.channel_id === currentChannelId)) {
+                dispatch(getPostsAround(post.channel_id, post.id));
+            }
+        }
+    }
 }
 
 async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {
@@ -1208,6 +1308,37 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
     };
 }
 
+function handlePropertyFieldCreatedOrUpdated(
+    msg:
+    | WebSocketMessages.PropertyFieldCreated
+    | WebSocketMessages.PropertyFieldUpdated,
+): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let field;
+        try {
+            field = JSON.parse(msg.data.property_field);
+        } catch {
+            return;
+        }
+
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+            data: {fields: [field]},
+        });
+    };
+}
+
+function handlePropertyFieldDeleted(
+    msg: WebSocketMessages.PropertyFieldDeleted,
+): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        doDispatch({
+            type: PropertyTypes.PROPERTY_FIELD_DELETED,
+            data: {fieldId: msg.data.field_id},
+        });
+    };
+}
+
 function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
     return (doDispatch) => {
         let values;
@@ -1224,6 +1355,14 @@ function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdate
             field_id: msg.data.field_id,
             values,
         };
+
+        // Populate the Redux property values store so any component that reads
+        // from entities.properties.values (e.g. GlobalClassificationBanner) gets
+        // real-time updates without an extra network round-trip.
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+            data: {values},
+        });
 
         doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
@@ -2224,6 +2363,33 @@ export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRe
                 position: 'bottom-center',
                 onExited: () => {
                     // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    };
+}
+
+export function handleFileUploadRejected(msg: WebSocketMessages.FileUploadRejected): ThunkActionFunc<void> {
+    return (dispatch) => {
+        const {rejection_reason: rejectionReason} = msg.data;
+
+        const intl = getIntl();
+        const displayMessage = intl.formatMessage(
+            {id: 'file_upload.rejected.file', defaultMessage: 'File upload blocked: {reason}'},
+            {reason: rejectionReason},
+        );
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
+                    message: displayMessage,
+                },
+                position: 'bottom-center',
+                onExited: () => {
                     dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
                 },
             },

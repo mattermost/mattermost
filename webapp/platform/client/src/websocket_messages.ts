@@ -193,6 +193,7 @@ export type ChannelUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelUpdated
 
 export type ChannelConverted = BaseWebSocketMessage<WebSocketEvents.ChannelConverted, {
     channel_id: string;
+    channel_type?: ChannelType;
 }>;
 
 export type SharedChannelRemoteUpdated = BaseWebSocketMessage<WebSocketEvents.SharedChannelRemoteUpdated, {
@@ -373,6 +374,21 @@ export type SidebarCategoryOrderUpdated = BaseWebSocketMessage<WebSocketEvents.S
 
 // Property system messages
 
+export type PropertyFieldCreated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldCreated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldUpdated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldDeleted = BaseWebSocketMessage<WebSocketEvents.PropertyFieldDeleted, {
+    field_id: string;
+    object_type: string;
+}>;
+
 export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyValuesUpdated, {
     object_type?: string;
     target_id?: string;
@@ -486,6 +502,12 @@ export type FileDownloadRejected = BaseWebSocketMessage<WebSocketEvents.FileDown
     channel_id: string;
     post_id: string;
     download_type: string;
+}>;
+
+export type FileUploadRejected = BaseWebSocketMessage<WebSocketEvents.FileUploadRejected, {
+    file_name: string;
+    rejection_reason: string;
+    channel_id: string;
 }>;
 
 export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {

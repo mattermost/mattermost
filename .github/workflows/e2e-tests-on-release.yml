@@ -20,8 +20,12 @@ on:
         required: false
         description: "Comma-separated alias tags (e.g., 'release-11.4, release-11')"
 
+permissions: {}
+
 jobs:
   validate:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     outputs:
       ref_branch: "${{ steps.check.outputs.ref_branch }}"
@@ -30,6 +34,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.branch }}
           fetch-depth: 50
       - name: ci/validate-inputs
@@ -61,6 +66,11 @@ jobs:
   # Enterprise Edition
   e2e-cypress:
     needs: validate
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -82,6 +92,11 @@ jobs:
 
   e2e-playwright:
     needs: validate
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -103,6 +118,11 @@ jobs:
   e2e-cypress-fips:
     needs: validate
     if: needs.validate.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -126,6 +146,11 @@ jobs:
   e2e-playwright-fips:
     needs: validate
     if: needs.validate.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}

@@ -28,8 +28,8 @@ func TestAIBridgeTestHelperAdminPUTGETDELETE(t *testing.T) {
 			Available: true,
 		},
 		FeatureFlags: &model.AIBridgeTestHelperFeatureFlags{
-			EnableAIPluginBridge: model.NewPointer(true),
-			EnableAIRecaps:       model.NewPointer(true),
+			EnableAIPluginBridge: new(true),
+			EnableAIRecaps:       new(true),
 		},
 		Agents: []model.BridgeAgentInfo{{
 			ID:          agentID,
@@ -136,8 +136,8 @@ func TestAIBridgeTestHelperMocksRealEndpoints(t *testing.T) {
 			Available: true,
 		},
 		FeatureFlags: &model.AIBridgeTestHelperFeatureFlags{
-			EnableAIPluginBridge: model.NewPointer(true),
-			EnableAIRecaps:       model.NewPointer(true),
+			EnableAIPluginBridge: new(true),
+			EnableAIRecaps:       new(true),
 		},
 		Agents: []model.BridgeAgentInfo{{
 			ID:          agentID,

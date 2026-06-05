@@ -9,8 +9,13 @@ on:
     types:
       - completed
 
+permissions: {}
+
 jobs:
   generate-report-matrix:
+    permissions:
+      actions: read
+      contents: read
     runs-on: ubuntu-22.04
     outputs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
@@ -62,9 +67,9 @@ jobs:
     needs:
       - generate-report-matrix
     permissions:
+      actions: read
       pull-requests: write
       checks: write
-      issues: write
     strategy:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:
@@ -109,14 +114,15 @@ jobs:
 
       - name: Report retried tests (pull request)
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.event == 'pull_request' }}
+        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && steps.report.outputs.failed == '0' && github.event.workflow_run.event == 'pull_request' }}
         env:
-          TEST_NAME: "${{ matrix.test.name }}"
           FLAKY_SUMMARY: "${{ steps.report.outputs.flaky_summary }}"
           PR_NUMBER: "${{ steps.incoming-pr.outputs.NUMBER }}"
+          TEST_NAME: "${{ matrix.test.name }}"
+          WORKFLOW_RUN_HTML_URL: ${{ github.event.workflow_run.html_url }}
         with:
           script: |
-            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${process.env.TEST_NAME}](${{ github.event.workflow_run.html_url }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\n\n${process.env.FLAKY_SUMMARY}`
+            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Workflow run: [github.com/mattermost/mattermost:${process.env.TEST_NAME}](${process.env.WORKFLOW_RUN_HTML_URL})\n* Double check your code to ensure you have not introduced a flaky test.\n\n${process.env.FLAKY_SUMMARY}`
 
             await github.rest.issues.createComment({
               issue_number: process.env.PR_NUMBER,
@@ -124,3 +130,32 @@ jobs:
               repo: context.repo.repo,
               body: body
             })
+
+      - name: Report retried tests to flaky-test webhook (pull request)
+        if: >-
+          steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>'
+          && steps.report.outputs.failed == '0'
+          && github.event.workflow_run.event == 'pull_request'
+          && env.WEBHOOK_URL_FLAKY_TEST != ''
+          && env.WEBHOOK_AUTH_TOKEN_FLAKY_TEST != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL_FLAKY_TEST: ${{ secrets.WEBHOOK_URL_FLAKY_TEST }}
+          WEBHOOK_AUTH_TOKEN_FLAKY_TEST: ${{ secrets.WEBHOOK_AUTH_TOKEN_FLAKY_TEST }}
+          FLAKY_SUMMARY: ${{ steps.report.outputs.flaky_summary }}
+          PR_NUMBER: ${{ steps.incoming-pr.outputs.NUMBER }}
+          REPO: ${{ github.repository }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg repo "$REPO" \
+            --arg pr_number "$PR_NUMBER" \
+            --arg flaky_summary "$FLAKY_SUMMARY" \
+            '{repo:$repo, pr_number:$pr_number, flaky_summary:$flaky_summary}')
+
+          curl -X POST -fsSL \
+            --connect-timeout 5 \
+            --max-time 30 \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $WEBHOOK_AUTH_TOKEN_FLAKY_TEST" \
+            -d "$PAYLOAD" \
+            "$WEBHOOK_URL_FLAKY_TEST"

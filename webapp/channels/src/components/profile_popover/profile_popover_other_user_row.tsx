@@ -5,6 +5,7 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -93,9 +94,11 @@ const ProfilePopoverOtherUserRow = ({
             {shouldShowButton && (
                 <>
                     {isLoading ? (
-                        <button
+                        <Button
                             type='button'
-                            className='btn btn-primary btn-sm disabled'
+                            emphasis='primary'
+                            size='sm'
+                            className='disabled'
                             disabled={true}
                         >
                             <i
@@ -106,13 +109,14 @@ const ProfilePopoverOtherUserRow = ({
                                 id='user_profile.send.dm.checking'
                                 defaultMessage='Checking...'
                             />
-                        </button>
+                        </Button>
                     ) : (
                         <>
                             {canMessage ? (
-                                <button
+                                <Button
                                     type='button'
-                                    className='btn btn-primary btn-sm'
+                                    emphasis='primary'
+                                    size='sm'
                                     onClick={handleShowDirectChannel}
                                     aria-label={intl.formatMessage({
                                         id: 'user_profile.send.dm.aria_label',
@@ -127,11 +131,13 @@ const ProfilePopoverOtherUserRow = ({
                                         id='user_profile.send.dm'
                                         defaultMessage='Message'
                                     />
-                                </button>
+                                </Button>
                             ) : (
-                                <button
+                                <Button
                                     type='button'
-                                    className='btn btn-primary btn-sm disabled'
+                                    emphasis='primary'
+                                    size='sm'
+                                    className='disabled'
                                     disabled={true}
                                     title={intl.formatMessage({
                                         id: 'user_profile.send.dm.no_connection',
@@ -150,7 +156,7 @@ const ProfilePopoverOtherUserRow = ({
                                         id='user_profile.send.dm'
                                         defaultMessage='Message'
                                     />
-                                </button>
+                                </Button>
                             )}
                         </>
                     )}

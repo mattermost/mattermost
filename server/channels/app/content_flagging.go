@@ -611,6 +611,11 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		return appErr
 	}
 
+	existingComment, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPost.Id, contentFlaggingPropertyNameActorComment)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return appErr
+	}
+
 	propertyValues := []*model.PropertyValue{
 		{
 			TargetID:   flaggedPost.Id,
@@ -623,16 +628,18 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 			TargetID:   flaggedPost.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
-			Value:      commentJsonValue,
-		},
-		{
-			TargetID:   flaggedPost.Id,
-			TargetType: model.PropertyValueTargetTypePost,
-			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameActionTime].ID,
 			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
 		},
+	}
+	if existingComment == nil {
+		propertyValues = append(propertyValues, &model.PropertyValue{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
+			Value:      commentJsonValue,
+		})
 	}
 
 	_, appErr = a.CreatePropertyValues(rctx, propertyValues)
@@ -901,6 +908,9 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		if rErr := a.Srv().Store().Post().RestoreContentFlaggedPost(flaggedPost, statusField.ID, contentFlaggingManagedField.ID); rErr != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.data_spillage.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(rErr)
 		}
+
+		// Undelete the value for broadcasting in WebSocket events
+		flaggedPost.DeleteAt = 0
 	}
 
 	commentBytes, marshalErr := json.Marshal(actionRequest.Comment)
@@ -910,6 +920,11 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	// Storing marshalled content into RawMessage to ensure proper escaping of special characters and prevent
 	// generating unsafe JSON values
 	commentJsonValue := json.RawMessage(commentBytes)
+
+	existingComment, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPost.Id, contentFlaggingPropertyNameActorComment)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return appErr
+	}
 
 	propertyValues := []*model.PropertyValue{
 		{
@@ -923,16 +938,18 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 			TargetID:   flaggedPost.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
-			Value:      commentJsonValue,
-		},
-		{
-			TargetID:   flaggedPost.Id,
-			TargetType: model.PropertyValueTargetTypePost,
-			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameActionTime].ID,
 			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
 		},
+	}
+	if existingComment == nil {
+		propertyValues = append(propertyValues, &model.PropertyValue{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
+			Value:      commentJsonValue,
+		})
 	}
 
 	_, appErr = a.CreatePropertyValues(nil, propertyValues)
@@ -1153,14 +1170,14 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
 	}
 
-	assigneePropertyValue, appErr = a.UpsertPropertyValue(nil, assigneePropertyValue)
+	assigneePropertyValue, appErr = a.UpsertPropertyValue(rctx, assigneePropertyValue)
 	if appErr != nil {
 		return model.NewAppError("AssignFlaggedPostReviewer", "app.data_spillage.assign_reviewer.upsert_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	if status == model.ContentFlaggingStatusPending {
 		statusPropertyValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		statusPropertyValue, appErr = a.UpdatePropertyValue(nil, groupId, statusPropertyValue)
+		statusPropertyValue, appErr = a.UpdatePropertyValue(rctx, groupId, statusPropertyValue)
 		if appErr != nil {
 			return model.NewAppError("AssignFlaggedPostReviewer", "app.data_spillage.assign_reviewer.update_status_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}

@@ -5,6 +5,7 @@ import React from 'react';
 import type {ChangeEvent, ChangeEventHandler} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
@@ -235,7 +236,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
 
                 nextButton = (
                     <SaveButton
-                        btnClass='btn-tertiary'
+                        emphasis='tertiary'
                         extraClasses='pull-right'
                         onClick={this.nextPage}
                         saving={this.state.nextLoading}
@@ -248,8 +249,8 @@ export default class EmojiList extends React.PureComponent<Props, State> {
 
             if (this.state.page > 0) {
                 previousButton = (
-                    <button
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={this.previousPage}
                     >
                         <PreviousIcon additionalClassName='mr-2'/>
@@ -257,7 +258,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                             id='filtered_user_list.prev'
                             defaultMessage='Previous'
                         />
-                    </button>
+                    </Button>
                 );
             }
         }

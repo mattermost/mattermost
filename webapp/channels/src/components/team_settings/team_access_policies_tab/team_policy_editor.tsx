@@ -6,6 +6,7 @@ import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -18,6 +19,7 @@ import {hasUsableAttributes} from 'components/admin_console/access_control/edito
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ChannelList from 'components/admin_console/access_control/policy_details/channel_list';
 import ChannelSelectorModal from 'components/channel_selector_modal';
+import SectionNotice from 'components/section_notice';
 import Input from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
@@ -105,6 +107,7 @@ export default function TeamPolicyEditor({
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [backClicked, setBackClicked] = useState(false);
+    const [hasMaskedRows, setHasMaskedRows] = useState(false);
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -247,6 +250,7 @@ export default function TeamPolicyEditor({
         const channelsAffected = (channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length;
         return {publicCount, privateCount, channelsAffected};
     }, [savedChannelTypes, channelChanges, channelsCount]);
+    const hasMixedChannels = confirmationChannelCounts.publicCount > 0 && confirmationChannelCounts.privateCount > 0;
 
     const validateForm = useCallback(async () => {
         if (policyName.length === 0) {
@@ -259,7 +263,7 @@ export default function TeamPolicyEditor({
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             return false;
         }
-        if (expression.includes('== ""') || expression.includes("== ''") || expression.includes('in []')) {
+        if (expression.includes('== ""') || expression.includes("== ''")) {
             setFormError(formatMessage({id: 'team_settings.policy_editor.error.incomplete_rule', defaultMessage: 'Please complete all attribute rules with a value'}));
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             return false;
@@ -507,6 +511,23 @@ export default function TeamPolicyEditor({
                         </p>
                     </div>
                 </div>
+                {hasMaskedRows && (
+                    <div className='TeamPolicyEditor__masked-values-warning'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                    defaultMessage='This policy contains restricted values'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
+                                defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
+                            })}
+                        />
+                    </div>
+                )}
                 <TableEditor
                     value={expression}
                     onChange={handleExpressionChange}
@@ -524,6 +545,7 @@ export default function TeamPolicyEditor({
                     // nothing to be excluded from in advisory mode, so the
                     // warning is misleading.
                     validateExpressionAgainstRequester={hasPrivateChannelInScope() ? abacActions.validateExpressionAgainstRequester : undefined}
+                    onMaskedStateChange={setHasMaskedRows}
                 />
             </div>
 
@@ -545,15 +567,15 @@ export default function TeamPolicyEditor({
                             />
                         </p>
                     </div>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={() => setAddChannelOpen(true)}
                     >
                         <FormattedMessage
                             id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
                             defaultMessage='Add channels'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <ChannelList
                     onRemoveCallback={addToRemovedChannels}
@@ -566,6 +588,23 @@ export default function TeamPolicyEditor({
                     hideTeamColumn={true}
                     teamId={teamId}
                 />
+                {hasMixedChannels && (
+                    <div className='TeamPolicyEditor__mixed-channels-notice'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.mixed_channels.title'
+                                    defaultMessage='Membership policies affect public and private channels differently'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
+                                defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
+                            })}
+                        />
+                    </div>
+                )}
             </div>
 
             {policyId && (
@@ -594,16 +633,16 @@ export default function TeamPolicyEditor({
                                     )}
                                 </p>
                             </div>
-                            <button
-                                className='btn btn-danger'
+                            <Button
+                                variant='destructive'
                                 onClick={() => setShowDeleteModal(true)}
-                                disabled={hasChannels()}
+                                disabled={hasChannels() || hasMaskedRows}
                             >
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.delete_policy.delete'
                                     defaultMessage='Delete'
                                 />
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </>
@@ -652,29 +691,31 @@ export default function TeamPolicyEditor({
                     }
                     footerContent={
                         <div className='TeamPolicyEditor__delete-modal-footer'>
-                            <button
+                            <Button
                                 type='button'
-                                className='btn btn-tertiary'
+                                emphasis='tertiary'
                                 onClick={() => setShowDeleteModal(false)}
                             >
                                 {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.cancel', defaultMessage: 'Cancel'})}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type='button'
-                                className='btn btn-danger'
+                                variant='destructive'
                                 onClick={handleDelete}
                             >
                                 {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.confirm', defaultMessage: 'Delete'})}
-                            </button>
+                            </Button>
                         </div>
                     }
                 >
-                    <p>
-                        <FormattedMessage
-                            id='team_settings.policy_editor.delete_confirmation.body'
-                            defaultMessage='This action cannot be undone.'
-                        />
-                    </p>
+                    <>
+                        <p>
+                            <FormattedMessage
+                                id='team_settings.policy_editor.delete_confirmation.body'
+                                defaultMessage='This action cannot be undone.'
+                            />
+                        </p>
+                    </>
                 </GenericModal>
             )}
 

@@ -233,7 +233,9 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
 }
 
 func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
-	a.Srv().Platform().ClearSessionCacheForAllUsersSkipClusterSend()
+	if err := a.Srv().Platform().ClearSessionCacheForAllUsersSkipClusterSend(); err != nil {
+		a.Srv().Platform().Log().Error("Failed to clear session cache for all users", mlog.Err(err))
+	}
 }
 
 func (a *App) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError {
@@ -367,6 +369,20 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 		return 0
 	}
 
+	// For PAT sessions with a fixed expiry, return the remaining lifetime so
+	// that ExtendSessionExpiryIfNeeded never pushes ExpiresAt past the token's
+	// own expiry. The elapsed threshold check collapses to zero, so extension
+	// is effectively a no-op for these sessions (correct: the expiry is fixed).
+	// PAT sessions with ExpiresAt == 0 (non-expiring) fall through to normal
+	// web-session behavior.
+	if session.Props[model.SessionPropType] == model.SessionTypeUserAccessToken && session.ExpiresAt > 0 {
+		remaining := session.ExpiresAt - model.GetMillis()
+		if remaining < 0 {
+			return 0
+		}
+		return remaining
+	}
+
 	var hours int
 	if session.IsMobileApp() {
 		hours = *a.Config().ServiceSettings.SessionLengthMobileInHours
@@ -385,6 +401,49 @@ func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
 	a.ch.srv.platform.SetSessionExpireInHours(session, hours)
 }
 
+// validateUserAccessTokenExpiry checks a token's ExpiresAt against
+// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays. 0 means no policy:
+// never-expiring tokens are allowed. A value > 0 requires the token to expire
+// within that many days, so ExpiresAt == 0 or an expiry beyond the cap is
+// rejected. Only newly created tokens are checked; existing tokens are not
+// re-validated.
+func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model.AppError {
+	cfg := a.Config().ServiceSettings
+
+	maxDays := int64(0)
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil {
+		maxDays = int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	}
+
+	if token.ExpiresAt == 0 {
+		// A configured maximum lifetime implies tokens must expire; never-expiring
+		// tokens are only allowed when no maximum is set.
+		if maxDays > 0 {
+			return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_required.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil
+	}
+
+	if token.ExpiresAt <= model.GetMillis() {
+		return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_in_past.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if maxDays > 0 {
+		maxExpiry := model.GetMillis() + maxDays*24*60*60*1000
+		if token.ExpiresAt > maxExpiry {
+			return model.NewAppError(
+				"CreateUserAccessToken",
+				"app.user_access_token.expires_at_too_far.app_error",
+				map[string]any{"Days": maxDays},
+				"",
+				http.StatusBadRequest,
+			)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
 	if nErr != nil {
@@ -399,6 +458,16 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	// Bot accounts are exempt from the PAT expiry policy, matching the existing
+	// EnableUserAccessTokens bypass above: bots are programmatic clients that
+	// typically need long-lived credentials, and integrations that provision
+	// them would otherwise break the moment an admin enables enforcement.
+	if !user.IsBot {
+		if err := a.validateUserAccessTokenExpiry(token); err != nil {
+			return nil, err
+		}
 	}
 
 	token.Token = model.NewId()
@@ -449,6 +518,15 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false", http.StatusUnauthorized)
 	}
 
+	if token.IsExpired() {
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventRejectExpiredUserAccessToken, model.AuditStatusFail)
+		auditRec.AddMeta("token_id", token.Id)
+		auditRec.AddMeta("user_id", token.UserId)
+		auditRec.AddMeta("expires_at", token.ExpiresAt)
+		a.LogAuditRec(rctx, auditRec, nil)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token", http.StatusUnauthorized)
+	}
+
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -475,6 +553,12 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
 	a.ch.srv.platform.SetSessionExpireInHours(session, model.SessionUserAccessTokenExpiryHours)
+
+	// If the underlying PAT has a non-zero expiry, clamp the session expiry to
+	// the token's ExpiresAt so that cached sessions honor PAT expiry as well.
+	if token.ExpiresAt > 0 && (session.ExpiresAt == 0 || token.ExpiresAt < session.ExpiresAt) {
+		session.ExpiresAt = token.ExpiresAt
+	}
 
 	session, nErr = a.Srv().Store().Session().Save(rctx, session)
 	if nErr != nil {

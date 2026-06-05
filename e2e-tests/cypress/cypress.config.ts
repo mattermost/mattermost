@@ -13,8 +13,8 @@ export default defineConfig({
     numTestsKeptInMemory: 0,
     retries: {
 
-        // 2 retries for cypress:run
-        runMode: 2,
+        // retries for cypress:run
+        runMode: 1,
 
         // No retries for cypress:open
         openMode: 0,
@@ -27,9 +27,9 @@ export default defineConfig({
     viewportWidth: 1300,
     allowCypressEnv: false,
     expose: {
-        adminEmail: 'sysadmin@sample.mattermost.com',
-        adminUsername: 'sysadmin',
-        adminPassword: 'Sys@dmin-sample1',
+        adminEmail: process.env.CYPRESS_adminEmail || 'sysadmin@sample.mattermost.com',
+        adminUsername: process.env.CYPRESS_adminUsername || 'sysadmin',
+        adminPassword: process.env.CYPRESS_adminPassword || 'Sys@dmin-sample1',
         allowedUntrustedInternalConnections: 'localhost',
         cwsURL: 'http://localhost:8076',
         cwsAPIURL: 'http://localhost:8076',

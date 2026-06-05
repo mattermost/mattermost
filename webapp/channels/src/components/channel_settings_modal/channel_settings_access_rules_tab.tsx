@@ -6,7 +6,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import {
+    getMembershipRule,
+    buildRulesWithMembership,
+} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -470,7 +473,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             setIsProcessingSave(false);
         }
-    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
+    }, [channel.id, channel.display_name, expression, existingRules, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<SaveResult> => {
@@ -724,7 +727,7 @@ function ChannelSettingsAccessRulesTab({
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
                     {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
                         id: 'channel_settings.access_rules.subtitle_public',
-                        defaultMessage: 'Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.',
+                        defaultMessage: 'Define who this channel is recommended for. The channel stays open to everyone.',
                     }) : formatMessage({
                         id: 'channel_settings.access_rules.subtitle',
                         defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
@@ -806,7 +809,7 @@ function ChannelSettingsAccessRulesTab({
                             if (isPublic) {
                                 return formatMessage({
                                     id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
-                                    defaultMessage: 'Qualifying users are automatically added as members. Members can still leave on their own — no one is removed based on these rules.',
+                                    defaultMessage: 'Users who match these rules will be added to this channel. They can leave anytime and won\'t be re-added.',
                                 });
                             }
                             return formatMessage({
@@ -873,7 +876,6 @@ function ChannelSettingsAccessRulesTab({
                 onConfirm={() => setShowSelfExclusionModal(false)}
                 onCancel={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
-                confirmButtonClass='btn btn-primary'
                 isStacked={true}
             />
 

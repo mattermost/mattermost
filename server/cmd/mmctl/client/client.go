@@ -82,7 +82,7 @@ type Client interface {
 	UpdateUserMfa(ctx context.Context, userID, code string, activate bool) (*model.Response, error)
 	UpdateUserPassword(ctx context.Context, userID, currentPassword, newPassword string) (*model.Response, error)
 	UpdateUserHashedPassword(ctx context.Context, userID, newHashedPassword string) (*model.Response, error)
-	CreateUserAccessToken(ctx context.Context, userID, description string) (*model.UserAccessToken, *model.Response, error)
+	CreateUserAccessToken(ctx context.Context, userID, description string, expiresAt int64) (*model.UserAccessToken, *model.Response, error)
 	RevokeUserAccessToken(ctx context.Context, tokenID string) (*model.Response, error)
 	GetUserAccessTokensForUser(ctx context.Context, userID string, page, perPage int) ([]*model.UserAccessToken, *model.Response, error)
 	ConvertUserToBot(ctx context.Context, userID string) (*model.Bot, *model.Response, error)
