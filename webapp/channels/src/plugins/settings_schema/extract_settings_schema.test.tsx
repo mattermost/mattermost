@@ -157,6 +157,64 @@ describe('extractSettingsSchema', () => {
         expect(result).toBeUndefined();
     });
 
+    it('runs the section extra validation hook and merges its result per declarative section', () => {
+        const onSubmit = jest.fn();
+        const result = extractSettingsSchema<unknown, {onSubmit?: unknown}>(baseSchema({
+            sections: [
+                {title: 'Section A', settings: [radioSetting], onSubmit},
+            ],
+        }), 'plugin', {
+            sectionExtraValidation: (section) => {
+                if (!section || typeof section !== 'object') {
+                    return undefined;
+                }
+                if ('onSubmit' in section && section.onSubmit) {
+                    if (typeof section.onSubmit !== 'function') {
+                        return undefined;
+                    }
+                    return {onSubmit: section.onSubmit};
+                }
+                return {};
+            },
+        });
+
+        expect(result).toBeDefined();
+        const section = result!.sections[0];
+        expect('onSubmit' in section && section.onSubmit).toBe(onSubmit);
+    });
+
+    it('drops a declarative section when the section extra validation hook rejects it', () => {
+        const result = extractSettingsSchema<unknown, Record<string, never>>(baseSchema({
+            sections: [
+                {title: 'Bad', settings: [radioSetting], onSubmit: 'not-a-function'},
+                {title: 'Good', settings: [radioSetting]},
+            ],
+        }), 'plugin', {
+            sectionExtraValidation: (section) => {
+                if (section && typeof section === 'object' && 'onSubmit' in section && typeof section.onSubmit !== 'function') {
+                    return undefined;
+                }
+                return {};
+            },
+        });
+
+        expect(result).toBeDefined();
+        expect(result?.sections).toHaveLength(1);
+        expect(result?.sections[0].title).toBe('Good');
+    });
+
+    it('does not run the section hook for custom (component) sections', () => {
+        const sectionExtraValidation = jest.fn(() => ({}));
+        const result = extractSettingsSchema<unknown, Record<string, never>>(baseSchema({
+            sections: [
+                {title: 'Custom', component: Valid},
+            ],
+        }), 'plugin', {sectionExtraValidation});
+
+        expect(result).toBeDefined();
+        expect(sectionExtraValidation).not.toHaveBeenCalled();
+    });
+
     it('drops sections with duplicate titles and warns', () => {
         const schema = baseSchema({
             sections: [

@@ -21,13 +21,27 @@ import type {
 /**
  * Validates a context-specific top-level field set (e.g. channel settings'
  * `onSave`). Return the extracted extra fields, or `undefined` to reject the
- * whole schema. Kept generic so the planned User Settings migration can reuse
- * it as a second caller.
+ * whole schema. Kept generic so callers (channel and user settings) can reuse
+ * it.
  */
 export type ExtraSchemaValidation<Extra> = (schema: unknown) => Extra | undefined;
 
-type Options<Extra> = {
+/**
+ * Validates a context-specific per-section field set (e.g. user settings'
+ * `onSubmit`). Return the extracted extra fields to merge into the declarative
+ * section, or `undefined` to drop that section (matching the default
+ * drop-and-warn behavior). Only declarative sections are passed here; custom
+ * (component) sections are left untouched.
+ */
+export type ExtraSectionValidation<SectionExtra> = (section: unknown) => SectionExtra | undefined;
+
+type Options<Extra, SectionExtra> = {
     extraValidation?: ExtraSchemaValidation<Extra>;
+    sectionExtraValidation?: ExtraSectionValidation<SectionExtra>;
+};
+
+type ExtractedSettingsSchema<Extra, SectionExtra> = Omit<SettingsSchema, 'sections'> & Extra & {
+    sections: Array<(SettingsSection & SectionExtra) | CustomSection>;
 };
 
 /**
@@ -35,9 +49,10 @@ type Options<Extra> = {
  * {@link SettingsSchema}. Invalid pieces are dropped with a console warning so
  * a single malformed setting cannot break the host. The optional
  * `extraValidation` hook lets a calling context validate and pull in its own
- * top-level fields.
+ * top-level fields; `sectionExtraValidation` does the same per declarative
+ * section.
  */
-export function extractSettingsSchema<Extra = unknown>(schema: unknown, pluginId: string, options: Options<Extra> = {}): (SettingsSchema & Extra) | undefined {
+export function extractSettingsSchema<Extra = unknown, SectionExtra = unknown>(schema: unknown, pluginId: string, options: Options<Extra, SectionExtra> = {}): ExtractedSettingsSchema<Extra, SectionExtra> | undefined {
     if (!schema || typeof schema !== 'object') {
         return undefined;
     }
@@ -68,10 +83,10 @@ export function extractSettingsSchema<Extra = unknown>(schema: unknown, pluginId
         extra = validatedExtra;
     }
 
-    const sections: Array<SettingsSection | CustomSection> = [];
+    const sections: Array<(SettingsSection & SectionExtra) | CustomSection> = [];
     const seenTitles = new Set<string>();
     for (const section of schema.sections) {
-        const validSection = extractSection(section, pluginId);
+        const validSection = extractSection(section, pluginId, options.sectionExtraValidation);
         if (!validSection) {
             // eslint-disable-next-line no-console
             console.warn(`Plugin ${pluginId} is trying to register an invalid settings section. Contact the plugin developer to fix this issue.`);
@@ -101,7 +116,7 @@ export function extractSettingsSchema<Extra = unknown>(schema: unknown, pluginId
     };
 }
 
-function extractSection(section: unknown, pluginId: string): SettingsSection | CustomSection | undefined {
+function extractSection<SectionExtra>(section: unknown, pluginId: string, sectionExtraValidation?: ExtraSectionValidation<SectionExtra>): (SettingsSection & SectionExtra) | CustomSection | undefined {
     if (!section || typeof section !== 'object') {
         return undefined;
     }
@@ -149,10 +164,20 @@ function extractSection(section: unknown, pluginId: string): SettingsSection | C
         return undefined;
     }
 
+    let sectionExtra = {} as SectionExtra;
+    if (sectionExtraValidation) {
+        const validatedExtra = sectionExtraValidation(section);
+        if (validatedExtra === undefined) {
+            return undefined;
+        }
+        sectionExtra = validatedExtra;
+    }
+
     return {
         title: section.title,
         settings,
         disabled,
+        ...sectionExtra,
     };
 }
 
