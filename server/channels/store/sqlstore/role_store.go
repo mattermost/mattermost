@@ -137,9 +137,9 @@ func (s *SqlRoleStore) validateForSave(role *model.Role, preserveUnknownPermissi
 				}
 			}
 
-			roleCopy := *role
+			roleCopy := role.Clone()
 			roleCopy.Permissions = known
-			roleToValidate = &roleCopy
+			roleToValidate = roleCopy
 		}
 	}
 

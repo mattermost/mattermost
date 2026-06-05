@@ -428,6 +428,19 @@ type Role struct {
 	SchemeId      *string  `json:"scheme_id"`
 }
 
+func (r *Role) Clone() *Role {
+	rCopy := *r
+	if r.Permissions != nil {
+		rCopy.Permissions = make([]string, len(r.Permissions))
+		copy(rCopy.Permissions, r.Permissions)
+	}
+	if r.SchemeId != nil {
+		schemeId := *r.SchemeId
+		rCopy.SchemeId = &schemeId
+	}
+	return &rCopy
+}
+
 func (r *Role) Auditable() map[string]any {
 	return map[string]any{
 		"id":             r.Id,
