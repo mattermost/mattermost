@@ -458,6 +458,51 @@ func TestRoleUnknownPermissions(t *testing.T) {
 	})
 }
 
+func TestRoleClone(t *testing.T) {
+	schemeId := NewId()
+	original := &Role{
+		Id:            NewId(),
+		Name:          "test_role",
+		DisplayName:   "Test Role",
+		Description:   "desc",
+		CreateAt:      1000,
+		UpdateAt:      2000,
+		DeleteAt:      0,
+		Permissions:   []string{"invite_user", "add_user_to_team"},
+		SchemeManaged: true,
+		BuiltIn:       false,
+		SchemeId:      &schemeId,
+	}
+
+	t.Run("clone equals original", func(t *testing.T) {
+		cloned := original.Clone()
+		assert.Equal(t, original, cloned)
+	})
+
+	t.Run("permissions are deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		cloned.Permissions[0] = "mutated"
+		assert.Equal(t, "invite_user", original.Permissions[0])
+	})
+
+	t.Run("scheme id pointer is deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		newId := NewId()
+		cloned.SchemeId = &newId
+		assert.Equal(t, schemeId, *original.SchemeId)
+	})
+
+	t.Run("nil permissions stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().Permissions)
+	})
+
+	t.Run("nil scheme id stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().SchemeId)
+	})
+}
+
 func TestRoleIsValid(t *testing.T) {
 	validRole := func() *Role {
 		return &Role{
