@@ -7,7 +7,16 @@
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import type {GlobalState} from 'types/store';
+
 import {langFiles, langIDs, langLabels} from './imports';
+
+export interface Language {
+    value: string;
+    name: string;
+    order: number;
+    url: string;
+}
 
 // should match the values in server/public/shared/i18n/i18n.go
 export const languages = {
@@ -145,14 +154,14 @@ export const languages = {
     },
 };
 
-export function getAllLanguages(includeExperimental) {
+export function getAllLanguages(includeExperimental = false): Record<string, Language> {
     if (includeExperimental) {
         let order = Object.keys(languages).length;
         return {
-            ...langIDs.reduce((out, id) => {
+            ...langIDs.reduce<Record<string, Language>>((out, id) => {
                 out[id] = {
                     value: id,
-                    name: langLabels[id] + ' (Experimental)',
+                    name: langLabels[id as keyof typeof langLabels] + ' (Experimental)',
                     url: langFiles[id],
                     order: order++,
                 };
@@ -164,32 +173,23 @@ export function getAllLanguages(includeExperimental) {
     return languages;
 }
 
-/**
- * @param {import('types/store').GlobalState} state
- * @returns {Record<string, Language>}
- */
-export function getLanguages(state) {
+export function getLanguages(state: GlobalState) {
     const config = getConfig(state);
     if (!config.AvailableLocales) {
         return getAllLanguages(config.EnableExperimentalLocales === 'true');
     }
-    return config.AvailableLocales.split(',').reduce((result, l) => {
-        if (languages[l]) {
-            result[l] = languages[l];
+    return config.AvailableLocales.split(',').reduce<Record<string, Language>>((result, l) => {
+        if (Object.hasOwn(languages, l)) {
+            result[l] = languages[l as keyof typeof languages];
         }
         return result;
     }, {});
 }
 
-export function getLanguageInfo(locale) {
+export function getLanguageInfo(locale: string) {
     return getAllLanguages(true)[locale];
 }
 
-/**
- * @param {import('types/store').GlobalState} state
- * @param {string} locale
- * @returns {boolean}
- */
-export function isLanguageAvailable(state, locale) {
+export function isLanguageAvailable(state: GlobalState, locale: string) {
     return Boolean(getLanguages(state)[locale]);
 }
