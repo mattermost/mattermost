@@ -38,7 +38,7 @@ export class DynamicVirtualizedList extends PureComponent {
 
     state = {
         scrollDirection: 'backward',
-        scrollOffset: typeof this.props.initialScrollOffset === 'number' ? this.props.initialScrollOffset : 0,
+        scrollOffset: 0,
         scrollUpdateWasRequested: false,
         scrollDelta: 0,
         scrollHeight: 0,
@@ -123,13 +123,6 @@ export class DynamicVirtualizedList extends PureComponent {
     }
 
     componentDidMount() {
-        const {initialScrollOffset} = this.props;
-
-        if (typeof initialScrollOffset === 'number' && this._outerRef !== null) {
-            const element = this._outerRef;
-            element.scrollTop = initialScrollOffset;
-        }
-
         this._commitHook();
     }
 
