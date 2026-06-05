@@ -79,13 +79,13 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         const expected = {
             clientId: '1234abcd',
-            codeChallenge: '',
-            codeChallengeMethod: '',
-            responseType: '',
-            redirectUri: '',
-            state: '',
-            scope: '',
-            resource: '',
+            codeChallenge: null,
+            codeChallengeMethod: null,
+            responseType: null,
+            redirectUri: null,
+            state: null,
+            scope: null,
+            resource: null,
         };
         expect(props.actions.allowOAuth2).toHaveBeenCalled();
         expect(props.actions.allowOAuth2).toHaveBeenCalledWith(expected);
@@ -104,12 +104,12 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         const expected = {
             clientId: '1234abcd',
-            codeChallenge: '',
-            codeChallengeMethod: '',
-            responseType: '',
-            redirectUri: '',
-            state: '',
-            scope: '',
+            codeChallenge: null,
+            codeChallengeMethod: null,
+            responseType: null,
+            redirectUri: null,
+            state: null,
+            scope: null,
             resource: 'https://example.com/api',
         };
         expect(props.actions.allowOAuth2).toHaveBeenCalled();
