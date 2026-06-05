@@ -475,6 +475,28 @@ func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channe
 	return false, false
 }
 
+// HasPermissionToResolveChannelMention determines whether the specified user may have a
+// ~channel mention resolved to its display name and link.
+//
+// Unlike HasPermissionToReadChannel, this exposes only the public channel NAME and link —
+// never post/file content — so it is intentionally INDEPENDENT of ComplianceSettings.
+// A public channel name is already discoverable within its team via browse/search/autocomplete,
+// and following the link still requires joining the channel (which creates the compliance trail).
+//
+// Private/DM/GM channels resolve only for members (via the content-read check). Public channels
+// on a team the user does not belong to stay unresolved, preventing cross-team disclosure.
+func (a *App) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
+	if ok, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
+		return true
+	}
+
+	if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypeOpenBoard {
+		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionReadPublicChannel)
+	}
+
+	return false
+}
+
 func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if ok, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true
@@ -730,7 +752,13 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		return true
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles, channelID)
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, channelID)
+	} else {
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, roles, channelID)
+	}
 	if appErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
 			mlog.String("user_id", userID),

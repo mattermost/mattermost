@@ -5,7 +5,7 @@ import type {Channel} from './channels';
 import type {FileInfo} from './files';
 import type {IDMappedObjects} from './utilities';
 
-type ChannelBookmarkType = 'link' | 'file';
+type ChannelBookmarkType = 'link' | 'file' | 'board';
 
 export type ChannelBookmark = {
     id: string;
@@ -22,6 +22,7 @@ export type ChannelBookmark = {
     image_url?: string;
     emoji?: string;
     type: ChannelBookmarkType;
+    target_id?: string;
     original_id?: string;
     parent_id?: string;
 }
