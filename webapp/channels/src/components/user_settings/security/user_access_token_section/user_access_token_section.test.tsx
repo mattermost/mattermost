@@ -11,6 +11,7 @@ import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserAccessTokenSection, {
+    clampExpiresAtToMaxLifetime,
     deriveTokenStatus,
     endOfLocalDayFromIsoDate,
     endOfLocalDayPlusDays,
@@ -118,6 +119,33 @@ describe('user_access_token_section helpers', () => {
     describe('PRESET_DAYS', () => {
         test('exposes the preset durations used by the UI', () => {
             expect(PRESET_DAYS).toEqual({'7d': 7, '30d': 30, '90d': 90, '1y': 365});
+        });
+    });
+
+    describe('clampExpiresAtToMaxLifetime', () => {
+        const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+        test('returns the value unchanged when no maximum lifetime is set', () => {
+            const sevenDays = endOfLocalDayPlusDays(7);
+            expect(clampExpiresAtToMaxLifetime(sevenDays, 0)).toBe(sevenDays);
+        });
+
+        test('returns 0 (never-expiring) unchanged', () => {
+            expect(clampExpiresAtToMaxLifetime(0, 30)).toBe(0);
+        });
+
+        test('leaves an in-range expiry below the cap unchanged', () => {
+            const sevenDays = endOfLocalDayPlusDays(7);
+            expect(clampExpiresAtToMaxLifetime(sevenDays, 30)).toBe(sevenDays);
+        });
+
+        test('clamps the end-of-day preset equal to the cap down to the server cap', () => {
+            // endOfLocalDayPlusDays(30) is end-of-day, ~12h past the exact 30-day cap.
+            expect(clampExpiresAtToMaxLifetime(endOfLocalDayPlusDays(30), 30)).toBe(FROZEN_NOW + (30 * MS_PER_DAY));
+        });
+
+        test('clamps an over-the-cap custom date down to the server cap', () => {
+            expect(clampExpiresAtToMaxLifetime(endOfLocalDayFromIsoDate('2027-01-01'), 30)).toBe(FROZEN_NOW + (30 * MS_PER_DAY));
         });
     });
 });

@@ -151,6 +151,37 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         await expect(modal.getByText('Expiry can be at most 30 days from now.')).toBeVisible();
     });
 
+    test('creates a token with the default preset under a maximum lifetime', async ({pw}) => {
+        test.setTimeout(120000);
+        const {user, adminClient} = await pw.initSetup();
+        await adminClient.patchConfig({
+            ServiceSettings: {EnableUserAccessTokens: true, MaximumPersonalAccessTokenLifetimeDays: 30},
+        });
+        await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (
+                cfg.ServiceSettings?.EnableUserAccessTokens === true &&
+                cfg.ServiceSettings?.MaximumPersonalAccessTokenLifetimeDays === 30
+            );
+        });
+
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        const modal = await openTokensSection(channelsPage.page);
+        await modal.getByRole('button', {name: 'Create Token'}).click();
+
+        // # Accept the default preset (which equals the cap) and save
+        await modal.locator('#newTokenDescription').fill('My token');
+        await modal.getByRole('button', {name: 'Save'}).click();
+
+        // * The token is created (the server accepts the clamped expiry) and revealed
+        await expect(modal.getByText('Access Token:')).toBeVisible();
+        await expect(modal.getByText('Expiry can be at most 30 days from now.')).toBeHidden();
+    });
+
     test('shows status and expiry for existing tokens', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();

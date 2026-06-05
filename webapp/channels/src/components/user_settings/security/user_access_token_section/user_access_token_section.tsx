@@ -30,6 +30,7 @@ const TOKEN_CREATED = 'created';
 const TOKEN_NOT_CREATING = 'not_creating';
 
 const APPROACHING_EXPIRY_DAYS = 7;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export type ExpiryPreset = 'none' | '7d' | '30d' | '90d' | '1y' | 'custom';
 
@@ -54,6 +55,19 @@ export function endOfLocalDayFromIsoDate(isoDate: string): number {
         return 0;
     }
     return new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
+}
+
+// The presets and custom dates resolve to end-of-local-day, which can sit up to
+// ~24h beyond the server's cap of "now + maxLifetimeDays" (the server measures an
+// exact duration from the moment of creation, not end-of-day). Clamp the submitted
+// value to that cap so the in-range presets (including the default, which equals the
+// cap) and the maximum selectable custom date are accepted. The server evaluates its
+// cap slightly later than this, so the clamped value stays safely under it.
+export function clampExpiresAtToMaxLifetime(expiresAt: number, maxLifetimeDays: number): number {
+    if (expiresAt > 0 && maxLifetimeDays > 0) {
+        return Math.min(expiresAt, Date.now() + (maxLifetimeDays * MS_PER_DAY));
+    }
+    return expiresAt;
 }
 
 function todayIso(): string {
@@ -325,8 +339,13 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         this.setState({tokenError: '', saving: true});
         this.props.setRequireConfirm(true, this.confirmCopyToken);
 
+        // Validation above runs on the raw end-of-day value so an explicitly
+        // out-of-range custom date is still rejected; the submitted value is clamped
+        // to the server cap so in-range end-of-day expiries aren't rejected as too far.
+        const clampedExpiresAt = clampExpiresAtToMaxLifetime(expiresAt, maxLifetimeDays);
+
         const userId = this.props.user ? this.props.user.id : '';
-        const {data, error} = await this.props.actions.createUserAccessToken(userId, description, expiresAt > 0 ? expiresAt : undefined);
+        const {data, error} = await this.props.actions.createUserAccessToken(userId, description, clampedExpiresAt > 0 ? clampedExpiresAt : undefined);
 
         if (data && this.state.tokenCreationState === TOKEN_CREATING) {
             this.setState({tokenCreationState: TOKEN_CREATED, newToken: data, saving: false});
@@ -606,8 +625,14 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
 
             const hasExpiry = Boolean(token.expires_at && token.expires_at > 0);
             const msUntilExpiry = hasExpiry ? (token.expires_at as number) - Date.now() : Infinity;
-            const approachingExpiry = status === 'active' && hasExpiry && msUntilExpiry > 0 && msUntilExpiry < APPROACHING_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-            const daysUntilExpiry = Math.max(0, Math.ceil(msUntilExpiry / (24 * 60 * 60 * 1000)));
+            const approachingExpiry = status === 'active' && hasExpiry && msUntilExpiry > 0 && msUntilExpiry < APPROACHING_EXPIRY_DAYS * MS_PER_DAY;
+
+            // Count whole calendar days from the start of today to the expiry day. Expiries
+            // land on end-of-local-day, so measuring from start-of-today and flooring avoids
+            // over-reporting by one (e.g. a 7-day token reads "7 days", not "8").
+            const startOfToday = new Date();
+            startOfToday.setHours(0, 0, 0, 0);
+            const daysUntilExpiry = hasExpiry ? Math.max(0, Math.floor(((token.expires_at as number) - startOfToday.getTime()) / MS_PER_DAY)) : 0;
             const expiresSoonLabel = approachingExpiry ? this.props.intl.formatMessage(
                 {
                     id: 'user.settings.tokens.expiresSoon',
@@ -824,6 +849,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                                 id='newTokenExpiryCustom'
                                 className='form-control mt-2'
                                 type='date'
+                                aria-label={this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.customDate', defaultMessage: 'Custom expiry date'})}
                                 value={customExpiryDate}
                                 min={todayIso()}
                                 max={maxCustomIso}

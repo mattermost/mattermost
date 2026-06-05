@@ -7486,6 +7486,7 @@
   "user.settings.tokens.expiry.7d": "7 days",
   "user.settings.tokens.expiry.90d": "90 days",
   "user.settings.tokens.expiry.custom": "Custom date…",
+  "user.settings.tokens.expiry.customDate": "Custom expiry date",
   "user.settings.tokens.expiry.never": "Never",
   "user.settings.tokens.expiry.none": "No expiry",
   "user.settings.tokens.expiryEnforced": "Your administrator requires all personal access tokens to have an expiry date.",
