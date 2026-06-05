@@ -487,8 +487,8 @@ func TestRoleClone(t *testing.T) {
 
 	t.Run("scheme id pointer is deep copied", func(t *testing.T) {
 		cloned := original.Clone()
-		newId := NewId()
-		cloned.SchemeId = &newId
+		require.NotSame(t, original.SchemeId, cloned.SchemeId)
+		*cloned.SchemeId = NewId()
 		assert.Equal(t, schemeId, *original.SchemeId)
 	})
 
