@@ -191,11 +191,16 @@ func TestRankSharedOnly_Value(t *testing.T) {
 		assert.Equal(t, target.Value, retrieved.Value)
 	})
 
-	t.Run("target above caller's rank is hidden", func(t *testing.T) {
+	t.Run("target above caller's rank is clamped to the caller's rank", func(t *testing.T) {
 		target := assignRank(t, model.NewId(), "opt_topsecret") // rank 3
 		retrieved, getErr := th.service.GetPropertyValue(rctxCaller, th.CPAGroupID, target.ID)
 		require.NoError(t, getErr)
-		assert.Nil(t, retrieved)
+		require.NotNil(t, retrieved)
+
+		expected, jsonErr := json.Marshal("opt_secret") // caller holds Secret (rank 2)
+		require.NoError(t, jsonErr)
+		assert.Equal(t, json.RawMessage(expected), retrieved.Value,
+			"caller at Secret viewing a TopSecret target should see the value clamped to Secret, the highest rank they share")
 	})
 
 	t.Run("caller with no value of their own sees nothing", func(t *testing.T) {

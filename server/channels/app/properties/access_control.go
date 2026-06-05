@@ -1039,8 +1039,9 @@ func buildOptionRankMap(field *model.PropertyField) map[string]int {
 
 // filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
 // Returns the filtered value or nil if there's no intersection.
-//   - rank: the target's value is visible when its rank is at or below the caller's own
-//     rank ("everything at your rank and lower"). See filterSharedOnlyRankValue.
+//   - rank: clearance-style. The caller sees the option at the highest rank they share with the
+//     target — the target's own value when its rank is at or below the caller's, otherwise the
+//     value clamped down to the option at the caller's own rank. See filterSharedOnlyRankValue.
 //   - select / multiselect: per-value intersection (a multi-value field may return a subset).
 //   - text / date / user / any other primitive type: binary — visible only if the caller's
 //     stored value equals the target's value exactly. Otherwise nil.
@@ -1102,12 +1103,16 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 	}
 }
 
-// filterSharedOnlyRankValue returns the target's value when its rank is at or
-// below the caller's own rank ("everything at your rank and lower"), otherwise
-// nil. This differs from select/multiselect, which require an exact option
-// match. A caller who holds no value of their own (and therefore has no rank)
-// sees nothing. A rank field is select-shaped, so the target has at most one
-// option.
+// filterSharedOnlyRankValue returns the target's value clamped to the highest
+// rank the caller shares with the target: the target's own value when its rank
+// is at or below the caller's, otherwise the value rewritten to the option at
+// the caller's own rank. The caller therefore always learns the highest level
+// they have in common ("what can we talk about, and at what level") rather than
+// seeing nothing when the target outranks them, but never sees a rank above
+// their own. This differs from select/multiselect, which require an exact
+// option match. A caller who holds no value of their own (and therefore has no
+// rank) sees nothing. A rank field is select-shaped, so the target has at most
+// one option.
 func (h *AccessControlHook) filterSharedOnlyRankValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	rankByID := buildOptionRankMap(field)
 	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
@@ -1121,16 +1126,45 @@ func (h *AccessControlHook) filterSharedOnlyRankValue(field *model.PropertyField
 	}
 
 	for targetID := range targetOptionIDs {
-		rank, ok := rankByID[targetID]
+		targetRank, ok := rankByID[targetID]
 		if !ok {
 			continue
 		}
-		if rank <= callerRank {
+		if targetRank <= callerRank {
 			filtered := *value
 			return &filtered
 		}
+		// The target outranks the caller: clamp the value down to the option at
+		// the caller's own rank, the highest rung they share with the target.
+		return h.clampRankValueToRank(value, rankByID, callerRank)
 	}
 	return nil
+}
+
+// clampRankValueToRank returns a copy of value rewritten to the rank field's
+// option at the given rank. Ranks are unique per field, so exactly one option
+// matches. Returns nil if no option carries the rank (not expected, since the
+// rank is taken from an existing option) or the rewrite fails.
+func (h *AccessControlHook) clampRankValueToRank(value *model.PropertyValue, rankByID map[string]int, rank int) *model.PropertyValue {
+	var optionID string
+	for id, r := range rankByID {
+		if r == rank {
+			optionID = id
+			break
+		}
+	}
+	if optionID == "" {
+		return nil
+	}
+
+	jsonValue, err := json.Marshal(optionID)
+	if err != nil {
+		return nil
+	}
+
+	clamped := *value
+	clamped.Value = jsonValue
+	return &clamped
 }
 
 // filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
