@@ -79,6 +79,22 @@
         }
     }
 
+    &__pluginTab {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 60px;
+    }
+
+    &__schemaSection {
+        margin-bottom: 24px;
+    }
+
+    &__schemaSectionTitle {
+        margin-bottom: 12px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
     &__infoTab {
         display: flex;
         flex-direction: column;

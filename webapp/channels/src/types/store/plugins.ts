@@ -21,6 +21,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
+import type {ChannelSettingsSchema, ChannelSettingsTabBodyProps, ChannelSettingsTabShouldRender} from 'types/plugins/channel_settings';
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -110,6 +111,8 @@ export type PluginsState = {
     userSettings: {
         [pluginId: string]: PluginConfiguration;
     };
+
+    channelSettingsTabs: ChannelSettingsTabComponent[];
 };
 
 export type Menu = {
@@ -200,6 +203,24 @@ export type ChannelIntroButtonAction = PluginComponent & {
     action: (channel: Channel, member: ChannelMembership) => void;
     icon: React.ReactNode;
 };
+
+type ChannelSettingsTabBaseComponent = PluginComponent & {
+    uiName: string;
+    icon?: string;
+    shouldRender: ChannelSettingsTabShouldRender;
+};
+
+export type ChannelSettingsSchemaTabComponent = ChannelSettingsTabBaseComponent & {
+    kind: 'schema';
+    schema: ChannelSettingsSchema;
+};
+
+export type ChannelSettingsCustomTabComponent = ChannelSettingsTabBaseComponent & {
+    kind: 'custom';
+    component: React.ComponentType<ChannelSettingsTabBodyProps>;
+};
+
+export type ChannelSettingsTabComponent = ChannelSettingsSchemaTabComponent | ChannelSettingsCustomTabComponent;
 
 export type UserGuideDropdownAction = PluginComponent & {
     text: PluggableText;

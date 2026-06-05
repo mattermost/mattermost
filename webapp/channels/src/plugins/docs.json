@@ -32,5 +32,25 @@
     "MobileChannelHeaderButton": {
         "desc": "Same as ChannelHeaderButton, except shown in mobile view when the screen is less than 768 pixels wide.",
         "props": {}
+    },
+    "ChannelSettingsTab": {
+        "desc": "A channel settings tab registered via registerChannelSettingsTab. A registration is either a declarative schema (sections + onSave) where the host renders the controls and owns the save bar, or a custom component that renders the whole tab body. Both branches accept uiName, icon, and shouldRender(state, channel). The 'props' below describe what a custom tab component receives.",
+        "props": {
+            "channel": {
+                "type": { "name": "object" },
+                "required": true,
+                "desc": "The current channel being configured"
+            },
+            "setUnsaved": {
+                "type": { "name": "function" },
+                "required": true,
+                "desc": "Reports whether the custom tab currently has unsaved changes so the host can show its save bar"
+            },
+            "registerHandlers": {
+                "type": { "name": "function" },
+                "required": true,
+                "desc": "Registers { save, reset } handlers (or null to clear) for the host-owned SaveChangesPanel. The host calls save when the user clicks Save; reject the returned Promise to keep the tab dirty and surface a plugin-owned error. reset is called when the user clicks Reset."
+            }
+        }
     }
 }
