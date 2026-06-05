@@ -408,6 +408,38 @@ func TestEmbedPostPropertiesForSync_MissingFieldOmittedSiblingKept(t *testing.T)
 	require.Len(t, p.Props, 1, "exactly one key written")
 }
 
+// TestEmbedPostPropertiesForSync_PerPagePositive guards against the regression
+// where embedPostPropertiesForSync called SearchPropertyValues with PerPage<=0,
+// which the SQL store rejects with "per page must be positive integer greater
+// than zero". When that happened, every syncForRemote cycle aborted and nothing
+// was synced (posts, users, anything).
+func TestEmbedPostPropertiesForSync_PerPagePositive(t *testing.T) {
+	scs, _, mockStore := scsWithMocks(t)
+	group := &model.PropertyGroup{ID: model.NewId(), Name: model.ChannelPostPropertyGroupName}
+
+	pg := &mocks.PropertyGroupStore{}
+	pf := &mocks.PropertyFieldStore{}
+	pv := &mocks.PropertyValueStore{}
+	mockStore.On("PropertyGroup").Return(pg)
+	mockStore.On("PropertyField").Return(pf)
+	mockStore.On("PropertyValue").Return(pv)
+	pg.On("Get", model.ChannelPostPropertyGroupName).Return(group, nil)
+	pf.On("GetMany", mock.Anything, mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil).Maybe()
+
+	var capturedOpts model.PropertyValueSearchOpts
+	pv.On("SearchPropertyValues", mock.AnythingOfType("model.PropertyValueSearchOpts")).
+		Run(func(args mock.Arguments) {
+			capturedOpts = args.Get(0).(model.PropertyValueSearchOpts)
+		}).
+		Return([]*model.PropertyValue{}, nil)
+
+	p := &model.Post{Id: model.NewId()}
+	sd := newSyncDataForPosts(p)
+	require.NoError(t, scs.embedPostPropertiesForSync(sd))
+	require.Greater(t, capturedOpts.PerPage, 0,
+		"PerPage must be strictly positive: SqlPropertyValueStore rejects PerPage<1 with an error that previously aborted every sync cycle")
+}
+
 func TestEmbedPostPropertiesForSync_PreservesExistingPropsKeys(t *testing.T) {
 	scs, _, mockStore := scsWithMocks(t)
 	group := &model.PropertyGroup{ID: model.NewId(), Name: model.ChannelPostPropertyGroupName}

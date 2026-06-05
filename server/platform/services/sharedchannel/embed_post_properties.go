@@ -47,12 +47,16 @@ func (scs *Service) embedPostPropertiesForSync(sd *syncData) error {
 		postIDs = append(postIDs, p.Id)
 	}
 
+	// PerPage must be > 0 (the SQL store rejects 0/negative). We bound by
+	// len(postIDs) * 100 so the cap scales with the batch size — well above
+	// any realistic field count per post. sd.posts is itself capped by
+	// MaxPostsPerSync so this stays well-bounded.
 	values, err := scs.server.GetStore().PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 		GroupID:        group.ID,
 		TargetType:     "post",
 		TargetIDs:      postIDs,
 		IncludeDeleted: false,
-		PerPage:        -1,
+		PerPage:        len(postIDs) * 100,
 	})
 	if err != nil {
 		return fmt.Errorf("could not load property values for post sync: %w", err)
