@@ -14,7 +14,11 @@ concurrency:
 # and it _always_ cancels pending workflows. So master CI builds
 # always kept getting canceled.
 
+permissions:
+  contents: read
+
 jobs:
   pr-ci:
+    permissions:
+      contents: read
     uses: ./.github/workflows/i18n-ci-template.yml
-    secrets: inherit

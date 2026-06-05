@@ -9,6 +9,11 @@ on:
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
 
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
 jobs:
   check:
     runs-on: ubuntu-24.04

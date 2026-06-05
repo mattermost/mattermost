@@ -122,8 +122,9 @@ jobs:
         id: composite-identity
         env:
           CONTEXT_NAME: ${{ inputs.context_name }}
-          MM_SHA: ${{ inputs.commit_sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           MM_BRANCH: ${{ inputs.branch }}
+          MM_SHA: ${{ inputs.commit_sha }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           # Derive the test-system-io run name from the GitHub commit-status
@@ -135,7 +136,7 @@ jobs:
           NAME="${NAME//\//-}"
           if [ -n "$PR_NUMBER" ]; then
             COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${{ github.repository }}" \
+              --arg repo "${GITHUB_REPOSITORY}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
               --arg name "${NAME}" \
@@ -145,7 +146,7 @@ jobs:
               '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr}')
           else
             COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${{ github.repository }}" \
+              --arg repo "${GITHUB_REPOSITORY}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
               --arg name "${NAME}" \
@@ -156,8 +157,10 @@ jobs:
           echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
       - name: ci/matrix
         id: matrix
+        env:
+          INPUT_WORKERS: ${{ inputs.workers }}
         run: |
-          echo "workers=$(jq -nc --argjson n ${{ inputs.workers }} '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
+          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
   # Build @mattermost/client + @mattermost/types and install playwright deps once,
