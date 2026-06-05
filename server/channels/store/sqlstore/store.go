@@ -1147,7 +1147,9 @@ func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 // preMigration	runs before running the actual Morph migrations.
 // The main reason for having a preMigration is to fix https://mattermost.atlassian.net/browse/MM-68848?focusedCommentId=217769
 // However, using that as an opportunity, a general purpose system is created that allows running
-// arbitrary code just before the Morph migrations run. This allows us to have a way to fix any issues in the DB that might prevent the Morph migrations from running successfully. The pre-migrations are tracked in the Systems table to make sure they run only once.
+// arbitrary code just before the Morph migrations run. This allows us to have a way to fix
+// any issues in the DB that might prevent the Morph migrations from running successfully.
+// The pre-migrations are tracked in the Systems table to make sure they run only once.
 func (ss *SqlStore) preMigration() error {
 	type sqlMigration struct {
 		name string
