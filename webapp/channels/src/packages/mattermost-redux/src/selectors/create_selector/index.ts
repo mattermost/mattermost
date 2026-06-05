@@ -1,13 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable prefer-spread */
+/* eslint-disable prefer-rest-params */
 
-function defaultEqualityCheck(a, b) {
+import type {CreateSelector, EqualityCheck, ParametricSelector, Selector} from './types';
+
+export type {
+    Selector,
+    OutputSelector,
+    ParametricSelector,
+    OutputParametricSelector,
+    CreateSelector,
+} from './types';
+
+function defaultEqualityCheck(a: any, b: any): boolean {
     return a === b;
 }
 
-function areArgumentsShallowlyEqual(equalityCheck, prev, next) {
+function areArgumentsShallowlyEqual(equalityCheck: EqualityCheck, prev: IArguments | null, next: IArguments | null): boolean {
     if (prev === null || next === null || prev.length !== next.length) {
         return false;
     }
@@ -23,27 +35,28 @@ function areArgumentsShallowlyEqual(equalityCheck, prev, next) {
     return true;
 }
 
-export function defaultMemoize(func, equalityCheck = defaultEqualityCheck) {
-    let lastArgs = null
-    let lastResult = null
+export function defaultMemoize<F extends Function>(func: F, equalityCheck: Function = defaultEqualityCheck): F {
+    let lastArgs: IArguments | null = null;
+    let lastResult: any = null;
+
     // we reference arguments instead of spreading them for performance reasons
-    return function () {
-        if (!areArgumentsShallowlyEqual(equalityCheck, lastArgs, arguments)) {
+    return function memoized() {
+        if (!areArgumentsShallowlyEqual(equalityCheck as EqualityCheck, lastArgs, arguments)) {
             // apply arguments instead of spreading for performance.
-            lastResult = func.apply(null, arguments)
+            lastResult = func.apply(null, arguments as any);
         }
 
-        lastArgs = arguments
-        return lastResult
-    }
+        lastArgs = arguments;
+        return lastResult;
+    } as unknown as F;
 }
 
-function getDependencies(funcs) {
+function getDependencies(funcs: any[]): Function[] {
     const dependencies = Array.isArray(funcs[0]) ? funcs[0] : funcs;
 
-    if (!dependencies.every((dep) => typeof dep === 'function')) {
+    if (!dependencies.every((dep: any) => typeof dep === 'function')) {
         const dependencyTypes = dependencies.map(
-            (dep) => typeof dep,
+            (dep: any) => typeof dep,
         ).join(', ');
         throw new Error(
             'Selector creators expect all input-selectors to be functions, ' +
@@ -54,13 +67,43 @@ function getDependencies(funcs) {
     return dependencies;
 }
 
-export function createSelectorCreator(memoize, ...memoizeOptions) {
-    return (name, ...funcs) => {
+export function createSelectorCreator(
+    memoize: <F extends Function>(func: F, measure: Function) => F,
+): typeof createSelector;
+
+export function createSelectorCreator<O1>(
+    memoize: <F extends Function>(func: F, measure: Function,
+        option1: O1) => F,
+    option1: O1,
+): typeof createSelector;
+
+export function createSelectorCreator<O1, O2>(
+    memoize: <F extends Function>(func: F, measure: Function,
+        option1: O1,
+        option2: O2) => F,
+    option1: O1,
+    option2: O2,
+): typeof createSelector;
+
+export function createSelectorCreator<O1, O2, O3>(
+    memoize: <F extends Function>(func: F, measure: Function,
+        option1: O1,
+        option2: O2,
+        option3: O3,
+        ...rest: any[]) => F,
+    option1: O1,
+    option2: O2,
+    option3: O3,
+    ...rest: any[]
+): typeof createSelector;
+
+export function createSelectorCreator(memoize: any, ...memoizeOptions: any[]): typeof createSelector {
+    return ((_name: string, ...funcs: any[]) => {
         const resultFunc = funcs.pop();
         const dependencies = getDependencies(funcs);
 
         const memoizedResultFunc = memoize(
-            function() {
+            function resultFuncMemoized() {
                 // apply arguments instead of spreading for performance.
                 return resultFunc?.apply(null, arguments);
             },
@@ -68,7 +111,7 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
         );
 
         // If a selector is called with the exact same arguments we don't need to traverse our dependencies again.
-        const selector = memoize(function() {
+        const selector = memoize(function selectorMemoized() {
             const params = [];
             const length = dependencies.length;
 
@@ -85,12 +128,22 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
         selector.dependencies = dependencies;
 
         return selector;
-    };
+    }) as any;
 }
 
-export const createSelector = /* #__PURE__ */ createSelectorCreator(defaultMemoize);
+export const createSelector: CreateSelector = /* #__PURE__ */ createSelectorCreator(defaultMemoize);
 
-export function createStructuredSelector(selectors, selectorCreator = createSelector) {
+export function createStructuredSelector<S, T>(
+    selectors: {[K in keyof T]: Selector<S, T[K]>},
+    selectorCreator?: typeof createSelector,
+): Selector<S, T>;
+
+export function createStructuredSelector<S, P, T>(
+    selectors: {[K in keyof T]: ParametricSelector<S, P, T[K]>},
+    selectorCreator?: typeof createSelector,
+): ParametricSelector<S, P, T>;
+
+export function createStructuredSelector(selectors: any, selectorCreator: any = createSelector): any {
     if (typeof selectors !== 'object') {
         throw new Error(
             'createStructuredSelector expects first argument to be an object ' +
@@ -100,8 +153,8 @@ export function createStructuredSelector(selectors, selectorCreator = createSele
     const objectKeys = Object.keys(selectors);
     return selectorCreator(
         objectKeys.map((key) => selectors[key]),
-        (...values) => {
-            return values.reduce((composition, value, index) => {
+        (...values: any[]) => {
+            return values.reduce((composition: any, value: any, index: number) => {
                 composition[objectKeys[index]] = value;
                 return composition;
             }, {});
