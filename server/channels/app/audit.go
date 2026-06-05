@@ -182,7 +182,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
 	s.Log().Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
-	return true // drop it
+	return false // drop it
 }
 
 func (s *Server) onAuditError(err error) {
