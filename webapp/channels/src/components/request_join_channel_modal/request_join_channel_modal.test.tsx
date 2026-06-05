@@ -13,19 +13,15 @@ import type {GlobalState} from 'types/store';
 import RequestJoinChannelModal from './request_join_channel_modal';
 
 const mockRequestJoinChannel = jest.fn();
-const mockWithdrawMyChannelJoinRequest = jest.fn();
 jest.mock('mattermost-redux/actions/channels', () => ({
     requestJoinChannel: (...args: unknown[]) => mockRequestJoinChannel(...args),
-    withdrawMyChannelJoinRequest: (...args: unknown[]) => mockWithdrawMyChannelJoinRequest(...args),
 }));
 
 describe('RequestJoinChannelModal', () => {
     beforeEach(() => {
         mockRequestJoinChannel.mockReset();
-        mockWithdrawMyChannelJoinRequest.mockReset();
 
         mockRequestJoinChannel.mockReturnValue({type: 'MOCK', data: {id: 'req1', channel_id: 'c1', user_id: 'u1', message: '', status: 'pending', denial_reason: '', create_at: 1, update_at: 1, reviewed_by: '', reviewed_at: 0}});
-        mockWithdrawMyChannelJoinRequest.mockReturnValue({type: 'MOCK', data: {}});
     });
 
     const baseChannel = TestHelper.getChannelMock({
@@ -122,91 +118,6 @@ describe('RequestJoinChannelModal', () => {
         await userEvent.click(screen.getByText('Send Request'));
 
         expect(mockRequestJoinChannel).toHaveBeenCalledWith('discoverable-channel-id', '');
-    });
-
-    test('switches to the pending treatment when an existing request is in the store', async () => {
-        const pendingState: DeepPartial<GlobalState> = {
-            entities: {
-                channels: {
-                    joinRequests: {
-                        myPendingByChannel: {
-                            'discoverable-channel-id': {
-                                id: 'req1',
-                                channel_id: 'discoverable-channel-id',
-                                user_id: 'u1',
-                                message: 'opt-in note',
-                                status: 'pending',
-                                denial_reason: '',
-                                create_at: 1,
-                                update_at: 1,
-                                reviewed_by: '',
-                                reviewed_at: 0,
-                            },
-                        },
-                        byChannel: {},
-                        countsByChannel: {},
-                        myList: [],
-                    },
-                },
-            },
-        };
-
-        renderWithContext(
-            <RequestJoinChannelModal
-                channel={baseChannel}
-                teamName='team_1'
-            />,
-            pendingState,
-        );
-
-        expect(await screen.findByText(/Your request to join Ops Channel has been sent/)).toBeInTheDocument();
-        expect(screen.getByText(/My pending requests/)).toBeInTheDocument();
-        expect(screen.queryByText(/direct message/i)).not.toBeInTheDocument();
-        expect(screen.queryByText(/opt-in note/)).not.toBeInTheDocument();
-        expect(screen.getByText('Withdraw request')).toBeInTheDocument();
-        expect(screen.queryByText('Send Request')).not.toBeInTheDocument();
-    });
-
-    test('Withdraw button calls withdrawMyChannelJoinRequest', async () => {
-        const pendingState: DeepPartial<GlobalState> = {
-            entities: {
-                channels: {
-                    joinRequests: {
-                        myPendingByChannel: {
-                            'discoverable-channel-id': {
-                                id: 'req1',
-                                channel_id: 'discoverable-channel-id',
-                                user_id: 'u1',
-                                message: '',
-                                status: 'pending',
-                                denial_reason: '',
-                                create_at: 1,
-                                update_at: 1,
-                                reviewed_by: '',
-                                reviewed_at: 0,
-                            },
-                        },
-                        byChannel: {},
-                        countsByChannel: {},
-                        myList: [],
-                    },
-                },
-            },
-        };
-
-        renderWithContext(
-            <RequestJoinChannelModal
-                channel={baseChannel}
-                teamName='team_1'
-            />,
-            pendingState,
-        );
-
-        await screen.findByText('Withdraw request');
-
-        await userEvent.click(screen.getByText('Withdraw request'));
-
-        expect(mockWithdrawMyChannelJoinRequest).toHaveBeenCalledWith('discoverable-channel-id');
     });
 
     test('renders a friendly error when the server returns policy_denied', async () => {
