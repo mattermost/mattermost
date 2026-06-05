@@ -128,7 +128,7 @@ export function createSelectorCreator(memoize: any, ...memoizeOptions: any[]): t
         selector.dependencies = dependencies;
 
         return selector;
-    }) as any;
+    });
 }
 
 export const createSelector: CreateSelector = /* #__PURE__ */ createSelectorCreator(defaultMemoize);
