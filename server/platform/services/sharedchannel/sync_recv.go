@@ -524,6 +524,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.DeleteAt > 0 {
+		// make sure the post being deleted is owned by the remote
+		if rpost.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
+		}
 		// delete post
 		rpost, appErr = scs.app.DeletePost(rctx, post.Id, post.UserId)
 		if appErr == nil {
@@ -533,6 +537,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
+		// make sure the post being edited is owned by the remote
+		if rpost.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
+		}
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
