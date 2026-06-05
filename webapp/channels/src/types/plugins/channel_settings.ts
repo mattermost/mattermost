@@ -80,6 +80,7 @@ export type ChannelSettingsCustomTab = ChannelSettingsTabBase & {
     component: React.ComponentType<ChannelSettingsTabBodyProps>;
     sections?: never;
     onSave?: never;
+    loadValues?: never;
 };
 
 /** The single registration accepted by `registerChannelSettingsTab`. */

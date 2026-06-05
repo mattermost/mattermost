@@ -3,9 +3,13 @@
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
+import store from 'stores/redux_store';
+
+import PluginRegistry from 'plugins/registry';
 import {ActionTypes} from 'utils/constants';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
+import type {MMAction} from 'types/store';
 import type {PluginsState} from 'types/store/plugins';
 
 import pluginReducers from '.';
@@ -225,5 +229,56 @@ describe('channel settings tabs', () => {
         });
 
         expect(loggedOutState.channelSettingsTabs).toEqual([]);
+    });
+
+    // Regression: a declarative schema that includes `loadValues` must survive
+    // the real `registry.registerChannelSettingsTab` path. The `reArg` keyOrder
+    // has to list every accepted field, otherwise the registration is mis-zipped
+    // and the reducer rejects it as invalid.
+    it('registers a declarative schema tab with loadValues through the real registry path', () => {
+        const dispatch = jest.spyOn(store, 'dispatch').mockImplementation(jest.fn());
+
+        const registry = new PluginRegistry('plugin-c');
+
+        const onSave = jest.fn(async () => {});
+        const loadValues = jest.fn(async () => ({colorScheme: 'dark'}));
+
+        const id = registry.registerChannelSettingsTab({
+            uiName: 'Plugin C Tab',
+            icon: 'icon-plugin-c',
+            sections: [{
+                title: 'Appearance',
+                settings: [{
+                    name: 'colorScheme',
+                    type: 'radio',
+                    default: 'light',
+                    options: [
+                        {value: 'light', text: 'Light'},
+                        {value: 'dark', text: 'Dark'},
+                    ],
+                }],
+            }],
+            onSave,
+            loadValues,
+        });
+
+        expect(dispatch).toHaveBeenCalledTimes(1);
+
+        const action = dispatch.mock.calls[0][0] as unknown as MMAction;
+        expect(action.type).toBe(ActionTypes.RECEIVED_PLUGIN_CHANNEL_SETTINGS_TAB);
+        expect(action.data.id).toBe(id);
+
+        const nextState = pluginReducers(getBaseState(), action);
+
+        expect(nextState.channelSettingsTabs).toHaveLength(1);
+
+        const tab = nextState.channelSettingsTabs[0];
+        expect(tab).toMatchObject({pluginId: 'plugin-c', uiName: 'Plugin C Tab', kind: 'schema'});
+        if (tab.kind !== 'schema') {
+            throw new Error('expected a schema tab');
+        }
+        expect(tab.schema.loadValues).toBe(loadValues);
+        expect(tab.schema.onSave).toBe(onSave);
+        expect(tab.schema.sections).toHaveLength(1);
     });
 });

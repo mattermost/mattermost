@@ -541,6 +541,7 @@ export default class PluginRegistry {
         'shouldRender',
         'sections',
         'onSave',
+        'loadValues',
         'component',
     ], (registration: ChannelSettingsTab) => {
         const id = generateId();
