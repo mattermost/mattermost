@@ -12,7 +12,7 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 
-import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
+import {temporarilySetPageLoadContext} from 'actions/telemetry_actions';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
