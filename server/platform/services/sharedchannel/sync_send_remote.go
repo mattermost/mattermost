@@ -210,6 +210,11 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// filter out any posts that don't need to be sent.
 	scs.filterPostsForSync(sd)
 
+	// embed resolved property field/value pairs into Post.Props for the surviving posts.
+	if err := scs.embedPostPropertiesForSync(sd); err != nil {
+		return fmt.Errorf("cannot embed post properties for sync %v: %w", sd, err)
+	}
+
 	// fetch attachments for posts
 	if err := scs.fetchPostAttachmentsForSync(sd); err != nil {
 		return fmt.Errorf("cannot fetch post attachments for sync %v: %w", sd, err)
