@@ -110,15 +110,15 @@ func (sc *SharedChannel) PreUpdate() {
 // SharedChannelRemote represents a remote cluster that has been invited
 // to a shared channel.
 type SharedChannelRemote struct {
-	Id                string `json:"id"`
-	ChannelId         string `json:"channel_id"`
-	CreatorId         string `json:"creator_id"`
-	CreateAt          int64  `json:"create_at"`
-	UpdateAt          int64  `json:"update_at"`
-	DeleteAt          int64  `json:"delete_at"`
-	IsInviteAccepted  bool   `json:"is_invite_accepted"`
-	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
-	RemoteId          string `json:"remote_id"`
+	Id                        string `json:"id"`
+	ChannelId                 string `json:"channel_id"`
+	CreatorId                 string `json:"creator_id"`
+	CreateAt                  int64  `json:"create_at"`
+	UpdateAt                  int64  `json:"update_at"`
+	DeleteAt                  int64  `json:"delete_at"`
+	IsInviteAccepted          bool   `json:"is_invite_accepted"`
+	IsInviteConfirmed         bool   `json:"is_invite_confirmed"`
+	RemoteId                  string `json:"remote_id"`
 	LastPostUpdateAt          int64  `json:"last_post_update_at"`
 	LastPostUpdateID          string `json:"last_post_id"`
 	LastPostCreateAt          int64  `json:"last_post_create_at"`
