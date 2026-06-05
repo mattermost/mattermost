@@ -61,8 +61,7 @@ func newSqlAuditStorage(s *SqlStore) store.AuditStorageStore {
 // Mark appends a single user-post delivery event tagged with the mechanism.
 func (s *SqlAuditStorage) Mark(ctx context.Context, userID, postID string, mechanism int16) error {
 	_, err := s.auditStorageX.ExecContext(ctx,
-		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at) VALUES ($1, $2, $3, $4)
-		 ON CONFLICT (user_id, entity_id, mechanism) DO NOTHING`,
+		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at) VALUES ($1, $2, $3, $4)`,
 		userID, postID, mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to mark user-post delivery")
@@ -79,8 +78,7 @@ func (s *SqlAuditStorage) MarkBulkSameUser(ctx context.Context, userID string, p
 	_, err := s.auditStorageX.ExecContext(ctx,
 		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
 		 SELECT $1, entity_id, $3, $4
-		 FROM unnest($2::text[]) AS entity_id
-		 ON CONFLICT (user_id, entity_id, mechanism) DO NOTHING`,
+		 FROM unnest($2::text[]) AS entity_id`,
 		userID, pq.Array(postIDs), mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to bulk-mark same-user")
@@ -97,8 +95,7 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 	_, err := s.auditStorageX.ExecContext(ctx,
 		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
 		 SELECT user_id, $2, $3, $4
-		 FROM unnest($1::text[]) AS user_id
-		 ON CONFLICT (user_id, entity_id, mechanism) DO NOTHING`,
+		 FROM unnest($1::text[]) AS user_id`,
 		pq.Array(userIDs), postID, mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to bulk-mark same-post")
