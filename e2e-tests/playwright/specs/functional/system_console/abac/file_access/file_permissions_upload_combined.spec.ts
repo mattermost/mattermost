@@ -67,7 +67,6 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         // combined enforcement test below.)
         await expect(deniedChannelsPage.centerView.postCreate.attachmentButton).toBeVisible({timeout: 30000});
         await expect(deniedChannelsPage.centerView.postCreate.attachmentButton).toBeDisabled();
-        // error text already asserted above
     });
 
     test('MM-T5823 user can attach and send a file when no upload restriction policy exists', async ({pw}) => {
