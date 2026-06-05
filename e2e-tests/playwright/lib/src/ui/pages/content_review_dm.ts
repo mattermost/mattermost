@@ -148,6 +148,18 @@ export default class ContentReviewPage {
         await expect(this.reportCard!.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
     }
 
+    async verifyFlaggedPostMessageInRHS(expected: string) {
+        await expect(this.rhsCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+    }
+
+    async verifyFlaggedPostMessageInCenter(postID: string, expected: string) {
+        const centerCard = this.page
+            .getByTestId('channel_view')
+            .locator('div.DataSpillageReport')
+            .filter({has: this.page.locator(`#postMessageText_${postID}`)});
+        await expect(centerCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+    }
+
     async clickKeepMessage() {
         await this.keepMessageButton.scrollIntoViewIfNeeded();
         await this.keepMessageButton.click();
