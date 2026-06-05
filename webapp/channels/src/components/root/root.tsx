@@ -408,7 +408,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         path={'/_popout'}
                         component={PopoutController}
                     />
-                    <WithUserTheme pathname={this.props.location.pathname}>
+                    <WithUserTheme>
                         {(this.props.showLaunchingWorkspace && !this.props.location.pathname.includes('/preparing-workspace') &&
                             <LaunchingWorkspace
                                 fullscreen={true}
