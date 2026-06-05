@@ -569,6 +569,33 @@ func (scs *Service) updateCursorForRemote(scrId string, rc *model.RemoteCluster,
 	)
 }
 
+// updatePropertyValueCursorForRemote persists sd.resultNextPropertyValueCursor
+// to the SharedChannelRemote row when it has advanced past the stored value.
+// Called from the post-send success callback and from the no-posts-but-cursor-
+// changed branch so the cursor moves forward even when there are no posts to
+// send (e.g. a property change on a post belonging to another channel that we
+// observed during a delta walk).
+func (scs *Service) updatePropertyValueCursorForRemote(sd *syncData) {
+	if sd.resultNextPropertyValueCursor <= sd.scr.LastPropertyValueUpdateAt {
+		return
+	}
+	if err := scs.server.GetStore().SharedChannel().UpdateRemotePropertyValueCursor(sd.scr.Id, sd.resultNextPropertyValueCursor); err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error updating property value cursor for shared channel remote",
+			mlog.String("remote", sd.rc.DisplayName),
+			mlog.Err(err),
+		)
+		return
+	}
+	// Reflect the advance in the in-memory scr so subsequent calls in the same
+	// sync cycle don't re-emit the same delta.
+	sd.scr.LastPropertyValueUpdateAt = sd.resultNextPropertyValueCursor
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "updated property value cursor for remote",
+		mlog.String("remote_id", sd.rc.RemoteId),
+		mlog.String("remote", sd.rc.DisplayName),
+		mlog.Int("last_property_value_update_at", sd.resultNextPropertyValueCursor),
+	)
+}
+
 func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	var locale string
 	user, err := scs.server.GetStore().User().Get(context.Background(), userId)

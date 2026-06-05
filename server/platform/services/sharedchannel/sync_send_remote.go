@@ -44,9 +44,10 @@ type syncData struct {
 	membershipChanges          []*model.MembershipChangeMsg
 	resultNextMembershipCursor int64
 
-	resultRepeat                bool
-	resultNextCursor            model.GetPostsSinceForSyncCursor
-	GlobalUserSyncLastTimestamp int64
+	resultRepeat                  bool
+	resultNextCursor              model.GetPostsSinceForSyncCursor
+	resultNextPropertyValueCursor int64
+	GlobalUserSyncLastTimestamp   int64
 }
 
 func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChannelRemote) *syncData {
@@ -61,6 +62,7 @@ func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChanne
 			LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID,
 			LastPostCreateAt: scr.LastPostCreateAt, LastPostCreateID: scr.LastPostCreateID,
 		},
+		resultNextPropertyValueCursor: scr.LastPropertyValueUpdateAt,
 	}
 }
 
@@ -69,12 +71,16 @@ func (sd *syncData) isEmpty() bool {
 }
 
 func (sd *syncData) isCursorChanged() bool {
+	propertyCursorChanged := sd.resultNextPropertyValueCursor != sd.scr.LastPropertyValueUpdateAt
+
 	if sd.resultNextCursor.IsEmpty() {
-		return false
+		// No post cursor change; only the property cursor can have moved.
+		return propertyCursorChanged
 	}
 
 	return sd.scr.LastPostCreateAt != sd.resultNextCursor.LastPostCreateAt || sd.scr.LastPostCreateID != sd.resultNextCursor.LastPostCreateID ||
-		sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID
+		sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID ||
+		propertyCursorChanged
 }
 
 func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
@@ -174,6 +180,12 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return fmt.Errorf("cannot fetch posts for sync %v: %w", sd, err)
 	}
 
+	// union in posts whose property values changed since the cursor but whose
+	// own UpdateAt did not advance, so property-only changes propagate.
+	if err := scs.fetchPropertyValueDeltaForSync(sd); err != nil {
+		return fmt.Errorf("cannot fetch property-value delta for sync %v: %w", sd, err)
+	}
+
 	// fetch membership changes from ChannelMemberHistory
 	if err := scs.fetchMembershipsForSync(sd); err != nil {
 		return fmt.Errorf("cannot fetch memberships for sync %v: %w", sd, err)
@@ -228,6 +240,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		)
 		if sd.isCursorChanged() {
 			scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+			scs.updatePropertyValueCursorForRemote(sd)
 		}
 		return nil
 	}
@@ -806,6 +819,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		}
 	} else if sd.isCursorChanged() {
 		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+		scs.updatePropertyValueCursorForRemote(sd)
 	}
 
 	// send acknowledgements
@@ -917,6 +931,7 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 			}
 		}
 		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+		scs.updatePropertyValueCursorForRemote(sd)
 	})
 }
 

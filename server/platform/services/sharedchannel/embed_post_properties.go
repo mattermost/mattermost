@@ -304,3 +304,89 @@ func userDisplayText(u *model.User, nameFormat string) string {
 	}
 	return u.Username
 }
+
+// fetchPropertyValueDeltaForSync walks PropertyValues whose UpdateAt is greater
+// than the remote's LastPropertyValueUpdateAt cursor and adds the affected
+// posts to sd.posts (when they belong to this channel and are not already in
+// sd.posts). The next-cursor value is the max PropertyValue.UpdateAt observed
+// in this batch, regardless of whether the value's target post survives the
+// channel/echo filter — this guarantees forward progress even when the only
+// changes are for posts in other channels.
+func (scs *Service) fetchPropertyValueDeltaForSync(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "PropertyValueDelta", time.Since(start).Seconds())
+		}
+	}()
+
+	group, err := scs.server.GetStore().PropertyGroup().Get(model.ChannelPostPropertyGroupName)
+	if err != nil {
+		// No group registered — nothing to walk yet.
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug,
+			"channel post property group not found; skipping property-value delta",
+			mlog.Err(err))
+		return nil
+	}
+
+	maxPostsPerSync := *scs.server.Config().ConnectedWorkspacesSettings.MaxPostsPerSync
+
+	values, err := scs.server.GetStore().PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+		GroupID:        group.ID,
+		TargetType:     "post",
+		SinceUpdateAt:  sd.scr.LastPropertyValueUpdateAt,
+		IncludeDeleted: true, // deletes need to propagate as a re-emit too
+		PerPage:        maxPostsPerSync * 4,
+	})
+	if err != nil {
+		return fmt.Errorf("could not search property-value delta: %w", err)
+	}
+	if len(values) == 0 {
+		return nil
+	}
+
+	nextCursor := sd.resultNextPropertyValueCursor
+	postIDSet := make(map[string]struct{}, len(values))
+	for _, v := range values {
+		if v.UpdateAt > nextCursor {
+			nextCursor = v.UpdateAt
+		}
+		postIDSet[v.TargetID] = struct{}{}
+	}
+	sd.resultNextPropertyValueCursor = nextCursor
+
+	// Skip posts already in sd.posts; only fetch those we haven't seen yet.
+	inSD := make(map[string]struct{}, len(sd.posts))
+	for _, p := range sd.posts {
+		inSD[p.Id] = struct{}{}
+	}
+	fetchIDs := make([]string, 0, len(postIDSet))
+	for id := range postIDSet {
+		if _, ok := inSD[id]; ok {
+			continue
+		}
+		fetchIDs = append(fetchIDs, id)
+	}
+	if len(fetchIDs) == 0 {
+		return nil
+	}
+
+	posts, err := scs.server.GetStore().Post().GetPostsByIds(fetchIDs)
+	if err != nil {
+		return fmt.Errorf("could not fetch property-changed posts: %w", err)
+	}
+
+	// Channel-scoping is post-hoc in Go (MVP shortcut — flagged for production
+	// in sc-tasks/spec.md). We also honor the same "don't sync back to the
+	// originating remote" rule that filterPostsForSync applies.
+	for _, p := range posts {
+		if p.ChannelId != sd.task.channelID {
+			continue
+		}
+		if p.GetRemoteID() == sd.rc.RemoteId {
+			continue
+		}
+		sd.posts = append(sd.posts, p)
+	}
+	return nil
+}
