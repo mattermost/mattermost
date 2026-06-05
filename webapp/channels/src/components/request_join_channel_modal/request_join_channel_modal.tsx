@@ -3,22 +3,16 @@
 
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelJoinRequest, ChannelJoinRequestApprovalResponse} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import {
-    requestJoinChannel as requestJoinChannelAction,
-    withdrawMyChannelJoinRequest as withdrawMyChannelJoinRequestAction,
-} from 'mattermost-redux/actions/channels';
-import {getMyPendingJoinRequest} from 'mattermost-redux/selectors/entities/channels';
+import {requestJoinChannel as requestJoinChannelAction} from 'mattermost-redux/actions/channels';
 
 import {getHistory} from 'utils/browser_history';
 import {getRelativeChannelURL} from 'utils/url';
-
-import type {GlobalState} from 'types/store';
 
 import './request_join_channel_modal.scss';
 
@@ -37,10 +31,6 @@ export type Props = {
 export default function RequestJoinChannelModal({channel, teamName, onExited}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-
-    const existingRequest = useSelector<GlobalState, ChannelJoinRequest | undefined>(
-        (state) => getMyPendingJoinRequest(state, channel.id),
-    );
 
     const [show, setShow] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -88,42 +78,6 @@ export default function RequestJoinChannelModal({channel, teamName, onExited}: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [channel.id, channel.name, teamName]);
 
-    const handleWithdraw = useCallback(async () => {
-        setSubmitting(true);
-        setServerError(null);
-        const result = await dispatch(withdrawMyChannelJoinRequestAction(channel.id));
-        setSubmitting(false);
-        if (result?.error) {
-            setServerError(mapServerError(result.error as ServerError));
-            return;
-        }
-        handleHide();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [channel.id]);
-
-    const isPending = Boolean(existingRequest);
-
-    const body = isPending ? (
-        <p
-            className='RequestJoinChannelModal__copy'
-            role='status'
-            aria-live='polite'
-        >
-            <FormattedMessage
-                id='request_join_channel.pending_body'
-                defaultMessage='Your request to join {channelName} has been sent. A channel admin will review it. Track updates in Browse Channels under My pending requests.'
-                values={{channelName: channel.display_name}}
-            />
-        </p>
-    ) : (
-        <p className='RequestJoinChannelModal__copy'>
-            <FormattedMessage
-                id='request_join_channel.body'
-                defaultMessage='A channel admin will review your request. Track updates in Browse Channels under My pending requests. You can withdraw your request at any time.'
-            />
-        </p>
-    );
-
     return (
         <GenericModal
             id='requestJoinChannelModal'
@@ -146,13 +100,9 @@ export default function RequestJoinChannelModal({channel, teamName, onExited}: P
                     </span>
                 </span>
             }
-            confirmButtonText={isPending ?
-                formatMessage({id: 'request_join_channel.withdraw', defaultMessage: 'Withdraw request'}) :
-                formatMessage({id: 'request_join_channel.send', defaultMessage: 'Send Request'})
-            }
-            confirmButtonVariant={isPending ? 'destructive' : ''}
+            confirmButtonText={formatMessage({id: 'request_join_channel.send', defaultMessage: 'Send Request'})}
             cancelButtonText={formatMessage({id: 'request_join_channel.cancel', defaultMessage: 'Cancel'})}
-            handleConfirm={isPending ? handleWithdraw : handleSubmit}
+            handleConfirm={handleSubmit}
             handleCancel={handleHide}
             autoCloseOnConfirmButton={false}
             autoFocusConfirmButton={false}
@@ -161,7 +111,12 @@ export default function RequestJoinChannelModal({channel, teamName, onExited}: P
             dataTestId='request-join-channel-modal'
         >
             <div className='RequestJoinChannelModal__body'>
-                {body}
+                <p className='RequestJoinChannelModal__copy'>
+                    <FormattedMessage
+                        id='request_join_channel.body'
+                        defaultMessage='A channel admin will review your request. Track updates in Browse Channels under My pending requests. You can withdraw your request at any time.'
+                    />
+                </p>
             </div>
         </GenericModal>
     );
