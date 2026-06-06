@@ -27,7 +27,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
     const props: Pick<
-    PostListRowProps,
+        PostListRowProps,
     'shortcutReactToLastPostEmittedFrom'| 'exceededLimitChannelId' | 'firstInaccessiblePostTime' | 'post' | 'currentUserId' | 'newMessagesSeparatorActions'
     > = {
         shortcutReactToLastPostEmittedFrom,
