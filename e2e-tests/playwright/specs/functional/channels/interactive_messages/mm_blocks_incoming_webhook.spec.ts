@@ -44,9 +44,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
 
             await postIncomingWebhook(webhook.id, {
                 props: {
-                    mm_blocks: [
-                        {type: 'text', text: blockText},
-                    ],
+                    mm_blocks: [{type: 'text', text: blockText}],
                 },
             });
 
