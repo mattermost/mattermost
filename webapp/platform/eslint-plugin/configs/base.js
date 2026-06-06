@@ -6,6 +6,7 @@ import {fileURLToPath} from 'url';
 
 import {FlatCompat} from '@eslint/eslintrc';
 import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import headersPlugin from 'eslint-plugin-headers';
@@ -44,6 +45,7 @@ const base = {
         '@mattermost': {
             rules,
         },
+        '@stylistic': stylistic,
         typescript: typescriptPlugin,
         headers: headersPlugin,
         import: importPlugin,
@@ -56,14 +58,14 @@ const base = {
         '@typescript-eslint/consistent-type-imports': ['error', {disallowTypeAnnotations: false}],
         '@typescript-eslint/explicit-function-return-type': 0,
         '@typescript-eslint/explicit-module-boundary-types': 0,
-        '@typescript-eslint/indent': [
+        '@stylistic/indent': [
             2,
             4,
             {
                 SwitchCase: 0,
             },
         ],
-        '@typescript-eslint/member-delimiter-style': 2,
+        '@stylistic/member-delimiter-style': 2,
         '@typescript-eslint/naming-convention': [
             2,
             {
@@ -103,7 +105,7 @@ const base = {
             },
         ],
         '@typescript-eslint/no-var-requires': 0,
-        '@typescript-eslint/type-annotation-spacing': 2,
+        '@stylistic/type-annotation-spacing': 2,
         'array-bracket-spacing': [
             2,
             'never',
@@ -256,7 +258,7 @@ const base = {
                 pathGroupsExcludedImportTypes: ['builtin'],
             },
         ],
-        indent: 0, // Handled by @typescript-eslint/indent
+        indent: 0, // Handled by @stylistic/indent
         'jsx-quotes': [
             2,
             'prefer-single',
