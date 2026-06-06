@@ -900,7 +900,8 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 
 	text := req.Text
-	if text == "" && req.Attachments == nil {
+	mmBlocksEnabled := a.Config().FeatureFlags.MmBlocksEnabled
+	if text == "" && req.Attachments == nil && !req.HasInteractiveMessageProps(mmBlocksEnabled) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", nil, "", http.StatusBadRequest)
 	}
 
