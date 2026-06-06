@@ -1159,18 +1159,21 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
 
             // Chevron is the named toggle control; header text lives in a sibling region (layout_blocks.tsx).
             const toggle = collapsible.locator('.mm-blocks-collapsible-header__toggle');
+            const content = collapsible.locator('.mm-blocks-collapsible-content');
             await expect(toggle).toBeVisible();
             await expect(collapsible.getByText(headerLabel)).toBeVisible();
             await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-            await expect(collapsible.getByText(bodyLabel)).not.toBeVisible();
+            // Collapsed body stays in the DOM for animation; visibility is via aria-hidden + max-height.
+            await expect(content).toHaveAttribute('aria-hidden', 'true');
 
             await toggle.click();
             await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+            await expect(content).toHaveAttribute('aria-hidden', 'false');
             await expect(collapsible.getByText(bodyLabel)).toBeVisible();
 
             await toggle.click();
             await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-            await expect(collapsible.getByText(bodyLabel)).not.toBeVisible();
+            await expect(content).toHaveAttribute('aria-hidden', 'true');
         },
     );
 
@@ -1218,17 +1221,20 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
 
             const collapsible = post.locator('.mm-blocks-collapsible');
             const toggle = collapsible.locator('.mm-blocks-collapsible-header__toggle');
+            const content = collapsible.locator('.mm-blocks-collapsible-content');
 
             await expect(collapsible.getByText(headerLabel)).toBeVisible();
             await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+            await expect(content).toHaveAttribute('aria-hidden', 'false');
             await expect(collapsible.getByText(bodyLabel)).toBeVisible();
 
             await toggle.click();
             await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-            await expect(collapsible.getByText(bodyLabel)).not.toBeVisible();
+            await expect(content).toHaveAttribute('aria-hidden', 'true');
 
             await toggle.click();
             await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+            await expect(content).toHaveAttribute('aria-hidden', 'false');
             await expect(collapsible.getByText(bodyLabel)).toBeVisible();
         },
     );
