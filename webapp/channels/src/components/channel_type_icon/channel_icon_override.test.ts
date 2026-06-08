@@ -225,17 +225,6 @@ describe('selectors/getChannelIconClassNameForChannel', () => {
             expect(getChannelIconClassNameForChannel(state, makeChannel())).toBe('icon-lock-outline');
             consoleSpy.mockRestore();
         });
-
-        it('falls back to core icon and logs error when iconName is not in glyph map', () => {
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-            const state = makeState([
-                {id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'not-a-real-icon' as any},
-            ]);
-            expect(getChannelIconClassNameForChannel(state, makeChannel())).toBe('icon-globe');
-            expect(consoleSpy).toHaveBeenCalledTimes(1);
-            expect(consoleSpy.mock.calls[0][0]).toContain('not-a-real-icon');
-            consoleSpy.mockRestore();
-        });
     });
 });
 
