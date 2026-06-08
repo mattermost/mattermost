@@ -9,7 +9,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1108,5 +1110,83 @@ func TestUpdatePropertyField_LinkedFieldUnlinkAllowed(t *testing.T) {
 		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
 		require.Nil(t, appErr)
 		assert.Nil(t, updated.LinkedFieldID)
+	})
+}
+
+// TestPropertyFieldAccessControlSignalling verifies that mutating a property
+// field notifies the access control service via OnPropertyFieldOptionsChanged
+// so it can drop cached per-field metadata (e.g. the rank-by-name lookup) and
+// invalidate compiled-policy cache entries. The call is guarded by a nil check
+// because the AccessControl service is enterprise-only.
+func TestPropertyFieldAccessControlSignalling(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	newRankField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "rank_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "LOW", "rank": 1},
+					map[string]any{"name": "HIGH", "rank": 2},
+				},
+			},
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		return created
+	}
+
+	t.Run("UpdatePropertyFields signals for each updated field", func(t *testing.T) {
+		f1 := newRankField(t)
+		f2 := newRankField(t)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, f1.ID).Return().Once()
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, f2.ID).Return().Once()
+
+		_, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{f1, f2}, false, "")
+		require.Nil(t, appErr)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("DeletePropertyField signals for the deleted field", func(t *testing.T) {
+		f := newRankField(t)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, f.ID).Return().Once()
+
+		appErr := th.App.DeletePropertyField(th.Context, groupID, f.ID, false, "")
+		require.Nil(t, appErr)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("mutations succeed (no panic) when access control is unavailable", func(t *testing.T) {
+		// The signalling is guarded by `if acs != nil`; with no enterprise
+		// service installed the field CRUD must still succeed.
+		th.App.Srv().ch.AccessControl = nil
+
+		f := newRankField(t)
+
+		_, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{f}, false, "")
+		require.Nil(t, appErr)
+
+		appErr = th.App.DeletePropertyField(th.Context, groupID, f.ID, false, "")
+		require.Nil(t, appErr)
 	})
 }
