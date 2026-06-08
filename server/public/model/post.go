@@ -580,12 +580,25 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
-		PostPropsForceNotification,
-		PostPropsSilentNotification,
-		PostPropsFromWebhook,
-		PostPropsFromBot,
-		PostPropsFromOAuthApp,
-		PostPropsFromPlugin,
+	}
+
+	// Integration markers must be stripped on every locally-originated post-creation
+	// path so client-supplied values can't impersonate an integration. For posts that
+	// arrived through Shared Channels federation (RemoteId is set by the receiving
+	// cluster, never by an API caller — see SanitizeInput), the origin cluster has
+	// already enforced its own integration-prop authority, so we preserve the markers
+	// to keep webhook/bot/plugin/OAuth rendering and notification semantics
+	// consistent across federation.
+	isFederated := o.RemoteId != nil && *o.RemoteId != ""
+	if !isFederated {
+		membersToSanitize = append(membersToSanitize,
+			PostPropsForceNotification,
+			PostPropsSilentNotification,
+			PostPropsFromWebhook,
+			PostPropsFromBot,
+			PostPropsFromOAuthApp,
+			PostPropsFromPlugin,
+		)
 	}
 
 	for _, member := range membersToSanitize {

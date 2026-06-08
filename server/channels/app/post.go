@@ -674,6 +674,27 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 	return nil
 }
 
+// isIntegrationPostAuthor decides whether the caller may set integration-only
+// post markers (silent_notification, force_notification). It is deliberately
+// narrower than model.Session.IsIntegration(): in particular, personal access
+// tokens (Session.IsUserAccessToken()) are NOT considered integrations here.
+//
+// PATs belong to human users — a PAT is just a long-lived bearer credential
+// for an account that can also log in interactively. Treating PAT sessions as
+// integrations would let any human with a PAT bypass the silent-post gate,
+// which is exactly the impersonation surface the strip-and-reinject pattern
+// closes. The four predicates below are the only authentic integration
+// authorities:
+//
+//   - user.IsBot              — true bot accounts (User.IsBot column)
+//   - Session.IsOAuth         — OAuth APP session (not Session.IsOAuthUser(),
+//                               which is a human SSO login)
+//   - flags.FromIncomingWebhook — set only by app.CreateWebhookPost and
+//                               app.CreateCommandPost (trusted server entry points)
+//   - flags.FromPlugin        — set only by PluginAPI.CreatePost
+//
+// Do NOT add Session.IsUserAccessToken() here to "align" with IsIntegration():
+// that would re-open silent-post forgery for every PAT-holding human user.
 func (a *App) isIntegrationPostAuthor(rctx request.CTX, user *model.User, flags model.CreatePostFlags) bool {
 	if user.IsBot {
 		return true

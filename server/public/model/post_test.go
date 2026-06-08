@@ -171,6 +171,53 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.Nil(t, post3.GetProp(PostPropsForceNotification))
 
 	require.NotNil(t, post3.GetProp(PostPropsAttachments))
+
+	// Federated post: integration markers were verified by the origin cluster
+	// and must survive sanitization on the receiving side. The non-integration
+	// system prop (PropsAddChannelMember) is still stripped — it's a synthesis
+	// marker for local "user added to channel" system posts and doesn't belong
+	// on federated posts regardless. RemoteId is server-set (SanitizeInput on
+	// the API4 path wipes any client-supplied value), so this branch can't be
+	// reached by forgery.
+	remoteId := "remote-cluster-1"
+	post4 := &Post{
+		Message:  "test",
+		RemoteId: &remoteId,
+		Props: StringInterface{
+			PropsAddChannelMember:      "should-be-stripped",
+			PostPropsForceNotification: "preserved-id",
+			PostPropsSilentNotification: true,
+			PostPropsFromWebhook:       "true",
+			PostPropsFromBot:           "true",
+			PostPropsFromOAuthApp:      "true",
+			PostPropsFromPlugin:        "true",
+		},
+	}
+
+	post4.SanitizeProps()
+
+	require.Nil(t, post4.GetProp(PropsAddChannelMember), "non-integration system prop must still be stripped from federated posts")
+	require.Equal(t, "preserved-id", post4.GetProp(PostPropsForceNotification))
+	require.Equal(t, true, post4.GetProp(PostPropsSilentNotification))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromWebhook))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromBot))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromOAuthApp))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromPlugin))
+
+	// Empty-string RemoteId must NOT be treated as federated — it's the zero
+	// value SanitizeInput sets when wiping a client-forged value.
+	emptyRemoteId := ""
+	post5 := &Post{
+		Message:  "test",
+		RemoteId: &emptyRemoteId,
+		Props: StringInterface{
+			PostPropsFromWebhook: "true",
+		},
+	}
+
+	post5.SanitizeProps()
+
+	require.Nil(t, post5.GetProp(PostPropsFromWebhook), "empty RemoteId must not be treated as federated")
 }
 
 func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
