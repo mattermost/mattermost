@@ -66,11 +66,9 @@ test('should show Demo Plugin entry in file attachment dropdown for .demo files 
     await channelsPage.goto(team.name, 'demo-file-test');
     await channelsPage.toBeVisible();
 
-    // 4. Hover the file attachment to reveal the kebab menu
-    const fileAttachment = channelsPage.centerView.container.getByText('sample-file.demo').first();
-    await fileAttachment.hover();
-    // Scope to the post container to avoid ambiguity with other attachments
+    // 4. Hover the file attachment to reveal the kebab menu, scoped to the post
     const post = channelsPage.centerView.container.getByRole('listitem').filter({hasText: 'sample-file.demo'}).last();
+    await post.getByText('sample-file.demo').hover();
     await post.getByRole('button', {name: 'more actions'}).click();
 
     // 5. Verify the file attachment dropdown contains the Demo Plugin entry
