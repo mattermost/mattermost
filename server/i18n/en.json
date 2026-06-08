@@ -7693,6 +7693,10 @@
     "translation": "Could not get attributes for policy."
   },
   {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Could not determine masked values for policy expression."
+  },
+  {
     "id": "app.pap.hydrate_actions.app_error",
     "translation": "Could not load the action set declared by the channel's access control policy."
   },
@@ -7703,6 +7707,10 @@
   {
     "id": "app.pap.is_ready.app_error",
     "translation": "Access control service is not ready."
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Could not mask policy expression."
   },
   {
     "id": "app.pap.merge_expression.app_error",
@@ -7733,8 +7741,20 @@
     "translation": "Invalid value."
   },
   {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again."
+  },
+  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Could not initialise attribute resolver for policy save."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7781,6 +7801,10 @@
     "translation": "At least one user is required for simulation."
   },
   {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Could not initialise attribute resolver for policy simulation."
+  },
+  {
     "id": "app.pap.simulate.too_many_users",
     "translation": "Too many users requested. Maximum allowed is {{.Max}}."
   },
@@ -7799,10 +7823,6 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
-  },
-  {
-    "id": "app.pap.validate_expression_values.app_error",
-    "translation": "Could not validate policy expression values."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
