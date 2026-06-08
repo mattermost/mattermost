@@ -248,7 +248,7 @@ describe('Actions.User', () => {
             await testStore.dispatch(UserActions.loadProfilesAndReloadChannelMembers(0, 60, 'reconcile_channel', 'sort', {}, true));
 
             const pruned = prunedUserIds(testStore.getActions());
-            expect(pruned).toEqual(expect.arrayContaining(['user_2', 'user_3', 'user_4']));
+            expect([...pruned].sort()).toEqual(['user_2', 'user_3', 'user_4']);
             expect(pruned).not.toContain('user_1');
         });
 
@@ -284,6 +284,14 @@ describe('Actions.User', () => {
         test('does not prune on pages other than the first', async () => {
             const testStore = mockStore(reconcileState);
             await testStore.dispatch(UserActions.loadProfilesAndReloadChannelMembers(1, 60, 'reconcile_channel', 'sort', {}, true));
+
+            expect(prunedUserIds(testStore.getActions())).toHaveLength(0);
+        });
+
+        test('does not prune when perPage is not provided', async () => {
+            // Without a page size the response cannot be known to hold the full membership.
+            const testStore = mockStore(reconcileState);
+            await testStore.dispatch(UserActions.loadProfilesAndReloadChannelMembers(0, undefined, 'reconcile_channel', 'sort', {}, true));
 
             expect(prunedUserIds(testStore.getActions())).toHaveLength(0);
         });
