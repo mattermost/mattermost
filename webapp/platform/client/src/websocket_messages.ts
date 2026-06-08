@@ -10,7 +10,7 @@ import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Group, GroupMember as GroupMemberType} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
-import type {PluginManifest, PluginStatus} from '@mattermost/types/plugins';
+import type {PluginManifest} from '@mattermost/types/plugins';
 import type {Post, PostAcknowledgement as PostAcknowledgementType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
@@ -487,9 +487,8 @@ export type Plugin = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSoc
     manifest: PluginManifest;
 }>;
 
-export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, {
-    plugin_statuses: PluginStatus[];
-}>;
+// Carries no payload; signals admin clients to refetch the full plugin statuses on demand.
+export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, Record<string, never>>;
 
 export type OpenDialog = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
     dialog: JsonEncodedValue<OpenDialogRequest>;
