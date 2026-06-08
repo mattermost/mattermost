@@ -5,6 +5,7 @@ package audit
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -99,4 +101,84 @@ func TestAudit_LogAuditRecord(t *testing.T) {
 			require.ElementsMatch(t, testCase.expectedLogs, strings.Split(actual, "\n"))
 		})
 	}
+}
+
+func TestAudit_LogRecord_SyncHandlerBypassesQueue(t *testing.T) {
+	var captured model.AuditRecord
+	a := Audit{
+		SyncHandlers: map[string]SyncHandler{
+			"my_event": func(rec model.AuditRecord) error {
+				captured = rec
+				return nil
+			},
+		},
+	}
+
+	rec := model.AuditRecord{
+		EventName: "my_event",
+		Status:    model.AuditStatusSuccess,
+		Meta:      map[string]any{"k": "v"},
+	}
+	// a.logger is nil; if LogRecord falls through to the queued path
+	// it will nil-deref. Reaching the assertions below proves the sync
+	// handler short-circuited.
+	a.LogRecord(mlog.LvlAuditAPI, rec)
+
+	assert.Equal(t, "my_event", captured.EventName)
+	assert.Equal(t, model.AuditStatusSuccess, captured.Status)
+	assert.Equal(t, map[string]any{"k": "v"}, captured.Meta)
+}
+
+func TestAudit_LogRecord_SyncHandlerErrorRoutesThroughOnError(t *testing.T) {
+	var seen error
+	a := Audit{
+		SyncHandlers: map[string]SyncHandler{
+			"my_event": func(_ model.AuditRecord) error {
+				return errors.New("boom")
+			},
+		},
+		OnError: func(err error) { seen = err },
+	}
+
+	a.LogRecord(mlog.LvlAuditAPI, model.AuditRecord{EventName: "my_event"})
+
+	require.Error(t, seen)
+	assert.Contains(t, seen.Error(), "boom")
+}
+
+func TestAudit_LogRecord_NoSyncHandlerForEventNameTakesQueuedPath(t *testing.T) {
+	called := false
+	a := Audit{
+		SyncHandlers: map[string]SyncHandler{
+			"other_event": func(_ model.AuditRecord) error {
+				called = true
+				return nil
+			},
+		},
+	}
+
+	tempDir, err := os.MkdirTemp(os.TempDir(), "TestAudit_SyncBypass")
+	require.NoError(t, err)
+	defer os.Remove(tempDir)
+	filePath := filepath.Join(tempDir, "audit.log")
+
+	logger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	cfg := mlog.TargetCfg{
+		Type:    "file",
+		Format:  "json",
+		Levels:  []mlog.Level{mlog.LvlAuditAPI},
+		Options: json.RawMessage(fmt.Sprintf(`{"filename": "%s"}`, filePath)),
+	}
+	require.NoError(t, logger.ConfigureTargets(map[string]mlog.TargetCfg{"f": cfg}, nil))
+	a.logger = logger
+
+	a.LogRecord(mlog.LvlAuditAPI, model.AuditRecord{EventName: "unmatched_event"})
+
+	require.NoError(t, logger.Shutdown())
+	logs, err := os.ReadFile(filePath)
+	require.NoError(t, err)
+
+	assert.False(t, called, "sync handler for a different event must not fire")
+	assert.Contains(t, string(logs), `"event_name":"unmatched_event"`)
 }

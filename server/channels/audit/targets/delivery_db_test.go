@@ -63,7 +63,6 @@ func (f *fakeAuditStorageStore) HasRead(_ context.Context, _, _ string) (bool, e
 
 func TestDeliveryDBTarget_Dispatch_MultiUser(t *testing.T) {
 	fake := &fakeAuditStorageStore{}
-	target := NewDeliveryDBTarget(fake)
 
 	meta := map[string]any{
 		"type":       model.AuditMetaTypeMultiUser,
@@ -72,7 +71,7 @@ func TestDeliveryDBTarget_Dispatch_MultiUser(t *testing.T) {
 		"mechanism":  model.AuditMechWebsocketBroadcast,
 		"created_at": int64(123),
 	}
-	require.NoError(t, target.dispatch(context.Background(), meta))
+	require.NoError(t, Dispatch(context.Background(), fake, meta))
 
 	assert.Empty(t, fake.markCalls)
 	assert.Empty(t, fake.bulkSameUserCalls)
@@ -84,7 +83,6 @@ func TestDeliveryDBTarget_Dispatch_MultiUser(t *testing.T) {
 
 func TestDeliveryDBTarget_Dispatch_MultiPost(t *testing.T) {
 	fake := &fakeAuditStorageStore{}
-	target := NewDeliveryDBTarget(fake)
 
 	meta := map[string]any{
 		"type":       model.AuditMetaTypeMultiPost,
@@ -93,7 +91,7 @@ func TestDeliveryDBTarget_Dispatch_MultiPost(t *testing.T) {
 		"mechanism":  model.AuditMechChannelView,
 		"created_at": int64(456),
 	}
-	require.NoError(t, target.dispatch(context.Background(), meta))
+	require.NoError(t, Dispatch(context.Background(), fake, meta))
 
 	assert.Empty(t, fake.markCalls)
 	assert.Empty(t, fake.bulkSamePostCalls)
@@ -105,7 +103,6 @@ func TestDeliveryDBTarget_Dispatch_MultiPost(t *testing.T) {
 
 func TestDeliveryDBTarget_Dispatch_SingleRecord(t *testing.T) {
 	fake := &fakeAuditStorageStore{}
-	target := NewDeliveryDBTarget(fake)
 
 	meta := map[string]any{
 		"user_id":    "u1",
@@ -113,7 +110,7 @@ func TestDeliveryDBTarget_Dispatch_SingleRecord(t *testing.T) {
 		"mechanism":  model.AuditMechEmailNotif,
 		"created_at": int64(789),
 	}
-	require.NoError(t, target.dispatch(context.Background(), meta))
+	require.NoError(t, Dispatch(context.Background(), fake, meta))
 
 	assert.Empty(t, fake.bulkSameUserCalls)
 	assert.Empty(t, fake.bulkSamePostCalls)
@@ -123,7 +120,6 @@ func TestDeliveryDBTarget_Dispatch_SingleRecord(t *testing.T) {
 
 func TestDeliveryDBTarget_Dispatch_EmptyArraysShortCircuit(t *testing.T) {
 	fake := &fakeAuditStorageStore{}
-	target := NewDeliveryDBTarget(fake)
 
 	multiUser := map[string]any{
 		"type":      model.AuditMetaTypeMultiUser,
@@ -131,7 +127,7 @@ func TestDeliveryDBTarget_Dispatch_EmptyArraysShortCircuit(t *testing.T) {
 		"entity_id": "p1",
 		"mechanism": int16(1),
 	}
-	require.NoError(t, target.dispatch(context.Background(), multiUser))
+	require.NoError(t, Dispatch(context.Background(), fake, multiUser))
 
 	multiUserNoEntity := map[string]any{
 		"type":      model.AuditMetaTypeMultiUser,
@@ -139,7 +135,7 @@ func TestDeliveryDBTarget_Dispatch_EmptyArraysShortCircuit(t *testing.T) {
 		"entity_id": "",
 		"mechanism": int16(1),
 	}
-	require.NoError(t, target.dispatch(context.Background(), multiUserNoEntity))
+	require.NoError(t, Dispatch(context.Background(), fake, multiUserNoEntity))
 
 	multiPost := map[string]any{
 		"type":       model.AuditMetaTypeMultiPost,
@@ -147,14 +143,14 @@ func TestDeliveryDBTarget_Dispatch_EmptyArraysShortCircuit(t *testing.T) {
 		"entity_ids": []string{},
 		"mechanism":  int16(1),
 	}
-	require.NoError(t, target.dispatch(context.Background(), multiPost))
+	require.NoError(t, Dispatch(context.Background(), fake, multiPost))
 
 	single := map[string]any{
 		"user_id":   "",
 		"entity_id": "p1",
 		"mechanism": int16(1),
 	}
-	require.NoError(t, target.dispatch(context.Background(), single))
+	require.NoError(t, Dispatch(context.Background(), fake, single))
 
 	assert.Empty(t, fake.markCalls)
 	assert.Empty(t, fake.bulkSameUserCalls)
@@ -163,7 +159,6 @@ func TestDeliveryDBTarget_Dispatch_EmptyArraysShortCircuit(t *testing.T) {
 
 func TestDeliveryDBTarget_Dispatch_WrongArrayType(t *testing.T) {
 	fake := &fakeAuditStorageStore{}
-	target := NewDeliveryDBTarget(fake)
 
 	meta := map[string]any{
 		"type":      model.AuditMetaTypeMultiUser,
@@ -171,14 +166,13 @@ func TestDeliveryDBTarget_Dispatch_WrongArrayType(t *testing.T) {
 		"entity_id": "p1",
 		"mechanism": int16(1),
 	}
-	err := target.dispatch(context.Background(), meta)
+	err := Dispatch(context.Background(), fake, meta)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "user_ids not []string")
 }
 
 func TestDeliveryDBTarget_Dispatch_StoreErrorPropagates(t *testing.T) {
 	fake := &fakeAuditStorageStore{errToReturn: errors.New("boom")}
-	target := NewDeliveryDBTarget(fake)
 
 	meta := map[string]any{
 		"type":      model.AuditMetaTypeMultiUser,
@@ -186,7 +180,7 @@ func TestDeliveryDBTarget_Dispatch_StoreErrorPropagates(t *testing.T) {
 		"entity_id": "p1",
 		"mechanism": int16(1),
 	}
-	err := target.dispatch(context.Background(), meta)
+	err := Dispatch(context.Background(), fake, meta)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "bulk-same-post failed")
 	assert.Contains(t, err.Error(), "boom")

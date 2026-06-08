@@ -77,7 +77,7 @@ func (t *DeliveryDBTarget) Write(p []byte, rec *mlog.LogRec) (int, error) {
 		if !ok {
 			return 0, fmt.Errorf("audit_delivery_db: meta field is not map[string]any (got %T)", f.Interface)
 		}
-		if err := t.dispatch(context.Background(), meta); err != nil {
+		if err := Dispatch(context.Background(), t.store, meta); err != nil {
 			return 0, err
 		}
 		return len(p), nil
@@ -85,14 +85,16 @@ func (t *DeliveryDBTarget) Write(p []byte, rec *mlog.LogRec) (int, error) {
 	return 0, nil
 }
 
-// dispatch routes a single Meta map to the matching store call. The shape
+// Dispatch routes a single Meta map to the matching store call. Exported so
+// that the audit logger's sync-handler path (server/channels/app/audit.go)
+// can use the same dispatch logic without instantiating a target. The shape
 // is set by the producer in server/channels/app/audit_storage.go:
 //
 //   - type=multi_user → one entity, many users → MarkBulkSamePost
 //   - type=multi_post → one user, many entities → MarkBulkSameUser
 //   - no type        → single (user, entity) pair → Mark (single-record
 //     path; emitted by App.AuditRecord)
-func (t *DeliveryDBTarget) dispatch(ctx context.Context, meta map[string]any) error {
+func Dispatch(ctx context.Context, s store.AuditStorageStore, meta map[string]any) error {
 	mech, _ := meta["mechanism"].(int16)
 	switch meta["type"] {
 	case model.AuditMetaTypeMultiUser:
@@ -104,7 +106,7 @@ func (t *DeliveryDBTarget) dispatch(ctx context.Context, meta map[string]any) er
 		if entityID == "" || len(userIDs) == 0 {
 			return nil
 		}
-		if err := t.store.MarkBulkSamePost(ctx, userIDs, entityID, mech); err != nil {
+		if err := s.MarkBulkSamePost(ctx, userIDs, entityID, mech); err != nil {
 			return fmt.Errorf("audit_delivery_db: bulk-same-post failed: %w", err)
 		}
 	case model.AuditMetaTypeMultiPost:
@@ -116,7 +118,7 @@ func (t *DeliveryDBTarget) dispatch(ctx context.Context, meta map[string]any) er
 		if userID == "" || len(entityIDs) == 0 {
 			return nil
 		}
-		if err := t.store.MarkBulkSameUser(ctx, userID, entityIDs, mech); err != nil {
+		if err := s.MarkBulkSameUser(ctx, userID, entityIDs, mech); err != nil {
 			return fmt.Errorf("audit_delivery_db: bulk-same-user failed: %w", err)
 		}
 	default:
@@ -125,7 +127,7 @@ func (t *DeliveryDBTarget) dispatch(ctx context.Context, meta map[string]any) er
 		if userID == "" || entityID == "" {
 			return nil
 		}
-		if err := t.store.Mark(ctx, userID, entityID, mech); err != nil {
+		if err := s.Mark(ctx, userID, entityID, mech); err != nil {
 			return fmt.Errorf("audit_delivery_db: mark failed: %w", err)
 		}
 	}

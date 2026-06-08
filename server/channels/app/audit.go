@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -143,6 +144,20 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 				return audittargets.NewDeliveryDBTarget(s.Store().AuditStorage()), nil
 			}
 			return nil, fmt.Errorf("audit target type %q is unrecognized", targetType)
+		},
+	}
+
+	// Bypass the logr queue for post-delivery audit records: each record
+	// already carries a batched array of IDs from the App layer, so the
+	// queue's smoothing benefit is small while its enqueue+dispatch
+	// overhead is per-record. Writing synchronously through Dispatch
+	// avoids stacking up records behind the single target worker. The
+	// store reference is captured here, mirroring the TargetFactory
+	// closure above.
+	auditStorageStore := s.Store().AuditStorage()
+	adt.SyncHandlers = map[string]audit.SyncHandler{
+		AuditEventPostDelivery: func(rec model.AuditRecord) error {
+			return audittargets.Dispatch(context.Background(), auditStorageStore, rec.Meta)
 		},
 	}
 
