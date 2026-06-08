@@ -158,9 +158,10 @@ export type MarketplacePlugin = { // TODO remove this in favour of the definitio
 }
 
 /**
- * The form state passed to a plugin's channel-type option when the user submits channel creation.
- * `type` identifies which option was selected so a plugin that registers multiple options can branch.
- * `teamId` and `type` are owned by the modal and are not writable via setFormState.
+ * Snapshot of the "Create a new channel" modal's form, passed to a plugin's channel-type option
+ * (both its `extraContent` component and its `onCreate` handler). `type` is the id of the selected
+ * channel-type option: 'O' or 'P' for the built-in public/private types, otherwise the registered
+ * option's id. All fields are read-only; the plugin does not write back into the modal.
  */
 export type NewChannelFormState = {
     teamId: string;
@@ -172,12 +173,12 @@ export type NewChannelFormState = {
 };
 
 /**
- * Discriminated union returned by a plugin's `onCreate` handler.
- * - `created`: plugin created the channel successfully.
- * - `deferred`: plugin will handle creation asynchronously; the modal closes immediately.
+ * Discriminated union returned by a channel-type option's `onCreate` handler.
+ * - `created`: plugin created the channel successfully; the modal switches to `channel`.
+ * - `deferred`: plugin will finish creation asynchronously; the modal closes immediately.
  * - `error`: plugin encountered an error; the modal displays `message`.
  */
-export type CreateResult =
+export type NewChannelFormResult =
     | {status: 'created'; channel: Channel}
     | {status: 'deferred'}
     | {status: 'error'; message: string};

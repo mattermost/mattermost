@@ -11,7 +11,7 @@ import type {Board} from '@mattermost/types/boards';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
-import type {ClientPluginManifest, CreateResult, NewChannelFormState} from '@mattermost/types/plugins';
+import type {ClientPluginManifest, NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
 import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {ProductScope} from '@mattermost/types/products';
 import type {UserProfile} from '@mattermost/types/users';
@@ -430,16 +430,15 @@ export type ChannelTypeOptionComponent = PluginComponent & {
 
     /**
      * Optional component rendered inline when this option is selected in the channel-creation modal.
-     * Receives the current form state and setters for the user-editable fields.
-     * `teamId` and `type` are owned by the modal and are not exposed via setFormState.
+     * Receives a read-only snapshot of the form state and `setCanCreate` to gate the Create button
+     * while its own inputs are invalid.
      */
     extraContent?: React.ComponentType<{
         formState: NewChannelFormState;
-        setFormState: (next: Partial<Pick<NewChannelFormState, 'displayName' | 'url' | 'purpose' | 'managedCategoryName'>>) => void;
         setCanCreate: (v: boolean) => void;
     }>;
 
-    onCreate: (formState: NewChannelFormState) => Promise<CreateResult>;
+    onCreate: (formState: NewChannelFormState) => Promise<NewChannelFormResult>;
 };
 
 export type PostMessageAttachmentComponent = PluginComponent & {

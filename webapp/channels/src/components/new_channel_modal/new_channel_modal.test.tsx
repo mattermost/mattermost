@@ -809,20 +809,12 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         const channelNameInput = screen.getByRole('textbox', {name: 'Channel name'});
         await userEvent.type(channelNameInput, 'My Channel');
 
-        // Replace the option in Redux state with one whose isAvailable returns false.
+        // Remove the plugin's option from Redux state (the plugin unloaded mid-flow).
         // This exercises the real useSelector path rather than a rerender closure mutation.
         await act(async () => {
             store.dispatch({
-                type: 'RECEIVED_PLUGIN_COMPONENT',
-                name: 'ChannelTypeOption',
-                data: {
-                    id: 'plugin-option',
-                    pluginId: 'test-plugin',
-                    label: 'Plugin Channel',
-                    description: 'A plugin channel type',
-                    isAvailable: () => false,
-                    onCreate,
-                },
+                type: 'REMOVED_WEBAPP_PLUGIN',
+                data: {id: 'test-plugin'},
             });
         });
 
@@ -950,30 +942,6 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: /create channel/i})).toBeEnabled();
-        });
-    });
-
-    test('extraContent.setFormState writes through to the formState passed to onCreate', async () => {
-        const onCreate = jest.fn().mockResolvedValue({status: 'created', channel: mockChannel});
-        const ExtraContent = ({setFormState}: {setFormState: (s: any) => void}) => {
-            React.useEffect(() => {
-                setFormState({purpose: 'injected purpose'});
-            }, [setFormState]);
-            return null;
-        };
-        renderWithContext(<NewChannelModal/>, stateWithOption({onCreate, extraContent: ExtraContent}));
-
-        const pluginButton = screen.getByText('Plugin Channel');
-        await userEvent.click(pluginButton);
-
-        const channelNameInput = screen.getByRole('textbox', {name: 'Channel name'});
-        await userEvent.type(channelNameInput, 'My Channel');
-
-        const createButton = screen.getByRole('button', {name: /create channel/i});
-        await userEvent.click(createButton);
-
-        await waitFor(() => {
-            expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({purpose: 'injected purpose'}));
         });
     });
 

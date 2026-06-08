@@ -29,7 +29,7 @@ import {
 } from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
-import Constants, {ActionTypes} from 'utils/constants';
+import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
 import {generateId} from 'utils/utils';
@@ -1314,11 +1314,10 @@ export default class PluginRegistry {
      * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
      * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
      *
-     * The ids `'O'` and `'P'` are reserved for the built-in open and private channel types and
-     * must not be used by plugins. Attempting to register with either value throws an `Error`.
+     * Returns a unique identifier for the registered option, which can be passed to
+     * `unregisterComponent`.
      */
     registerChannelTypeOption = reArg([
-        'id',
         'label',
         'description',
         'icon',
@@ -1326,7 +1325,6 @@ export default class PluginRegistry {
         'extraContent',
         'onCreate',
     ], ({
-        id,
         label,
         description,
         icon,
@@ -1334,7 +1332,6 @@ export default class PluginRegistry {
         extraContent,
         onCreate,
     }: {
-        id: string;
         label: ReactResolvable;
         description: ReactResolvable;
         icon: ReactResolvable;
@@ -1342,11 +1339,7 @@ export default class PluginRegistry {
         extraContent?: ChannelTypeOptionComponent['extraContent'];
         onCreate: ChannelTypeOptionComponent['onCreate'];
     }) => {
-        if (id === Constants.OPEN_CHANNEL || id === Constants.PRIVATE_CHANNEL) {
-            throw new Error(
-                `registerChannelTypeOption: id '${id}' is reserved. Plugin channel-type ids must not be '${Constants.OPEN_CHANNEL}' or '${Constants.PRIVATE_CHANNEL}'.`,
-            );
-        }
+        const id = generateId();
         dispatchPluginComponentWithData('ChannelTypeOption', {
             id,
             pluginId: this.id,
@@ -1359,20 +1352,6 @@ export default class PluginRegistry {
         });
 
         return id;
-    });
-
-    /**
-     * Remove a single channel-type option registered by this plugin.
-     * Only removes the entry matching `id` for this plugin; options from other plugins are unaffected.
-     * Unregistering an id that is not currently registered is a no-op; no error is thrown.
-     */
-    unregisterChannelTypeOption = reArg(['id'], ({id}: {id: string}) => {
-        store.dispatch({
-            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
-            name: 'ChannelTypeOption',
-            pluginId: this.id,
-            id,
-        });
     });
 
     /**

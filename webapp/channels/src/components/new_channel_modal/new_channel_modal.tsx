@@ -11,7 +11,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {CreateResult, NewChannelFormState} from '@mattermost/types/plugins';
+import type {NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
@@ -176,21 +176,6 @@ const NewChannelModal = () => {
         setURLError('');
     }, []);
 
-    const mergeFormState = useCallback((next: Partial<Pick<NewChannelFormState, 'displayName' | 'url' | 'purpose' | 'managedCategoryName'>>) => {
-        if (next.displayName !== undefined) {
-            setDisplayName(next.displayName);
-        }
-        if (next.url !== undefined) {
-            setURL(next.url);
-        }
-        if (next.purpose !== undefined) {
-            setPurpose(next.purpose);
-        }
-        if (next.managedCategoryName !== undefined) {
-            setManagedCategoryName(next.managedCategoryName);
-        }
-    }, []);
-
     const handleOnModalConfirm = async () => {
         if (!canCreate || !currentTeamId) {
             return;
@@ -267,7 +252,7 @@ const NewChannelModal = () => {
         } else if (activePluginOption) {
             const genericError = formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'});
             setIsSubmitting(true);
-            let result: CreateResult | undefined;
+            let result: NewChannelFormResult | undefined;
             try {
                 result = await activePluginOption.onCreate(formState);
             } catch (e) {
@@ -277,7 +262,7 @@ const NewChannelModal = () => {
             } finally {
                 setIsSubmitting(false);
             }
-            if (!result) {
+            if (!result || typeof result !== 'object') {
                 return;
             }
             if (result.status === 'created' && !result.channel) {
@@ -517,7 +502,6 @@ const NewChannelModal = () => {
                 {activePluginOption?.extraContent && (
                     <activePluginOption.extraContent
                         formState={formState}
-                        setFormState={mergeFormState}
                         setCanCreate={setPluginCanCreate}
                     />
                 )}
