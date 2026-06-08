@@ -487,8 +487,12 @@ export type Plugin = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSoc
     manifest: PluginManifest;
 }>;
 
-// Carries no payload; signals admin clients to refetch the full plugin statuses on demand.
-export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, Record<string, never>>;
+// Signals admin clients to refetch the full plugin statuses on demand. plugin_statuses is always
+// an empty array: it carries no data, but is retained (rather than omitted) so clients that call
+// array methods on it don't break.
+export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, {
+    plugin_statuses: never[];
+}>;
 
 export type OpenDialog = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
     dialog: JsonEncodedValue<OpenDialogRequest>;

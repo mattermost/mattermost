@@ -93,11 +93,15 @@ func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.App
 }
 
 // notifyPluginStatusesChanged signals system admins that plugin statuses have changed without
-// carrying any payload. The full, cluster-wide status slice routinely overflows the best-effort
-// (UDP) cluster transport, so admin clients refetch it on demand instead. The signal is sent
-// reliably (TCP) and only to system admins (ContainsSensitiveData).
+// carrying the full status slice. That slice (status for every installed plugin, cluster-wide)
+// routinely overflows the best-effort (UDP) cluster transport, so admin clients refetch it on
+// demand instead. The signal is sent reliably (TCP) and only to system admins (ContainsSensitiveData).
 func (ch *Channels) notifyPluginStatusesChanged() {
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil, "")
+	// Compatibility shim: some clients (e.g. the Boards/Focalboard plugin) call array methods on
+	// plugin_statuses, so include an empty (non-nil, to serialize as [] rather than null) slice
+	// rather than omitting the field. The payload is intentionally always empty.
+	message.Add("plugin_statuses", model.PluginStatuses{})
 	message.GetBroadcast().ContainsSensitiveData = true
 	message.GetBroadcast().ReliableClusterSend = true
 	ch.srv.platform.Publish(message)
