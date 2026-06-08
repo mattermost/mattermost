@@ -490,7 +490,7 @@ func (a *App) HasPermissionToResolveChannelMention(rctx request.CTX, userID stri
 		return true
 	}
 
-	if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypeOpenBoard {
+	if channel.Type == model.ChannelTypeOpen {
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionReadPublicChannel)
 	}
 

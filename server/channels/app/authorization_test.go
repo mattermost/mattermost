@@ -877,30 +877,22 @@ func TestHasPermissionToResolveChannelMention(t *testing.T) {
 			isTeamMember:            false,
 			expected:                false,
 		},
-		{
-			name:                    "public, NOT team member, compliance OFF -> stripped",
-			configComplianceEnabled: false,
-			channelType:             model.ChannelTypeOpen,
-			isChannelMember:         false,
-			isTeamMember:            false,
-			expected:                false,
-		},
-		{
-			name:                    "open board, team member, compliance ON -> resolves",
-			configComplianceEnabled: true,
-			channelType:             model.ChannelTypeOpenBoard,
-			isChannelMember:         false,
-			isTeamMember:            true,
-			expected:                true,
-		},
-		{
-			name:                    "private, channel member -> resolves",
-			configComplianceEnabled: false,
-			channelType:             model.ChannelTypePrivate,
-			isChannelMember:         true,
-			isTeamMember:            true,
-			expected:                true,
-		},
+	{
+		name:                    "public, NOT team member, compliance OFF -> stripped",
+		configComplianceEnabled: false,
+		channelType:             model.ChannelTypeOpen,
+		isChannelMember:         false,
+		isTeamMember:            false,
+		expected:                false,
+	},
+	{
+		name:                    "private, channel member -> resolves",
+		configComplianceEnabled: false,
+		channelType:             model.ChannelTypePrivate,
+		isChannelMember:         true,
+		isTeamMember:            true,
+		expected:                true,
+	},
 		{
 			name:                    "private, team member but not channel member, compliance OFF -> stripped",
 			configComplianceEnabled: false,
@@ -931,33 +923,13 @@ func TestHasPermissionToResolveChannelMention(t *testing.T) {
 				th.LinkUserToTeam(t, th.BasicUser2, team)
 			}
 
-			var channel *model.Channel
-			switch tc.channelType {
-			case model.ChannelTypeOpenBoard:
-				kanban := &model.KanbanProps{
-					GroupBy: model.KanbanGroupBy{
-						FieldID: model.NewId(),
-						Columns: []model.KanbanColumn{
-							{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
-						},
-					},
-				}
-				viewProps, _ := kanban.ToProps()
-				view := &model.View{CreatorId: th.SystemAdminUser.Id, Type: model.ViewTypeKanban, Title: "Board", Props: viewProps}
-				ch, _, storeErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
-					TeamId:      team.Id,
-					DisplayName: "Board " + model.NewId(),
-					Name:        "board-" + model.NewId(),
-					Type:        tc.channelType,
-					CreatorId:   th.SystemAdminUser.Id,
-				}, -1, view)
-				require.NoError(t, storeErr)
-				channel = ch
-			case model.ChannelTypePrivate:
-				channel = th.CreatePrivateChannel(t, team)
-			default:
-				channel = th.CreateChannel(t, team)
-			}
+		var channel *model.Channel
+		switch tc.channelType {
+		case model.ChannelTypePrivate:
+			channel = th.CreatePrivateChannel(t, team)
+		default:
+			channel = th.CreateChannel(t, team)
+		}
 
 			if tc.isChannelMember {
 				_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
