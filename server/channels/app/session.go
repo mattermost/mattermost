@@ -234,8 +234,11 @@ func (a *App) sendMobileWipeSignal(rctx request.CTX, sessions ...*model.Session)
 				mlog.String("session_id", session.Id),
 				mlog.String("reason", reason),
 				mlog.Err(sendErr))
-		} else {
-			rctx.Logger().Info("Sent push session wipe signal to push proxy")
+			continue
+		}
+
+		if a.Metrics() != nil {
+			a.Metrics().IncrementPostSentPush()
 		}
 	}
 }
@@ -253,7 +256,9 @@ func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError
 		}
 	}
 
-	go a.sendMobileWipeSignal(rctx, sessions...)
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessions...)
+	})
 
 	return nil
 }
@@ -282,7 +287,9 @@ func (a *App) RevokeSessionsFromAllUsers(rctx request.CTX) *model.AppError {
 		}
 	}
 
-	go a.sendMobileWipeSignal(rctx, sessionsWithActiveDevices...)
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessionsWithActiveDevices...)
+	})
 
 	return nil
 }
@@ -343,7 +350,9 @@ func (a *App) RevokeSession(rctx request.CTX, session *model.Session) *model.App
 		}
 	}
 
-	go a.sendMobileWipeSignal(rctx, session)
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, session)
+	})
 
 	return nil
 }
