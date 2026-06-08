@@ -614,23 +614,20 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await expect(confirmModal).toContainText('remove 1 current channel member');
 
         // # Confirm and wait for the access-control sync job that applies the removal
-        const syncJobIdPromise = page
-            .waitForResponse(
+        const [syncJobResponse] = await Promise.all([
+            page.waitForResponse(
                 (response) => response.url().includes('/api/v4/jobs') && response.request().method() === 'POST',
                 {timeout: 10000},
-            )
-            .then(async (response) => {
-                if (!response.ok()) {
-                    throw new Error(`Failed to create access-control sync job: ${response.status()}`);
-                }
-                const job = await response.json();
-                return job.id as string;
-            });
-
-        await confirmModal.getByRole('button', {name: /Save and apply/}).click();
+            ),
+            confirmModal.getByRole('button', {name: 'Save'}).click(),
+        ]);
         await confirmModal.waitFor({state: 'hidden', timeout: 15000});
 
-        const syncJobId = await syncJobIdPromise;
+        if (!syncJobResponse.ok()) {
+            throw new Error(`Failed to create access-control sync job: ${syncJobResponse.status()}`);
+        }
+        const syncJob = await syncJobResponse.json();
+        const syncJobId = syncJob.id as string;
         const finished = await waitForJobCompletion(adminClient, syncJobId, {timeoutMs: 90_000});
         expect(finished.status, `sync job did not succeed: ${JSON.stringify(finished)}`).toBe('success');
 
