@@ -967,7 +967,7 @@ describe('Selectors.Posts', () => {
     });
 
     describe('getMostRecentNonSystemPostIdInChannel', () => {
-        const buildState = (testPosts: Record<string, Partial<Post>>, order: string[], showJoinLeave: boolean) => ({
+        const buildState = (testPosts: Record<string, {id: string; type: string}>, order: string[], showJoinLeave: boolean) => ({
             entities: {
                 general: {
                     config: {
