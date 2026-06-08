@@ -30,8 +30,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
@@ -1766,6 +1768,173 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 			}, 2*time.Second, 100*time.Millisecond)
 		})
 	}
+}
+
+// TestPluginCustomizedEmailBypassesBatching verifies that when a plugin returns replacement
+// EmailNotificationContent (customized=true), the email is sent immediately even when
+// EnableEmailBatching is true — preventing the batch path from rendering the raw post.Message.
+func TestPluginCustomizedEmailBypassesBatching(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Helper to build a notification for a given recipient and post.
+	buildNotification := func(th *TestHelper, recipient *model.User) *PostNotification {
+		return &PostNotification{
+			Post: &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "sensitive plaintext",
+				CreateAt:  model.GetMillis(),
+			},
+			Channel: th.BasicChannel,
+			ProfileMap: map[string]*model.User{
+				recipient.Id: recipient,
+			},
+			Sender: th.BasicUser,
+		}
+	}
+
+	t.Run("customized email is not added to batch queue", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
+		th := Setup(t, StartMetrics).InitBasic(t)
+
+		// User recipient — linked to team and channel.
+		recipient := th.CreateUser(t)
+		th.LinkUserToTeam(t, recipient, th.BasicTeam)
+		th.AddUserToChannel(t, recipient, th.BasicChannel)
+
+		// Enable batching. SiteURL must be set or the config validation rejects EnableEmailBatching.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			*cfg.EmailSettings.EnableEmailBatching = true
+		})
+		appErr := th.App.UpdatePreferences(th.Context, recipient.Id, model.Preferences{{
+			UserId:   recipient.Id,
+			Category: model.PreferenceCategoryNotifications,
+			Name:     model.PreferenceNameEmailInterval,
+			Value:    "120", // any value other than NoBatchingSeconds triggers batching
+		}})
+		require.Nil(t, appErr)
+
+		// Install a plugin that returns a non-nil replacement — sets customized=true.
+		tearDown, _, errs := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) EmailNotificationWillBeSent(n *model.EmailNotification) (*model.EmailNotificationContent, string) {
+				return &model.EmailNotificationContent{
+					Subject: "Customized Subject",
+					Title:   "Customized Title",
+				}, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, errs[0])
+
+		// Replace the email service with a mock that records which methods are called.
+		// GetMessageForNotification and NewEmailTemplateData are called in the body-render path;
+		// AddNotificationEmailToBatch is called only in the batch path — it must NOT appear here.
+		emailMock := emailmocks.ServiceInterface{}
+		emailMock.On("GetMessageForNotification", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("")
+		emailMock.On("NewEmailTemplateData", mock.Anything).Return(templates.Data{Props: map[string]any{}})
+		emailMock.On("SendMailWithEmbeddedFiles",
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		emailMock.On("Stop").Return()
+		th.App.Srv().EmailService = &emailMock
+
+		notification := buildNotification(th, recipient)
+
+		// sendNotificationEmail is synchronous — a direct call is sufficient.
+		_, err := th.App.sendNotificationEmail(th.Context, notification, recipient, th.BasicTeam, nil)
+		require.NoError(t, err)
+
+		// The batch path must have been skipped entirely.
+		emailMock.AssertNotCalled(t, "AddNotificationEmailToBatch", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("non-customized email is added to batch queue", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
+		th := Setup(t, StartMetrics).InitBasic(t)
+
+		recipient := th.CreateUser(t)
+		th.LinkUserToTeam(t, recipient, th.BasicTeam)
+		th.AddUserToChannel(t, recipient, th.BasicChannel)
+
+		// Enable batching. SiteURL must be set or the config validation rejects EnableEmailBatching.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			*cfg.EmailSettings.EnableEmailBatching = true
+		})
+		appErr := th.App.UpdatePreferences(th.Context, recipient.Id, model.Preferences{{
+			UserId:   recipient.Id,
+			Category: model.PreferenceCategoryNotifications,
+			Name:     model.PreferenceNameEmailInterval,
+			Value:    "120",
+		}})
+		require.Nil(t, appErr)
+
+		// Plugin that returns nil content — customized stays false.
+		tearDown, _, errs := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) EmailNotificationWillBeSent(n *model.EmailNotification) (*model.EmailNotificationContent, string) {
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, errs[0])
+
+		emailMock := emailmocks.ServiceInterface{}
+		// GetMessageForNotification is called from buildEmailNotification before the hook.
+		emailMock.On("GetMessageForNotification", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("")
+		// AddNotificationEmailToBatch MUST be called — non-customized + batching enabled + matching preference.
+		emailMock.On("AddNotificationEmailToBatch",
+			mock.MatchedBy(func(u *model.User) bool { return u.Id == recipient.Id }),
+			mock.Anything,
+			mock.Anything,
+		).Return((*model.AppError)(nil))
+		emailMock.On("Stop").Return()
+		th.App.Srv().EmailService = &emailMock
+
+		notification := buildNotification(th, recipient)
+
+		// sendNotificationEmail is synchronous — a direct call is sufficient.
+		_, err := th.App.sendNotificationEmail(th.Context, notification, recipient, th.BasicTeam, nil)
+		require.NoError(t, err)
+
+		emailMock.AssertCalled(t, "AddNotificationEmailToBatch",
+			mock.MatchedBy(func(u *model.User) bool { return u.Id == recipient.Id }),
+			mock.Anything,
+			mock.Anything,
+		)
+	})
 }
 
 func TestHookMessagesWillBeConsumed(t *testing.T) {
