@@ -61,13 +61,11 @@ export function loadProfilesAndReloadChannelMembers(page: number, perPage?: numb
         const newChannelId = channelId || getCurrentChannelId(doGetState());
         const {data} = await doDispatch(UserActions.getProfilesInChannel(newChannelId, page, perPage, sort, options));
         if (data) {
-            // When refreshing the first page, drop any members the server no longer
-            // returns. getProfilesInChannel only adds to the channel member stores, so
-            // without this a removal that was not handled over the websocket (e.g. an
-            // ABAC access-rule change processed while another channel was focused) would
-            // leave the member list stale even though the count is refreshed separately.
-            // Only safe when the page holds the channel's full membership; a full page
-            // means more pages follow and their members must not be pruned.
+            // getProfilesInChannel only adds to the channel member stores, so a removal
+            // missed over the websocket (e.g. an ABAC access-rule change handled while
+            // another channel was focused) leaves the member list stale. Prune members
+            // the server no longer returns, but only when this first page holds the full
+            // membership; a full page means more pages follow and must not be pruned.
             if (reconcile && page === 0 && perPage !== undefined && data.length < perPage) {
                 doDispatch(pruneStaleChannelMembers(newChannelId, data));
             }
