@@ -66,6 +66,17 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		require.Error(t, err, "a transient lookup error must still be returned so the task retries")
 		assert.ErrorContains(t, err, "connection reset by peer")
 	})
+
+	t.Run("offline remote is reported as errRemoteOffline for retry", func(t *testing.T) {
+		remoteID := model.NewId()
+		offline := &model.RemoteCluster{RemoteId: remoteID, DisplayName: "Corpus", LastPingAt: 0}
+		scs := newServiceWithRemoteGet(t, remoteID, offline, nil)
+
+		err := scs.processTask(newSyncTask("channel-1", "", remoteID, nil, nil))
+
+		require.Error(t, err, "an offline remote must still be returned so the task retries")
+		assert.ErrorIs(t, err, errRemoteOffline, "the offline case must be identifiable so it is logged at WARN, not ERROR")
+	})
 }
 
 func TestAddTask_OriginRemoteIDMerge(t *testing.T) {
