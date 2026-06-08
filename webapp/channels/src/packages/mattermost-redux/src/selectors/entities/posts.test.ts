@@ -1001,6 +1001,17 @@ describe('Selectors.Posts', () => {
             expect(postId).toBe('1001');
         });
 
+        it('skips the most recent system message even when join/leave messages are hidden', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: ''},
+                1002: {id: '1002', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001', '1002'], false), 'channelId');
+            expect(postId).toBe('1001');
+        });
+
         it('returns the most recent post when it is a regular message', () => {
             const testPosts = {
                 1000: {id: '1000', type: ''},
