@@ -109,10 +109,9 @@
 }
 
 .ranked-schema-modal__add-input {
-    flex: 1;
-
     // Match the value chip's height so the row doesn't shrink while adding.
     height: 24px;
+    flex: 1;
     padding: 0;
     border: none;
     background: transparent;
@@ -126,7 +125,7 @@
     }
 
     &:focus {
-        outline: none;
         box-shadow: none;
+        outline: none;
     }
 }

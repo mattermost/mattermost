@@ -18,9 +18,9 @@
     // rounded corners.
     .user-property-rank-values__chip {
         display: inline-flex;
+        overflow: hidden;
         height: 24px;
         align-items: stretch;
-        overflow: hidden;
         border-radius: 12px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: var(--center-channel-color);
@@ -33,8 +33,8 @@
 
         // The rank badge fills the whole left side of the pill.
         .rank-badge {
-            height: auto;
             min-width: 24px;
+            height: auto;
             align-self: stretch;
             padding: 0 7px;
             border-radius: 0;
