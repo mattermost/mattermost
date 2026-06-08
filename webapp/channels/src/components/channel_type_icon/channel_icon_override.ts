@@ -8,14 +8,8 @@ import {getChannelIconClassName} from 'utils/channel_utils';
 
 import type {GlobalState} from 'types/store';
 
-import {compassIconForName} from './compass_icon_resolver';
-
 // Tracks plugin ids that have already logged a matcher error to avoid spamming the console.
 const loggedMatcherErrors = new Set<string>();
-
-// Tracks icon names that have already logged a validation error to avoid spamming the console.
-// Keyed by iconName (not pluginId) since pluginId isn't available at the font-path call site.
-const loggedIconNameErrors = new Set<string>();
 
 /**
  * Clears the per-pluginId log-once tracker for matcher errors.
@@ -70,9 +64,10 @@ export function getChannelIconOverrideForChannel(
 /**
  * Returns the icon CSS class name for a channel, consulting plugin overrides first.
  *
- * Delegates matcher iteration to `getChannelIconOverrideForChannel`. If an override matches,
- * validates the icon name against the Compass glyph map before returning `icon-${iconName}`.
- * An unknown icon name is logged once per name and falls back to `getChannelIconClassName`.
+ * Delegates matcher iteration to `getChannelIconOverrideForChannel`. The icon name is already
+ * validated against the Compass glyph map at registration time (`registerChannelIconOverride`),
+ * so an override that reaches the store is always a known glyph — no render-time validation
+ * needed. Falls back to `getChannelIconClassName` when no override matches.
  */
 export function getChannelIconClassNameForChannel(
     state: GlobalState,
@@ -80,16 +75,6 @@ export function getChannelIconClassNameForChannel(
 ): string {
     const overrideName = getChannelIconOverrideForChannel(state, channel);
     if (overrideName) {
-        if (compassIconForName(overrideName) === null) {
-            if (!loggedIconNameErrors.has(overrideName)) {
-                loggedIconNameErrors.add(overrideName);
-                // eslint-disable-next-line no-console
-                console.error(
-                    `ChannelIconOverride: unknown iconName '${overrideName}' — falling back to channel default.`,
-                );
-            }
-            return getChannelIconClassName(channel);
-        }
         return `icon-${overrideName}`;
     }
     return getChannelIconClassName(channel);

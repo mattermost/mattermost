@@ -17,10 +17,6 @@ import type {Value} from 'components/multiselect/multiselect';
 import Constants from 'utils/constants';
 import './channel_selector_modal.scss';
 
-const RowChannelIcon = ({channel}: {channel: Channel}) => (
-    <ChannelTypeIcon channel={channel}/>
-);
-
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
 
 type Props = {
@@ -218,7 +214,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 >
                     <div className='channel-info-block'>
                         {(option.type === Constants.OPEN_CHANNEL || option.type === Constants.PRIVATE_CHANNEL) && (
-                            <RowChannelIcon channel={option}/>
+                            <ChannelTypeIcon channel={option}/>
                         )}
                         <span className='channel-name'>{option.display_name}</span>
                         {!this.props.teamId && option.team_display_name && (
