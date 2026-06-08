@@ -425,11 +425,11 @@ export function markPostAsUnread(post: Post, location?: string): ActionFuncAsync
 export function markMostRecentPostInChannelAsUnread(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let state = getState();
-        let postId = PostSelectors.getMostRecentPostIdInChannel(state, channelId);
+        let postId = PostSelectors.getMostRecentNonSystemPostIdInChannel(state, channelId);
         if (!postId) {
             await dispatch(PostActions.getPosts(channelId));
             state = getState();
-            postId = PostSelectors.getMostRecentPostIdInChannel(state, channelId);
+            postId = PostSelectors.getMostRecentNonSystemPostIdInChannel(state, channelId);
         }
         if (postId) {
             const lastPost = PostSelectors.getPost(state, postId);

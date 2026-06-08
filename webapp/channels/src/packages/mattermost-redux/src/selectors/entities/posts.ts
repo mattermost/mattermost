@@ -382,6 +382,16 @@ export function makeGetPostsForIds(): (state: GlobalState, postIds: Array<Post['
     );
 }
 
+function getMostRecentNonSystemPostId(posts: Record<string, Post>, postIdsInChannel: Array<Post['id']>): Post['id'] | undefined {
+    for (let i = 0; i < postIdsInChannel.length; i++) {
+        const p = posts[postIdsInChannel[i]];
+        if (!p.type || !p.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX)) {
+            return p.id;
+        }
+    }
+    return undefined;
+}
+
 export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Channel['id']) => Post['id'] | undefined | null = createSelector(
     'getMostRecentPostIdInChannel',
     getAllPosts,
@@ -394,19 +404,28 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
 
         if (!allowSystemMessages) {
             // return the most recent non-system message in the channel
-            let postId;
-            for (let i = 0; i < postIdsInChannel.length; i++) {
-                const p = posts[postIdsInChannel[i]];
-                if (!p.type || !p.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX)) {
-                    postId = p.id;
-                    break;
-                }
-            }
-            return postId;
+            return getMostRecentNonSystemPostId(posts, postIdsInChannel);
         }
 
         // return the most recent message in the channel
         return postIdsInChannel[0];
+    },
+);
+
+// getMostRecentNonSystemPostIdInChannel returns the id of the most recent non-system post in the channel, regardless
+// of the user's join/leave message preference. The server excludes join/leave system messages from a channel's unread
+// count, so marking one of them as unread leaves the channel looking read. This selector is used when marking a
+// channel as unread from the sidebar so that a post the server will actually count gets selected.
+export const getMostRecentNonSystemPostIdInChannel: (state: GlobalState, channelId: Channel['id']) => Post['id'] | undefined = createSelector(
+    'getMostRecentNonSystemPostIdInChannel',
+    getAllPosts,
+    (state: GlobalState, channelId: string) => getPostIdsInChannel(state, channelId),
+    (posts, postIdsInChannel) => {
+        if (!postIdsInChannel) {
+            return undefined;
+        }
+
+        return getMostRecentNonSystemPostId(posts, postIdsInChannel);
     },
 );
 
