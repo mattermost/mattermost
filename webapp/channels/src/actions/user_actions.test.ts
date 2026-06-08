@@ -196,6 +196,80 @@ describe('Actions.User', () => {
         expect(actualActions[0].type).toEqual(expectedActions[0].type);
     });
 
+    describe('loadProfilesAndReloadChannelMembers reconcile', () => {
+        // The mocked getProfilesInChannel resolves with a single member (user_1), so any
+        // other member present in the store for the channel is treated as stale (e.g. a
+        // member removed by an ABAC access-rule change while the user was not viewing the
+        // channel, whose user_removed websocket event was never applied).
+        const reconcileState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    membersInChannel: {
+                        reconcile_channel: {
+                            user_1: {channel_id: 'reconcile_channel', user_id: 'user_1'} as ChannelMembership,
+                            user_2: {channel_id: 'reconcile_channel', user_id: 'user_2'} as ChannelMembership,
+                        },
+                    },
+                },
+                users: {
+                    ...initialState.entities.users,
+                    profilesInChannel: {
+                        reconcile_channel: new Set(['user_1', 'user_2']),
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const prunedUserIds = (actions: AnyAction[]): string[] => {
+            const ids: string[] = [];
+            for (const action of actions) {
+                const candidates = Array.isArray(action.payload) ? action.payload : [action];
+                for (const candidate of candidates) {
+                    if (candidate.type === 'RECEIVED_PROFILE_NOT_IN_CHANNEL' && candidate.data?.id === 'reconcile_channel') {
+                        ids.push(candidate.data.user_id);
+                    }
+                }
+            }
+            return ids;
+        };
+
+        test('prunes members the server no longer returns on the first page', async () => {
+            const testStore = mockStore(reconcileState);
+            await testStore.dispatch(UserActions.loadProfilesAndReloadChannelMembers(0, 60, 'reconcile_channel', 'sort', {}, true));
+
+            const pruned = prunedUserIds(testStore.getActions());
+            expect(pruned).toContain('user_2');
+            expect(pruned).not.toContain('user_1');
+        });
+
+        test('does not prune when reconcile is disabled', async () => {
+            const testStore = mockStore(reconcileState);
+            await testStore.dispatch(UserActions.loadProfilesAndReloadChannelMembers(0, 60, 'reconcile_channel', 'sort', {}, false));
+
+            expect(prunedUserIds(testStore.getActions())).toHaveLength(0);
+        });
+
+        test('does not prune on a full page since more pages may follow', async () => {
+            const testStore = mockStore(reconcileState);
+
+            // perPage equals the number of returned profiles (1), so the page is not known
+            // to hold the full membership and members beyond it must not be pruned.
+            await testStore.dispatch(UserActions.loadProfilesAndReloadChannelMembers(0, 1, 'reconcile_channel', 'sort', {}, true));
+
+            expect(prunedUserIds(testStore.getActions())).toHaveLength(0);
+        });
+
+        test('does not prune on pages other than the first', async () => {
+            const testStore = mockStore(reconcileState);
+            await testStore.dispatch(UserActions.loadProfilesAndReloadChannelMembers(1, 60, 'reconcile_channel', 'sort', {}, true));
+
+            expect(prunedUserIds(testStore.getActions())).toHaveLength(0);
+        });
+    });
+
     test('loadProfilesAndTeamMembersAndChannelMembers', async () => {
         const expectedActions = [{type: 'MOCK_GET_PROFILES_IN_CHANNEL', args: ['current_channel_id', 0, 60, '', undefined]}];
 
