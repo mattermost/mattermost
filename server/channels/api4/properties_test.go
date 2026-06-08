@@ -19,10 +19,21 @@ func TestSessionAttributesFieldEditing(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.SessionAttributes = true
 	}).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	groupName := model.SessionAttributesPropertyGroupName
 	objectType := model.PropertyFieldObjectTypeSession
+
+	t.Run("requires an Enterprise Advanced license", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, objectType, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.session_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	fields, _, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, objectType, model.PropertyFieldSearch{
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -75,18 +86,6 @@ func TestSessionAttributesFieldEditing(t *testing.T) {
 		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), groupName, objectType, field.ID)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-	})
-
-	// Keep last: drops the license for the remainder of the test.
-	t.Run("requires an Enterprise Advanced license", func(t *testing.T) {
-		require.Nil(t, th.App.Srv().RemoveLicense())
-
-		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, objectType, field.ID, &model.PropertyFieldPatch{
-			Attrs: &model.StringInterface{model.SAAttrEnabled: false},
-		})
-		require.Error(t, err)
-		CheckErrorID(t, err, "api.property.session_attributes.license.app_error")
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 }
 
