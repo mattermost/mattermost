@@ -97,7 +97,7 @@ const SearchSuggestions = ({
     const Component = pluginComponentInfo.component;
 
     return (
-        <ErrorBoundary>
+        <ErrorBoundary pluginId={pluginComponentInfo.pluginId}>
             <Component
                 key={pluginComponentInfo.pluginId}
                 searchTerms={searchTerms}

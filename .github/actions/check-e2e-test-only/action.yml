@@ -29,6 +29,7 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
         INPUT_BASE_SHA: ${{ inputs.base_sha }}
         INPUT_HEAD_SHA: ${{ inputs.head_sha }}
         INPUT_PR_NUMBER: ${{ inputs.pr_number }}
@@ -42,7 +43,7 @@ runs:
           fi
 
           echo "Resolving SHAs from PR #${INPUT_PR_NUMBER}"
-          PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}")
+          PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR_NUMBER}")
           INPUT_BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha')
           INPUT_HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
           BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref')
@@ -54,7 +55,7 @@ runs:
           fi
         elif [ -n "$INPUT_PR_NUMBER" ]; then
           # SHAs provided but we still need the base branch ref
-          BASE_REF=$(gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}" --jq '.base.ref')
+          BASE_REF=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR_NUMBER}" --jq '.base.ref')
         fi
 
         # Default to master if base ref could not be determined
@@ -67,7 +68,7 @@ runs:
 
         # Get changed files - try git first, fall back to API
         CHANGED_FILES=$(git diff --name-only "$INPUT_BASE_SHA"..."$INPUT_HEAD_SHA" 2>/dev/null || \
-          gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}/files" --jq '.[].filename' 2>/dev/null || echo "")
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR_NUMBER}/files" --jq '.[].filename' 2>/dev/null || echo "")
 
         if [ -z "$CHANGED_FILES" ]; then
           echo "::warning::Could not determine changed files, assuming not E2E-only"

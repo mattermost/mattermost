@@ -767,6 +767,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.FileDownloadRejected:
         dispatch(handleFileDownloadRejected(msg));
         break;
+    case WebSocketEvents.FileUploadRejected:
+        dispatch(handleFileUploadRejected(msg));
+        break;
     case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
         break;
@@ -1289,7 +1292,7 @@ function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
+export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1301,6 +1304,15 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
                 type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
+
+            // The membership relation alone is not enough to render the member in the
+            // participant list: the member list selectors drop users whose profile is
+            // not loaded. This happens for remote users synced into a shared channel,
+            // since the viewer has never loaded their profile. Fetch it if missing.
+            if (!getUser(state, msg.data.user_id)) {
+                doDispatch(loadUser(msg.data.user_id));
+            }
+
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
                 doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
@@ -2378,6 +2390,33 @@ export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRe
                 position: 'bottom-center',
                 onExited: () => {
                     // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    };
+}
+
+export function handleFileUploadRejected(msg: WebSocketMessages.FileUploadRejected): ThunkActionFunc<void> {
+    return (dispatch) => {
+        const {rejection_reason: rejectionReason} = msg.data;
+
+        const intl = getIntl();
+        const displayMessage = intl.formatMessage(
+            {id: 'file_upload.rejected.file', defaultMessage: 'File upload blocked: {reason}'},
+            {reason: rejectionReason},
+        );
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
+                    message: displayMessage,
+                },
+                position: 'bottom-center',
+                onExited: () => {
                     dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
                 },
             },
