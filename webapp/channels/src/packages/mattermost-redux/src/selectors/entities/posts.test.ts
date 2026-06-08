@@ -966,6 +966,89 @@ describe('Selectors.Posts', () => {
         });
     });
 
+    describe('getMostRecentNonSystemPostIdInChannel', () => {
+        const buildState = (testPosts: Record<string, Partial<Post>>, order: string[], showJoinLeave: boolean) => ({
+            entities: {
+                general: {
+                    config: {
+                        EnableJoinLeaveMessageByDefault: 'true',
+                    },
+                },
+                posts: {
+                    posts: testPosts,
+                    postsInChannel: {
+                        channelId: [
+                            {order, recent: true},
+                        ],
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [`${Preferences.CATEGORY_ADVANCED_SETTINGS}--${Preferences.ADVANCED_FILTER_JOIN_LEAVE}`]: {value: showJoinLeave ? 'true' : 'false'},
+                    },
+                },
+            },
+        } as unknown as GlobalState);
+
+        it('skips the most recent system message even when join/leave messages are shown', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: ''},
+                1002: {id: '1002', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001', '1002'], true), 'channelId');
+            expect(postId).toBe('1001');
+        });
+
+        it('returns the most recent post when it is a regular message', () => {
+            const testPosts = {
+                1000: {id: '1000', type: ''},
+                1001: {id: '1001', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001'], true), 'channelId');
+            expect(postId).toBe('1000');
+        });
+
+        it('skips multiple trailing system messages', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: 'system_join_channel'},
+                1002: {id: '1002', type: ''},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001', '1002'], true), 'channelId');
+            expect(postId).toBe('1002');
+        });
+
+        it('returns undefined when every loaded post is a system message', () => {
+            const testPosts = {
+                1000: {id: '1000', type: 'system_add_to_channel'},
+                1001: {id: '1001', type: 'system_join_channel'},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['1000', '1001'], true), 'channelId');
+            expect(postId).toBeUndefined();
+        });
+
+        it('returns undefined when no posts are loaded for the channel', () => {
+            const state = {
+                entities: {
+                    general: {config: {}},
+                    posts: {
+                        posts: {},
+                        postsInChannel: {},
+                    },
+                    preferences: {myPreferences: {}},
+                },
+            } as unknown as GlobalState;
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(state, 'channelId');
+            expect(postId).toBeUndefined();
+        });
+    });
+
     describe('getLatestReplyablePostId', () => {
         it('no posts', () => {
             const state = {
