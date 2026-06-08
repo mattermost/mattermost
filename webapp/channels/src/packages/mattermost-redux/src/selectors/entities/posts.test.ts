@@ -1043,6 +1043,15 @@ describe('Selectors.Posts', () => {
             expect(postId).toBeUndefined();
         });
 
+        it('skips stale post IDs missing from the posts map', () => {
+            const testPosts = {
+                1001: {id: '1001', type: ''},
+            };
+
+            const postId = Selectors.getMostRecentNonSystemPostIdInChannel(buildState(testPosts, ['999', '1001'], true), 'channelId');
+            expect(postId).toBe('1001');
+        });
+
         it('returns undefined when no posts are loaded for the channel', () => {
             const state = {
                 entities: {

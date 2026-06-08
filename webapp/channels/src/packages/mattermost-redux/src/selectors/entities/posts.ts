@@ -385,6 +385,9 @@ export function makeGetPostsForIds(): (state: GlobalState, postIds: Array<Post['
 function getMostRecentNonSystemPostId(posts: Record<string, Post>, postIdsInChannel: Array<Post['id']>): Post['id'] | undefined {
     for (let i = 0; i < postIdsInChannel.length; i++) {
         const p = posts[postIdsInChannel[i]];
+        if (!p) {
+            continue;
+        }
         if (!p.type || !p.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX)) {
             return p.id;
         }

@@ -470,6 +470,34 @@ describe('Actions.Posts', () => {
             expect(setUnreadAction!.args).toEqual(['current_user_id', regularPost.id]);
         });
 
+        test('does not fetch posts when the channel is loaded but contains only system messages', async () => {
+            const systemOnlyState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    posts: {
+                        ...initialState.entities.posts,
+                        posts: {
+                            [systemPost.id]: systemPost,
+                            [joinPost.id]: joinPost,
+                        },
+                        postsInChannel: {
+                            unread_channel_id: [
+                                {order: [systemPost.id, joinPost.id], recent: true},
+                            ],
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+            const testStore = mockStore(systemOnlyState);
+
+            await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
+
+            const actions = testStore.getActions();
+            expect(actions.some((action) => action.type === 'MOCK_GET_POSTS')).toBe(false);
+            expect(actions.some((action) => action.type === 'MOCK_SET_UNREAD_POST')).toBe(false);
+        });
+
         test('fetches posts when none are loaded and does not mark a system post as unread', async () => {
             const emptyState = {
                 ...initialState,
