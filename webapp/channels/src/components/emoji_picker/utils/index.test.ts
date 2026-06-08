@@ -75,6 +75,11 @@ const thumbsdownEmoji = {
     short_names: ['thumbs_down', 'down'],
     name: 'thumbsdown',
 };
+const umbrellaWithRainDropsEmoji = {
+    unified: '2614',
+    short_names: ['umbrella_with_rain_drops'],
+    name: 'UMBRELLA WITH RAIN DROPS',
+};
 const okEmoji = {
     unified: 'ok',
     short_names: ['ok', 'ok_hand'],
@@ -245,6 +250,17 @@ describe('getFilteredEmojis', () => {
         const userSkinTone = '';
 
         expect(getFilteredEmojis(allEmojis as any, filter, recentEmojisString, userSkinTone)).toStrictEqual([thumbsdownEmoji]);
+    });
+
+    test('Should normalize spaces and separators in the filter', () => {
+        const allEmojis = {
+            umbrellaWithRainDrops: umbrellaWithRainDropsEmoji,
+        };
+        const filter = 'umbrella with rain drops';
+        const recentEmojisString: string[] = [];
+        const userSkinTone = '';
+
+        expect(getFilteredEmojis(allEmojis as any, filter, recentEmojisString, userSkinTone)).toStrictEqual([umbrellaWithRainDropsEmoji]);
     });
 });
 

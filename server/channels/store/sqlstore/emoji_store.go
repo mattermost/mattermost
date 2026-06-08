@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -108,13 +109,7 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
 	emojis := []*model.Emoji{}
 
-	name = sanitizeSearchTerm(name, "\\")
-
-	term := ""
-	if !prefixOnly {
-		term = "%"
-	}
-	term += name + "%"
+	term := emojiSearchTerm(name, prefixOnly)
 
 	query := es.emojiSelectQuery.
 		Where(sq.Like{"Name": term}).
@@ -125,6 +120,26 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 		return nil, errors.Wrapf(err, "could not search emojis by name %s", name)
 	}
 	return emojis, nil
+}
+
+func emojiSearchTerm(name string, prefixOnly bool) string {
+	words := strings.Fields(name)
+	var term string
+	if len(words) > 1 {
+		sanitizedWords := make([]string, 0, len(words))
+		for _, word := range words {
+			sanitizedWords = append(sanitizedWords, sanitizeSearchTerm(word, "\\"))
+		}
+		term = strings.Join(sanitizedWords, "_")
+	} else {
+		term = sanitizeSearchTerm(name, "\\")
+	}
+
+	if !prefixOnly {
+		term = "%" + term
+	}
+
+	return term + "%"
 }
 
 // getBy returns one active (not deleted) emoji, found by any one column (what/key).
