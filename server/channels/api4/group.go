@@ -724,7 +724,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			}
 		}
 
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelGroupSync) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, model.PermissionManageChannelGroupSync); !ok {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageChannelGroupSync})
 		}
 	}
@@ -1182,7 +1182,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if NotAssociatedToChannelID != "" {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelGroupSync) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, model.PermissionManageChannelGroupSync); !ok {
 			c.SetPermissionError(model.PermissionManageChannelGroupSync)
 			return
 		}
@@ -1190,7 +1190,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ChannelIDForMemberCount != "" {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageChannelGroupSync) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, model.PermissionManageChannelGroupSync); !ok {
 			c.SetPermissionError(model.PermissionManageChannelGroupSync)
 			return
 		}

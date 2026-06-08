@@ -491,7 +491,7 @@ func initializePermissions() {
 		"manage_channel_group_sync",
 		"authentication.permissions.manage_channel_group_sync.name",
 		"authentication.permissions.manage_channel_group_sync.description",
-		PermissionScopeSystem,
+		PermissionScopeChannel,
 	}
 	PermissionConvertPublicChannelToPrivate = &Permission{
 		"convert_public_channel_to_private",
@@ -2577,7 +2577,6 @@ func initializePermissions() {
 		PermissionManageOutgoingOAuthConnections,
 		PermissionManageOwnAgent,
 		PermissionManageOthersAgent,
-		PermissionManageChannelGroupSync,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2614,6 +2613,7 @@ func initializePermissions() {
 		PermissionUseSlashCommands,
 		PermissionManagePublicChannelMembers,
 		PermissionManagePrivateChannelMembers,
+		PermissionManageChannelGroupSync,
 		PermissionManageChannelRoles,
 		PermissionManagePublicChannelProperties,
 		PermissionManagePrivateChannelProperties,

@@ -1346,14 +1346,11 @@ func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, e
 func (a *App) getAddChannelGroupSyncPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On: permissionAnd(
-				permissionNotExists(PermissionManageSystem),
-				permissionExists(model.PermissionSysconsoleWriteUserManagementGroups.Id),
+			On: permissionOr(
 				permissionExists(PermissionManagePublicChannelMembers),
 				permissionExists(PermissionManagePrivateChannelMembers),
 			),
-			Add:    []string{PermissionManageChannelGroupSync},
-			Remove: []string{PermissionManagePublicChannelMembers, PermissionManagePrivateChannelMembers},
+			Add: []string{PermissionManageChannelGroupSync},
 		},
 	}, nil
 }
