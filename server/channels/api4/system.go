@@ -478,6 +478,8 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	fields := []mlog.Field{
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.AppContext.UserAgent()),
+		mlog.String("session_id", c.AppContext.Session().Id),
+		mlog.String("user_id", c.AppContext.Session().UserId),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
@@ -589,10 +591,12 @@ func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Validate mandatory fields per driver. TestFileStoreConnectionWithConfig
 	// will catch missing fields by failing to construct the backend, but a
 	// dedicated validation step lets us surface a clearer error.
-	driver := ""
-	if cfg.FileSettings.DriverName != nil {
-		driver = *cfg.FileSettings.DriverName
-	}
+	//
+	// When the dedicated export filestore is active the backend that is
+	// actually built and tested is the export backend, so we have to dispatch
+	// on ExportDriverName -- otherwise a primary=S3 / export=Azure deployment
+	// would run the S3 field check while testing the Azure backend.
+	driver := c.App.ResolvedFileStoreDriverName(&cfg.FileSettings)
 	switch driver {
 	case model.ImageDriverLocal:
 		// Local driver has no mandatory fields beyond the directory, which has a default.

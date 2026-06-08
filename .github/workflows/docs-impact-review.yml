@@ -10,14 +10,15 @@ concurrency:
   group: ${{ format('docs-impact-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
  
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-  id-token: write
- 
+permissions: {}
+
 jobs:
   docs-impact-review:
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
     if: github.event.pull_request.draft == false && !startsWith(github.event.pull_request.user.login, 'unified-ci-app')
     runs-on: ubuntu-24.04
     env:

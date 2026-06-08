@@ -971,16 +971,116 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
         });
 
-        it('resets classification form to initial state when Reset is clicked', async () => {
+        it('preserves a saved regular banner color and shows Save when classification is re-enabled', async () => {
+            const {Client4} = require('mattermost-redux/client');
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            Client4.patchPropertyValues.mockResolvedValueOnce([]);
             enableClassification({
                 hasClassification: true,
                 classificationId: LEVEL_UNCLASSIFIED.id,
                 bannerText: `**${LEVEL_UNCLASSIFIED.name}**`,
             });
 
+            const classifiedChannel = TestHelper.getChannelMock({
+                ...mockChannel,
+                banner_info: {
+                    enabled: true,
+                    text: `**${LEVEL_UNCLASSIFIED.name}**`,
+                    background_color: LEVEL_UNCLASSIFIED.color,
+                },
+            });
+            const savedRegularBannerChannel = TestHelper.getChannelMock({
+                ...mockChannel,
+                banner_info: {
+                    enabled: true,
+                    text: `**${LEVEL_UNCLASSIFIED.name}**`,
+                    background_color: '#aa00aa',
+                },
+            });
+
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={classifiedChannel}
+                    canManageSharedChannels={true}
+                />,
+                {},
+                {useMockedStore: true},
+            );
+
+            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            await userEvent.clear(colorInput);
+            await userEvent.type(colorInput, '#AA00AA');
+
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith(
+                    'channel1',
+                    expect.objectContaining({
+                        banner_info: expect.objectContaining({
+                            enabled: true,
+                            background_color: '#aa00aa',
+                        }),
+                    }),
+                );
+            });
+            expect(Client4.patchPropertyValues).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                'channel1',
+                [{field_id: CHANNEL_FIELD_ID, value: null}],
+            );
+
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: false,
+                classificationBanner: undefined,
+                classificationId: undefined,
+                bannerText: undefined,
+            });
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={savedRegularBannerChannel}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#aa00aa');
+            });
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+            });
+        });
+
+        it('resets classification form to initial state when Reset is clicked', async () => {
+            enableClassification({
+                hasClassification: true,
+                classificationId: LEVEL_UNCLASSIFIED.id,
+                bannerText: `**${LEVEL_UNCLASSIFIED.name}**`,
+            });
+            const classifiedChannel = TestHelper.getChannelMock({
+                ...mockChannel,
+                banner_info: {
+                    enabled: true,
+                    text: `**${LEVEL_UNCLASSIFIED.name}**`,
+                    background_color: LEVEL_UNCLASSIFIED.color,
+                },
+            });
+
             renderWithContext(
                 <ChannelSettingsConfigurationTab
                     {...baseProps}
+                    channel={classifiedChannel}
                     canManageSharedChannels={true}
                 />,
             );

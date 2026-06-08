@@ -67,6 +67,7 @@ type FileBackendSettings struct {
 	AmazonS3UploadPartSizeBytes        int64
 	AmazonS3StorageClass               string
 	AzureStorageAccount                string
+	AzureAuthMode                      string
 	AzureAccessKey                     string
 	AzureContainer                     string
 	AzurePathPrefix                    string
@@ -74,6 +75,7 @@ type FileBackendSettings struct {
 	AzureEndpoint                      string
 	AzureSSL                           bool
 	AzureRequestTimeoutMilliseconds    int64
+	AzurePresignExpiresSeconds         int64
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -87,6 +89,7 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 		return FileBackendSettings{
 			DriverName:                      *fileSettings.DriverName,
 			AzureStorageAccount:             *fileSettings.AzureStorageAccount,
+			AzureAuthMode:                   *fileSettings.AzureAuthMode,
 			AzureAccessKey:                  *fileSettings.AzureAccessKey,
 			AzureContainer:                  *fileSettings.AzureContainer,
 			AzurePathPrefix:                 *fileSettings.AzurePathPrefix,
@@ -127,6 +130,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 		return FileBackendSettings{
 			DriverName:                      *fileSettings.ExportDriverName,
 			AzureStorageAccount:             *fileSettings.ExportAzureStorageAccount,
+			AzureAuthMode:                   *fileSettings.ExportAzureAuthMode,
 			AzureAccessKey:                  *fileSettings.ExportAzureAccessKey,
 			AzureContainer:                  *fileSettings.ExportAzureContainer,
 			AzurePathPrefix:                 *fileSettings.ExportAzurePathPrefix,
@@ -134,6 +138,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 			AzureEndpoint:                   *fileSettings.ExportAzureEndpoint,
 			AzureSSL:                        fileSettings.ExportAzureSSL == nil || *fileSettings.ExportAzureSSL,
 			AzureRequestTimeoutMilliseconds: *fileSettings.ExportAzureRequestTimeoutMilliseconds,
+			AzurePresignExpiresSeconds:      *fileSettings.ExportAzurePresignExpiresSeconds,
 			SkipVerify:                      skipVerify,
 		}
 	}
@@ -177,7 +182,11 @@ func (settings *FileBackendSettings) CheckMandatoryAzureFields() error {
 	if settings.AzureContainer == "" {
 		return errors.New("missing azure container setting")
 	}
-	if settings.AzureAccessKey == "" {
+	// AzureAccessKey is only meaningful for shared-key auth. Default credential
+	// reads identity from the host environment (managed identity / workload
+	// identity / service principal env vars / az login), so an empty access key
+	// is the expected configuration in that mode.
+	if settings.AzureAuthMode == model.AzureAuthModeSharedKey && settings.AzureAccessKey == "" {
 		return errors.New("missing azure access key setting")
 	}
 	return nil

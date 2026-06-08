@@ -8,8 +8,14 @@ on:
 env:
   REPORT_WEBHOOK_URL: ${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}
 
+permissions: {}
+
 jobs:
   approve-e2e:
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
     if: github.event.label.name == 'E2E Tests/verified'
     runs-on: ubuntu-24.04
     steps:
@@ -17,10 +23,11 @@ jobs:
         id: check-permission
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           LABEL_AUTHOR: ${{ github.event.sender.login }}
         run: |
           # Check if user has write permission to the repository
-          PERMISSION=$(gh api repos/${{ github.repository }}/collaborators/${LABEL_AUTHOR}/permission --jq '.permission' 2>/dev/null || echo "none")
+          PERMISSION=$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${LABEL_AUTHOR}/permission" --jq '.permission' 2>/dev/null || echo "none")
           if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "write" ]]; then
             echo "User ${LABEL_AUTHOR} doesn't have write permission to the repository (permission: ${PERMISSION})"
             exit 1
@@ -32,6 +39,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           # Only full tests can be overridden (smoke tests must pass)
           FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise" "e2e-test/playwright-full/fips" "e2e-test/cypress-full/fips")
@@ -42,7 +50,7 @@ jobs:
             echo "Checking: $CONTEXT_NAME"
 
             # Get current status
-            STATUS_JSON=$(gh api repos/${{ github.repository }}/commits/${COMMIT_SHA}/statuses \
+            STATUS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" \
               --jq "[.[] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
 
             if [ -z "$STATUS_JSON" ]; then
@@ -72,7 +80,7 @@ jobs:
             echo "  New: $NEW_MSG"
 
             # Update status via GitHub API
-            gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+            gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
               -f state=success \
               -f context="$CONTEXT_NAME" \
               -f description="$NEW_MSG" \

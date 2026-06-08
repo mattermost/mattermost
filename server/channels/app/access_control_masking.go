@@ -624,7 +624,6 @@ func celValueLiteral(value any) string {
 const maskedTokenValue = "--------"
 
 // validatePolicyExpressionValues checks that all submitted literal values are held by the caller.
-// Returns the same generic error for every rejection to prevent value enumeration.
 func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) *model.AppError {
 	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
@@ -775,9 +774,7 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 // maskConditionValuesWithToken replaces non-held values with the masked token in place,
 // preserving expression structure so the visual AST endpoint can still parse it.
 // fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry
-// is treated as fail-closed (whole value masked).
-// maskConditionValuesWithToken replaces non-held values with the masked token in place.
-// Returns true if any value was masked.
+// is treated as fail-closed (whole value masked). Returns true if any value was masked.
 func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) bool {
 	if condition.ValueType == model.AttrValue {
 		return false
@@ -1215,8 +1212,15 @@ func clearEvaluationTreeLiterals(node *model.PolicySimulationEvaluationNode) {
 	}
 }
 
+// maskFailClosedSentinel is the CEL expression written into a response rule when masking
+// cannot safely produce a redacted version (parse failure or CPA group unavailable).
+// "false" is used because it is deny-all if ever evaluated literally, matching the
+// fail-closed intent. This value only ever appears in API responses — the stored DB
+// expression is never overwritten by this path.
+const maskFailClosedSentinel = "false"
+
 // MaskPolicyExpressions masks non-held literal values in all policy rule expressions, in place.
-// Fails closed (sets a rule to "true") if its expression cannot be parsed or masked.
+// Fails closed (sets a rule to maskFailClosedSentinel) if its expression cannot be parsed or masked.
 func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) {
 	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
@@ -1227,7 +1231,7 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 			if rule.Expression == "" || rule.Expression == "true" {
 				continue
 			}
-			policy.Rules[i].Expression = "true"
+			policy.Rules[i].Expression = maskFailClosedSentinel
 		}
 		return
 	}
@@ -1245,7 +1249,7 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 		}
 		ast, appErr := a.ExpressionToVisualAST(rctx, rule.Expression)
 		if appErr != nil {
-			policy.Rules[i].Expression = "true" // fail closed
+			policy.Rules[i].Expression = maskFailClosedSentinel // fail closed: deny-all sentinel, response-only
 			continue
 		}
 		asts[i] = ast
