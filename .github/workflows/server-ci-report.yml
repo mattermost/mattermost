@@ -126,8 +126,9 @@ jobs:
           TEST_NAME: ${{ matrix.test.name }}
           REPO: ${{ github.repository }}
           WORKFLOW_RUN_HTML_URL: ${{ github.event.workflow_run.html_url }}
+          SERVER_URL: ${{ github.server_url }}
         run: |
-          PR_URL="${{ github.server_url }}/${REPO}/pull/${PR_NUMBER}"
+          PR_URL="${SERVER_URL}/${REPO}/pull/${PR_NUMBER}"
 
           # Convert the HTML <table> flaky summary into a Mattermost markdown table.
           # Escape content pipes FIRST (HTML tags contain no '|', so any '|' is cell
