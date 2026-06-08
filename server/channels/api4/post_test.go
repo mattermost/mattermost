@@ -1681,7 +1681,7 @@ func TestCreatePostSilentQueryParam(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableUserAccessTokens = true
 		})
-		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "silent-bot-token")
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "silent-bot-token", 0)
 		require.NoError(t, err)
 
 		resp := httptest.NewRecorder()

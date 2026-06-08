@@ -78,11 +78,7 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 		if fromWebhook {
 			post.DelProp(model.PostPropsFromWebhook)
 		}
-		channel, appErr := a.GetChannel(rctx, post.ChannelId)
-		if appErr != nil {
-			return nil, appErr
-		}
-		createdPost, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{
+		createdPost, _, appErr := a.CreatePostMissingChannelWithFlags(rctx, post, model.CreatePostFlags{
 			TriggerWebhooks:     true,
 			SetOnline:           true,
 			FromIncomingWebhook: fromWebhook,

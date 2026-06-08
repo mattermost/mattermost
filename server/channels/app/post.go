@@ -102,6 +102,14 @@ func (a *App) CreatePostAsUserWithFlags(rctx request.CTX, post *model.Post, curr
 }
 
 func (a *App) CreatePostMissingChannel(rctx request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, bool, *model.AppError) {
+	return a.CreatePostMissingChannelWithFlags(rctx, post, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
+}
+
+// CreatePostMissingChannelWithFlags is the flags-aware variant of
+// CreatePostMissingChannel. Used by entry points that need to assert
+// integration authority (FromIncomingWebhook, FromPlugin) which the
+// older two-bool signature can't express.
+func (a *App) CreatePostMissingChannelWithFlags(rctx request.CTX, post *model.Post, flags model.CreatePostFlags) (*model.Post, bool, *model.AppError) {
 	channel, err := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": post.ChannelId}
@@ -114,7 +122,7 @@ func (a *App) CreatePostMissingChannel(rctx request.CTX, post *model.Post, trigg
 		}
 	}
 
-	return a.CreatePost(rctx, post, channel, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
+	return a.CreatePost(rctx, post, channel, flags)
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
