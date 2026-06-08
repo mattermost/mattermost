@@ -50,10 +50,10 @@
 
                 .policy-name,
                 .policy-resources {
+                    overflow: hidden;
                     width: 100%;
                     box-sizing: border-box;
                     padding: 10px 16px 10px 0;
-                    overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
                 }
