@@ -152,12 +152,12 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	// queue's smoothing benefit is small while its enqueue+dispatch
 	// overhead is per-record. Writing synchronously through Dispatch
 	// avoids stacking up records behind the single target worker. The
-	// store reference is captured here, mirroring the TargetFactory
-	// closure above.
-	auditStorageStore := s.Store().AuditStorage()
+	// store is resolved lazily inside the closure so server bootstrap
+	// (incl. tests that don't exercise post-delivery audits) doesn't
+	// touch the AuditStorage accessor.
 	adt.SyncHandlers = map[string]audit.SyncHandler{
 		AuditEventPostDelivery: func(rec model.AuditRecord) error {
-			return audittargets.Dispatch(context.Background(), auditStorageStore, rec.Meta)
+			return audittargets.Dispatch(context.Background(), s.Store().AuditStorage(), rec.Meta)
 		},
 	}
 
