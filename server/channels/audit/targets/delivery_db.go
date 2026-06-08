@@ -64,10 +64,10 @@ func NewDeliveryDBTarget(s store.AuditStorageStore) *DeliveryDBTarget {
 func (t *DeliveryDBTarget) Init() error     { return nil }
 func (t *DeliveryDBTarget) Shutdown() error { return nil }
 
-// Write extracts the (user_id, entity_id, mechanism) triple from the
-// audit record's Meta map and calls store.Mark. The formatted bytes (p)
-// are ignored — we read structured field values directly so we never
-// have to parse a serialized representation.
+// Write reads the structured Meta map off the log record and dispatches
+// to the matching store call. The formatted bytes (p) are ignored — we
+// read field values directly so we never have to parse a serialized
+// representation.
 func (t *DeliveryDBTarget) Write(p []byte, rec *mlog.LogRec) (int, error) {
 	for _, f := range rec.Fields() {
 		if f.Key != model.AuditKeyMeta {
@@ -77,16 +77,57 @@ func (t *DeliveryDBTarget) Write(p []byte, rec *mlog.LogRec) (int, error) {
 		if !ok {
 			return 0, fmt.Errorf("audit_delivery_db: meta field is not map[string]any (got %T)", f.Interface)
 		}
-		userID, _ := meta["user_id"].(string)
-		entityID, _ := meta["entity_id"].(string)
-		mech, _ := meta["mechanism"].(int16)
-		if userID == "" || entityID == "" {
-			return 0, nil
-		}
-		if err := t.store.Mark(context.Background(), userID, entityID, mech); err != nil {
-			return 0, fmt.Errorf("audit_delivery_db: mark failed: %w", err)
+		if err := t.dispatch(context.Background(), meta); err != nil {
+			return 0, err
 		}
 		return len(p), nil
 	}
 	return 0, nil
+}
+
+// dispatch routes a single Meta map to the matching store call. The shape
+// is set by the producer in server/channels/app/audit_storage.go:
+//
+//   - type=multi_user → one entity, many users → MarkBulkSamePost
+//   - type=multi_post → one user, many entities → MarkBulkSameUser
+//   - no type        → single (user, entity) pair → Mark (single-record
+//     path; emitted by App.AuditRecord)
+func (t *DeliveryDBTarget) dispatch(ctx context.Context, meta map[string]any) error {
+	mech, _ := meta["mechanism"].(int16)
+	switch meta["type"] {
+	case model.AuditMetaTypeMultiUser:
+		userIDs, ok := meta["user_ids"].([]string)
+		if !ok {
+			return fmt.Errorf("audit_delivery_db: user_ids not []string (got %T)", meta["user_ids"])
+		}
+		entityID, _ := meta["entity_id"].(string)
+		if entityID == "" || len(userIDs) == 0 {
+			return nil
+		}
+		if err := t.store.MarkBulkSamePost(ctx, userIDs, entityID, mech); err != nil {
+			return fmt.Errorf("audit_delivery_db: bulk-same-post failed: %w", err)
+		}
+	case model.AuditMetaTypeMultiPost:
+		entityIDs, ok := meta["entity_ids"].([]string)
+		if !ok {
+			return fmt.Errorf("audit_delivery_db: entity_ids not []string (got %T)", meta["entity_ids"])
+		}
+		userID, _ := meta["user_id"].(string)
+		if userID == "" || len(entityIDs) == 0 {
+			return nil
+		}
+		if err := t.store.MarkBulkSameUser(ctx, userID, entityIDs, mech); err != nil {
+			return fmt.Errorf("audit_delivery_db: bulk-same-user failed: %w", err)
+		}
+	default:
+		userID, _ := meta["user_id"].(string)
+		entityID, _ := meta["entity_id"].(string)
+		if userID == "" || entityID == "" {
+			return nil
+		}
+		if err := t.store.Mark(ctx, userID, entityID, mech); err != nil {
+			return fmt.Errorf("audit_delivery_db: mark failed: %w", err)
+		}
+	}
+	return nil
 }

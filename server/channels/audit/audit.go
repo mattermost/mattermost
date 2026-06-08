@@ -80,7 +80,7 @@ func (a *Audit) onQueueFull(rec *mlog.LogRec, maxQueueSize int) bool {
 		return a.OnQueueFull("main", maxQueueSize)
 	}
 	mlog.Error("Audit logging queue full, dropping record.", mlog.Int("queueSize", maxQueueSize))
-	return true
+	return false // don't drop it
 }
 
 func (a *Audit) onTargetQueueFull(target mlog.Target, rec *mlog.LogRec, maxQueueSize int) bool {

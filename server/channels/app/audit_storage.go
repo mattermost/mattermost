@@ -16,6 +16,12 @@ import (
 // event name for any other target subscribing to LvlAuditDelivery.
 const AuditEventPostDelivery = "post_delivered"
 
+// auditDeliveryBatchSize caps how many IDs a single bulk audit record
+// carries. Chunking bounds the worst-case multi-row INSERT size and the
+// target worker's per-record blocking time, so a wide fan-out can't
+// monopolize the audit queue with one huge record.
+const auditDeliveryBatchSize = 1000
+
 // emitDeliveryAudit builds one model.AuditRecord for a single (user, post,
 // mechanism) delivery and enqueues it on the audit logger at
 // LvlAuditDelivery. The audit_delivery_db target dequeues it and writes
@@ -56,11 +62,67 @@ func (a *App) AuditRecord(ctx context.Context, userID, postID string, mechanism 
 	a.emitDeliveryAudit(userID, postID, mechanism)
 }
 
-// AuditRecordBulk emits one audit record per postID for the same userID.
-// LogRecord is itself a non-blocking enqueue, so no goroutine wrapping is
-// needed; very wide fan-outs may hit the audit queue's OnQueueFull handler
-// (drop policy), which matches the pre-existing "audit-failure-is-non-fatal"
-// contract.
+// emitDeliveryAuditMultiPost enqueues one audit record carrying an array
+// of entity IDs for the same userID. The audit_delivery_db target unpacks
+// the array and writes the rows in a single multi-row INSERT.
+func (a *App) emitDeliveryAuditMultiPost(userID string, entityIDs []string, mechanism int16) {
+	rec := model.AuditRecord{
+		EventName: AuditEventPostDelivery,
+		Status:    model.AuditStatusSuccess,
+		Meta: map[string]any{
+			"type":       model.AuditMetaTypeMultiPost,
+			"user_id":    userID,
+			"entity_ids": entityIDs,
+			"mechanism":  mechanism,
+			"created_at": model.GetMillis(),
+		},
+	}
+	a.Srv().Audit.LogRecord(mlog.LvlAuditDelivery, rec)
+}
+
+// emitDeliveryAuditMultiUser enqueues one audit record carrying an array
+// of user IDs for the same entityID. The audit_delivery_db target unpacks
+// the array and writes the rows in a single multi-row INSERT.
+func (a *App) emitDeliveryAuditMultiUser(userIDs []string, entityID string, mechanism int16) {
+	rec := model.AuditRecord{
+		EventName: AuditEventPostDelivery,
+		Status:    model.AuditStatusSuccess,
+		Meta: map[string]any{
+			"type":       model.AuditMetaTypeMultiUser,
+			"user_ids":   userIDs,
+			"entity_id":  entityID,
+			"mechanism":  mechanism,
+			"created_at": model.GetMillis(),
+		},
+	}
+	a.Srv().Audit.LogRecord(mlog.LvlAuditDelivery, rec)
+}
+
+// chunkDeliveryIDs compacts (filters empty strings) and chunks an ID slice
+// for bulk audit delivery. Returns nil if no non-empty IDs remain.
+func chunkDeliveryIDs(ids []string, size int) [][]string {
+	compact := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if id != "" {
+			compact = append(compact, id)
+		}
+	}
+	if len(compact) == 0 {
+		return nil
+	}
+	chunks := make([][]string, 0, (len(compact)+size-1)/size)
+	for i := 0; i < len(compact); i += size {
+		end := min(i+size, len(compact))
+		chunks = append(chunks, compact[i:end])
+	}
+	return chunks
+}
+
+// AuditRecordBulk emits batched audit records for one user reading many
+// posts. The full postIDs slice is compacted (empty IDs filtered out) and
+// then chunked into records of at most auditDeliveryBatchSize, each going
+// through the audit logger as a single record that the audit_delivery_db
+// target drains via one MarkBulkSameUser call (one multi-row INSERT).
 func (a *App) AuditRecordBulk(userID string, postIDs []string, mechanism int16) {
 	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
 		return
@@ -69,11 +131,9 @@ func (a *App) AuditRecordBulk(userID string, postIDs []string, mechanism int16) 
 	if userID == "" || len(postIDs) == 0 {
 		return
 	}
-	for _, postID := range postIDs {
-		if postID == "" {
-			continue
-		}
-		a.emitDeliveryAudit(userID, postID, mechanism)
+
+	for _, chunk := range chunkDeliveryIDs(postIDs, auditDeliveryBatchSize) {
+		a.emitDeliveryAuditMultiPost(userID, chunk, mechanism)
 	}
 }
 
@@ -101,7 +161,8 @@ func (a *App) AuditRecordBulkPosts(userID string, posts []*model.Post, mechanism
 
 // AuditRecordBulkMany is the fan-out variant: one post, many recipients.
 // Used for websocket broadcast where the same postID is delivered to every
-// online channel member.
+// online channel member. Like AuditRecordBulk, userIDs is compacted then
+// chunked so each emitted record drains as one MarkBulkSamePost call.
 func (a *App) AuditRecordBulkMany(userIDs []string, postID string, mechanism int16) {
 	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
 		return
@@ -110,10 +171,8 @@ func (a *App) AuditRecordBulkMany(userIDs []string, postID string, mechanism int
 	if postID == "" || len(userIDs) == 0 {
 		return
 	}
-	for _, userID := range userIDs {
-		if userID == "" {
-			continue
-		}
-		a.emitDeliveryAudit(userID, postID, mechanism)
+
+	for _, chunk := range chunkDeliveryIDs(userIDs, auditDeliveryBatchSize) {
+		a.emitDeliveryAuditMultiUser(chunk, postID, mechanism)
 	}
 }
