@@ -368,6 +368,168 @@ func (a *App) runGuardedChannelWillBeUpdated(rctx request.CTX, newChannel, oldCh
 	return newChannel, nil
 }
 
+// runGuardedScheduledPostWillBeCreated dispatches ScheduledPostWillBeCreated. Both SaveScheduledPost
+// and UpdateScheduledPost share the same hook; the callerName and rejectedErrID params let them
+// surface distinct rejection error IDs while reusing the same two-phase body.
+func (a *App) runGuardedScheduledPostWillBeCreated(
+	rctx request.CTX,
+	scheduledPost *model.ScheduledPost,
+	callerName, rejectedErrID string,
+) (*model.ScheduledPost, *model.AppError) {
+	// Capture the channel ID before any plugin can mutate it. Replacements from Phase A or
+	// Phase B must not redirect the object to a different channel — the guard was resolved
+	// for this channel only, and a swap would bypass fail-closed enforcement entirely.
+	originalChannelID := scheduledPost.ChannelId
+
+	guards, rejectErr := a.resolveGuards(rctx, originalChannelID, callerName)
+
+	// Guard plugin is unavailable — fail-closed (logged with attribution).
+	if rejectErr != nil {
+		return nil, rejectErr
+	}
+
+	buildRejectionErr := func(reason string) *model.AppError {
+		return model.NewAppError(callerName, rejectedErrID, map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	}
+
+	buildChannelMutationErr := func(offendingPluginID string) *model.AppError {
+		return model.NewAppError(callerName, "app.plugin.scheduled_post.channel_mutation.app_error",
+			map[string]any{"PluginID": offendingPluginID}, "", http.StatusBadRequest)
+	}
+
+	// Phase A: fan out to non-guard plugins, fail-open. With empty guards the exclude list is
+	// empty and behavior is identical to plain RunMultiHook.
+	var rejectionError *model.AppError
+	var lastReplacingPluginID string
+	pCtx := pluginContext(rctx)
+	a.ch.RunMultiHookExcluding(pluginIDsOf(guards), func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		replacement, reason := hooks.ScheduledPostWillBeCreated(pCtx, scheduledPost)
+		if reason != "" {
+			rejectionError = buildRejectionErr(reason)
+			return false
+		}
+		if replacement != nil {
+			scheduledPost = replacement
+			lastReplacingPluginID = manifest.Id
+		}
+		return true
+	}, plugin.ScheduledPostWillBeCreatedID)
+	if rejectionError != nil {
+		return nil, rejectionError
+	}
+	// A Phase A replacement may not redirect a scheduled post to a different channel when
+	// the original channel is guarded — the guard was only evaluated for originalChannelID.
+	if len(guards) > 0 && lastReplacingPluginID != "" && scheduledPost.ChannelId != originalChannelID {
+		return nil, buildChannelMutationErr(lastReplacingPluginID)
+	}
+
+	// Phase B: call each guard claimant in PluginId-sorted order, fail-closed.
+	for _, g := range guards {
+		hooks, err := a.Channels().HooksForPluginWithRPCErr(g.PluginId)
+		if err != nil {
+			// Active→inactive race: plugin deactivated between resolveGuards and now.
+			return nil, logAndErrPluginInactive(rctx, originalChannelID, []string{g.PluginId}, callerName)
+		}
+		replacement, reason, rpcErr := hooks.ScheduledPostWillBeCreatedWithRPCErr(pCtx, scheduledPost)
+		if rpcErr != nil {
+			return nil, appErrHookFailed(g.PluginId, callerName, rpcErr)
+		}
+		if reason != "" {
+			return nil, buildRejectionErr(reason)
+		}
+		// If replacement == nil && reason == "" && rpcErr == nil, the claimant had no opinion
+		// (did not implement the hook). Do not treat as rejection — continue iterating.
+		if replacement != nil {
+			scheduledPost = replacement
+			// Check immediately after each Phase B replacement.
+			if scheduledPost.ChannelId != originalChannelID {
+				return nil, buildChannelMutationErr(g.PluginId)
+			}
+		}
+	}
+
+	return scheduledPost, nil
+}
+
+// runGuardedDraftWillBeUpserted dispatches DraftWillBeUpserted. Returns the (possibly
+// replaced) draft, or an AppError on rejection or RPC failure.
+func (a *App) runGuardedDraftWillBeUpserted(rctx request.CTX, draft *model.Draft) (*model.Draft, *model.AppError) {
+	// Capture the channel ID before any plugin can mutate it. Replacements from Phase A or
+	// Phase B must not redirect the object to a different channel — the guard was resolved
+	// for this channel only, and a swap would bypass fail-closed enforcement entirely.
+	originalChannelID := draft.ChannelId
+
+	guards, rejectErr := a.resolveGuards(rctx, originalChannelID, "UpsertDraft")
+
+	// Guard plugin is unavailable — fail-closed (logged with attribution).
+	if rejectErr != nil {
+		return nil, rejectErr
+	}
+
+	buildRejectionErr := func(reason string) *model.AppError {
+		return model.NewAppError("UpsertDraft", "app.draft.upsert.rejected_by_plugin",
+			map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	}
+
+	buildChannelMutationErr := func(offendingPluginID string) *model.AppError {
+		return model.NewAppError("UpsertDraft", "app.plugin.draft.channel_mutation.app_error",
+			map[string]any{"PluginID": offendingPluginID}, "", http.StatusBadRequest)
+	}
+
+	// Phase A: fan out to non-guard plugins, fail-open. With empty guards the exclude list is
+	// empty and behavior is identical to plain RunMultiHook.
+	var rejectionError *model.AppError
+	var lastReplacingPluginID string
+	pCtx := pluginContext(rctx)
+	a.ch.RunMultiHookExcluding(pluginIDsOf(guards), func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		replacement, reason := hooks.DraftWillBeUpserted(pCtx, draft)
+		if reason != "" {
+			rejectionError = buildRejectionErr(reason)
+			return false
+		}
+		if replacement != nil {
+			draft = replacement
+			lastReplacingPluginID = manifest.Id
+		}
+		return true
+	}, plugin.DraftWillBeUpsertedID)
+	if rejectionError != nil {
+		return nil, rejectionError
+	}
+	// A Phase A replacement may not redirect a draft to a different channel when the
+	// original channel is guarded — the guard was only evaluated for originalChannelID.
+	if len(guards) > 0 && lastReplacingPluginID != "" && draft.ChannelId != originalChannelID {
+		return nil, buildChannelMutationErr(lastReplacingPluginID)
+	}
+
+	// Phase B: call each guard claimant in PluginId-sorted order, fail-closed.
+	for _, g := range guards {
+		hooks, err := a.Channels().HooksForPluginWithRPCErr(g.PluginId)
+		if err != nil {
+			// Active→inactive race: plugin deactivated between resolveGuards and now.
+			return nil, logAndErrPluginInactive(rctx, originalChannelID, []string{g.PluginId}, "UpsertDraft")
+		}
+		replacement, reason, rpcErr := hooks.DraftWillBeUpsertedWithRPCErr(pCtx, draft)
+		if rpcErr != nil {
+			return nil, appErrHookFailed(g.PluginId, "UpsertDraft", rpcErr)
+		}
+		if reason != "" {
+			return nil, buildRejectionErr(reason)
+		}
+		// If replacement == nil && reason == "" && rpcErr == nil, the claimant had no opinion
+		// (did not implement the hook). Do not treat as rejection — continue iterating.
+		if replacement != nil {
+			draft = replacement
+			// Check immediately after each Phase B replacement.
+			if draft.ChannelId != originalChannelID {
+				return nil, buildChannelMutationErr(g.PluginId)
+			}
+		}
+	}
+
+	return draft, nil
+}
+
 // runGuardedChannelWillBeRestored dispatches ChannelWillBeRestored. Reject-only — no replacement.
 func (a *App) runGuardedChannelWillBeRestored(rctx request.CTX, channel *model.Channel) *model.AppError {
 	guards, rejectErr := a.resolveGuards(rctx, channel.Id, "RestoreChannel")
