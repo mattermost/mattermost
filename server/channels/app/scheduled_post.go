@@ -39,7 +39,9 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
-	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "SaveScheduledPost", "app.scheduled_post.save.rejected_by_plugin")
+	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "SaveScheduledPost", func(reason string) *model.AppError {
+		return model.NewAppError("SaveScheduledPost", "app.scheduled_post.save.rejected_by_plugin", map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -92,7 +94,9 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 	scheduledPost.RestoreNonUpdatableFields(existingScheduledPost)
 
 	var appErr *model.AppError
-	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "UpdateScheduledPost", "app.scheduled_post.update.rejected_by_plugin")
+	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "UpdateScheduledPost", func(reason string) *model.AppError {
+		return model.NewAppError("UpdateScheduledPost", "app.scheduled_post.update.rejected_by_plugin", map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	})
 	if appErr != nil {
 		return nil, appErr
 	}

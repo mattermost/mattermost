@@ -369,12 +369,15 @@ func (a *App) runGuardedChannelWillBeUpdated(rctx request.CTX, newChannel, oldCh
 }
 
 // runGuardedScheduledPostWillBeCreated dispatches ScheduledPostWillBeCreated. Both SaveScheduledPost
-// and UpdateScheduledPost share the same hook; the callerName and rejectedErrID params let them
-// surface distinct rejection error IDs while reusing the same two-phase body.
+// and UpdateScheduledPost share the same hook; the callerName and buildRejectionErr params let them
+// surface distinct rejection error IDs while reusing the same two-phase body. buildRejectionErr is
+// supplied by the caller so the rejection error ID stays a string literal in a NewAppError call the
+// i18n extractor can see.
 func (a *App) runGuardedScheduledPostWillBeCreated(
 	rctx request.CTX,
 	scheduledPost *model.ScheduledPost,
-	callerName, rejectedErrID string,
+	callerName string,
+	buildRejectionErr func(reason string) *model.AppError,
 ) (*model.ScheduledPost, *model.AppError) {
 	// Capture the channel ID before any plugin can mutate it. Replacements from Phase A or
 	// Phase B must not redirect the object to a different channel — the guard was resolved
@@ -386,10 +389,6 @@ func (a *App) runGuardedScheduledPostWillBeCreated(
 	// Guard plugin is unavailable — fail-closed (logged with attribution).
 	if rejectErr != nil {
 		return nil, rejectErr
-	}
-
-	buildRejectionErr := func(reason string) *model.AppError {
-		return model.NewAppError(callerName, rejectedErrID, map[string]any{"Reason": reason}, "", http.StatusBadRequest)
 	}
 
 	buildChannelMutationErr := func(offendingPluginID string) *model.AppError {
