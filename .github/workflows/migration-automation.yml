@@ -17,6 +17,13 @@ on:
 permissions:
   contents: read  # checkout only
  
+# Only one run at a time per branch. If a new push to master arrives while
+# a review is already in progress, the in-progress run is cancelled — the
+# new run will cover the full push range anyway, avoiding duplicate API spend.
+concurrency:
+  group: migration-review-${{ github.ref }}
+  cancel-in-progress: true
+ 
 jobs:
   generate:
     name: Generate migration review & release notes
