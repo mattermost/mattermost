@@ -18,6 +18,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
+// errRemoteOffline identifies a sync that could not proceed because the target
+// remote cluster is offline. This is an expected, transient condition, so it is
+// logged at WARN rather than ERROR.
+var errRemoteOffline = errors.New("remote cluster is offline")
+
 type syncTask struct {
 	id        string
 	channelID string
@@ -345,7 +350,13 @@ func (scs *Service) doSync() time.Duration {
 			if task.incRetry() {
 				scs.addTask(task)
 			} else {
-				scs.server.Log().Error("Failed to synchronize shared channel",
+				// An offline remote is an expected, transient condition; log it
+				// at WARN rather than ERROR.
+				level := mlog.LvlError
+				if errors.Is(err, errRemoteOffline) {
+					level = mlog.LvlWarn
+				}
+				scs.server.Log().Log(level, "Failed to synchronize shared channel",
 					mlog.String("channelId", task.channelID),
 					mlog.String("remoteId", task.remoteID),
 					mlog.Err(err),
@@ -445,7 +456,7 @@ func (scs *Service) processTask(task syncTask) error {
 			return err
 		}
 		if !rc.IsOnline() {
-			return fmt.Errorf("Failed updating shared channel '%s' for offline remote cluster '%s'", task.channelID, rc.DisplayName)
+			return fmt.Errorf("Failed updating shared channel '%s' for offline remote cluster '%s': %w", task.channelID, rc.DisplayName, errRemoteOffline)
 		}
 		remotesMap[rc.RemoteId] = rc
 	}
