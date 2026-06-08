@@ -696,9 +696,9 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 //
 //   - user.IsBot              — true bot accounts (User.IsBot column)
 //   - Session.IsOAuth         — OAuth APP session (not Session.IsOAuthUser(),
-//                               which is a human SSO login)
+//     which is a human SSO login)
 //   - flags.FromIncomingWebhook — set only by app.CreateWebhookPost and
-//                               app.CreateCommandPost (trusted server entry points)
+//     app.CreateCommandPost (trusted server entry points)
 //   - flags.FromPlugin        — set only by PluginAPI.CreatePost
 //
 // Do NOT add Session.IsUserAccessToken() here to "align" with IsIntegration():

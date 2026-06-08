@@ -184,13 +184,13 @@ func TestPostSanitizeProps(t *testing.T) {
 		Message:  "test",
 		RemoteId: &remoteId,
 		Props: StringInterface{
-			PropsAddChannelMember:      "should-be-stripped",
-			PostPropsForceNotification: "preserved-id",
+			PropsAddChannelMember:       "should-be-stripped",
+			PostPropsForceNotification:  "preserved-id",
 			PostPropsSilentNotification: true,
-			PostPropsFromWebhook:       "true",
-			PostPropsFromBot:           "true",
-			PostPropsFromOAuthApp:      "true",
-			PostPropsFromPlugin:        "true",
+			PostPropsFromWebhook:        "true",
+			PostPropsFromBot:            "true",
+			PostPropsFromOAuthApp:       "true",
+			PostPropsFromPlugin:         "true",
 		},
 	}
 
