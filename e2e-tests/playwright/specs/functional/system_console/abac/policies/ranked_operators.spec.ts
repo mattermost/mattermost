@@ -100,7 +100,10 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
             await attributeButton.click();
         }
-        await page.locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`).first().click({force: true});
+        await page
+            .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
+            .first()
+            .click({force: true});
 
         // # Let the attribute menu and its backdrop fully close before opening the next menu
         await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
@@ -161,11 +164,16 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
                 await page.locator('[data-testid="attributeSelectorMenuButton"]').first().click();
             }
-            await page.locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`).first().click({force: true});
+            await page
+                .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
+                .first()
+                .click({force: true});
             await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
 
             // * Defaults to "is at least"
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText('is at least');
+            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
+                'is at least',
+            );
 
             // # Pick the value "Secret"
             await page.locator('[data-testid="valueSelectorMenuButton"]').first().click();
@@ -198,7 +206,9 @@ test.describe('System Console - Membership Policy ranked operators', () => {
 
             // * The table editor re-parses the rehydrated rule to the same operator
             //   and value (no rank integer surfaced in the value chip)
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText('is at least');
+            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
+                'is at least',
+            );
             const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
             await expect(valueButton).toContainText('Secret');
             await expect(valueButton).not.toContainText('2');
