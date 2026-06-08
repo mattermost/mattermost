@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {KeyboardEvent} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
+import {components} from 'react-select';
 
-import {CheckIcon, ChevronRightIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -36,6 +38,14 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
     const sortedRanks = useMemo(() => ascOptions.map((option) => option.rank ?? 0), [ascOptions]);
 
     const isDisabled = field.delete_at !== 0;
+
+    const addInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (autoFocus) {
+            addInputRef.current?.focus();
+        }
+    }, [autoFocus]);
 
     const trimmedQuery = query.trim();
     const isDuplicate = useMemo(
@@ -100,10 +110,10 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
                 ))}
                 {!isDisabled && (
                     <input
+                        ref={addInputRef}
                         type='text'
                         className='user-property-rank-values__add-input'
                         value={query}
-                        autoFocus={autoFocus}
                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                         placeholder={formatMessage({
                             id: 'admin.system_properties.user_properties.rank_values.add_placeholder',
@@ -168,97 +178,104 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, onRename, onMoveToPo
         return String(option.rank);
     })();
 
+    const removeLabel = formatMessage({
+        id: 'admin.system_properties.user_properties.rank_popover.remove',
+        defaultMessage: 'Remove option',
+    });
+
     return (
-        <Menu.Container
-            menuButton={{
-                id: chipId,
-                class: 'user-property-rank-values__chip',
-                children: (
-                    <>
-                        <RankBadge rank={option.rank}/>
-                        <span className='user-property-rank-values__chip-label'>{option.name}</span>
-                    </>
-                ),
-                dataTestId: chipId,
-                disabled,
-            }}
-            menu={{
-                id: `${chipId}-popover`,
-                'aria-label': formatMessage({
-                    id: 'admin.system_properties.user_properties.rank_popover.aria_label',
-                    defaultMessage: 'Edit option',
-                }),
-            }}
+        <span
+            className={classNames('user-property-rank-values__chip', {
+                'user-property-rank-values__chip--disabled': disabled,
+            })}
         >
-            <Menu.InputItem
-                key='label'
-                id={`${chipId}-label`}
-                type='text'
-                value={label}
-                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                placeholder={formatMessage({
-                    id: 'admin.system_properties.user_properties.rank_popover.label_placeholder',
-                    defaultMessage: 'Option label',
-                })}
-                onChange={(e) => setLabel(e.target.value)}
-                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-                    // Let Escape bubble so the popover closes and focus returns to
-                    // the chip. Stop other keys from reaching the menu's
-                    // type-ahead/navigation while the label is being edited.
-                    if (e.key === 'Escape') {
-                        return;
-                    }
-                    e.stopPropagation();
-                    if (e.key === 'Enter') {
-                        commitLabel();
-                    }
+            <RankBadge rank={option.rank}/>
+            <Menu.Container
+                menuButton={{
+                    id: chipId,
+                    class: 'user-property-rank-values__chip-name',
+                    children: (
+                        <span className='user-property-rank-values__chip-label'>{option.name}</span>
+                    ),
+                    dataTestId: chipId,
+                    disabled,
                 }}
-                onBlur={commitLabel}
-            />
-            <Menu.SubMenu
-                id={`${chipId}-rank`}
-                menuId={`${chipId}-rank-menu`}
-                labels={(
-                    <span>{formatMessage({
-                        id: 'admin.system_properties.user_properties.rank_popover.rank',
-                        defaultMessage: 'Rank',
-                    })}</span>
-                )}
-                trailingElements={(
-                    <>
-                        <span className='user-property-rank-values__rank-current'>{rankSuffix}</span>
-                        <ChevronRightIcon size={16}/>
-                    </>
-                )}
-                forceOpenOnLeft={false}
+                menu={{
+                    id: `${chipId}-popover`,
+                    'aria-label': formatMessage({
+                        id: 'admin.system_properties.user_properties.rank_popover.aria_label',
+                        defaultMessage: 'Edit option',
+                    }),
+                }}
             >
-                {sortedRanks.map((rankValue, position) => (
-                    <Menu.Item
-                        key={rankValue}
-                        id={`${chipId}-rank-${position}`}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={position === ascIndex}
-                        onClick={() => onMoveToPosition(ascIndex, position)}
-                        labels={<span>{rankValue}</span>}
-                        trailingElements={position === ascIndex ? <CheckIcon size={16}/> : undefined}
-                    />
-                ))}
-            </Menu.SubMenu>
-            <Menu.Separator/>
-            <Menu.Item
-                id={`${chipId}-remove`}
-                isDestructive={true}
-                onClick={() => onRemove(ascIndex)}
-                leadingElement={<TrashCanOutlineIcon size={18}/>}
-                labels={(
-                    <span>{formatMessage({
-                        id: 'admin.system_properties.user_properties.rank_popover.remove',
-                        defaultMessage: 'Remove option',
-                    })}</span>
-                )}
-            />
-        </Menu.Container>
+                <Menu.InputItem
+                    key='label'
+                    id={`${chipId}-label`}
+                    type='text'
+                    value={label}
+                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                    placeholder={formatMessage({
+                        id: 'admin.system_properties.user_properties.rank_popover.label_placeholder',
+                        defaultMessage: 'Option label',
+                    })}
+                    onChange={(e) => setLabel(e.target.value)}
+                    onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                        // Let Escape bubble so the popover closes and focus returns to
+                        // the chip. Stop other keys from reaching the menu's
+                        // type-ahead/navigation while the label is being edited.
+                        if (e.key === 'Escape') {
+                            return;
+                        }
+                        e.stopPropagation();
+                        if (e.key === 'Enter') {
+                            commitLabel();
+                        }
+                    }}
+                    onBlur={commitLabel}
+                />
+                <Menu.SubMenu
+                    id={`${chipId}-rank`}
+                    menuId={`${chipId}-rank-menu`}
+                    labels={(
+                        <span>{formatMessage({
+                            id: 'admin.system_properties.user_properties.rank_popover.rank',
+                            defaultMessage: 'Rank',
+                        })}</span>
+                    )}
+                    trailingElements={(
+                        <>
+                            <span className='user-property-rank-values__rank-current'>{rankSuffix}</span>
+                            <ChevronRightIcon size={16}/>
+                        </>
+                    )}
+                    forceOpenOnLeft={false}
+                >
+                    {sortedRanks.map((rankValue, position) => (
+                        <Menu.Item
+                            key={rankValue}
+                            id={`${chipId}-rank-${position}`}
+                            role='menuitemradio'
+                            forceCloseOnSelect={true}
+                            aria-checked={position === ascIndex}
+                            onClick={() => onMoveToPosition(ascIndex, position)}
+                            labels={<span>{rankValue}</span>}
+                            trailingElements={position === ascIndex ? <CheckIcon size={16}/> : undefined}
+                        />
+                    ))}
+                </Menu.SubMenu>
+            </Menu.Container>
+            {!disabled && (
+                <button
+                    type='button'
+                    className='user-property-rank-values__chip-remove'
+                    data-testid={`${chipId}-remove`}
+                    onClick={() => onRemove(ascIndex)}
+                    aria-label={removeLabel}
+                >
+                    <components.CrossIcon size={14}/>
+                </button>
+            )}
+        </span>
     );
 };
 

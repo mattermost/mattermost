@@ -16,6 +16,7 @@ import {
     InformationOutlineIcon,
     SyncIcon,
     ShieldAlertOutlineIcon,
+    SortAscendingIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -57,8 +58,9 @@ const AttributeIcon = (props: IconProps & { attribute?: UserPropertyField }) => 
         // If no specific value_type, check the field type
         switch (attribute.type) {
         case 'select':
-        case 'rank':
             return <ChevronDownCircleOutlineIcon {...iconProps}/>;
+        case 'rank':
+            return <SortAscendingIcon {...iconProps}/>;
         case 'multiselect':
             return <FormatListBulletedIcon {...iconProps}/>;
         case 'text':

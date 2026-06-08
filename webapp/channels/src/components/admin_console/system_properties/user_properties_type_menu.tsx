@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {css} from 'styled-components';
 
-import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, FieldValueType, UserPropertyField} from '@mattermost/types/properties';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
@@ -210,7 +210,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         id: 'rank',
         fieldType: 'rank',
         valueType: '',
-        icon: ChevronDownCircleOutlineIcon,
+        icon: SortAscendingIcon,
         label: defineMessage({
             id: 'admin.system_properties.user_properties.table.select_type.rank',
             defaultMessage: 'Rank',

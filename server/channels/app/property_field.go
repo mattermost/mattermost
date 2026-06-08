@@ -333,7 +333,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	// Notify the access control service so any per-field metadata it
 	// caches (e.g. the rank-by-name lookup used by the live evaluator)
 	// and any compiled-policy cache entries that depend on this field
-	// are dropped. Cheap and idempotent on the AC side.
+	// are dropped.
 	if acs := a.Srv().ch.AccessControl; acs != nil {
 		for _, field := range updated {
 			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)

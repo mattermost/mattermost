@@ -2,19 +2,20 @@
 // See LICENSE.txt for license information.
 
 import type {KeyboardEvent} from 'react';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {DropResult} from 'react-beautiful-dnd';
 import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
-import type {MessageDescriptor} from 'react-intl';
-import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import {createPortal} from 'react-dom';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {ArrowDownIcon, ArrowUpIcon, DragVerticalIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {DragVerticalIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
 
-import {isValidRank, nextRank} from './rank_utils';
+import {DangerText} from './controls';
+import {sortOptionsByRankAsc} from './rank_utils';
 
 import './ranked_schema_modal.scss';
 
@@ -29,129 +30,57 @@ type Row = {
     id: string;
     name: string;
     color?: string;
-    rank: number;
 };
 
-type RowError = {descriptor: MessageDescriptor; values?: Record<string, string | number>};
+// Rows are listed lowest-first, so the rank shown for a row is just its position
+// from the top (1-based). Reordering or removing rows therefore always leaves
+// the ranks as the contiguous integers 1…length with no gaps or duplicates.
+const rankForIndex = (index: number): number => index + 1;
 
-const errorMessages = defineMessages({
-    nameRequired: {
-        id: 'admin.system_properties.user_properties.ranked_modal.name_required',
-        defaultMessage: 'Enter a label.',
-    },
-    rankInvalid: {
-        id: 'admin.system_properties.user_properties.ranked_modal.rank_invalid',
-        defaultMessage: 'Rank must be a whole number of at least 1.',
-    },
-    rankDuplicate: {
-        id: 'admin.system_properties.user_properties.ranked_modal.rank_duplicate',
-        defaultMessage: 'Rank {rank} is already used by "{label}".',
-    },
-});
-
-const sortRowsDesc = (rows: Row[]): Row[] => [...rows].sort((a, b) => b.rank - a.rank);
-
-// The deep-edit surface for a ranked schema. Rows are shown highest-rank-first.
-// Reordering — by drag, the arrow steppers, or editing a rank — keeps ranks
-// unique; a rank edit that collides with another option is rejected inline.
+// A read-only reorder surface for a ranked schema. Values are shown as chips,
+// lowest rank at the top; the rank itself is derived from position so dragging a
+// row — or removing one — renumbers the rest automatically. Labels can't be
+// edited here (that's done from the table), but new values can be appended.
 const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
     const {formatMessage} = useIntl();
 
     const clientIdCounter = useRef(0);
-    const makeRow = (option: PropertyFieldOption): Row => ({
+    const makeRow = (option: Pick<PropertyFieldOption, 'id' | 'name' | 'color'>): Row => ({
         clientId: `rank-row-${clientIdCounter.current++}`,
         id: option.id,
         name: option.name,
         color: option.color,
-        rank: option.rank ?? 0,
     });
 
-    const [rows, setRows] = useState<Row[]>(() => sortRowsDesc((field.attrs.options ?? []).map(makeRow)));
+    // Seed lowest-rank-first; from here on array order is the source of truth and
+    // ranks are derived from it.
+    const [rows, setRows] = useState<Row[]>(() => sortOptionsByRankAsc(field.attrs.options ?? []).map(makeRow));
 
-    // In-progress rank edits, keyed by clientId. A row's committed rank stays put
-    // until the draft is a valid, unique integer.
-    const [rankDrafts, setRankDrafts] = useState<Record<string, string>>({});
+    // The "Add value" affordance is a link until clicked, then an inline input.
+    const [adding, setAdding] = useState(false);
+    const [draft, setDraft] = useState('');
+    const addInputRef = useRef<HTMLInputElement>(null);
 
-    const effectiveRank = (row: Row): number => {
-        const draft = rankDrafts[row.clientId];
-        if (draft !== undefined) {
-            const parsed = Number(draft);
-            if (draft.trim() !== '' && Number.isInteger(parsed)) {
-                return parsed;
-            }
+    useEffect(() => {
+        if (adding) {
+            addInputRef.current?.focus();
         }
-        return row.rank;
-    };
+    }, [adding]);
 
-    const rowErrors = useMemo(() => {
-        const errors: Record<string, RowError> = {};
-        rows.forEach((row) => {
-            if (!row.name.trim()) {
-                errors[row.clientId] = {descriptor: errorMessages.nameRequired};
-                return;
-            }
-            const draft = rankDrafts[row.clientId];
-            if (draft === undefined) {
-                return;
-            }
-            const parsed = Number(draft);
-            if (draft.trim() === '' || !Number.isInteger(parsed) || parsed < 1) {
-                errors[row.clientId] = {descriptor: errorMessages.rankInvalid};
-                return;
-            }
-            const collision = rows.find((other) => other.clientId !== row.clientId && effectiveRank(other) === parsed);
-            if (collision) {
-                errors[row.clientId] = {descriptor: errorMessages.rankDuplicate, values: {rank: parsed, label: collision.name}};
-            }
-        });
-        return errors;
-
-        // effectiveRank reads rankDrafts/rows, captured below.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rows, rankDrafts]);
-
-    const hasErrors = Object.keys(rowErrors).length > 0;
-
-    const handleNameChange = (clientId: string, name: string) => {
-        setRows((prev) => prev.map((row) => (row.clientId === clientId ? {...row, name} : row)));
-    };
-
-    const handleRankChange = (clientId: string, value: string) => {
-        setRankDrafts((prev) => ({...prev, [clientId]: value}));
-    };
-
-    const commitRank = (clientId: string) => {
-        const draft = rankDrafts[clientId];
-        if (draft === undefined) {
-            return;
-        }
-        const parsed = Number(draft);
-        const isUnique = !rows.some((other) => other.clientId !== clientId && effectiveRank(other) === parsed);
-        if (draft.trim() !== '' && isValidRank(parsed) && isUnique) {
-            setRows((prev) => sortRowsDesc(prev.map((row) => (row.clientId === clientId ? {...row, rank: parsed} : row))));
-            setRankDrafts((prev) => {
-                const next = {...prev};
-                Reflect.deleteProperty(next, clientId);
-                return next;
-            });
-        }
-    };
+    const trimmedDraft = draft.trim();
+    const isDuplicate = Boolean(trimmedDraft) && rows.some((row) => row.name === trimmedDraft);
 
     const moveRow = (fromIndex: number, toIndex: number) => {
-        if (toIndex < 0 || toIndex >= rows.length) {
-            return;
-        }
         setRows((prev) => {
+            const clampedTo = Math.max(0, Math.min(toIndex, prev.length - 1));
+            if (fromIndex === clampedTo || fromIndex < 0 || fromIndex >= prev.length) {
+                return prev;
+            }
             const reordered = [...prev];
             const [moved] = reordered.splice(fromIndex, 1);
-            reordered.splice(toIndex, 0, moved);
-
-            // Reassign the existing rank values to the new order (top = highest)
-            // so positions never collide.
-            const ranksDesc = prev.map((row) => row.rank).sort((a, b) => b - a);
-            return reordered.map((row, i) => ({...row, rank: ranksDesc[i]}));
+            reordered.splice(clampedTo, 0, moved);
+            return reordered;
         });
-        setRankDrafts({});
     };
 
     const handleDragEnd = (result: DropResult) => {
@@ -161,35 +90,36 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
         moveRow(result.source.index, result.destination.index);
     };
 
-    const addValue = () => {
-        const newRow = makeRow({id: '', name: '', rank: nextRank(rows)});
-        setRows((prev) => [newRow, ...prev]);
-    };
-
     const removeRow = (clientId: string) => {
         setRows((prev) => prev.filter((row) => row.clientId !== clientId));
-        setRankDrafts((prev) => {
-            const next = {...prev};
-            Reflect.deleteProperty(next, clientId);
-            return next;
-        });
+    };
+
+    // Appends a typed value as the new highest rank. A blank or duplicate name is
+    // ignored. Returns whether a value was added.
+    const commitNewValue = (): boolean => {
+        if (!trimmedDraft || isDuplicate) {
+            return false;
+        }
+        setRows((prev) => [...prev, makeRow({id: '', name: trimmedDraft})]);
+        setDraft('');
+        return true;
+    };
+
+    const closeAdd = () => {
+        setAdding(false);
+        setDraft('');
     };
 
     const handleConfirm = () => {
-        if (hasErrors || rows.length === 0) {
+        if (rows.length === 0) {
             return;
         }
-        const options: PropertyFieldOption[] = rows.map((row) => {
-            const draft = rankDrafts[row.clientId];
-            const parsed = draft === undefined ? row.rank : Number(draft);
-            const rank = isValidRank(parsed) ? parsed : row.rank;
-            return {
-                id: row.id,
-                name: row.name.trim(),
-                rank,
-                ...(row.color === undefined ? {} : {color: row.color}),
-            };
-        });
+        const options: PropertyFieldOption[] = rows.map((row, index) => ({
+            id: row.id,
+            name: row.name,
+            rank: rankForIndex(index),
+            ...(row.color === undefined ? {} : {color: row.color}),
+        }));
         onSave({...field, attrs: {...field.attrs, options}});
         onExited();
     };
@@ -200,10 +130,15 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
             className='ranked-schema-modal'
             compassDesign={true}
             modalHeaderText={(
-                <FormattedMessage
-                    id='admin.system_properties.user_properties.ranked_modal.title'
-                    defaultMessage='Edit ranking'
-                />
+                <>
+                    <span className='ranked-schema-modal__title-name'>{field.name}</span>
+                    <span className='ranked-schema-modal__title-suffix'>
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.ranked_modal.attribute_suffix'
+                            defaultMessage='Ranked attribute'
+                        />
+                    </span>
+                </>
             )}
             confirmButtonText={(
                 <FormattedMessage
@@ -214,7 +149,7 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
             handleConfirm={handleConfirm}
             handleCancel={onExited}
             onExited={onExited}
-            isConfirmDisabled={hasErrors || rows.length === 0}
+            isConfirmDisabled={rows.length === 0}
         >
             <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId='ranked-schema-rows'>
@@ -225,20 +160,36 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
                             className='ranked-schema-modal__rows'
                         >
                             {rows.map((row, index) => {
-                                const error = rowErrors[row.clientId];
+                                const extreme = (() => {
+                                    if (index === 0) {
+                                        return formatMessage({
+                                            id: 'admin.system_properties.user_properties.ranked_modal.lowest',
+                                            defaultMessage: 'Lowest',
+                                        });
+                                    }
+                                    if (index === rows.length - 1) {
+                                        return formatMessage({
+                                            id: 'admin.system_properties.user_properties.ranked_modal.highest',
+                                            defaultMessage: 'Highest',
+                                        });
+                                    }
+                                    return null;
+                                })();
+
                                 return (
                                     <Draggable
                                         key={row.clientId}
                                         draggableId={row.clientId}
                                         index={index}
                                     >
-                                        {(draggableProvided) => (
-                                            <div
-                                                ref={draggableProvided.innerRef}
-                                                {...draggableProvided.draggableProps}
-                                                className='ranked-schema-modal__row'
-                                            >
-                                                <div className='ranked-schema-modal__row-main'>
+                                        {(draggableProvided, snapshot) => {
+                                            const rowContent = (
+                                                <div
+                                                    ref={draggableProvided.innerRef}
+                                                    {...draggableProvided.draggableProps}
+                                                    className='ranked-schema-modal__row'
+                                                    data-testid='rankedSchemaRow'
+                                                >
                                                     <span
                                                         className='ranked-schema-modal__drag-handle'
                                                         {...draggableProvided.dragHandleProps}
@@ -249,62 +200,17 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
                                                     >
                                                         <DragVerticalIcon size={18}/>
                                                     </span>
-                                                    <div className='ranked-schema-modal__steppers'>
-                                                        <button
-                                                            type='button'
-                                                            className='ranked-schema-modal__stepper'
-                                                            onClick={() => moveRow(index, index - 1)}
-                                                            disabled={index === 0}
-                                                            aria-label={formatMessage({
-                                                                id: 'admin.system_properties.user_properties.ranked_modal.move_up',
-                                                                defaultMessage: 'Move up',
-                                                            })}
-                                                        >
-                                                            <ArrowUpIcon size={14}/>
-                                                        </button>
-                                                        <button
-                                                            type='button'
-                                                            className='ranked-schema-modal__stepper'
-                                                            onClick={() => moveRow(index, index + 1)}
-                                                            disabled={index === rows.length - 1}
-                                                            aria-label={formatMessage({
-                                                                id: 'admin.system_properties.user_properties.ranked_modal.move_down',
-                                                                defaultMessage: 'Move down',
-                                                            })}
-                                                        >
-                                                            <ArrowDownIcon size={14}/>
-                                                        </button>
-                                                    </div>
-                                                    <input
-                                                        type='text'
-                                                        className='ranked-schema-modal__name-input form-control'
-                                                        value={row.name}
-                                                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                                                        placeholder={formatMessage({
-                                                            id: 'admin.system_properties.user_properties.ranked_modal.label_placeholder',
-                                                            defaultMessage: 'Label',
-                                                        })}
-                                                        onChange={(e) => handleNameChange(row.clientId, e.target.value)}
-                                                    />
-                                                    <input
-                                                        type='number'
-                                                        min={1}
-                                                        className='ranked-schema-modal__rank-input form-control'
-                                                        value={rankDrafts[row.clientId] ?? String(row.rank)}
-                                                        aria-label={formatMessage({
-                                                            id: 'admin.system_properties.user_properties.ranked_modal.rank_aria',
-                                                            defaultMessage: 'Rank',
-                                                        })}
-                                                        aria-invalid={Boolean(error)}
-                                                        onChange={(e) => handleRankChange(row.clientId, e.target.value)}
-                                                        onBlur={() => commitRank(row.clientId)}
-                                                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-                                                            if (e.key === 'Enter') {
-                                                                e.preventDefault();
-                                                                commitRank(row.clientId);
-                                                            }
-                                                        }}
-                                                    />
+                                                    <span className='ranked-schema-modal__chip'>
+                                                        {row.name}
+                                                    </span>
+                                                    {extreme && (
+                                                        <span className='ranked-schema-modal__extreme'>
+                                                            {extreme}
+                                                        </span>
+                                                    )}
+                                                    <span className='ranked-schema-modal__rank'>
+                                                        {rankForIndex(index)}
+                                                    </span>
                                                     <button
                                                         type='button'
                                                         className='ranked-schema-modal__remove'
@@ -317,20 +223,13 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
                                                         <TrashCanOutlineIcon size={18}/>
                                                     </button>
                                                 </div>
-                                                {error && (
-                                                    <div
-                                                        className='ranked-schema-modal__error'
-                                                        role='alert'
-                                                        aria-live='polite'
-                                                    >
-                                                        <FormattedMessage
-                                                            {...error.descriptor}
-                                                            values={error.values}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+                                            );
+
+                                            // While dragging, render through a portal on document.body so the
+                                            // fixed-positioned drag clone escapes the modal dialog's transform,
+                                            // which would otherwise throw it off to the side.
+                                            return snapshot.isDragging ? createPortal(rowContent, document.body) : rowContent;
+                                        }}
                                     </Draggable>
                                 );
                             })}
@@ -339,17 +238,62 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
                     )}
                 </Droppable>
             </DragDropContext>
-            <button
-                type='button'
-                className='ranked-schema-modal__add'
-                onClick={addValue}
-            >
-                <PlusIcon size={16}/>
-                <FormattedMessage
-                    id='admin.system_properties.user_properties.ranked_modal.add_value'
-                    defaultMessage='Add value'
-                />
-            </button>
+            {adding ? (
+                <div className='ranked-schema-modal__row ranked-schema-modal__adding-row'>
+                    <span
+                        className='ranked-schema-modal__drag-handle ranked-schema-modal__drag-handle--disabled'
+                        aria-hidden={true}
+                    >
+                        <DragVerticalIcon size={18}/>
+                    </span>
+                    <input
+                        ref={addInputRef}
+                        type='text'
+                        className='ranked-schema-modal__add-input'
+                        value={draft}
+                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                        placeholder={formatMessage({
+                            id: 'admin.system_properties.user_properties.rank_values.add_placeholder',
+                            defaultMessage: 'Add value…',
+                        })}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onBlur={() => {
+                            commitNewValue();
+                            closeAdd();
+                        }}
+                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                            if (e.key === 'Enter') {
+                                // Commit the value instead of letting the modal confirm and close.
+                                e.preventDefault();
+                                e.stopPropagation();
+                                commitNewValue();
+                            } else if (e.key === 'Escape') {
+                                closeAdd();
+                            }
+                        }}
+                    />
+                </div>
+            ) : (
+                <button
+                    type='button'
+                    className='ranked-schema-modal__add'
+                    onClick={() => setAdding(true)}
+                >
+                    <PlusIcon size={16}/>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.ranked_modal.add_value'
+                        defaultMessage='Add value'
+                    />
+                </button>
+            )}
+            {isDuplicate && (
+                <DangerText>
+                    {formatMessage({
+                        id: 'admin.system_properties.user_properties.table.validation.values_unique',
+                        defaultMessage: 'Values must be unique.',
+                    })}
+                </DangerText>
+            )}
         </GenericModal>
     );
 };

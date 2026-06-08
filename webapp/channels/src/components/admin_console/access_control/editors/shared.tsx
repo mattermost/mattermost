@@ -83,7 +83,6 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.HAS_ALL_OF]: {type: 'list', celOp: CELOperator.IN},
 
     // Ranked comparison operators emit `attr <op> "Option"`. The backend
-    // desugar pass turns these into the internal _rank_* marker functions.
     [OperatorLabel.IS_EXACTLY]: {type: 'comparison', celOp: CELOperator.EQUALS},
     [OperatorLabel.IS_AT_LEAST]: {type: 'comparison', celOp: CELOperator.GREATER_THAN_OR_EQUAL},
     [OperatorLabel.IS_GREATER_THAN]: {type: 'comparison', celOp: CELOperator.GREATER_THAN},
