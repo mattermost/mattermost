@@ -7,6 +7,7 @@ import type {SystemEmoji} from '@mattermost/types/emojis';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -123,5 +124,16 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
         );
 
         expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <PostOptions
+                {...baseProps}
+                isExpanded={true}
+                hover={true}
+                pluginActions={[pluginComponent]}
+            />,
+        );
     });
 });

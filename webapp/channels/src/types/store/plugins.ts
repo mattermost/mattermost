@@ -125,7 +125,7 @@ export type Menu = {
     isHeader?: boolean;
 }
 
-type PluginComponent = {
+export type PluginComponent = {
     id: string;
     pluginId: string;
 };
