@@ -669,6 +669,22 @@ func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicies(rctx request.
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetMaxUpdateAt", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
 	start := time.Now()
 
@@ -793,6 +809,22 @@ func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, grou
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetSubject", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetUserPropertyValuesEpoch", success, elapsed)
 	}
 	return result, err
 }

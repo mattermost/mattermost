@@ -101,7 +101,7 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 			Subject: *subject,
 			Resource: model.Resource{
-				Type: model.AccessControlPolicyTypeChannel,
+				Type: req.Resource.Type,
 				ID:   req.Resource.ID,
 			},
 			Action: action,

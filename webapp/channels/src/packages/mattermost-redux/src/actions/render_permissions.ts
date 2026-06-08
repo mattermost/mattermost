@@ -58,13 +58,16 @@ export function clearRenderDecisions() {
     return {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {}};
 }
 
-// reconcileChannelPostsForRedaction re-fetches the latest posts for a channel
-// with reload=true so the request bypasses a stale post-list ETag. This is the
-// targeted reconciliation used when an ABAC change may affect
-// download_file_attachment: the server re-runs SanitizePostListMetadataForUser
-// and returns the correct redacted_file_count, so the UI can render (or remove)
-// the redacted-files placeholder without a full page reload. It must only be
-// called for the currently-visible channel — never as a broad refetch.
+export function markChannelPostsStaleForRedaction(channelId: string) {
+    return {type: RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION, data: {channelId}};
+}
+
+export function consumeChannelPostsStaleForRedaction(channelId: string) {
+    return {type: RenderPermissionTypes.CONSUME_CHANNEL_POSTS_STALE_FOR_REDACTION, data: {channelId}};
+}
+
+// reconcileChannelPostsForRedaction fetches the latest posts with reload=true to
+// bypass a stale ETag, forcing the server to re-run SanitizePostListMetadataForUser.
 export function reconcileChannelPostsForRedaction(channelId: string): ActionFuncAsync<PostList> {
     return (dispatch) => dispatch(getPosts(channelId, 0, Posts.POST_CHUNK_SIZE, true, false, true));
 }

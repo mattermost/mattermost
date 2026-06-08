@@ -13,6 +13,7 @@ const CHANNEL_RESOURCE_TYPE = 'channel';
 
 const initialState: RenderPermissionsState = {
     byResource: {},
+    channelsWithStalePosts: {},
 };
 
 export default function renderPermissions(state: RenderPermissionsState = initialState, action: MMReduxAction): RenderPermissionsState {
@@ -82,9 +83,29 @@ export default function renderPermissions(state: RenderPermissionsState = initia
     }
     case RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER:
 
-        // The current user's attributes/roles drive every resource decision, so
-        // drop the whole cache and let visible views refetch.
-        return initialState;
+        // Preserve channelsWithStalePosts: persisted Redux state may not have this field.
+        return {...initialState, channelsWithStalePosts: state.channelsWithStalePosts ?? {}};
+    case RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION: {
+        const channelId = action.data.channelId as string;
+        const stalePosts = state.channelsWithStalePosts ?? {};
+        if (stalePosts[channelId]) {
+            return state;
+        }
+        return {
+            ...state,
+            channelsWithStalePosts: {...stalePosts, [channelId]: true},
+        };
+    }
+    case RenderPermissionTypes.CONSUME_CHANNEL_POSTS_STALE_FOR_REDACTION: {
+        const channelId = action.data.channelId as string;
+        const stalePosts = state.channelsWithStalePosts ?? {};
+        if (!stalePosts[channelId]) {
+            return state;
+        }
+        const next = {...stalePosts};
+        Reflect.deleteProperty(next, channelId);
+        return {...state, channelsWithStalePosts: next};
+    }
     case RenderPermissionTypes.CLEAR_RENDER_DECISIONS:
     case UserTypes.LOGOUT_SUCCESS:
         return initialState;

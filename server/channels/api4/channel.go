@@ -1091,7 +1091,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
+	pinnedEtag := c.App.AppendABACEtag(posts.Etag(), c.AppContext.Session().UserId)
+	if c.HandleEtag(pinnedEtag, "Get Pinned Posts", w, r) {
 		return
 	}
 
@@ -1102,7 +1103,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
+	w.Header().Set(model.HeaderEtagServer, c.App.AppendABACEtag(clientPostList.Etag(), c.AppContext.Session().UserId))
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

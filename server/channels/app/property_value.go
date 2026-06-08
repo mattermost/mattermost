@@ -264,6 +264,15 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.upsert_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Reset the AttributeView timer so the next ABAC evaluation sees the new values
+	// immediately rather than waiting for the 30 s throttle window to expire.
+	if objectType == model.PropertyFieldObjectTypeUser &&
+		a.Config().FeatureFlags.PermissionPolicies &&
+		a.Config().AccessControlSettings.EnableAttributeBasedAccessControl != nil &&
+		*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		a.invalidateAttributeViewCache()
+	}
+
 	// Only publish websocket events for PSAv2 properties (those with an ObjectType)
 	if objectType != "" {
 		teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, objectType, targetID)

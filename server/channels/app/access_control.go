@@ -162,6 +162,8 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
 	case model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
+	case model.AccessControlPolicyTypePermission:
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return policy, nil
@@ -572,8 +574,10 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 
 	if policy != nil && policy.Type == model.AccessControlPolicyTypeChannel {
 		a.publishChannelPolicyEnforcedUpdate(rctx, id)
-	} else if policy.Type == model.AccessControlPolicyTypeParent {
+	} else if policy != nil && policy.Type == model.AccessControlPolicyTypeParent {
 		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
+	} else if policy != nil && policy.Type == model.AccessControlPolicyTypePermission {
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return nil
@@ -1724,13 +1728,19 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	permissionPolicyChanged := false
 	for _, policy := range policies {
 		switch policy.Type {
 		case model.AccessControlPolicyTypeChannel:
 			a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
 		case model.AccessControlPolicyTypeParent:
 			a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
+		case model.AccessControlPolicyTypePermission:
+			permissionPolicyChanged = true
 		}
+	}
+	if permissionPolicyChanged {
+		a.publishPermissionPolicyUpdate(rctx)
 	}
 
 	return policies, nil
@@ -1915,6 +1925,50 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channel.Id, "", nil, "")
 	messageWs.Add("channel", string(channelJSON))
 	a.Publish(messageWs)
+}
+
+// publishPermissionPolicyUpdate broadcasts a system-scoped permission policy change.
+// TypePermission policies are global, so no channel ID is included in the event.
+func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
+	a.invalidateMaxPolicyAtCache()
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
+	a.Publish(messageWs)
+}
+
+const maxPolicyAtCacheTTL = 5 * time.Second
+
+// getMaxPolicyAtCached returns the cached MAX(AccessControlPolicies.CreateAt) for
+// file-action policies, re-querying the DB at most once every 5 s. The value is
+// invalidated immediately on any policy write via invalidateMaxPolicyAtCache.
+func (a *App) getMaxPolicyAtCached(rctx request.CTX) (int64, error) {
+	ch := a.Srv().Channels()
+	ch.maxPolicyAtMu.Lock()
+	if time.Since(ch.maxPolicyAtCachedAt) < maxPolicyAtCacheTTL {
+		v := ch.maxPolicyAtValue
+		ch.maxPolicyAtMu.Unlock()
+		return v, nil
+	}
+	ch.maxPolicyAtMu.Unlock()
+
+	v, err := a.Srv().Store().AccessControlPolicy().GetMaxUpdateAt(rctx)
+	if err != nil {
+		return 0, err
+	}
+
+	ch.maxPolicyAtMu.Lock()
+	ch.maxPolicyAtValue = v
+	ch.maxPolicyAtCachedAt = time.Now()
+	ch.maxPolicyAtMu.Unlock()
+	return v, nil
+}
+
+// invalidateMaxPolicyAtCache forces the next getMaxPolicyAtCached call to re-query
+// the DB, ensuring the updated CreateAt is reflected in subsequent ETags immediately.
+func (a *App) invalidateMaxPolicyAtCache() {
+	ch := a.Srv().Channels()
+	ch.maxPolicyAtMu.Lock()
+	ch.maxPolicyAtCachedAt = time.Time{}
+	ch.maxPolicyAtMu.Unlock()
 }
 
 // ValidateChannelEligibilityForAccessControl checks that a channel is eligible for
@@ -2332,6 +2386,23 @@ func ResolveSystemRole(roles string) string {
 	return model.SystemUserRoleId
 }
 
+// invalidateAttributeViewCache forces the next refreshAttributeViewIfStale call to
+// refresh immediately. If a refresh is already running, the timer reset is lost
+// because TryLock fails, so we set needsRefresh to ensure the follow-up call
+// (once the in-progress refresh completes) still triggers a second refresh.
+func (a *App) invalidateAttributeViewCache() {
+	ch := a.Srv().Channels()
+	if ch.attributeViewRefreshMut.TryLock() {
+		ch.attributeViewRefreshLast = time.Time{}
+		ch.attributeViewRefreshMut.Unlock()
+	} else {
+		// A refresh is running and may have started reading the DB before the
+		// attribute write landed. Flag a follow-up so the next caller refreshes
+		// again after the current one finishes.
+		ch.attributeViewNeedsRefresh.Store(true)
+	}
+}
+
 // refreshAttributeViewIfStale refreshes the materialized AttributeView if the last
 // refresh was more than attributeViewRefreshInterval ago. The refresh is non-blocking:
 // if another goroutine is already refreshing, this call returns immediately.
@@ -2343,7 +2414,8 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	}
 	defer ch.attributeViewRefreshMut.Unlock()
 
-	if time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
+	needsRefresh := ch.attributeViewNeedsRefresh.Swap(false)
+	if !needsRefresh && time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
 		return
 	}
 

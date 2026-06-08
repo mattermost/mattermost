@@ -42,4 +42,8 @@ export type RenderPermissionsState = {
             };
         };
     };
+
+    // Channels whose cached posts may be stale after an off-screen policy/attribute change.
+    // Consumed by syncPostsOrReloadIfStale on next visit to trigger a fresh loadUnreads.
+    channelsWithStalePosts: {[channelId: string]: true};
 };

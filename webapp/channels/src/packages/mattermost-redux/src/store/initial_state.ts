@@ -242,6 +242,7 @@ const state: GlobalState = {
         },
         renderPermissions: {
             byResource: {},
+            channelsWithStalePosts: {},
         },
     },
     errors: [],

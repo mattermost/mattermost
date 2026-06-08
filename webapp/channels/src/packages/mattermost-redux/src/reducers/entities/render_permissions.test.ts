@@ -55,9 +55,40 @@ describe('reducers.entities.renderPermissions', () => {
     });
 
     test('CLEAR_RENDER_DECISIONS and LOGOUT_SUCCESS reset to initial', () => {
-        const seeded: RenderPermissionsState = {byResource: {channel: {chan1: {upload_file_attachment: {allowed: true, evaluated: true, generation: 1, receivedAt: 1}}}}};
+        const seeded: RenderPermissionsState = {byResource: {channel: {chan1: {upload_file_attachment: {allowed: true, evaluated: true, generation: 1, receivedAt: 1}}}}, channelsWithStalePosts: {chan1: true}};
 
         expect(reducer(seeded, {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {}}).byResource).toEqual({});
+        expect(reducer(seeded, {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {}}).channelsWithStalePosts).toEqual({});
         expect(reducer(seeded, {type: UserTypes.LOGOUT_SUCCESS, data: {}}).byResource).toEqual({});
+        expect(reducer(seeded, {type: UserTypes.LOGOUT_SUCCESS, data: {}}).channelsWithStalePosts).toEqual({});
+    });
+
+    test('MARK_CHANNEL_POSTS_STALE_FOR_REDACTION adds the channel to channelsWithStalePosts', () => {
+        const state = reducer(undefined, {type: RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION, data: {channelId: 'chan1'}});
+        expect(state.channelsWithStalePosts).toEqual({chan1: true});
+
+        // idempotent
+        const state2 = reducer(state, {type: RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION, data: {channelId: 'chan1'}});
+        expect(state2).toBe(state);
+    });
+
+    test('CONSUME_CHANNEL_POSTS_STALE_FOR_REDACTION removes only the specified channel', () => {
+        const seeded: RenderPermissionsState = {byResource: {}, channelsWithStalePosts: {chan1: true, chan2: true}};
+        const state = reducer(seeded, {type: RenderPermissionTypes.CONSUME_CHANNEL_POSTS_STALE_FOR_REDACTION, data: {channelId: 'chan1'}});
+        expect(state.channelsWithStalePosts).toEqual({chan2: true});
+
+        // no-op when not present
+        const state2 = reducer(state, {type: RenderPermissionTypes.CONSUME_CHANNEL_POSTS_STALE_FOR_REDACTION, data: {channelId: 'chan1'}});
+        expect(state2).toBe(state);
+    });
+
+    test('INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER preserves channelsWithStalePosts', () => {
+        const seeded: RenderPermissionsState = {
+            byResource: {channel: {chan1: {upload_file_attachment: {allowed: true, evaluated: true, generation: 1, receivedAt: 1}}}},
+            channelsWithStalePosts: {chan1: true},
+        };
+        const state = reducer(seeded, {type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CURRENT_USER, data: {}});
+        expect(state.byResource).toEqual({});
+        expect(state.channelsWithStalePosts).toEqual({chan1: true});
     });
 });

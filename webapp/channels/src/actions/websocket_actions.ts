@@ -79,7 +79,7 @@ import {
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
-import {invalidateRenderDecisionsForChannel, invalidateCurrentUserRenderDecisions, clearRenderDecisions, reconcileChannelPostsForRedaction} from 'mattermost-redux/actions/render_permissions';
+import {invalidateRenderDecisionsForChannel, invalidateCurrentUserRenderDecisions, clearRenderDecisions, reconcileChannelPostsForRedaction, markChannelPostsStaleForRedaction} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
@@ -114,7 +114,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -554,6 +554,10 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
+    case WebSocketEvents.PermissionPolicyUpdated:
+        dispatch(handlePermissionPolicyUpdatedEvent());
+        break;
+
     case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
@@ -884,14 +888,32 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // hidden channels make no request until they become visible again.
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
 
-        // If this is the channel the user is currently viewing, the policy change
-        // may have flipped download_file_attachment, which changes how already-
-        // loaded post file metadata should be sanitized. Reconcile only the
-        // visible channel (one ETag-bypassing refetch); hidden channels reconcile
-        // when next visited.
         if (channel.id === getCurrentChannelId(doGetState())) {
             doDispatch(reconcileChannelPostsForRedaction(channel.id));
+        } else {
+            doDispatch(markChannelPostsStaleForRedaction(channel.id));
         }
+    };
+}
+
+// handlePermissionPolicyUpdatedEvent handles a TypePermission policy change.
+// These are system-scoped; no resource ID is carried — all channels are affected.
+export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        doDispatch(invalidateCurrentUserRenderDecisions());
+
+        const state = doGetState();
+        const currentChannelId = getCurrentChannelId(state);
+
+        if (currentChannelId) {
+            doDispatch(reconcileChannelPostsForRedaction(currentChannelId));
+        }
+
+        // Mark all channels stale so syncPostsOrReloadIfStale calls loadUnreads on
+        // the next visit, covering scroll positions beyond page 0 of the current channel.
+        Object.keys(state.entities.posts.postsInChannel).forEach((channelId) => {
+            doDispatch(markChannelPostsStaleForRedaction(channelId));
+        });
     };
 }
 
@@ -1699,16 +1721,20 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
         store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
-        // A system-role change for the current user can change their ABAC
-        // (permission-lane) decisions, so drop their cached render decisions and
-        // reconcile the visible channel's posts in case download access changed.
-        if (msg.data.user_id === getCurrentUserId(store.getState())) {
+        if (msg.data.user_id === getCurrentUserId(store.getState()) &&
+                isPermissionPoliciesEnabled(store.getState())) {
             store.dispatch(invalidateCurrentUserRenderDecisions());
 
-            const currentChannelId = getCurrentChannelId(store.getState());
+            const state = store.getState();
+            const currentChannelId = getCurrentChannelId(state);
+
             if (currentChannelId) {
                 store.dispatch(reconcileChannelPostsForRedaction(currentChannelId));
             }
+
+            Object.keys(state.entities.posts.postsInChannel).forEach((channelId) => {
+                store.dispatch(markChannelPostsStaleForRedaction(channelId));
+            });
         }
 
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
@@ -2262,15 +2288,20 @@ export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAVal
         // The current user's attribute values are an input to ABAC evaluation, so
         // their render decisions are now stale. Other users' updates do not affect
         // the current user's own decisions.
-        if (msg.data.user_id === getCurrentUserId(doGetState())) {
+        if (msg.data.user_id === getCurrentUserId(doGetState()) &&
+                isPermissionPoliciesEnabled(doGetState())) {
             doDispatch(invalidateCurrentUserRenderDecisions());
 
-            // The download_file_attachment decision for the visible channel may
-            // have changed; reconcile its posts so redaction is reflected.
-            const currentChannelId = getCurrentChannelId(doGetState());
+            const state = doGetState();
+            const currentChannelId = getCurrentChannelId(state);
+
             if (currentChannelId) {
                 doDispatch(reconcileChannelPostsForRedaction(currentChannelId));
             }
+
+            Object.keys(state.entities.posts.postsInChannel).forEach((channelId) => {
+                doDispatch(markChannelPostsStaleForRedaction(channelId));
+            });
         }
     };
 }

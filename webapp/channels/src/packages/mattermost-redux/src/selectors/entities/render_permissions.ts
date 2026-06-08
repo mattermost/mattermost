@@ -9,3 +9,7 @@ import type {GlobalState} from '@mattermost/types/store';
 export function getRenderDecision(state: GlobalState, resourceType: string, resourceId: string, action: string): RenderPermissionEntry | undefined {
     return state.entities.renderPermissions.byResource[resourceType]?.[resourceId]?.[action];
 }
+
+export function isChannelPostsStaleForRedaction(state: GlobalState, channelId: string): boolean {
+    return Boolean(state.entities.renderPermissions.channelsWithStalePosts?.[channelId]);
+}

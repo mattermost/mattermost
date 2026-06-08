@@ -38,81 +38,85 @@ import {setupUserAndChannel} from './helpers';
 
 // ─── Download Enforcement ────────────────────────────────────────────────────
 
-test.describe('ABAC Permission Policies - Download File Enforcement', () => {
-    let lastPolicyName = '';
-    let savedAdminClient: any = null;
+test.describe(
+    'ABAC Permission Policies - Download File Enforcement',
+    {tag: ['@abac', '@abac_file_permissions']},
+    () => {
+        let lastPolicyName = '';
+        let savedAdminClient: any = null;
 
-    test.afterEach(async () => {
-        if (lastPolicyName && savedAdminClient) {
-            await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
-            lastPolicyName = '';
-            savedAdminClient = null;
-        }
-    });
-
-    test('MM-T5820 user denied download sees redacted placeholder instead of file', async ({pw}) => {
-        test.setTimeout(180000);
-        await pw.skipIfNoLicense();
-
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        savedAdminClient = adminClient;
-        const {testUser: deniedUser, channelName} = await setupUserAndChannel(adminClient, team);
-
-        const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, channelName);
-        await adminChannelsPage.toBeVisible();
-        await adminChannelsPage.centerView.postCreate.postMessage('File attachment post', ['sample_text_file.txt']);
-
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await enableABAC(systemConsolePage.page);
-        await navigateToPermissionPoliciesPage(systemConsolePage.page);
-
-        lastPolicyName = `Download Deny ${pw.random.id()}`;
-        await createPermissionPolicy(systemConsolePage.page, {
-            name: lastPolicyName,
-            // Deny-all via an attribute comparison no test user satisfies, instead
-            // of the bare `false` literal (which currently fails policy creation).
-            celExpression: "user.attributes.Department == 'no-such-value-deny-all'",
-            permissions: ['Download Files'],
-            adminClient,
+        test.afterEach(async () => {
+            if (lastPolicyName && savedAdminClient) {
+                await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
+                lastPolicyName = '';
+                savedAdminClient = null;
+            }
         });
-        await systemConsolePage.page.waitForTimeout(1000);
 
-        const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
-        await deniedChannelsPage.goto(team.name, channelName);
-        await deniedChannelsPage.toBeVisible();
+        test('MM-T5820 user denied download sees redacted placeholder instead of file', async ({pw}) => {
+            test.setTimeout(180000);
+            await pw.skipIfNoLicense();
 
-        await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
-        await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toContainText('Files not available');
-        await expect(deniedPage.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
-    });
+            const {adminUser, adminClient, team} = await pw.initSetup();
+            savedAdminClient = adminClient;
+            const {testUser: deniedUser, channelName} = await setupUserAndChannel(adminClient, team);
 
-    test('MM-T5821 user sees file normally when no download restriction policy exists', async ({pw}) => {
-        test.setTimeout(180000);
-        await pw.skipIfNoLicense();
+            const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
+            await adminChannelsPage.goto(team.name, channelName);
+            await adminChannelsPage.toBeVisible();
+            await adminChannelsPage.centerView.postCreate.postMessage('File attachment post', ['sample_text_file.txt']);
 
-        // lastPolicyName is '' here — no policy to create, beforeEach cleaned any stale one
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        savedAdminClient = adminClient;
-        const {testUser, channelName} = await setupUserAndChannel(adminClient, team);
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await enableABAC(systemConsolePage.page);
+            await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, channelName);
-        await adminChannelsPage.toBeVisible();
-        await adminChannelsPage.centerView.postCreate.postMessage('File attachment post', ['sample_text_file.txt']);
+            lastPolicyName = `Download Deny ${pw.random.id()}`;
+            await createPermissionPolicy(systemConsolePage.page, {
+                name: lastPolicyName,
+                // Deny-all via an attribute comparison no test user satisfies, instead
+                // of the bare `false` literal (which currently fails policy creation).
+                celExpression: "user.attributes.Department == 'no-such-value-deny-all'",
+                permissions: ['Download Files'],
+                adminClient,
+            });
+            await systemConsolePage.page.waitForTimeout(1000);
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await enableABAC(systemConsolePage.page);
-        await systemConsolePage.page.waitForTimeout(1000);
+            const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
+            await deniedChannelsPage.goto(team.name, channelName);
+            await deniedChannelsPage.toBeVisible();
 
-        const {channelsPage: userChannelsPage, page: userPage} = await pw.testBrowser.login(testUser);
-        await userChannelsPage.goto(team.name, channelName);
-        await userChannelsPage.toBeVisible();
+            await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
+            await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toContainText('Files not available');
+            await expect(deniedPage.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+        });
 
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
-        await expect(userPage.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
-    });
-});
+        test('MM-T5821 user sees file normally when no download restriction policy exists', async ({pw}) => {
+            test.setTimeout(180000);
+            await pw.skipIfNoLicense();
+
+            // lastPolicyName is '' here — no policy to create, beforeEach cleaned any stale one
+            const {adminUser, adminClient, team} = await pw.initSetup();
+            savedAdminClient = adminClient;
+            const {testUser, channelName} = await setupUserAndChannel(adminClient, team);
+
+            const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
+            await adminChannelsPage.goto(team.name, channelName);
+            await adminChannelsPage.toBeVisible();
+            await adminChannelsPage.centerView.postCreate.postMessage('File attachment post', ['sample_text_file.txt']);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await enableABAC(systemConsolePage.page);
+            await systemConsolePage.page.waitForTimeout(1000);
+
+            const {channelsPage: userChannelsPage, page: userPage} = await pw.testBrowser.login(testUser);
+            await userChannelsPage.goto(team.name, channelName);
+            await userChannelsPage.toBeVisible();
+
+            await expect(userPage.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
+            await expect(userPage.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
+        });
+    },
+);
 
 // ─── Attribute-Based Policy — Matching User ───────────────────────────────────
 
@@ -122,131 +126,137 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
  * policy-creation UI work ONCE. Each test then just logs the relevant user
  * in and asserts the file visibility.
  */
-test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', () => {
-    let sharedAdminClient: any = null;
-    let sharedPolicyName = '';
-    let sharedTeam: any;
-    let sharedChannelName = '';
-    let userAllowed: Awaited<ReturnType<typeof createUserForABAC>>;
-    let userDenied: Awaited<ReturnType<typeof createUserForABAC>>;
-    let licensed = true;
-    let sharedTestBrowser: TestBrowser | null = null;
+test.describe(
+    'ABAC Permission Policies - Attribute-Based Access - MM-T5826',
+    {tag: ['@abac', '@abac_file_permissions']},
+    () => {
+        let sharedAdminClient: any = null;
+        let sharedPolicyName = '';
+        let sharedTeam: any;
+        let sharedChannelName = '';
+        let userAllowed: Awaited<ReturnType<typeof createUserForABAC>>;
+        let userDenied: Awaited<ReturnType<typeof createUserForABAC>>;
+        let licensed = true;
+        let sharedTestBrowser: TestBrowser | null = null;
 
-    test.beforeAll(async ({browser}) => {
-        test.setTimeout(240000);
+        test.beforeAll(async ({browser}) => {
+            test.setTimeout(240000);
 
-        const {adminClient, adminUser} = await getAdminClient();
-        if (!adminUser) {
-            throw new Error('Admin user not found — cannot proceed with ABAC file-access tests');
-        }
-        sharedAdminClient = adminClient;
+            const {adminClient, adminUser} = await getAdminClient();
+            if (!adminUser) {
+                throw new Error('Admin user not found — cannot proceed with ABAC file-access tests');
+            }
+            sharedAdminClient = adminClient;
 
-        try {
-            const lic = await adminClient.getClientLicenseOld();
-            if (!lic || lic.IsLicensed !== 'true') {
+            try {
+                const lic = await adminClient.getClientLicenseOld();
+                if (!lic || lic.IsLicensed !== 'true') {
+                    licensed = false;
+                    return;
+                }
+            } catch {
                 licensed = false;
                 return;
             }
-        } catch {
-            licensed = false;
-            return;
-        }
 
-        // Wait 31s to guarantee the server-side AttributeView 30-second refresh
-        // gate has expired before creating users with attributes.
-        await new Promise((resolve) => setTimeout(resolve, 31000));
+            // Wait 31s to guarantee the server-side AttributeView 30-second refresh
+            // gate has expired before creating users with attributes.
+            await new Promise((resolve) => setTimeout(resolve, 31000));
 
-        await enableUserManagedAttributes(adminClient);
-        const departmentAttr: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
-        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttr);
+            await enableUserManagedAttributes(adminClient);
+            const departmentAttr: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
+            const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttr);
 
-        userAllowed = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', type: 'text', value: 'Engineering'},
-        ]);
-        userDenied = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', type: 'text', value: 'Sales'},
-        ]);
+            userAllowed = await createUserForABAC(adminClient, attributeFieldsMap, [
+                {name: 'Department', type: 'text', value: 'Engineering'},
+            ]);
+            userDenied = await createUserForABAC(adminClient, attributeFieldsMap, [
+                {name: 'Department', type: 'text', value: 'Sales'},
+            ]);
 
-        const suffix = getRandomId();
-        sharedTeam = await adminClient.createTeam({
-            name: `abac-dl-${suffix}`,
-            display_name: `ABAC-DL ${suffix}`,
-            type: 'O',
-        } as any);
+            const suffix = getRandomId();
+            sharedTeam = await adminClient.createTeam({
+                name: `abac-dl-${suffix}`,
+                display_name: `ABAC-DL ${suffix}`,
+                type: 'O',
+            } as any);
 
-        await adminClient.addToTeam(sharedTeam.id, userAllowed.id);
-        await adminClient.addToTeam(sharedTeam.id, userDenied.id);
+            await adminClient.addToTeam(sharedTeam.id, userAllowed.id);
+            await adminClient.addToTeam(sharedTeam.id, userDenied.id);
 
-        const channel = await createPrivateChannelForABAC(adminClient, sharedTeam.id);
-        await adminClient.addToChannel(userAllowed.id, channel.id);
-        await adminClient.addToChannel(userDenied.id, channel.id);
-        sharedChannelName = channel.name;
+            const channel = await createPrivateChannelForABAC(adminClient, sharedTeam.id);
+            await adminClient.addToChannel(userAllowed.id, channel.id);
+            await adminClient.addToChannel(userDenied.id, channel.id);
+            sharedChannelName = channel.name;
 
-        sharedTestBrowser = new TestBrowser(browser);
+            sharedTestBrowser = new TestBrowser(browser);
 
-        // Admin posts a file in the channel via the UI.
-        const {channelsPage: adminChannelsPage} = await sharedTestBrowser.login(adminUser);
-        await adminChannelsPage.goto(sharedTeam.name, sharedChannelName);
-        await adminChannelsPage.toBeVisible();
-        await adminChannelsPage.centerView.postCreate.postMessage('File attachment post', ['sample_text_file.txt']);
+            // Admin posts a file in the channel via the UI.
+            const {channelsPage: adminChannelsPage} = await sharedTestBrowser.login(adminUser);
+            await adminChannelsPage.goto(sharedTeam.name, sharedChannelName);
+            await adminChannelsPage.toBeVisible();
+            await adminChannelsPage.centerView.postCreate.postMessage('File attachment post', ['sample_text_file.txt']);
 
-        // Admin opens system console, creates the attribute-based download policy.
-        const {systemConsolePage} = await sharedTestBrowser.login(adminUser);
-        await enableABAC(systemConsolePage.page);
-        await navigateToPermissionPoliciesPage(systemConsolePage.page);
+            // Admin opens system console, creates the attribute-based download policy.
+            const {systemConsolePage} = await sharedTestBrowser.login(adminUser);
+            await enableABAC(systemConsolePage.page);
+            await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        sharedPolicyName = `Dept Download Policy ${getRandomId()}`;
-        await createPermissionPolicy(systemConsolePage.page, {
-            name: sharedPolicyName,
-            celExpression: 'user.attributes.Department == "Engineering"',
-            permissions: ['Download Files'],
-            adminClient: sharedAdminClient,
+            sharedPolicyName = `Dept Download Policy ${getRandomId()}`;
+            await createPermissionPolicy(systemConsolePage.page, {
+                name: sharedPolicyName,
+                celExpression: 'user.attributes.Department == "Engineering"',
+                permissions: ['Download Files'],
+                adminClient: sharedAdminClient,
+            });
         });
-    });
 
-    test.afterAll(async () => {
-        if (sharedPolicyName && sharedAdminClient) {
-            await deletePermissionPolicyByName(sharedAdminClient, sharedPolicyName).catch(() => {});
-        }
-        await sharedTestBrowser?.close().catch(() => {});
-    });
+        test.afterAll(async () => {
+            if (sharedPolicyName && sharedAdminClient) {
+                await deletePermissionPolicyByName(sharedAdminClient, sharedPolicyName).catch(() => {});
+            }
+            await sharedTestBrowser?.close().catch(() => {});
+        });
 
-    test('MM-T5826_a user without matching attribute is denied download (Sales → placeholder)', async ({pw}) => {
-        test.setTimeout(60000);
-        test.skip(!licensed, 'No ABAC license');
+        test('MM-T5826_a user without matching attribute is denied download (Sales → placeholder)', async ({pw}) => {
+            test.setTimeout(60000);
+            test.skip(!licensed, 'No ABAC license');
 
-        const {page, channelsPage} = await pw.testBrowser.login(userDenied as any);
-        await channelsPage.goto(sharedTeam.name, sharedChannelName);
-        await channelsPage.toBeVisible();
-        await expect
-            .poll(() => page.getByTestId('redactedFilesPlaceholder').isVisible(), {
-                timeout: 45000,
-                intervals: [500, 1500, 3000],
-            })
-            .toBe(true);
-        await expect(page.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
-    });
+            const {page, channelsPage} = await pw.testBrowser.login(userDenied as any);
+            await channelsPage.goto(sharedTeam.name, sharedChannelName);
+            await channelsPage.toBeVisible();
+            await expect
+                .poll(() => page.getByTestId('redactedFilesPlaceholder').isVisible(), {
+                    timeout: 45000,
+                    intervals: [500, 1500, 3000],
+                })
+                .toBe(true);
+            await expect(page.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+        });
 
-    test('MM-T5826_b user with matching attribute is granted download (Engineering → file visible)', async ({pw}) => {
-        test.setTimeout(60000);
-        test.skip(!licensed, 'No ABAC license');
+        test('MM-T5826_b user with matching attribute is granted download (Engineering → file visible)', async ({
+            pw,
+        }) => {
+            test.setTimeout(60000);
+            test.skip(!licensed, 'No ABAC license');
 
-        const {page, channelsPage} = await pw.testBrowser.login(userAllowed as any);
-        await channelsPage.goto(sharedTeam.name, sharedChannelName);
-        await channelsPage.toBeVisible();
-        await expect
-            .poll(() => page.locator('[data-testid="fileAttachmentList"]').isVisible(), {
-                timeout: 45000,
-                intervals: [500, 1500, 3000],
-            })
-            .toBe(true);
-        await expect(page.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
-    });
-});
+            const {page, channelsPage} = await pw.testBrowser.login(userAllowed as any);
+            await channelsPage.goto(sharedTeam.name, sharedChannelName);
+            await channelsPage.toBeVisible();
+            await expect
+                .poll(() => page.locator('[data-testid="fileAttachmentList"]').isVisible(), {
+                    timeout: 45000,
+                    intervals: [500, 1500, 3000],
+                })
+                .toBe(true);
+            await expect(page.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
+        });
+    },
+);
 
 // ─── Burn-on-Read and Permalink Edge Cases ────────────────────────────────────
 
-test.describe('ABAC Permission Policies - BOR and Permalink', () => {
+test.describe('ABAC Permission Policies - BOR and Permalink', {tag: ['@abac', '@abac_file_permissions']}, () => {
     let lastPolicyName = '';
     let savedAdminClient: any = null;
 
