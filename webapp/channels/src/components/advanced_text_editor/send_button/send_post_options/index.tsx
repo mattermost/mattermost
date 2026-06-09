@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -12,8 +12,9 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import {openModal} from 'actions/views/modals';
 
 import {isDmScheduleRedesign} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+import ScheduleRecipientTimezoneCheckbox from 'components/advanced_text_editor/send_button/schedule_recipient_timezone_checkbox';
 import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
-import DmMenuOptions, {DmScheduleHeader} from 'components/advanced_text_editor/send_button/send_post_options/dm_menu_options';
+import DmMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/dm_menu_options';
 import RecentUsedCustomDate from 'components/advanced_text_editor/send_button/send_post_options/recent_used_custom_date';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
@@ -36,7 +37,8 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
-    const {userCurrentTimezone, recipientTimezoneString} = useTimePostBoxIndicator(channelId);
+    const {userCurrentTimezone, recipientTimezoneString, teammateDisplayName} = useTimePostBoxIndicator(channelId);
+    const [useRecipientTimezone, setUseRecipientTimezone] = useState(true);
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
         e.preventDefault();
@@ -65,13 +67,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             dialogProps: {
                 channelId,
                 onConfirm: handleSelectCustomTime,
+                useRecipientTimezone,
             },
         }));
-    }, [channelId, dispatch, handleSelectCustomTime]);
-
-    const customTimeLeadingElement = isDmRedesign ? (
-        <i className='icon-calendar-outline'/>
-    ) : undefined;
+    }, [channelId, dispatch, handleSelectCustomTime, useRecipientTimezone]);
 
     return (
         <Menu.Container
@@ -104,17 +103,22 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 horizontal: 'right',
             }}
         >
-            {isDmRedesign ? (
-                <DmScheduleHeader channelId={channelId}/>
-            ) : (
-                <Menu.Item
-                    disabled={true}
-                    labels={
-                        <FormattedMessage
-                            id='create_post_button.option.schedule_message.options.header'
-                            defaultMessage='Schedule message'
-                        />
-                    }
+            <Menu.Item
+                disabled={true}
+                labels={
+                    <FormattedMessage
+                        id='create_post_button.option.schedule_message.options.header'
+                        defaultMessage='Schedule message'
+                    />
+                }
+            />
+
+            {isDmRedesign && (
+                <ScheduleRecipientTimezoneCheckbox
+                    checked={useRecipientTimezone}
+                    recipientTimezone={recipientTimezoneString}
+                    onChange={setUseRecipientTimezone}
+                    className='dm-schedule-timezone-checkbox'
                 />
             )}
 
@@ -122,6 +126,7 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 <DmMenuOptions
                     handleOnSelect={handleOnSelect}
                     channelId={channelId}
+                    useRecipientTimezone={useRecipientTimezone}
                 />
             ) : (
                 <CoreMenuOptions
@@ -136,6 +141,8 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 channelId={channelId}
                 isDmRedesign={isDmRedesign}
                 recipientTimezoneString={recipientTimezoneString}
+                useRecipientTimezone={useRecipientTimezone}
+                recipientDisplayName={teammateDisplayName}
             />
 
             <Menu.Separator/>
@@ -143,11 +150,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             <Menu.Item
                 onClick={handleChooseCustomTime}
                 key={'choose_custom_time'}
-                leadingElement={customTimeLeadingElement}
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.choose_custom_time'
-                        defaultMessage='Choose a custom time…'
+                        defaultMessage='Choose a custom time'
                     />
                 }
             />

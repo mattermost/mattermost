@@ -294,7 +294,7 @@ describe('CoreMenuOptions Component', () => {
             recipientTimezoneString: 'Europe/London',
         });
 
-        expect(screen.getByText(/Your time · recently used/)).toBeInTheDocument();
+        expect(screen.getByText(/your time/)).toBeInTheDocument();
         expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
     });
 });

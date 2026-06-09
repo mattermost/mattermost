@@ -4,13 +4,10 @@
 import {DateTime} from 'luxon';
 import React, {memo, useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {getCurrentLocale} from 'selectors/i18n';
 
 import {
-    getRecipientLocationLabel,
-    getTheirMorningTimestamp,
+    getNextMonday9amTimestamp,
+    getTomorrow9amTimestamp,
 } from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
@@ -19,133 +16,159 @@ import Timestamp from 'components/timestamp';
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
+    useRecipientTimezone: boolean;
 }
 
-function formatTimeInTimezone(timestamp: number, timezone: string, locale: string): string {
-    return DateTime.fromMillis(timestamp, {zone: 'utc'}).
-        setZone(timezone).
-        setLocale(locale).
-        toLocaleString(DateTime.TIME_SIMPLE);
-}
+const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
 
-function formatWeekdayInTimezone(timestamp: number, timezone: string, locale: string): string {
-    return DateTime.fromMillis(timestamp, {zone: 'utc'}).
-        setZone(timezone).
-        setLocale(locale).
-        toFormat('ccc');
-}
-
-function DmMenuOptions({handleOnSelect, channelId}: Props) {
+function DmMenuOptions({handleOnSelect, channelId, useRecipientTimezone}: Props) {
     const {
         userCurrentTimezone,
         recipientTimezoneString,
+        teammateDisplayName,
     } = useTimePostBoxIndicator(channelId);
 
-    const locale = useSelector(getCurrentLocale);
+    const activeTimezone = useRecipientTimezone ? recipientTimezoneString : userCurrentTimezone;
+    const conversionTimezone = useRecipientTimezone ? userCurrentTimezone : recipientTimezoneString;
 
-    const theirMorningTimestamp = useMemo(
-        () => getTheirMorningTimestamp(recipientTimezoneString),
-        [recipientTimezoneString],
+    const now = DateTime.now().setZone(activeTimezone);
+    const tomorrow9amTime = useMemo(
+        () => getTomorrow9amTimestamp(activeTimezone),
+        [activeTimezone],
+    );
+    const nextMonday = useMemo(
+        () => getNextMonday9amTimestamp(activeTimezone),
+        [activeTimezone],
     );
 
-    const theirMorningSubtitle = useMemo(() => {
-        const theirDay = formatWeekdayInTimezone(theirMorningTimestamp, recipientTimezoneString, locale);
-        const theirTime = formatTimeInTimezone(theirMorningTimestamp, recipientTimezoneString, locale);
-        const senderTime = formatTimeInTimezone(theirMorningTimestamp, userCurrentTimezone, locale);
+    const renderConversionSubtitle = useCallback((timestamp: number) => {
+        const timeLabel = (
+            <Timestamp
+                value={timestamp}
+                timeZone={conversionTimezone}
+                useDate={false}
+                useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
+            />
+        );
+
+        if (useRecipientTimezone) {
+            return (
+                <FormattedMessage
+                    id='create_post_button.option.schedule_message.options.conversion_your_time'
+                    defaultMessage='{time} your time'
+                    values={{time: timeLabel}}
+                />
+            );
+        }
 
         return (
             <FormattedMessage
-                id='create_post_button.option.schedule_message.options.their_morning.subtitle'
-                defaultMessage='{theirDay} {theirTime} · {senderTime} yours'
+                id='create_post_button.option.schedule_message.options.conversion_recipient_time'
+                defaultMessage="{time} {recipientName}'s time"
                 values={{
-                    theirDay,
-                    theirTime,
-                    senderTime,
+                    time: timeLabel,
+                    recipientName: teammateDisplayName,
                 }}
             />
         );
-    }, [theirMorningTimestamp, recipientTimezoneString, userCurrentTimezone, locale]);
+    }, [conversionTimezone, teammateDisplayName, useRecipientTimezone]);
 
-    const handleTheirMorningClick = useCallback(
-        (e: React.UIEvent) => handleOnSelect(e, theirMorningTimestamp),
-        [handleOnSelect, theirMorningTimestamp],
-    );
+    const renderPresetOption = useCallback((
+        key: string,
+        testId: string,
+        timestamp: number,
+        primaryMessage: React.ReactNode,
+        autoFocus?: boolean,
+    ) => {
+        const clickHandler = (e: React.UIEvent) => handleOnSelect(e, timestamp);
 
-    return (
-        <Menu.Item
-            key='scheduling_time_their_morning'
-            data-testid='scheduling_time_their_morning'
-            onClick={handleTheirMorningClick}
-            labels={
-                <>
-                    <span>
-                        <FormattedMessage
-                            id='create_post_button.option.schedule_message.options.their_morning'
-                            defaultMessage='Their morning'
-                        />
-                    </span>
-                    <span className='secondary-label'>
-                        {theirMorningSubtitle}
-                    </span>
-                </>
-            }
-            className='core-menu-options dm-menu-options'
-            autoFocus={true}
+        return (
+            <Menu.Item
+                key={key}
+                data-testid={testId}
+                onClick={clickHandler}
+                labels={
+                    <>
+                        <span>{primaryMessage}</span>
+                        <span className='secondary-label'>
+                            {renderConversionSubtitle(timestamp)}
+                        </span>
+                    </>
+                }
+                className='core-menu-options dm-menu-options'
+                autoFocus={autoFocus}
+            />
+        );
+    }, [handleOnSelect, renderConversionSubtitle]);
+
+    const timeComponent = (timestamp: number) => (
+        <Timestamp
+            value={timestamp}
+            timeZone={activeTimezone}
+            useDate={false}
+            useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
         />
     );
-}
 
-export function DmScheduleHeader({channelId}: {channelId: string}) {
-    const {
-        teammateTimezone,
-        teammateDisplayName,
-        recipientTimezoneString,
-        teammate,
-        currentUserTimesStamp,
-    } = useTimePostBoxIndicator(channelId);
-
-    const locationLabel = useMemo(
-        () => getRecipientLocationLabel(teammate, recipientTimezoneString),
-        [teammate, recipientTimezoneString],
+    const optionTomorrow = renderPresetOption(
+        'scheduling_time_tomorrow_9_am',
+        'scheduling_time_tomorrow_9_am',
+        tomorrow9amTime,
+        (
+            <FormattedMessage
+                id='create_post_button.option.schedule_message.options.tomorrow'
+                defaultMessage='Tomorrow at {9amTime}'
+                values={{'9amTime': timeComponent(tomorrow9amTime)}}
+            />
+        ),
+        true,
     );
 
-    return (
-        <Menu.Item
-            disabled={true}
-            labels={
-                <>
-                    <span>
-                        <FormattedMessage
-                            id='create_post_button.option.schedule_message.options.dm_header'
-                            defaultMessage='Schedule for {recipientName}'
-                            values={{recipientName: teammateDisplayName}}
-                        />
-                    </span>
-                    <span className='secondary-label'>
-                        <FormattedMessage
-                            id='create_post_button.option.schedule_message.options.dm_header.subtitle'
-                            defaultMessage='{location} · {time} now'
-                            values={{
-                                location: locationLabel,
-                                time: (
-                                    <Timestamp
-                                        value={currentUserTimesStamp}
-                                        useDate={false}
-                                        userTimezone={teammateTimezone}
-                                        useTime={{
-                                            hour: 'numeric',
-                                            minute: 'numeric',
-                                        }}
-                                    />
-                                ),
-                            }}
-                        />
-                    </span>
-                </>
-            }
-            className='dm-schedule-header'
-        />
+    const optionNextMonday = renderPresetOption(
+        'scheduling_time_next_monday_9_am',
+        'scheduling_time_next_monday_9_am',
+        nextMonday,
+        (
+            <FormattedMessage
+                id='create_post_button.option.schedule_message.options.next_monday'
+                defaultMessage='Next Monday at {9amTime}'
+                values={{'9amTime': timeComponent(nextMonday)}}
+            />
+        ),
     );
+
+    const optionMonday = renderPresetOption(
+        'scheduling_time_monday_9_am',
+        'scheduling_time_monday_9_am',
+        nextMonday,
+        (
+            <FormattedMessage
+                id='create_post_button.option.schedule_message.options.monday'
+                defaultMessage='Monday at {9amTime}'
+                values={{'9amTime': timeComponent(nextMonday)}}
+            />
+        ),
+        now.weekday === 5 || now.weekday === 6,
+    );
+
+    let options: React.ReactElement[] = [];
+
+    switch (now.weekday) {
+    case 7:
+        options = [optionTomorrow];
+        break;
+    case 1:
+        options = [optionTomorrow, optionNextMonday];
+        break;
+    case 5:
+    case 6:
+        options = [optionMonday];
+        break;
+    default:
+        options = [optionTomorrow, optionMonday];
+    }
+
+    return <>{options}</>;
 }
 
 export default memo(DmMenuOptions);

@@ -6,7 +6,11 @@ import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {isDmScheduleRedesign} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+import {
+    getNextMonday9amTimestamp,
+    getTomorrow9amTimestamp,
+    isDmScheduleRedesign,
+} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
@@ -16,13 +20,6 @@ import type {GlobalState} from 'types/store';
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
-}
-
-function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
-    const daysDifference = targetWeekday - dateTime.weekday;
-    const adjustedDays = (daysDifference + 7) % 7;
-    const deltaDays = adjustedDays === 0 ? 7 : adjustedDays;
-    return dateTime.plus({days: deltaDays});
 }
 
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
@@ -44,18 +41,8 @@ function LegacyCoreMenuOptions({handleOnSelect, channelId}: Props) {
     const {userCurrentTimezone} = useTimePostBoxIndicator(channelId);
 
     const now = DateTime.now().setZone(userCurrentTimezone);
-    const tomorrow9amTime = DateTime.now().
-        setZone(userCurrentTimezone).
-        plus({days: 1}).
-        set({hour: 9, minute: 0, second: 0, millisecond: 0}).
-        toMillis();
-
-    const nextMonday = getNextWeekday(now, 1).set({
-        hour: 9,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-    }).toMillis();
+    const tomorrow9amTime = getTomorrow9amTimestamp(userCurrentTimezone);
+    const nextMonday = getNextMonday9amTimestamp(userCurrentTimezone);
 
     const timeComponent = (
         <Timestamp
@@ -123,23 +110,16 @@ function LegacyCoreMenuOptions({handleOnSelect, channelId}: Props) {
     let options: React.ReactElement[] = [];
 
     switch (now.weekday) {
-    // Sunday
     case 7:
         options = [optionTomorrow];
         break;
-
-        // Monday
     case 1:
         options = [optionTomorrow, optionNextMonday];
         break;
-
-        // Friday and Saturday
     case 5:
     case 6:
         options = [optionMonday];
         break;
-
-        // Tuesday to Thursday
     default:
         options = [optionTomorrow, optionMonday];
     }

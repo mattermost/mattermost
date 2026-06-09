@@ -16,6 +16,35 @@ import type {GlobalState} from 'types/store';
 
 export type SchedulePerspective = 'mine' | 'theirs';
 
+export function useRecipientTimezoneToPerspective(useRecipientTimezone: boolean): SchedulePerspective {
+    return useRecipientTimezone ? 'theirs' : 'mine';
+}
+
+export function getNextWeekday(dateTime: DateTime, targetWeekday: number): DateTime {
+    const daysDifference = targetWeekday - dateTime.weekday;
+    const adjustedDays = (daysDifference + 7) % 7;
+    const deltaDays = adjustedDays === 0 ? 7 : adjustedDays;
+    return dateTime.plus({days: deltaDays});
+}
+
+export function getTomorrow9amTimestamp(timezone: string): number {
+    return DateTime.now().
+        setZone(timezone).
+        plus({days: 1}).
+        set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+        toMillis();
+}
+
+export function getNextMonday9amTimestamp(timezone: string): number {
+    const now = DateTime.now().setZone(timezone);
+    return getNextWeekday(now, 1).set({
+        hour: 9,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+    }).toMillis();
+}
+
 export function hasRecipientTimezone(teammate?: UserProfile): boolean {
     return Boolean(teammate?.timezone);
 }

@@ -16,13 +16,13 @@ import {
     getDefaultScheduleDateTime,
     isDmScheduleRedesign,
     reinterpretWallClock,
-    type SchedulePerspective,
+    useRecipientTimezoneToPerspective,
 } from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+import ScheduleRecipientTimezoneCheckbox from 'components/advanced_text_editor/send_button/schedule_recipient_timezone_checkbox';
 import {
     DMUserTimezone,
 } from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
-import ScheduleDualTimePreview from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_dual_time_preview';
-import SchedulePerspectiveToggle from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_perspective_toggle';
+import ScheduleTimezoneConversionLine from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_timezone_conversion_line';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
@@ -39,9 +39,16 @@ type Props = {
     onExited: () => void;
     onConfirm: (timestamp: number) => Promise<{error?: string}>;
     initialTime?: Moment;
+    useRecipientTimezone?: boolean;
 }
 
-export default function ScheduledPostCustomTimeModal({channelId, onExited, onConfirm, initialTime}: Props) {
+export default function ScheduledPostCustomTimeModal({
+    channelId,
+    onExited,
+    onConfirm,
+    initialTime,
+    useRecipientTimezone: initialUseRecipientTimezone = true,
+}: Props) {
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
@@ -50,18 +57,18 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
     const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
     const {
         teammateDisplayName,
-        teammateFirstName,
         recipientTimezoneString,
     } = useTimePostBoxIndicator(channelId);
 
-    const [perspective, setPerspective] = useState<SchedulePerspective>('theirs');
+    const [useRecipientTimezone, setUseRecipientTimezone] = useState(initialUseRecipientTimezone);
+    const perspective = useRecipientTimezoneToPerspective(useRecipientTimezone);
 
     const activeTimezone = useMemo(() => {
         if (!isDmRedesign) {
             return userTimezone;
         }
-        return perspective === 'theirs' ? recipientTimezoneString : userTimezone;
-    }, [isDmRedesign, perspective, recipientTimezoneString, userTimezone]);
+        return useRecipientTimezone ? recipientTimezoneString : userTimezone;
+    }, [isDmRedesign, recipientTimezoneString, useRecipientTimezone, userTimezone]);
 
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
@@ -69,7 +76,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
         }
 
         if (isDmRedesign) {
-            return getDefaultScheduleDateTime('theirs', userTimezone, recipientTimezoneString);
+            return getDefaultScheduleDateTime(perspective, userTimezone, recipientTimezoneString);
         }
 
         return moment().tz(userTimezone).add(1, 'days').set({
@@ -82,15 +89,15 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
 
     const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(userTimezone), [userTimezone]);
 
-    const handlePerspectiveChange = useCallback((newPerspective: SchedulePerspective) => {
-        if (newPerspective === perspective) {
+    const handleUseRecipientTimezoneChange = useCallback((checked: boolean) => {
+        if (checked === useRecipientTimezone) {
             return;
         }
 
-        const newTimezone = newPerspective === 'theirs' ? recipientTimezoneString : userTimezone;
+        const newTimezone = checked ? recipientTimezoneString : userTimezone;
         setSelectedDateTime((current) => reinterpretWallClock(current, newTimezone));
-        setPerspective(newPerspective);
-    }, [perspective, recipientTimezoneString, userTimezone]);
+        setUseRecipientTimezone(checked);
+    }, [recipientTimezoneString, useRecipientTimezone, userTimezone]);
 
     const handleOnConfirm = useCallback(async (dateTime: Moment) => {
         const selectedTime = dateTime.valueOf();
@@ -130,17 +137,18 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
 
     if (isDmRedesign) {
         const bodyPrefix = (
-            <SchedulePerspectiveToggle
-                perspective={perspective}
-                recipientFirstName={teammateFirstName}
-                onChange={handlePerspectiveChange}
+            <ScheduleRecipientTimezoneCheckbox
+                checked={useRecipientTimezone}
+                recipientTimezone={recipientTimezoneString}
+                onChange={handleUseRecipientTimezoneChange}
+                className='scheduled_post_dm_custom_time_modal__timezone-checkbox'
             />
         );
 
         const bodySuffix = (
-            <ScheduleDualTimePreview
+            <ScheduleTimezoneConversionLine
                 selectedDateTime={selectedDateTime}
-                perspective={perspective}
+                useRecipientTimezone={useRecipientTimezone}
                 recipientName={teammateDisplayName}
                 senderTimezone={userTimezone}
                 recipientTimezone={recipientTimezoneString}
@@ -155,13 +163,6 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
                     <FormattedMessage
                         id='schedule_post.custom_time_modal.title'
                         defaultMessage='Schedule message'
-                    />
-                }
-                subheading={
-                    <FormattedMessage
-                        id='schedule_post.custom_time_modal.dm_subtitle'
-                        defaultMessage='to {recipientName}'
-                        values={{recipientName: teammateDisplayName}}
                     />
                 }
                 confirmButtonText={

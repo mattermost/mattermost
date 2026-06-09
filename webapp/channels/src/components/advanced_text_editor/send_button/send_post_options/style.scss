@@ -7,17 +7,8 @@ ul#dropdown_send_post_options {
         }
     }
 
-    li.dm-schedule-header {
-        .label-elements {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .secondary-label {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            font-size: 12px;
-            font-weight: 400;
-        }
+    .dm-schedule-timezone-checkbox {
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     }
 
     li.core-menu-options,

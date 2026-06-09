@@ -9,7 +9,7 @@ import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
-import DmMenuOptions, {DmScheduleHeader} from './dm_menu_options';
+import DmMenuOptions from './dm_menu_options';
 
 jest.mock('components/advanced_text_editor/use_post_box_indicator');
 const mockedUseTimePostBoxIndicator = jest.mocked(useTimePostBoxIndicator);
@@ -50,50 +50,49 @@ describe('DmMenuOptions', () => {
         mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue as ReturnType<typeof useTimePostBoxIndicator>);
     });
 
-    it('renders Their morning preset', () => {
+    it('renders tomorrow preset with your time conversion when using recipient timezone', () => {
         renderWithContext(
             <WithTestMenuContext>
                 <DmMenuOptions
                     handleOnSelect={handleOnSelect}
                     channelId='channel1'
+                    useRecipientTimezone={true}
                 />
             </WithTestMenuContext>,
         );
 
-        expect(screen.getByText('Their morning')).toBeInTheDocument();
-        expect(screen.getByText(/yours/)).toBeInTheDocument();
+        expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
+        expect(screen.getByText(/your time/)).toBeInTheDocument();
     });
 
-    it('calls handleOnSelect with their morning timestamp when clicked', () => {
+    it('renders recipient time conversion when using sender timezone', () => {
         renderWithContext(
             <WithTestMenuContext>
                 <DmMenuOptions
                     handleOnSelect={handleOnSelect}
                     channelId='channel1'
+                    useRecipientTimezone={false}
                 />
             </WithTestMenuContext>,
         );
 
-        fireEvent.click(screen.getByTestId('scheduling_time_their_morning'));
+        expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
+        expect(screen.getByText(/Sarah's time/)).toBeInTheDocument();
+    });
+
+    it('calls handleOnSelect when tomorrow option is clicked', () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <DmMenuOptions
+                    handleOnSelect={handleOnSelect}
+                    channelId='channel1'
+                    useRecipientTimezone={true}
+                />
+            </WithTestMenuContext>,
+        );
+
+        fireEvent.click(screen.getByTestId('scheduling_time_tomorrow_9_am'));
 
         expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expect.any(Number));
-    });
-});
-
-describe('DmScheduleHeader', () => {
-    beforeEach(() => {
-        mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue as ReturnType<typeof useTimePostBoxIndicator>);
-    });
-
-    it('renders schedule for recipient header with location', () => {
-        renderWithContext(
-            <WithTestMenuContext>
-                <DmScheduleHeader channelId='channel1'/>
-            </WithTestMenuContext>,
-        );
-
-        expect(screen.getByText(/Schedule for Sarah/)).toBeInTheDocument();
-        expect(screen.getByText(/San Francisco/)).toBeInTheDocument();
-        expect(screen.getByText(/now/)).toBeInTheDocument();
     });
 });

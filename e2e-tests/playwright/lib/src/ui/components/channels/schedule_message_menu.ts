@@ -10,10 +10,9 @@ export default class ScheduleMessageMenu {
     readonly tomorrowMenuItem;
     readonly mondayMenuItem;
     readonly nextMondayMenuItem;
-    readonly theirMorningMenuItem;
     readonly recentlyUsedCustomTimeMenuItem;
     readonly customTimeMenuItem;
-    readonly dmHeader;
+    readonly recipientTimezoneCheckbox;
 
     constructor(container: Locator) {
         this.container = container;
@@ -21,10 +20,9 @@ export default class ScheduleMessageMenu {
         this.tomorrowMenuItem = container.getByTestId('scheduling_time_tomorrow_9_am');
         this.mondayMenuItem = container.getByTestId('scheduling_time_monday_9_am');
         this.nextMondayMenuItem = container.getByTestId('scheduling_time_next_monday_9_am');
-        this.theirMorningMenuItem = container.getByTestId('scheduling_time_their_morning');
         this.recentlyUsedCustomTimeMenuItem = container.getByTestId('recently_used_custom_time');
         this.customTimeMenuItem = container.getByText(/Choose a custom time/);
-        this.dmHeader = container.getByText(/Schedule for/);
+        this.recipientTimezoneCheckbox = container.getByRole('checkbox', {name: /Use recipient's timezone/});
     }
 
     async toBeVisible() {
