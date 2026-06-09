@@ -1936,7 +1936,7 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.cleanupTeamAccessControlPolicy(rctx, team)
+	a.cleanupTeamAccessControlPolicy(rctx, team, "delete")
 
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
@@ -1970,7 +1970,7 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
-	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team)
+	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team, "archive")
 
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
@@ -1992,9 +1992,20 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 // exists, so calling it unconditionally is safe. When the enterprise service
 // is unavailable or reports the op unsupported, we fall back to deleting the
 // row directly through the store.
-func (a *App) cleanupTeamAccessControlPolicy(rctx request.CTX, team *model.Team) {
+func (a *App) cleanupTeamAccessControlPolicy(rctx request.CTX, team *model.Team, trigger string) {
 	if team == nil || team.Id == "" {
 		return
+	}
+
+	// Emit an audit record only when the team has an active policy. Callers
+	// fetch the team just before this call so PolicyEnforced is current.
+	// The unconditional delete below still runs regardless (see function doc).
+	var auditRec *model.AuditRecord
+	if team.PolicyEnforced {
+		auditRec = a.MakeAuditRecord(rctx, model.AuditEventDeleteTeamAccessPolicy, model.AuditStatusFail)
+		defer a.LogAuditRec(rctx, auditRec, nil)
+		model.AddEventParameterToAuditRec(auditRec, "team_id", team.Id)
+		model.AddEventParameterToAuditRec(auditRec, "trigger", trigger)
 	}
 
 	useStoreFallback := false
@@ -2011,6 +2022,8 @@ func (a *App) cleanupTeamAccessControlPolicy(rctx request.CTX, team *model.Team)
 				mlog.Err(appErr),
 			)
 		}
+	} else if auditRec != nil {
+		auditRec.Success()
 	}
 
 	if useStoreFallback {
@@ -2019,6 +2032,8 @@ func (a *App) cleanupTeamAccessControlPolicy(rctx request.CTX, team *model.Team)
 				mlog.String("team_id", team.Id),
 				mlog.Err(err),
 			)
+		} else if auditRec != nil {
+			auditRec.Success()
 		}
 	}
 }
