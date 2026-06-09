@@ -5,6 +5,7 @@ package model
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -360,6 +361,175 @@ func TestManageAgentPermissionsDefinition(t *testing.T) {
 	assert.True(t, slices.ContainsFunc(AllPermissions, func(p *Permission) bool {
 		return p.Id == PermissionManageOthersAgent.Id
 	}), "manage_others_agent should be in AllPermissions")
+}
+
+func TestRoleIsValidWithoutId(t *testing.T) {
+	validRole := func() *Role {
+		return &Role{
+			Name:        "test_role",
+			DisplayName: "Test Role",
+			Description: "A test role.",
+			Permissions: []string{PermissionCreatePost.Id},
+		}
+	}
+
+	t.Run("valid role", func(t *testing.T) {
+		assert.True(t, validRole().IsValidWithoutId())
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		r := validRole()
+		r.Name = ""
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("name too long", func(t *testing.T) {
+		r := validRole()
+		r.Name = strings.Repeat("a", RoleNameMaxLength+1)
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("name with invalid characters", func(t *testing.T) {
+		r := validRole()
+		r.Name = "invalid-name"
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("empty display name", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = ""
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("display name too long", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = strings.Repeat("a", RoleDisplayNameMaxLength+1)
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("description too long", func(t *testing.T) {
+		r := validRole()
+		r.Description = strings.Repeat("a", RoleDescriptionMaxLength+1)
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("unknown permission", func(t *testing.T) {
+		r := validRole()
+		r.Permissions = []string{"not_a_real_permission"}
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("no permissions is valid", func(t *testing.T) {
+		r := validRole()
+		r.Permissions = nil
+		assert.True(t, r.IsValidWithoutId())
+	})
+}
+
+func TestRoleUnknownPermissions(t *testing.T) {
+	t.Run("returns nil when all permissions are known", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, PermissionCreateEmojis.Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("tolerates deprecated permissions", func(t *testing.T) {
+		require.NotEmpty(t, DeprecatedPermissions)
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, DeprecatedPermissions[0].Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("returns only the permissions this build does not recognize", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, "manage_own_agent_from_the_future", "another_unknown"},
+		}
+		assert.ElementsMatch(t, []string{"manage_own_agent_from_the_future", "another_unknown"}, r.UnknownPermissions())
+	})
+
+	t.Run("empty permissions yields no unknowns", func(t *testing.T) {
+		assert.Empty(t, (&Role{}).UnknownPermissions())
+	})
+}
+
+func TestRoleClone(t *testing.T) {
+	schemeId := NewId()
+	original := &Role{
+		Id:            NewId(),
+		Name:          "test_role",
+		DisplayName:   "Test Role",
+		Description:   "desc",
+		CreateAt:      1000,
+		UpdateAt:      2000,
+		DeleteAt:      0,
+		Permissions:   []string{"invite_user", "add_user_to_team"},
+		SchemeManaged: true,
+		BuiltIn:       false,
+		SchemeId:      &schemeId,
+	}
+
+	t.Run("clone equals original", func(t *testing.T) {
+		cloned := original.Clone()
+		assert.Equal(t, original, cloned)
+	})
+
+	t.Run("permissions are deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		cloned.Permissions[0] = "mutated"
+		assert.Equal(t, "invite_user", original.Permissions[0])
+	})
+
+	t.Run("scheme id pointer is deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		require.NotSame(t, original.SchemeId, cloned.SchemeId)
+		*cloned.SchemeId = NewId()
+		assert.Equal(t, schemeId, *original.SchemeId)
+	})
+
+	t.Run("nil permissions stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().Permissions)
+	})
+
+	t.Run("nil scheme id stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().SchemeId)
+	})
+}
+
+func TestRoleIsValid(t *testing.T) {
+	validRole := func() *Role {
+		return &Role{
+			Id:          NewId(),
+			Name:        "test_role",
+			DisplayName: "Test Role",
+			Permissions: []string{PermissionCreatePost.Id},
+		}
+	}
+
+	t.Run("valid role", func(t *testing.T) {
+		assert.True(t, validRole().IsValid())
+	})
+
+	t.Run("empty id", func(t *testing.T) {
+		r := validRole()
+		r.Id = ""
+		assert.False(t, r.IsValid())
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		r := validRole()
+		r.Id = "not-a-valid-id!"
+		assert.False(t, r.IsValid())
+	})
+
+	t.Run("propagates IsValidWithoutId result", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = ""
+		assert.False(t, r.IsValid())
+	})
 }
 
 func TestManageAgentPermissionsDefaultRoles(t *testing.T) {
