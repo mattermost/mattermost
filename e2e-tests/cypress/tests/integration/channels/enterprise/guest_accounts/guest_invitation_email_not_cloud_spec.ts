@@ -23,9 +23,11 @@ import {
     verifyInvitationSuccess,
 } from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
 import {
     getJoinEmailTemplate,
     getRandomId,
+    newTestPassword,
     reUrl,
     verifyEmailBody,
 } from '@/utils';
@@ -87,14 +89,16 @@ describe('Guest Account - Guest User Invitation Email Flow', () => {
             cy.visit(invitationLink);
         });
 
-        // # Create the guest account with email and password
+        // # Create the guest account with email and password (email is pre-filled from the invite)
         cy.get('#input_name').type(username);
-        cy.get('#input_password-input').type(username);
+        cy.get('#input_password-input').type(newTestPassword());
+
+        // # Agree to the terms and privacy policy, then create the account
+        cy.findByRole('checkbox', {name: 'Terms and privacy policy checkbox'}).check({force: true});
         cy.findByText('Create account').click();
 
         // * Verify the guest is taken into the app and added to the team upon successful signup
-        cy.url().should('include', testTeam.name);
-        cy.uiGetLHSHeader().findByText(testTeam.display_name);
+        cy.get('#SidebarContainer', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
 
         // * Verify a system message indicates the guest has joined
         cy.uiWaitUntilMessagePostedIncludes(username);
