@@ -1,36 +1,34 @@
-.. _mmctl_post_create:
+.. _mmctl_roles_list:
 
-mmctl post create
------------------
+mmctl roles list
+----------------
 
-Create a post
+List available roles
 
 Synopsis
 ~~~~~~~~
 
 
-Create a post
+List available roles
 
 ::
 
-  mmctl post create [flags]
+  mmctl roles list [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    post create myteam:mychannel --message "some text for the post"
+    $ mmctl roles list
+    $ mmctl roles list --json
 
 Options
 ~~~~~~~
 
 ::
 
-  -b, --burn-on-read      Message will be deleted after a certain time after being read
-  -h, --help              help for create
-  -m, --message string    Message for the post
-  -r, --reply-to string   Post id to reply to
+  -h, --help   help for list
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 
