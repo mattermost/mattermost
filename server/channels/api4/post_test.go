@@ -3596,65 +3596,65 @@ func TestGetPostsForChannelAroundLastUnreadBurnOnRead(t *testing.T) {
 		assert.Equal(t, "my secret message", posts.Posts[borPost.Id].Message, "author should see full BoR post message")
 	})
 
-	// This is the scenario raised in MM-67500: when more than one page worth
-	// of expired burn-on-read posts sits beyond the page window, the cursor
-	// must still look past all of them in a single step.
-	t.Run("NextPostId skips a full page of expired burn-on-read posts", func(t *testing.T) {
-		ch := createChannel(t)
-
-		// regular1 is the first unread and regular2 fills the small page
-		// window. A whole run of expired BoR posts follows, then regularNext.
-		regular1 := createRegularPost(t, client1, ch, "regular 1")
-		regular2 := createRegularPost(t, client1, ch, "regular 2")
-
-		const numExpired = 6
-		for i := 0; i < numExpired; i++ {
+	// createExpiredBoRRun creates n burn-on-read posts (authored by user2) and has
+	// user1 reveal then burn each one, leaving an expired read receipt for user1.
+	createExpiredBoRRun := func(t *testing.T, ch *model.Channel, n int) []string {
+		t.Helper()
+		ids := make([]string, 0, n)
+		for i := 0; i < n; i++ {
 			bor := createBurnOnReadPost(t, client2, ch, fmt.Sprintf("secret %d", i))
 			_, _, err := client1.RevealPost(context.Background(), bor.Id)
 			require.NoError(t, err)
 			burnPost(t, client1, bor.Id)
+			ids = append(ids, bor.Id)
 		}
+		return ids
+	}
 
-		regularNext := createRegularPost(t, client1, ch, "regular next")
+	// These two cases cover the reviewer's MM-67500 concern: when MORE than one
+	// page (30) worth of expired burn-on-read posts sits between the first-unread
+	// post and the post at the far end, the server must page past all of them so
+	// the far post stays reachable and no cursor points at a hidden expired post.
+	t.Run("newest post stays reachable past a full page of expired BoR posts", func(t *testing.T) {
+		ch := createChannel(t)
 
-		setLastViewedAt(t, ch.Id, user1.Id, regular1.CreateAt-1)
+		firstUnread := createRegularPost(t, client1, ch, "first unread")
+		expired := createExpiredBoRRun(t, ch, 35) // more than one 30-post page
+		newest := createRegularPost(t, client1, ch, "newest")
 
-		// limitAfter=2 keeps the window at [regular1, regular2].
-		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 1, 2, false)
+		setLastViewedAt(t, ch.Id, user1.Id, firstUnread.CreateAt-1)
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 30, 30, false)
 		require.NoError(t, err)
 
-		assert.Contains(t, posts.Order, regular2.Id, "regular2 should be in the page window")
-		assert.Equal(t, regularNext.Id, posts.NextPostId, "NextPostId should skip the whole page of expired BoR posts and point to regularNext")
+		assert.Contains(t, posts.Order, firstUnread.Id, "first unread post should be returned")
+		assert.Contains(t, posts.Order, newest.Id, "newest post must be reachable past the expired BoR posts")
+		for _, id := range expired {
+			assert.NotContains(t, posts.Order, id, "expired BoR post must not be returned")
+			assert.NotEqual(t, id, posts.NextPostId, "NextPostId must never point at an expired BoR post")
+		}
 	})
 
-	t.Run("PrevPostId skips a full page of expired burn-on-read posts", func(t *testing.T) {
+	t.Run("oldest post stays reachable past a full page of expired BoR posts", func(t *testing.T) {
 		ch := createChannel(t)
 
-		// regularPrev is the nearest visible post before a long run of expired
-		// BoR posts. regular1 (the first unread) and regular2 follow.
-		regularPrev := createRegularPost(t, client1, ch, "regular prev")
+		oldest := createRegularPost(t, client1, ch, "oldest")
+		expired := createExpiredBoRRun(t, ch, 35) // more than one 30-post page
+		firstUnread := createRegularPost(t, client1, ch, "first unread")
+		newest := createRegularPost(t, client1, ch, "newest")
 
-		const numExpired = 6
-		for i := 0; i < numExpired; i++ {
-			bor := createBurnOnReadPost(t, client2, ch, fmt.Sprintf("secret %d", i))
-			_, _, err := client1.RevealPost(context.Background(), bor.Id)
-			require.NoError(t, err)
-			burnPost(t, client1, bor.Id)
-		}
+		setLastViewedAt(t, ch.Id, user1.Id, firstUnread.CreateAt-1)
 
-		regular1 := createRegularPost(t, client1, ch, "regular 1")
-		regular2 := createRegularPost(t, client1, ch, "regular 2")
-
-		setLastViewedAt(t, ch.Id, user1.Id, regular1.CreateAt-1)
-
-		// limitBefore=1 means the only post fetched before regular1 is an
-		// expired BoR post, which gets filtered out of the window.
-		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 1, 5, false)
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 30, 30, false)
 		require.NoError(t, err)
 
-		assert.Contains(t, posts.Order, regular1.Id, "regular1 should be in the page window")
-		assert.Contains(t, posts.Order, regular2.Id, "regular2 should be in the page window")
-		assert.Equal(t, regularPrev.Id, posts.PrevPostId, "PrevPostId should skip the whole page of expired BoR posts and point to regularPrev")
+		assert.Contains(t, posts.Order, firstUnread.Id, "first unread post should be returned")
+		assert.Contains(t, posts.Order, newest.Id, "newest post should be returned")
+		assert.Contains(t, posts.Order, oldest.Id, "oldest post must be reachable past the expired BoR posts")
+		for _, id := range expired {
+			assert.NotContains(t, posts.Order, id, "expired BoR post must not be returned")
+			assert.NotEqual(t, id, posts.PrevPostId, "PrevPostId must never point at an expired BoR post")
+		}
 	})
 }
 

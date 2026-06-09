@@ -1721,6 +1721,10 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 		sq.Eq{"p.ChannelId": options.ChannelId},
+		// Skip burn-on-read posts already expired for the user so pagination can
+		// page past a run of them instead of returning a window that filters to
+		// empty and looks like the end of the channel (MM-67500).
+		burnOnReadVisibleCondition("p", options.UserId),
 	}
 
 	if !options.IncludeDeleted {
@@ -1833,15 +1837,35 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	return postId, nil
 }
 
+// burnOnReadVisibleCondition returns a SQL condition that excludes burn-on-read
+// posts whose read receipt has already expired for the given user. Posts that are
+// not burn-on-read, are authored by the user, or have no expired receipt (no
+// receipt at all, which renders as a placeholder, or a receipt that is still
+// valid) are kept. Applying this in the query itself lets channel reads page past
+// an arbitrarily long run of expired burn-on-read posts in a single round trip,
+// instead of returning a window full of posts that are later filtered out.
+//
+// The Type check is intentionally first so that, for the overwhelmingly common
+// non-burn-on-read posts, the optimizer short-circuits and never evaluates the
+// ReadReceipts subquery. When userID is empty the condition is a no-op.
+func burnOnReadVisibleCondition(alias, userID string) sq.Sqlizer {
+	if userID == "" {
+		return sq.Eq{}
+	}
+	return sq.Expr(
+		"("+alias+".Type != ? OR "+alias+".UserId = ? OR NOT EXISTS ("+
+			"SELECT 1 FROM ReadReceipts rr "+
+			"WHERE rr.PostId = "+alias+".Id AND rr.UserId = ? AND rr.ExpireAt < ?"+
+			"))",
+		model.PostTypeBurnOnRead, userID, userID, model.GetMillis(),
+	)
+}
+
 // GetVisiblePostIdAroundTime finds the nearest post before or after the given
 // timestamp that is visible to the user, skipping over burn-on-read posts whose
 // read receipt has already expired for that user. Because the filtering happens
 // in a single query, any number of consecutive expired posts are skipped in one
 // round trip, so pagination cursors never point at a post the user can't see.
-//
-// A post is considered visible when it is not a burn-on-read post, the user is
-// its author, or the user has no expired read receipt for it (i.e. no receipt at
-// all, which renders as a placeholder, or a receipt that is still valid).
 func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, userId string) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
@@ -1857,21 +1881,11 @@ func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, 
 		direction,
 		sq.Eq{"Posts.ChannelId": channelId},
 		sq.Eq{"Posts.DeleteAt": int(0)},
+		burnOnReadVisibleCondition("Posts", userId),
 	}
 	if collapsedThreads {
 		conditions = append(conditions, sq.Eq{"Posts.RootId": ""})
 	}
-
-	// Skip burn-on-read posts that have an expired read receipt for the user.
-	// The Type check is kept first so that, for the overwhelmingly common
-	// non-BoR posts, the receipt subquery is never evaluated.
-	conditions = append(conditions, sq.Expr(
-		"(Posts.Type != ? OR Posts.UserId = ? OR NOT EXISTS ("+
-			"SELECT 1 FROM ReadReceipts rr "+
-			"WHERE rr.PostId = Posts.Id AND rr.UserId = ? AND rr.ExpireAt < ?"+
-			"))",
-		model.PostTypeBurnOnRead, userId, userId, model.GetMillis(),
-	))
 
 	query := s.getQueryBuilder().
 		Select("Posts.Id").
