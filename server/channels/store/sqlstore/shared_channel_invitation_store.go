@@ -76,7 +76,7 @@ func (s SqlSharedChannelInvitationStore) EnsurePendingSent(channelID, remoteID, 
 	if err == nil {
 		return saved, nil
 	}
-	if !IsUniqueConstraintError(err, []string{"idx_sharedchannelinvitations_pending_sent_unique"}) {
+	if !IsUniqueConstraintError(errors.Cause(err), []string{"idx_sharedchannelinvitations_pending_sent_unique"}) {
 		return nil, err
 	}
 	existing, getErr := s.getPendingSentFromMaster(channelID, remoteID)
