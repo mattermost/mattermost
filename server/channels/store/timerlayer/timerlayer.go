@@ -10377,6 +10377,22 @@ func (s *TimerLayerSessionStore) UpdateRoles(userID string, roles string) (strin
 	return result, err
 }
 
+func (s *TimerLayerSessionAttributeStore) Clear() error {
+	start := time.Now()
+
+	err := s.SessionAttributeStore.Clear()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Clear", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any, map[string]int64, error) {
 	start := time.Now()
 

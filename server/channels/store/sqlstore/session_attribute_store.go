@@ -30,3 +30,7 @@ func (s *SqlSessionAttributeStore) Get(_ string) (map[string]any, map[string]int
 func (s *SqlSessionAttributeStore) Invalidate(_ string) error {
 	return nil
 }
+
+func (s *SqlSessionAttributeStore) Clear() error {
+	return nil
+}

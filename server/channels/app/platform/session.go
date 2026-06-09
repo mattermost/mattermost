@@ -172,7 +172,9 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 	if err := ps.ClearAllUsersSessionCache(); err != nil {
 		ps.logger.Error("Failed to clear session cache", mlog.Err(err))
 	}
-	ps.invalidateSessionAttributes("")
+	if err := ps.Store.SessionAttribute().Clear(); err != nil {
+		ps.logger.Error("Failed to clear session attribute cache", mlog.Err(err))
+	}
 	return nil
 }
 
@@ -187,7 +189,6 @@ func (ps *PlatformService) RevokeSessionsForDeviceId(rctx request.CTX, userID st
 			if err := ps.RevokeSession(rctx, session); err != nil {
 				rctx.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
 			}
-			ps.invalidateSessionAttributes(session.Id)
 		}
 	}
 

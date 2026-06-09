@@ -71,6 +71,11 @@ func (s *LocalCacheSessionAttributeStore) Invalidate(sessionID string) error {
 	return nil
 }
 
+func (s *LocalCacheSessionAttributeStore) Clear() error {
+	s.rootStore.doClearCacheCluster(s.rootStore.sessionAttributeCache)
+	return nil
+}
+
 func (s *LocalCacheSessionAttributeStore) Get(sessionID string) (map[string]any, map[string]int64, error) {
 	var entry *sessionAttributeEntry
 	if err := s.rootStore.doStandardReadCache(s.rootStore.sessionAttributeCache, sessionID, &entry); err != nil {

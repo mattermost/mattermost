@@ -11,6 +11,24 @@ type SessionAttributeStore struct {
 	mock.Mock
 }
 
+// Clear provides a mock function with no fields
+func (_m *SessionAttributeStore) Clear() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Clear")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: sessionID
 func (_m *SessionAttributeStore) Get(sessionID string) (map[string]interface{}, map[string]int64, error) {
 	ret := _m.Called(sessionID)
