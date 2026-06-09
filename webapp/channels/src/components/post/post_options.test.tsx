@@ -139,6 +139,9 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
         );
     });
 
+});
+
+describe('PostOptions - plugin post actions (MM-68323)', () => {
     test('keeps plugin action visible when its menu is open and hover ends', async () => {
         const PluginAction = ({handleDropdownOpened}: {handleDropdownOpened?: (open: boolean) => void}) => (
             <button onClick={() => handleDropdownOpened?.(true)}>
