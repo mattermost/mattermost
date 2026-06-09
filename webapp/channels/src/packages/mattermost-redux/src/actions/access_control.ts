@@ -253,6 +253,19 @@ export function createAccessControlSyncJob(jobData: {policy_id?: string; team_id
     };
 }
 
+export function createAccessControlTeamSyncJob(jobData: {policy_id?: string}): ActionFuncAsync<any> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.createAccessControlTeamSyncJob(jobData as {[key: string]: string});
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+        return {data};
+    };
+}
+
 export function updateAccessControlPoliciesActive(states: AccessControlPolicyActiveUpdate[], teamId?: string) {
     return bindClientFunc({
         clientFunc: Client4.updateAccessControlPoliciesActive,

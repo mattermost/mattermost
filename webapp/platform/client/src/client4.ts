@@ -4979,6 +4979,14 @@ export default class Client4 {
         return this.createJob(job);
     };
 
+    createAccessControlTeamSyncJob = (jobData: {[key: string]: string}) => {
+        const job = {
+            type: 'access_control_team_sync' as JobType,
+            data: jobData,
+        };
+        return this.createJob(job);
+    };
+
     getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {

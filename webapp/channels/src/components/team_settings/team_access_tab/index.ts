@@ -8,7 +8,12 @@ import type {Dispatch} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {patchTeam, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
+import {
+    createAccessControlTeamSyncJob,
+    getTeamAccessControlPolicy,
+    searchUsersForExpression,
+} from 'mattermost-redux/actions/access_control';
+import {patchTeam, regenerateTeamInviteId, getTeamStats} from 'mattermost-redux/actions/teams';
 
 import TeamAccessTab from './team_access_tab';
 
@@ -25,6 +30,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             patchTeam,
             regenerateTeamInviteId,
+            getTeamStats,
+            getTeamAccessControlPolicy,
+            searchUsersForExpression,
+            createAccessControlTeamSyncJob,
         }, dispatch),
     };
 }

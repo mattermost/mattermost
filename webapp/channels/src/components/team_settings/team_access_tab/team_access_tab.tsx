@@ -1,8 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useRef} from 'react';
+import {FormattedMessage} from 'react-intl';
 
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
+import {getMembershipRule} from '@mattermost/types/access_control';
+
+import ConfirmModal from 'components/confirm_modal';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import AllowedDomainsSelect from './allowed_domains_select';
@@ -25,8 +30,14 @@ type Props = PropsFromRedux & OwnProps;
 
 const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitchError, setAreThereUnsavedChanges, team, actions}: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team.allowed_domains));
-    const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team.allow_open_invite ?? false);
+    const isPublicTeamInitial = team.type === 'O' && (team.allow_open_invite ?? false);
+    const [isPublicTeam, setIsPublicTeam] = useState<boolean>(isPublicTeamInitial);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
+
+    // Mode-flip confirmation modal state
+    const [showModeFlipModal, setShowModeFlipModal] = useState(false);
+    const [modeFlipMemberCount, setModeFlipMemberCount] = useState<number | null>(null);
+    const pendingPublicValueRef = useRef<boolean | null>(null);
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
         const {error} = await actions.patchTeam({
@@ -39,27 +50,84 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         return true;
     }, [actions, allowedDomains, team]);
 
-    const handleOpenInviteSubmit = useCallback(async (): Promise<boolean> => {
-        if (allowOpenInvite === team.allow_open_invite) {
+    const handlePrivacySubmit = useCallback(async (): Promise<boolean> => {
+        if (isPublicTeam === isPublicTeamInitial) {
             return true;
         }
-        const data = {
+        const {error} = await actions.patchTeam({
             id: team.id,
-            allow_open_invite: allowOpenInvite,
-        };
-
-        const {error} = await actions.patchTeam(data);
+            type: isPublicTeam ? 'O' : 'I',
+            allow_open_invite: isPublicTeam,
+        });
         if (error) {
             return false;
         }
         return true;
-    }, [actions, allowOpenInvite, team]);
+    }, [actions, isPublicTeam, isPublicTeamInitial, team]);
 
-    const updateOpenInvite = useCallback((value: boolean) => {
+    const computeModeFlipCount = useCallback(async (): Promise<number | null> => {
+        try {
+            const [policyResult, statsResult] = await Promise.all([
+                actions.getTeamAccessControlPolicy(team.id),
+                actions.getTeamStats(team.id),
+            ]);
+
+            const policyData = policyResult?.data as {policy: AccessControlPolicy | null; enforced: boolean} | undefined;
+            const expression = getMembershipRule(policyData?.policy?.rules)?.expression ?? '';
+
+            if (!expression) {
+                return null;
+            }
+
+            const usersResult = await actions.searchUsersForExpression(expression, '', '', 1000, undefined, team.id);
+            const qualifyingCount = usersResult?.data?.total ?? 0;
+            const totalCount = statsResult?.data?.total_member_count ?? null;
+
+            if (totalCount === null) {
+                return null;
+            }
+
+            return Math.max(0, totalCount - qualifyingCount);
+        } catch {
+            return null;
+        }
+    }, [actions, team.id]);
+
+    const handlePrivacyChange = useCallback(async (newIsPublic: boolean) => {
         setAreThereUnsavedChanges(true);
         setSaveChangesPanelState('editing');
-        setAllowOpenInvite(value);
-    }, [setAreThereUnsavedChanges]);
+
+        if (!newIsPublic && isPublicTeam && team.policy_enforced) {
+            pendingPublicValueRef.current = newIsPublic;
+            const count = await computeModeFlipCount();
+            setModeFlipMemberCount(count);
+            setShowModeFlipModal(true);
+            return;
+        }
+
+        setIsPublicTeam(newIsPublic);
+    }, [isPublicTeam, team.policy_enforced, computeModeFlipCount, setAreThereUnsavedChanges]);
+
+    const handleModeFlipConfirm = useCallback(async () => {
+        setShowModeFlipModal(false);
+        if (pendingPublicValueRef.current !== null) {
+            setIsPublicTeam(pendingPublicValueRef.current);
+            pendingPublicValueRef.current = null;
+        }
+
+        if (team.policy_enforced) {
+            try {
+                await actions.createAccessControlTeamSyncJob({policy_id: team.id});
+            } catch {
+                // Job creation failure does not block the privacy change
+            }
+        }
+    }, [actions, team.id, team.policy_enforced]);
+
+    const handleModeFlipCancel = useCallback(() => {
+        setShowModeFlipModal(false);
+        pendingPublicValueRef.current = null;
+    }, []);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState('editing');
@@ -69,14 +137,14 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
 
     const handleCancel = useCallback(() => {
         setAllowedDomains(generateAllowedDomainOptions(team.allowed_domains));
-        setAllowOpenInvite(team.allow_open_invite ?? false);
+        setIsPublicTeam(isPublicTeamInitial);
         handleClose();
-    }, [handleClose, team.allow_open_invite, team.allowed_domains]);
+    }, [handleClose, isPublicTeamInitial, team.allowed_domains]);
 
     const handleSaveChanges = useCallback(async () => {
         const allowedDomainSuccess = await handleAllowedDomainsSubmit();
-        const openInviteSuccess = await handleOpenInviteSubmit();
-        if (!allowedDomainSuccess || !openInviteSuccess) {
+        const privacySuccess = await handlePrivacySubmit();
+        if (!allowedDomainSuccess || !privacySuccess) {
             setSaveChangesPanelState('error');
             return;
         }
@@ -85,7 +153,20 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
 
         // allows modal to close immediately
         setAreThereUnsavedChanges(false);
-    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
+    }, [handleAllowedDomainsSubmit, handlePrivacySubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
+
+    const modeFlipMessage = modeFlipMemberCount !== null ? (
+        <FormattedMessage
+            id='team_settings.mode_flip_confirm.message_with_count'
+            defaultMessage='Switching to Private will activate strict ABAC enforcement. {count} current {count, plural, one {member does} other {members do}} not meet criteria and will be removed at the next sync.'
+            values={{count: modeFlipMemberCount}}
+        />
+    ) : (
+        <FormattedMessage
+            id='team_settings.mode_flip_confirm.message_generic'
+            defaultMessage='Switching to Private will activate strict ABAC enforcement. Some members may not meet the current policy criteria and will be removed at the next sync.'
+        />
+    );
 
     return (
         <div
@@ -104,9 +185,10 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             )}
             <div className='divider-light'/>
             <OpenInvite
+                isPublic={isPublicTeam}
                 isGroupConstrained={team.group_constrained}
-                allowOpenInvite={allowOpenInvite}
-                setAllowOpenInvite={updateOpenInvite}
+                policyEnforced={team.policy_enforced}
+                onChange={handlePrivacyChange}
             />
             <div className='divider-light'/>
             {!team.group_constrained && (
@@ -121,6 +203,32 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
                     state={saveChangesPanelState}
                 />
             )}
+
+            <ConfirmModal
+                show={showModeFlipModal}
+                title={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_confirm.title'
+                        defaultMessage='Switch to Private Team?'
+                    />
+                }
+                message={modeFlipMessage}
+                confirmButtonText={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_confirm.confirm'
+                        defaultMessage='Switch to Private'
+                    />
+                }
+                cancelButtonText={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_confirm.cancel'
+                        defaultMessage='Cancel'
+                    />
+                }
+                onConfirm={handleModeFlipConfirm}
+                onCancel={handleModeFlipCancel}
+                isStacked={true}
+            />
         </div>
     );
 };

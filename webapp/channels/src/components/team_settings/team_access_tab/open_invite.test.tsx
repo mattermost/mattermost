@@ -8,45 +8,42 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import OpenInvite from './open_invite';
 
 describe('components/TeamSettings/OpenInvite', () => {
-    const setAllowOpenInvite = jest.fn().mockReturnValue({data: true});
+    const onChange = jest.fn();
     const defaultProps: ComponentProps<typeof OpenInvite> = {
+        isPublic: false,
         isGroupConstrained: false,
-        allowOpenInvite: false,
-        setAllowOpenInvite,
+        policyEnforced: false,
+        onChange,
     };
 
-    test('should render correct title and link when the team is constrained', () => {
-        const props = {...defaultProps, isGroupConstrained: true};
-        renderWithContext(<OpenInvite {...props}/>);
-        const title = screen.getByText('Users on this server');
-        expect(title).toBeInTheDocument();
-        const externalLink = screen.getByText('Learn More');
-        expect(externalLink).toBeInTheDocument();
-        expect(externalLink).toHaveAttribute('href', 'https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=open_invite&uid=&sid=&edition=team&server_version=');
+    beforeEach(() => jest.clearAllMocks());
+
+    test('renders group-constrained notice when team is group-constrained', () => {
+        renderWithContext(<OpenInvite {...defaultProps} isGroupConstrained={true}/>);
+        expect(screen.getByText(/members of this team are added and removed by linked groups/i)).toBeInTheDocument();
+        expect(screen.getByText('Learn More')).toBeInTheDocument();
     });
 
-    test('should render the checkbox when the team is not constrained and not checked', () => {
+    test('renders Public and Private option buttons when not group-constrained', () => {
         renderWithContext(<OpenInvite {...defaultProps}/>);
-        const checkbox = screen.getByRole('checkbox');
-        expect(checkbox).toBeInTheDocument();
-        expect(checkbox).not.toBeChecked();
+        expect(screen.getByText('Public Team')).toBeInTheDocument();
+        expect(screen.getByText('Private Team')).toBeInTheDocument();
     });
 
-    test('should render the checkbox when the team is not constrained and checked', () => {
-        const props = {...defaultProps, allowOpenInvite: true};
-        renderWithContext(<OpenInvite {...props}/>);
-        const checkbox = screen.getByRole('checkbox');
-        expect(checkbox).toBeInTheDocument();
-        expect(checkbox).toBeChecked();
+    test('calls onChange(true) when Public Team card is clicked while private', async () => {
+        renderWithContext(<OpenInvite {...defaultProps} isPublic={false}/>);
+        await userEvent.click(screen.getByText('Public Team'));
+        expect(onChange).toHaveBeenCalledWith(true);
     });
 
-    test('should call setAllowOpenInvite when the checkbox is clicked', async () => {
-        renderWithContext(<OpenInvite {...defaultProps}/>);
-        const checkbox = screen.getByRole('checkbox');
-        expect(checkbox).toBeInTheDocument();
-        expect(checkbox).not.toBeChecked();
-        await userEvent.click(checkbox);
-        expect(setAllowOpenInvite).toHaveBeenCalledTimes(1);
-        expect(setAllowOpenInvite).toHaveBeenCalledWith(true);
+    test('calls onChange(false) when Private Team card is clicked while public', async () => {
+        renderWithContext(<OpenInvite {...defaultProps} isPublic={true}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    test('shows policy-enforced notice and disables cards when policyEnforced is true', () => {
+        renderWithContext(<OpenInvite {...defaultProps} policyEnforced={true}/>);
+        expect(screen.getByText(/membership is managed by a policy/i)).toBeInTheDocument();
     });
 });

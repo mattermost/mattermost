@@ -12,17 +12,19 @@ import {TestHelper} from 'utils/test_helper';
 import AccessTab from './team_access_tab';
 
 describe('components/TeamSettings', () => {
-    const getTeam = jest.fn().mockResolvedValue({data: true});
     const patchTeam = jest.fn().mockReturnValue({data: true});
     const regenerateTeamInviteId = jest.fn().mockReturnValue({data: true});
-    const removeTeamIcon = jest.fn().mockReturnValue({data: true});
-    const setTeamIcon = jest.fn().mockReturnValue({data: true});
+    const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 10}});
+    const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({data: {policy: null, enforced: false}});
+    const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [], total: 0}});
+    const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
     const baseActions = {
-        getTeam,
         patchTeam,
         regenerateTeamInviteId,
-        removeTeamIcon,
-        setTeamIcon,
+        getTeamStats,
+        getTeamAccessControlPolicy,
+        searchUsersForExpression,
+        createAccessControlTeamSyncJob,
     };
     const defaultProps: ComponentProps<typeof AccessTab> = {
         team: TestHelper.getTeamMock({id: 'team_id'}),
@@ -116,30 +118,19 @@ describe('components/TeamSettings', () => {
         });
     });
 
-    test('MM-62891 should toggle the right checkboxes when their labels are clicked on', async () => {
+    test('should render Public Team and Private Team discoverability cards', () => {
         renderWithContext(<AccessTab {...defaultProps}/>);
+        expect(screen.getByText('Public Team')).toBeInTheDocument();
+        expect(screen.getByText('Private Team')).toBeInTheDocument();
+    });
 
-        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
-        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
-
-        await userEvent.click(screen.getByText('Allow only users with a specific email domain to join this team'));
-
-        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).toBeChecked();
-        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
-
-        await userEvent.click(screen.getByText('Allow only users with a specific email domain to join this team'));
-
-        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
-        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
-
-        await userEvent.click(screen.getByText('Allow any user with an account on this server to join this team'));
-
-        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
-        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).toBeChecked();
-
-        await userEvent.click(screen.getByText('Allow any user with an account on this server to join this team'));
-
-        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
-        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+    test('should mark save panel dirty when discoverability card is clicked', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true}),
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        expect(defaultProps.setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
     });
 });
