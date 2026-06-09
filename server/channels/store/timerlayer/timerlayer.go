@@ -10393,6 +10393,22 @@ func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any,
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerSessionAttributeStore) Invalidate(sessionID string) error {
+	start := time.Now()
+
+	err := s.SessionAttributeStore.Invalidate(sessionID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Invalidate", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any, updatedAt int64) error {
 	start := time.Now()
 

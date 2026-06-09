@@ -98,6 +98,31 @@ func TestSessionAttributeStoreCache(t *testing.T) {
 		require.Equal(t, "203.0.113.42", got[model.SessionAttributesPropertyFieldIPAddress])
 	})
 
+	t.Run("Invalidate removes only the given session entry", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		sessionA := model.NewId()
+		sessionB := model.NewId()
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionA, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
+		}, model.GetMillis()))
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionB, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress: "203.0.113.42",
+		}, model.GetMillis()))
+
+		require.NoError(t, cachedStore.SessionAttribute().Invalidate(sessionA))
+
+		_, _, err = cachedStore.SessionAttribute().Get(sessionA)
+		require.ErrorIs(t, err, cache.ErrKeyNotFound)
+
+		got, _, err := cachedStore.SessionAttribute().Get(sessionB)
+		require.NoError(t, err)
+		require.Equal(t, "203.0.113.42", got[model.SessionAttributesPropertyFieldIPAddress])
+	})
+
 	t.Run("Refresh skips an update with an older timestamp", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()

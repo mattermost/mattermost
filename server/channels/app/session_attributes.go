@@ -141,6 +141,9 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 					if name == model.SessionAttributesPropertyFieldTLSDDeviceID {
 						continue
 					}
+					if _, isServerDerived := model.SessionAttributesRequestDerivedFieldNames[name]; isServerDerived {
+						continue
+					}
 					if !validatedSessionAttributeField(fieldsByName, name, platform, value) {
 						continue
 					}
@@ -186,6 +189,10 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 
 			if revokeErr := a.RevokeSessionById(rctx, rctx.Session().Id); revokeErr != nil {
 				rctx.Logger().Warn("Failed to revoke session after device ID mismatch", mlog.Err(revokeErr))
+			} else {
+				auditRec := a.MakeAuditRecord(rctx, model.AuditEventRevokeSession, model.AuditStatusSuccess)
+				model.AddEventParameterAuditableToAuditRec(auditRec, "session", rctx.Session())
+				defer a.LogAuditRec(rctx, auditRec, nil)
 			}
 
 			return

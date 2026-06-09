@@ -126,6 +126,15 @@ func (ps *PlatformService) ClearAllUsersSessionCache() error {
 	return err
 }
 
+func (ps *PlatformService) invalidateSessionAttributes(sessionID string) {
+	if !ps.Config().FeatureFlags.SessionAttributes || !model.MinimumEnterpriseAdvancedLicense(ps.License()) {
+		return
+	}
+	if err := ps.Store.SessionAttribute().Invalidate(sessionID); err != nil {
+		ps.logger.Warn("Failed to invalidate session attributes", mlog.String("session_id", sessionID), mlog.Err(err))
+	}
+}
+
 func (ps *PlatformService) GetSession(rctx request.CTX, token string) (*model.Session, error) {
 	var session model.Session
 	if err := ps.sessionCache.Get(token, &session); err == nil {
@@ -163,6 +172,7 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 	if err := ps.ClearAllUsersSessionCache(); err != nil {
 		ps.logger.Error("Failed to clear session cache", mlog.Err(err))
 	}
+	ps.invalidateSessionAttributes("")
 	return nil
 }
 
@@ -177,6 +187,7 @@ func (ps *PlatformService) RevokeSessionsForDeviceId(rctx request.CTX, userID st
 			if err := ps.RevokeSession(rctx, session); err != nil {
 				rctx.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
 			}
+			ps.invalidateSessionAttributes(session.Id)
 		}
 	}
 
@@ -195,6 +206,7 @@ func (ps *PlatformService) RevokeSession(rctx request.CTX, session *model.Sessio
 	}
 
 	ps.ClearUserSessionCache(session.UserId)
+	ps.invalidateSessionAttributes(session.Id)
 
 	return nil
 }
@@ -293,6 +305,7 @@ func (ps *PlatformService) RevokeAllSessions(rctx request.CTX, userID string) er
 			if err := ps.Store.Session().Remove(session.Id); err != nil {
 				return fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)
 			}
+			ps.invalidateSessionAttributes(session.Id)
 		}
 	}
 
