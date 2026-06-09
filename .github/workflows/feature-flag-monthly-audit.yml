@@ -1,0 +1,33 @@
+name: Feature Flag Monthly Audit
+ 
+on:
+  schedule:
+    - cron: '0 9 1 * *'   # 1st of every month at 09:00 UTC
+  workflow_dispatch:        # allow manual runs
+ 
+permissions:
+  contents: read
+ 
+jobs:
+  audit:
+    name: Scan all stale feature flags and create Jira tickets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+ 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+ 
+      - name: Run monthly feature flag audit
+        env:
+          JIRA_BASE_URL: https://mattermost.atlassian.net
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_PROJECT_KEY: MM
+        run: python scripts/feature_flag_monthly_audit.py
+        
