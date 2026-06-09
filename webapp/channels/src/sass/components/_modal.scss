@@ -50,7 +50,6 @@
     #become-participant-modal {
         .GenericModal__header {
             h1 {
-                align-self: flex-start;
                 margin-right: 0;
                 margin-left: 0;
                 text-align: left;
@@ -60,10 +59,6 @@
         .modal-body {
             > div {
                 text-align: left;
-
-                > div {
-                    justify-content: flex-start;
-                }
             }
         }
     }
