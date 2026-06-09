@@ -20,8 +20,12 @@ on:
         required: false
         description: "Comma-separated alias tags (e.g., 'release-11.4, release-11')"
 
+permissions: {}
+
 jobs:
   validate:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     outputs:
       ref_branch: "${{ steps.check.outputs.ref_branch }}"

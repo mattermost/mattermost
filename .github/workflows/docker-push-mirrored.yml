@@ -7,6 +7,9 @@ on:
     paths:
       - server/scripts/mirror-docker-images.*
 
+permissions:
+  contents: read
+
 jobs:
   build-docker:
     name: cd/Push mirrored docker images
