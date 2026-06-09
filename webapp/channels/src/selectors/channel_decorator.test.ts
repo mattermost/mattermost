@@ -54,7 +54,7 @@ describe('selectors/getChannelDecoratorsForSlot', () => {
         it('returns empty array when ChannelDecorator is empty', () => {
             const channel = makeChannel();
             const state = makeState([], {[channel.id]: channel});
-            const result = getChannelDecoratorsForSlot(state, channel.id, 'left_of_channel_name');
+            const result = getChannelDecoratorsForSlot(state, channel.id, 'after_channel_name');
             expect(result).toEqual([]);
         });
 
@@ -104,9 +104,9 @@ describe('selectors/getChannelDecoratorsForSlot', () => {
 
         it('returns registrations matching the requested slot', () => {
             const channel = makeChannel();
-            const reg = makeRegistration({slot: 'left_of_channel_name'});
+            const reg = makeRegistration({slot: 'after_channel_name'});
             const state = makeState([reg], {[channel.id]: channel});
-            const result = getChannelDecoratorsForSlot(state, channel.id, 'left_of_channel_name');
+            const result = getChannelDecoratorsForSlot(state, channel.id, 'after_channel_name');
             expect(result).toHaveLength(1);
             expect(result[0]).toBe(reg);
         });
@@ -115,17 +115,17 @@ describe('selectors/getChannelDecoratorsForSlot', () => {
     describe('matcher semantics — strict boolean true', () => {
         it('includes registration when matcher returns exactly true', () => {
             const channel = makeChannel();
-            const reg = makeRegistration({slot: 'mount_overlay', matcher: () => true});
+            const reg = makeRegistration({slot: 'after_channel_name', matcher: () => true});
             const state = makeState([reg], {[channel.id]: channel});
-            const result = getChannelDecoratorsForSlot(state, channel.id, 'mount_overlay');
+            const result = getChannelDecoratorsForSlot(state, channel.id, 'after_channel_name');
             expect(result).toHaveLength(1);
         });
 
         it('excludes registration when matcher returns false', () => {
             const channel = makeChannel();
-            const reg = makeRegistration({slot: 'mount_overlay', matcher: () => false});
+            const reg = makeRegistration({slot: 'after_channel_name', matcher: () => false});
             const state = makeState([reg], {[channel.id]: channel});
-            const result = getChannelDecoratorsForSlot(state, channel.id, 'mount_overlay');
+            const result = getChannelDecoratorsForSlot(state, channel.id, 'after_channel_name');
             expect(result).toHaveLength(0);
         });
 
@@ -133,9 +133,9 @@ describe('selectors/getChannelDecoratorsForSlot', () => {
             const channel = makeChannel();
 
             // matcher returns the channel object (truthy but not === true)
-            const reg = makeRegistration({slot: 'mount_overlay', matcher: (ch) => ch as unknown as boolean});
+            const reg = makeRegistration({slot: 'after_channel_name', matcher: (ch) => ch as unknown as boolean});
             const state = makeState([reg], {[channel.id]: channel});
-            const result = getChannelDecoratorsForSlot(state, channel.id, 'mount_overlay');
+            const result = getChannelDecoratorsForSlot(state, channel.id, 'after_channel_name');
             expect(result).toHaveLength(0);
         });
 
@@ -300,12 +300,12 @@ describe('selectors/getChannelDecoratorsForSlot', () => {
     });
 
     describe('additive slots — all matches returned', () => {
-        it('returns all matching registrations for left_of_channel_name', () => {
+        it('returns all matching registrations for after_channel_name', () => {
             const channel = makeChannel();
-            const reg1 = makeRegistration({id: 'r1', slot: 'left_of_channel_name', pluginId: 'plugin-a'});
-            const reg2 = makeRegistration({id: 'r2', slot: 'left_of_channel_name', pluginId: 'plugin-b'});
+            const reg1 = makeRegistration({id: 'r1', slot: 'after_channel_name', pluginId: 'plugin-a'});
+            const reg2 = makeRegistration({id: 'r2', slot: 'after_channel_name', pluginId: 'plugin-b'});
             const state = makeState([reg1, reg2], {[channel.id]: channel});
-            const result = getChannelDecoratorsForSlot(state, channel.id, 'left_of_channel_name');
+            const result = getChannelDecoratorsForSlot(state, channel.id, 'after_channel_name');
             expect(result).toHaveLength(2);
         });
 
@@ -317,15 +317,6 @@ describe('selectors/getChannelDecoratorsForSlot', () => {
             const result = getChannelDecoratorsForSlot(state, channel.id, 'above_composer');
             expect(result).toHaveLength(2);
         });
-
-        it('returns all matching registrations for mount_overlay', () => {
-            const channel = makeChannel();
-            const reg1 = makeRegistration({id: 'r1', slot: 'mount_overlay', pluginId: 'plugin-a'});
-            const reg2 = makeRegistration({id: 'r2', slot: 'mount_overlay', pluginId: 'plugin-b'});
-            const state = makeState([reg1, reg2], {[channel.id]: channel});
-            const result = getChannelDecoratorsForSlot(state, channel.id, 'mount_overlay');
-            expect(result).toHaveLength(2);
-        });
     });
 
     describe('matcher receives state argument', () => {
@@ -333,14 +324,14 @@ describe('selectors/getChannelDecoratorsForSlot', () => {
             const channel = makeChannel();
             const capturedStates: GlobalState[] = [];
             const reg = makeRegistration({
-                slot: 'left_of_channel_name',
+                slot: 'after_channel_name',
                 matcher: (_ch, st) => {
                     capturedStates.push(st);
                     return true;
                 },
             });
             const state = makeState([reg], {[channel.id]: channel});
-            getChannelDecoratorsForSlot(state, channel.id, 'left_of_channel_name');
+            getChannelDecoratorsForSlot(state, channel.id, 'after_channel_name');
             expect(capturedStates).toHaveLength(1);
             expect(capturedStates[0]).toBe(state);
         });

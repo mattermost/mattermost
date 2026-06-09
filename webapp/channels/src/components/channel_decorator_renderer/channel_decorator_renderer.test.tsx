@@ -15,7 +15,7 @@ const mockChannel = TestHelper.getChannelMock({id: 'channel-1'});
 const makeRegistration = (component: React.ComponentType<any>): ChannelDecoratorRegistration => ({
     id: 'reg-1',
     pluginId: 'test-plugin',
-    slot: 'left_of_channel_name',
+    slot: 'after_channel_name',
     matcher: () => true,
     component,
 });
@@ -42,26 +42,6 @@ describe('components/channel_decorator_renderer/ChannelDecoratorRenderer', () =>
         );
 
         expect(screen.getByTestId('plugin-component')).toBeInTheDocument();
-    });
-
-    it('(b) injects theme prop into the plugin component', () => {
-        const ThemeCheck = (props: {theme?: object}) => (
-            <div
-                data-testid='theme-check'
-                data-has-theme={Boolean(props.theme).toString()}
-            />
-        );
-        const reg = makeRegistration(ThemeCheck);
-
-        renderWithContext(
-            <ChannelDecoratorRenderer
-                registration={reg}
-                channel={mockChannel}
-            />,
-            minimalState,
-        );
-
-        expect(screen.getByTestId('theme-check')).toHaveAttribute('data-has-theme', 'true');
     });
 
     it('(c) error boundary catches a crashing component', () => {

@@ -10,13 +10,11 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
-import ChannelDecoratorRenderer from 'components/channel_decorator_renderer/channel_decorator_renderer';
 import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 
-import {useChannelDecorators} from 'hooks/useChannelDecorators';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
@@ -39,7 +37,6 @@ const ChannelHeaderTitle = ({
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
     const overrideName = useChannelIconOverrideName(channel ?? undefined);
-    const leftDecorators = useChannelDecorators(channel?.id, 'left_of_channel_name');
 
     if (!channel) {
         return null;
@@ -87,17 +84,6 @@ const ChannelHeaderTitle = ({
                 className='channel-header__bot'
             >
                 <ChannelHeaderTitleFavorite/>
-                {leftDecorators.length > 0 && channel && (
-                    <span className='channel-header__decorator-left'>
-                        {leftDecorators.map((reg) => (
-                            <ChannelDecoratorRenderer
-                                key={reg.id}
-                                registration={reg}
-                                channel={channel}
-                            />
-                        ))}
-                    </span>
-                )}
                 <ProfilePicture
                     src={Client4.getProfilePictureUrl(dmUser.id, dmUser.last_picture_update)}
                     size='sm'
@@ -119,17 +105,6 @@ const ChannelHeaderTitle = ({
     return (
         <div className='channel-header__top'>
             <ChannelHeaderTitleFavorite/>
-            {leftDecorators.length > 0 && channel && (
-                <span className='channel-header__decorator-left'>
-                    {leftDecorators.map((reg) => (
-                        <ChannelDecoratorRenderer
-                            key={reg.id}
-                            registration={reg}
-                            channel={channel}
-                        />
-                    ))}
-                </span>
-            )}
             {isDirect && dmUser && ( // Check if it's a DM and dmUser is provided
                 <ProfilePicture
                     src={Client4.getProfilePictureUrl(dmUser.id, dmUser.last_picture_update)}

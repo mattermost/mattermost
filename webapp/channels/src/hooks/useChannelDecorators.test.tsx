@@ -24,7 +24,7 @@ function makeRegistration(partial: Partial<ChannelDecoratorRegistration> = {}): 
     return {
         id: 'reg-1',
         pluginId: 'test-plugin',
-        slot: 'left_of_channel_name',
+        slot: 'after_channel_name',
         matcher: () => true,
         component: () => null,
         ...partial,
@@ -38,7 +38,7 @@ describe('hooks/useChannelDecorators', () => {
 
     it('returns empty array when channelId is null', () => {
         const {result} = renderHookWithContext(
-            () => useChannelDecorators(null, 'left_of_channel_name'),
+            () => useChannelDecorators(null, 'after_channel_name'),
             {plugins: {components: {ChannelDecorator: []}}} as any,
         );
         expect(result.current).toEqual([]);
@@ -66,9 +66,9 @@ describe('hooks/useChannelDecorators', () => {
 
     it('returns selector output for a matching registration', () => {
         const channel = makeChannel();
-        const reg = makeRegistration({slot: 'left_of_channel_name'});
+        const reg = makeRegistration({slot: 'after_channel_name'});
         const {result} = renderHookWithContext(
-            () => useChannelDecorators(channel.id, 'left_of_channel_name'),
+            () => useChannelDecorators(channel.id, 'after_channel_name'),
             {
                 plugins: {components: {ChannelDecorator: [reg]}},
                 entities: {channels: {channels: {[channel.id]: channel}}},
@@ -95,10 +95,10 @@ describe('hooks/useChannelDecorators', () => {
 
     it('returns all matching registrations for additive slots', () => {
         const channel = makeChannel();
-        const reg1 = makeRegistration({id: 'r1', slot: 'mount_overlay', pluginId: 'plugin-a'});
-        const reg2 = makeRegistration({id: 'r2', slot: 'mount_overlay', pluginId: 'plugin-b'});
+        const reg1 = makeRegistration({id: 'r1', slot: 'after_channel_name', pluginId: 'plugin-a'});
+        const reg2 = makeRegistration({id: 'r2', slot: 'after_channel_name', pluginId: 'plugin-b'});
         const {result} = renderHookWithContext(
-            () => useChannelDecorators(channel.id, 'mount_overlay'),
+            () => useChannelDecorators(channel.id, 'after_channel_name'),
             {
                 plugins: {components: {ChannelDecorator: [reg1, reg2]}},
                 entities: {channels: {channels: {[channel.id]: channel}}},

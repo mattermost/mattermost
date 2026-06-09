@@ -428,7 +428,7 @@ export type ChannelIconOverrideRegistration = PluginComponent & {
     iconName: IconGlyphTypes;
 };
 
-export type ChannelDecoratorSlot = 'left_of_channel_name' | 'intro' | 'above_composer' | 'mount_overlay';
+export type ChannelDecoratorSlot = 'after_channel_name' | 'intro' | 'above_composer';
 
 export type ChannelDecoratorRegistration = PluginComponent & {
     slot: ChannelDecoratorSlot;
