@@ -18,6 +18,7 @@ import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
@@ -171,6 +172,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
@@ -367,6 +369,9 @@ export function reconnect() {
         dispatch(checkForModifiedUsers());
     }
 
+    // Manifest may have changed; tell the Desktop App to re-fetch it.
+    DesktopApp.invalidateSessionAttributeManifest();
+
     dispatch(resetWsErrorCount());
     dispatch(clearErrors());
 }
@@ -410,6 +415,9 @@ function handleFirstConnect() {
         },
         clearErrors(),
     ]));
+
+    // Tell the Desktop App to re-deliver its session attributes on the next request.
+    DesktopApp.resendSessionAttributes();
 }
 
 function handleClose(failCount: number) {
@@ -1334,6 +1342,11 @@ function handlePropertyFieldCreatedOrUpdated(
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
             data: {fields: [field]},
         });
+
+        // Session attribute schema changed; tell the Desktop App to re-fetch its manifest.
+        if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
+            DesktopApp.invalidateSessionAttributeManifest();
+        }
     };
 }
 
