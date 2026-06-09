@@ -325,7 +325,9 @@ func TestPreparePostForClient(t *testing.T) {
 		// master before PreparePostForClient so the file-info cache is not seeded early.
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
 			attached, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
-			assert.NoError(c, storeErr)
+			if !assert.NoError(c, storeErr) || attached == nil {
+				return
+			}
 			assert.Equal(c, post.Id, attached.PostId)
 			if *th.App.Config().FileSettings.ExtractContent {
 				assert.Equal(c, "test", attached.Content)
