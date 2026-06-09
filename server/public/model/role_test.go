@@ -430,6 +430,79 @@ func TestRoleIsValidWithoutId(t *testing.T) {
 	})
 }
 
+func TestRoleUnknownPermissions(t *testing.T) {
+	t.Run("returns nil when all permissions are known", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, PermissionCreateEmojis.Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("tolerates deprecated permissions", func(t *testing.T) {
+		require.NotEmpty(t, DeprecatedPermissions)
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, DeprecatedPermissions[0].Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("returns only the permissions this build does not recognize", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, "manage_own_agent_from_the_future", "another_unknown"},
+		}
+		assert.ElementsMatch(t, []string{"manage_own_agent_from_the_future", "another_unknown"}, r.UnknownPermissions())
+	})
+
+	t.Run("empty permissions yields no unknowns", func(t *testing.T) {
+		assert.Empty(t, (&Role{}).UnknownPermissions())
+	})
+}
+
+func TestRoleClone(t *testing.T) {
+	schemeId := NewId()
+	original := &Role{
+		Id:            NewId(),
+		Name:          "test_role",
+		DisplayName:   "Test Role",
+		Description:   "desc",
+		CreateAt:      1000,
+		UpdateAt:      2000,
+		DeleteAt:      0,
+		Permissions:   []string{"invite_user", "add_user_to_team"},
+		SchemeManaged: true,
+		BuiltIn:       false,
+		SchemeId:      &schemeId,
+	}
+
+	t.Run("clone equals original", func(t *testing.T) {
+		cloned := original.Clone()
+		assert.Equal(t, original, cloned)
+	})
+
+	t.Run("permissions are deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		cloned.Permissions[0] = "mutated"
+		assert.Equal(t, "invite_user", original.Permissions[0])
+	})
+
+	t.Run("scheme id pointer is deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		require.NotSame(t, original.SchemeId, cloned.SchemeId)
+		*cloned.SchemeId = NewId()
+		assert.Equal(t, schemeId, *original.SchemeId)
+	})
+
+	t.Run("nil permissions stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().Permissions)
+	})
+
+	t.Run("nil scheme id stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().SchemeId)
+	})
+}
+
 func TestRoleIsValid(t *testing.T) {
 	validRole := func() *Role {
 		return &Role{
