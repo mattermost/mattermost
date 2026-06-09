@@ -30,6 +30,21 @@ describe('Managing bots in Teams and Channels', () => {
         });
     });
 
+    it('MM-T1814 Add a BOT to a team', () => {
+        cy.makeClient().then(async (client) => {
+            // # Go to channel
+            const channel = await client.getChannelByName(team.id, 'town-square');
+            cy.visit(`/${team.name}/channels/${channel.name}`);
+
+            // # Invite bot to team (asserts the modal success message)
+            const bot = await client.createBot(createBotPatch());
+            cy.uiInviteMemberToCurrentTeam(bot.username);
+
+            // * Verify system message in-channel
+            cy.uiWaitUntilMessagePostedIncludes(`@${bot.username} added to the team by you.`);
+        });
+    });
+
     it('MM-T1815 Add a BOT to a team that has email restricted', () => {
         cy.makeClient().then(async (client) => {
             // # Go to channel
