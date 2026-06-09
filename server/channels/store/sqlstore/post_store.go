@@ -1790,22 +1790,14 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 }
 
 func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, nil)
+	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads)
 }
 
 func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64, collapsedThreads bool) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, nil)
+	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads)
 }
 
-func (s *SqlPostStore) GetPostIdBefore(channelId string, time int64, collapsedThreads bool, excludeIds []string) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, true, collapsedThreads, excludeIds)
-}
-
-func (s *SqlPostStore) GetPostIdAfter(channelId string, time int64, collapsedThreads bool, excludeIds []string) (string, error) {
-	return s.getPostIdAroundTime(channelId, time, false, collapsedThreads, excludeIds)
-}
-
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, excludeIds []string) (string, error) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -1831,10 +1823,6 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		OrderBy("Posts.CreateAt " + sort).
 		Limit(1)
 
-	if len(excludeIds) > 0 {
-		query = query.Where(sq.NotEq{"Posts.Id": excludeIds})
-	}
-
 	var postId string
 	if err := s.GetMaster().GetBuilder(&postId, query); err != nil {
 		if err != sql.ErrNoRows {
@@ -1846,10 +1834,14 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 }
 
 // GetVisiblePostIdAroundTime finds the nearest post before or after the given
-// timestamp, skipping burn-on-read posts whose read receipt has expired for the
-// user. Unrevealed BoR posts (no receipt) are kept since they render as
-// placeholders. The filtering is done in a single SQL query via a NOT EXISTS
-// subquery on ReadReceipts.
+// timestamp that is visible to the user, skipping over burn-on-read posts whose
+// read receipt has already expired for that user. Because the filtering happens
+// in a single query, any number of consecutive expired posts are skipped in one
+// round trip, so pagination cursors never point at a post the user can't see.
+//
+// A post is considered visible when it is not a burn-on-read post, the user is
+// its author, or the user has no expired read receipt for it (i.e. no receipt at
+// all, which renders as a placeholder, or a receipt that is still valid).
 func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, userId string) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
@@ -1861,8 +1853,6 @@ func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, 
 		sort = "ASC"
 	}
 
-	nowMs := model.GetMillis()
-
 	conditions := sq.And{
 		direction,
 		sq.Eq{"Posts.ChannelId": channelId},
@@ -1872,16 +1862,15 @@ func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, 
 		conditions = append(conditions, sq.Eq{"Posts.RootId": ""})
 	}
 
-	// De Morgan form so the optimizer short-circuits on the first TRUE branch.
-	// For non-BoR posts (vast majority), Type != 'burn_on_read' is TRUE and the
-	// EXISTS subquery is never evaluated.
+	// Skip burn-on-read posts that have an expired read receipt for the user.
+	// The Type check is kept first so that, for the overwhelmingly common
+	// non-BoR posts, the receipt subquery is never evaluated.
 	conditions = append(conditions, sq.Expr(
 		"(Posts.Type != ? OR Posts.UserId = ? OR NOT EXISTS ("+
 			"SELECT 1 FROM ReadReceipts rr "+
-			"WHERE rr.PostId = Posts.Id AND rr.UserId = ? "+
-			"AND rr.ExpireAt > ? AND rr.ExpireAt < ?"+
+			"WHERE rr.PostId = Posts.Id AND rr.UserId = ? AND rr.ExpireAt < ?"+
 			"))",
-		model.PostTypeBurnOnRead, userId, userId, 0, nowMs,
+		model.PostTypeBurnOnRead, userId, userId, model.GetMillis(),
 	))
 
 	query := s.getQueryBuilder().
@@ -1894,7 +1883,7 @@ func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, 
 	var postId string
 	if err := s.GetMaster().GetBuilder(&postId, query); err != nil {
 		if err != sql.ErrNoRows {
-			return "", errors.Wrapf(err, "failed to get non-expired BoR Post id with channelId=%s", channelId)
+			return "", errors.Wrapf(err, "failed to get visible Post id with channelId=%s", channelId)
 		}
 	}
 

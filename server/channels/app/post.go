@@ -1654,7 +1654,7 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
 	postID, err := a.Srv().Store().Post().GetPostIdAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
-		return "", model.NewAppError("GetPostIdAfter", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return postID, nil
@@ -1676,9 +1676,12 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, userID string,
 	return a.getCursorPostId(last.ChannelId, last.CreateAt, userID, collapsedThreads, true)
 }
 
-// getCursorPostId finds the next or previous visible post for pagination cursors.
-// The SQL query filters out expired burn-on-read posts for the user so this is
-// always a single round trip regardless of how many expired posts exist.
+// getCursorPostId returns the id of the next (before=false) or previous
+// (before=true) post that is visible to the user, used for the NextPostId and
+// PrevPostId pagination cursors. The store query skips burn-on-read posts that
+// have expired for the user, so any number of consecutive expired posts are
+// stepped over in a single round trip and the cursor never references a post
+// that was filtered out of the response.
 func (a *App) getCursorPostId(channelID string, fromTime int64, userID string, collapsedThreads bool, before bool) string {
 	postId, err := a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID)
 	if err != nil {
