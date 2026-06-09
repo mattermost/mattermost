@@ -1380,11 +1380,36 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		}
 	}
 
+	// A policy-driven removal (the membership sync calls in with an empty
+	// requestorId on an ABAC-governed team) cascades to channel membership.
+	// Group-sync removal also passes "", but group-constrained teams cannot be
+	// ABAC-governed, so PolicyEnforced disambiguates. Emit a removal record plus
+	// a per-channel cascade record referencing it; an ordinary or non-policy
+	// leave records nothing here.
+	policyDriven := team.PolicyEnforced && requestorId == ""
+	var cascadeParentEventID string
+	if policyDriven {
+		cascadeParentEventID = model.NewId()
+		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, model.AuditStatusSuccess)
+		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
+		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
+		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+		a.LogAuditRec(rctx, rec, nil)
+	}
+
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
 			if nErr = a.Srv().Store().Channel().RemoveMember(rctx, channel.Id, user.Id); nErr != nil {
 				return model.NewAppError("LeaveTeam", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+			if policyDriven {
+				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
+				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
+				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
+				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
+				a.LogAuditRec(rctx, rec, nil)
 			}
 		}
 	}

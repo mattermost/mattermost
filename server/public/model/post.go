@@ -45,22 +45,26 @@ const (
 	PostTypeMoveChannel           = "system_move_channel"
 	PostTypeAddToTeam             = "system_add_to_team"
 	PostTypeRemoveFromTeam        = "system_remove_from_team"
-	PostTypeHeaderChange          = "system_header_change"
-	PostTypeDisplaynameChange     = "system_displayname_change"
-	PostTypeConvertChannel        = "system_convert_channel"
-	PostTypePurposeChange         = "system_purpose_change"
-	PostTypeChannelDeleted        = "system_channel_deleted"
-	PostTypeChannelRestored       = "system_channel_restored"
-	PostTypeEphemeral             = "system_ephemeral"
-	PostTypeChangeChannelPrivacy  = "system_change_chan_privacy"
-	PostTypeWrangler              = "system_wrangler"
-	PostTypeGMConvertedToChannel  = "system_gm_to_channel"
-	PostTypeAddBotTeamsChannels   = "add_bot_teams_channels"
-	PostTypeMe                    = "me"
-	PostCustomTypePrefix          = "custom_"
-	PostTypeReminder              = "reminder"
-	PostTypeBurnOnRead            = "burn_on_read"
-	PostTypeCard                  = "card"
+	// Values stay within the Posts.Type varchar(26) limit (see note below), so
+	// these use the shorter "abac" instead of spelling out "access_control".
+	PostTypeAccessControlTeamRemoval  = "system_team_abac_removal"  // 24 chars
+	PostTypeAccessControlTeamAddition = "system_team_abac_addition" // 25 chars
+	PostTypeHeaderChange              = "system_header_change"
+	PostTypeDisplaynameChange         = "system_displayname_change"
+	PostTypeConvertChannel            = "system_convert_channel"
+	PostTypePurposeChange             = "system_purpose_change"
+	PostTypeChannelDeleted            = "system_channel_deleted"
+	PostTypeChannelRestored           = "system_channel_restored"
+	PostTypeEphemeral                 = "system_ephemeral"
+	PostTypeChangeChannelPrivacy      = "system_change_chan_privacy"
+	PostTypeWrangler                  = "system_wrangler"
+	PostTypeGMConvertedToChannel      = "system_gm_to_channel"
+	PostTypeAddBotTeamsChannels       = "add_bot_teams_channels"
+	PostTypeMe                        = "me"
+	PostCustomTypePrefix              = "custom_"
+	PostTypeReminder                  = "reminder"
+	PostTypeBurnOnRead                = "burn_on_read"
+	PostTypeCard                      = "card"
 	// PostTypeSharedChannelState is a system post for share/unshare events; the client translates using props.
 	// Name must fit Posts.Type varchar(26) (see store migrations).
 	PostTypeSharedChannelState = "system_shared_chan_state"
@@ -532,6 +536,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeMoveChannel,
 		PostTypeAddToTeam,
 		PostTypeRemoveFromTeam,
+		PostTypeAccessControlTeamRemoval,
+		PostTypeAccessControlTeamAddition,
 		PostTypeMessageAttachment,
 		PostTypeHeaderChange,
 		PostTypePurposeChange,

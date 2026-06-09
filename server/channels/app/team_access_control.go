@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -346,6 +347,56 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 			nil, "policy rules would exclude the requesting admin", http.StatusBadRequest)
 	}
 
+	return nil
+}
+
+// SendTeamAccessControlRemovalNotification DMs the user, from the system bot,
+// that the team's membership policy removed them. The message carries only the
+// team name — never any policy/attribute detail.
+func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, userID string, team *model.Team) *model.AppError {
+	return a.sendTeamAccessControlMembershipDM(rctx, userID, team, model.PostTypeAccessControlTeamRemoval, "api.team.access_control.removed.system_message")
+}
+
+// SendTeamAccessControlAdditionNotification audits the auto-add and DMs the
+// user, from the system bot, that they were added to the team because they meet
+// its membership policy. Like the removal DM, it leaks no policy detail.
+func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, userID string, team *model.Team) *model.AppError {
+	rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipAdded, model.AuditStatusSuccess)
+	model.AddEventParameterToAuditRec(rec, "user_id", userID)
+	model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+	a.LogAuditRec(rctx, rec, nil)
+
+	return a.sendTeamAccessControlMembershipDM(rctx, userID, team, model.PostTypeAccessControlTeamAddition, "api.team.access_control.added.system_message")
+}
+
+func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, userID string, team *model.Team, postType, messageKey string) *model.AppError {
+	systemBot, appErr := a.GetSystemBot(rctx)
+	if appErr != nil {
+		return appErr
+	}
+
+	channel, appErr := a.GetOrCreateDirectChannel(rctx, userID, systemBot.UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	locale := ""
+	if user, err := a.GetUser(userID); err == nil {
+		locale = user.Locale
+	}
+	T := i18n.GetUserTranslations(locale)
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   T(messageKey, map[string]any{"TeamName": team.DisplayName}),
+		Type:      postType,
+		UserId:    systemBot.UserId,
+		Props:     model.StringInterface{"team_name": team.DisplayName},
+	}
+
+	if _, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
+		return appErr
+	}
 	return nil
 }
 

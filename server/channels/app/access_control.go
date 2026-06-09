@@ -2393,6 +2393,34 @@ func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression stri
 	return a.TestExpression(rctx, expression, opts)
 }
 
+// TestExpressionWithTeamContext tests expressions for team admins with the same
+// info-leak guard as the channel variant: a team admin may only see users who
+// match an expression that they themselves match.
+func (a *App) TestExpressionWithTeamContext(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	session := rctx.Session()
+	if session == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithTeamContext", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+	}
+
+	currentUserID := session.UserId
+
+	// SECURITY: a team admin who doesn't match the expression must not learn who does.
+	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+	if !adminMatches {
+		return []*model.User{}, 0, nil
+	}
+
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithTeamContext", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	return a.TestExpression(rctx, expression, opts)
+}
+
 // ValidateExpressionAgainstRequester validates an expression directly against a specific user
 func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression string, requesterID string) (bool, *model.AppError) {
 	// Self-exclusion validation should work with any attribute

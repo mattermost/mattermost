@@ -216,6 +216,63 @@ func TestValidateTeamAdminSelfInclusion(t *testing.T) {
 	})
 }
 
+func TestExpressionWithTeamContext(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	expression := "user.attributes.team == 'Engineering'"
+
+	t.Run("requester who does not match the expression gets empty results", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Id: model.NewId()})
+
+		// Requester self-check returns no match → guard returns empty without
+		// ever querying the full user set.
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), expression, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == th.BasicUser.Id
+		})).Return([]*model.User{}, int64(0), nil)
+
+		users, count, appErr := th.App.TestExpressionWithTeamContext(rctx, expression, model.SubjectSearchOptions{})
+		require.Nil(t, appErr)
+		require.Empty(t, users)
+		require.Zero(t, count)
+	})
+
+	t.Run("requester who matches sees the full result set", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Id: model.NewId()})
+
+		// Self-check matches the requester.
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), expression, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == th.BasicUser.Id
+		})).Return([]*model.User{th.BasicUser}, int64(1), nil)
+
+		// Full query (TestExpression) for the unrestricted set.
+		matched := []*model.User{th.BasicUser, th.BasicUser2}
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), expression, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == ""
+		})).Return(matched, int64(2), nil)
+
+		users, count, appErr := th.App.TestExpressionWithTeamContext(rctx, expression, model.SubjectSearchOptions{})
+		require.Nil(t, appErr)
+		require.Len(t, users, 2)
+		require.Equal(t, int64(2), count)
+	})
+}
+
 func TestSearchTeamAccessPolicies(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 

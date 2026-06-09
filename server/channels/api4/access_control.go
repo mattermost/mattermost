@@ -140,6 +140,26 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 		}
+	case model.AccessControlPolicyTypeTeam:
+		// Team-type policies are keyed by the team ID, so policy.ID is the team.
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			if !model.IsValidId(policy.ID) {
+				c.SetInvalidParam("policy.id")
+				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), policy.ID, model.PermissionManageTeamAccessRules) {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
+				return
+			}
+			// Hard-block a team admin from saving rules that would lock themselves
+			// out of their own team.
+			for _, rule := range policy.Rules {
+				if appErr := c.App.ValidateTeamAdminSelfInclusion(c.AppContext, c.AppContext.Session().UserId, rule.Expression); appErr != nil {
+					c.Err = appErr
+					return
+				}
+			}
+		}
 	default:
 		c.SetInvalidParam("type")
 		return
@@ -370,6 +390,8 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Delegated admins (team and channel) see only users matching expressions with attributes they possess.
 	if hasSystemPermission {
 		users, count, appErr = c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, searchOpts)
+	} else if teamID != "" {
+		users, count, appErr = c.App.TestExpressionWithTeamContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
 	} else {
 		users, count, appErr = c.App.TestExpressionWithChannelContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
 	}
