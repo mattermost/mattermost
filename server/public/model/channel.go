@@ -81,34 +81,62 @@ func (c ChannelBannerInfo) Value() (driver.Value, error) {
 }
 
 type Channel struct {
-	Id                  string             `json:"id"`
-	CreateAt            int64              `json:"create_at"`
-	UpdateAt            int64              `json:"update_at"`
-	DeleteAt            int64              `json:"delete_at"`
-	TeamId              string             `json:"team_id"`
-	Type                ChannelType        `json:"type"`
-	DisplayName         string             `json:"display_name"`
-	Name                string             `json:"name"`
-	Header              string             `json:"header"`
-	Purpose             string             `json:"purpose"`
-	LastPostAt          int64              `json:"last_post_at"`
-	TotalMsgCount       int64              `json:"total_msg_count"`
-	ExtraUpdateAt       int64              `json:"extra_update_at"`
-	CreatorId           string             `json:"creator_id"`
-	SchemeId            *string            `json:"scheme_id"`
-	Props               map[string]any     `json:"props"`
-	GroupConstrained    *bool              `json:"group_constrained"`
-	AutoTranslation     bool               `json:"autotranslation"`
-	Shared              *bool              `json:"shared"`
-	TotalMsgCountRoot   int64              `json:"total_msg_count_root"`
-	PolicyID            *string            `json:"policy_id"`
-	LastRootPostAt      int64              `json:"last_root_post_at"`
-	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
-	PolicyEnforced      bool               `json:"policy_enforced"`
-	PolicyIsActive      bool               `json:"policy_is_active"`
-	DefaultCategoryName string             `json:"default_category_name"`
-	ManagedCategoryName string             `json:"managed_category_name"`
-	Discoverable        bool               `json:"discoverable"`
+	Id                string             `json:"id"`
+	CreateAt          int64              `json:"create_at"`
+	UpdateAt          int64              `json:"update_at"`
+	DeleteAt          int64              `json:"delete_at"`
+	TeamId            string             `json:"team_id"`
+	Type              ChannelType        `json:"type"`
+	DisplayName       string             `json:"display_name"`
+	Name              string             `json:"name"`
+	Header            string             `json:"header"`
+	Purpose           string             `json:"purpose"`
+	LastPostAt        int64              `json:"last_post_at"`
+	TotalMsgCount     int64              `json:"total_msg_count"`
+	ExtraUpdateAt     int64              `json:"extra_update_at"`
+	CreatorId         string             `json:"creator_id"`
+	SchemeId          *string            `json:"scheme_id"`
+	Props             map[string]any     `json:"props"`
+	GroupConstrained  *bool              `json:"group_constrained"`
+	AutoTranslation   bool               `json:"autotranslation"`
+	Shared            *bool              `json:"shared"`
+	TotalMsgCountRoot int64              `json:"total_msg_count_root"`
+	PolicyID          *string            `json:"policy_id"`
+	LastRootPostAt    int64              `json:"last_root_post_at"`
+	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
+	PolicyEnforced    bool               `json:"policy_enforced"`
+	// PolicyActions maps each action key declared by the channel's access
+	// control policy (and any imported parent policies) to true. It is
+	// populated lazily by App-layer hydrators and is therefore unset on
+	// channel reads that don't pass through one of those seams. Consumers
+	// that care about a specific action (e.g. "membership") should check
+	// PolicyActions[action] and fall back to PolicyEnforced only when the
+	// stronger meaning is acceptable. Empty/nil means either no policy or
+	// no hydration was performed.
+	PolicyActions       map[string]bool `json:"policy_actions,omitempty"`
+	PolicyIsActive      bool            `json:"policy_is_active"`
+	DefaultCategoryName string          `json:"default_category_name"`
+	ManagedCategoryName string          `json:"managed_category_name"`
+	Discoverable        bool            `json:"discoverable"`
+}
+
+// HasPolicyAction reports whether the channel's policy declares the given
+// action. Safe to call on a Channel whose PolicyActions map is nil
+// (returns false in that case). Use this in preference to direct map
+// indexing so consumers don't have to defend against nil maps.
+func (o *Channel) HasPolicyAction(action string) bool {
+	if o == nil || len(o.PolicyActions) == 0 {
+		return false
+	}
+	return o.PolicyActions[action]
+}
+
+// HasMembershipPolicyAction is a convenience for the most common consumer
+// pattern: "is this channel's membership controlled by ABAC?". Used by
+// the invite picker, channel settings, members RHS, and the server-side
+// gates (setChannelMembers, guest-invite, ChannelAccessControlled).
+func (o *Channel) HasMembershipPolicyAction() bool {
+	return o.HasPolicyAction(AccessControlPolicyActionMembership)
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -130,6 +158,7 @@ func (o *Channel) Auditable() map[string]any {
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
 		"policy_enforced":      o.PolicyEnforced,
+		"policy_actions":       o.PolicyActions, // hydrated lazily; only populated on selected read paths
 		"autotranslation":      o.AutoTranslation,
 		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
 		"discoverable":         o.Discoverable,
@@ -347,6 +376,10 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.discoverable.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
+	if o.IsGroupConstrained() && !o.SupportsGroupSync() {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.group_constrained.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -391,6 +424,11 @@ func (o *Channel) PreUpdate() {
 
 func (o *Channel) IsGroupOrDirect() bool {
 	return o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup
+}
+
+// SupportsGroupSync reports whether group_constrained is meaningful for the channel type.
+func (o *Channel) SupportsGroupSync() bool {
+	return o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate
 }
 
 func (o *Channel) IsOpen() bool {

@@ -1821,9 +1821,13 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user_auth", &userAuth)
 
-	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
+	if !userAuth.IsValid() {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	if userAuth.AuthService == model.UserAuthServiceEmail {
+		userAuth.AuthService = ""
 	}
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
@@ -2151,6 +2155,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			c.LogAudit("failure - guest_magic_link")
 			c.Err = err
+			return
+		}
+
+		if authErr := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); authErr != nil {
+			c.LogAuditWithUserId(user.Id, "failure - guest_magic_link")
+			c.Err = authErr
 			return
 		}
 	} else {

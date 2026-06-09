@@ -1459,6 +1459,116 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 }
+
+func TestOAuthRefreshTokenGrantRejectsDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "RefreshGrantDeactivated_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	}
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
+
+	user := th.CreateUser(t)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, authRequest)
+	require.Nil(t, appErr)
+
+	uri, parseErr := url.Parse(redirectURL)
+	require.NoError(t, parseErr)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		oapp.Id,
+		model.AccessTokenGrantType,
+		oapp.CallbackUrls[0],
+		code,
+		oapp.ClientSecret,
+		"",
+		"",
+		"",
+	)
+	require.Nil(t, appErr)
+	require.NotEmpty(t, tokenResp.AccessToken)
+	require.NotEmpty(t, tokenResp.RefreshToken)
+
+	require.NoError(t, th.App.Srv().Store().Session().Remove(tokenResp.AccessToken))
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	refreshResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		oapp.Id,
+		model.RefreshTokenGrantType,
+		oapp.CallbackUrls[0],
+		"",
+		oapp.ClientSecret,
+		tokenResp.RefreshToken,
+		"",
+		"",
+	)
+	require.NotNil(t, appErr, "refresh token grant must fail for an inactive user")
+	require.Nil(t, refreshResp)
+}
+
+func TestOAuthImplicitGrantRejectsDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "ImplicitGrantDeactivated_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	}
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
+
+	user := th.CreateUser(t)
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.ImplicitResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+
+	session, appErr := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, user.Id, authRequest)
+	require.NotNil(t, appErr, "implicit grant must fail for an inactive user")
+	require.Nil(t, session)
+
+	accessData, sErr := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+	require.NoError(t, sErr)
+	require.Empty(t, accessData, "no access data may be persisted for an inactive user")
+}
+
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
 		email, action, cookie, err := parseOAuthStateTokenExtra("user@example.com:email_to_sso:randomcookie123")

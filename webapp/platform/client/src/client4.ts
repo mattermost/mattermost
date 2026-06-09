@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
@@ -2210,6 +2210,13 @@ export default class Client4 {
         );
     };
 
+    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: Array<{field_id: string; value: T}>) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'PATCH', body: JSON.stringify(items)},
+        );
+    };
+
     // Remote Clusters Routes
 
     getRemoteClusters = (options: {
@@ -2761,6 +2768,13 @@ export default class Client4 {
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
             {method: 'post', body: JSON.stringify(msg)},
+        );
+    };
+
+    doPostActionWithQuery = (postId: string, actionId: string, query: Record<string, string>) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
+            {method: 'post', body: JSON.stringify({query})},
         );
     };
 
@@ -3633,9 +3647,21 @@ export default class Client4 {
         );
     };
 
+    /**
+     * @deprecated Use testFileStoreConnection instead. The /file/s3_test
+     * endpoint is kept for backwards compatibility but now routes through
+     * the same backend-agnostic handler.
+     */
     testS3Connection = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/file/s3_test`,
+            {method: 'post', body: JSON.stringify(config)},
+        );
+    };
+
+    testFileStoreConnection = (config?: AdminConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/file/test`,
             {method: 'post', body: JSON.stringify(config)},
         );
     };
@@ -3920,6 +3946,21 @@ export default class Client4 {
 
         return this.doFetch<License>(
             `${this.getBaseRoute()}/license`,
+            request,
+        );
+    };
+
+    previewLicense = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('license', fileData);
+
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<License>(
+            `${this.getBaseRoute()}/license/preview`,
             request,
         );
     };
@@ -4653,6 +4694,8 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
+            } else if (contentType === 'application/zip') {
+                data = await response.blob();
             } else {
                 data = await response.text();
             }
@@ -4965,6 +5008,21 @@ export default class Client4 {
         );
     };
 
+    /**
+     * Simulate the dual-lane PDP decision for a draft (unsaved) policy
+     * against an explicit set of users. The server compiles the draft
+     * in-memory, layers on persisted higher-scoped permission policies,
+     * and returns per-user, per-action ALLOW/DENY decisions plus blame
+     * attribution. Backs the picker-based "Simulate access" modal in
+     * the System Console and Channel Settings.
+     */
+    simulateAccessControlPolicyForUsers = (params: PolicySimulationByUsersParams) => {
+        return this.doFetch<PolicySimulationResponse>(
+            `${this.getBaseRoute()}/access_control_policies/cel/simulate_users`,
+            {method: 'post', body: JSON.stringify(params)},
+        );
+    };
+
     expressionToVisualFormat = (expression: string, channelId?: string, teamId?: string) => {
         const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
         if (channelId) {
@@ -5103,6 +5161,21 @@ export default class Client4 {
         return this.doFetch<ContentFlaggingSettings>(
             `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
+        );
+    };
+
+    getFlaggedPostReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
+    };
+
+    generateFlaggedPostReport = (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<Blob> => {
+        return this.doFetch<Blob>(
+            this.getFlaggedPostReportUrl(postId),
+            {
+                method: 'post',
+                body: JSON.stringify({comment, action}),
+                signal,
+            },
         );
     };
 }

@@ -537,6 +537,14 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(api.ctx, channel)
 }
 
+func (api *PluginAPI) RegisterChannelGuard(channelID string) *model.AppError {
+	return api.app.RegisterChannelGuard(api.ctx, channelID, strings.ToLower(api.id))
+}
+
+func (api *PluginAPI) UnregisterChannelGuard(channelID string) *model.AppError {
+	return api.app.UnregisterChannelGuard(api.ctx, channelID, strings.ToLower(api.id))
+}
+
 func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError) {
 	channels, err := api.app.SearchChannels(api.ctx, teamID, term)
 	if err != nil {
@@ -874,7 +882,19 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false})
+	// Grant mm_blocks_actions write access only when the plugin's update
+	// actually includes the prop, AND the value passes validation.
+	// Otherwise the freeze in UpdatePost preserves whatever the original
+	// post had — plugins that update unrelated fields don't accidentally
+	// drop or corrupt mm_blocks_actions.
+	allowMmBlocksActionsUpdate := false
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		if err := model.ValidateMmBlocksActions(post); err != nil {
+			return nil, model.NewAppError("UpdatePost", "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		allowMmBlocksActionsUpdate = true
+	}
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate})
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1692,9 +1712,8 @@ func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyVa
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
 	if name == model.DeprecatedCPAPropertyGroupName {
 		return nil, fmt.Errorf(
-			"the group name %q has been renamed to %q; use %q instead",
+			"%q is a version 1 PSA group that has been deprecated; use the version 2 PSA group %q instead",
 			model.DeprecatedCPAPropertyGroupName,
-			model.AccessControlPropertyGroupName,
 			model.AccessControlPropertyGroupName,
 		)
 	}
@@ -1709,21 +1728,18 @@ func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, 
 }
 
 func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
-	name = migrateDeprecatedPropertyGroupName(name)
+	if name == model.DeprecatedCPAPropertyGroupName {
+		return nil, fmt.Errorf(
+			"%q is a version 1 PSA group that has been deprecated; use the version 2 PSA group %q instead",
+			model.DeprecatedCPAPropertyGroupName,
+			model.AccessControlPropertyGroupName,
+		)
+	}
 	group, appErr := api.app.GetPropertyGroup(api.psaPluginContext(), name)
 	if appErr != nil {
 		return nil, appErr
 	}
 	return group, nil
-}
-
-// migrateDeprecatedPropertyGroupName maps the deprecated "custom_profile_attributes"
-// group name to the current "access_control" name for backward compatibility.
-func migrateDeprecatedPropertyGroupName(name string) string {
-	if name == model.DeprecatedCPAPropertyGroupName {
-		return model.AccessControlPropertyGroupName
-	}
-	return name
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {

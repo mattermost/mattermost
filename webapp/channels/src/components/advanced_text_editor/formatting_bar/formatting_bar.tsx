@@ -16,7 +16,7 @@ import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_mark
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {LayoutModes, useFormattingBarControls} from './hooks';
 
-export const Separator = styled.div`
+export const Separator = styled.div.attrs({'data-testid': 'formatting-bar-separator'})`
     display: block;
     position: relative;
     width: 1px;
