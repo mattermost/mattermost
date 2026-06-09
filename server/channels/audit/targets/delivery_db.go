@@ -58,8 +58,6 @@ type DeliveryDBTarget struct {
 	queue   chan auditDeliveryItem
 	wg      sync.WaitGroup
 	stopped atomic.Bool
-
-	lastBlockLogNs atomic.Int64
 }
 
 func NewDeliveryDBTarget(s store.AuditStorageStore, logger *mlog.Logger) *DeliveryDBTarget {
