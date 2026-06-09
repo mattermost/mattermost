@@ -27,7 +27,6 @@ import urllib.error
 from datetime import datetime, timezone
  
 FLAG_FILE = "server/public/model/feature_flags.go"
-SCRIPT_DIR = ".github/scripts"
 STALE_DAYS = 90
 # Label applied to every ticket this script creates — used for duplicate detection
 JIRA_LABEL = "feature-flag-cleanup"
@@ -77,8 +76,10 @@ def git_log_patches(filepath: str) -> list[dict]:
  
  
 def find_flag_enabled_date(flag_name: str, commits: list[dict]) -> datetime | None:
+    # Iterate oldest-first to return the original enable date, not the most recent.
+    # commits is newest-first from git log, so we reverse it.
     pattern = re.compile(rf"^\+\s*f\.{re.escape(flag_name)}\s*=\s*true", re.MULTILINE)
-    for commit in commits:
+    for commit in reversed(commits):
         if pattern.search(commit["diff"]):
             return commit["date"]
     return None
@@ -152,7 +153,7 @@ def create_jira_ticket(entry: dict, project_key: str, auth: str, base_url: str) 
             {
                 "type": "paragraph",
                 "content": [
-                    {"type": "text", "text": f"The feature flag "},
+                    {"type": "text", "text": "The feature flag "},
                     {"type": "text", "text": flag, "marks": [{"type": "code"}]},
                     {"type": "text", "text": (
                         f" has been set to {chr(96)}true{chr(96)} in {chr(96)}SetDefaults(){chr(96)} "
@@ -265,7 +266,7 @@ def main():
             print(f"  {flag}: {days_enabled} days — not yet stale")
             continue
         removal_comment = bool(re.search(
-            rf"FEATURE_FLAG_REMOVAL.*\n(?:.*\n)*?.*\b{re.escape(flag)}\b",
+            rf"FEATURE_FLAG_REMOVAL[^\n]*\b{re.escape(flag)}\b",
             source,
         ))
         stale.append({
@@ -304,4 +305,3 @@ def main():
  
 if __name__ == "__main__":
     main()
-  
