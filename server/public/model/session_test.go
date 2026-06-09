@@ -154,37 +154,7 @@ func TestIsIntegration(t *testing.T) {
 	}
 }
 
-func TestIsValidVoIPDeviceId(t *testing.T) {
-	testCases := []struct {
-		Description string
-		Value       string
-		Valid       bool
-	}{
-		{"empty string", "", false},
-		{"missing token", PushNotifyAppleReactNative + ":", false},
-		{"missing separator", PushNotifyAppleReactNative, false},
-		{"missing platform", ":abcd", false},
-		{"android is not VoIP-capable yet", PushNotifyAndroidReactNative + ":abcd", false},
-		{"legacy bare apple prefix not allowed", "apple:abcd", false},
-		{"valid apple_rn", PushNotifyAppleReactNative + ":abcd", true},
-		{"valid apple_rnbeta", PushNotifyAppleReactNative + "beta:abcd", true},
-		{"apple_rn-v2 tolerated", PushNotifyAppleReactNative + "-v2:abcd", true},
-		{"apple_rn-v0 tolerated", PushNotifyAppleReactNative + "-v0:abcd", true},
-		{"apple_rn-v999 tolerated", PushNotifyAppleReactNative + "-v999:abcd", true},
-		{"apple_rn-voip is not stripped and fails allowlist", PushNotifyAppleReactNative + "-voip:abcd", false},
-		{"apple_rn-vabc is not stripped and fails allowlist", PushNotifyAppleReactNative + "-vabc:abcd", false},
-		{"apple_rn-v with empty version is not stripped and fails allowlist", PushNotifyAppleReactNative + "-v:abcd", false},
-		{"apple_rn-v-2 with negative version is not stripped and fails allowlist", PushNotifyAppleReactNative + "-v-2:abcd", false},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Description, func(t *testing.T) {
-			assert.Equal(t, tc.Valid, IsValidVoIPDeviceId(tc.Value))
-		})
-	}
-}
-
-func TestIsValidStandardDeviceId(t *testing.T) {
+func TestIsValidDeviceId(t *testing.T) {
 	testCases := []struct {
 		Description string
 		Value       string
@@ -215,7 +185,7 @@ func TestIsValidStandardDeviceId(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			assert.Equal(t, tc.Valid, IsValidStandardDeviceId(tc.Value))
+			assert.Equal(t, tc.Valid, IsValidDeviceId(tc.Value))
 		})
 	}
 }

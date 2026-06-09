@@ -144,10 +144,10 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
 
-	if opts.DeviceId != "" && !model.IsValidStandardDeviceId(opts.DeviceId) {
+	if opts.DeviceId != "" && !model.IsValidDeviceId(opts.DeviceId) {
 		return nil, model.NewAppError("DoLogin", "api.user.attach_device_id.invalid_device_id.app_error", nil, "", http.StatusBadRequest)
 	}
-	if opts.VoIPDeviceId != "" && !model.IsValidVoIPDeviceId(opts.VoIPDeviceId) {
+	if opts.VoIPDeviceId != "" && !model.IsValidDeviceId(opts.VoIPDeviceId) {
 		return nil, model.NewAppError("DoLogin", "api.user.attach_device_id.invalid_voip_device_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

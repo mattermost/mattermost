@@ -649,7 +649,7 @@ func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.VoIPDeviceId != "" && !model.IsValidVoIPDeviceId(req.VoIPDeviceId) {
+	if req.VoIPDeviceId != "" && !model.IsValidDeviceId(req.VoIPDeviceId) {
 		c.SetInvalidParam("voip_device_id")
 		return
 	}

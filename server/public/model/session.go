@@ -307,24 +307,17 @@ func (s *Session) LastActivityAt_() float64 {
 	return float64(s.LastActivityAt)
 }
 
-// standardDevicePlatforms is the allowlist for DeviceId.
-var standardDevicePlatforms = []string{
+// devicePlatforms is the allowlist for DeviceId and VoIPDeviceId.
+var devicePlatforms = []string{
 	PushNotifyAppleReactNative,
 	PushNotifyAppleReactNative + "beta",
 	PushNotifyAndroidReactNative,
 }
 
-// voIPDevicePlatforms is the allowlist for VoIPDeviceId. Android isn't here
-// yet — once it grows a VoIP equivalent, add it or unify as a single allowlist.
-var voIPDevicePlatforms = []string{
-	PushNotifyAppleReactNative,
-	PushNotifyAppleReactNative + "beta",
-}
-
 // IsValidDeviceId checks that deviceId has the "<platform>[-v<N>]:<token>"
 // shape and <platform> is in the allowlist. The "-v<N>" suffix is only
 // stripped when it's terminal and N is a non-negative integer.
-func IsValidDeviceId(deviceId string, allowed []string) bool {
+func IsValidDeviceId(deviceId string) bool {
 	platform, token, ok := strings.Cut(deviceId, ":")
 	if !ok || token == "" {
 		return false
@@ -334,15 +327,7 @@ func IsValidDeviceId(deviceId string, allowed []string) bool {
 			platform = platform[:idx]
 		}
 	}
-	return slices.Contains(allowed, platform)
-}
-
-func IsValidStandardDeviceId(deviceId string) bool {
-	return IsValidDeviceId(deviceId, standardDevicePlatforms)
-}
-
-func IsValidVoIPDeviceId(deviceId string) bool {
-	return IsValidDeviceId(deviceId, voIPDevicePlatforms)
+	return slices.Contains(devicePlatforms, platform)
 }
 
 // RedactDeviceId returns "<platform>:<first-16>…" for safe inclusion in logs.

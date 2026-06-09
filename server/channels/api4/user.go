@@ -2721,11 +2721,11 @@ func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceI
 	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voIPDeviceId))
 
-	if deviceId != "" && !model.IsValidStandardDeviceId(deviceId) {
+	if deviceId != "" && !model.IsValidDeviceId(deviceId) {
 		c.SetInvalidParam("device_id")
 		return
 	}
-	if voIPDeviceId != "" && !model.IsValidVoIPDeviceId(voIPDeviceId) {
+	if voIPDeviceId != "" && !model.IsValidDeviceId(voIPDeviceId) {
 		c.SetInvalidParam("voip_device_id")
 		return
 	}
