@@ -60,7 +60,7 @@ describe('usePluginStatusesSync', () => {
     const pluginStatusesChanged = {event: WebSocketEvents.PluginStatusesChanged} as WebSocketMessage;
 
     test('dispatches getPluginStatuses after the debounce delay on a plugin_statuses_changed event', () => {
-        renderHookWithContext(() => usePluginStatusesSync());
+        renderHookWithContext(usePluginStatusesSync);
 
         act(() => {
             messageHandler(pluginStatusesChanged);
@@ -78,7 +78,7 @@ describe('usePluginStatusesSync', () => {
     });
 
     test('collapses multiple rapid events into a single refetch', () => {
-        renderHookWithContext(() => usePluginStatusesSync());
+        renderHookWithContext(usePluginStatusesSync);
 
         act(() => {
             messageHandler(pluginStatusesChanged);
@@ -110,7 +110,7 @@ describe('usePluginStatusesSync', () => {
     });
 
     test('ignores other websocket events', () => {
-        renderHookWithContext(() => usePluginStatusesSync());
+        renderHookWithContext(usePluginStatusesSync);
 
         act(() => {
             messageHandler({event: WebSocketEvents.Posted} as WebSocketMessage);
@@ -121,16 +121,14 @@ describe('usePluginStatusesSync', () => {
     });
 
     test('cleans up on unmount: removes the reconnect listener and cancels a pending refetch', () => {
-        const {unmount} = renderHookWithContext(() => usePluginStatusesSync());
+        const {unmount} = renderHookWithContext(usePluginStatusesSync);
 
         // Start a debounce window, then unmount before it elapses.
         act(() => {
             messageHandler(pluginStatusesChanged);
         });
 
-        act(() => {
-            unmount();
-        });
+        act(unmount);
 
         expect(removeReconnectListener).toHaveBeenCalledTimes(1);
         expect(removeReconnectListener).toHaveBeenCalledWith(addReconnectListener.mock.calls[0][0]);
