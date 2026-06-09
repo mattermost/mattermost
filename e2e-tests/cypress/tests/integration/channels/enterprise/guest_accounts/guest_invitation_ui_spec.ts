@@ -52,6 +52,22 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         });
     });
 
+    it('MM-T1335 Invite Guests - Add Public and Private channels', () => {
+        // # Create a private channel in the test team
+        const privateChannelDisplayName = `Private ${getRandomId()}`;
+        cy.apiCreateChannel(testTeam.id, `private-${getRandomId()}`, privateChannelDisplayName, 'P').then(() => {
+            // # Invite a new guest by email, adding both a public and a private channel
+            const email = `temp-${getRandomId()}@mattermost.com`;
+            invitePeople(email, 1, email, ['Town Square', privateChannelDisplayName], false);
+
+            // * Verify both channels are added to the list of channels the guest will be added to
+            cy.get('.channels-input__control').should('be.visible').within(() => {
+                cy.findByText('Town Square').should('be.visible');
+                cy.findByText(privateChannelDisplayName).should('be.visible');
+            });
+        });
+    });
+
     it('MM-T4451 Verify UI Elements of Guest User Invitation Flow', () => {
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite people');
