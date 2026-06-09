@@ -103,9 +103,13 @@ function RecentUsedCustomDate({
         recipientTimezoneString :
         userCurrentTimezone;
 
-    const conversionTimezone = isDmRedesign && recipientTimezoneString ?
-        (useRecipientTimezone ? userCurrentTimezone : recipientTimezoneString) :
-        userCurrentTimezone;
+    const conversionTimezone = useMemo(() => {
+        if (!isDmRedesign || !recipientTimezoneString || useRecipientTimezone) {
+            return userCurrentTimezone;
+        }
+
+        return recipientTimezoneString;
+    }, [isDmRedesign, recipientTimezoneString, useRecipientTimezone, userCurrentTimezone]);
 
     const excludedTimestamps = useMemo(() => {
         if (isDmRedesign && recipientTimezoneString) {
