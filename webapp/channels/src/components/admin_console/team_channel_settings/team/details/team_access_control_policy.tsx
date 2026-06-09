@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -30,20 +30,24 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
 
     const intl = useIntl();
 
-    const handlePolicySelected = (policy: AccessControlPolicy) => {
+    const handlePolicySelected = useCallback((policy: AccessControlPolicy) => {
         if (actions.onPolicySelected && policy) {
             actions.onPolicySelected(policy);
         }
         setShowPolicySelectionModal(false);
-    };
+    }, [actions]);
 
-    const handleClosePolicyModal = () => {
+    const handleClosePolicyModal = useCallback(() => {
         setShowPolicySelectionModal(false);
-    };
+    }, []);
 
-    const handleOpenPolicyModal = () => {
+    const handleOpenPolicyModal = useCallback(() => {
         setShowPolicySelectionModal(true);
-    };
+    }, []);
+
+    const handleRemoveAll = useCallback(() => {
+        actions.onPolicyRemoveAll();
+    }, [actions]);
 
     const renderTable = () => {
         if (!accessControlPolicies || accessControlPolicies.length === 0) {
@@ -115,9 +119,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                 title={defineMessage({id: 'admin.team_settings.team_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
                 subtitle={defineMessage({id: 'admin.team_settings.team_detail.access_control_policy_description', defaultMessage: 'Select a membership policy for this team.'})}
                 buttonText={defineMessage({id: 'admin.team_settings.team_detail.link_policy', defaultMessage: 'Link to a policy'})}
-                onButtonClick={() => {
-                    handleOpenPolicyModal();
-                }}
+                onButtonClick={handleOpenPolicyModal}
             >
                 <div className='group-teams-and-channels'>
                     <div className='group-teams-and-channels--body'>
@@ -150,9 +152,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
             title={defineMessage({id: 'admin.team_settings.team_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
             subtitle={defineMessage({id: 'admin.team_settings.team_detail.policy_following', defaultMessage: 'This team is currently using the following membership policy.'})}
             buttonText={defineMessage({id: 'admin.team_settings.team_detail.remove_policy', defaultMessage: 'Remove all'})}
-            onButtonClick={() => {
-                actions.onPolicyRemoveAll();
-            }}
+            onButtonClick={handleRemoveAll}
         >
             <div className='group-teams-and-channels'>
                 <div className='group-teams-and-channels--body'>

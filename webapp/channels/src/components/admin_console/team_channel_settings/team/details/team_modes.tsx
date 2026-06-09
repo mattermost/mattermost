@@ -117,7 +117,7 @@ type PolicyEnforceToggleProps = {
 
     // Locked once a policy is linked; removal happens from the policy list.
     policyEnforcedToggleAvailable: boolean;
-    onToggle: (policyEnforced: boolean) => void;
+    onToggle?: (policyEnforced: boolean) => void;
     isDisabled?: boolean;
 };
 
@@ -134,7 +134,7 @@ const PolicyEnforceToggle = ({syncChecked, policyEnforced, policyEnforcedToggleA
             if (syncChecked || !policyEnforcedToggleAvailable) {
                 return;
             }
-            onToggle(!policyEnforced);
+            onToggle?.(!policyEnforced);
         }}
         title={(
             <FormattedMessage
@@ -194,7 +194,7 @@ export const TeamModes = ({allAllowedChecked, syncChecked, allowedDomains, allow
                         syncChecked={syncChecked}
                         policyEnforced={Boolean(policyEnforced)}
                         policyEnforcedToggleAvailable={Boolean(policyEnforcedToggleAvailable)}
-                        onToggle={onPolicyEnforcedToggle || (() => {})}
+                        onToggle={onPolicyEnforcedToggle}
                         isDisabled={isDisabled}
                     />
                 }

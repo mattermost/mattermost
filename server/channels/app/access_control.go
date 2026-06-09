@@ -566,7 +566,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 
 	var affectedChannelIDs []string
 	var affectedTeamIDs []string
-	if policy != nil && policy.Type != model.AccessControlPolicyTypeChannel && policy.Type != model.AccessControlPolicyTypeTeam {
+	if policy != nil && policy.Type == model.AccessControlPolicyTypeParent {
 		affectedChannelIDs = a.channelPolicyIDsWithImport(rctx, id)
 		affectedTeamIDs = a.teamPolicyIDsWithImport(rctx, id)
 	}

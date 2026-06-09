@@ -190,6 +190,19 @@ func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if !c.App.TeamMembershipAccessControlEnabled() {
+		resp := struct {
+			Policy   *model.AccessControlPolicy `json:"policy"`
+			Enforced bool                       `json:"enforced"`
+		}{}
+		if js, err := json.Marshal(resp); err != nil {
+			c.Err = model.NewAppError("getTeamAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		} else if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
 	enforced, appErr := c.App.TeamAccessControlled(c.AppContext, teamID)
 	if appErr != nil {
 		c.Err = appErr
@@ -199,21 +212,17 @@ func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reque
 	// A team child policy shares the team's id. Absence (404) means no policy is
 	// assigned; NotImplemented means ABAC is unavailable on this server. Either way
 	// there's nothing to enforce, so report a nil policy rather than erroring.
-	// The fetch is gated on the team membership flag too: a row created while the
-	// feature was dark must not leak through this endpoint before it goes live.
 	var policy *model.AccessControlPolicy
-	if c.App.TeamMembershipAccessControlEnabled() {
-		p, appErr := c.App.GetAccessControlPolicy(c.AppContext, teamID)
-		if appErr != nil {
-			if appErr.StatusCode != http.StatusNotFound && appErr.StatusCode != http.StatusNotImplemented {
-				c.Err = appErr
-				return
-			}
-		} else {
-			policy = p
-			if shouldRedactExpressions(c) {
-				c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
-			}
+	p, appErr := c.App.GetAccessControlPolicy(c.AppContext, teamID)
+	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound && appErr.StatusCode != http.StatusNotImplemented {
+			c.Err = appErr
+			return
+		}
+	} else {
+		policy = p
+		if shouldRedactExpressions(c) {
+			c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
 		}
 	}
 

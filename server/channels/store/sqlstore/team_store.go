@@ -207,41 +207,38 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-// teamSliceColumns returns fields of the team as a string slice.
-// Optionally, you can add a prefix (accepts only 1 value) to the fields.
-func teamSliceColumns(isSelect bool, prefix ...string) []string {
-	p := "Teams"
-	if len(prefix) == 1 {
-		p = prefix[0]
-	} else if len(prefix) > 1 {
-		panic("cannot accept multiple prefixes")
-	}
+// teamSliceColumns returns fields of the team using the default "Teams" table alias.
+func teamSliceColumns(isSelect bool) []string {
+	return prefixedTeamSliceColumns(isSelect, "Teams")
+}
 
+// prefixedTeamSliceColumns returns fields of the team as a string slice using the given table alias.
+func prefixedTeamSliceColumns(isSelect bool, prefix string) []string {
 	columns := []string{
-		p + ".Id",
-		p + ".CreateAt",
-		p + ".UpdateAt",
-		p + ".DeleteAt",
-		p + ".DisplayName",
-		p + ".Name",
-		p + ".Description",
-		p + ".Email",
-		p + ".Type",
-		p + ".CompanyName",
-		p + ".AllowedDomains",
-		p + ".InviteId",
-		p + ".AllowOpenInvite",
-		p + ".LastTeamIconUpdate",
-		p + ".SchemeId",
-		p + ".GroupConstrained",
-		p + ".CloudLimitsArchived",
+		prefix + ".Id",
+		prefix + ".CreateAt",
+		prefix + ".UpdateAt",
+		prefix + ".DeleteAt",
+		prefix + ".DisplayName",
+		prefix + ".Name",
+		prefix + ".Description",
+		prefix + ".Email",
+		prefix + ".Type",
+		prefix + ".CompanyName",
+		prefix + ".AllowedDomains",
+		prefix + ".InviteId",
+		prefix + ".AllowOpenInvite",
+		prefix + ".LastTeamIconUpdate",
+		prefix + ".SchemeId",
+		prefix + ".GroupConstrained",
+		prefix + ".CloudLimitsArchived",
 	}
 
 	if isSelect {
 		// Type guard keeps team membership policies from colliding with channel/parent
 		// policies that happen to share an Id with a team.
-		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team') AS PolicyEnforced", p))
-		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
+		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team') AS PolicyEnforced", prefix))
+		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", prefix))
 	}
 
 	return columns
@@ -467,7 +464,7 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 	if countQuery {
 		columns = []string{"count(*)"}
 	} else {
-		columns = teamSliceColumns(true, "t")
+		columns = prefixedTeamSliceColumns(true, "t")
 		if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
 			columns = append(columns, "RetentionPoliciesTeams.PolicyId as PolicyID")
 		}
