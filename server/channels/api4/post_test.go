@@ -4063,13 +4063,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 func TestGetPostsForChannelAroundLastUnreadBurnOnRead(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
 	enableBurnOnReadFeature(th)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.BurnOnRead = true
+	})
 
 	// user1 is the viewer, user2 creates burn-on-read posts
 	user1 := th.BasicUser
