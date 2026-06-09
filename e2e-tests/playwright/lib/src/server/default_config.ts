@@ -786,7 +786,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
         ClassificationMarkings: true,
-        IntegratedBoards: false,
+        IntegratedBoards: true,
         CJKSearch: false,
         ManagedChannelCategories: false,
         MobileEphemeralMode: true,

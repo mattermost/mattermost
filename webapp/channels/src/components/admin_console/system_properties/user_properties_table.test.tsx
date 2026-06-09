@@ -181,6 +181,67 @@ describe('UserPropertiesTable', () => {
         expect(deletedInput).toBeDisabled();
     });
 
+    // Regression coverage for the react-beautiful-dnd → Pragmatic Drag and
+    // Drop migration in list_table. These tests don't drive native drag
+    // events (jsdom can't), but they confirm the keyboard reorder path —
+    // which is the most user-visible accessibility-critical surface — is
+    // still wired through to the consumer's reorderField callback.
+    describe('DnD migration regression — keyboard reorder', () => {
+        beforeEach(() => {
+            reorderField.mockClear();
+        });
+
+        it('ArrowDown on row 0\u2019s drag handle calls reorderField with the row 0 field at next index 1', async () => {
+            renderComponent();
+
+            const handles = screen.getAllByRole('button', {name: /reorder row/i});
+            handles[0].focus();
+            await userEvent.keyboard('{ArrowDown}');
+
+            expect(reorderField).toHaveBeenCalledTimes(1);
+            expect(reorderField).toHaveBeenCalledWith(baseFields[0], 1);
+        });
+
+        it('ArrowUp on row 1\u2019s drag handle calls reorderField with the row 1 field at next index 0', async () => {
+            renderComponent();
+
+            const handles = screen.getAllByRole('button', {name: /reorder row/i});
+            handles[1].focus();
+            await userEvent.keyboard('{ArrowUp}');
+
+            expect(reorderField).toHaveBeenCalledTimes(1);
+            expect(reorderField).toHaveBeenCalledWith(baseFields[1], 0);
+        });
+
+        it('ArrowUp on the first row is a no-op (cannot move above index 0)', async () => {
+            renderComponent();
+
+            const handles = screen.getAllByRole('button', {name: /reorder row/i});
+            handles[0].focus();
+            await userEvent.keyboard('{ArrowUp}');
+
+            expect(reorderField).not.toHaveBeenCalled();
+        });
+
+        it('ArrowDown on the last row is a no-op (cannot move past the bottom)', async () => {
+            renderComponent();
+
+            const handles = screen.getAllByRole('button', {name: /reorder row/i});
+            handles[handles.length - 1].focus();
+            await userEvent.keyboard('{ArrowDown}');
+
+            expect(reorderField).not.toHaveBeenCalled();
+        });
+
+        it('renders one drag handle per row (DnD wiring is enabled, not silently disabled)', () => {
+            renderComponent();
+
+            // User properties does not pass `isRowDragDisabled`, so every
+            // visible row gets an interactive drag handle button.
+            expect(screen.getAllByRole('button', {name: /reorder row/i})).toHaveLength(baseFields.length);
+        });
+    });
+
     const renderWithBanners = (fields: UserPropertyField[], collection = collectionFromArray(fields)) => {
         return renderWithContext(
             <>

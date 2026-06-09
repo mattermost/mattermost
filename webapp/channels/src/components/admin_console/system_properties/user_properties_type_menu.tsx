@@ -67,8 +67,11 @@ const SelectType = (props: Props) => {
                 disabled: isDisabled,
             }}
             menu={{
-                id: 'type-selector-menu',
-                'aria-label': 'Select type',
+                id: `type-selector-menu-${props.field.id}`,
+                'aria-label': formatMessage({
+                    id: 'admin.system_properties.user_properties.type_menu.label',
+                    defaultMessage: 'Select type',
+                }),
                 className: 'select-type-mui-menu',
             }}
         >

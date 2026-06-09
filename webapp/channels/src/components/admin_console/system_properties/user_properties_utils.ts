@@ -16,12 +16,10 @@ import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 import {validateCPAFieldName} from 'utils/properties';
 import {generateId} from 'utils/utils';
 
-import type {CollectionIO} from './section_utils';
+import type {CollectionIO, PendingOps} from './section_utils';
 import {useThing, usePendingThing, BatchProcessingError} from './section_utils';
 
 export type UserPropertyFields = IDMappedCollection<UserPropertyField>;
-
-type PendingOps<T extends {id: string}> = {[op: string]: T[]};
 
 export const useUserPropertyFields = () => {
     // current fields

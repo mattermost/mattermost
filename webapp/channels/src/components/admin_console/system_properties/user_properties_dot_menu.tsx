@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
@@ -115,6 +115,7 @@ const DotMenu = ({
     updateField,
     deleteField,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
@@ -192,8 +193,11 @@ const DotMenu = ({
                 disabled: field.delete_at !== 0 || isProtected,
             }}
             menu={{
-                id: `${menuId}-menu`,
-                'aria-label': 'Select an action',
+                id: `${menuId}-${field.id}-menu`,
+                'aria-label': formatMessage({
+                    id: 'admin.system_properties.user_properties.dotmenu.label',
+                    defaultMessage: 'Select an action',
+                }),
                 className: 'user-property-field-dotmenu-menu',
             }}
         >
