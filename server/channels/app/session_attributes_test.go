@@ -445,3 +445,121 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		assert.Equal(t, "device-b", values[model.SessionAttributesPropertyFieldTLSDDeviceID])
 	})
 }
+
+const staleAttributeFieldName = "test_field"
+
+func staleAttributeFields(ttl, grace int) map[string]*model.PropertyField {
+	return map[string]*model.PropertyField{
+		staleAttributeFieldName: {
+			Name: staleAttributeFieldName,
+			Attrs: model.StringInterface{
+				model.SAAttrTTLSeconds:         ttl,
+				model.SAAttrGracePeriodSeconds: grace,
+			},
+		},
+	}
+}
+
+func TestFilterStaleSessionAttributes(t *testing.T) {
+	fieldName := staleAttributeFieldName
+
+	t.Run("keeps an attribute aged past TTL but still within the grace period", func(t *testing.T) {
+		fields := staleAttributeFields(100, 60)
+		timestamp := model.GetMillis() - (130 * 1000)
+
+		filtered := filterStaleSessionAttributes(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: timestamp},
+			fields,
+		)
+
+		assert.Equal(t, "value", filtered[fieldName])
+	})
+
+	t.Run("drops an attribute aged past TTL plus grace", func(t *testing.T) {
+		fields := staleAttributeFields(100, 60)
+		timestamp := model.GetMillis() - (200 * 1000)
+
+		filtered := filterStaleSessionAttributes(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: timestamp},
+			fields,
+		)
+
+		assert.Nil(t, filtered)
+	})
+
+	t.Run("zero TTL expires once the grace period passes", func(t *testing.T) {
+		fields := staleAttributeFields(0, 60)
+
+		withinGrace := filterStaleSessionAttributes(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: model.GetMillis() - (30 * 1000)},
+			fields,
+		)
+		assert.Equal(t, "value", withinGrace[fieldName])
+
+		pastGrace := filterStaleSessionAttributes(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: model.GetMillis() - (90 * 1000)},
+			fields,
+		)
+		assert.Nil(t, pastGrace)
+	})
+}
+
+func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	enableSessionAttributesCollection(t, th)
+
+	session1, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	require.Nil(t, appErr)
+	session2, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	require.Nil(t, appErr)
+
+	for _, session := range []*model.Session{session1, session2} {
+		rctx := th.Context.WithSession(session)
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		th.App.ProcessSessionAttributesRequest(rctx, r)
+		require.NotEmpty(t, sessionAttributeValuesByFieldName(t, th, session.Id))
+	}
+
+	require.Nil(t, th.App.RevokeAllSessions(th.Context, th.BasicUser.Id))
+
+	assert.Empty(t, sessionAttributeRawValues(t, th, session1.Id))
+	assert.Empty(t, sessionAttributeRawValues(t, th, session2.Id))
+}
+
+func TestClusterUpdateSessionAttributesHandler(t *testing.T) {
+	th := Setup(t)
+	ps := th.App.Srv().Platform()
+
+	t.Run("valid payload merges attributes into the cache", func(t *testing.T) {
+		sessionID := model.NewId()
+		data, err := json.Marshal(model.SessionAttributesClusterPayload{
+			SessionID: sessionID,
+			Attrs:     map[string]any{model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10"},
+			Timestamp: model.GetMillis(),
+		})
+		require.NoError(t, err)
+
+		ps.ClusterUpdateSessionAttributesHandler(&model.ClusterMessage{
+			Event: model.ClusterEventUpdateSessionAttributes,
+			Data:  data,
+		})
+
+		assert.Equal(t, "192.0.2.10", sessionAttributeRawValues(t, th, sessionID)[model.SessionAttributesPropertyFieldIPAddress])
+	})
+
+	t.Run("malformed JSON is ignored without panic", func(t *testing.T) {
+		sessionID := model.NewId()
+		require.NotPanics(t, func() {
+			ps.ClusterUpdateSessionAttributesHandler(&model.ClusterMessage{
+				Event: model.ClusterEventUpdateSessionAttributes,
+				Data:  []byte("{not-valid-json"),
+			})
+		})
+
+		assert.Empty(t, sessionAttributeRawValues(t, th, sessionID))
+	})
+}
