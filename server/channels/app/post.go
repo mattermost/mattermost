@@ -1615,6 +1615,7 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 }
 
 func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	postList, err := a.Srv().Store().Post().GetPostsBefore(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1651,6 +1652,7 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 }
 
 func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	postList, err := a.Srv().Store().Post().GetPostsAfter(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1689,6 +1691,7 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	var postList *model.PostList
 	var err error
+	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	sanitize := a.Config().GetSanitizeOptions()
 	if before {
 		postList, err = a.Srv().Store().Post().GetPostsBefore(rctx, options, sanitize)
@@ -1773,7 +1776,18 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, userID string,
 // stepped over in a single round trip and the cursor never references a post
 // that was filtered out of the response.
 func (a *App) getCursorPostId(channelID string, fromTime int64, userID string, collapsedThreads bool, before bool) string {
-	postId, err := a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID)
+	var postId string
+	var err error
+	// Only the visibility-aware query (which carries the burn-on-read receipt
+	// subquery) is used when the feature is enabled; otherwise fall back to the
+	// plain lookups so there is no added query cost for instances not using it.
+	if a.isBurnOnReadEnabled() {
+		postId, err = a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID)
+	} else if before {
+		postId, err = a.Srv().Store().Post().GetPostIdBeforeTime(channelID, fromTime, collapsedThreads)
+	} else {
+		postId, err = a.Srv().Store().Post().GetPostIdAfterTime(channelID, fromTime, collapsedThreads)
+	}
 	if err != nil {
 		mlog.Warn("getCursorPostId: failed to get post id", mlog.Err(err))
 		return ""

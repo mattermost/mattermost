@@ -1735,10 +1735,14 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 		sq.Eq{"p.ChannelId": options.ChannelId},
-		// Skip burn-on-read posts already expired for the user so pagination can
-		// page past a run of them instead of returning a window that filters to
-		// empty and looks like the end of the channel (MM-67500).
-		burnOnReadVisibleCondition("p", options.UserId),
+	}
+
+	// Skip burn-on-read posts already expired for the user so pagination can page
+	// past a run of them instead of returning a window that filters to empty and
+	// looks like the end of the channel (MM-67500). Only applied when the feature
+	// is enabled, so there is no query overhead otherwise.
+	if options.ExcludeExpiredBurnOnReadPosts {
+		conditions = append(conditions, burnOnReadVisibleCondition("p", options.UserId))
 	}
 
 	if !options.IncludeDeleted {
