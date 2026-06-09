@@ -68,6 +68,54 @@ func (_m *SharedChannelInvitationStore) DeleteByChannelIdAndRemoteId(channelID s
 	return r0
 }
 
+// DeleteByRemoteId provides a mock function with given fields: remoteID
+func (_m *SharedChannelInvitationStore) DeleteByRemoteId(remoteID string) error {
+	ret := _m.Called(remoteID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteByRemoteId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(remoteID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// EnsurePendingSent provides a mock function with given fields: channelID, remoteID, creatorID
+func (_m *SharedChannelInvitationStore) EnsurePendingSent(channelID string, remoteID string, creatorID string) (*model.SharedChannelInvitation, error) {
+	ret := _m.Called(channelID, remoteID, creatorID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnsurePendingSent")
+	}
+
+	var r0 *model.SharedChannelInvitation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) (*model.SharedChannelInvitation, error)); ok {
+		return rf(channelID, remoteID, creatorID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.SharedChannelInvitation); ok {
+		r0 = rf(channelID, remoteID, creatorID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelInvitation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(channelID, remoteID, creatorID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: id
 func (_m *SharedChannelInvitationStore) Get(id string) (*model.SharedChannelInvitation, error) {
 	ret := _m.Called(id)

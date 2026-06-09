@@ -69,7 +69,28 @@ func registerSharedChannelInvitationStoreMocks(inv *mocks.SharedChannelInvitatio
 			}
 			cp := *saveReturn
 			calls.saved = append(calls.saved, &cp)
-		})
+		}).Maybe()
+	ensureReturn := &model.SharedChannelInvitation{}
+	inv.On("EnsurePendingSent", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).
+		Return(ensureReturn, nil).
+		Run(func(args mock.Arguments) {
+			channelID := args.Get(0).(string)
+			remoteID := args.Get(1).(string)
+			creatorID := args.Get(2).(string)
+			invitation := &model.SharedChannelInvitation{
+				ChannelId: channelID,
+				RemoteId:  remoteID,
+				Direction: model.SharedChannelInvitationDirectionSent,
+				CreatorId: creatorID,
+			}
+			invitation.PreSave()
+			if invitation.Id == "" {
+				invitation.Id = model.NewId()
+			}
+			*ensureReturn = *invitation
+			cp := *ensureReturn
+			calls.saved = append(calls.saved, &cp)
+		}).Maybe()
 	inv.On("GetAllFromMaster", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*model.SharedChannelInvitation{}, nil).Maybe()
 	inv.On("Delete", mock.AnythingOfType("string")).
@@ -864,11 +885,7 @@ func TestSendChannelInvite_invitationPersistence(t *testing.T) {
 			UpdateAt:  1,
 		}
 		invMock := mocks.NewSharedChannelInvitationStore(t)
-		invMock.On("GetAllFromMaster", mock.MatchedBy(func(o model.SharedChannelInvitationFilterOpts) bool {
-			return o.ChannelId == channel.Id && o.RemoteId == rc.RemoteId &&
-				o.Direction == model.SharedChannelInvitationDirectionSent &&
-				o.Status == model.SharedChannelInvitationStatusPending
-		}), 0, 1).Return([]*model.SharedChannelInvitation{existingPending}, nil).Once()
+		invMock.On("EnsurePendingSent", channel.Id, rc.RemoteId, userID).Return(existingPending, nil).Once()
 
 		mockSharedChannelStore := &mocks.SharedChannelStore{}
 		mockSharedChannelStore.On("Get", channel.Id).Return(sc, nil)
@@ -885,7 +902,7 @@ func TestSendChannelInvite_invitationPersistence(t *testing.T) {
 		err := scs.SendChannelInvite(channel, userID, rc)
 		require.NoError(t, err)
 
-		invMock.AssertNotCalled(t, "Save")
+		invMock.AssertExpectations(t)
 	})
 
 	t.Run("offline remote save remote failure persists generic error and logs detail", func(t *testing.T) {

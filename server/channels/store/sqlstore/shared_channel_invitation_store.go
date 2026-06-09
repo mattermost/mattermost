@@ -45,6 +45,50 @@ func truncateSharedChannelInvitationErrMsg(msg string) string {
 	return string(runes[:model.SharedChannelInvitationErrMsgMaxRunes])
 }
 
+func pendingSentInvitationFilter(channelID, remoteID string) model.SharedChannelInvitationFilterOpts {
+	return model.SharedChannelInvitationFilterOpts{
+		ChannelId: channelID,
+		RemoteId:  remoteID,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusPending,
+	}
+}
+
+func (s SqlSharedChannelInvitationStore) getPendingSentFromMaster(channelID, remoteID string) (*model.SharedChannelInvitation, error) {
+	invitations, err := s.GetAllFromMaster(pendingSentInvitationFilter(channelID, remoteID), 0, 1)
+	if err != nil {
+		return nil, err
+	}
+	if len(invitations) == 0 {
+		return nil, nil
+	}
+	return invitations[0], nil
+}
+
+func (s SqlSharedChannelInvitationStore) EnsurePendingSent(channelID, remoteID, creatorID string) (*model.SharedChannelInvitation, error) {
+	inv := &model.SharedChannelInvitation{
+		ChannelId: channelID,
+		RemoteId:  remoteID,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		CreatorId: creatorID,
+	}
+	saved, err := s.Save(inv)
+	if err == nil {
+		return saved, nil
+	}
+	if !IsUniqueConstraintError(err, []string{"idx_sharedchannelinvitations_pending_sent_unique"}) {
+		return nil, err
+	}
+	existing, getErr := s.getPendingSentFromMaster(channelID, remoteID)
+	if getErr != nil {
+		return nil, getErr
+	}
+	if existing == nil {
+		return nil, errors.New("failed to get pending sent SharedChannelInvitation after unique constraint conflict")
+	}
+	return existing, nil
+}
+
 func (s SqlSharedChannelInvitationStore) Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error) {
 	invitation.PreSave()
 	invitation.ErrMsg = truncateSharedChannelInvitationErrMsg(invitation.ErrMsg)
@@ -187,6 +231,17 @@ func (s SqlSharedChannelInvitationStore) DeleteByChannelIdAndRemoteId(channelID,
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to delete SharedChannelInvitations by channel and remote")
+	}
+	return nil
+}
+
+func (s SqlSharedChannelInvitationStore) DeleteByRemoteId(remoteID string) error {
+	query := s.getQueryBuilder().
+		Delete("SharedChannelInvitations").
+		Where(sq.Eq{"RemoteId": remoteID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete SharedChannelInvitations by remote")
 	}
 	return nil
 }

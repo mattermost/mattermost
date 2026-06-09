@@ -76,6 +76,20 @@ func (i *SharedChannelInvitation) IsValid() *AppError {
 	return nil
 }
 
+func (i *SharedChannelInvitation) Auditable() map[string]any {
+	return map[string]any{
+		"id":          i.Id,
+		"channel_id":  i.ChannelId,
+		"remote_id":   i.RemoteId,
+		"direction":   i.Direction,
+		"status":      i.Status,
+		"creator_id":  i.CreatorId,
+		"create_at":   i.CreateAt,
+		"update_at":   i.UpdateAt,
+		"has_err_msg": i.ErrMsg != "",
+	}
+}
+
 func (i *SharedChannelInvitation) PreSave() {
 	if i.Id == "" {
 		i.Id = NewId()

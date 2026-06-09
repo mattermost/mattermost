@@ -143,21 +143,13 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		// Same visibility as online sends: record a pending invitation while the remote is offline.
-		// When the connection is restored, SendChannelInvite reuses this row (see findPendingSentInvitationID).
-		if scs.findPendingSentInvitationID(channel.Id, rc.RemoteId) == "" {
-			queuedInv := &model.SharedChannelInvitation{
-				ChannelId: channel.Id,
-				RemoteId:  rc.RemoteId,
-				Direction: model.SharedChannelInvitationDirectionSent,
-				CreatorId: userId,
-			}
-			if _, invErr := scs.server.GetStore().SharedChannelInvitation().Save(queuedInv); invErr != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not save pending invitation for offline-queued invite",
-					mlog.String("channel_id", channel.Id),
-					mlog.String("remote_id", rc.RemoteId),
-					mlog.Err(invErr),
-				)
-			}
+		// When the connection is restored, SendChannelInvite reuses this row (see ensurePendingSentInvitationID).
+		if _, invErr := scs.ensurePendingSentInvitation(channel.Id, rc.RemoteId, userId); invErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not save pending invitation for offline-queued invite",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(invErr),
+			)
 		}
 
 		return nil
@@ -184,25 +176,15 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 
 	msg := model.NewRemoteClusterMsg(TopicChannelInvite, json)
 
-	invitationID := scs.findPendingSentInvitationID(channel.Id, rc.RemoteId)
-	if invitationID == "" {
-		pendingInv := &model.SharedChannelInvitation{
-			ChannelId: channel.Id,
-			RemoteId:  rc.RemoteId,
-			Direction: model.SharedChannelInvitationDirectionSent,
-			CreatorId: userId,
-		}
-		savedInv, invErr := scs.server.GetStore().SharedChannelInvitation().Save(pendingInv)
-		if invErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not save pending invitation record",
-				mlog.String("channel_id", channel.Id),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(invErr),
-			)
-		}
-		if savedInv != nil {
-			invitationID = savedInv.Id
-		}
+	invitationID := ""
+	if savedInv, invErr := scs.ensurePendingSentInvitation(channel.Id, rc.RemoteId, userId); invErr != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not save pending invitation record",
+			mlog.String("channel_id", channel.Id),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(invErr),
+		)
+	} else if savedInv != nil {
+		invitationID = savedInv.Id
 	}
 
 	// onInvite is called after invite is sent, whether to a remote cluster or plugin.
@@ -386,6 +368,10 @@ func (scs *Service) deleteInvitationIfPresent(invitationID string) {
 	}
 }
 
+func (scs *Service) ensurePendingSentInvitation(channelID, remoteID, creatorID string) (*model.SharedChannelInvitation, error) {
+	return scs.server.GetStore().SharedChannelInvitation().EnsurePendingSent(channelID, remoteID, creatorID)
+}
+
 // findPendingSentInvitationID returns the id of the latest pending outgoing invitation for a
 // channel/remote pair, if any. Offline-queued invites create this row up front; when the remote
 // comes back online, SendChannelInvite reuses it instead of inserting a duplicate.
@@ -425,7 +411,6 @@ func (scs *Service) saveReceivedInvitationPending(invite channelInviteMsg, rc *m
 		Direction: model.SharedChannelInvitationDirectionReceived,
 		CreatorId: creatorID,
 	}
-	inv.PreSave()
 	saved, err := scs.server.GetStore().SharedChannelInvitation().Save(inv)
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not save received invitation record",

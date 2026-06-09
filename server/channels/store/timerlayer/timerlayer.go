@@ -10899,6 +10899,38 @@ func (s *TimerLayerSharedChannelInvitationStore) DeleteByChannelIdAndRemoteId(ch
 	return err
 }
 
+func (s *TimerLayerSharedChannelInvitationStore) DeleteByRemoteId(remoteID string) error {
+	start := time.Now()
+
+	err := s.SharedChannelInvitationStore.DeleteByRemoteId(remoteID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.DeleteByRemoteId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSharedChannelInvitationStore) EnsurePendingSent(channelID string, remoteID string, creatorID string) (*model.SharedChannelInvitation, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelInvitationStore.EnsurePendingSent(channelID, remoteID, creatorID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.EnsurePendingSent", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelInvitationStore) Get(id string) (*model.SharedChannelInvitation, error) {
 	start := time.Now()
 

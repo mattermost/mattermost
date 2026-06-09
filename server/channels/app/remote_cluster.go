@@ -303,7 +303,13 @@ func (a *App) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError
 	if err != nil {
 		return false, model.NewAppError("DeleteRemoteCluster", "api.remote_cluster.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if deleted && listErr == nil {
+	if deleted {
+		if invitationDeleteErr := a.Srv().Store().SharedChannelInvitation().DeleteByRemoteId(remoteClusterId); invitationDeleteErr != nil {
+			a.Log().Error("Failed to delete shared channel invitations after remote cluster delete",
+				mlog.String("remote_id", remoteClusterId),
+				mlog.Err(invitationDeleteErr),
+			)
+		}
 		a.unshareSharedChannelsIfNoRemotes(affectedChannelIDs)
 	}
 	return deleted, nil

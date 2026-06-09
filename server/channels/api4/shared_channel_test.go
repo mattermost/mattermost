@@ -683,7 +683,7 @@ func TestGetSharedChannelInvitationsForChannel(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t.Run("forbidden for user without manage shared channels", func(t *testing.T) {
+	t.Run("forbidden for user without manage secure connections or shared channels", func(t *testing.T) {
 		_, resp, err := th.Client.GetSharedChannelInvitationsByChannel(context.Background(), ch.Id, 0, 100)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)

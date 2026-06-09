@@ -13786,6 +13786,48 @@ func (s *RetryLayerSharedChannelInvitationStore) DeleteByChannelIdAndRemoteId(ch
 
 }
 
+func (s *RetryLayerSharedChannelInvitationStore) DeleteByRemoteId(remoteID string) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelInvitationStore.DeleteByRemoteId(remoteID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelInvitationStore) EnsurePendingSent(channelID string, remoteID string, creatorID string) (*model.SharedChannelInvitation, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelInvitationStore.EnsurePendingSent(channelID, remoteID, creatorID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSharedChannelInvitationStore) Get(id string) (*model.SharedChannelInvitation, error) {
 
 	tries := 0

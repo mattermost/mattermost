@@ -1075,6 +1075,7 @@ type SharedChannelStore interface {
 
 type SharedChannelInvitationStore interface {
 	Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error)
+	EnsurePendingSent(channelID, remoteID, creatorID string) (*model.SharedChannelInvitation, error)
 	Get(id string) (*model.SharedChannelInvitation, error)
 	GetAll(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error)
 	GetAllFromMaster(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error)
@@ -1082,6 +1083,7 @@ type SharedChannelInvitationStore interface {
 	Delete(id string) error
 	DeleteByChannelId(channelID string) error
 	DeleteByChannelIdAndRemoteId(channelID, remoteID string) error
+	DeleteByRemoteId(remoteID string) error
 }
 
 type PostPriorityStore interface {
