@@ -111,8 +111,8 @@ for MIGRATION in migration_advanced_permissions_phase_2; do
 done
 mme2e_log "Mattermost container is running and healthy"
 
-# Wait for webhook-interactions container if running cypress tests
-if [ "$TEST" = "cypress" ]; then
+# Wait for webhook-interactions container if running cypress or playwright tests
+if [ "$TEST" = "cypress" ] || [ "$TEST" = "playwright" ]; then
   mme2e_log "Checking webhook-interactions container health"
   ${MME2E_DC_SERVER} logs --no-log-prefix -- webhook-interactions 2>&1 | tail -5
   if ! mme2e_wait_service_healthy webhook-interactions 2 10; then

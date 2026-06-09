@@ -100,7 +100,7 @@ export function selectAttachmentMenuAction(postId, actionId, cookie, dataSource,
             },
         });
 
-        dispatch(PostActions.doPostActionWithCookie(postId, actionId, cookie, value));
+        dispatch(PostActions.doPostActionWithCookie(postId, actionId, cookie, value, undefined, ''));
 
         return {data: true};
     };

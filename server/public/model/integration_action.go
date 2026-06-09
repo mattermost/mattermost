@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -65,10 +66,79 @@ var PostActionRetainPropKeys = []string{
 	PostPropsOverrideIconURL,
 }
 
+// PostActionPreserve captures post fields preserved across an interactive action update.
+type PostActionPreserve struct {
+	Retain               map[string]any
+	Remove               []string
+	OriginalProps        map[string]any
+	OriginalIsPinned     bool
+	OriginalHasReactions bool
+	RootPostId           string
+}
+
+// PostActionPreserveState returns retain/remove props and metadata used when applying integration responses.
+func (o *Post) PostActionPreserveState() PostActionPreserve {
+	retain := map[string]any{}
+	remove := []string{}
+	for _, key := range PostActionRetainPropKeys {
+		value, ok := o.GetProps()[key]
+		if ok {
+			retain[key] = value
+		} else {
+			remove = append(remove, key)
+		}
+	}
+	rootPostId := o.Id
+	if o.RootId != "" {
+		rootPostId = o.RootId
+	}
+	var originalProps map[string]any
+	if props := o.GetProps(); props != nil {
+		originalProps = make(map[string]any, len(props))
+		maps.Copy(originalProps, props)
+	}
+	return PostActionPreserve{
+		Retain:               retain,
+		Remove:               remove,
+		OriginalProps:        originalProps,
+		OriginalIsPinned:     o.IsPinned,
+		OriginalHasReactions: o.HasReactions,
+		RootPostId:           rootPostId,
+	}
+}
+
 type DoPostActionRequest struct {
 	SelectedOption string            `json:"selected_option,omitempty"`
 	Cookie         string            `json:"cookie,omitempty"`
 	Query          map[string]string `json:"query,omitempty"`
+	// IntegrationFormat identifies which format originally had the action (attachment, mm_block, ...).
+	// Empty means a legacy client and is treated as attachment.
+	IntegrationFormat string `json:"integration_format,omitempty"`
+}
+
+// Integration format values for DoPostActionRequest.IntegrationFormat (client → server).
+const (
+	PostActionIntegrationFormatAttachment  = "attachment"
+	PostActionIntegrationFormatAppsBinding = "apps_binding"
+	PostActionIntegrationFormatBlock       = "block"
+	PostActionIntegrationFormatCard        = "card"
+	PostActionIntegrationFormatMmBlock     = "mm_block"
+)
+
+// NormalizePostActionIntegrationFormat returns a canonical integration format, defaulting to attachment when empty or unknown.
+func NormalizePostActionIntegrationFormat(s string) string {
+	c := strings.TrimSpace(strings.ToLower(s))
+	switch c {
+	case PostActionIntegrationFormatMmBlock,
+		PostActionIntegrationFormatAppsBinding,
+		PostActionIntegrationFormatBlock,
+		PostActionIntegrationFormatCard:
+		return c
+	case PostActionIntegrationFormatAttachment, "":
+		return PostActionIntegrationFormatAttachment
+	default:
+		return PostActionIntegrationFormatAttachment
+	}
 }
 
 const (
@@ -278,9 +348,11 @@ func (p *PostAction) Equals(input *PostAction) bool {
 
 // PostActionCookie is set by the server, serialized and encrypted into
 // PostAction.Cookie. The clients should hold on to it, and include it with
-// subsequent DoPostAction requests.  This allows the server to access the
+// subsequent DoPostAction requests. This allows the server to access the
 // action metadata even when it's not available in the database, for ephemeral
-// posts.
+// posts. Used for attachment-based interactive messages (legacy PostAction shape).
+//
+// mm_blocks uses [MmBlocksActionCookie] instead; see mm_blocks_actions.go.
 type PostActionCookie struct {
 	Type        string                 `json:"type,omitempty"`
 	PostId      string                 `json:"post_id,omitempty"`
@@ -290,6 +362,23 @@ type PostActionCookie struct {
 	Integration *PostActionIntegration `json:"integration,omitempty"`
 	RetainProps map[string]any         `json:"retain_props,omitempty"`
 	RemoveProps []string               `json:"remove_props,omitempty"`
+}
+
+// MmBlocksActionCookieKind is the JSON "kind" discriminator for [MmBlocksActionCookie] payloads.
+const MmBlocksActionCookieKind = "mm_blocks_actions"
+
+// MmBlocksActionCookie is the decrypted cookie payload for mm_blocks interactive messages
+// (encrypted into props.mm_blocks_actions for clients). It mirrors the shared post/channel
+// metadata of [PostActionCookie] but carries props.mm_blocks_actions as an actions map instead
+// of a single PostAction integration.
+type MmBlocksActionCookie struct {
+	Kind        string                    `json:"kind,omitempty"`
+	PostId      string                    `json:"post_id,omitempty"`
+	RootPostId  string                    `json:"root_post_id,omitempty"`
+	ChannelId   string                    `json:"channel_id,omitempty"`
+	RetainProps map[string]any            `json:"retain_props,omitempty"`
+	RemoveProps []string                  `json:"remove_props,omitempty"`
+	Actions     map[string]map[string]any `json:"actions"`
 }
 
 type PostActionOptions struct {
@@ -335,11 +424,13 @@ type PostActionIntegrationResponse struct {
 	Update           *Post  `json:"update"`
 	EphemeralText    string `json:"ephemeral_text"`
 	SkipSlackParsing bool   `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
+	GotoLocation     string `json:"goto_location,omitempty"`
 }
 
 type PostActionAPIResponse struct {
-	Status    string `json:"status"` // needed to maintain backwards compatibility
-	TriggerId string `json:"trigger_id"`
+	Status       string `json:"status"` // needed to maintain backwards compatibility
+	TriggerId    string `json:"trigger_id"`
+	GotoLocation string `json:"goto_location,omitempty"`
 }
 
 type Dialog struct {
@@ -933,14 +1024,18 @@ func (o *Post) GetAction(id string) *PostAction {
 	return nil
 }
 
-var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
+var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 // ValidateMmBlocksActions verifies the post's mm_blocks_actions prop has the
 // expected shape and bounds. Each entry must coerce to a valid spec via
 // mmBlocksEntryMapToSpec.
 func ValidateMmBlocksActions(o *Post) error {
+	referenced := CollectInteractiveActionIDsFromPost(o)
 	raw := o.GetProp(PostPropsMmBlocksActions)
 	if raw == nil {
+		if len(referenced) > 0 {
+			return fmt.Errorf("interactive content requires mm_blocks_actions")
+		}
 		return nil
 	}
 	actions, ok := coerceToStringAnyMap(raw)
@@ -955,7 +1050,7 @@ func ValidateMmBlocksActions(o *Post) error {
 			return fmt.Errorf("mm_blocks_actions key exceeds %d chars", MaxMmBlocksActionKeyLength)
 		}
 		if !mmBlocksActionIDRegex.MatchString(key) {
-			return fmt.Errorf("mm_blocks_actions key %q must be alphanumeric", key)
+			return fmt.Errorf("mm_blocks_actions key %q must contain only letters, numbers, underscores, or hyphens", key)
 		}
 		entryMap, ok := coerceToStringAnyMap(entry)
 		if !ok {
@@ -965,7 +1060,8 @@ func ValidateMmBlocksActions(o *Post) error {
 		if spec == nil {
 			return fmt.Errorf("mm_blocks_actions entry %q has invalid type or shape", key)
 		}
-		if spec.Type == MmBlocksActionTypeExternal {
+		switch spec.Type {
+		case MmBlocksActionTypeExternal:
 			if err := validateIntegrationURL(spec.URL); err != nil {
 				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
 			}
@@ -987,9 +1083,16 @@ func ValidateMmBlocksActions(o *Post) error {
 					return fmt.Errorf("mm_blocks_actions entry %q context key exceeds %d chars", key, MaxActionQueryKeyLength)
 				}
 			}
+		case MmBlocksActionTypeOpenURL:
+			if err := validateOpenURL(spec.URL); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
+			}
+			if err := ValidateActionQuery(spec.Query); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q static query: %w", key, err)
+			}
 		}
 	}
-	return nil
+	return validateMmBlocksActionsPairing(o, actions)
 }
 
 // ValidateActionQuery bounds the size of user-supplied per-click query
@@ -1028,10 +1131,45 @@ func validateIntegrationURL(rawURL string) error {
 	if parseErr != nil {
 		return fmt.Errorf("must have a valid integration URL: %w", parseErr)
 	}
-	if strings.Contains(u.Path, "/../") || strings.HasSuffix(u.Path, "/..") {
+	if pathHasTraversalSegment(u.Path) {
 		return fmt.Errorf("integration URL must not contain path traversal segments")
 	}
 	return nil
+}
+
+// validateOpenURL bounds openURL goto targets. Relative paths (/) are used
+// for in-app navigation via applyIntegrationGotoLocation; http(s) URLs open in
+// a new tab. Plugin integration paths are not allowed here — those belong on
+// external actions.
+func validateOpenURL(rawURL string) error {
+	if rawURL == "" {
+		return fmt.Errorf("must have a non-empty URL")
+	}
+	if strings.HasPrefix(rawURL, "/") {
+		if strings.HasPrefix(rawURL, "//") {
+			return fmt.Errorf("must not be a protocol-relative URL")
+		}
+		if strings.HasPrefix(rawURL, "/plugins/") {
+			return fmt.Errorf("plugin paths are not allowed for openURL actions")
+		}
+		u, parseErr := url.Parse(rawURL)
+		if parseErr != nil {
+			return fmt.Errorf("must have a valid path: %w", parseErr)
+		}
+		if pathHasTraversalSegment(u.Path) {
+			return fmt.Errorf("must not contain path traversal segments")
+		}
+		return nil
+	}
+	if !IsValidHTTPURL(rawURL) {
+		return fmt.Errorf("must have a valid http or https URL, or a path starting with /")
+	}
+	return nil
+}
+
+func pathHasTraversalSegment(path string) bool {
+	return strings.Contains(path, "/../") || strings.HasSuffix(path, "/..") ||
+		path == "/.." || strings.HasPrefix(path, "/..")
 }
 
 func (o *Post) GenerateActionIds() {
@@ -1084,14 +1222,18 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 			}
 
 			b, _ := json.Marshal(c)
-			action.Cookie, _ = encryptPostActionCookie(string(b), secret)
+			action.Cookie, _ = EncryptPostActionCookie(string(b), secret)
 		}
 	}
+
+	AddMmBlocksActionCookies(p, secret)
 
 	return p
 }
 
-func encryptPostActionCookie(plain string, secret []byte) (string, error) {
+// EncryptPostActionCookie encrypts a plaintext post action cookie payload.
+// Exposed for testing.
+func EncryptPostActionCookie(plain string, secret []byte) (string, error) {
 	if len(secret) == 0 {
 		return plain, nil
 	}

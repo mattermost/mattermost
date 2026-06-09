@@ -134,7 +134,7 @@ exports[`components/post_view/ShowMore should match snapshot, PostMessageView on
   >
     <div
       class="post-message__text-container"
-      style=""
+      style="max-height: 200px;"
     />
     <button
       class="post-preview-collapse__show-more-button color--link"

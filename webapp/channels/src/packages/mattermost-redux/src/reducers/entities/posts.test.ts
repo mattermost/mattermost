@@ -357,6 +357,72 @@ describe('posts', () => {
         });
     });
 
+    describe('ephemeral post edits (integration update / UpdateEphemeralPost)', () => {
+        it('should preserve create_at and root_id when an edited ephemeral arrives with zero create_at', () => {
+            const state = deepFreeze({
+                eph1: {
+                    id: 'eph1',
+                    channel_id: 'ch1',
+                    root_id: 'root1',
+                    type: Posts.POST_TYPES.EPHEMERAL,
+                    message: 'before',
+                    create_at: 5000,
+                    update_at: 5000,
+                    user_id: 'user1',
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POST,
+                data: {
+                    id: 'eph1',
+                    channel_id: 'ch1',
+                    root_id: '',
+                    type: Posts.POST_TYPES.EPHEMERAL,
+                    message: 'after',
+                    create_at: 0,
+                    update_at: 9000,
+                    user_id: 'user1',
+                },
+            });
+
+            expect(nextState.eph1.create_at).toBe(5000);
+            expect(nextState.eph1.root_id).toBe('root1');
+            expect(nextState.eph1.message).toBe('after');
+            expect(nextState.eph1.update_at).toBe(9000);
+        });
+
+        it('should preserve user_id when an edited ephemeral arrives with empty user_id', () => {
+            const state = deepFreeze({
+                eph1: {
+                    id: 'eph1',
+                    channel_id: 'ch1',
+                    type: Posts.POST_TYPES.EPHEMERAL,
+                    message: 'before',
+                    create_at: 5000,
+                    update_at: 5000,
+                    user_id: 'creator1',
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POST,
+                data: {
+                    id: 'eph1',
+                    channel_id: 'ch1',
+                    type: Posts.POST_TYPES.EPHEMERAL,
+                    message: 'after',
+                    create_at: 5000,
+                    update_at: 9000,
+                    user_id: '',
+                },
+            });
+
+            expect(nextState.eph1.user_id).toBe('creator1');
+            expect(nextState.eph1.message).toBe('after');
+        });
+    });
+
     describe(`deleting a post (${PostTypes.POST_DELETED})`, () => {
         it('should mark the post as deleted and remove the rest of the thread', () => {
             const state = deepFreeze({

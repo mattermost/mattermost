@@ -448,7 +448,7 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 		}
 
 		if post.DeleteAt == 0 {
-			searchPost := ESPostFromPostForIndexing(post)
+			searchPost := ESPostFromPostForIndexing(post, worker.jobServer.Config().FeatureFlags.MmBlocksEnabled)
 
 			data, err := json.Marshal(searchPost)
 			if err != nil {
