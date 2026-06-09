@@ -482,6 +482,50 @@ func TestAssignAccessControlPolicyToTeams(t *testing.T) {
 		require.Contains(t, saved.Imports, parentID, "Inherit must set Imports to the parent ID")
 		mockACS.AssertExpectations(t)
 	})
+
+	// Auto-add is the team-child's Active flag. Assigning a policy must not turn
+	// it on by itself — the child inherits the parent's Active, so an inactive
+	// parent leaves auto-add off (the sync still enforces removal regardless).
+	for _, tc := range []struct {
+		name         string
+		parentActive bool
+	}{
+		{"inactive parent leaves auto-add off", false},
+		{"active parent carries through", true},
+	} {
+		t.Run("team-child Active mirrors the parent: "+tc.name, func(t *testing.T) {
+			team := th.CreateTeam(t)
+
+			activeParent := &model.AccessControlPolicy{
+				Type:     model.AccessControlPolicyTypeParent,
+				ID:       parentID,
+				Name:     "parentPolicy",
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Active:   tc.parentActive,
+				Rules: []model.AccessControlPolicyRule{
+					{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+				},
+			}
+
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().ch.AccessControl = mockACS
+			t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+			mockACS.On("GetPolicy", th.Context, parentID).Return(activeParent, nil)
+			mockACS.On("GetPolicy", th.Context, team.Id).
+				Return((*model.AccessControlPolicy)(nil), model.NewAppError("GetPolicy", "not_found", nil, "", http.StatusNotFound))
+
+			var saved *model.AccessControlPolicy
+			mockACS.On("SavePolicy", th.Context, mock.AnythingOfType("*model.AccessControlPolicy")).
+				Run(func(args mock.Arguments) { saved = args.Get(1).(*model.AccessControlPolicy) }).
+				Return(&model.AccessControlPolicy{ID: team.Id, Type: model.AccessControlPolicyTypeTeam}, nil)
+
+			_, appErr := th.App.AssignAccessControlPolicyToTeams(th.Context, parentID, []string{team.Id})
+			require.Nil(t, appErr)
+			require.Equal(t, tc.parentActive, saved.Active, "team-child Active must equal the parent's, never be force-enabled")
+		})
+	}
 }
 
 func TestUnassignPoliciesFromTeams(t *testing.T) {
