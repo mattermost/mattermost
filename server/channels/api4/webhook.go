@@ -186,7 +186,8 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		newOwner, err := c.App.GetUser(updatedHook.UserId)
+		var newOwner *model.User
+		newOwner, err = c.App.GetUser(updatedHook.UserId)
 		if err != nil {
 			c.Err = err
 			return
