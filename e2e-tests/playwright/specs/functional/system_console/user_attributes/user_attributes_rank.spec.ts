@@ -131,13 +131,18 @@ test.describe('System Console - Ranked User Attributes', () => {
     });
 
     /**
-     * @objective The Edit ranking modal rejects a numeric rank that collides with
-     * another option: an inline error appears and the modal Save is disabled.
+     * @objective The Edit ranking modal's add-value inline input rejects a label
+     * already used by another option: a "Values must be unique." error appears and
+     * the duplicate cannot be committed until the label is changed.
+     *
+     * The modal uses drag-and-drop ordering (rank = position), so duplicate ranks
+     * are impossible by construction; this test covers the duplicate-label guard on
+     * the add-value input instead.
      *
      * @precondition
      * A ranked attribute with options Unclassified(1), Secret(2), TopSecret(3) exists.
      */
-    test('rejects a duplicate rank inline in the Edit ranking modal', {tag: '@user_attributes'}, async ({pw}) => {
+    test('rejects a duplicate label in the Edit ranking modal add input', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
         const name = `clearance_${Date.now()}`;
@@ -153,16 +158,23 @@ test.describe('System Console - Ranked User Attributes', () => {
             await sp.goto();
             await sp.openEditRanking(field.id);
 
-            // * Modal shows one row per option (highest rank first)
+            // * Modal shows one row per option
             await expect(sp.rankedModalRows()).toHaveCount(3);
 
-            // # Set the second row's rank (Secret = 2) to a value already used (3 = TopSecret)
-            const secretRankInput = sp.rankedModalRankInputs().nth(1);
-            await secretRankInput.fill('3');
+            // # Open the add-value input and type a label already in use
+            await sp.addRankedModalValue();
+            const addInput = sp.rankedModal().locator('.ranked-schema-modal__add-input');
+            await addInput.fill('Secret');
 
-            // * Inline duplicate-rank error appears and Save is disabled
-            await expect(sp.rankedModalError()).toContainText('Rank 3 is already used by "TopSecret".');
-            await expect(sp.rankedModalSaveButton()).toBeDisabled();
+            // * Duplicate-label error appears
+            await expect(sp.rankedModal().getByText('Values must be unique.')).toBeVisible();
+
+            // * Save is still enabled (duplicate prevents commit, not save of existing rows)
+            await expect(sp.rankedModalSaveButton()).toBeEnabled();
+
+            // # Correct the label — duplicate error disappears
+            await addInput.fill('Confidential');
+            await expect(sp.rankedModal().getByText('Values must be unique.')).not.toBeVisible();
         } finally {
             await cleanup(adminClient);
         }
@@ -215,8 +227,11 @@ test.describe('System Console - Ranked User Attributes', () => {
     });
 
     /**
-     * @objective Adding a value in the Edit ranking modal blocks save until the new
-     * row is labeled, then persists it with the next sequential rank.
+     * @objective Adding a value in the Edit ranking modal persists it with the next
+     * sequential rank.
+     *
+     * The add-value affordance shows an inline text input; blurring the input
+     * commits the new label as the highest-ranked option.
      *
      * @precondition
      * A ranked attribute with options Unclassified(1), Secret(2) exists.
@@ -236,17 +251,20 @@ test.describe('System Console - Ranked User Attributes', () => {
             await sp.openEditRanking(field.id);
             await expect(sp.rankedModalRows()).toHaveCount(2);
 
-            // # Add a value — appends a row with the next rank (3) but no label yet
+            // # Click "Add value" — shows the inline add input (counted as a row)
             await sp.addRankedModalValue();
             await expect(sp.rankedModalRows()).toHaveCount(3);
 
-            // * An unlabeled row blocks save
-            await expect(sp.rankedModalSaveButton()).toBeDisabled();
+            // * Save is available (the inline input is not yet a committed row)
+            await expect(sp.rankedModalSaveButton()).toBeEnabled();
 
-            // # Label the new row (it is the top/highest-rank row)
-            await sp.rankedModalNameInputs().first().fill('TopSecret');
+            // # Type the new label and commit it by blurring
+            const addInput = sp.rankedModal().locator('.ranked-schema-modal__add-input');
+            await addInput.fill('TopSecret');
+            await addInput.blur();
 
-            // * Save becomes available, commit the modal then the page
+            // * Three committed rows; save remains available
+            await expect(sp.rankedModalRows()).toHaveCount(3);
             await expect(sp.rankedModalSaveButton()).toBeEnabled();
             await sp.saveRankedModal();
             await sp.saveAndWaitForSettled();

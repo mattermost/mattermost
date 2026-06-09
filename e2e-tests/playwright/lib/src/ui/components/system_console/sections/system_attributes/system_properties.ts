@@ -354,18 +354,6 @@ export default class SystemProperties {
         return this.rankedModal().locator('.ranked-schema-modal__row');
     }
 
-    rankedModalNameInputs(): Locator {
-        return this.rankedModal().locator('.ranked-schema-modal__name-input');
-    }
-
-    rankedModalRankInputs(): Locator {
-        return this.rankedModal().locator('.ranked-schema-modal__rank-input');
-    }
-
-    rankedModalError(): Locator {
-        return this.rankedModal().locator('.ranked-schema-modal__error');
-    }
-
     rankedModalSaveButton(): Locator {
         return this.rankedModal().getByRole('button', {name: 'Save'});
     }
