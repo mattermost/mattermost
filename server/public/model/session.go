@@ -351,7 +351,7 @@ func IsValidVoIPDeviceId(deviceId string) bool {
 	return IsValidDeviceId(deviceId, voIPDevicePlatforms)
 }
 
-// RedactDeviceId returns "<platform>:<first-8>…" for safe inclusion in logs.
+// RedactDeviceId returns "<platform>:<first-16>…" for safe inclusion in logs.
 // Returns "" for empty input and the original prefix for malformed input.
 func RedactDeviceId(deviceId string) string {
 	if deviceId == "" {
@@ -361,8 +361,8 @@ func RedactDeviceId(deviceId string) string {
 	if !ok || token == "" {
 		return platform
 	}
-	if len(token) <= 8 {
+	if len(token) <= 16 {
 		return platform + ":" + token
 	}
-	return platform + ":" + token[:8] + "…"
+	return platform + ":" + token[:16] + "…"
 }

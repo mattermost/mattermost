@@ -2141,8 +2141,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
-	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voIPDeviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voIPDeviceId))
 
 	var user *model.User
 	var err *model.AppError
@@ -2251,7 +2251,7 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("login_method", "desktop_token")
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 
 	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
@@ -2393,7 +2393,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
@@ -2684,8 +2684,8 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceId, voIPDeviceId string) {
 	auditRec := c.MakeAuditRecord(model.AuditEventAttachDeviceId, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
-	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voIPDeviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voIPDeviceId))
 
 	if deviceId != "" && !model.IsValidStandardDeviceId(deviceId) {
 		c.SetInvalidParam("device_id")

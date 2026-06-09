@@ -219,3 +219,25 @@ func TestIsValidStandardDeviceId(t *testing.T) {
 		})
 	}
 }
+
+func TestRedactDeviceId(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Input    string
+		Expected string
+	}{
+		{"empty", "", ""},
+		{"no colon", "apple_rn", "apple_rn"},
+		{"empty token after colon", "apple_rn:", "apple_rn"},
+		{"short token passes through", PushNotifyAppleReactNative + ":1234", PushNotifyAppleReactNative + ":1234"},
+		{"16-char token passes through", PushNotifyAppleReactNative + ":0123456789abcdef", PushNotifyAppleReactNative + ":0123456789abcdef"},
+		{"17-char token truncated", PushNotifyAppleReactNative + ":0123456789abcdefg", PushNotifyAppleReactNative + ":0123456789abcdef…"},
+		{"long token truncated", PushNotifyAndroidReactNative + ":abcdef0123456789cafebabe1234", PushNotifyAndroidReactNative + ":abcdef0123456789…"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, RedactDeviceId(tc.Input))
+		})
+	}
+}

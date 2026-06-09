@@ -1162,6 +1162,29 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 			expectedDeviceID:  "standardtoken",
 			expectedTransport: model.PushTransportStandard,
 		},
+		{
+			// "Silence chat, keep ringing": iOS user turned off notifications,
+			// the standard alert token went 410 (last_removed_device_id set),
+			// but PushKit registration is independent and stays alive.
+			name:              "VoIP transport with dead standard but live VoIP uses VoIP",
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
+			sessionProps:      map[string]string{model.SessionPropLastRemovedDeviceId: standardToken},
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "voiptoken",
+			expectedTransport: model.PushTransportVoIP,
+		},
+		{
+			// Companion to "silence chat, keep ringing": a chat push must NOT
+			// fall through to the VoIP token; the user explicitly opted out.
+			name:         "standard transport with dead standard token sends nothing",
+			deviceId:     standardToken,
+			voIPDeviceId: voIPToken,
+			sessionProps: map[string]string{model.SessionPropLastRemovedDeviceId: standardToken},
+			transport:    model.PushTransportStandard,
+			expectSent:   false,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
@@ -1190,6 +1213,13 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 			}
 			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
 			require.Nil(t, appErr)
+
+			if !tc.expectSent {
+				assert.Never(t, func() bool {
+					return len(handler.notifications()) > 0
+				}, 500*time.Millisecond, 10*time.Millisecond, "expected no push notifications")
+				return
+			}
 
 			require.Eventually(t, func() bool {
 				return len(handler.notifications()) == 1

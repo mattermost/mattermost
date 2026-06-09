@@ -179,15 +179,22 @@ func (me SqlSessionStore) GetLRUSessions(rctx request.CTX, userId string, limit 
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	now := model.GetMillis()
 
-	// Start with the base query
+	// Include sessions where EITHER token (standard or VoIP) is live.
+	// The per-session dispatch picks the transport based on which is usable.
 	builder := me.sessionSelectQuery.
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.NotEq{"ExpiresAt": 0}).
 		Where(sq.GtOrEq{"ExpiresAt": now}).
-		Where(sq.NotEq{"DeviceId": ""})
-
-	// Add the last_removed_device_id condition
-	builder = builder.Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
+		Where(sq.Or{
+			sq.And{
+				sq.NotEq{"DeviceId": ""},
+				sq.Expr("DeviceId != COALESCE(Props->>'last_removed_device_id', '')"),
+			},
+			sq.And{
+				sq.NotEq{"VoIPDeviceId": ""},
+				sq.Expr("VoIPDeviceId != COALESCE(Props->>'last_removed_voip_device_id', '')"),
+			},
+		})
 
 	sessions := []*model.Session{}
 

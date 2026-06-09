@@ -52,6 +52,7 @@ func (a *App) NotifySessionsExpired() error {
 			mlog.String("push_type", tmpMessage.Type),
 			mlog.String("user_id", session.UserId),
 			mlog.String("session_id", session.Id),
+			mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
 			mlog.String("post_id", msg.PostId),
 		))
 
@@ -80,7 +81,11 @@ func (a *App) NotifySessionsExpired() error {
 
 		err = a.ch.srv.Store().Session().UpdateExpiredNotify(session.Id, true)
 		if err != nil {
-			mlog.Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
+			mlog.Error("Failed to update ExpiredNotify flag",
+				mlog.String("sessionid", session.Id),
+				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
+				mlog.Err(err),
+			)
 		}
 	}
 	return nil

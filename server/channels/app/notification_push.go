@@ -158,6 +158,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("reason", model.NotificationReasonSessionExpired),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
+				mlog.String("deviceId", model.RedactDeviceId(session.DeviceId)),
 			)
 			continue
 		}
@@ -165,14 +166,32 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		// We made a copy to avoid decoding and parsing all the time
 		tmpMessage := msg.DeepCopy()
 
-		deviceId := session.DeviceId
+		standardUsable := session.DeviceId != "" && session.Props[model.SessionPropLastRemovedDeviceId] != session.DeviceId
 		voIPUsable := session.VoIPDeviceId != "" && session.Props[model.SessionPropLastRemovedVoIPDeviceId] != session.VoIPDeviceId
-		if tmpMessage.Transport == model.PushTransportVoIP && voIPUsable {
-			deviceId = session.VoIPDeviceId
+
+		var deviceId string
+		if tmpMessage.Transport == model.PushTransportVoIP {
+			switch {
+			case voIPUsable:
+				deviceId = session.VoIPDeviceId
+			case standardUsable:
+				// VoIP token not set or dead but standard is alive — downgrade so the
+				// caller still surfaces as a chat-style alert.
+				tmpMessage.Transport = model.PushTransportStandard
+				deviceId = session.DeviceId
+			default:
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonSessionExpired, tmpMessage.Platform)
+				continue
+			}
 		} else {
-			// No VoIP token for this session — downgrade so the proxy dispatches
-			// via the standard alert path instead of the VoIP one.
-			tmpMessage.Transport = model.PushTransportStandard
+			if !standardUsable {
+				// No live standard token. Don't fall back to the VoIP token
+				// for non-call pushes — the user explicitly opted out of
+				// chat alerts (the "silence chat, keep ringing" case).
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonSessionExpired, tmpMessage.Platform)
+				continue
+			}
+			deviceId = session.DeviceId
 		}
 		tmpMessage.SetDeviceIdAndPlatform(deviceId)
 		tmpMessage.AckId = model.NewId()
@@ -187,7 +206,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("userId", session.UserId),
 				mlog.String("postId", tmpMessage.PostId),
 				mlog.String("channelId", tmpMessage.ChannelId),
-				mlog.String("deviceId", tmpMessage.DeviceId),
+				mlog.String("session_id", session.Id),
+				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
 				mlog.String("status", err.Error()),
 			)
 			continue
@@ -209,6 +229,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("push_type", tmpMessage.Type),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
+				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
 				mlog.Err(err),
 			)
 			continue
@@ -220,6 +241,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.String("push_type", tmpMessage.Type),
 			mlog.String("user_id", session.UserId),
 			mlog.String("session_id", session.Id),
+			mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
 			mlog.String("status", model.PushSendSuccess),
 		)
 

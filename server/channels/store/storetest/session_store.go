@@ -468,25 +468,69 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	s5, err = ss.Session().Save(rctx, s5)
 	require.NoError(t, err)
 
+	// Create session 6 with dead standard token but live VoIP token - should be INCLUDED
+	// (the "silence chat, keep ringing" case: alert topic dead, PushKit still alive).
+	s6 := &model.Session{}
+	s6.UserId = userId
+	s6.ExpiresAt = model.GetMillis() + 100000
+	s6.DeviceId = model.NewId()
+	s6.VoIPDeviceId = model.NewId()
+	s6.AddProp(model.SessionPropLastRemovedDeviceId, s6.DeviceId)
+	s6, err = ss.Session().Save(rctx, s6)
+	require.NoError(t, err)
+
+	// Create session 7 with live standard + dead VoIP - should be INCLUDED (via standard).
+	s7 := &model.Session{}
+	s7.UserId = userId
+	s7.ExpiresAt = model.GetMillis() + 100000
+	s7.DeviceId = model.NewId()
+	s7.VoIPDeviceId = model.NewId()
+	s7.AddProp(model.SessionPropLastRemovedVoIPDeviceId, s7.VoIPDeviceId)
+	s7, err = ss.Session().Save(rctx, s7)
+	require.NoError(t, err)
+
+	// Create session 8 with both tokens dead - should be EXCLUDED.
+	s8 := &model.Session{}
+	s8.UserId = userId
+	s8.ExpiresAt = model.GetMillis() + 100000
+	s8.DeviceId = model.NewId()
+	s8.VoIPDeviceId = model.NewId()
+	s8.AddProp(model.SessionPropLastRemovedDeviceId, s8.DeviceId)
+	s8.AddProp(model.SessionPropLastRemovedVoIPDeviceId, s8.VoIPDeviceId)
+	s8, err = ss.Session().Save(rctx, s8)
+	require.NoError(t, err)
+
+	// Create session 9 with VoIP token only (no standard) - should be INCLUDED.
+	s9 := &model.Session{}
+	s9.UserId = userId
+	s9.ExpiresAt = model.GetMillis() + 100000
+	s9.VoIPDeviceId = model.NewId()
+	s9, err = ss.Session().Save(rctx, s9)
+	require.NoError(t, err)
+
 	// Get sessions with active device IDs
 	sessions, err := ss.Session().GetSessionsWithActiveDeviceIds(userId)
 	require.NoError(t, err)
 
-	// We should have 2 sessions (s1 and s2)
-	require.Len(t, sessions, 2)
+	// Expected included: s1, s2, s6, s7, s9.
+	require.Len(t, sessions, 5)
 
-	// Verify s1 and s2 are in the result
 	sessionIds := make(map[string]bool)
 	for _, session := range sessions {
 		sessionIds[session.Id] = true
 	}
 	require.True(t, sessionIds[s1.Id])
 	require.True(t, sessionIds[s2.Id])
+	require.True(t, sessionIds[s6.Id])
+	require.True(t, sessionIds[s7.Id])
+	require.True(t, sessionIds[s9.Id])
 
-	// Verify s3, s4, and s5 are not in the result
+	// Excluded: s3 (dead standard, no VoIP), s4 (no device IDs), s5 (expired),
+	// s8 (both dead).
 	require.False(t, sessionIds[s3.Id])
 	require.False(t, sessionIds[s4.Id])
 	require.False(t, sessionIds[s5.Id])
+	require.False(t, sessionIds[s8.Id])
 }
 
 func testUpdateExpiredNotify(t *testing.T, rctx request.CTX, ss store.Store) {
