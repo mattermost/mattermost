@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -112,6 +113,7 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 // unnest — one row per index. Used by the audit delivery target's batching
 // worker pool to flush an accumulated batch.
 func (s *SqlAuditStorage) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+	fmt.Println(fmt.Sprintf("MarkBulk: %d records", len(records)))
 	if len(records) == 0 {
 		return nil
 	}
