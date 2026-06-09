@@ -4314,7 +4314,7 @@ func TestGetPostsForChannelAroundLastUnreadBurnOnRead(t *testing.T) {
 	createExpiredBoRRun := func(t *testing.T, ch *model.Channel, n int) []string {
 		t.Helper()
 		ids := make([]string, 0, n)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			bor := createBurnOnReadPost(t, client2, ch, fmt.Sprintf("secret %d", i))
 			_, _, err := client1.RevealPost(context.Background(), bor.Id)
 			require.NoError(t, err)
