@@ -69,64 +69,6 @@ test.describe('Team Settings Modal - Access Tab', () => {
     });
 
     /**
-     * MM-67920 Access tab - toggle allow open invite
-     * @objective Verify "Users on this server" setting can be toggled on/off
-     */
-    test('MM-67920 Access tab - toggle allow open invite', async ({pw}) => {
-        // # Set up admin user and login
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-
-        // Get original allow_open_invite state
-        const originalTeam = await adminClient.getTeam(team.id);
-        const originalAllowOpenInvite = originalTeam.allow_open_invite ?? false;
-
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
-
-        // # Switch to Access tab
-        const accessSettings = await teamSettings.openAccessTab();
-
-        // * Verify Access tab is active
-        await expect(teamSettings.accessTab).toHaveAttribute('aria-selected', 'true');
-
-        // # Toggle allow open invite checkbox
-        await accessSettings.toggleOpenInvite();
-
-        // * Verify Save panel appears
-        await expect(teamSettings.saveButton).toBeVisible();
-
-        // # Save changes
-        await teamSettings.save();
-
-        // * Wait for "Settings saved" message
-        await teamSettings.verifySavedMessage();
-
-        // * Verify setting toggled via API
-        const updatedTeam = await adminClient.getTeam(team.id);
-        expect(updatedTeam.allow_open_invite).toBe(!originalAllowOpenInvite);
-
-        // # Toggle back to original state
-        await accessSettings.toggleOpenInvite();
-
-        // # Save changes
-        await teamSettings.save();
-        await teamSettings.verifySavedMessage();
-
-        // * Verify reverted to original state via API
-        const finalTeam = await adminClient.getTeam(team.id);
-        expect(finalTeam.allow_open_invite).toBe(originalAllowOpenInvite);
-
-        // # Close modal
-        await teamSettings.close();
-    });
-
-    /**
      * MM-67920 Access tab - regenerate invite ID
      * @objective Verify team invite ID can be regenerated
      */

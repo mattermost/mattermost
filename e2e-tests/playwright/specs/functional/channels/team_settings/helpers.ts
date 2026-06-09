@@ -271,6 +271,70 @@ export async function addAttributeRule(container: Locator, page: Page, value: st
     await valueInput.press('Tab');
 }
 
+export async function enableTeamMembershipABACConfig(client: Client4) {
+    await client.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
+        ServiceSettings: {
+            FeatureFlagTeamMembershipAccessControl: true,
+        },
+    } as any);
+}
+
+export async function createTeamMembershipPolicy(
+    client: Client4,
+    teamId: string,
+    expression: string,
+    active = false,
+) {
+    return (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies`, {
+        method: 'put',
+        body: JSON.stringify({
+            id: teamId,
+            name: `team-policy-${teamId}`,
+            type: 'team',
+            active,
+            revision: 0,
+            rules: [{expression, actions: ['membership']}],
+            imports: [],
+        }),
+    });
+}
+
+export async function assignTeamToParentPolicy(client: Client4, policyId: string, teamId: string) {
+    return (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}/assign`, {
+        method: 'post',
+        body: JSON.stringify({team_ids: [teamId]}),
+    });
+}
+
+export async function getTeamAccessControlPolicy(client: Client4, teamId: string) {
+    return (client as any).doFetch(
+        `${client.getBaseRoute()}/teams/${teamId}/access_control/policy`,
+        {method: 'GET'},
+    );
+}
+
+export async function createPublicTeam(client: Client4, suffix: string) {
+    return client.createTeam({
+        name: `pub-team-${suffix}`,
+        display_name: `Pub Team ${suffix}`,
+        type: 'O',
+        allow_open_invite: true,
+    } as any);
+}
+
+export async function createPrivateTeam(client: Client4, suffix: string) {
+    return client.createTeam({
+        name: `priv-team-${suffix}`,
+        display_name: `Priv Team ${suffix}`,
+        type: 'I',
+        allow_open_invite: false,
+    } as any);
+}
+
 /**
  * Adds a channel to the policy via the channel selector modal.
  */

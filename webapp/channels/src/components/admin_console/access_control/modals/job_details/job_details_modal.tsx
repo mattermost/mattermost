@@ -12,6 +12,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as ChannelActions from 'mattermost-redux/actions/channels';
+import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -22,12 +23,13 @@ import type {GlobalState} from 'types/store';
 
 import SearchableSyncJobChannelList from './searchable_sync_job_channel_list';
 import type {SyncResults} from './searchable_sync_job_channel_list';
+import SearchableSyncJobTeamList from './searchable_sync_job_team_list';
+import type {TeamSyncResults} from './searchable_sync_job_team_list';
 
-import UserListModal, {type ChannelMembersSyncResults} from '../user_sync/user_sync_modal';
+import UserListModal, {type ChannelMembersSyncResults, type TeamMembersSyncResults} from '../user_sync/user_sync_modal';
 
 import './job_details_modal.scss';
 
-// Component to display job status
 type StatusIndicatorProps = {
     status: string;
 };
@@ -56,12 +58,14 @@ const StatusIndicator = ({status}: StatusIndicatorProps): JSX.Element => {
 };
 
 type Props = {
-    job: Job ;
+    job: Job;
     onExited: () => void;
 };
 
 export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const dispatch = useDispatch();
+
+    // Channel sync state
     const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
     const [selectedChannelName, setSelectedChannelName] = useState<string>('');
     const [selectedChannelResults, setSelectedChannelResults] = useState<ChannelMembersSyncResults | null>(null);
@@ -71,80 +75,124 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const [searchTerm, setSearchTerm] = useState('');
     const [allChannelsForList, setAllChannelsForList] = useState<Channel[]>([]);
 
+    // Team sync state
+    const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+    const [selectedTeamName, setSelectedTeamName] = useState<string>('');
+    const [selectedTeamResults, setSelectedTeamResults] = useState<TeamMembersSyncResults | null>(null);
+    const [teamSyncResults, setTeamSyncResults] = useState<TeamSyncResults | null>(null);
+    const [teamSearchTerm, setTeamSearchTerm] = useState('');
+    const [allTeamsForList, setAllTeamsForList] = useState<Team[]>([]);
+    const [teamEntityLookup, setTeamEntityLookup] = useState<IDMappedObjects<Team>>({});
+
     const pageSize = 10;
 
-    // Get state for lookups
     const state = useSelector((state: GlobalState) => state);
 
-    // Parse sync results initially
+    const isChannelSyncJob = job.type === 'access_control_sync';
+    const isTeamSyncJob = job.type === 'access_control_team_sync';
+
+    // Parse channel sync results
     useEffect(() => {
-        if (job?.data?.sync_results) {
-            const parsedResults = JSON.parse(job.data.sync_results);
-            setSyncResults(parsedResults);
-
-            // Collect all channel IDs and user IDs for lookup
-            const channelIds: string[] = [];
-
-            // Use a safer type cast for Object.entries
-            Object.entries(parsedResults).forEach((entry) => {
-                const channelId = entry[0];
-
-                channelIds.push(channelId);
-            });
-
-            // Fetch channel and user data if we have IDs
-            if (channelIds.length > 0) {
-                // Fetch each channel individually
-                channelIds.forEach((id) => {
-                    dispatch(ChannelActions.getChannel(id));
-                });
-            }
+        if (!isChannelSyncJob || !job?.data?.sync_results) {
+            return;
         }
-    }, [job?.data?.sync_results, dispatch]);
+        const parsedResults = JSON.parse(job.data.sync_results);
+        setSyncResults(parsedResults);
 
-    // Build channel lookup from state and prepare allChannelsForList
+        const channelIds: string[] = Object.keys(parsedResults);
+        channelIds.forEach((id) => {
+            dispatch(ChannelActions.getChannel(id));
+        });
+    }, [job?.data?.sync_results, isChannelSyncJob, dispatch]);
+
+    // Parse team sync results
     useEffect(() => {
-        if (syncResults) {
-            const channels: IDMappedObjects<Channel> = {};
-            const teams: IDMappedObjects<Team> = {};
-            const channelsForList: Channel[] = [];
+        if (!isTeamSyncJob || !job?.data?.sync_results) {
+            return;
+        }
+        const parsedResults: TeamSyncResults = JSON.parse(job.data.sync_results);
+        setTeamSyncResults(parsedResults);
 
-            Object.keys(syncResults).forEach((channelId) => {
-                const channel = getChannel(state, channelId);
-                if (channel) {
-                    channels[channelId] = channel;
-                    channelsForList.push(channel);
-                    if (!teams[channel.team_id]) {
-                        const team = getTeam(state, channel.team_id);
-                        if (team) {
-                            teams[team.id] = team;
-                        }
+        const teamIds: string[] = Object.keys(parsedResults);
+        teamIds.forEach((id) => {
+            dispatch(fetchTeam(id) as any);
+        });
+    }, [job?.data?.sync_results, isTeamSyncJob, dispatch]);
+
+    // Build channel lookup
+    useEffect(() => {
+        if (!syncResults) {
+            return;
+        }
+        const channels: IDMappedObjects<Channel> = {};
+        const teams: IDMappedObjects<Team> = {};
+        const channelsForList: Channel[] = [];
+
+        Object.keys(syncResults).forEach((channelId) => {
+            const channel = getChannel(state, channelId);
+            if (channel) {
+                channels[channelId] = channel;
+                channelsForList.push(channel);
+                if (!teams[channel.team_id]) {
+                    const team = getTeam(state, channel.team_id);
+                    if (team) {
+                        teams[team.id] = team;
                     }
                 }
-            });
+            }
+        });
 
-            setTeamLookup(teams);
-            setChannelLookup(channels);
-            setAllChannelsForList(channelsForList);
-        }
+        setTeamLookup(teams);
+        setChannelLookup(channels);
+        setAllChannelsForList(channelsForList);
     }, [syncResults, state]);
 
-    const handleViewDetails = (channelId: string, channelName: string, results: ChannelMembersSyncResults) => {
+    // Build team lookup
+    useEffect(() => {
+        if (!teamSyncResults) {
+            return;
+        }
+        const teams: IDMappedObjects<Team> = {};
+        const teamsForList: Team[] = [];
+
+        Object.keys(teamSyncResults).forEach((teamId) => {
+            const team = getTeam(state, teamId);
+            if (team) {
+                teams[teamId] = team;
+                teamsForList.push(team);
+            }
+        });
+
+        setTeamEntityLookup(teams);
+        setAllTeamsForList(teamsForList);
+    }, [teamSyncResults, state]);
+
+    const handleViewChannelDetails = (channelId: string, channelName: string, results: ChannelMembersSyncResults) => {
         setSelectedChannel(channelId);
         setSelectedChannelName(channelName);
         setSelectedChannelResults(results);
     };
 
-    const handleCloseUserListModal = () => {
+    const handleCloseChannelUserListModal = () => {
         setSelectedChannel(null);
         setSelectedChannelName('');
         setSelectedChannelResults(null);
     };
 
-    // Filter and search channels for SearchableSyncJobChannelList
+    const handleViewTeamDetails = (teamId: string, teamName: string, results: TeamMembersSyncResults) => {
+        setSelectedTeam(teamId);
+        setSelectedTeamName(teamName);
+        setSelectedTeamResults(results);
+    };
+
+    const handleCloseTeamUserListModal = () => {
+        setSelectedTeam(null);
+        setSelectedTeamName('');
+        setSelectedTeamResults(null);
+    };
+
     const getFilteredChannels = () => {
         let channels = allChannelsForList;
-
         if (searchTerm) {
             channels = channels.filter((channel) =>
                 channel.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,15 +200,24 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                 (channelLookup[channel.id] && teamLookup[channelLookup[channel.id].team_id]?.name.toLowerCase().includes(searchTerm.toLowerCase())),
             );
         }
-
-        // Add filtering by type (Public, Private, Archived) if needed based on currentFilter
-        // For now, it shows all channels from syncResults
         return channels;
     };
 
-    const filteredChannels = getFilteredChannels();
+    const getFilteredTeams = () => {
+        let teams = allTeamsForList;
+        if (teamSearchTerm) {
+            teams = teams.filter((team) =>
+                team.display_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
+                team.name.toLowerCase().includes(teamSearchTerm.toLowerCase()),
+            );
+        }
+        return teams;
+    };
 
-    const noResultsText = (
+    const filteredChannels = getFilteredChannels();
+    const filteredTeams = getFilteredTeams();
+
+    const noChannelResultsText = (
         <span className='no-results-message'>
             <FormattedMessage
                 id='admin.jobTable.syncResults.noResultsSearchable'
@@ -168,6 +225,19 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
             />
         </span>
     );
+
+    const noTeamResultsText = (
+        <span className='no-results-message'>
+            <FormattedMessage
+                id='admin.jobTable.syncResults.teams.noResultsSearchable'
+                defaultMessage='No teams match your search or filter.'
+            />
+        </span>
+    );
+
+    const isCanceled = job.status === 'canceled';
+    const isChannelCanceled = isCanceled && isChannelSyncJob;
+    const isTeamCanceled = isCanceled && isTeamSyncJob;
 
     return (
         <GenericModal
@@ -185,7 +255,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
             }
             modalSubheaderText={
                 <div className='modal-subheader-text'>
-                    {job.status === 'canceled' && job.type.includes('access_control_sync') ? (
+                    {isCanceled && (isChannelSyncJob || isTeamSyncJob) ? (
                         <FormattedMessage
                             id='admin.access_control.jobTable.details.subheader.canceled'
                             defaultMessage='Canceled at {canceledAt}'
@@ -221,7 +291,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     />
                 </div>
             )}
-            {job.status === 'canceled' && job.type.includes('access_control_sync') && (
+            {isChannelCanceled && (
                 <div className='canceled-status-content'>
                     <AlertBanner
                         mode='warning'
@@ -241,7 +311,27 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     />
                 </div>
             )}
-            {job.status !== 'error' && !(job.status === 'canceled' && job.type.includes('access_control_sync')) && job.type.includes('access_control_sync') && syncResults && (
+            {isTeamCanceled && (
+                <div className='canceled-status-content'>
+                    <AlertBanner
+                        mode='warning'
+                        variant='app'
+                        title={
+                            <FormattedMessage
+                                id='admin.access_control.jobTable.syncResults.canceled.title'
+                                defaultMessage='Job Canceled'
+                            />
+                        }
+                        message={
+                            <FormattedMessage
+                                id='admin.access_control.jobTable.syncResults.teams.canceled.message'
+                                defaultMessage='This sync job was canceled, likely because a newer sync job was started for the same team. Team members were not updated.'
+                            />
+                        }
+                    />
+                </div>
+            )}
+            {job.status !== 'error' && !isChannelCanceled && isChannelSyncJob && syncResults && (
                 <SearchableSyncJobChannelList
                     channels={filteredChannels}
                     teams={teamLookup}
@@ -249,18 +339,39 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     nextPage={() => {}}
                     isSearch={Boolean(searchTerm)}
                     search={setSearchTerm}
-                    onViewDetails={handleViewDetails}
-                    noResultsText={noResultsText}
+                    onViewDetails={handleViewChannelDetails}
+                    noResultsText={noChannelResultsText}
                     syncResults={syncResults}
                 />
             )}
-
+            {job.status !== 'error' && !isTeamCanceled && isTeamSyncJob && teamSyncResults && (
+                <SearchableSyncJobTeamList
+                    teams={filteredTeams}
+                    teamsPerPage={pageSize}
+                    nextPage={() => {}}
+                    isSearch={Boolean(teamSearchTerm)}
+                    search={setTeamSearchTerm}
+                    onViewDetails={handleViewTeamDetails}
+                    noResultsText={noTeamResultsText}
+                    syncResults={teamSyncResults}
+                />
+            )}
             {selectedChannel && selectedChannelResults && (
                 <UserListModal
                     channelId={selectedChannel}
                     channelName={selectedChannelName}
                     syncResults={selectedChannelResults}
-                    onClose={handleCloseUserListModal}
+                    resourceType='channel'
+                    onClose={handleCloseChannelUserListModal}
+                />
+            )}
+            {selectedTeam && selectedTeamResults && (
+                <UserListModal
+                    channelId={selectedTeam}
+                    channelName={selectedTeamName}
+                    syncResults={selectedTeamResults}
+                    resourceType='team'
+                    onClose={handleCloseTeamUserListModal}
                 />
             )}
         </GenericModal>

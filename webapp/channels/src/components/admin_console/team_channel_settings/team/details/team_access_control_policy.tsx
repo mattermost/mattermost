@@ -5,6 +5,7 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -16,6 +17,8 @@ import '../../channel/details/channel_access_control_policy.scss';
 
 interface Props {
     parentPolicies: AccessControlPolicy[];
+    autoAddMembers?: boolean;
+    onAutoAddToggle?: (active: boolean) => void;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         onPolicySelected?: (policy: AccessControlPolicy) => void;
@@ -25,7 +28,7 @@ interface Props {
 }
 
 export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
-    const {parentPolicies: accessControlPolicies, actions} = props;
+    const {parentPolicies: accessControlPolicies, actions, autoAddMembers, onAutoAddToggle} = props;
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
 
     const intl = useIntl();
@@ -90,7 +93,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                                     >
                                         <i className='fa fa-external-link'/>
                                     </Link>
-                                    <button
+                                    <Button
                                         className='policy-remove-icon'
                                         aria-label={intl.formatMessage({
                                             id: 'admin.team_settings.team_detail.remove_policy.aria_label',
@@ -101,12 +104,41 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                                         }}
                                     >
                                         <i className='fa fa-trash'/>
-                                    </button>
+                                    </Button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+            </div>
+        );
+    };
+
+    const renderAutoAddSection = () => {
+        if (!onAutoAddToggle) {
+            return null;
+        }
+        return (
+            <div className='team-access-control__auto-add'>
+                <label className='team-access-control__auto-add-label'>
+                    <input
+                        type='checkbox'
+                        className='team-access-control__auto-add-checkbox'
+                        data-testid='auto-add-members-checkbox'
+                        checked={autoAddMembers ?? false}
+                        onChange={() => onAutoAddToggle(!(autoAddMembers ?? false))}
+                    />
+                    <FormattedMessage
+                        id='admin.team_settings.team_detail.auto_add_members'
+                        defaultMessage='Auto-add members based on access rules'
+                    />
+                </label>
+                <p className='team-access-control__auto-add-description'>
+                    <FormattedMessage
+                        id='admin.team_settings.team_detail.auto_add_members_description'
+                        defaultMessage='When enabled, qualifying users will be automatically added to the team at next sync.'
+                    />
+                </p>
             </div>
         );
     };
@@ -158,6 +190,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                 <div className='group-teams-and-channels--body'>
                     <div className='access-policy-container'>
                         {renderTable()}
+                        {renderAutoAddSection()}
                     </div>
                 </div>
             </div>
