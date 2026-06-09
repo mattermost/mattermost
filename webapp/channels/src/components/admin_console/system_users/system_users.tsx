@@ -22,6 +22,7 @@ import {getDisplayName, imageURLForUser} from 'utils/utils';
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
 import {ColumnNames} from './constants';
+import {CreateUserButton} from './create_user_button';
 import {RevokeSessionsButton} from './revoke_sessions_button';
 import {SystemUsersColumnTogglerMenu} from './system_users_column_toggler_menu';
 import {SystemUsersDateRangeMenu} from './system_users_date_range_menu';
@@ -491,7 +492,10 @@ function SystemUsers(props: Props) {
                         <span id='systemUsersTable-headerId'>{formatMessageChunk}</span>
                     )}
                 </FormattedMessage>
-                <RevokeSessionsButton/>
+                <div className='admin-console__header-buttons'>
+                    <CreateUserButton/>
+                    <RevokeSessionsButton/>
+                </div>
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__container ignore-marking'>
