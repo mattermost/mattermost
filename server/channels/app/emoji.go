@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
 
 const (
@@ -34,6 +35,7 @@ const (
 	MaxEmojiHeight         = 128
 	MaxEmojiOriginalWidth  = 1028
 	MaxEmojiOriginalHeight = 1028
+	MaxEmojiGIFFrames      = 32
 )
 
 func (a *App) CreateEmoji(rctx request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
@@ -133,6 +135,18 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 
 	info := model.NewInfo(filename)
 	if info.MimeType == "image/gif" {
+		frameCount, err := imgutils.CountGIFFrames(file)
+		if err != nil {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if frameCount > MaxEmojiGIFFrames {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.too_many_frames.app_error", map[string]any{
+				"MaxFrames": MaxEmojiGIFFrames,
+			}, "", http.StatusBadRequest)
+		}
+		if _, err = file.Seek(0, io.SeekStart); err != nil {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 		g, err := gif.DecodeAll(file)
 		if err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
