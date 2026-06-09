@@ -6,11 +6,15 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
+
+jest.mock('hooks/useChannelDecorators', () => ({
+    useChannelDecorators: jest.fn(() => []),
+}));
 
 describe('components/ChannelHeader', () => {
     const baseProps = {
@@ -350,5 +354,147 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+});
+
+describe('components/ChannelHeader — after_channel_name decorator slot', () => {
+    // useChannelDecorators is mocked at the module level above. Each test overrides it
+    // via mockReturnValue to control which registrations are returned for the
+    // 'after_channel_name' slot. ChannelDecoratorRenderer is NOT mocked — each
+    // registration's component is a real sentinel so it only renders if it passes
+    // through the real renderer and error boundary.
+    const {useChannelDecorators} = jest.requireMock('hooks/useChannelDecorators');
+
+    const baseProps = {
+        actions: {
+            showPinnedPosts: jest.fn(),
+            showChannelFiles: jest.fn(),
+            closeRightHandSide: jest.fn(),
+            getCustomEmojisInText: jest.fn(),
+            updateChannelNotifyProps: jest.fn(),
+            showChannelMembers: jest.fn(),
+            fetchChannelRemotes: jest.fn(),
+        },
+        team: TestHelper.getTeamMock({id: 'team_id'}),
+        channel: TestHelper.getChannelMock({
+            id: 'channel_id',
+            team_id: 'team_id',
+            name: 'Test',
+            delete_at: 0,
+        }),
+        channelMember: TestHelper.getChannelMembershipMock({
+            channel_id: 'channel_id',
+            user_id: 'user_id',
+        }),
+        currentUser: TestHelper.getUserMock({id: 'user_id'}),
+        isCustomStatusEnabled: false,
+        isCustomStatusExpired: false,
+        isFileAttachmentsEnabled: true,
+        lastActivityTimestamp: 1632146562846,
+        isLastActiveEnabled: true,
+        memberCount: 2,
+        dmUser: undefined,
+        gmMembers: undefined,
+        rhsState: RHSStates.CHANNEL_INFO,
+        isChannelMuted: false,
+        hasGuests: false,
+        pinnedPostsCount: 0,
+        customStatus: undefined,
+        timestampUnits: ['now', 'minute', 'hour'],
+        hideGuestTags: false,
+        remoteNames: [],
+        sharedChannelsPluginsEnabled: false,
+        isChannelAutotranslated: false,
+    };
+
+    afterEach(() => {
+        (useChannelDecorators as jest.Mock).mockReturnValue([]);
+    });
+
+    test('no decorators — nothing extra in the icon group', () => {
+        (useChannelDecorators as jest.Mock).mockReturnValue([]);
+
+        const {container} = renderWithContext(<ChannelHeader {...baseProps}/>);
+
+        expect(container.querySelector('[data-testid="decorator-content-1"]')).toBeNull();
+    });
+
+    test('one decorator — sentinel renders inside .channel-header__icons', () => {
+        (useChannelDecorators as jest.Mock).mockReturnValue([{
+            id: 'reg-1',
+            pluginId: 'test-plugin',
+            slot: 'after_channel_name',
+            matcher: () => true,
+            component: () => <div data-testid='decorator-content-1'/>,
+        }]);
+
+        const {container} = renderWithContext(<ChannelHeader {...baseProps}/>);
+
+        const sentinel = screen.getByTestId('decorator-content-1');
+        expect(sentinel).toBeInTheDocument();
+
+        // Sentinel is inside the icon group
+        const iconGroup = container.querySelector('.channel-header__icons');
+        expect(iconGroup).toContainElement(sentinel);
+    });
+
+    test('two decorators — both sentinels render in order inside .channel-header__icons', () => {
+        (useChannelDecorators as jest.Mock).mockReturnValue([
+            {
+                id: 'reg-1',
+                pluginId: 'test-plugin',
+                slot: 'after_channel_name',
+                matcher: () => true,
+                component: () => <div data-testid='decorator-content-1'/>,
+            },
+            {
+                id: 'reg-2',
+                pluginId: 'test-plugin',
+                slot: 'after_channel_name',
+                matcher: () => true,
+                component: () => <div data-testid='decorator-content-2'/>,
+            },
+        ]);
+
+        const {container} = renderWithContext(<ChannelHeader {...baseProps}/>);
+
+        const sentinel1 = screen.getByTestId('decorator-content-1');
+        const sentinel2 = screen.getByTestId('decorator-content-2');
+
+        expect(sentinel1).toBeInTheDocument();
+        expect(sentinel2).toBeInTheDocument();
+
+        const iconGroup = container.querySelector('.channel-header__icons');
+        expect(iconGroup).toContainElement(sentinel1);
+        expect(iconGroup).toContainElement(sentinel2);
+
+        // First decorator precedes second in DOM
+        expect(sentinel1.compareDocumentPosition(sentinel2)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    test('decorator precedes the mute button (#toggleMute) in the icon group', () => {
+        (useChannelDecorators as jest.Mock).mockReturnValue([{
+            id: 'reg-1',
+            pluginId: 'test-plugin',
+            slot: 'after_channel_name',
+            matcher: () => true,
+            component: () => <div data-testid='decorator-content-1'/>,
+        }]);
+
+        const props = {
+            ...baseProps,
+            isChannelMuted: true,
+        };
+
+        renderWithContext(<ChannelHeader {...props}/>);
+
+        const sentinel = screen.getByTestId('decorator-content-1');
+        const muteButton = document.querySelector('#toggleMute');
+
+        expect(sentinel).toBeInTheDocument();
+        expect(muteButton).not.toBeNull();
+
+        // Decorator (sentinel) comes before the mute button in document order
+        expect(sentinel.compareDocumentPosition(muteButton!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 });

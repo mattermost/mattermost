@@ -3,28 +3,18 @@
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {createMatcherErrorLog} from 'utils/matcher_error_log';
+
 import type {GlobalState} from 'types/store';
 import type {ChannelDecoratorRegistration, ChannelDecoratorSlot} from 'types/store/plugins';
 
-// Keyed by `${pluginId}:${slot}` — tracks which (plugin, slot) pairs have already logged an error.
-const loggedDecoratorErrors = new Set<string>();
+const matcherErrorLog = createMatcherErrorLog('ChannelDecorator');
 
 /**
  * Clears the per-(pluginId, slot) log-once tracker for matcher errors.
  * No-arg form clears all entries; with-arg form clears all entries for one plugin.
  */
-export function clearLoggedDecoratorErrors(pluginId?: string): void {
-    if (pluginId === undefined) {
-        loggedDecoratorErrors.clear();
-    } else {
-        // Delete all keys that start with `${pluginId}:`
-        for (const key of loggedDecoratorErrors) {
-            if (key.startsWith(`${pluginId}:`)) {
-                loggedDecoratorErrors.delete(key);
-            }
-        }
-    }
-}
+export const clearLoggedDecoratorErrors = matcherErrorLog.clear;
 
 const EMPTY_ARRAY: ChannelDecoratorRegistration[] = Object.freeze([] as ChannelDecoratorRegistration[]) as unknown as ChannelDecoratorRegistration[];
 
@@ -48,15 +38,7 @@ function runMatchers(
                 }
             }
         } catch (err) {
-            const key = `${entry.pluginId}:${slot}`;
-            if (!loggedDecoratorErrors.has(key)) {
-                loggedDecoratorErrors.add(key);
-                // eslint-disable-next-line no-console
-                console.error(
-                    `ChannelDecorator: matcher for plugin '${entry.pluginId}' at slot '${slot}' threw — treating as no-match.`,
-                    err,
-                );
-            }
+            matcherErrorLog.logOnce(entry.pluginId, err, slot);
         }
     }
     return matches;

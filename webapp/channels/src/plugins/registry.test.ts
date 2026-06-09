@@ -270,7 +270,7 @@ describe('PluginRegistry — registerChannelDecorator', () => {
 
     it('(a) valid registration adds entry to ChannelDecorator list', () => {
         registry.registerChannelDecorator({
-            slot: 'left_of_channel_name',
+            slot: 'after_channel_name',
             matcher: () => true,
             component: () => null,
         });
@@ -278,7 +278,7 @@ describe('PluginRegistry — registerChannelDecorator', () => {
         const decorators = getDecorators();
         expect(decorators).toHaveLength(1);
         expect(decorators[0].pluginId).toBe(PLUGIN_ID);
-        expect(decorators[0].slot).toBe('left_of_channel_name');
+        expect(decorators[0].slot).toBe('after_channel_name');
     });
 
     it('(b) invalid slot emits console.warn and does NOT add entry', () => {
@@ -300,7 +300,7 @@ describe('PluginRegistry — registerChannelDecorator', () => {
         const otherRegistry = new PluginRegistry('other_plugin');
 
         registry.registerChannelDecorator({
-            slot: 'left_of_channel_name',
+            slot: 'after_channel_name',
             matcher: () => true,
             component: () => null,
         });
@@ -310,7 +310,7 @@ describe('PluginRegistry — registerChannelDecorator', () => {
             component: () => null,
         });
         otherRegistry.registerChannelDecorator({
-            slot: 'left_of_channel_name',
+            slot: 'after_channel_name',
             matcher: () => false,
             component: () => null,
         });
@@ -323,5 +323,17 @@ describe('PluginRegistry — registerChannelDecorator', () => {
         const decorators = getDecorators();
         expect(decorators).toHaveLength(1);
         expect(decorators[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(d) after_channel_name is accepted as a valid slot', () => {
+        registry.registerChannelDecorator({
+            slot: 'after_channel_name',
+            matcher: () => true,
+            component: () => null,
+        });
+
+        const decorators = getDecorators();
+        expect(decorators).toHaveLength(1);
+        expect(decorators[0].slot).toBe('after_channel_name');
     });
 });

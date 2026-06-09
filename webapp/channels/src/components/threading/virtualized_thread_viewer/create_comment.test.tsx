@@ -21,12 +21,6 @@ jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
 
 jest.mock('components/advanced_create_comment', () => () => <div data-testid='advanced-create-comment'/>);
 
-jest.mock('components/channel_decorator_renderer/channel_decorator_renderer', () => {
-    return ({registration}: {registration: {id: string}}) => (
-        <div data-testid={`decorator-${registration.id}`}/>
-    );
-});
-
 function makeState(channel: Channel, threadId: string, overrides: any[] = []): DeepPartial<GlobalState> {
     const post = TestHelper.getPostMock({id: threadId, channel_id: channel.id});
     return {
@@ -163,7 +157,7 @@ describe('components/threading/CreateComment', () => {
                         pluginId: 'test-plugin',
                         slot: 'above_composer' as const,
                         matcher: () => true,
-                        component: () => null,
+                        component: () => <div data-testid='decorator-content-above-composer'/>,
                     }],
                 },
             },
@@ -174,6 +168,6 @@ describe('components/threading/CreateComment', () => {
             state,
         );
 
-        expect(screen.getByTestId('decorator-above-1')).toBeInTheDocument();
+        expect(screen.getByTestId('decorator-content-above-composer')).toBeInTheDocument();
     });
 });

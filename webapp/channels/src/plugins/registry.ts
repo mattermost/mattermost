@@ -79,7 +79,7 @@ import type {
 
 const defaultShouldRender = () => true;
 
-const VALID_CHANNEL_DECORATOR_SLOTS = new Set<string>(['left_of_channel_name', 'intro', 'above_composer', 'mount_overlay']);
+const VALID_CHANNEL_DECORATOR_SLOTS = new Set<string>(['after_channel_name', 'intro', 'above_composer']);
 
 type DPluginComponentProp = {component: React.ComponentType<unknown>};
 function dispatchPluginComponentAction(name: keyof PluginsState['components'], pluginId: string, component: React.ComponentType<any>, id = generateId()) {
@@ -1407,14 +1407,13 @@ export default class PluginRegistry {
      * plugin-owned slices (e.g., state['plugins-<pluginId>']).
      *
      * Slots:
-     *   'left_of_channel_name' — adornment rendered between the favorite-star and the channel
-     *     name in the channel header. Multiple registrations render side-by-side.
+     *   'after_channel_name' — adornment rendered at the start of the channel-header icon group
+     *     (which sits immediately after the channel name), before the mute/members/files icons,
+     *     so it inherits that group's spacing. Multiple registrations render side-by-side.
      *   'intro' — replaces the entire built-in channel intro area (SVG, title, welcome text).
      *     First-matching registration wins; other registrations for the same channel are ignored.
      *   'above_composer' — rendered above the message input in both the center-channel
      *     composer and the thread/RHS composer. Multiple registrations stack vertically.
-     *   'mount_overlay' — absolute overlay covering the full channel view on channel mount.
-     *     Plugin is responsible for logic of when to show. Multiple registrations stack.
      *
      * Registrations are cleaned up automatically when the plugin is removed.
      *

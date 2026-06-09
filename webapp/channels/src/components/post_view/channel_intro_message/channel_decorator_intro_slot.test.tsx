@@ -7,12 +7,6 @@ jest.mock('components/post_view/channel_intro_message', () => {
     return () => <div data-testid='channel-intro-message'/>;
 });
 
-jest.mock('components/channel_decorator_renderer/channel_decorator_renderer', () => {
-    return ({registration}: {registration: {id: string}}) => (
-        <div data-testid={`decorator-${registration.id}`}/>
-    );
-});
-
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -43,7 +37,7 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
         );
 
         expect(screen.getByTestId('channel-intro-message')).toBeInTheDocument();
-        expect(screen.queryByTestId(/^decorator-/)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(/^decorator-content-/)).not.toBeInTheDocument();
     });
 
     test('intro decorator, matcher returns true — renders plugin component, not ChannelIntroMessage', () => {
@@ -52,7 +46,7 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
             pluginId: 'test-plugin',
             slot: 'intro',
             matcher: () => true,
-            component: () => null,
+            component: () => <div data-testid='decorator-content-intro'/>,
         }]);
 
         renderWithContext(
@@ -60,7 +54,7 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
             state,
         );
 
-        expect(screen.getByTestId('decorator-intro-dec')).toBeInTheDocument();
+        expect(screen.getByTestId('decorator-content-intro')).toBeInTheDocument();
         expect(screen.queryByTestId('channel-intro-message')).not.toBeInTheDocument();
     });
 
@@ -70,7 +64,7 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
             pluginId: 'test-plugin',
             slot: 'intro',
             matcher: () => false,
-            component: () => null,
+            component: () => <div data-testid='decorator-content-intro'/>,
         }]);
 
         renderWithContext(
@@ -79,7 +73,7 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
         );
 
         expect(screen.getByTestId('channel-intro-message')).toBeInTheDocument();
-        expect(screen.queryByTestId('decorator-intro-dec')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('decorator-content-intro')).not.toBeInTheDocument();
     });
 
     test('intro decorator match with missing channel entity — renders ChannelIntroMessage', () => {
@@ -88,7 +82,7 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
             pluginId: 'test-plugin',
             slot: 'intro',
             matcher: () => true,
-            component: () => null,
+            component: () => <div data-testid='decorator-content-intro'/>,
         }]);
 
         // Remove the channel from state to simulate the stale-selector race window
@@ -100,7 +94,7 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
         );
 
         expect(screen.getByTestId('channel-intro-message')).toBeInTheDocument();
-        expect(screen.queryByTestId('decorator-intro-dec')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('decorator-content-intro')).not.toBeInTheDocument();
     });
 
     test('multiple intro decorators — only the first (array-order) renders', () => {
@@ -108,8 +102,20 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
         // alphabetically by pluginId by the reducer. This test verifies the slot component
         // surfaces only one decorator and ignores subsequent registrations.
         const state = makeStateWithChannel(channelId, [
-            {id: 'intro-alpha', pluginId: 'alpha-plugin', slot: 'intro', matcher: () => true, component: () => null},
-            {id: 'intro-beta', pluginId: 'beta-plugin', slot: 'intro', matcher: () => true, component: () => null},
+            {
+                id: 'intro-alpha',
+                pluginId: 'alpha-plugin',
+                slot: 'intro',
+                matcher: () => true,
+                component: () => <div data-testid='decorator-content-alpha'/>,
+            },
+            {
+                id: 'intro-beta',
+                pluginId: 'beta-plugin',
+                slot: 'intro',
+                matcher: () => true,
+                component: () => <div data-testid='decorator-content-beta'/>,
+            },
         ]);
 
         renderWithContext(
@@ -117,8 +123,8 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
             state,
         );
 
-        expect(screen.getByTestId('decorator-intro-alpha')).toBeInTheDocument();
-        expect(screen.queryByTestId('decorator-intro-beta')).not.toBeInTheDocument();
+        expect(screen.getByTestId('decorator-content-alpha')).toBeInTheDocument();
+        expect(screen.queryByTestId('decorator-content-beta')).not.toBeInTheDocument();
         expect(screen.queryByTestId('channel-intro-message')).not.toBeInTheDocument();
     });
 });

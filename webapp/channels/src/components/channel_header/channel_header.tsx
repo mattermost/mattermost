@@ -8,7 +8,9 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {Channel} from '@mattermost/types/channels';
 
+import ChannelDecoratorRenderer from 'components/channel_decorator_renderer/channel_decorator_renderer';
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
@@ -16,6 +18,7 @@ import PopoutButton from 'components/popout_button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 
+import {useChannelDecorators} from 'hooks/useChannelDecorators';
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
 import Pluggable from 'plugins/pluggable';
@@ -36,6 +39,27 @@ import HeaderIconWrapper from './components/header_icon_wrapper';
 import type {PropsFromRedux} from './index';
 
 export type Props = WrappedComponentProps & PropsFromRedux;
+
+// Renders the channel decorators registered for the 'after_channel_name' slot as the leading
+// items of the channel-header icon group, so they inherit that group's even spacing. Implemented
+// as a function component because useChannelDecorators is a hook and ChannelHeader is a class.
+function AfterNameDecorators({channel}: {channel: Channel}) {
+    const decorators = useChannelDecorators(channel.id, 'after_channel_name');
+    if (decorators.length === 0) {
+        return null;
+    }
+    return (
+        <>
+            {decorators.map((reg) => (
+                <ChannelDecoratorRenderer
+                    key={reg.id}
+                    registration={reg}
+                    channel={channel}
+                />
+            ))}
+        </>
+    );
+}
 
 class ChannelHeader extends React.PureComponent<Props> {
     toggleFavoriteRef: RefObject<HTMLButtonElement>;
@@ -396,6 +420,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                 <div
                                     className='channel-header__icons'
                                 >
+                                    <AfterNameDecorators channel={channel}/>
                                     {muteTrigger}
                                     {memberListButton}
                                     {pinnedButton}

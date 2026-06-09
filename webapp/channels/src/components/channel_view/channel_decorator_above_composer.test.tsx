@@ -3,12 +3,6 @@
 
 import React from 'react';
 
-jest.mock('components/channel_decorator_renderer/channel_decorator_renderer', () => {
-    return ({registration}: {registration: {id: string}}) => (
-        <div data-testid={`decorator-${registration.id}`}/>
-    );
-});
-
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -47,7 +41,7 @@ describe('components/channel_view/ChannelDecoratorAboveComposer', () => {
             pluginId: 'test-plugin',
             slot: 'above_composer',
             matcher: () => true,
-            component: () => null,
+            component: () => <div data-testid='decorator-content-above-1'/>,
         }]);
 
         renderWithContext(
@@ -55,7 +49,7 @@ describe('components/channel_view/ChannelDecoratorAboveComposer', () => {
             state,
         );
 
-        expect(screen.getByTestId('decorator-above-1')).toBeInTheDocument();
+        expect(screen.getByTestId('decorator-content-above-1')).toBeInTheDocument();
     });
 
     test('decorator not matched — renders null', () => {
@@ -64,7 +58,7 @@ describe('components/channel_view/ChannelDecoratorAboveComposer', () => {
             pluginId: 'test-plugin',
             slot: 'above_composer',
             matcher: () => false,
-            component: () => null,
+            component: () => <div data-testid='decorator-content-above-1'/>,
         }]);
 
         const {container} = renderWithContext(
@@ -73,7 +67,7 @@ describe('components/channel_view/ChannelDecoratorAboveComposer', () => {
         );
 
         expect(container.firstChild).toBeNull();
-        expect(screen.queryByTestId('decorator-above-1')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('decorator-content-above-1')).not.toBeInTheDocument();
     });
 
     test('multiple decorators — all rendered in order', () => {
@@ -83,14 +77,14 @@ describe('components/channel_view/ChannelDecoratorAboveComposer', () => {
                 pluginId: 'test-plugin',
                 slot: 'above_composer',
                 matcher: () => true,
-                component: () => null,
+                component: () => <div data-testid='decorator-content-above-1'/>,
             },
             {
                 id: 'above-2',
                 pluginId: 'test-plugin',
                 slot: 'above_composer',
                 matcher: () => true,
-                component: () => null,
+                component: () => <div data-testid='decorator-content-above-2'/>,
             },
         ]);
 
@@ -99,7 +93,12 @@ describe('components/channel_view/ChannelDecoratorAboveComposer', () => {
             state,
         );
 
-        expect(screen.getByTestId('decorator-above-1')).toBeInTheDocument();
-        expect(screen.getByTestId('decorator-above-2')).toBeInTheDocument();
+        const first = screen.getByTestId('decorator-content-above-1');
+        const second = screen.getByTestId('decorator-content-above-2');
+        expect(first).toBeInTheDocument();
+        expect(second).toBeInTheDocument();
+
+        // Verify DOM order: first precedes second
+        expect(first.compareDocumentPosition(second)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 });
