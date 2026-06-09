@@ -128,6 +128,12 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	if invitationDeleteErr := scs.server.GetStore().SharedChannelInvitation().DeleteByChannelId(channelID); invitationDeleteErr != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to delete shared channel invitations after unshare",
+			mlog.String("channel_id", channelID),
+			mlog.Err(invitationDeleteErr),
+		)
+	}
 
 	// we get the channel to get the updated fields, including updateAt
 	// and Shared flag
@@ -254,6 +260,14 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 		}
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
 			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
+	}
+
+	if err := scs.server.GetStore().SharedChannelInvitation().DeleteByChannelIdAndRemoteId(channelID, remoteID); err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to delete shared channel invitations after uninvite",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Err(err),
+		)
 	}
 
 	channel, chErr := scs.server.GetStore().Channel().Get(channelID, true)
