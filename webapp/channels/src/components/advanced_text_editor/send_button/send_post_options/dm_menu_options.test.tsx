@@ -7,7 +7,7 @@ import React from 'react';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, within} from 'tests/react_testing_utils';
 
 import DmMenuOptions from './dm_menu_options';
 
@@ -61,8 +61,10 @@ describe('DmMenuOptions', () => {
             </WithTestMenuContext>,
         );
 
-        expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
-        expect(screen.getByText(/your time/)).toBeInTheDocument();
+        const tomorrowOption = screen.getByTestId('scheduling_time_tomorrow_9_am');
+
+        expect(within(tomorrowOption).getByText(/Tomorrow at/)).toBeInTheDocument();
+        expect(within(tomorrowOption).getByText(/your time/)).toBeInTheDocument();
     });
 
     it('renders recipient time conversion when using sender timezone', () => {
@@ -76,8 +78,10 @@ describe('DmMenuOptions', () => {
             </WithTestMenuContext>,
         );
 
-        expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
-        expect(screen.getByText(/Sarah's time/)).toBeInTheDocument();
+        const tomorrowOption = screen.getByTestId('scheduling_time_tomorrow_9_am');
+
+        expect(within(tomorrowOption).getByText(/Tomorrow at/)).toBeInTheDocument();
+        expect(within(tomorrowOption).getByText(/Sarah's time/)).toBeInTheDocument();
     });
 
     it('calls handleOnSelect when tomorrow option is clicked', () => {
