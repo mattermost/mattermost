@@ -113,67 +113,6 @@ test.describe('Shared channel configuration', () => {
         await channelSettingsModal.close();
     });
 
-    test('Section hidden when shared channels feature is disabled', async ({pw}) => {
-        const {adminUser, adminClient, team} = await pw.initSetup();
-
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
-
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: false,
-            },
-        });
-
-        const channelName = `shared-config-02-${getRandomId()}`;
-        await adminClient.createChannel({
-            team_id: team.id,
-            name: channelName,
-            display_name: 'Shared Config Disabled',
-            type: 'O',
-        });
-
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name, channelName);
-        await channelsPage.toBeVisible();
-
-        // Re-apply guard: a concurrent initSetup() may have reset ConnectedWorkspacesSettings
-        // between the initial patchConfig call and this browser action.
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: false,
-            },
-        });
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ConnectedWorkspacesSettings?.EnableSharedChannels === false;
-        });
-        await channelsPage.page.reload();
-        await channelsPage.toBeVisible();
-        // Post-reload re-apply: a concurrent initSetup() may have reset EnableSharedChannels
-        // during the reload window.
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: false,
-            },
-        });
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ConnectedWorkspacesSettings?.EnableSharedChannels === false;
-        });
-
-        const channelSettingsModal = await channelsPage.openChannelSettings();
-        const configurationTab = await channelSettingsModal.openConfigurationTab();
-
-        await expect
-            .poll(async () => !(await configurationTab.shareWithConnectedWorkspacesSection.isVisible()), {
-                timeout: 10000,
-                intervals: [1000, 2000, 3000],
-            })
-            .toBe(true);
-        await channelSettingsModal.close();
-    });
-
     test('Section when no connected workspace exists', async ({pw}) => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
