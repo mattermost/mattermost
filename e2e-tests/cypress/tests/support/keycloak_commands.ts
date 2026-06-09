@@ -3,9 +3,9 @@
 
 import * as TIMEOUTS from '../fixtures/timeouts';
 
-import {LdapUser} from './ldap_server_commands';
+import type {LdapUser} from './ldap_server_commands';
 
-import {ChainableT} from '@/types';
+import type {ChainableT} from '@/types';
 
 const {
     keycloakBaseUrl,
