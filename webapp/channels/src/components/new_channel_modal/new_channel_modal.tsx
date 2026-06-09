@@ -617,7 +617,6 @@ const NewChannelModal = () => {
                 {activePluginOption?.extraContent && (
                     <activePluginOption.extraContent
                         formState={formState}
-                        setFormState={mergeFormState}
                         setCanCreate={setPluginCanCreate}
                     />
                 )}
