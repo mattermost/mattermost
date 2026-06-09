@@ -29,5 +29,4 @@ jobs:
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_PROJECT_KEY: MM
-        run: python scripts/feature_flag_monthly_audit.py
-        
+        run: python .github/scripts/feature_flag_monthly_audit.py
