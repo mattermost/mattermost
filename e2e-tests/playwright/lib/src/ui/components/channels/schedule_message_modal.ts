@@ -12,6 +12,7 @@ export default class ScheduleMessageModal {
     readonly closeButton: Locator;
     readonly scheduleButton: Locator;
     readonly cancelButton: Locator;
+    readonly removeScheduleButton: Locator;
     readonly recipientTimezoneCheckbox: Locator;
     readonly timezoneConversionLine: Locator;
 
@@ -23,6 +24,7 @@ export default class ScheduleMessageModal {
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.scheduleButton = container.locator('button:has-text("Schedule")');
         this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.removeScheduleButton = container.locator('button:has-text("Remove schedule")');
         this.recipientTimezoneCheckbox = container.getByRole('checkbox', {name: /Use recipient's timezone/});
         this.timezoneConversionLine = container.locator('.ScheduleTimezoneConversionLine');
     }

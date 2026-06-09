@@ -3,4 +3,23 @@
         padding: 0;
         margin-bottom: 16px;
     }
+
+    .scheduled_post_dm_custom_time_modal__footer {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .scheduled_post_dm_custom_time_modal__footer-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    .scheduled_post_dm_custom_time_modal__remove {
+        background-color: rgba(var(--error-text-color-rgb), 0.08);
+    }
 }

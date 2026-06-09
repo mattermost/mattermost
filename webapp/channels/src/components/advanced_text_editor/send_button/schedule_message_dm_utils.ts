@@ -27,12 +27,26 @@ export function getNextWeekday(dateTime: DateTime, targetWeekday: number): DateT
     return dateTime.plus({days: deltaDays});
 }
 
+export function getToday9amTimestamp(timezone: string, now?: DateTime): number {
+    return (now || DateTime.now()).
+        setZone(timezone).
+        set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+        toMillis();
+}
+
 export function getTomorrow9amTimestamp(timezone: string): number {
     return DateTime.now().
         setZone(timezone).
         plus({days: 1}).
         set({hour: 9, minute: 0, second: 0, millisecond: 0}).
         toMillis();
+}
+
+export function shouldShowToday9amPreset(timezone: string, now?: DateTime): boolean {
+    const dateTime = (now || DateTime.now()).setZone(timezone);
+    const isWeekday = dateTime.weekday >= 1 && dateTime.weekday <= 5;
+
+    return isWeekday && dateTime.hour < 9;
 }
 
 export function getNextMonday9amTimestamp(timezone: string): number {
@@ -86,12 +100,10 @@ export function formatTimezoneOffsetShort(timezone: string, at?: Moment): string
     const hours = Math.floor(absMinutes / 60);
     const minutes = absMinutes % 60;
 
-    if (minutes === 0) {
-        return `UTC${sign}${hours}`;
-    }
-
+    const paddedHours = String(hours).padStart(2, '0');
     const paddedMinutes = String(minutes).padStart(2, '0');
-    return `UTC${sign}${hours}:${paddedMinutes}`;
+
+    return `UTC${sign}${paddedHours}:${paddedMinutes}`;
 }
 
 export function reinterpretWallClock(dateTime: Moment, newTimezone: string): Moment {

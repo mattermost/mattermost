@@ -13,7 +13,9 @@ import {get as getPreference} from 'mattermost-redux/selectors/entities/preferen
 
 import {
     getNextMonday9amTimestamp,
+    getToday9amTimestamp,
     getTomorrow9amTimestamp,
+    shouldShowToday9amPreset,
 } from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import * as Menu from 'components/menu';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
@@ -113,10 +115,16 @@ function RecentUsedCustomDate({
 
     const excludedTimestamps = useMemo(() => {
         if (isDmRedesign && recipientTimezoneString) {
-            return [
+            const timestamps = [
                 getTomorrow9amTimestamp(activeTimezone),
                 getNextMonday9amTimestamp(activeTimezone),
             ];
+
+            if (shouldShowToday9amPreset(activeTimezone)) {
+                timestamps.unshift(getToday9amTimestamp(activeTimezone));
+            }
+
+            return timestamps;
         }
 
         return [

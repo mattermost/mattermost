@@ -92,6 +92,26 @@ describe('DmMenuOptions', () => {
         expect(within(tomorrowOption).getByText(/Sarah's time/)).toBeInTheDocument();
     });
 
+    it('renders today and tomorrow presets before 9am on weekdays', () => {
+        jest.setSystemTime(DateTime.fromISO('2026-06-09T08:00:00', {zone: 'America/New_York'}).toJSDate());
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <DmMenuOptions
+                    handleOnSelect={handleOnSelect}
+                    channelId='channel1'
+                    useRecipientTimezone={true}
+                />
+            </WithTestMenuContext>,
+        );
+
+        const todayOption = screen.getByTestId('scheduling_time_today_9_am');
+
+        expect(within(todayOption).getByText(/Today at/)).toBeInTheDocument();
+        expect(screen.getByTestId('scheduling_time_tomorrow_9_am')).toBeInTheDocument();
+        expect(screen.queryByTestId('scheduling_time_monday_9_am')).not.toBeInTheDocument();
+    });
+
     it('calls handleOnSelect when tomorrow option is clicked', () => {
         renderWithContext(
             <WithTestMenuContext>

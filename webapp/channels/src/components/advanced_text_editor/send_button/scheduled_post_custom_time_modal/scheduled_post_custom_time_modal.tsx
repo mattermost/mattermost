@@ -7,6 +7,8 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {testingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {generateCurrentTimezoneLabel, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
@@ -40,6 +42,7 @@ type Props = {
     onConfirm: (timestamp: number) => Promise<{error?: string}>;
     initialTime?: Moment;
     useRecipientTimezone?: boolean;
+    onRemoveSchedule?: () => void | Promise<{error?: string} | void>;
 }
 
 export default function ScheduledPostCustomTimeModal({
@@ -48,6 +51,7 @@ export default function ScheduledPostCustomTimeModal({
     onConfirm,
     initialTime,
     useRecipientTimezone: initialUseRecipientTimezone = true,
+    onRemoveSchedule,
 }: Props) {
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
@@ -98,6 +102,17 @@ export default function ScheduledPostCustomTimeModal({
         setSelectedDateTime((current) => reinterpretWallClock(current, newTimezone));
         setUseRecipientTimezone(checked);
     }, [recipientTimezoneString, useRecipientTimezone, userTimezone]);
+
+    const handleRemoveSchedule = useCallback(async () => {
+        if (onRemoveSchedule) {
+            const result = await onRemoveSchedule();
+            if (result?.error) {
+                setErrorMessage(result.error);
+                return;
+            }
+        }
+        onExited();
+    }, [onExited, onRemoveSchedule]);
 
     const handleOnConfirm = useCallback(async (dateTime: Moment) => {
         const selectedTime = dateTime.valueOf();
@@ -155,6 +170,45 @@ export default function ScheduledPostCustomTimeModal({
             />
         );
 
+        const footerContent = (
+            <footer className='scheduled_post_dm_custom_time_modal__footer'>
+                <Button
+                    type='button'
+                    emphasis='tertiary'
+                    variant='destructive'
+                    className='scheduled_post_dm_custom_time_modal__remove'
+                    onClick={handleRemoveSchedule}
+                >
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.remove_schedule'
+                        defaultMessage='Remove schedule'
+                    />
+                </Button>
+                <div className='scheduled_post_dm_custom_time_modal__footer-actions'>
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        onClick={onExited}
+                    >
+                        <FormattedMessage
+                            id='schedule_post.custom_time_modal.cancel_button_text'
+                            defaultMessage='Cancel'
+                        />
+                    </Button>
+                    <Button
+                        type='submit'
+                        emphasis='primary'
+                        onClick={() => handleOnConfirm(selectedDateTime)}
+                    >
+                        <FormattedMessage
+                            id='schedule_post.custom_time_modal.confirm_button_text'
+                            defaultMessage='Schedule'
+                        />
+                    </Button>
+                </div>
+            </footer>
+        );
+
         return (
             <DateTimePickerModal
                 className='scheduled_post_custom_time_modal scheduled_post_dm_custom_time_modal'
@@ -165,18 +219,6 @@ export default function ScheduledPostCustomTimeModal({
                         defaultMessage='Schedule message'
                     />
                 }
-                confirmButtonText={
-                    <FormattedMessage
-                        id='schedule_post.custom_time_modal.confirm_button_text'
-                        defaultMessage='Schedule'
-                    />
-                }
-                cancelButtonText={
-                    <FormattedMessage
-                        id='schedule_post.custom_time_modal.cancel_button_text'
-                        defaultMessage='Cancel'
-                    />
-                }
                 ariaLabel={label}
                 onExited={onExited}
                 onConfirm={handleOnConfirm}
@@ -184,10 +226,10 @@ export default function ScheduledPostCustomTimeModal({
                 bodyPrefix={bodyPrefix}
                 bodySuffix={bodySuffix}
                 relativeDate={true}
-                onCancel={onExited}
                 errorText={errorMessage}
                 timePickerInterval={timePickerInterval}
                 timezone={activeTimezone}
+                footerContent={footerContent}
             />
         );
     }

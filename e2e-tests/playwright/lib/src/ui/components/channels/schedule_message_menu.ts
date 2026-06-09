@@ -7,6 +7,7 @@ import {expect} from '@playwright/test';
 export default class ScheduleMessageMenu {
     readonly container: Locator;
 
+    readonly todayMenuItem;
     readonly tomorrowMenuItem;
     readonly mondayMenuItem;
     readonly nextMondayMenuItem;
@@ -17,6 +18,7 @@ export default class ScheduleMessageMenu {
     constructor(container: Locator) {
         this.container = container;
 
+        this.todayMenuItem = container.getByTestId('scheduling_time_today_9_am');
         this.tomorrowMenuItem = container.getByTestId('scheduling_time_tomorrow_9_am');
         this.mondayMenuItem = container.getByTestId('scheduling_time_monday_9_am');
         this.nextMondayMenuItem = container.getByTestId('scheduling_time_next_monday_9_am');

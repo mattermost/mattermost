@@ -7,7 +7,9 @@ import {FormattedMessage} from 'react-intl';
 
 import {
     getNextMonday9amTimestamp,
+    getToday9amTimestamp,
     getTomorrow9amTimestamp,
+    shouldShowToday9amPreset,
 } from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
@@ -32,6 +34,10 @@ function DmMenuOptions({handleOnSelect, channelId, useRecipientTimezone}: Props)
     const conversionTimezone = useRecipientTimezone ? userCurrentTimezone : recipientTimezoneString;
 
     const now = DateTime.now().setZone(activeTimezone);
+    const today9amTime = useMemo(
+        () => getToday9amTimestamp(activeTimezone),
+        [activeTimezone],
+    );
     const tomorrow9amTime = useMemo(
         () => getTomorrow9amTimestamp(activeTimezone),
         [activeTimezone],
@@ -110,6 +116,20 @@ function DmMenuOptions({handleOnSelect, channelId, useRecipientTimezone}: Props)
         />
     );
 
+    const optionToday = renderPresetOption(
+        'scheduling_time_today_9_am',
+        'scheduling_time_today_9_am',
+        today9amTime,
+        (
+            <FormattedMessage
+                id='create_post_button.option.schedule_message.options.today'
+                defaultMessage='Today at {9amTime}'
+                values={{'9amTime': timeComponent(today9amTime)}}
+            />
+        ),
+        true,
+    );
+
     const optionTomorrow = renderPresetOption(
         'scheduling_time_tomorrow_9_am',
         'scheduling_time_tomorrow_9_am',
@@ -121,7 +141,7 @@ function DmMenuOptions({handleOnSelect, channelId, useRecipientTimezone}: Props)
                 values={{'9amTime': timeComponent(tomorrow9amTime)}}
             />
         ),
-        true,
+        !shouldShowToday9amPreset(activeTimezone, now),
     );
 
     const optionNextMonday = renderPresetOption(
@@ -153,19 +173,23 @@ function DmMenuOptions({handleOnSelect, channelId, useRecipientTimezone}: Props)
 
     let options: React.ReactElement[] = [];
 
-    switch (now.weekday) {
-    case 7:
-        options = [optionTomorrow];
-        break;
-    case 1:
-        options = [optionTomorrow, optionNextMonday];
-        break;
-    case 5:
-    case 6:
-        options = [optionMonday];
-        break;
-    default:
-        options = [optionTomorrow, optionMonday];
+    if (shouldShowToday9amPreset(activeTimezone, now)) {
+        options = [optionToday, optionTomorrow];
+    } else {
+        switch (now.weekday) {
+        case 7:
+            options = [optionTomorrow];
+            break;
+        case 1:
+            options = [optionTomorrow, optionNextMonday];
+            break;
+        case 5:
+        case 6:
+            options = [optionMonday];
+            break;
+        default:
+            options = [optionTomorrow, optionMonday];
+        }
     }
 
     return <>{options}</>;

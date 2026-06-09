@@ -7,8 +7,10 @@ import moment from 'moment-timezone';
 import {
     formatTimezoneOffsetShort,
     getTheirMorningTimestamp,
+    getToday9amTimestamp,
     hasRecipientTimezone,
     reinterpretWallClock,
+    shouldShowToday9amPreset,
 } from './schedule_message_dm_utils';
 
 describe('schedule_message_dm_utils', () => {
@@ -72,10 +74,38 @@ describe('schedule_message_dm_utils', () => {
         });
     });
 
+    describe('getToday9amTimestamp', () => {
+        it('returns today at 9am in the given timezone', () => {
+            const now = DateTime.fromObject({year: 2025, month: 5, day: 21, hour: 8}, {zone: 'America/New_York'});
+            const result = DateTime.fromMillis(getToday9amTimestamp('America/New_York', now)).setZone('America/New_York');
+
+            expect(result.toFormat('yyyy-MM-dd HH:mm')).toBe('2025-05-21 09:00');
+        });
+    });
+
+    describe('shouldShowToday9amPreset', () => {
+        const tz = 'America/New_York';
+
+        it('returns true on weekday mornings before 9am', () => {
+            const now = DateTime.fromObject({year: 2025, month: 5, day: 21, hour: 8}, {zone: tz});
+            expect(shouldShowToday9amPreset(tz, now)).toBe(true);
+        });
+
+        it('returns false after 9am on weekdays', () => {
+            const now = DateTime.fromObject({year: 2025, month: 5, day: 21, hour: 10}, {zone: tz});
+            expect(shouldShowToday9amPreset(tz, now)).toBe(false);
+        });
+
+        it('returns false on weekends', () => {
+            const now = DateTime.fromObject({year: 2025, month: 5, day: 24, hour: 8}, {zone: tz});
+            expect(shouldShowToday9amPreset(tz, now)).toBe(false);
+        });
+    });
+
     describe('formatTimezoneOffsetShort', () => {
-        it('formats whole-hour offsets', () => {
+        it('formats offsets with zero-padded hours and minutes', () => {
             const at = moment.tz('2025-01-15 12:00', 'Europe/London');
-            expect(formatTimezoneOffsetShort('Europe/London', at)).toMatch(/^UTC[+-]\d+$/);
+            expect(formatTimezoneOffsetShort('Europe/London', at)).toBe('UTC+00:00');
         });
     });
 });
