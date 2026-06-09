@@ -22,7 +22,7 @@ export default class ScheduleMessageModal {
         this.timeButton = container.getByTestId('time_button');
         this.timeOptionDropdown = container.getByLabel('Choose a time');
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.scheduleButton = container.locator('button:has-text("Schedule")');
+        this.scheduleButton = container.getByRole('button', {name: 'Schedule', exact: true});
         this.cancelButton = container.locator('button:has-text("Cancel")');
         this.removeScheduleButton = container.locator('button:has-text("Remove schedule")');
         this.recipientTimezoneCheckbox = container.getByRole('checkbox', {name: /Use recipient's timezone/});
