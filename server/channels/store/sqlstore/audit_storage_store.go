@@ -43,7 +43,8 @@ func (noopAuditStorage) MarkBulkSameUser(context.Context, string, []string, int1
 func (noopAuditStorage) MarkBulkSamePost(context.Context, []string, string, int16) error {
 	return nil
 }
-func (noopAuditStorage) HasRead(context.Context, string, string) (bool, error) { return false, nil }
+func (noopAuditStorage) MarkBulk(context.Context, []store.AuditDeliveryRecord) error { return nil }
+func (noopAuditStorage) HasRead(context.Context, string, string) (bool, error)       { return false, nil }
 
 func newSqlAuditStorage(s *SqlStore) store.AuditStorageStore {
 	// Pool may be open (migrations always run) while writes are gated off.
@@ -102,6 +103,35 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 		pq.Array(userIDs), postID, mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to bulk-mark same-post")
+	}
+	return nil
+}
+
+// MarkBulk records arbitrary mixed (user, entity, mechanism) triples in a
+// single round-trip. Three parallel arrays are zipped server-side via
+// unnest — one row per index. Used by the audit delivery target's batching
+// worker pool to flush an accumulated batch.
+func (s *SqlAuditStorage) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+	if len(records) == 0 {
+		return nil
+	}
+	userIDs := make([]string, len(records))
+	entityIDs := make([]string, len(records))
+	// pq.Array supports []int64; SQL casts to smallint[] for storage.
+	mechanisms := make([]int64, len(records))
+	for i, r := range records {
+		userIDs[i] = r.UserID
+		entityIDs[i] = r.EntityID
+		mechanisms[i] = int64(r.Mechanism)
+	}
+	_, err := s.auditStorageX.ExecContext(ctx,
+		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
+		 SELECT u, e, m, $4
+		 FROM unnest($1::text[], $2::text[], $3::smallint[]) AS t(u, e, m)
+		 ON CONFLICT (user_id, entity_id, mechanism) DO NOTHING`,
+		pq.Array(userIDs), pq.Array(entityIDs), pq.Array(mechanisms), model.GetMillis())
+	if err != nil {
+		return errors.Wrap(err, "failed to bulk-mark delivery records")
 	}
 	return nil
 }

@@ -752,11 +752,15 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// Gate the slice build on Enable so a disabled audit subsystem does not
 	// pay the allocation + map iteration cost on every post create.
 	if model.SafeDereference(a.Config().AuditStorageSettings.Enable) && len(profileMap) > 0 {
-		recipientIDs := make([]string, 0, len(profileMap))
-		for uid := range profileMap {
-			recipientIDs = append(recipientIDs, uid)
+		//recipientIDs := make([]string, 0, len(profileMap))
+		//for uid := range profileMap {
+		//	recipientIDs = append(recipientIDs, uid)
+		//}
+		//a.AuditRecordBulkMany(recipientIDs, post.Id, model.AuditMechWebsocketBroadcast)
+
+		for userId := range profileMap {
+			a.emitDeliveryAudit(userId, post.Id, model.AuditMechWebsocketBroadcast)
 		}
-		a.AuditRecordBulkMany(recipientIDs, post.Id, model.AuditMechWebsocketBroadcast)
 	}
 
 	// If this is a reply in a thread, notify participants

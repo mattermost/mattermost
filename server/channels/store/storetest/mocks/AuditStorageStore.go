@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -41,6 +42,24 @@ func (_m *AuditStorageStore) HasRead(ctx context.Context, userID string, postID 
 	}
 
 	return r0, r1
+}
+
+// MarkBulk provides a mock function with given fields: ctx, records
+func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+	ret := _m.Called(ctx, records)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkBulk")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []store.AuditDeliveryRecord) error); ok {
+		r0 = rf(ctx, records)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Mark provides a mock function with given fields: ctx, userID, postID, mechanism

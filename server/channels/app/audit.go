@@ -140,7 +140,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 		TargetFactory: func(targetType string, options json.RawMessage) (logr.Target, error) {
 			switch strings.ToLower(targetType) {
 			case audittargets.DeliveryDBTargetType:
-				return audittargets.NewDeliveryDBTarget(s.Store().AuditStorage()), nil
+				return audittargets.NewDeliveryDBTarget(s.Store().AuditStorage(), s.Log()), nil
 			}
 			return nil, fmt.Errorf("audit target type %q is unrecognized", targetType)
 		},
