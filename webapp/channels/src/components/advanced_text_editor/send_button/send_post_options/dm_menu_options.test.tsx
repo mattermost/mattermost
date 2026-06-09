@@ -48,6 +48,14 @@ describe('DmMenuOptions', () => {
     beforeEach(() => {
         handleOnSelect.mockReset();
         mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue as ReturnType<typeof useTimePostBoxIndicator>);
+
+        // Tuesday: renders both tomorrow and Monday presets (stable across weekdays).
+        jest.useFakeTimers();
+        jest.setSystemTime(DateTime.fromISO('2026-06-09T10:00:00', {zone: 'America/New_York'}).toJSDate());
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     it('renders tomorrow preset with your time conversion when using recipient timezone', () => {
