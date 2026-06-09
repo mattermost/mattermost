@@ -138,7 +138,6 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
             />,
         );
     });
-
 });
 
 describe('PostOptions - plugin post actions (MM-68323)', () => {
