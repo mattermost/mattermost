@@ -84,7 +84,6 @@ const (
 	TemporaryPostCacheMinutes = 60
 
 	SessionAttributeCacheSize = model.SessionCacheSize
-	SessionAttributeCacheSec  = 30
 
 	PropertyFieldCacheSize = 100
 	PropertyFieldCacheSec  = 30 * 60
@@ -472,7 +471,6 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	if localCacheStore.sessionAttributeCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   SessionAttributeCacheSize,
 		Name:                   "SessionAttribute",
-		DefaultExpiry:          SessionAttributeCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForSessionAttributes,
 	}); err != nil {
 		return

@@ -83,6 +83,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(handleDeviceProps)).Methods(http.MethodPut)
+	api.BaseRoutes.Users.Handle("/sessions/attributes/manifest", api.APIHandler(getSessionAttributesManifest)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods(http.MethodPost)
@@ -2621,6 +2622,18 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	c.LogAudit("")
 
 	ReturnStatusOK(w)
+}
+
+func getSessionAttributesManifest(c *Context, w http.ResponseWriter, r *http.Request) {
+	manifest, appErr := c.App.GetSessionAttributesManifest(c.AppContext, r)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		c.Logger.Warn("Error while writing session attributes manifest response", mlog.Err(err))
+	}
 }
 
 func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
