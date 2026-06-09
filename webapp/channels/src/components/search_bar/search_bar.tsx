@@ -10,6 +10,7 @@ import type Provider from 'components/suggestion/provider';
 import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionDate from 'components/suggestion/suggestion_date';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -25,9 +26,9 @@ const style: Record<string, CSSProperties> = {
 type Props = {
     searchTerms: string;
     updateHighlightedSearchHint: (indexDelta: number, changedViaKeyPress?: boolean) => void;
-    handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleChange: (e: ChangeEvent<SuggestionBoxElement>) => void;
     handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
-    handleEnterKey: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleEnterKey: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
     handleClear: () => void;
     handleFocus: () => void;
     handleBlur: () => void;
@@ -71,24 +72,24 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
         }
     }, [searchTerms]);
 
-    const handleKeyDown = (e: ChangeEvent<HTMLInputElement>): void => {
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.ESCAPE)) {
+    const handleKeyDown = (e: React.KeyboardEvent<SuggestionBoxElement>): void => {
+        if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
             searchRef.current?.blur();
             e.stopPropagation();
             e.preventDefault();
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.DOWN)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
             e.preventDefault();
             props.updateHighlightedSearchHint(1, true);
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.UP)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
             e.preventDefault();
             props.updateHighlightedSearchHint(-1, true);
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.ENTER)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.ENTER)) {
             props.handleEnterKey(e);
         }
 

@@ -10,7 +10,9 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -49,7 +51,16 @@ type Channels struct {
 	pluginConfigListenerID        string
 	pluginClusterLeaderListenerID string
 
+	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
+	guardCache atomic.Pointer[sync.Map]
+
+	// guardCacheRetryInFlight collapses concurrent reload-failure retries to a single goroutine.
+	// See scheduleGuardCacheReloadRetry.
+	guardCacheRetryInFlight atomic.Bool
+
 	imageProxy *imageproxy.ImageProxy
+
+	agentsBridge AgentsBridge
 
 	// cached counts that are used during notice condition validation
 	cachedPostCount   int64
@@ -57,6 +68,9 @@ type Channels struct {
 	cachedDBMSVersion string
 	// previously fetched notices
 	cachedNotices model.ProductNotices
+
+	managedCategoryGroupID string
+	managedCategoryFieldID string
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
@@ -67,6 +81,9 @@ type Channels struct {
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
+
+	attributeViewRefreshMut  sync.Mutex
+	attributeViewRefreshLast time.Time
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -83,11 +100,9 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
-	interruptQuitChan     chan struct{}
-	scheduledPostMut      sync.Mutex
-	scheduledPostTask     *model.ScheduledTask
-	emailLoginAttemptsMut sync.Mutex
-	ldapLoginAttemptsMut  sync.Mutex
+	interruptQuitChan chan struct{}
+	scheduledPostMut  sync.Mutex
+	scheduledPostTask *model.ScheduledTask
 }
 
 func NewChannels(s *Server) (*Channels, error) {
@@ -99,6 +114,13 @@ func NewChannels(s *Server) (*Channels, error) {
 		exportFilestore:   s.ExportFileBackend(),
 		cfgSvc:            s.Platform(),
 		interruptQuitChan: make(chan struct{}),
+	}
+	ch.guardCache.Store(&sync.Map{})
+
+	if s.agentsBridgeOverride != nil {
+		ch.agentsBridge = s.agentsBridgeOverride
+	} else {
+		ch.agentsBridge = newLiveAgentsBridge(ch)
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise
@@ -218,7 +240,20 @@ func NewChannels(s *Server) (*Channels, error) {
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
+	if err := ch.reloadGuardCache(request.EmptyContext(s.Log()), s.Store()); err != nil {
+		s.Log().Warn(
+			"Failed to load channel guard cache at startup; retry scheduled",
+			mlog.Bool("clustered", s.platform.Cluster() != nil),
+			mlog.Err(err),
+		)
+		ch.scheduleGuardCacheReloadRetry()
+	}
+
 	return ch, nil
+}
+
+func (ch *Channels) SetAgentsBridge(bridge AgentsBridge) {
+	ch.agentsBridge = bridge
 }
 
 func (ch *Channels) Start() error {
@@ -308,6 +343,27 @@ func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifes
 	}
 }
 
+// RunMultiHookExcluding is like RunMultiHook but skips plugins whose IDs appear in excludePluginIDs.
+// Fail-open semantics are preserved.
+func (ch *Channels) RunMultiHookExcluding(excludePluginIDs []string, hookRunnerFunc func(plugin.Hooks, *model.Manifest) bool, hookId int) {
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		env.RunMultiPluginHookExcluding(excludePluginIDs, hookRunnerFunc, hookId)
+	}
+}
+
+// RunMultiHookWithRPCErr dispatches a hook closure across active plugins, surfacing RPC transport
+// errors. Returns nil in two cases that callers must distinguish themselves: (a) the plugin
+// environment is unavailable (plugins disabled, or not yet initialized), so the closure was never
+// invoked; (b) iteration completed and every closure invocation returned nil. Callers that need
+// fail-closed semantics on case (a) must check `ch.GetPluginsEnvironment() != nil` at the call site
+// before invoking — the right policy when plugins are disabled by config is caller-specific.
+func (ch *Channels) RunMultiHookWithRPCErr(hookRunnerFunc func(hooks plugin.HooksWithRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		return env.RunMultiPluginHookWithRPCErr(hookRunnerFunc, hookId)
+	}
+	return nil
+}
+
 func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {
 	env := ch.GetPluginsEnvironment()
 	if env == nil {
@@ -320,4 +376,14 @@ func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {
 	}
 
 	return hooks, nil
+}
+
+// HooksForPluginWithRPCErr returns the full *WithRPCErr hook surface for the named plugin.
+// Returns an error if the plugin environment is unavailable, the plugin is not found, or not active.
+func (ch *Channels) HooksForPluginWithRPCErr(id string) (plugin.HooksWithRPCErr, error) {
+	env := ch.GetPluginsEnvironment()
+	if env == nil {
+		return nil, errors.New("plugin environment not available")
+	}
+	return env.HooksForPluginWithRPCErr(id)
 }

@@ -28,11 +28,13 @@ func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Non-admin users only get message history limit information, no user count data
 	if !isAdmin {
 		limitedData := &model.ServerLimits{
-			MaxUsersLimit:          0,
-			MaxUsersHardLimit:      0,
-			ActiveUserCount:        0,
-			LastAccessiblePostTime: serverLimits.LastAccessiblePostTime,
-			PostHistoryLimit:       serverLimits.PostHistoryLimit,
+			MaxUsersLimit:           0,
+			MaxUsersHardLimit:       0,
+			ActiveUserCount:         0,
+			SingleChannelGuestCount: 0,
+			SingleChannelGuestLimit: 0,
+			LastAccessiblePostTime:  serverLimits.LastAccessiblePostTime,
+			PostHistoryLimit:        serverLimits.PostHistoryLimit,
 		}
 		serverLimits = limitedData
 	}

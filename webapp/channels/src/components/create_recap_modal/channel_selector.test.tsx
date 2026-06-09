@@ -218,6 +218,23 @@ describe('ChannelSelector', () => {
             expect(setSelectedChannelIds).toHaveBeenCalledWith(['channel1']);
         });
 
+        it('should call setSelectedChannelIds when checkbox is clicked', async () => {
+            const setSelectedChannelIds = jest.fn();
+            renderWithContext(
+                <ChannelSelector
+                    {...defaultProps}
+                    setSelectedChannelIds={setSelectedChannelIds}
+                />,
+            );
+
+            const checkbox = screen.getByText('Town Square').closest('.channel-selector-item')?.querySelector('input[type="checkbox"]');
+            expect(checkbox).not.toBeNull();
+
+            await userEvent.click(checkbox!);
+
+            expect(setSelectedChannelIds).toHaveBeenCalledWith(['channel1']);
+        });
+
         it('should add channel to selection when unselected channel is clicked', async () => {
             const setSelectedChannelIds = jest.fn();
             renderWithContext(
@@ -246,6 +263,24 @@ describe('ChannelSelector', () => {
 
             const channelItem = screen.getByText('Town Square').closest('.channel-selector-item');
             await userEvent.click(channelItem!);
+
+            expect(setSelectedChannelIds).toHaveBeenCalledWith(['channel2']);
+        });
+
+        it('should remove channel from selection when selected checkbox is clicked', async () => {
+            const setSelectedChannelIds = jest.fn();
+            renderWithContext(
+                <ChannelSelector
+                    {...defaultProps}
+                    selectedChannelIds={['channel1', 'channel2']}
+                    setSelectedChannelIds={setSelectedChannelIds}
+                />,
+            );
+
+            const checkbox = screen.getByText('Town Square').closest('.channel-selector-item')?.querySelector('input[type="checkbox"]');
+            expect(checkbox).not.toBeNull();
+
+            await userEvent.click(checkbox!);
 
             expect(setSelectedChannelIds).toHaveBeenCalledWith(['channel2']);
         });

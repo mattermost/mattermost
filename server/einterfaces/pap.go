@@ -39,4 +39,14 @@ type PolicyAdministrationPointInterface interface {
 	GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError)
 	// DeletePolicy deletes the access control policy with the given ID.
 	DeletePolicy(rctx request.CTX, id string) *model.AppError
+	// GetPoliciesForFieldIDs returns the policies that reference any of the given
+	// property field IDs in their CEL rule expressions.
+	GetPoliciesForFieldIDs(rctx request.CTX, fieldIDs []string) ([]*model.AccessControlPolicy, *model.AppError)
+	// SimulatePolicyForUsers evaluates a DRAFT policy against an explicit
+	// user list (with optional per-user session attribute overrides) and
+	// returns per-user, per-action ALLOW/DENY decisions plus blame
+	// attribution. The draft is compiled in-memory only; nothing is
+	// persisted. Backs the picker-based "Simulate access" UX in the
+	// System Console and Channel Settings.
+	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
 }

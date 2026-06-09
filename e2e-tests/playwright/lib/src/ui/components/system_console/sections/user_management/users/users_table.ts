@@ -22,6 +22,7 @@ export class UsersTable {
     readonly lastPostHeader: Locator;
     readonly daysActiveHeader: Locator;
     readonly messagesPostedHeader: Locator;
+    readonly channelCountHeader: Locator;
     readonly actionsHeader: Locator;
 
     constructor(container: Locator) {
@@ -38,6 +39,7 @@ export class UsersTable {
         this.lastPostHeader = container.locator('#systemUsersTable-header-lastPostDateColumn');
         this.daysActiveHeader = container.locator('#systemUsersTable-header-daysActiveColumn');
         this.messagesPostedHeader = container.locator('#systemUsersTable-header-totalPostsColumn');
+        this.channelCountHeader = container.locator('#systemUsersTable-header-channelCountColumn');
         this.actionsHeader = container.locator('#systemUsersTable-header-actionsColumn');
     }
 
@@ -65,6 +67,7 @@ export class UsersTable {
             'Last post': this.lastPostHeader,
             'Days active': this.daysActiveHeader,
             'Messages posted': this.messagesPostedHeader,
+            'Channel count': this.channelCountHeader,
             Actions: this.actionsHeader,
         };
         const header = headerMap[columnName];
@@ -143,6 +146,7 @@ export class UserRow {
     readonly lastPostCell: Locator;
     readonly daysActiveCell: Locator;
     readonly messagesPostedCell: Locator;
+    readonly channelCountCell: Locator;
     readonly actionsCell: Locator;
 
     // User details components
@@ -168,6 +172,7 @@ export class UserRow {
         this.lastPostCell = container.locator('.lastPostDateColumn');
         this.daysActiveCell = container.locator('.daysActiveColumn');
         this.messagesPostedCell = container.locator('.totalPostsColumn');
+        this.channelCountCell = container.locator('.channelCountColumn');
         this.actionsCell = container.locator('.actionsColumn');
 
         this.profilePicture = this.userDetailsCell.locator('.profilePicture');

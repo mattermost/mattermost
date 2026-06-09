@@ -10,14 +10,15 @@
 // Stage: @prod
 // Group: @channels @search_date_filter
 
-import {getAdminAccount} from '../../../support/env';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     getTestMessages,
     searchAndValidate,
     setupTestData,
 } from './helpers';
+
+import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Search Date Filter', () => {
     const testData = getTestMessages();

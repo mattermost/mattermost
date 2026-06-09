@@ -3,97 +3,134 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
+test.describe('System Console - Users table sorting', () => {
+    test.describe.configure({mode: 'serial'});
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
+    test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw}) => {
+        const {adminUser, adminClient} = await pw.initSetup();
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
 
-    // # Create 10 random users
-    for (let i = 0; i < 10; i++) {
-        await adminClient.createUser(await pw.random.user(), '', '');
-    }
+        // # Log in as admin
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+        // # Create 10 random users
+        for (let i = 0; i < 10; i++) {
+            await adminClient.createUser(await pw.random.user(), '', '');
+        }
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
+        // # Visit system console
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
 
-    // * Verify that 'Email' column has aria-sort attribute
-    const emailColumnHeader = systemConsolePage.users.usersTable.getColumnHeader('Email');
-    await expect(emailColumnHeader).toBeVisible();
-    await expect(emailColumnHeader).toHaveAttribute('aria-sort');
+        // # Go to Users section
+        await systemConsolePage.sidebar.users.click();
+        await systemConsolePage.users.toBeVisible();
 
-    // # Store all emails before sorting to compare order
-    const rowsBeforeSort = await systemConsolePage.users.usersTable.bodyRows.count();
-    const emailsBeforeSort: string[] = [];
-    for (let i = 0; i < rowsBeforeSort; i++) {
-        const row = systemConsolePage.users.usersTable.getRowByIndex(i);
-        const email = await row.getEmail();
-        emailsBeforeSort.push(email);
-    }
+        // * Verify that 'Email' column has aria-sort attribute
+        const emailColumnHeader = systemConsolePage.users.usersTable.getColumnHeader('Email');
+        await expect(emailColumnHeader).toBeVisible();
+        await expect(emailColumnHeader).toHaveAttribute('aria-sort');
 
-    // # Click on the 'Email' column header to sort and wait for sort to complete
-    await systemConsolePage.users.usersTable.sortByColumn('Email');
+        // # Click on the 'Email' column header to sort and wait for sort to complete
+        const sortDirection = await systemConsolePage.users.usersTable.sortByColumn('Email');
 
-    // # Store all emails after sorting
-    const emailsAfterSort: string[] = [];
-    for (let i = 0; i < rowsBeforeSort; i++) {
-        const row = systemConsolePage.users.usersTable.getRowByIndex(i);
-        const email = await row.getEmail();
-        emailsAfterSort.push(email);
-    }
+        // * Verify that emails are sorted in the expected direction (table can still be
+        // re-fetching rows from other workers creating users — poll longer than default).
+        await expect(async () => {
+            await systemConsolePage.page.waitForLoadState('networkidle').catch(() => {});
+            const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
+            const maxRows = Math.min(rowCount, 40);
+            const emails: string[] = [];
+            for (let i = 0; i < maxRows; i++) {
+                const row = systemConsolePage.users.usersTable.getRowByIndex(i);
+                const email = (await row.getEmail()).trim();
+                if (email) {
+                    emails.push(email);
+                }
+            }
+            expect(emails.length).toBeGreaterThan(3);
 
-    // * Verify that the order has changed (emails array is different)
-    expect(emailsBeforeSort).not.toEqual(emailsAfterSort);
-});
+            const sorted = [...emails].sort((a, b) => a.localeCompare(b, undefined, {ignorePunctuation: true}));
+            if (sortDirection === 'descending') {
+                sorted.reverse();
+            }
+            expect(emails).toEqual(sorted);
+        }).toPass({timeout: 120_000});
 
-test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
+        // # Click on the 'Email' column header again to toggle sort direction
+        const reversedDirection = await systemConsolePage.users.usersTable.sortByColumn('Email');
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
+        // * Verify that the sort direction has toggled
+        expect(reversedDirection).not.toEqual(sortDirection);
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // * Verify that emails are sorted in the toggled direction
+        await expect(async () => {
+            await systemConsolePage.page.waitForLoadState('networkidle').catch(() => {});
+            const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
+            const maxRows = Math.min(rowCount, 40);
+            const emails: string[] = [];
+            for (let i = 0; i < maxRows; i++) {
+                const row = systemConsolePage.users.usersTable.getRowByIndex(i);
+                const email = (await row.getEmail()).trim();
+                if (email) {
+                    emails.push(email);
+                }
+            }
+            expect(emails.length).toBeGreaterThan(3);
 
-    // # Create 10 random users
-    for (let i = 0; i < 10; i++) {
-        await adminClient.createUser(await pw.random.user(), '', '');
-    }
+            const sorted = [...emails].sort((a, b) => a.localeCompare(b, undefined, {ignorePunctuation: true}));
+            if (reversedDirection === 'descending') {
+                sorted.reverse();
+            }
+            expect(emails).toEqual(sorted);
+        }).toPass({timeout: 120_000});
+    });
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw}) => {
+        const {adminUser, adminClient} = await pw.initSetup();
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
+        if (!adminUser) {
+            throw new Error('Failed to create admin user');
+        }
 
-    // * Verify that 'Last login' column does not have aria-sort attribute
-    const lastLoginColumnHeader = systemConsolePage.users.usersTable.getColumnHeader('Last login');
-    await expect(lastLoginColumnHeader).toBeVisible();
-    await expect(lastLoginColumnHeader).not.toHaveAttribute('aria-sort');
+        // # Log in as admin
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    // # Store the first row's email without sorting
-    const firstRowWithoutSort = systemConsolePage.users.usersTable.getRowByIndex(0);
-    const firstRowEmailWithoutSort = await firstRowWithoutSort.container.getByText(pw.simpleEmailRe).allInnerTexts();
+        // # Create 10 random users
+        for (let i = 0; i < 10; i++) {
+            await adminClient.createUser(await pw.random.user(), '', '');
+        }
 
-    // # Try to click on the 'Last login' column header to sort
-    await systemConsolePage.users.usersTable.clickSortOnColumn('Last login');
+        // # Visit system console
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
 
-    // # Store the first row's email after sorting
-    const firstRowWithSort = systemConsolePage.users.usersTable.getRowByIndex(0);
-    const firstRowEmailWithSort = await firstRowWithSort.container.getByText(pw.simpleEmailRe).allInnerTexts();
+        // # Go to Users section
+        await systemConsolePage.sidebar.users.click();
+        await systemConsolePage.users.toBeVisible();
 
-    // * Verify that the first row's email is still the same
-    expect(firstRowEmailWithoutSort).toEqual(firstRowEmailWithSort);
+        // * Verify that 'Last login' column does not have aria-sort attribute
+        const lastLoginColumnHeader = systemConsolePage.users.usersTable.getColumnHeader('Last login');
+        await expect(lastLoginColumnHeader).toBeVisible();
+        await expect(lastLoginColumnHeader).not.toHaveAttribute('aria-sort');
+
+        // # Store the first row's email without sorting
+        const firstRowWithoutSort = systemConsolePage.users.usersTable.getRowByIndex(0);
+        const firstRowEmailWithoutSort = await firstRowWithoutSort.container
+            .getByText(pw.simpleEmailRe)
+            .allInnerTexts();
+
+        // # Try to click on the 'Last login' column header to sort
+        await systemConsolePage.users.usersTable.clickSortOnColumn('Last login');
+
+        // # Store the first row's email after sorting
+        const firstRowWithSort = systemConsolePage.users.usersTable.getRowByIndex(0);
+        const firstRowEmailWithSort = await firstRowWithSort.container.getByText(pw.simpleEmailRe).allInnerTexts();
+
+        // * Verify that the first row's email is still the same
+        expect(firstRowEmailWithoutSort).toEqual(firstRowEmailWithSort);
+    });
 });

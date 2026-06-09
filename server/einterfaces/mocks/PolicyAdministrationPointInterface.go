@@ -131,6 +131,38 @@ func (_m *PolicyAdministrationPointInterface) GetChannelMembersToRemove(rctx req
 	return r0, r1
 }
 
+// GetPoliciesForFieldIDs provides a mock function with given fields: rctx, fieldIDs
+func (_m *PolicyAdministrationPointInterface) GetPoliciesForFieldIDs(rctx request.CTX, fieldIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
+	ret := _m.Called(rctx, fieldIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPoliciesForFieldIDs")
+	}
+
+	var r0 []*model.AccessControlPolicy
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) ([]*model.AccessControlPolicy, *model.AppError)); ok {
+		return rf(rctx, fieldIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) []*model.AccessControlPolicy); ok {
+		r0 = rf(rctx, fieldIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) *model.AppError); ok {
+		r1 = rf(rctx, fieldIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPolicy provides a mock function with given fields: rctx, id
 func (_m *PolicyAdministrationPointInterface) GetPolicy(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
 	ret := _m.Called(rctx, id)
@@ -348,6 +380,38 @@ func (_m *PolicyAdministrationPointInterface) SavePolicy(rctx request.CTX, polic
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.AccessControlPolicy) *model.AppError); ok {
 		r1 = rf(rctx, policy)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SimulatePolicyForUsers provides a mock function with given fields: rctx, params
+func (_m *PolicyAdministrationPointInterface) SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError) {
+	ret := _m.Called(rctx, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SimulatePolicyForUsers")
+	}
+
+	var r0 *model.PolicySimulationResponse
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)); ok {
+		return rf(rctx, params)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PolicySimulationByUsersParams) *model.PolicySimulationResponse); ok {
+		r0 = rf(rctx, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PolicySimulationResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.PolicySimulationByUsersParams) *model.AppError); ok {
+		r1 = rf(rctx, params)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

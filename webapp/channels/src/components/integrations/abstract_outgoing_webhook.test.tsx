@@ -1,13 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {ChannelType} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import ChannelSelect from 'components/channel_select';
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
+
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
+
+const initialState: DeepPartial<GlobalState> = {
+    entities: {
+        channels: {
+            currentChannelId: 'current_channel_id',
+            channels: {
+                current_channel_id: TestHelper.getChannelMock({
+                    id: 'current_channel_id',
+                    team_id: 'team_id',
+                    type: 'O' as ChannelType,
+                    name: 'current_channel',
+                }),
+            },
+            myMembers: {
+                current_channel_id: TestHelper.getChannelMembershipMock({channel_id: 'current_channel_id'}),
+            },
+            channelsInTeam: {
+                team_id: new Set(['current_channel_id']),
+            },
+        },
+        teams: {
+            currentTeamId: 'team_id',
+            teams: {
+                team_id: TestHelper.getTeamMock({id: 'team_id'}),
+            },
+            myMembers: {
+                team_id: TestHelper.getTeamMembershipMock({roles: 'team_roles'}),
+            },
+        },
+    },
+};
 
 describe('components/integrations/AbstractOutgoingWebhook', () => {
     const team: Team = {
@@ -74,90 +110,71 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should not render username in case of enablePostUsernameOverride is false ', () => {
         const usernameTrueProps = {...requiredProps};
-        const wrapper = shallow(<AbstractOutgoingWebhook {...usernameTrueProps}/>);
-        expect(wrapper.find('#username')).toHaveLength(0);
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
+        expect(container.querySelector('#username')).not.toBeInTheDocument();
     });
 
     test('should not render post icon override in case of enablePostIconOverride is false ', () => {
         const iconUrlTrueProps = {...requiredProps};
-        const wrapper = shallow(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>);
-        expect(wrapper.find('#iconURL')).toHaveLength(0);
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>, initialState as GlobalState);
+        expect(container.querySelector('#iconURL')).not.toBeInTheDocument();
     });
 
     test('should render username in case of enablePostUsernameOverride is true ', () => {
         const usernameTrueProps = {...requiredProps, enablePostUsernameOverride: true};
-        const wrapper = shallow(<AbstractOutgoingWebhook {...usernameTrueProps}/>);
-        expect(wrapper.find('#username')).toHaveLength(1);
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
+        expect(container.querySelector('#username')).toBeInTheDocument();
     });
 
     test('should render post icon override in case of enablePostIconOverride is true ', () => {
         const iconUrlTrueProps = {...requiredProps, enablePostIconOverride: true};
-        const wrapper = shallow(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>);
-        expect(wrapper.find('#iconURL')).toHaveLength(1);
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>, initialState as GlobalState);
+        expect(container.querySelector('#iconURL')).toBeInTheDocument();
     });
 
-    test('should update state.channelId when on channel change', () => {
-        const newChannelId = 'new_channel_id';
-        const evt = {
-            preventDefault: jest.fn(),
-            target: {value: newChannelId},
-        };
-
-        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
-        wrapper.find(ChannelSelect).simulate('change', evt);
-
-        expect(wrapper.state('channelId')).toBe(newChannelId);
+    test('should update state.channelId when on channel change', async () => {
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const channelSelect = container.querySelector('#channelSelect') as HTMLSelectElement;
+        await userEvent.selectOptions(channelSelect, 'current_channel_id');
+        expect(channelSelect).toHaveValue('current_channel_id');
     });
 
-    test('should update state.description when on description change', () => {
-        const newDescription = 'new_description';
-        const evt = {
-            preventDefault: jest.fn(),
-            target: {value: newDescription},
-        };
-
-        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
-        wrapper.find('#description').simulate('change', evt);
-
-        expect(wrapper.state('description')).toBe(newDescription);
+    test('should update state.description when on description change', async () => {
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const descriptionInput = container.querySelector('#description') as HTMLInputElement;
+        await userEvent.clear(descriptionInput);
+        await userEvent.type(descriptionInput, 'new_description');
+        expect(descriptionInput).toHaveValue('new_description');
     });
 
-    test('should update state.username on post username change', () => {
+    test('should update state.username on post username change', async () => {
         const usernameTrueProps = {...requiredProps, enablePostUsernameOverride: true};
-        const newUsername = 'new_username';
-        const evt = {
-            preventDefault: jest.fn(),
-            target: {value: newUsername},
-        };
-
-        const wrapper = shallow(<AbstractOutgoingWebhook {...usernameTrueProps}/>);
-        wrapper.find('#username').simulate('change', evt);
-
-        expect(wrapper.state('username')).toBe(newUsername);
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
+        const usernameInput = container.querySelector('#username') as HTMLInputElement;
+        await userEvent.type(usernameInput, 'new_username');
+        expect(usernameInput).toHaveValue('new_username');
     });
 
-    test('should update state.triggerWhen on selection change', () => {
-        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
-        expect(wrapper.state('triggerWhen')).toBe(0);
-
-        const selector = wrapper.find('#triggerWhen');
-        selector.simulate('change', {target: {value: 1}});
-        expect(wrapper.state('triggerWhen')).toBe(1);
+    test('should update state.triggerWhen on selection change', async () => {
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const triggerWhenSelect = container.querySelector('#triggerWhen') as HTMLSelectElement;
+        expect(triggerWhenSelect).toHaveValue('0');
+        await userEvent.selectOptions(triggerWhenSelect, '1');
+        expect(triggerWhenSelect).toHaveValue('1');
     });
 
-    test('should call action function', () => {
-        const wrapper = shallow(<AbstractOutgoingWebhook {...requiredProps}/>);
-
-        wrapper.find('#displayName').simulate('change', {target: {value: 'name'}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
+    test('should call action function', async () => {
+        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const displayNameInput = container.querySelector('#displayName') as HTMLInputElement;
+        await userEvent.clear(displayNameInput);
+        await userEvent.type(displayNameInput, 'name');
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
 
         expect(action).toHaveBeenCalled();
         expect(action).toHaveBeenCalledTimes(1);

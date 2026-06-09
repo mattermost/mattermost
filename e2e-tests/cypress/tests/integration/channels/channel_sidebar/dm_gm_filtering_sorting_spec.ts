@@ -9,10 +9,10 @@
 
 // Group: @channels @dm_category
 
-import * as MESSAGES from '../../../fixtures/messages';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('DM/GM filtering and sorting', () => {
-    let testUser;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         // # Login as test user and visit town-square

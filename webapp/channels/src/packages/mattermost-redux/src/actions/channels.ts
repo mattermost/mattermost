@@ -739,6 +739,23 @@ export function unsetActiveChannelOnServer(): ActionFuncAsync {
     };
 }
 
+export function readAllMessages(userId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let response;
+        try {
+            response = await Client4.markAllMessagesAsRead(userId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(markMultipleChannelsAsRead(response.last_viewed_at_times));
+
+        return {data: true};
+    };
+}
+
 export function readMultipleChannels(channelIds: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let response;
@@ -790,6 +807,26 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
         let channels;
         try {
             channels = await Client4.getArchivedChannels(teamId, page, perPage);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNELS,
+            teamId,
+            data: channels,
+        });
+
+        return {data: channels};
+    };
+}
+
+export function getRecommendedChannelsForUser(teamId: string): ActionFuncAsync<Channel[]> {
+    return async (dispatch, getState) => {
+        let channels;
+        try {
+            channels = await Client4.getRecommendedChannelsForUser(teamId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             return {error};

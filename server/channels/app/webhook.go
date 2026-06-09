@@ -127,6 +127,14 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 
 		go func() {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Error("Recovered from panic in outgoing webhook goroutine",
+						mlog.String("url", url),
+						mlog.Any("panic", r),
+					)
+				}
+			}()
 
 			var accessToken *model.OutgoingOAuthConnectionToken
 
@@ -171,7 +179,7 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 				if webhookResp.Text != nil {
 					text = a.ProcessSlackText(rctx, *webhookResp.Text)
 				}
-				webhookResp.Attachments = a.ProcessSlackAttachments(rctx, webhookResp.Attachments)
+				webhookResp.Attachments = a.ProcessMessageAttachments(rctx, webhookResp.Attachments)
 				// attachments is in here for slack compatibility
 				if len(webhookResp.Attachments) > 0 {
 					webhookResp.Props[model.PostPropsAttachments] = webhookResp.Attachments
@@ -261,14 +269,14 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	split.Message = remainingText
 	splits = append(splits, split)
 
-	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	for _, attachment := range attachments {
 		newAttachment := *attachment
 		for {
 			lastSplit := splits[len(splits)-1]
 			newProps := make(map[string]any)
 			maps.Copy(newProps, lastSplit.GetProps())
-			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.SlackAttachment)
+			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.MessageAttachment)
 			newProps[model.PostPropsAttachments] = append(origAttachments, &newAttachment)
 			newPropsString := model.StringInterfaceToJSON(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
@@ -352,13 +360,19 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		for key, val := range props {
 			switch key {
 			case model.PostPropsAttachments:
-				if attachments, success := val.([]*model.SlackAttachment); success {
-					model.ParseSlackAttachment(post, attachments)
+				if attachments, success := val.([]*model.MessageAttachment); success {
+					model.ParseMessageAttachment(post, attachments)
 				}
 			case model.PostPropsOverrideIconURL,
 				model.PostPropsOverrideUsername,
 				model.PostPropsFromWebhook:
 			// Do nothing
+			case model.PostPropsMmBlocksActions:
+				// Webhook payloads are user-controlled even when the
+				// webhook is bound to a bot user, so the bot-author
+				// signal in CreatePost's strip rule cannot distinguish
+				// them. Drop here so mm_blocks_actions never reaches
+				// the post object.
 			default:
 				post.AddProp(key, val)
 			}
@@ -377,6 +391,29 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 	}
 
 	return splits[0], nil
+}
+
+// ValidateIncomingWebhookUser ensures a user being assigned as an incoming webhook's owner can
+// legitimately be attributed posts in the target channel: the user must have access to the
+// channel and must not hold privileges the requester lacks, so a requester cannot forge posts
+// as a non-member or higher-privileged user.
+func (a *App) ValidateIncomingWebhookUser(rctx request.CTX, session model.Session, user *model.User, channel *model.Channel) *model.AppError {
+	if user.IsSystemAdmin() && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		return model.NewAppError("ValidateIncomingWebhookUser", "api.webhook.incoming.user_role.app_error", nil, "user_id="+user.Id, http.StatusForbidden)
+	}
+
+	return a.ValidateIncomingWebhookUserChannelAccess(rctx, user.Id, channel)
+}
+
+// ValidateIncomingWebhookUserChannelAccess ensures the webhook owner can read the channel its
+// posts are attributed to, preventing attribution to a user who is not a member of the channel
+// (or its team, for open channels).
+func (a *App) ValidateIncomingWebhookUserChannelAccess(rctx request.CTX, userID string, channel *model.Channel) *model.AppError {
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); !hasPermission {
+		return model.NewAppError("ValidateIncomingWebhookUserChannelAccess", "api.webhook.incoming.user_membership.app_error", nil, "user_id="+userID+", channel_id="+channel.Id, http.StatusForbidden)
+	}
+
+	return nil
 }
 
 func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
@@ -437,6 +474,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	updatedHook.UpdateAt = model.GetMillis()
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.DeleteAt = oldHook.DeleteAt
+	updatedHook.LastUsed = oldHook.LastUsed
 
 	newWebhook, err := a.Srv().Store().Webhook().UpdateIncoming(updatedHook)
 	if err != nil {
@@ -773,11 +811,11 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	req.Props[model.PostPropsWebhookDisplayName] = hook.DisplayName
 
 	text = a.ProcessSlackText(rctx, text)
-	req.Attachments = a.ProcessSlackAttachments(rctx, req.Attachments)
+	req.Attachments = a.ProcessMessageAttachments(rctx, req.Attachments)
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props[model.PostPropsAttachments] = req.Attachments
-		webhookType = model.PostTypeSlackAttachment
+		webhookType = model.PostTypeMessageAttachment
 	}
 
 	var channel *model.Channel
@@ -788,6 +826,17 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 			result, nErr := a.Srv().Store().User().GetByUsername(channelName[1:])
 			if nErr != nil {
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"user": channelName[1:]}, "", http.StatusBadRequest).Wrap(nErr)
+			}
+			// Only allow a DM target the webhook owner shares a team with, so the stored
+			// user_id cannot be used to reach users the owner could not message directly.
+			if hook.UserId != result.Id {
+				commonTeamIDs, teamErr := a.GetCommonTeamIDsForTwoUsers(hook.UserId, result.Id)
+				if teamErr != nil {
+					return teamErr
+				}
+				if len(commonTeamIDs) == 0 {
+					return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channelName}, "", http.StatusForbidden)
+				}
 			}
 			ch, err := a.GetOrCreateDirectChannel(rctx, hook.UserId, result.Id)
 			if err != nil {
@@ -856,6 +905,34 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
 	}
 
+	threadRootID := ""
+	if rootId := req.RootId; rootId != "" {
+		if !model.IsValidId(rootId) {
+			return model.NewAppError("HandleIncomingWebhook", "api.context.invalid_param.app_error", map[string]any{"Name": "root_id"}, "", http.StatusBadRequest)
+		}
+		rootPost, nErr := a.Srv().Store().Post().GetSingle(rctx, rootId, false)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		}
+		if rootPost == nil {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.ChannelId != channel.Id {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.RootId != "" {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		threadRootID = rootPost.Id
+	}
+
 	overrideUsername := hook.Username
 	if req.Username != "" {
 		overrideUsername = req.Username
@@ -866,8 +943,17 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
-	return err
+	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
+	if err != nil {
+		return err
+	}
+
+	now := model.GetMillis()
+	if nErr := a.Srv().Store().Webhook().UpdateIncomingLastUsed(hook.Id, now); nErr != nil {
+		rctx.Logger().Warn("Failed to update incoming webhook LastUsed", mlog.String("hook_id", hook.Id), mlog.Err(nErr))
+	}
+
+	return nil
 }
 
 func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {

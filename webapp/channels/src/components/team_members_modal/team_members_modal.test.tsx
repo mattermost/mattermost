@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import {GenericModal} from '@mattermost/components';
-
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamMembersModal from './team_members_modal';
@@ -24,27 +22,26 @@ describe('components/TeamMembersModal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <TeamMembersModal
                 {...baseProps}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should call onHide on Modal\'s onExited', () => {
-        const wrapper = shallow(
+    test('should call onHide on Modal\'s onExited', async () => {
+        renderWithContext(
             <TeamMembersModal
                 {...baseProps}
             />,
         );
 
-        const modalProps = wrapper.find(GenericModal).first().props();
-        if (modalProps.onExited) {
-            modalProps.onExited();
-        }
+        await userEvent.click(screen.getByLabelText('Close'));
 
-        expect(baseProps.onExited).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalledTimes(1);
+        });
     });
 });

@@ -673,7 +673,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} este deja în canal."
+    "translation": {
+      "few": "",
+      "one": "{{.User}} este deja în canal.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1480,10 +1484,6 @@
     "translation": "Eroare la pornirea serverului, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integrarea botului/Slack cu e-mail {{.Email}} și parola {{.Password}} a fost importat.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Imposibil de importat utilizatorul Integrații/Slack Bot {{.Username}}.\r\n"
   },
@@ -1506,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUtilizatorii creați:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Utilizatorul Slack cu e-mail {{.Email}} și parola {{.Password}} a fost importat.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3050,10 +3046,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Nu a reuşit să decodeze rezultatele cautării"
-  },
-  {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch este deja oprit."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -5228,10 +5220,6 @@
     "translation": "Licența Mattermost Enterprise a fost dezactivată."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Licența dvs. Enterprise Edition a expirat și este posibil ca unele funcții să fie dezactivate. Vă rugăm să vă reînnoiți licența acum."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{.SiteName}}] {{.SenderName}} v-a invitat să vă alăturați echipei {{.TeamDisplayName}} ca oaspete"
   },
@@ -6438,10 +6426,6 @@
   {
     "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Canalele nu pot fi obținute prin ID-uri."
-  },
-  {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Imposibil de obținut numărul de canale."
   },
   {
     "id": "app.channel.count_posts_since.app_error",
@@ -7814,14 +7798,6 @@
   {
     "id": "api.command_remote.permission_required",
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nu se poate conecta la S3. Verificați parametrii de autorizare a conexiunii Amazon S3 și setările de autentificare."
   },
   {
     "id": "api.command_remote.displayname.hint",

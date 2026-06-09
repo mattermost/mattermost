@@ -4,6 +4,7 @@
 package common
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -36,75 +37,494 @@ func TestElasticsearchBuildPostIndexName(t *testing.T) {
 }
 
 func TestESPostFromPostForIndexing(t *testing.T) {
-	// Create one with attachments in 'any' form.
-
-	post1 := model.PostForIndexing{
-		TeamId:         model.NewId(),
-		ParentCreateAt: nil,
-		Post: model.Post{
-			Id:        model.NewId(),
-			ChannelId: model.NewId(),
-			UserId:    model.NewId(),
-			CreateAt:  model.GetMillis(),
-			Message:   "message",
-			Type:      "",
-			Hashtags:  "",
-			Props: map[string]any{
-				"attachments": []any{
-					map[string]any{
-						"text": "text 1",
+	t.Run("any form with text only", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId:         model.NewId(),
+			ParentCreateAt: nil,
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "message",
+				Type:      "",
+				Hashtags:  "",
+				Props: map[string]any{
+					model.PostPropsAttachments: []any{
+						map[string]any{
+							"text": "text 1",
+						},
 					},
 				},
 			},
-		},
-	}
+		}
 
-	espost1 := ESPostFromPostForIndexing(&post1)
+		espost := ESPostFromPostForIndexing(&post)
 
-	assert.Equal(t, post1.Id, espost1.Id)
-	assert.Equal(t, post1.TeamId, espost1.TeamId)
-	assert.Equal(t, post1.ChannelId, espost1.ChannelId)
-	assert.Equal(t, post1.UserId, espost1.UserId)
-	assert.Equal(t, post1.CreateAt, espost1.CreateAt)
-	assert.Equal(t, post1.Message, espost1.Message)
-	assert.Equal(t, "default", espost1.Type)
-	assert.Empty(t, espost1.Hashtags)
-	assert.Equal(t, "text 1", espost1.Attachments)
+		assert.Equal(t, post.Id, espost.Id)
+		assert.Equal(t, post.TeamId, espost.TeamId)
+		assert.Equal(t, post.ChannelId, espost.ChannelId)
+		assert.Equal(t, post.UserId, espost.UserId)
+		assert.Equal(t, post.CreateAt, espost.CreateAt)
+		assert.Equal(t, post.Message, espost.Message)
+		assert.Equal(t, "default", espost.Type)
+		assert.Empty(t, espost.Hashtags)
+		assert.Equal(t, "text 1", espost.Attachments)
+	})
 
-	// Create one with attachments in model.SlackAttachment form.
-
-	post2 := model.PostForIndexing{
-		TeamId:         model.NewId(),
-		ParentCreateAt: nil,
-		Post: model.Post{
-			Id:        model.NewId(),
-			ChannelId: model.NewId(),
-			UserId:    model.NewId(),
-			CreateAt:  model.GetMillis(),
-			Message:   "message",
-			Type:      "slack_attachment",
-			Hashtags:  "#buh #boh",
-			Props: map[string]any{
-				"attachments": []*model.SlackAttachment{
-					{
-						Text: "text 2",
+	t.Run("MessageAttachment form with text only", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId:         model.NewId(),
+			ParentCreateAt: nil,
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "message",
+				Type:      "slack_attachment",
+				Hashtags:  "#buh #boh",
+				Props: map[string]any{
+					model.PostPropsAttachments: []*model.MessageAttachment{
+						{
+							Text: "text 2",
+						},
 					},
 				},
 			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Equal(t, post.Id, espost.Id)
+		assert.Equal(t, post.TeamId, espost.TeamId)
+		assert.Equal(t, post.ChannelId, espost.ChannelId)
+		assert.Equal(t, post.UserId, espost.UserId)
+		assert.Equal(t, post.CreateAt, espost.CreateAt)
+		assert.Equal(t, post.Message, espost.Message)
+		assert.Equal(t, "slack_attachment", espost.Type)
+		assert.Len(t, espost.Hashtags, 2)
+		assert.Equal(t, "text 2", espost.Attachments)
+	})
+
+	t.Run("any form indexes title, pretext, fallback, and fields", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []any{
+						map[string]any{
+							"title":    "Build Failed",
+							"pretext":  "CI notification",
+							"fallback": "Build Failed on main",
+							"text":     "Details here",
+							"fields": []any{
+								map[string]any{
+									"title": "Branch",
+									"value": "main",
+								},
+								map[string]any{
+									"title": "Status",
+									"value": "failed",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "Details here")
+		assert.Contains(t, espost.Attachments, "Build Failed")
+		assert.Contains(t, espost.Attachments, "CI notification")
+		assert.Contains(t, espost.Attachments, "Build Failed on main")
+		assert.Contains(t, espost.Attachments, "Branch")
+		assert.Contains(t, espost.Attachments, "main")
+		assert.Contains(t, espost.Attachments, "Status")
+		assert.Contains(t, espost.Attachments, "failed")
+	})
+
+	t.Run("MessageAttachment form indexes title, pretext, fallback, and fields", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []*model.MessageAttachment{
+						{
+							Title:    "Build Failed",
+							Pretext:  "CI notification",
+							Fallback: "Build Failed on main",
+							Text:     "Details here",
+							Fields: []*model.MessageAttachmentField{
+								{Title: "Branch", Value: "main"},
+								{Title: "Status", Value: "failed"},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "Details here")
+		assert.Contains(t, espost.Attachments, "Build Failed")
+		assert.Contains(t, espost.Attachments, "CI notification")
+		assert.Contains(t, espost.Attachments, "Build Failed on main")
+		assert.Contains(t, espost.Attachments, "Branch")
+		assert.Contains(t, espost.Attachments, "main")
+		assert.Contains(t, espost.Attachments, "Status")
+		assert.Contains(t, espost.Attachments, "failed")
+	})
+
+	t.Run("empty fields are excluded", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []*model.MessageAttachment{
+						{
+							Title: "Only Title",
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Equal(t, "Only Title", espost.Attachments)
+	})
+
+	t.Run("nil fields and attachments are handled", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []*model.MessageAttachment{
+						nil,
+						{
+							Text: "valid",
+							Fields: []*model.MessageAttachmentField{
+								nil,
+								{Title: "field title", Value: "field value"},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "valid")
+		assert.Contains(t, espost.Attachments, "field title")
+		assert.Contains(t, espost.Attachments, "field value")
+	})
+
+	t.Run("non-string field values are indexed", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []any{
+						map[string]any{
+							"text": "metrics",
+							"fields": []any{
+								map[string]any{
+									"title": "Count",
+									"value": 42,
+								},
+								map[string]any{
+									"title": "Rate",
+									"value": 99.5,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "metrics")
+		assert.Contains(t, espost.Attachments, "Count")
+		assert.Contains(t, espost.Attachments, "42")
+		assert.Contains(t, espost.Attachments, "Rate")
+		assert.Contains(t, espost.Attachments, "99.5")
+	})
+
+	t.Run("non-string field values in MessageAttachment form are indexed", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []*model.MessageAttachment{
+						{
+							Text: "metrics",
+							Fields: []*model.MessageAttachmentField{
+								{Title: "Count", Value: 42},
+								{Title: "Rate", Value: 99.5},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "metrics")
+		assert.Contains(t, espost.Attachments, "Count")
+		assert.Contains(t, espost.Attachments, "42")
+		assert.Contains(t, espost.Attachments, "Rate")
+		assert.Contains(t, espost.Attachments, "99.5")
+	})
+
+	t.Run("any form indexes footer and author_name", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []any{
+						map[string]any{
+							"text":        "body text",
+							"footer":      "Opportunity #OPP-000035341 • United States",
+							"author_name": "Salesforce",
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "body text")
+		assert.Contains(t, espost.Attachments, "Opportunity #OPP-000035341 • United States")
+		assert.Contains(t, espost.Attachments, "Salesforce")
+	})
+
+	t.Run("MessageAttachment form indexes footer and author_name", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []*model.MessageAttachment{
+						{
+							Text:       "body text",
+							Footer:     "Opportunity #OPP-000035341 • United States",
+							AuthorName: "Salesforce",
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "body text")
+		assert.Contains(t, espost.Attachments, "Opportunity #OPP-000035341 • United States")
+		assert.Contains(t, espost.Attachments, "Salesforce")
+	})
+
+	t.Run("multiple attachments are combined", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "",
+				Type:      "slack_attachment",
+				Props: map[string]any{
+					model.PostPropsAttachments: []any{
+						map[string]any{
+							"title": "First",
+							"text":  "one",
+						},
+						map[string]any{
+							"title": "Second",
+							"text":  "two",
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Contains(t, espost.Attachments, "First")
+		assert.Contains(t, espost.Attachments, "one")
+		assert.Contains(t, espost.Attachments, "Second")
+		assert.Contains(t, espost.Attachments, "two")
+	})
+}
+
+// TestESPostFromPost_CreatePostJSONRoundTrip simulates the exact flow that happens
+// in production: App.CreatePost converts []*MessageAttachment to []any via JSON
+// marshal/unmarshal (Post.Attachments in post.go), then the search layer calls
+// ESPostFromPost which does ShallowCopy → ESPostFromPostForIndexing.
+func TestESPostFromPost_CreatePostJSONRoundTrip(t *testing.T) {
+	// Step 1: Start with typed MessageAttachment (as a plugin/webhook would create)
+	original := &model.Post{
+		Id:        model.NewId(),
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+		CreateAt:  model.GetMillis(),
+		Message:   "#closedwon #renewal",
+		Type:      "slack_attachment",
+	}
+	original.AddProp(model.PostPropsAttachments, []*model.MessageAttachment{
+		{
+			Title:      "Account: Acme Corp / Widget Industries, LLC",
+			Text:       "Renewal ARR: $49,140.00",
+			Pretext:    "#closedwon #renewal",
+			Footer:     "Opportunity #OPP-000035341 • United States",
+			AuthorName: "CRM Bot",
+			Fields: []*model.MessageAttachmentField{
+				{Title: "Sales Rep", Value: "Jane Smith"},
+				{Title: "Account Manager", Value: "John Doe"},
+				{Title: "Opportunity", Value: "Acme Corp / Widget Industries, LLC - Enterprise - 350 Seats - '26 Renewal"},
+				{Title: "Seats", Value: 350.0},
+			},
 		},
+	})
+
+	// Step 2: Simulate CreatePost JSON round-trip (post.go:305-315)
+	if attachments, ok := original.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment); ok {
+		jsonAttachments, err := json.Marshal(attachments)
+		require.NoError(t, err)
+		attachmentsInterface := []any{}
+		err = json.Unmarshal(jsonAttachments, &attachmentsInterface)
+		require.NoError(t, err)
+		original.AddProp(model.PostPropsAttachments, attachmentsInterface)
+	} else {
+		require.Fail(t, "expected []*MessageAttachment type assertion to succeed")
 	}
 
-	espost2 := ESPostFromPostForIndexing(&post2)
+	// Step 3: Simulate ESPostFromPost (what the search layer calls)
+	teamId := model.NewId()
+	esPost, err := ESPostFromPost(original, teamId, "O")
+	require.NoError(t, err)
 
-	assert.Equal(t, post2.Id, espost2.Id)
-	assert.Equal(t, post2.TeamId, espost2.TeamId)
-	assert.Equal(t, post2.ChannelId, espost2.ChannelId)
-	assert.Equal(t, post2.UserId, espost2.UserId)
-	assert.Equal(t, post2.CreateAt, espost2.CreateAt)
-	assert.Equal(t, post2.Message, espost2.Message)
-	assert.Equal(t, "slack_attachment", espost2.Type)
-	assert.Len(t, espost2.Hashtags, 2)
-	assert.Equal(t, "text 2", espost2.Attachments)
+	// Step 4: Verify all attachment fields are indexed
+	assert.Contains(t, esPost.Attachments, "Account: Acme Corp / Widget Industries, LLC", "title should be indexed")
+	assert.Contains(t, esPost.Attachments, "Renewal ARR: $49,140.00", "text should be indexed")
+	assert.Contains(t, esPost.Attachments, "#closedwon #renewal", "pretext should be indexed")
+
+	// Field titles and values
+	assert.Contains(t, esPost.Attachments, "Sales Rep", "field title should be indexed")
+	assert.Contains(t, esPost.Attachments, "Jane Smith", "field value should be indexed")
+	assert.Contains(t, esPost.Attachments, "Account Manager", "field title should be indexed")
+	assert.Contains(t, esPost.Attachments, "John Doe", "field value should be indexed")
+	assert.Contains(t, esPost.Attachments, "Opportunity", "field title should be indexed")
+	assert.Contains(t, esPost.Attachments, "Acme Corp / Widget Industries, LLC - Enterprise - 350 Seats - '26 Renewal", "field value should be indexed")
+	assert.Contains(t, esPost.Attachments, "350", "numeric field value should be indexed")
+
+	// Footer and AuthorName
+	assert.Contains(t, esPost.Attachments, "Opportunity #OPP-000035341 • United States", "footer should be indexed")
+	assert.Contains(t, esPost.Attachments, "CRM Bot", "author_name should be indexed")
+
+	t.Logf("Attachments field content: %s", esPost.Attachments)
+}
+
+// TestESPostFromPost_APIJSONUnmarshal simulates a post created via the REST API
+// where Props are deserialized from JSON (attachments arrive as []any directly).
+func TestESPostFromPost_APIJSONUnmarshal(t *testing.T) {
+	// Simulate what happens when a bot POSTs JSON to /api/v4/posts
+	postJSON := `{
+		"channel_id": "` + model.NewId() + `",
+		"message": "",
+		"props": {
+			"attachments": [{
+				"title": "Account: Acme Corp",
+				"text": "Renewal ARR: $49,140.00",
+				"footer": "Opportunity #OPP-000035341",
+				"author_name": "CRM Bot",
+				"fields": [
+					{"title": "Sales Rep", "value": "Jane Smith"},
+					{"title": "Seats", "value": 350}
+				]
+			}]
+		}
+	}`
+
+	var post model.Post
+	err := json.Unmarshal([]byte(postJSON), &post)
+	require.NoError(t, err)
+	post.Id = model.NewId()
+	post.UserId = model.NewId()
+	post.CreateAt = model.GetMillis()
+
+	// The CreatePost conversion at post.go:305-315 would NOT trigger here
+	// because the type is already []any, not []*MessageAttachment
+	_, typeOk := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	assert.False(t, typeOk, "API-created post should have []any, not []*MessageAttachment")
+
+	esPost, err := ESPostFromPost(&post, model.NewId(), "O")
+	require.NoError(t, err)
+
+	assert.Contains(t, esPost.Attachments, "Account: Acme Corp", "title should be indexed")
+	assert.Contains(t, esPost.Attachments, "Renewal ARR: $49,140.00", "text should be indexed")
+	assert.Contains(t, esPost.Attachments, "Sales Rep", "field title should be indexed")
+	assert.Contains(t, esPost.Attachments, "Jane Smith", "field value should be indexed")
+	assert.Contains(t, esPost.Attachments, "350", "numeric field value should be indexed")
+	assert.Contains(t, esPost.Attachments, "Opportunity #OPP-000035341", "footer should be indexed")
+	assert.Contains(t, esPost.Attachments, "CRM Bot", "author_name should be indexed")
+
+	t.Logf("Attachments field content: %s", esPost.Attachments)
 }
 
 func TestGetMatchesForHit(t *testing.T) {

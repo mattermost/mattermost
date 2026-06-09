@@ -4,6 +4,7 @@
 import * as AdminActions from 'mattermost-redux/actions/admin';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
 import {createJob} from 'mattermost-redux/actions/jobs';
+import {getServerLimits as getServerLimitsAction} from 'mattermost-redux/actions/limits';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import * as UserActions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
@@ -336,6 +337,10 @@ export async function getStandardAnalytics(teamId) {
     await dispatch(AdminActions.getStandardAnalytics(teamId));
 }
 
+export async function refreshServerLimits() {
+    await dispatch(getServerLimitsAction());
+}
+
 export async function getAdvancedAnalytics(teamId) {
     await dispatch(AdminActions.getAdvancedAnalytics(teamId));
 }
@@ -361,8 +366,8 @@ export async function elasticsearchTest(config, success, error) {
     }
 }
 
-export async function testS3Connection(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.testS3Connection());
+export async function testFileStoreConnection(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.testFileStoreConnection());
     if (data && success) {
         success(data);
     } else if (err && error) {

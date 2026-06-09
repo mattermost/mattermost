@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
 
-import billing from '../../../../../fixtures/client_billing.json';
+import billing from '@/fixtures/client_billing.json';
 
 function simulateSubscription() {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {

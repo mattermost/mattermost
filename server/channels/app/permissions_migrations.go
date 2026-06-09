@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -236,7 +237,10 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := s.Store().Role().Save(role); err != nil {
+		// Use SavePreservingUnknownPermissions so a server that was downgraded from a
+		// newer release (which wrote permissions this binary doesn't recognize) does
+		// not fail fatally here. Unknown permissions are logged and preserved (MM-68830).
+		if _, err := s.Store().Role().SavePreservingUnknownPermissions(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -619,7 +623,7 @@ func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMa
 			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{PermissionManageSecureConnections},
 		},
-		// remote the deprecated permission from system admin
+		// remove the deprecated permission from system admin
 		permissionTransformation{
 			On:     isExactRole(model.SystemAdminRoleId),
 			Remove: []string{PermissionManageRemoteClusters},
@@ -1233,6 +1237,20 @@ func (a *App) getAddChannelAccessRulesPermissionMigration() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddTeamAccessRulesPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManageTeamAccessRules.Id,
+			},
+		},
+	}, nil
+}
+
 func (a *App) getAddChannelAutoTranslationPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -1262,6 +1280,67 @@ func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, err
 				),
 			),
 			Remove: []string{PermissionConvertPrivateChannelToPublic},
+		},
+	}, nil
+}
+
+func (a *App) getAddSharedChannelManagerPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isExactRole(model.SharedChannelManagerRoleId),
+			Add: []string{PermissionManageSharedChannels},
+		},
+	}, nil
+}
+
+func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isExactRole(model.SystemAdminRoleId),
+			Add: []string{model.PermissionManageOAuth.Id},
+		},
+	}, nil
+}
+
+func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: isExactRole(model.SystemAdminRoleId),
+			Add: []string{
+				model.PermissionManageOwnAgent.Id,
+				model.PermissionManageOthersAgent.Id,
+			},
+		},
+		permissionTransformation{
+			On: isExactRole(model.SystemUserRoleId),
+			Add: []string{
+				model.PermissionManageOwnAgent.Id,
+			},
+		},
+	}, nil
+}
+
+func (a *App) getAddEditFileAttachmentPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  permissionExists(model.PermissionEditPost.Id),
+			Add: []string{model.PermissionEditFileAttachment.Id},
+		},
+	}, nil
+}
+
+func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManagePrivateChannelDiscoverability.Id,
+				model.PermissionManageChannelJoinRequests.Id,
+			},
 		},
 	}, nil
 }
@@ -1322,7 +1401,13 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationAddSysconsoleMobileSecurityPermission, Migration: a.addSysConsoleMobileSecurityPermission},
 		{Key: model.MigrationKeyAddChannelBannerPermissions, Migration: a.getAddChannelBannerPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAccessRulesPermission, Migration: a.getAddChannelAccessRulesPermissionMigration},
+		{Key: model.MigrationKeyAddTeamAccessRulesPermission, Migration: a.getAddTeamAccessRulesPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAutoTranslationPermissions, Migration: a.getAddChannelAutoTranslationPermissionMigration},
+		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
+		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
+		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
+		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
+		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
@@ -1336,6 +1421,7 @@ func (s *Server) doPermissionsMigrations() error {
 			return err
 		}
 		if err := s.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
+			mlog.Error("Failed to run permissions migration", mlog.String("key", migration.Key), mlog.Err(err))
 			return err
 		}
 	}

@@ -24,7 +24,7 @@
  *      - will run all the specs available from the Automation dashboard
  */
 
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 const cypress = require('cypress');
 
 const {

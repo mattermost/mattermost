@@ -3,7 +3,7 @@
 
 import React, {memo} from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 export type TableItem = {
     name: string;

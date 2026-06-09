@@ -245,19 +245,21 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		}
 	}
 
-	builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
-	for _, post := range posts {
-		builder = builder.Values(postToSlice(post)...)
-	}
-
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return posts, -1, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	if _, err = transaction.ExecBuilder(builder); err != nil {
-		return nil, -1, errors.Wrap(err, "failed to save Post")
+	chunks := chunkSlice(posts, len(postSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
+		for _, post := range chunk {
+			builder = builder.Values(postToSlice(post)...)
+		}
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return nil, -1, errors.Wrap(err, "failed to save Post")
+		}
 	}
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
@@ -345,36 +347,44 @@ func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, er
 }
 
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
-	rootIds := []string{}
+	// Deduplicate root IDs, skipping any root posts (RootId == "").
+	seen := make(map[string]struct{}, len(posts))
+	var rootIds []string
 	for _, post := range posts {
-		rootIds = append(rootIds, post.RootId)
-	}
-	countList := []struct {
-		RootId string
-		Count  int64
-	}{}
-	query := s.getQueryBuilder().
-		Select("RootId, COUNT(Id) AS Count").
-		From("Posts").
-		Where(sq.Eq{"RootId": rootIds}).
-		Where(sq.Eq{"Posts.DeleteAt": 0}).
-		GroupBy("RootId")
-
-	if err := s.GetMaster().SelectBuilder(&countList, query); err != nil {
-		return errors.Wrap(err, "failed to count Posts")
-	}
-
-	counts := map[string]int64{}
-	for _, count := range countList {
-		counts[count.RootId] = count.Count
-	}
-
-	for _, post := range posts {
-		count, ok := counts[post.RootId]
-		if !ok {
-			post.ReplyCount = 0
+		if post.RootId == "" {
+			continue
 		}
-		post.ReplyCount = count
+		if _, ok := seen[post.RootId]; !ok {
+			seen[post.RootId] = struct{}{}
+			rootIds = append(rootIds, post.RootId)
+		}
+	}
+
+	// Query in chunks — each root ID uses 1 parameter in the WHERE IN clause.
+	counts := map[string]int64{}
+	idChunks := chunkSlice(rootIds, 1, s.SqlStore.getMaxInsertParams())
+	for _, idChunk := range idChunks {
+		countList := []struct {
+			RootId string
+			Count  int64
+		}{}
+		query := s.getQueryBuilder().
+			Select("RootId, COUNT(Id) AS Count").
+			From("Posts").
+			Where(sq.Eq{"RootId": idChunk}).
+			Where(sq.Eq{"Posts.DeleteAt": 0}).
+			GroupBy("RootId")
+
+		if err := s.GetMaster().SelectBuilder(&countList, query); err != nil {
+			return errors.Wrap(err, "failed to count Posts")
+		}
+		for _, c := range countList {
+			counts[c.RootId] = c.Count
+		}
+	}
+
+	for _, post := range posts {
+		post.ReplyCount = counts[post.RootId]
 	}
 
 	return nil
@@ -456,7 +466,7 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 		post.ValidateProps(rctx.Logger())
 	}
 
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, -1, errors.Wrap(err, "begin_transaction")
 	}
@@ -960,7 +970,7 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 // Soft deletes a post
 // and cleans up the thread if it's a comment
 func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, deleteByID string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1015,7 +1025,7 @@ func (s *SqlPostStore) PermanentDelete(rctx request.CTX, postID string) (err err
 }
 
 func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1048,7 +1058,7 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 // - Read Receipts
 // - Thread replies if post is a root post
 func (s *SqlPostStore) PermanentDeleteAssociatedData(postIds []string) error {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1102,7 +1112,7 @@ type postIds struct {
 
 func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error) {
 	results := []postIds{}
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1190,7 +1200,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 // deletes all reactions
 // no thread comment cleanup needed, since we are deleting threads and thread memberships
 func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1278,7 +1288,7 @@ func (s *SqlPostStore) prepareThreadedResponse(rctx request.CTX, posts []*postWi
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
 		if p.IsFollowing != nil {
-			p.Post.IsFollowing = model.NewPointer(*p.IsFollowing)
+			p.Post.IsFollowing = new(*p.IsFollowing)
 		}
 		for _, userID := range p.ThreadParticipants {
 			participant, ok := usersMap[userID]
@@ -1542,6 +1552,10 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 			model.PostTypeDisplaynameChange,
 			model.PostTypePurposeChange,
 		}})
+	}
+
+	if len(options.ExcludedPostTypes) > 0 {
+		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludedPostTypes})
 	}
 
 	posts := []*model.Post{}
@@ -2151,6 +2165,69 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 	return s.search(teamId, userId, params, true, true)
 }
 
+// splitCJKSearchTerms splits search terms for LIKE usage.
+// It extracts quoted phrases as single terms, splits remaining text by whitespace,
+// and strips trailing wildcards (LIKE '%term%' is already bidirectional).
+func splitCJKSearchTerms(input string) []string {
+	var terms []string
+	// Extract quoted phrases first
+	quotes := quotedStringsRegex.FindAllStringIndex(input, -1)
+	remaining := input
+	offset := 0
+	for _, loc := range quotes {
+		// Add the quoted phrase content (without quotes)
+		phrase := input[loc[0]+1 : loc[1]-1]
+		if phrase != "" {
+			terms = append(terms, strings.TrimRight(phrase, "*"))
+		}
+		// Remove this quoted section from remaining
+		remaining = remaining[:loc[0]-offset] + " " + remaining[loc[1]-offset:]
+		offset += (loc[1] - loc[0]) - 1
+	}
+	// Split remaining unquoted text by whitespace
+	for word := range strings.FieldsSeq(remaining) {
+		word = strings.TrimRight(word, "*")
+		if word != "" {
+			terms = append(terms, word)
+		}
+	}
+	return terms
+}
+
+// buildCJKSearchClause builds LIKE WHERE clauses for CJK search terms.
+func (s *SqlPostStore) buildCJKSearchClause(baseQuery sq.SelectBuilder, searchType, terms, excludedTerms string, orTerms bool) sq.SelectBuilder {
+	escapeChar := "\\"
+
+	if terms != "" {
+		parsedTerms := splitCJKSearchTerms(terms)
+		if orTerms {
+			ors := sq.Or{}
+			for _, term := range parsedTerms {
+				sanitized := sanitizeSearchTerm(term, escapeChar)
+				ors = append(ors, sq.Like{searchType: "%" + sanitized + "%"})
+			}
+			if len(ors) > 0 {
+				baseQuery = baseQuery.Where(ors)
+			}
+		} else {
+			for _, term := range parsedTerms {
+				sanitized := sanitizeSearchTerm(term, escapeChar)
+				baseQuery = baseQuery.Where(sq.Like{searchType: "%" + sanitized + "%"})
+			}
+		}
+	}
+
+	if excludedTerms != "" {
+		parsedExcluded := splitCJKSearchTerms(excludedTerms)
+		for _, term := range parsedExcluded {
+			sanitized := sanitizeSearchTerm(term, escapeChar)
+			baseQuery = baseQuery.Where(sq.NotLike{searchType: "%" + sanitized + "%"})
+		}
+	}
+
+	return baseQuery
+}
+
 func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	if params.Terms == "" && params.ExcludedTerms == "" &&
@@ -2167,6 +2244,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
+		// FIXME(IntegratedBoardMVP): Temporarily excluded
+		Where(sq.NotEq{"q2.Type": model.PostTypeCard}).
 		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
@@ -2198,6 +2277,16 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
+	} else if s.getFeatureFlags().CJKSearch && (model.ContainsCJK(terms) || model.ContainsCJK(excludedTerms)) {
+		// CJK characters are not supported by PostgreSQL's to_tsvector/to_tsquery
+		// with the default English text search config. Fall back to LIKE matching.
+		//
+		// Why not pg_bigm? pg_bigm provides excellent CJK full-text search,
+		// but it requires installing a third-party C extension.
+		// Some managed PostgreSQL services do not support pg_bigm, so we cannot rely on it
+		// for all deployments. LIKE-based matching works with vanilla PostgreSQL.
+		// It also adds complexity as we would only need that index for CJK deployments.
+		baseQuery = s.buildCJKSearchClause(baseQuery, searchType, terms, excludedTerms, params.OrTerms)
 	} else {
 		// Parse text for wildcards
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
@@ -2538,7 +2627,7 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 
 	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
 	query := `SELECT
-				` + postColumnsPosts + `, Channels.TeamId
+				` + postColumnsPosts + `, Channels.TeamId, Channels.Type AS ChannelType
 			FROM Posts
 			LEFT JOIN
 				Channels
@@ -3048,33 +3137,45 @@ func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapp
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
-	var rootIds []string
 	for _, post := range posts {
 		// skip if post is not a part of a thread
 		if post.RootId == "" {
 			continue
 		}
-		rootIds = append(rootIds, post.RootId)
 		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
 	}
-	if len(rootIds) == 0 {
+	if len(postsByRoot) == 0 {
 		return nil
 	}
-	query := s.getQueryBuilder().
-		Select(
-			"Threads.PostId",
-			"Threads.ChannelId",
-			"Threads.ReplyCount",
-			"Threads.LastReplyAt",
-			"Threads.Participants",
-			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
-		).
-		From("Threads").
-		Where(sq.Eq{"Threads.PostId": rootIds})
 
+	// Deduplicated root IDs from map keys.
+	rootIds := make([]string, 0, len(postsByRoot))
+	for rootId := range postsByRoot {
+		rootIds = append(rootIds, rootId)
+	}
+
+	// Query existing threads in chunks to stay under the parameter limit.
+	// Each root ID uses 1 parameter in the WHERE IN clause.
 	threadsByRoots := []*model.Thread{}
-	if err := transaction.SelectBuilder(&threadsByRoots, query); err != nil {
-		return err
+	idChunks := chunkSlice(rootIds, 1, s.SqlStore.getMaxInsertParams())
+	for _, idChunk := range idChunks {
+		query := s.getQueryBuilder().
+			Select(
+				"Threads.PostId",
+				"Threads.ChannelId",
+				"Threads.ReplyCount",
+				"Threads.LastReplyAt",
+				"Threads.Participants",
+				"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
+			).
+			From("Threads").
+			Where(sq.Eq{"Threads.PostId": idChunk})
+
+		var batch []*model.Thread
+		if err := transaction.SelectBuilder(&batch, query); err != nil {
+			return err
+		}
+		threadsByRoots = append(threadsByRoots, batch...)
 	}
 
 	threadByRoot := map[string]*model.Thread{}
@@ -3166,7 +3267,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 }
 
 func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -3206,6 +3307,20 @@ func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error
 	return reminders, nil
 }
 
+func (s *SqlPostStore) GetPostRemindersForPost(postId string) ([]*model.PostReminder, error) {
+	reminders := []*model.PostReminder{}
+	err := s.GetMaster().Select(&reminders, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId = $1`, postId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PostUd", postId)
+		}
+
+		return nil, errors.Wrap(err, "failed to get post reminders")
+	}
+
+	return reminders, nil
+}
+
 func (s *SqlPostStore) DeleteAllPostRemindersForPost(postId string) error {
 	_, err := s.GetMaster().Exec(`DELETE from PostReminders WHERE PostId = ?`, postId)
 	if err != nil {
@@ -3237,11 +3352,18 @@ func (s *SqlPostStore) RefreshPostStats() error {
 	// at the expense of locking the mat view. Since viewing admin console
 	// is not a very frequent activity, we accept the tradeoff to let the
 	// refresh happen as fast as possible.
-	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
+
+	postsCtx, postsCancel := s.analyticsContext()
+	defer postsCancel()
+
+	if _, err := s.GetMaster().ExecContext(postsCtx, "REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
 		return errors.Wrap(err, "error refreshing materialized view posts_by_team_day")
 	}
 
-	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
+	botPostsCtx, botPostsCancel := s.analyticsContext()
+	defer botPostsCancel()
+
+	if _, err := s.GetMaster().ExecContext(botPostsCtx, "REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
 		return errors.Wrap(err, "error refreshing materialized view bot_posts_by_team_day")
 	}
 
@@ -3253,7 +3375,7 @@ func (s *SqlPostStore) RefreshPostStats() error {
 // it only restores posts deleted by the specified deletedBy user ID, which in case of Content Flagging is
 // the Content Reviewer bot.
 func (s *SqlPostStore) RestoreContentFlaggedPost(flaggedPost *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

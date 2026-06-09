@@ -28,6 +28,21 @@ func TestPdfFile(t *testing.T) {
 	require.Equal(t, contentText, extractedText)
 }
 
+func TestPdfDeeplyNestedObjects(t *testing.T) {
+	// Test for MM-63434
+	var buf bytes.Buffer
+	buf.WriteString("%PDF-1.0\n")
+	for range 10_000 {
+		buf.WriteString("0\n0\nobj\n")
+	}
+	buf.WriteString("startxref\n0\n%%EOF\n")
+
+	extractor := pdfExtractor{}
+	text, err := extractor.Extract("excessive-nests.pdf", bytes.NewReader(buf.Bytes()), 0)
+	require.Error(t, err)
+	require.Empty(t, text)
+}
+
 func TestWrongPdfFile(t *testing.T) {
 	extractor := pdfExtractor{}
 	content, err := testutils.ReadTestFile("sample-doc.docx")

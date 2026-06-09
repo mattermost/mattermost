@@ -1,37 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UsersToRemove from './users_to_remove';
 
 describe('components/admin_console/team_channel_settings/group/UsersToRemove', () => {
-    function createUser(id: string, username: string, bot: boolean): UserProfile {
-        return TestHelper.getUserMock({
-            id,
-            username,
-            is_bot: bot,
-        });
-    }
-
-    function createMembership(userId: string, admin: boolean): TeamMembership {
-        return TestHelper.getTeamMembershipMock({
-            user_id: userId,
-            roles: admin ? 'team_user team_admin' : 'team_user',
-            scheme_admin: admin,
-        });
-    }
-
-    const user1 = createUser('userid1', 'user-1', false);
-    const membership1 = createMembership('userId1', false);
-    const user2 = createUser('userid2', 'user-2', false);
-    const membership2 = createMembership('userId2', true);
+    const user1 = TestHelper.getUserMock({id: 'userid1', username: 'user-1', is_bot: false});
+    const membership1 = TestHelper.getTeamMembershipMock({user_id: 'userid1', roles: 'team_user', scheme_admin: false});
+    const user2 = TestHelper.getUserMock({id: 'userid2', username: 'user-2', is_bot: false});
+    const membership2 = TestHelper.getTeamMembershipMock({user_id: 'userid2', roles: 'team_user team_admin', scheme_admin: true});
     const scope: 'team' | 'channel' = 'team';
     const baseProps = {
         members: [user1, user2],
@@ -44,40 +25,58 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
         filters: {},
 
         actions: {
-            loadTeamMembersForProfilesList: jest.fn(),
-            loadChannelMembersForProfilesList: jest.fn(),
+            loadTeamMembersForProfilesList: jest.fn().mockResolvedValue({}),
+            loadChannelMembersForProfilesList: jest.fn().mockResolvedValue({}),
             setModalSearchTerm: jest.fn(),
             setModalFilters: jest.fn(),
         },
     };
 
-    test('should match snapshot with 2 users', () => {
-        const wrapper = shallow(
+    test('should match snapshot with 2 users', async () => {
+        const {container} = renderWithContext(
             <UsersToRemove
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid_loading')).not.toBeInTheDocument();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with guests disabled', () => {
-        const wrapper = shallow(
+    test('should match snapshot with guests disabled', async () => {
+        const {container} = renderWithContext(
             <UsersToRemove
                 {...baseProps}
                 enableGuestAccounts={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid_loading')).not.toBeInTheDocument();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot loading', () => {
-        const wrapper = shallow(
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                loadTeamMembersForProfilesList: jest.fn().mockReturnValue(new Promise(() => {})),
+                loadChannelMembersForProfilesList: jest.fn().mockReturnValue(new Promise(() => {})),
+            },
+        };
+
+        const {container} = renderWithContext(
             <UsersToRemove
-                {...baseProps}
+                {...props}
             />,
         );
 
-        wrapper.setState({loading: true});
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

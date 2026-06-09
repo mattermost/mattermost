@@ -233,7 +233,8 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectType, objectID string) (
 		Where(sq.Eq{"ObjectType": objectType, "ObjectId": objectID})
 
 	var translations []Translation
-	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
+	// Use GetMaster to avoid replica lag issues when workers fetch queued items
+	if err := s.GetMaster().SelectBuilder(&translations, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get all translations for object_id=%s", objectID)
 	}
 

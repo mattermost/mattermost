@@ -23,11 +23,8 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	os.Clearenv()
 	t.Helper()
 
-	tempDir, err := os.MkdirTemp("", "setupConfigFile")
-	require.NoError(t, err)
-
-	err = os.Chdir(tempDir)
-	require.NoError(t, err)
+	tempDir := t.TempDir()
+	t.Chdir(tempDir)
 
 	var name string
 	if cfg != nil {
@@ -490,7 +487,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
+		newCfg.ServiceSettings.SiteURL = new("invalid")
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
@@ -506,7 +503,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newReadOnlyConfig := readOnlyConfig.Clone()
 		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
-			SiteURL: model.NewPointer("http://test"),
+			SiteURL: new("http://test"),
 		}
 		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
@@ -565,7 +562,7 @@ func TestFileStoreSet(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
+			expectedConfig.ServiceSettings.SiteURL = new("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -911,7 +908,7 @@ func TestFileStoreLoad(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
+			expectedConfig.ServiceSettings.SiteURL = new("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -934,7 +931,7 @@ func TestFileStoreSave(t *testing.T) {
 
 	newCfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewPointer("http://new"),
+			SiteURL: new("http://new"),
 		},
 	}
 
@@ -1326,12 +1323,10 @@ func TestResolveConfigPath(t *testing.T) {
 	})
 
 	t.Run("should be able to resolve relative path", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "resolveconfig")
-		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		var err error
 
 		file := "config-test-1.json"
 		_, err = os.Stat(file)

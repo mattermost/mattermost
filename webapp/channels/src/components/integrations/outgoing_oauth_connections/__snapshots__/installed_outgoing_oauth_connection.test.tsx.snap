@@ -1,140 +1,93 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledOutgoingOAuthConnection should match snapshot 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="item-details"
     >
-      <strong
-        className="item-details__name"
-      >
-        My OAuth Connection
-      </strong>
       <div
-        className="item-actions"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <Link
-          to="/team_name/integrations/outgoing-oauth2-connections/edit?id=someid"
+        <strong
+          class="item-details__name"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Deleting this connection will break any integrations using it"
-              id="installed_outgoing_oauth_connections.delete.wanring"
-            />
-          }
-          onDelete={[Function]}
-          subtitleText={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Are you sure you want to delete {connectionName}?"
-              id="installed_outgoing_oauth_connections.delete.confirm"
-              values={
-                Object {
-                  "connectionName": <strong>
-                    My OAuth Connection
-                  </strong>,
-                }
-              }
-            />
-          }
-        />
-      </div>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Client ID: "
-          id="installed_integrations.client_id"
-        />
-        <strong>
-          <code>
-            someid
-          </code>
+          My OAuth Connection
         </strong>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <div
+          class="item-actions"
+        >
+          <a
+            href="/team_name/integrations/outgoing-oauth2-connections/edit?id=someid"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            data-testid="delete-integration-link"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Client Secret: ********"
-          id="installed_outgoing_oauth_connections.client_secret"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            <code>
+              someid
+            </code>
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Audience URLs: {urls}"
-          id="installed_integrations.audience_urls"
-          values={
-            Object {
-              "urls": <code>
-                https://myaudience.com
-              </code>,
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__token"
+        >
+          Client Secret: ********
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Token URL: {url}"
-          id="installed_integrations.token_url"
-          values={
-            Object {
-              "url": <code>
-                https://tokenurl.com
-              </code>,
-            }
-          }
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
+        <span
+          class="item-details__url word-break--all"
+        >
+          Audience URLs: 
+          <code>
+            https://myaudience.com
+          </code>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1501365458934,
-              "creator": "somename",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__url word-break--all"
+        >
+          Token URL: 
+          <code>
+            https://tokenurl.com
+          </code>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>

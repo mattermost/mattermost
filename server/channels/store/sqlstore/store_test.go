@@ -198,7 +198,9 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 	for _, st := range storeTypes {
 		eg.Go(func() error {
 			var err error
-			st.SqlStore, err = New(*st.SqlSettings, logger, nil)
+			st.SqlStore, err = New(*st.SqlSettings, logger, nil, WithFeatureFlags(func() *model.FeatureFlags {
+				return &model.FeatureFlags{CJKSearch: true}
+			}))
 			if err != nil {
 				return err
 			}
@@ -606,7 +608,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -615,7 +617,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -624,7 +626,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
 				},
 			},
 			expected: false,
@@ -810,10 +812,19 @@ func TestReplicaLagQuery(t *testing.T) {
 			}
 
 			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-				DataSource:       model.NewPointer(*settings.DataSource),
-				QueryAbsoluteLag: model.NewPointer(query),
-				QueryTimeLag:     model.NewPointer(query),
+				DataSource:       new(*settings.DataSource),
+				QueryAbsoluteLag: new(query),
+				QueryTimeLag:     new(query),
 			}}
+
+			// Disable connection pool cleanup goroutines to prevent DATA RACE
+			// with testify's reflect-based argument diffing. When sql.DB's
+			// connectionCleaner goroutine is active, it writes to internal
+			// fields while testify's mock.Called() → Arguments.Diff() reads
+			// them via fmt.Sprintf("%v", *sql.DB). Setting lifetime/idle to 0
+			// prevents the cleaner goroutine from starting at all.
+			settings.ConnMaxLifetimeMilliseconds = new(0)
+			settings.ConnMaxIdleTimeMilliseconds = new(0)
 
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
@@ -835,12 +846,12 @@ func TestReplicaLagQuery(t *testing.T) {
 			err = store.migrate(migrationsDirectionUp, false, true)
 			require.NoError(t, err)
 
-			defer store.Close()
-
 			err = store.ReplicaLagAbs()
 			require.NoError(t, err)
 			err = store.ReplicaLagTime()
 			require.NoError(t, err)
+
+			store.Close()
 			mockMetrics.AssertExpectations(t)
 		})
 	}
@@ -866,10 +877,14 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 
 			// Set an invalid DataSource that will fail to connect
 			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-				DataSource:       model.NewPointer("invalid://connection/string"),
-				QueryAbsoluteLag: model.NewPointer("SELECT 1"),
-				QueryTimeLag:     model.NewPointer("SELECT 1"),
+				DataSource:       new("invalid://connection/string"),
+				QueryAbsoluteLag: new("SELECT 1"),
+				QueryTimeLag:     new("SELECT 1"),
 			}}
+
+			// Disable connection pool cleanup goroutines (see TestReplicaLagQuery).
+			settings.ConnMaxLifetimeMilliseconds = new(0)
+			settings.ConnMaxIdleTimeMilliseconds = new(0)
 
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
@@ -885,10 +900,11 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 			}
 
 			require.NoError(t, store.initConnection())
-			defer store.Close()
 
 			// Verify no replica lag handles were added despite having ReplicaLagSettings
 			assert.Equal(t, 0, len(store.replicaLagHandles))
+
+			store.Close()
 		})
 	}
 }

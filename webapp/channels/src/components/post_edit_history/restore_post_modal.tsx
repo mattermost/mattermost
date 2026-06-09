@@ -57,7 +57,6 @@ const RestorePostModal = ({post, postHeader, actions, onExited, isChannelAutotra
             aria-labelledby='restorePostModalLabel'
             modalHeaderText={modalHeaderText}
             handleCancel={onHide}
-            cancelButtonClassName='cancel-button'
             handleConfirm={handleRestore}
         >
             <div className='edit-post-history__restore__modal__content'>

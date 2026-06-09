@@ -10,6 +10,7 @@ import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_ed
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
 import DatePicker from 'components/date_picker/date_picker';
+import * as Menu from 'components/menu';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
@@ -24,7 +25,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as NotificationSounds from 'utils/notification_sounds';
-import {sendToParent, onMessageFromParent, isPopoutWindow, canPopout} from 'utils/popouts/popout_windows';
+import {sendToParent, onMessageFromParent, isPopoutWindow, canPopout, popoutRhsPlugin} from 'utils/popouts/popout_windows';
 import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
@@ -72,6 +73,7 @@ interface WindowWithLibraries {
             onMessageFromParent: typeof onMessageFromParent;
             isPopoutWindow: typeof isPopoutWindow;
             canPopout: typeof canPopout;
+            popoutRhsPlugin: typeof popoutRhsPlugin;
         };
     };
     loadSharedDependency(request: string): unknown;
@@ -89,6 +91,8 @@ interface WindowWithLibraries {
         PostMessagePreview: typeof PostMessagePreview;
         AdvancedTextEditor: typeof AdvancedTextEditor;
         DatePicker: typeof DatePicker;
+        MenuItem: typeof Menu.Item;
+        MenuSeparator: typeof Menu.Separator;
     };
     ProductApi: {
         useWebSocket: typeof useWebSocket;
@@ -150,6 +154,7 @@ window.WebappUtils = {
         onMessageFromParent,
         isPopoutWindow,
         canPopout,
+        popoutRhsPlugin,
     },
 };
 window.loadSharedDependency = loadSharedDependency;
@@ -174,6 +179,8 @@ window.Components = {
     PostMessagePreview,
     AdvancedTextEditor,
     DatePicker,
+    MenuItem: Menu.Item,
+    MenuSeparator: Menu.Separator,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

@@ -5,13 +5,20 @@ import React from 'react';
 
 import type {PostType} from '@mattermost/types/posts';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import type {PostDropdownMenuAction} from 'types/store/plugins';
+import type {PostDropdownMenuAction, PostDropdownMenuItemComponent} from 'types/store/plugins';
 
 import ActionsMenu from './actions_menu';
 import type {Props} from './actions_menu';
+
+// Mock the MUI-based popover to avoid anchorEl PropType warning when rendering with isMenuOpen=true
+jest.mock('./popover', () => {
+    return function MockPopover({children, isOpen}: {children: React.ReactNode; isOpen: boolean}) {
+        return isOpen ? <div data-testid='mock-popover'>{children}</div> : null;
+    };
+});
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');
@@ -21,13 +28,22 @@ jest.mock('utils/utils', () => {
     };
 });
 
-const dropdownComponents: PostDropdownMenuAction[] = [
+const dropdownMenuActions: PostDropdownMenuAction[] = [
     {
         id: 'the_component_id',
         pluginId: 'playbooks',
         text: 'Some text',
         action: jest.fn(),
-        filter: () => true,
+        filter: jest.fn(() => true),
+    },
+];
+
+const dropdownComponents: PostDropdownMenuItemComponent[] = [
+    {
+        id: 'the_component_id',
+        pluginId: 'playbooks',
+        text: 'Some text',
+        component: () => null,
     },
 ];
 
@@ -54,89 +70,98 @@ describe('components/actions_menu/ActionsMenu', () => {
     };
 
     test('sysadmin - should have divider when plugin menu item exists', () => {
-        const wrapper = shallowWithIntl(
+        const {container, rerender} = renderWithContext(
             <ActionsMenu {...baseProps}/>,
         );
-        expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(false);
+        expect(container.querySelector('#divider_post_post_id_1_marketplace')).toBeNull();
 
-        wrapper.setProps({
-            pluginMenuItems: dropdownComponents,
-            canOpenMarketplace: true,
-        });
-        expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(true);
+        rerender(
+            <ActionsMenu
+                {...baseProps}
+                pluginMenuItems={dropdownMenuActions}
+                canOpenMarketplace={true}
+            />,
+        );
+        expect(container.querySelector('#divider_post_post_id_1_marketplace')).not.toBeNull();
     });
 
     test('has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace', () => {
-        const wrapper = shallowWithIntl(
-            <ActionsMenu {...baseProps}/>,
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                pluginMenuItems={dropdownMenuActions}
+                canOpenMarketplace={true}
+            />,
         );
-        wrapper.setProps({
-            pluginMenuItems: dropdownComponents,
-            canOpenMarketplace: true,
-        });
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace', () => {
-        const wrapper = shallowWithIntl(
-            <ActionsMenu {...baseProps}/>,
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                pluginMenuItems={dropdownMenuActions}
+                canOpenMarketplace={false}
+            />,
         );
-        wrapper.setProps({
-            pluginMenuItems: dropdownComponents,
-            canOpenMarketplace: false,
-        });
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('no actions - sysadmin - menu should show visit marketplace', () => {
-        const wrapper = shallowWithIntl(
-            <ActionsMenu {...baseProps}/>,
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                canOpenMarketplace={true}
+            />,
         );
 
-        wrapper.setProps({
-            canOpenMarketplace: true,
-        });
-
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('no actions - end user - menu should not be visible to end user', () => {
-        const wrapper = shallowWithIntl(
-            <ActionsMenu {...baseProps}/>,
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                isSysAdmin={false}
+            />,
         );
-        wrapper.setProps({
-            isSysAdmin: false,
-        });
 
         // menu should be empty
-        expect(wrapper.debug()).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('sysadmin - should have divider when pluggable menu item exists', () => {
-        const wrapper = shallowWithIntl(
+        const {container, rerender} = renderWithContext(
             <ActionsMenu {...baseProps}/>,
         );
-        expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(false);
+        expect(container.querySelector('#divider_post_post_id_1_marketplace')).toBeNull();
 
-        wrapper.setProps({
-            pluginMenuItemComponents: dropdownComponents,
-            canOpenMarketplace: true,
-        });
-        expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(true);
+        rerender(
+            <ActionsMenu
+                {...baseProps}
+                pluginMenuItemComponents={dropdownComponents}
+                canOpenMarketplace={true}
+            />,
+        );
+        expect(container.querySelector('#divider_post_post_id_1_marketplace')).not.toBeNull();
     });
 
     test('end user - should not have divider when pluggable menu item exists', () => {
-        const wrapper = shallowWithIntl(
-            <ActionsMenu {...baseProps}/>,
+        const {container, rerender} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                isSysAdmin={false}
+            />,
         );
-        wrapper.setProps({
-            isSysAdmin: false,
-        });
-        expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(false);
+        expect(container.querySelector('#divider_post_post_id_1_marketplace')).toBeNull();
 
-        wrapper.setProps({
-            pluginMenuItemComponents: dropdownComponents,
-        });
-        expect(wrapper.find('#divider_post_post_id_1_marketplace').exists()).toBe(false);
+        rerender(
+            <ActionsMenu
+                {...baseProps}
+                isSysAdmin={false}
+                pluginMenuItemComponents={dropdownComponents}
+            />,
+        );
+        expect(container.querySelector('#divider_post_post_id_1_marketplace')).toBeNull();
     });
 });

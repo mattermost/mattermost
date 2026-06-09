@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as UserAgent from 'utils/user_agent';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
 export type PlatformLabel = ReturnType<typeof getPlatformLabel>;
 export type UserAgentLabel = ReturnType<typeof getUserAgentLabel>;
@@ -27,7 +27,7 @@ export function getUserAgentLabel() {
         return 'desktop';
     } else if (UserAgent.isFirefox() || UserAgent.isIosFirefox()) {
         return 'firefox';
-    } else if (UserAgent.isChromiumEdge()) {
+    } else if (UserAgent.isEdge()) {
         return 'edge';
     } else if (UserAgent.isChrome() || UserAgent.isIosChrome()) {
         return 'chrome';

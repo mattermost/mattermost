@@ -29,6 +29,11 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             value_type: '' as UserPropertyValueType,
             visibility: 'when_set',
@@ -44,6 +49,11 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             value_type: 'phone' as UserPropertyValueType,
             visibility: 'when_set',
@@ -59,6 +69,11 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             value_type: 'url' as UserPropertyValueType,
             visibility: 'when_set',
@@ -74,6 +89,11 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             options: [
                 {id: 'option1', name: 'Option 1', color: '#FF0000'},
@@ -257,5 +277,84 @@ describe('components/ProfilePopoverCustomAttributes', () => {
 
         // The attribute with empty value and 'when_set' visibility should not be rendered
         expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
+    });
+
+    test('should render display_name as the visible label when set', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    ...baseState.entities.general,
+                    customProfileAttributes: {
+                        ...baseState.entities.general.customProfileAttributes,
+                        text_attribute_id: {
+                            ...textAttribute,
+                            attrs: {
+                                ...textAttribute.attrs,
+                                display_name: 'Friendly Text Label',
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(state);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        const titleEl = screen.getByText('Friendly Text Label');
+        expect(titleEl).toHaveClass('user-popover__subtitle');
+        expect(titleEl.id).toBe('user-popover__custom_attributes-title-text_attribute_id');
+        expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
+    });
+
+    test('should fall back to name when display_name is unset or whitespace-only', () => {
+        const buildState = (displayName: string | undefined) => ({
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    ...baseState.entities.general,
+                    customProfileAttributes: {
+                        ...baseState.entities.general.customProfileAttributes,
+                        text_attribute_id: {
+                            ...textAttribute,
+                            attrs: {
+                                ...textAttribute.attrs,
+                                display_name: displayName,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const {unmount} = renderWithContext(
+            <Provider store={mockStore(buildState(undefined))}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        const undefinedTitle = screen.getByText('Text Attribute');
+        expect(undefinedTitle.tagName).toBe('STRONG');
+        expect(undefinedTitle.id).toBe('user-popover__custom_attributes-title-text_attribute_id');
+
+        unmount();
+
+        renderWithContext(
+            <Provider store={mockStore(buildState('   '))}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        const whitespaceTitle = screen.getByText('Text Attribute');
+        expect(whitespaceTitle.tagName).toBe('STRONG');
+        expect(whitespaceTitle.id).toBe('user-popover__custom_attributes-title-text_attribute_id');
     });
 });

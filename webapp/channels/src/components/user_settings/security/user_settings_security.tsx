@@ -8,6 +8,7 @@ import type {IntlShape} from 'react-intl';
 import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -544,7 +545,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     gitlabOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -568,7 +569,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     googleOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -592,7 +593,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     office365Option = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -616,7 +617,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     openidOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -640,7 +641,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     ldapOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_ldap?email=' +
                                     encodeURIComponent(user.email)
@@ -660,7 +661,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     samlOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -696,7 +697,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 emailOption = (
                     <div className='pb-3'>
                         <Link
-                            className='btn btn-primary'
+                            className={buttonClassNames({emphasis: 'primary'})}
                             to={link}
                         >
                             <FormattedMessage
@@ -730,6 +731,14 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     />
                 </span>
             );
+            const ssoNote = user.auth_service === Constants.GOOGLE_SERVICE ? (
+                <div className='pt-2'>
+                    <FormattedMessage
+                        id='user.settings.security.ssoUsernameSyncNote'
+                        defaultMessage='Note: When using Google SSO, changes to your Google username or email do not automatically sync to Mattermost. To update your username, switch temporarily to email/password login, update your username, and then switch back to Google SSO.'
+                    />
+                </div>
+            ) : null;
 
             if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
                 extraInfo = (
@@ -748,7 +757,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         id: 'user.settings.security.method',
                         defaultMessage: 'Sign-in Method',
                     })}
-                    extraInfo={extraInfo}
+                    extraInfo={<>{extraInfo}{ssoNote}</>}
                     inputs={inputs}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}

@@ -58,7 +58,7 @@ import (
 
 var hookNameToId = make(map[string]int)
 
-// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to to the [hooksRPCServer] on the plugin side.
+// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to the [hooksRPCServer] on the plugin side.
 // It implements the Hooks interface and forwards hook invocations to plugins running in
 // separate processes via RPC.
 //
@@ -208,7 +208,15 @@ func decodableError(err error) error {
 
 // Registering some types used by MM for encoding/gob used by rpc
 func init() {
-	gob.Register([]*model.SlackAttachment{})
+	// Use RegisterName with the old type name to maintain backward compatibility
+	// with plugins compiled against older server versions where SlackAttachment
+	// was the concrete struct type (now renamed to MessageAttachment with
+	// SlackAttachment as a type alias). Without this, gob decoding fails because
+	// old plugins encode the type as "[]*model.SlackAttachment" but the server
+	// would only recognize "[]*model.MessageAttachment". The full type string
+	// including "[]*" prefix is required because gob uses reflect.Type.String()
+	// as the wire format type name.
+	gob.RegisterName("[]*model.SlackAttachment", []*model.MessageAttachment{})
 	gob.Register([]any{})
 	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
@@ -249,8 +257,7 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 	implType := reflect.TypeOf(s.impl)
 	selfType := reflect.TypeFor[*hooksRPCServer]()
 	var methods []string
-	for i := 0; i < ifaceType.NumMethod(); i++ {
-		method := ifaceType.Method(i)
+	for method := range ifaceType.Methods() {
 		m, ok := implType.MethodByName(method.Name)
 		if !ok {
 			continue
@@ -295,23 +302,19 @@ type Z_OnActivateReturns struct {
 
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
-	g.doneWg.Add(1)
-	go func() {
-		defer g.doneWg.Done()
+	g.doneWg.Go(func() {
 		g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
 			impl:      g.apiImpl,
 			muxBroker: g.muxBroker,
 		})
-	}()
+	})
 
 	nextID := g.muxBroker.NextId()
-	g.doneWg.Add(1)
-	go func() {
-		defer g.doneWg.Done()
+	g.doneWg.Go(func() {
 		g.muxBroker.AcceptAndServe(nextID, &dbRPCServer{
 			dbImpl: g.driver,
 		})
-	}()
+	})
 
 	_args := &Z_OnActivateArgs{
 		APIMuxId:    muxId,
@@ -1206,6 +1209,61 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 	return nil
 }
 
+type Z_ReceiveSharedChannelAttachmentSyncMsgArgs struct {
+	A            string          // remoteID
+	B            string          // channelID
+	C            *model.FileInfo // fi
+	DataStreamID uint32
+}
+
+type Z_ReceiveSharedChannelAttachmentSyncMsgReturns struct {
+	A *model.FileInfo
+	B error
+}
+
+func (g *apiRPCClient) ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	dataStreamID := g.muxBroker.NextId()
+
+	go func() {
+		dataConnection, err := g.muxBroker.Accept(dataStreamID)
+		if err != nil {
+			log.Print("Failed to stream attachment data. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer dataConnection.Close()
+		serveIOReader(data, dataConnection)
+	}()
+
+	_args := &Z_ReceiveSharedChannelAttachmentSyncMsgArgs{remoteID, channelID, fi, dataStreamID}
+	_returns := &Z_ReceiveSharedChannelAttachmentSyncMsgReturns{}
+	if err := g.client.Call("Plugin.ReceiveSharedChannelAttachmentSyncMsg", _args, _returns); err != nil {
+		log.Print("RPC call ReceiveSharedChannelAttachmentSyncMsg to plugin failed.", mlog.Err(err))
+	}
+
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ReceiveSharedChannelAttachmentSyncMsg(args *Z_ReceiveSharedChannelAttachmentSyncMsgArgs, returns *Z_ReceiveSharedChannelAttachmentSyncMsgReturns) error {
+	hook, ok := s.impl.(interface {
+		ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+	})
+	if !ok {
+		return encodableError(fmt.Errorf("API ReceiveSharedChannelAttachmentSyncMsg called but not implemented"))
+	}
+
+	receiveDataConnection, err := s.muxBroker.Dial(args.DataStreamID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote data stream, error: %v", err.Error())
+		return err
+	}
+	dataReader := connectIOReader(receiveDataConnection)
+	defer dataReader.Close()
+
+	returns.A, returns.B = hook.ReceiveSharedChannelAttachmentSyncMsg(args.A, args.B, args.C, dataReader)
+	returns.B = encodableError(returns.B)
+	return nil
+}
+
 type Z_UploadDataArgs struct {
 	A              *model.UploadSession
 	PluginStreamID uint32
@@ -1361,5 +1419,158 @@ func (s *hooksRPCServer) ServeMetrics(args *Z_ServeMetricsArgs, returns *struct{
 		http.NotFound(w, httpReq)
 	}
 
+	return nil
+}
+
+// ChannelMemberWillBeAdded is hand-written to preserve the original ChannelMember as the default
+// return value, avoiding unintentional field removal by older plugins.
+func init() {
+	hookNameToId["ChannelMemberWillBeAdded"] = ChannelMemberWillBeAddedID
+}
+
+type Z_ChannelMemberWillBeAddedArgs struct {
+	A *Context
+	B *model.ChannelMember
+}
+
+type Z_ChannelMemberWillBeAddedReturns struct {
+	A *model.ChannelMember
+	B string
+}
+
+func (g *hooksRPCClient) ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
+	_args := &Z_ChannelMemberWillBeAddedArgs{c, channelMember}
+	_returns := &Z_ChannelMemberWillBeAddedReturns{A: _args.B}
+	if g.implemented[ChannelMemberWillBeAddedID] {
+		if err := g.client.Call("Plugin.ChannelMemberWillBeAdded", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelMemberWillBeAdded to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) ChannelMemberWillBeAdded(args *Z_ChannelMemberWillBeAddedArgs, returns *Z_ChannelMemberWillBeAddedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string)
+	}); ok {
+		returns.A, returns.B = hook.ChannelMemberWillBeAdded(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("hook ChannelMemberWillBeAdded called but not implemented"))
+	}
+	return nil
+}
+
+// MessageWillBePostedWithRPCErr returns the same values as MessageWillBePosted, with an additional
+// trailing error for the RPC transport — always the LAST return slot. This hand-written companion
+// exists because MessageWillBePosted is in excludedPluginHooks and therefore absent from the
+// auto-generated HooksWithRPCErrGenerated interface in client_rpc_generated.go.
+func (g *hooksRPCClient) MessageWillBePostedWithRPCErr(c *Context, post *model.Post) (*model.Post, string, error) {
+	_args := &Z_MessageWillBePostedArgs{c, post}
+	_returns := &Z_MessageWillBePostedReturns{}
+	var _err error
+	if g.implemented[MessageWillBePostedID] {
+		_err = g.client.Call("Plugin.MessageWillBePosted", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_MessageWillBePostedReturns{}
+			g.log.Debug("RPC call MessageWillBePosted to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+// MessageWillBeUpdatedWithRPCErr returns the same values as MessageWillBeUpdated, with an additional
+// trailing error for the RPC transport — always the LAST return slot. This hand-written companion
+// exists because MessageWillBeUpdated is in excludedPluginHooks and therefore absent from the
+// auto-generated HooksWithRPCErrGenerated interface in client_rpc_generated.go.
+func (g *hooksRPCClient) MessageWillBeUpdatedWithRPCErr(c *Context, newPost, oldPost *model.Post) (*model.Post, string, error) {
+	_args := &Z_MessageWillBeUpdatedArgs{c, newPost, oldPost}
+	_returns := &Z_MessageWillBeUpdatedReturns{}
+	var _err error
+	if g.implemented[MessageWillBeUpdatedID] {
+		_err = g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_MessageWillBeUpdatedReturns{}
+			g.log.Debug("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+// ChannelMemberWillBeAddedWithRPCErr returns the same values as ChannelMemberWillBeAdded, with an
+// additional trailing error for the RPC transport — always the LAST return slot. This hand-written
+// companion exists because ChannelMemberWillBeAdded is in excludedPluginHooks and therefore absent
+// from the auto-generated HooksWithRPCErrGenerated interface in client_rpc_generated.go.
+func (g *hooksRPCClient) ChannelMemberWillBeAddedWithRPCErr(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string, error) {
+	_args := &Z_ChannelMemberWillBeAddedArgs{c, channelMember}
+	_returns := &Z_ChannelMemberWillBeAddedReturns{}
+	var _err error
+	if g.implemented[ChannelMemberWillBeAddedID] {
+		_err = g.client.Call("Plugin.ChannelMemberWillBeAdded", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_ChannelMemberWillBeAddedReturns{}
+			g.log.Debug("RPC call ChannelMemberWillBeAdded to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+// HooksWithRPCErr extends HooksWithRPCErrGenerated with *WithRPCErr companions for the three hooks whose
+// base stubs are hand-written in this file. The auto-generated HooksWithRPCErrGenerated in
+// client_rpc_generated.go cannot include these because the generator skips excluded hooks.
+// Returned by Environment.HooksForPluginWithRPCErr so callers can invoke any *WithRPCErr method
+// without a type assertion.
+type HooksWithRPCErr interface {
+	HooksWithRPCErrGenerated
+	MessageWillBePostedWithRPCErr(c *Context, post *model.Post) (*model.Post, string, error)
+	MessageWillBeUpdatedWithRPCErr(c *Context, newPost, oldPost *model.Post) (*model.Post, string, error)
+	ChannelMemberWillBeAddedWithRPCErr(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string, error)
+}
+
+var (
+	_ HooksWithRPCErr = (*hooksRPCClient)(nil)
+	_ HooksWithRPCErr = (*hooksTimerLayer)(nil)
+)
+
+// TeamMemberWillBeAdded is hand-written to preserve the original TeamMember as the default
+// return value, avoiding unintentional field removal by older plugins.
+func init() {
+	hookNameToId["TeamMemberWillBeAdded"] = TeamMemberWillBeAddedID
+}
+
+type Z_TeamMemberWillBeAddedArgs struct {
+	A *Context
+	B *model.TeamMember
+}
+
+type Z_TeamMemberWillBeAddedReturns struct {
+	A *model.TeamMember
+	B string
+}
+
+func (g *hooksRPCClient) TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+	_args := &Z_TeamMemberWillBeAddedArgs{c, teamMember}
+	_returns := &Z_TeamMemberWillBeAddedReturns{A: _args.B}
+	if g.implemented[TeamMemberWillBeAddedID] {
+		if err := g.client.Call("Plugin.TeamMemberWillBeAdded", _args, _returns); err != nil {
+			g.log.Error("RPC call TeamMemberWillBeAdded to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) TeamMemberWillBeAdded(args *Z_TeamMemberWillBeAddedArgs, returns *Z_TeamMemberWillBeAddedReturns) error {
+	if hook, ok := s.impl.(interface {
+		TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string)
+	}); ok {
+		returns.A, returns.B = hook.TeamMemberWillBeAdded(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("hook TeamMemberWillBeAdded called but not implemented"))
+	}
 	return nil
 }

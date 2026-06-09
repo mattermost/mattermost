@@ -41,9 +41,14 @@
             display: flex;
             align-items: center;
             padding: 3px;
-            margin-right: 4px;
+            margin-right: 1px;
+            color: rgba(var(--sidebar-text-rgb), 0.64);
             font-size: 18px;
             opacity: 0.64;
+
+            svg {
+                vertical-align: middle;
+            }
         }
 
         .SidebarChannelLinkLabel_wrapper {
@@ -65,12 +70,33 @@
         color: var(--sidebar-text);
 
         .icon {
-            opacity: 1;
+            color: var(--sidebar-text);
         }
 
         .SidebarChannelLinkLabel {
-            font-weight: 600;
+            font-weight: 400;
         }
+    }
+
+    .SidebarLink.unread-title .icon {
+        color: var(--sidebar-text);
+        opacity: 1;
+    }
+
+    .RecapsFailedIcon {
+        display: flex;
+        align-items: center;
+        color: var(--away-indicator);
+    }
+}
+
+#SidebarContainer .SidebarRecaps .SidebarLink:hover {
+    padding-right: 16px;
+
+    .badge,
+    .RecapsFailedIcon {
+        position: initial;
+        visibility: visible;
     }
 }
 

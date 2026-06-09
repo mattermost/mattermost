@@ -168,13 +168,6 @@ export interface TextFormattingOptionsBase {
     team: Team;
 
     /**
-     * If specified, images are proxied.
-     *
-     * Defaults to `false`.
-     */
-    proxyImages: boolean;
-
-    /**
      * An array of paths on the server that are managed by another server. Any path provided will be treated as an
      * external link that will not by handled by react-router.
      *
@@ -201,20 +194,6 @@ export interface TextFormattingOptionsBase {
      */
     editedAt: number;
     postId: string;
-
-    /**
-     * Whether or not to render sum of members mentions e.g. "5 members..." into spans with a data-sum-of-members-mention attribute.
-     *
-     * Defaults to `false`.
-     */
-    atSumOfMembersMentions: boolean;
-
-    /**
-     * Whether or not to render plan mentions e.g. "Professional plan, Enterprise plan, Starter plan" into spans with a data-plan-mention attribute.
-     *
-     * Defaults to `false`.
-     */
-    atPlanMentions: boolean;
 
     /**
      * If true, the renderer will assume links are not safe.
@@ -248,10 +227,7 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     emoticons: true,
     markdown: true,
     atMentions: false,
-    atSumOfMembersMentions: false,
-    atPlanMentions: false,
     minimumHashtagLength: 3,
-    proxyImages: false,
     editedAt: 0,
     postId: '',
     unsafeLinks: false,
@@ -378,14 +354,6 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
             output = autolinkAtMentions(output, tokens);
         }
 
-        if (options.atSumOfMembersMentions) {
-            output = autoLinkSumOfMembersMentions(output, tokens);
-        }
-
-        if (options.atPlanMentions) {
-            output = autoPlanMentions(output, tokens);
-        }
-
         if (options.channelNamesMap) {
             output = autolinkChannelMentions(
                 output,
@@ -468,50 +436,6 @@ function autolinkEmails(text: string, tokens: Tokens) {
     }
 
     return text.replace(emailRegex, replaceEmailWithToken);
-}
-
-export function autoLinkSumOfMembersMentions(text: string, tokens: Tokens): string {
-    function replaceSumOfMembersMentionWithToken(fullMatch: string) {
-        const index = tokens.size;
-        const alias = `$MM_SUMOFMEMBERSMENTION${index}$`;
-
-        tokens.set(alias, {
-            value: `<span data-sum-of-members-mention="${fullMatch}">${fullMatch}</span>`,
-            originalText: fullMatch,
-        });
-
-        return alias;
-    }
-
-    let output = text;
-    output = output.replace(
-        Constants.SUM_OF_MEMBERS_MENTION_REGEX,
-        replaceSumOfMembersMentionWithToken,
-    );
-
-    return output;
-}
-
-export function autoPlanMentions(text: string, tokens: Tokens): string {
-    function replacePlanMentionWithToken(fullMatch: string) {
-        const index = tokens.size;
-        const alias = `$MM_PLANMENTION${index}$`;
-
-        tokens.set(alias, {
-            value: `<span data-plan-mention="${fullMatch}">${fullMatch}</span>`,
-            originalText: fullMatch,
-        });
-
-        return alias;
-    }
-
-    let output = text;
-    output = output.replace(
-        Constants.PLAN_MENTIONS,
-        replacePlanMentionWithToken,
-    );
-
-    return output;
 }
 
 export function autolinkAtMentions(text: string, tokens: Tokens): string {
@@ -663,10 +587,6 @@ export function autolinkChannelMentions(
     return output;
 }
 
-export function escapeRegex(text?: string): string {
-    return text?.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') || '';
-}
-
 export function escapeReplaceSpecialPatterns(text?: string): string {
     return text?.replace(/[$]/g, '$$$$') || '';
 }
@@ -755,10 +675,10 @@ export function highlightCurrentMentions(
         let pattern;
         if (cjkrPattern.test(mention.key)) {
             // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
-            pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+            pattern = new RegExp(`()(${RegExp.escape(mention.key)})()`, flags);
         } else {
             pattern = new RegExp(
-                `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                `(^|\\W)(${RegExp.escape(mention.key)})(\\b|_+\\b)`,
                 flags,
             );
         }
@@ -828,10 +748,10 @@ export function highlightWithoutNotificationKeywords(
             let pattern;
             if (cjkrPattern.test(key)) {
             // If the key contains Chinese, Japanese, Korean or Russian characters, don't mark word boundaries
-                pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
+                pattern = new RegExp(`()(${RegExp.escape(key)})()`, 'gi');
             } else {
             // If the key contains only English characters, mark word boundaries
-                pattern = new RegExp(`(^|\\W)(${escapeRegex(key)})(\\b|_+\\b)`, 'gi');
+                pattern = new RegExp(`(^|\\W)(${RegExp.escape(key)})(\\b|_+\\b)`, 'gi');
             }
 
             // Replace the key with the token for each occurrence of the key
@@ -973,14 +893,14 @@ function convertSearchTermToRegex(term: string): SearchPattern {
 
     if (cjkrPattern.test(term)) {
         // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
-        pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
+        pattern = '()(' + RegExp.escape(term.replace(/\*/g, '')) + ')';
     } else if ((/[^\s][*]$/).test(term)) {
-        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) + ')';
+        pattern = '\\b()(' + RegExp.escape(term.substring(0, term.length - 1)) + ')';
     } else if (term.startsWith('@') || term.startsWith('#')) {
         // needs special handling of the first boundary because a word boundary doesn't work before a symbol
-        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b';
+        pattern = '(\\W|^)(' + RegExp.escape(term) + ')\\b';
     } else {
-        pattern = '\\b()(' + escapeRegex(term) + ')\\b';
+        pattern = '\\b()(' + RegExp.escape(term) + ')\\b';
     }
 
     return {

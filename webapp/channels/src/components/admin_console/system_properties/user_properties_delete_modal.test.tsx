@@ -9,6 +9,7 @@ import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import RemoveUserPropertyFieldModal, {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 
@@ -74,6 +75,11 @@ describe('useUserPropertyFieldDelete', () => {
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set',
@@ -90,12 +96,29 @@ describe('useUserPropertyFieldDelete', () => {
             modalId: ModalIdentifiers.USER_PROPERTY_FIELD_DELETE,
             dialogType: RemoveUserPropertyFieldModal,
             dialogProps: {
-                name: baseField.name,
+                name: getUserPropertyFieldLabel(baseField),
                 onConfirm: expect.any(Function),
                 isOrphaned: false,
                 sourcePluginId: undefined,
             },
         });
+    });
+
+    it('passes display_name as the modal name when set', () => {
+        const {result} = renderHookWithContext(() => useUserPropertyFieldDelete());
+        const fieldWithDisplayName = {
+            ...baseField,
+            name: 'department',
+            attrs: {...baseField.attrs, display_name: 'Department Head'},
+        };
+
+        result.current.promptDelete(fieldWithDisplayName);
+
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            dialogProps: expect.objectContaining({
+                name: 'Department Head',
+            }),
+        }));
     });
 
     it('returns a promise that resolves when onConfirm is called', async () => {

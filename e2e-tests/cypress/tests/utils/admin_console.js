@@ -29,7 +29,7 @@ export const adminConsoleNavigation = [
     {
         type: ['team', 'e20', 'cloud_enterprise'],
         header: 'System Statistics',
-        sidebar: 'Site Statistics',
+        sidebar: 'System Statistics',
         url: '/admin_console/reporting/system_analytics',
     },
     {

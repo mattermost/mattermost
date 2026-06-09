@@ -16,7 +16,9 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"net/url"
 	"reflect"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -55,16 +57,30 @@ var commonDateTimeFormats = []string{
 	ISODateTimeNoSecondsFormat,    // ISO datetime without seconds
 }
 
-var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
+var PostActionRetainPropKeys = []string{
+	PostPropsFromWebhook,
+	PostPropsFromBot,
+	PostPropsFromPlugin,
+	PostPropsOverrideUsername,
+	PostPropsOverrideIconURL,
+}
 
 type DoPostActionRequest struct {
-	SelectedOption string `json:"selected_option,omitempty"`
-	Cookie         string `json:"cookie,omitempty"`
+	SelectedOption string            `json:"selected_option,omitempty"`
+	Cookie         string            `json:"cookie,omitempty"`
+	Query          map[string]string `json:"query,omitempty"`
 }
 
 const (
 	PostActionDataSourceUsers    = "users"
 	PostActionDataSourceChannels = "channels"
+
+	MaxMmBlocksActionsPerPost  = 50
+	MaxMmBlocksActionKeyLength = 64
+
+	MaxActionQueryEntries     = 50
+	MaxActionQueryKeyLength   = 128
+	MaxActionQueryValueLength = 2048
 )
 
 type PostAction struct {
@@ -340,11 +356,18 @@ type Dialog struct {
 
 // DialogDateTimeConfig groups date/datetime specific configuration
 type DialogDateTimeConfig struct {
+	// MinDate: Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
+	MinDate string `json:"min_date,omitempty"`
+	// MaxDate: Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
+	MaxDate string `json:"max_date,omitempty"`
 	// TimeInterval: Minutes between time options in dropdown (default: 60)
 	TimeInterval int `json:"time_interval,omitempty"`
 	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
 	LocationTimezone string `json:"location_timezone,omitempty"`
-	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	// ManualTimeEntry: Allow manual text entry for time instead of dropdown
+	ManualTimeEntry bool `json:"manual_time_entry,omitempty"`
+	// Deprecated: Use ManualTimeEntry instead. Kept for backward compatibility;
+	// when both are provided, either field being true enables manual time entry.
 	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
 }
 
@@ -367,11 +390,43 @@ type DialogElement struct {
 
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
+	// Deprecated: Use DateTimeConfig.MinDate instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its MinDate takes precedence.
+	MinDate string `json:"min_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.MaxDate instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its MaxDate takes precedence.
+	MaxDate string `json:"max_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.TimeInterval instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its TimeInterval takes precedence.
+	TimeInterval int `json:"time_interval,omitempty"`
+}
 
-	// Simple date/datetime configuration (fallback when datetime_config not provided)
-	MinDate      string `json:"min_date,omitempty"`
-	MaxDate      string `json:"max_date,omitempty"`
-	TimeInterval int    `json:"time_interval,omitempty"`
+// EffectiveDateTimeConfig returns the resolved date/datetime configuration by
+// merging DateTimeConfig over the deprecated top-level fields (MinDate, MaxDate,
+// TimeInterval). DateTimeConfig values take precedence when set.
+func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
+	cfg := DialogDateTimeConfig{
+		MinDate:      e.MinDate,
+		MaxDate:      e.MaxDate,
+		TimeInterval: e.TimeInterval,
+	}
+	if e.DateTimeConfig != nil {
+		if e.DateTimeConfig.MinDate != "" {
+			cfg.MinDate = e.DateTimeConfig.MinDate
+		}
+		if e.DateTimeConfig.MaxDate != "" {
+			cfg.MaxDate = e.DateTimeConfig.MaxDate
+		}
+		if e.DateTimeConfig.TimeInterval != 0 {
+			cfg.TimeInterval = e.DateTimeConfig.TimeInterval
+		}
+		cfg.LocationTimezone = e.DateTimeConfig.LocationTimezone
+		// ManualTimeEntry is OR'd with the deprecated AllowManualTimeEntry. Booleans can't
+		// distinguish explicit-false from not-set across JSON (omitempty drops the zero value),
+		// so either field being true must enable the feature during the deprecation window.
+		cfg.ManualTimeEntry = e.DateTimeConfig.ManualTimeEntry || e.DateTimeConfig.AllowManualTimeEntry
+	}
+	return cfg
 }
 
 type OpenDialogRequest struct {
@@ -667,26 +722,28 @@ func (e *DialogElement) IsValid() error {
 		}
 
 	case "date":
+		cfg := e.EffectiveDateTimeConfig()
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
+		multiErr = multierror.Append(multiErr, validateDateFormat(cfg.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateFormat(cfg.MaxDate))
 
 	case "datetime":
+		cfg := e.EffectiveDateTimeConfig()
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
-		// Validate time_interval for datetime fields
-		timeInterval := e.TimeInterval
-		if timeInterval == 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval of 0 will be reset to default, %d minutes", DefaultTimeIntervalMinutes))
-		} else if timeInterval < 1 || timeInterval > 1440 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
-		} else if 1440%timeInterval != 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(cfg.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(cfg.MaxDate))
+		// Validate time_interval for datetime fields (0 means omitted — treated as default)
+		timeInterval := cfg.TimeInterval
+		if timeInterval != 0 {
+			if timeInterval < 1 || timeInterval > 1440 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
+			} else if 1440%timeInterval != 0 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+			}
 		}
 
 	default:
@@ -734,14 +791,15 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	return true
 }
 
-// validateRelativePattern validates relative date patterns like +1d, +2w, +1m
+// validateRelativePattern validates relative date patterns like +1d, +2w, +1m, +2H, +30M, +90S
+// Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
 func validateRelativePattern(value string) bool {
 	if len(value) < 3 || len(value) > 5 || (value[0] != '+' && value[0] != '-') {
 		return false
 	}
 
-	lastChar := strings.ToLower(string(value[len(value)-1]))
-	if !strings.Contains("dwm", lastChar) {
+	lastChar := value[len(value)-1]
+	if !strings.ContainsRune("dwmHMS", rune(lastChar)) {
 		return false
 	}
 
@@ -794,6 +852,18 @@ func validateDateTimeFormat(dateTimeStr string) error {
 	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ) or relative format", dateTimeStr)
 }
 
+func validateDateOrDateTimeFormat(value string) error {
+	dateErr := validateDateFormat(value)
+	if dateErr == nil {
+		return nil
+	}
+	dateTimeErr := validateDateTimeFormat(value)
+	if dateTimeErr == nil {
+		return nil
+	}
+	return fmt.Errorf("invalid date or datetime format: %q, expected ISO date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SSZ), or relative format", value)
+}
+
 func checkMaxLength(fieldName string, field string, maxLength int) error {
 	// DisplayName and Name are required fields
 	if fieldName == "DisplayName" || fieldName == "Name" {
@@ -819,6 +889,7 @@ func (o *Post) StripActionIntegrations() {
 			action.Integration = nil
 		}
 	}
+	o.StripMmBlocksActionSecrets()
 }
 
 func (o *Post) GetAction(id string) *PostAction {
@@ -829,6 +900,137 @@ func (o *Post) GetAction(id string) *PostAction {
 			}
 		}
 	}
+	if spec := o.GetMmBlocksActionSpec(id); spec != nil && spec.Type == MmBlocksActionTypeExternal && spec.URL != "" {
+		// Synthesize a PostAction so the existing click pipeline can
+		// dispatch without branching on action source. Pre-merge the
+		// spec's static per-action query into the URL here; per-click
+		// query (from DoPostActionRequest.Query) is merged on top by the
+		// caller via MergeQueryIntoURL, with per-click overriding static
+		// values on overlapping keys.
+		url := spec.URL
+		if len(spec.Query) > 0 {
+			merged, err := MergeQueryIntoURL(spec.URL, spec.Query)
+			if err != nil {
+				// Spec URL is malformed. ValidateMmBlocksActions
+				// should have rejected it at save time, so this is a
+				// belt-and-suspenders guard. Returning nil routes the
+				// caller through the standard "action not found"
+				// 404 path rather than firing a request to a URL
+				// that's missing the static query params.
+				return nil
+			}
+			url = merged
+		}
+		return &PostAction{
+			Id:   id,
+			Type: PostActionTypeButton,
+			Integration: &PostActionIntegration{
+				URL:     url,
+				Context: spec.Context,
+			},
+		}
+	}
+	return nil
+}
+
+var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
+
+// ValidateMmBlocksActions verifies the post's mm_blocks_actions prop has the
+// expected shape and bounds. Each entry must coerce to a valid spec via
+// mmBlocksEntryMapToSpec.
+func ValidateMmBlocksActions(o *Post) error {
+	raw := o.GetProp(PostPropsMmBlocksActions)
+	if raw == nil {
+		return nil
+	}
+	actions, ok := coerceToStringAnyMap(raw)
+	if !ok {
+		return fmt.Errorf("mm_blocks_actions must be a map")
+	}
+	if len(actions) > MaxMmBlocksActionsPerPost {
+		return fmt.Errorf("mm_blocks_actions exceeds maximum of %d entries", MaxMmBlocksActionsPerPost)
+	}
+	for key, entry := range actions {
+		if len(key) > MaxMmBlocksActionKeyLength {
+			return fmt.Errorf("mm_blocks_actions key exceeds %d chars", MaxMmBlocksActionKeyLength)
+		}
+		if !mmBlocksActionIDRegex.MatchString(key) {
+			return fmt.Errorf("mm_blocks_actions key %q must be alphanumeric", key)
+		}
+		entryMap, ok := coerceToStringAnyMap(entry)
+		if !ok {
+			return fmt.Errorf("mm_blocks_actions entry %q must be an object", key)
+		}
+		spec := mmBlocksEntryMapToSpec(entryMap)
+		if spec == nil {
+			return fmt.Errorf("mm_blocks_actions entry %q has invalid type or shape", key)
+		}
+		if spec.Type == MmBlocksActionTypeExternal {
+			if err := validateIntegrationURL(spec.URL); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
+			}
+			// Bound the per-spec static query so a bot cannot stash
+			// unbounded data in the post that gets merged into the
+			// outgoing URL on every click.
+			if err := ValidateActionQuery(spec.Query); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q static query: %w", key, err)
+			}
+			// Bound entry count and key length on the static context.
+			// Values are arbitrary JSON, so size is constrained by the
+			// outer post-size limit; we cap entries to prevent crafted
+			// posts from inflating GetAction's clone cost.
+			if len(spec.Context) > MaxActionQueryEntries {
+				return fmt.Errorf("mm_blocks_actions entry %q context exceeds maximum of %d entries", key, MaxActionQueryEntries)
+			}
+			for k := range spec.Context {
+				if len(k) > MaxActionQueryKeyLength {
+					return fmt.Errorf("mm_blocks_actions entry %q context key exceeds %d chars", key, MaxActionQueryKeyLength)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// ValidateActionQuery bounds the size of user-supplied per-click query
+// parameters so a crafted post cannot trigger unbounded memory use in the
+// plugin-request path.
+func ValidateActionQuery(q map[string]string) error {
+	if len(q) > MaxActionQueryEntries {
+		return fmt.Errorf("query exceeds maximum of %d entries", MaxActionQueryEntries)
+	}
+	for key, value := range q {
+		if len(key) > MaxActionQueryKeyLength {
+			return fmt.Errorf("query key exceeds %d chars", MaxActionQueryKeyLength)
+		}
+		if len(value) > MaxActionQueryValueLength {
+			return fmt.Errorf("query value for %q exceeds %d chars", key, MaxActionQueryValueLength)
+		}
+	}
+	return nil
+}
+
+func validateIntegrationURL(rawURL string) error {
+	if rawURL == "" {
+		return fmt.Errorf("must have a non-empty URL")
+	}
+	if !(strings.HasPrefix(rawURL, "/plugins/") || strings.HasPrefix(rawURL, "plugins/") || IsValidHTTPURL(rawURL)) {
+		return fmt.Errorf("must have a valid integration URL")
+	}
+	// Reject path-traversal segments. /plugins/ URLs are routed by the
+	// local server, so a `..` segment can escape the plugin namespace and
+	// hit unrelated server routes. url.Parse decodes percent-encoded path
+	// bytes into u.Path, which is the same single decode pass that
+	// doPluginRequest performs at dispatch — so encoded forms like
+	// %2e%2e%2f are caught here symmetrically with how the router would
+	// resolve them.
+	u, parseErr := url.Parse(rawURL)
+	if parseErr != nil {
+		return fmt.Errorf("must have a valid integration URL: %w", parseErr)
+	}
+	if strings.Contains(u.Path, "/../") || strings.HasSuffix(u.Path, "/..") {
+		return fmt.Errorf("integration URL must not contain path traversal segments")
+	}
 	return nil
 }
 
@@ -836,7 +1038,7 @@ func (o *Post) GenerateActionIds() {
 	if o.GetProp(PostPropsAttachments) != nil {
 		o.AddProp(PostPropsAttachments, o.Attachments())
 	}
-	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*MessageAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action != nil && action.Id == "" {

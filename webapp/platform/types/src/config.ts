@@ -64,6 +64,7 @@ export type ClientConfig = {
     EnableExperimentalLocales: string;
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
+    EnableChannelCategorySorting: string;
     EnableTimedDND: string;
     EnableCrossTeamSearch: 'true' | 'false';
     EnableCustomTermsOfService: string;
@@ -116,7 +117,6 @@ export type ClientConfig = {
     EnableUserDeactivation: string;
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
-    ExperimentalChannelCategorySorting: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
@@ -128,9 +128,14 @@ export type ClientConfig = {
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
+    FeatureFlagPermissionPolicies: string;
+    FeatureFlagChannelPermissionPolicies: string;
+    FeatureFlagPolicySimulation: string;
     FeatureFlagWebSocketEventScope: string;
-    FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
+    FeatureFlagClassificationMarkings: string;
+    FeatureFlagManagedChannelCategories: string;
+    FeatureFlagSessionAttributes: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -206,6 +211,7 @@ export type ClientConfig = {
     WebsocketSecurePort: string;
     WebsocketURL: string;
     ExperimentalSharedChannels: string;
+    ExperimentalRemoteClusterService: string;
     DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
@@ -228,6 +234,7 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+    UseAnonymousURLs: string;
 
     // Burn on Read Settings
     EnableBurnOnRead: string;
@@ -248,11 +255,12 @@ export type License = {
     id: string;
     issued_at: number;
     starts_at: number;
-    expires_at: string;
-    customer: LicenseCustomer;
+    expires_at: number;
+    customer?: LicenseCustomer;
     features: LicenseFeatures;
     sku_name: string;
-    short_sku_name: string;
+    sku_short_name: string;
+    is_gov_sku?: boolean;
 };
 
 export type LicenseCustomer = {
@@ -336,6 +344,7 @@ export type ServiceSettings = {
     GoogleDeveloperKey: string;
     EnableOAuthServiceProvider: boolean;
     EnableDynamicClientRegistration: boolean;
+    DCRRedirectURIAllowlist: string[];
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableOutgoingOAuthConnections: boolean;
@@ -437,6 +446,7 @@ export type ServiceSettings = {
     EnableWebHubChannelIteration: boolean;
     FrameAncestors: string;
     DeleteAccountLink: string;
+    MinimumDesktopAppVersion: string;
 };
 
 export type TeamSettings = {
@@ -462,6 +472,7 @@ export type TeamSettings = {
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;
     EnableJoinLeaveMessageByDefault: boolean;
+    EnableChannelCategorySorting: boolean;
 };
 
 export type ClientRequirements = {
@@ -483,6 +494,7 @@ export type SqlSettings = {
     Trace: boolean;
     AtRestEncryptKey: string;
     QueryTimeout: number;
+    AnalyticsQueryTimeout: number;
     DisableDatabaseSearch: boolean;
     MigrationsStatementTimeoutSeconds: number;
     ReplicaLagSettings: ReplicaLagSetting[];
@@ -508,11 +520,6 @@ export type LogSettings = {
 export type ExperimentalAuditSettings = {
     FileEnabled: boolean;
     FileName: string;
-    FileMaxSizeMB: number;
-    FileMaxAgeDays: number;
-    FileMaxBackups: number;
-    FileCompress: boolean;
-    FileMaxQueueSize: number;
     AdvancedLoggingJSON: Record<string, any>;
     Certificate: string;
 };
@@ -640,6 +647,7 @@ export type RateLimitSettings = {
 export type PrivacySettings = {
     ShowEmailAddress: boolean;
     ShowFullName: boolean;
+    UseAnonymousURLs: boolean;
 };
 
 export type SupportSettings = {
@@ -689,6 +697,7 @@ export type SSOSettings = {
     DiscoveryEndpoint: string;
     ButtonText: string;
     ButtonColor: string;
+    UsePreferredUsername: boolean;
 };
 
 export type Office365Settings = {
@@ -701,6 +710,7 @@ export type Office365Settings = {
     UserAPIEndpoint: string;
     DiscoveryEndpoint: string;
     DirectoryId: string;
+    UsePreferredUsername: boolean;
 };
 
 export type LdapSettings = {
@@ -830,6 +840,13 @@ export type IntuneSettings = {
     AuthService?: string;
 };
 
+export type MobileEphemeralModeSettings = {
+    Enable: boolean;
+    DisconnectionTimeoutSeconds: number;
+    OfflinePersistenceTimerHours: number;
+    AutoCacheCleanupDays: number;
+};
+
 export type ClusterSettings = {
     Enable: boolean;
     ClusterName: string;
@@ -865,7 +882,7 @@ export type ExperimentalSettings = {
     DisableWakeUpReconnectHandler: boolean;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
-    ExperimentalChannelCategorySorting: boolean;
+    EnableWatermark: boolean;
 };
 
 export type AnalyticsSettings = {
@@ -910,6 +927,7 @@ export type ElasticsearchSettings = {
     ClientKey: string;
     Trace: string;
     IgnoredPurgeIndexes: string;
+    EnableSearchPublicChannelsWithoutMembership: boolean;
 };
 
 export type DataRetentionSettings = {
@@ -1097,6 +1115,7 @@ export type AdminConfig = {
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
     AutoTranslationSettings: AutoTranslationSettings;
+    MobileEphemeralModeSettings: MobileEphemeralModeSettings;
 };
 
 export type ReplicaLagSetting = {

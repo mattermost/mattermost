@@ -20,7 +20,7 @@ func addQueryProperty(mappings *types.TypeMapping, propertyName string, analyzer
 		}
 
 		textProp.Fields[analyzer] = types.TextProperty{
-			Analyzer: model.NewPointer("mm_" + analyzer),
+			Analyzer: new("mm_" + analyzer),
 			Type:     "text",
 		}
 
@@ -109,8 +109,8 @@ func GetPostTemplate(cfg *model.Config, opts ...func(*types.IndexTemplateMapping
 	template := &types.IndexTemplateMapping{
 		Settings: &types.IndexSettings{
 			Index: &types.IndexSettings{
-				NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards)),
-				NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas)),
+				NumberOfShards:   new(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards)),
+				NumberOfReplicas: new(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas)),
 			},
 			Analysis: &types.IndexSettingsAnalysis{
 				Tokenizer: map[string]types.Tokenizer{},
@@ -167,21 +167,24 @@ func GetPostTemplate(cfg *model.Config, opts ...func(*types.IndexTemplateMapping
 		Mappings: &types.TypeMapping{
 			Properties: map[string]types.Property{
 				"message": types.TextProperty{
-					Analyzer: model.NewPointer("mm_lowercaser"),
+					Analyzer: new("mm_lowercaser"),
 					Type:     "text",
 				},
 				"attachments": types.TextProperty{
-					Analyzer: model.NewPointer("mm_lowercaser"),
+					Analyzer: new("mm_lowercaser"),
 					Type:     "text",
 				},
 				"urls": types.TextProperty{
-					Analyzer: model.NewPointer("mm_url"),
+					Analyzer: new("mm_url"),
 					Type:     "text",
 				},
 				"hashtags": types.KeywordProperty{
 					Type:       "keyword",
-					Normalizer: model.NewPointer("mm_hashtag"),
-					Store:      model.NewPointer(true),
+					Normalizer: new("mm_hashtag"),
+					Store:      new(true),
+				},
+				"channel_type": types.KeywordProperty{
+					Type: "keyword",
 				},
 			},
 		},
@@ -201,11 +204,11 @@ func GetFileInfoTemplate(cfg *model.Config) *putindextemplate.Request {
 	mappings := &types.TypeMapping{
 		Properties: map[string]types.Property{
 			"name": types.TextProperty{
-				Analyzer: model.NewPointer("mm_lowercaser"),
+				Analyzer: new("mm_lowercaser"),
 				Type:     "text",
 			},
 			"content": types.TextProperty{
-				Analyzer: model.NewPointer("mm_lowercaser"),
+				Analyzer: new("mm_lowercaser"),
 				Type:     "text",
 			},
 		},
@@ -216,8 +219,8 @@ func GetFileInfoTemplate(cfg *model.Config) *putindextemplate.Request {
 		Template: &types.IndexTemplateMapping{
 			Settings: &types.IndexSettings{
 				Index: &types.IndexSettings{
-					NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards)),
-					NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas)),
+					NumberOfShards:   new(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards)),
+					NumberOfReplicas: new(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas)),
 				},
 				Analysis: &types.IndexSettingsAnalysis{
 					CharFilter: map[string]types.CharFilter{
@@ -292,8 +295,8 @@ func GetChannelTemplate(cfg *model.Config) *putindextemplate.Request {
 		Template: &types.IndexTemplateMapping{
 			Settings: &types.IndexSettings{
 				Index: &types.IndexSettings{
-					NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexShards)),
-					NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexReplicas)),
+					NumberOfShards:   new(strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexShards)),
+					NumberOfReplicas: new(strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexReplicas)),
 				},
 			},
 			Mappings: mappings,
@@ -330,8 +333,8 @@ func GetUserTemplate(cfg *model.Config) *putindextemplate.Request {
 		Template: &types.IndexTemplateMapping{
 			Settings: &types.IndexSettings{
 				Index: &types.IndexSettings{
-					NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexShards)),
-					NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexReplicas)),
+					NumberOfShards:   new(strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexShards)),
+					NumberOfReplicas: new(strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexReplicas)),
 				},
 			},
 			Mappings: mappings,

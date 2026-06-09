@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
@@ -9,12 +8,12 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import AddIncomingWebhook from 'components/integrations/add_incoming_webhook/add_incoming_webhook';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-const initialState = {
+const initialState: DeepPartial<GlobalState> = {
     entities: {
         channels: {
             currentChannelId: 'current_channel_id',
@@ -43,7 +42,7 @@ const initialState = {
             },
         },
     },
-} as DeepPartial<GlobalState>;
+};
 
 describe('components/integrations/AddIncomingWebhook', () => {
     const createIncomingHook = jest.fn().mockResolvedValue({data: true});
@@ -58,8 +57,8 @@ describe('components/integrations/AddIncomingWebhook', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<AddIncomingWebhook {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should have called createIncomingHook', async () => {
@@ -74,15 +73,15 @@ describe('components/integrations/AddIncomingWebhook', () => {
             update_at: 0,
             id: '',
         });
-        const wrapper = renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
+        renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        await userEvent.selectOptions(wrapper.getByRole('combobox'), [hook.channel_id]);
-        await userEvent.type(wrapper.getByLabelText('Title'), hook.display_name);
-        await userEvent.type(wrapper.getByLabelText('Description'), hook.description);
-        await userEvent.type(wrapper.getByLabelText('Username'), hook.username);
-        await userEvent.type(wrapper.getByLabelText('Profile Picture'), hook.icon_url);
+        await userEvent.selectOptions(screen.getByRole('combobox'), [hook.channel_id]);
+        await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), hook.display_name);
+        await userEvent.type(screen.getByRole('textbox', {name: 'Description'}), hook.description);
+        await userEvent.type(screen.getByRole('textbox', {name: 'Username'}), hook.username);
+        await userEvent.type(screen.getByRole('textbox', {name: 'Profile Picture'}), hook.icon_url);
 
-        await userEvent.click(wrapper.getByText('Save'));
+        await userEvent.click(screen.getByText('Save'));
 
         expect(createIncomingHook).toHaveBeenCalledTimes(1);
         const calledWith = createIncomingHook.mock.calls[0][0];

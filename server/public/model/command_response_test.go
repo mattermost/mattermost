@@ -94,14 +94,14 @@ func TestCommandResponseFromJSON(t *testing.T) {
 				ChannelId:    "response channel id",
 				IconURL:      "response icon url",
 				GotoLocation: "response goto location",
-				Attachments: []*SlackAttachment{
+				Attachments: []*MessageAttachment{
 					{
 						Text:    "attachment 1 text",
 						Pretext: "attachment 1 pretext",
 					},
 					{
 						Text: "attachment 2 text",
-						Fields: []*SlackAttachmentField{
+						Fields: []*MessageAttachmentField{
 							{
 								Title: "field 1",
 								Value: "value 1",
@@ -122,9 +122,9 @@ func TestCommandResponseFromJSON(t *testing.T) {
 			"null array items",
 			`{"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}, null]}, null]}`,
 			&CommandResponse{
-				Attachments: []*SlackAttachment{
+				Attachments: []*MessageAttachment{
 					{
-						Fields: []*SlackAttachmentField{
+						Fields: []*MessageAttachmentField{
 							{
 								Title: "foo",
 								Value: "bar",
@@ -171,9 +171,9 @@ func TestCommandResponseFromJSON(t *testing.T) {
 			}`,
 			&CommandResponse{
 				Text: "message 1",
-				Attachments: []*SlackAttachment{
+				Attachments: []*MessageAttachment{
 					{
-						Fields: []*SlackAttachmentField{
+						Fields: []*MessageAttachmentField{
 							{
 								Title: "foo",
 								Value: "bar",
@@ -185,9 +185,9 @@ func TestCommandResponseFromJSON(t *testing.T) {
 				ExtraResponses: []*CommandResponse{
 					{
 						Text: "message 2",
-						Attachments: []*SlackAttachment{
+						Attachments: []*MessageAttachment{
 							{
-								Fields: []*SlackAttachmentField{
+								Fields: []*MessageAttachmentField{
 									{
 										Title: "foo 2",
 										Value: "bar 2",

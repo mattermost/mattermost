@@ -8,7 +8,7 @@
 - `dev-server.mjs` – webpack-dev-server bootstrap; shares config with `make dev`.
 - `run.mjs`, `build.mjs`, `dist` helpers – orchestrate multi-workspace builds and env wiring.
 - `gen_lang_imports.mjs` – regenerates locale import lists.
-- `update-versions.mjs`, `utils.mjs` – release automation bits.
+- `update-versions.sh` - updates version of published platform packages.
 
 ## Guidelines
 - Scripts should be idempotent and safe to run on CI and macOS/Linux dev machines.

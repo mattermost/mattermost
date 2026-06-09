@@ -11,6 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadStatusesByIds} from 'actions/status_actions';
 
+import ChannelPopout from 'components/channel_popout';
 import HelpPopout from 'components/help_popout';
 import LoggedIn from 'components/logged_in';
 import ModalController from 'components/modal_controller';
@@ -34,6 +35,10 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     useEffect(() => {
         document.body.classList.add('app__body', 'popout');
         dispatch(getMe());
+
+        return () => {
+            document.body.classList.remove('app__body', 'popout');
+        };
     }, []);
 
     useEffect(() => {
@@ -52,7 +57,11 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
                     component={ThreadPopout}
                 />
                 <Route
-                    path={`/_popout/rhs/:team(${TEAM_NAME_PATH_PATTERN})/:identifier(${IDENTIFIER_PATH_PATTERN})`}
+                    path={`/_popout/channel/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
+                    component={ChannelPopout}
+                />
+                <Route
+                    path={`/_popout/rhs/:team(${TEAM_NAME_PATH_PATTERN})`}
                     component={RhsPopout}
                 />
                 <Route

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,7 +45,7 @@ func createUser(username, nickname, firstName, lastName string) *model.User {
 		FirstName: firstName,
 		LastName:  lastName,
 	}
-	if err := user.PreSave(); err != nil {
+	if err := user.PreSave(hashers.GetLatestHasher()); err != nil {
 		return nil
 	}
 

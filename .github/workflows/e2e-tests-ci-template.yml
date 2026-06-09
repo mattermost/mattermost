@@ -97,8 +97,12 @@ on:
       playwright_report_url:
         value: ${{ jobs.report.outputs.playwright_report_url }}
 
+permissions: {}
+
 jobs:
   update-initial-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
@@ -112,6 +116,8 @@ jobs:
           status: pending
 
   generate-build-variables:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - update-initial-status
@@ -123,8 +129,9 @@ jobs:
       node-cache-dependency-path: "${{ steps.generate.outputs.node-cache-dependency-path }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/generate-build-variables
@@ -138,6 +145,8 @@ jobs:
           echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - generate-build-variables
@@ -149,12 +158,13 @@ jobs:
       status_check_url: "${{ steps.e2e-test-gencycle.outputs.status_check_url }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -169,6 +179,9 @@ jobs:
           BUILD_ID: "${{ inputs.BUILD_ID }}"
           TEST: "${{ inputs.TEST }}"
           TEST_FILTER: "${{ inputs.TEST_FILTER }}"
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           set -e -o pipefail
           make generate-test-cycle | tee generate-test-cycle.out
@@ -177,10 +190,13 @@ jobs:
           if [ -n "$TEST_CYCLE_ID" ]; then
             echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
           else
-            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+            echo "status_check_url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
           fi
 
   test:
+    permissions:
+      contents: read
+      actions: write
     continue-on-error: true # Individual runner failures shouldn't prevent the completion of an E2E run
     strategy:
       fail-fast: false # Individual runner failures shouldn't prevent the completion of an E2E run
@@ -223,9 +239,21 @@ jobs:
       ROLLING_RELEASE_COMMIT_SHA: "${{ inputs.ROLLING_RELEASE_commit_sha }}"
       ROLLING_RELEASE_SERVER_IMAGE: "${{ inputs.ROLLING_RELEASE_SERVER_IMAGE }}"
     steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/checkout-actions
+        # Sparse-checkout just .github/actions from the triggering ref (master)
+        # so the composite action below is available before the full checkout
+        # overwrites the workspace with inputs.commit_sha.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+      - name: ci/runner-prep-for-openldap
+        uses: ./.github/actions/runner-prep-openldap
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-macos-docker
@@ -238,7 +266,7 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/setup-node
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -272,8 +300,38 @@ jobs:
       - name: ci/cloud-teardown
         if: always()
         run: make cloud-teardown
+      - name: ci/dump-docker-state-on-failure
+        # Always run a final docker-state capture so failures unrelated to
+        # openldap startup (e.g. server container later crashes) still produce
+        # logs we can inspect. The script's own retry loop dumps openldap
+        # state per-attempt; this step is a backstop covering the whole job.
+        if: failure()
+        run: |
+          set +e
+          DIAG="e2e-tests/docker-diagnostics/job-failure"
+          mkdir -p "$DIAG"
+          docker ps -a >"$DIAG/docker.ps.txt" 2>&1
+          docker version >"$DIAG/docker.version.txt" 2>&1
+          docker info >"$DIAG/docker.info.txt" 2>&1
+          for c in $(docker ps -a --format '{{.Names}}'); do
+            docker inspect "$c" >"$DIAG/$c.inspect.json" 2>&1
+            docker logs "$c" >"$DIAG/$c.log" 2>&1
+          done
+          uname -a >"$DIAG/host.uname.txt" 2>&1
+          free -m >"$DIAG/host.free.txt" 2>&1
+          df -h >"$DIAG/host.df.txt" 2>&1
+          sudo dmesg | tail -500 >"$DIAG/host.dmesg.tail.txt" 2>&1
+          sudo dmesg | grep -iE 'apparmor|denied|oom|killed|openldap|slapd' >"$DIAG/host.dmesg.relevant.txt" 2>&1
+      - name: ci/upload-docker-diagnostics
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: always()
+        with:
+          name: docker-diagnostics-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
+          path: e2e-tests/docker-diagnostics/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: ci/e2e-test-store-results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: e2e-test-results-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
@@ -283,6 +341,9 @@ jobs:
           retention-days: 1
 
   report:
+    permissions:
+      actions: write
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - test
@@ -300,18 +361,19 @@ jobs:
       playwright_report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/download-artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: e2e-test-results-${{ inputs.TEST }}-*
           path: e2e-tests/${{ inputs.TEST }}/
           merge-multiple: true
       - name: ci/upload-report-global
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -319,7 +381,7 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -346,7 +408,7 @@ jobs:
       # The results dir may have been modified as part of the reporting: re-upload
       - name: ci/upload-report-global
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -357,7 +419,7 @@ jobs:
       # Configure AWS credentials
       - name: ci/aws-configure
         if: (inputs.TEST == 'playwright')
-        uses: aws-actions/configure-aws-credentials@v4.2.0
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -367,14 +429,18 @@ jobs:
       - name: ci/upload-results-to-s3
         if: (inputs.TEST == 'playwright')
         id: upload-to-s3
+        env:
+          AWS_REGION: us-east-1
+          AWS_S3_BUCKET: mattermost-cypress-report
+          INPUT_PR_NUMBER: ${{ inputs.PR_NUMBER }}
+          INPUT_TEST: ${{ inputs.TEST }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           echo "🔍 Checking if results directory exists..."
 
-          PR_NUMBER="${{ inputs.PR_NUMBER }}"
-          LOCAL_RESULTS_PATH="${{ inputs.TEST }}/results/"
-          LOCAL_LOGS_PATH="${{ inputs.TEST }}/logs/"
-          RUN_ID="${{ github.run_id }}"
-          S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}/${RUN_ID}"
+          LOCAL_RESULTS_PATH="${INPUT_TEST}/results/"
+          LOCAL_LOGS_PATH="${INPUT_TEST}/logs/"
+          S3_PATH="server-pr-${INPUT_PR_NUMBER}/e2e-reports/${INPUT_TEST}/${GITHUB_RUN_ID}"
 
           echo "📤 Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
 
@@ -388,9 +454,6 @@ jobs:
           echo "✅ Report uploaded to: $REPORT_URL"
 
           echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
-        env:
-          AWS_REGION: us-east-1
-          AWS_S3_BUCKET: mattermost-cypress-report
 
       - name: ci/report-calculate-results
         id: calculate-results
@@ -425,11 +488,15 @@ jobs:
           echo "$COMMIT_STATUS_MESSAGE"
       - name: ci/e2e-test-assert-results
         if: "${{ inputs.testcase_failure_fatal }}"
+        env:
+          CALCULATE_FAILED: ${{ steps.calculate-results.outputs.failed }}
         run: |
           # Assert that the run contained 0 failures
-          [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
+          [ "${CALCULATE_FAILED}" = "0" ]
 
   update-failure-final-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     if: failure() || cancelled()
     needs:
@@ -453,6 +520,8 @@ jobs:
 
 
   update-success-final-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     if: success()
     needs:

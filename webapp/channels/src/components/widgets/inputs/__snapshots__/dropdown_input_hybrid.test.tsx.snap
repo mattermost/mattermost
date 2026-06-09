@@ -1,103 +1,94 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/widgets/inputs/DropdownInputHybrid should match snapshot 1`] = `
-<div
-  className="DropdownInput hybrid_container"
-  style={
-    Object {
-      "width": "100%",
-    }
-  }
->
-  <fieldset
-    className="Input_fieldset Input_fieldset___legend"
+<div>
+  <div
+    class="DropdownInput hybrid_container"
+    style="width: 100%;"
   >
-    <legend
-      className="Input_legend Input_legend___focus"
+    <fieldset
+      class="Input_fieldset Input_fieldset___legend"
     >
-      Channel Message Retention
-    </legend>
-    <div
-      className="Input_wrapper input_hybrid_wrapper"
-      onBlur={[Function]}
-      onFocus={[Function]}
-      style={
-        Object {
-          "maxWidth": "0",
-        }
-      }
-    >
-      <input
-        className="Input form-control"
-        name="Input_channel_message_retention"
-        onChange={[MockFunction]}
-        placeholder="Channel Message Retention"
-        required={false}
-        type="text"
-        value=""
-      />
-    </div>
-    <div
-      className="Input_wrapper dropdown_hybrid_wrapper showInput"
-      onBlur={[Function]}
-      onFocus={[Function]}
-      style={
-        Object {
-          "width": "100%",
-        }
-      }
-    >
-      <ForwardRef
-        className="Input Input__focus"
-        components={
-          Object {
-            "Control": [Function],
-            "IndicatorsContainer": [Function],
-            "Option": [Function],
-          }
-        }
-        hideSelectedOptions={true}
-        id="DropdownInput_channel_message_retention"
-        isSearchable={false}
-        menuPortalTarget={<body />}
-        onChange={[Function]}
-        options={
-          Array [
-            Object {
-              "label": "Days",
-              "value": "days",
-            },
-            Object {
-              "label": "Months",
-              "value": "months",
-            },
-            Object {
-              "label": "Years",
-              "value": "years",
-            },
-            Object {
-              "label": "Keep Forever",
-              "value": "forever",
-            },
-          ]
-        }
-        placeholder="Channel Message Retention"
-        styles={
-          Object {
-            "control": [Function],
-            "indicatorSeparator": [Function],
-            "input": [Function],
-            "menuPortal": [Function],
-          }
-        }
-        value={
-          Object {
-            "label": "Keep Forever",
-            "value": "forever",
-          }
-        }
-      />
-    </div>
-  </fieldset>
+      <legend
+        class="Input_legend Input_legend___focus"
+      >
+        Channel Message Retention
+      </legend>
+      <div
+        class="Input_wrapper input_hybrid_wrapper"
+        style="max-width: 0;"
+      >
+        <input
+          class="Input form-control"
+          name="Input_channel_message_retention"
+          placeholder="Channel Message Retention"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        class="Input_wrapper dropdown_hybrid_wrapper showInput"
+        style="width: 100%;"
+      >
+        <div
+          class="Input Input__focus css-b62m3t-container"
+          id="DropdownInput_channel_message_retention"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-2-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="DropdownInput__controlContainer"
+          >
+            <div
+              class="css-1bhmcib-control"
+            >
+              <div
+                class="css-hlgwow"
+              >
+                <div
+                  class="css-1dimb5e-singleValue"
+                >
+                  Keep Forever
+                </div>
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-readonly="true"
+                  class="css-1s80ejz-dummyInput-DummyInput"
+                  id="react-select-2-input"
+                  inputmode="none"
+                  role="combobox"
+                  tabindex="0"
+                  value=""
+                />
+              </div>
+              <div
+                class="DropdownInput__indicatorsContainer"
+              >
+                <div
+                  class="css-1wy0on6"
+                >
+                  <i
+                    class="icon icon-chevron-down"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  </div>
 </div>
 `;

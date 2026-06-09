@@ -84,14 +84,14 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                 <hgroup>
                     <h1 className='content-flagging-section-title'>
                         <FormattedMessage
-                            id='admin.contentFlagging.notificationSettings.title'
+                            id='admin.dataSpillage.notificationSettings.title'
                             defaultMessage='Notification Settings'
                         />
                     </h1>
                     <h5 className='content-flagging-section-description'>
                         <FormattedMessage
-                            id='admin.contentFlagging.notificationSettings.description'
-                            defaultMessage='Choose who receives notifications from the System bot when content is flagged and reviewed'
+                            id='admin.dataSpillage.notificationSettings.description'
+                            defaultMessage='Choose who receives notifications from the System bot when content is quarantined and reviewed'
                         />
                     </h5>
                 </hgroup>
@@ -103,8 +103,8 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.notificationSettings.notifyOnFlag'
-                                defaultMessage='Notify when content is flagged'
+                                id='admin.dataSpillage.notificationSettings.notifyOnFlag'
+                                defaultMessage='Notify when content is quarantined'
                             />
                         </div>
 
@@ -113,7 +113,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='flagged_reviewers'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.reviewers'
+                                        id='admin.dataSpillage.notificationSettings.reviewers'
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
@@ -127,7 +127,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='flagged_author'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.author'
+                                        id='admin.dataSpillage.notificationSettings.author'
                                         defaultMessage='Author'
                                     />
                                 }
@@ -143,7 +143,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.notificationSettings.notifyOnReviewerAssigned'
+                                id='admin.dataSpillage.notificationSettings.notifyOnReviewerAssigned'
                                 defaultMessage='Notify when a reviewer is assigned'
                             />
                         </div>
@@ -153,7 +153,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='assigned_reviewers'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.reviewers'
+                                        id='admin.dataSpillage.notificationSettings.reviewers'
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
@@ -169,7 +169,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.notificationSettings.notifyOnRemoval'
+                                id='admin.dataSpillage.notificationSettings.notifyOnRemoval'
                                 defaultMessage='Notify when content is removed'
                             />
                         </div>
@@ -179,7 +179,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='removed_reviewers'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.reviewers'
+                                        id='admin.dataSpillage.notificationSettings.reviewers'
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
@@ -193,7 +193,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='removed_author'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.author'
+                                        id='admin.dataSpillage.notificationSettings.author'
                                         defaultMessage='Author'
                                     />
                                 }
@@ -207,7 +207,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='removed_reporter'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.reporter'
+                                        id='admin.dataSpillage.notificationSettings.reporter'
                                         defaultMessage='Reporter'
                                     />
                                 }
@@ -223,8 +223,8 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.notificationSettings.notifyOnDismissal'
-                                defaultMessage='Notify when flag is dismissed'
+                                id='admin.dataSpillage.notificationSettings.notifyOnDismissal'
+                                defaultMessage='Notify when quarantine is dismissed'
                             />
                         </div>
 
@@ -233,7 +233,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='dismissed_reviewers'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.reviewers'
+                                        id='admin.dataSpillage.notificationSettings.reviewers'
                                         defaultMessage='Reviewer(s)'
                                     />
                                 }
@@ -247,7 +247,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='dismissed_author'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.author'
+                                        id='admin.dataSpillage.notificationSettings.author'
                                         defaultMessage='Author'
                                     />
                                 }
@@ -261,7 +261,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 id='dismissed_reporter'
                                 label={
                                     <FormattedMessage
-                                        id='admin.contentFlagging.notificationSettings.reporter'
+                                        id='admin.dataSpillage.notificationSettings.reporter'
                                         defaultMessage='Reporter'
                                     />
                                 }

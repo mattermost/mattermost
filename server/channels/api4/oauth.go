@@ -21,7 +21,7 @@ func (api *API) InitOAuth() {
 	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.APISessionRequired(regenerateOAuthAppSecret)).Methods(http.MethodPost)
 
 	// DCR (Dynamic Client Registration) endpoints as per RFC 7591
-	api.BaseRoutes.OAuthApps.Handle("/register", api.RateLimitedHandler(api.APIHandler(registerOAuthClient), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
+	api.BaseRoutes.OAuthApps.Handle("/register", api.RateLimitedHandler(api.APIHandler(registerOAuthClient), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(1)})).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.APISessionRequired(getAuthorizedOAuthApps)).Methods(http.MethodGet)
 }
@@ -399,6 +399,22 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
+	}
+
+	// Enforce DCR redirect URI allowlist if configured
+	allowlist := c.App.Config().ServiceSettings.DCRRedirectURIAllowlist
+	if len(allowlist) > 0 {
+		for _, uri := range clientRequest.RedirectURIs {
+			if !model.RedirectURIMatchesAllowlist(uri, allowlist) {
+				dcrError := model.NewDCRError(model.DCRErrorInvalidRedirectURI, "One or more redirect URIs do not match the allowlist")
+
+				w.WriteHeader(http.StatusBadRequest)
+				if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+					c.Logger.Warn("Error while writing response", mlog.Err(err))
+				}
+				return
+			}
+		}
 	}
 
 	// No user ID for DCR

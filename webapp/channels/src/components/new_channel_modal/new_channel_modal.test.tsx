@@ -29,7 +29,9 @@ describe('components/new_channel_modal', () => {
     const initialState: DeepPartial<GlobalState> = {
         entities: {
             general: {
-                config: {},
+                config: {
+                    UseAnonymousURLs: 'false',
+                },
             },
             channels: {
                 currentChannelId: 'current_channel_id',
@@ -83,14 +85,10 @@ describe('components/new_channel_modal', () => {
                         permissions: [],
                     },
                     team_user: {
-                        permissions: [
-                            Permissions.CREATE_PRIVATE_CHANNEL,
-                        ],
+                        permissions: [Permissions.CREATE_PRIVATE_CHANNEL],
                     },
                     system_admin: {
-                        permissions: [
-                            Permissions.CREATE_PUBLIC_CHANNEL,
-                        ],
+                        permissions: [Permissions.CREATE_PUBLIC_CHANNEL],
                     },
                     system_user: {
                         permissions: [],

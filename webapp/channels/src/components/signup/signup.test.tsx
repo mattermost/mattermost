@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ClientConfig} from '@mattermost/types/config';
@@ -156,31 +155,31 @@ describe('components/signup/Signup', () => {
     });
 
     it('should match snapshot for all signup options enabled with isLicensed enabled', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <Signup/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for all signup options enabled with isLicensed disabled', () => {
         mockLicense = {IsLicensed: 'false', Cloud: 'false'};
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <Signup/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for all signup options enabled with EnableUserCreaton disabled', () => {
         mockConfig.EnableUserCreation = 'false';
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <Signup/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should create user, log in and redirect to invite teamname', async () => {

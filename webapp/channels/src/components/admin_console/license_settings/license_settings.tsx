@@ -128,6 +128,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         }
         this.props.actions.getLicenseConfig();
         this.props.actions.getFilteredUsersStats({include_bots: false, include_deleted: false});
+        this.props.actions.getServerLimits();
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
@@ -166,6 +167,9 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         const element = this.fileInputRef.current;
         if (element?.files?.length) {
             this.setState({fileSelected: true, file: element.files[0]});
+
+            // Reset the input value so re-selecting the same file re-fires onChange.
+            element.value = '';
         }
     };
 

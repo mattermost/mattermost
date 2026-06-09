@@ -90,7 +90,7 @@ describe('ContentFlaggingContentReviewers', () => {
 
         renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
-        expect(screen.getByText('Configure content flagging per team')).toBeInTheDocument();
+        expect(screen.getByText('Configure data spillage handling per team')).toBeInTheDocument();
         expect(screen.getByTestId('team-reviewers')).toBeInTheDocument();
         expect(screen.queryByText('Reviewers:')).not.toBeInTheDocument();
     });
@@ -230,7 +230,7 @@ describe('ContentFlaggingContentReviewers', () => {
     it('renders help text for additional reviewers', () => {
         renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
-        expect(screen.getByText(/If enabled, system administrators will be sent flagged posts/)).toBeInTheDocument();
+        expect(screen.getByText(/If enabled, system administrators will be sent quarantined posts/)).toBeInTheDocument();
     });
 
     it('correctly sets radio button checked states', () => {

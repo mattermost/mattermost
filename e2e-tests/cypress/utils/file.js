@@ -5,11 +5,11 @@
 
 const fs = require('fs');
 
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 const intersection = require('lodash.intersection');
 const without = require('lodash.without');
 const shell = require('shelljs');
-const argv = require('yargs').
+const argv = require('yargs')(process.argv.slice(2)).
     default('includeFile', '').
     default('excludeFile', '').
     argv;

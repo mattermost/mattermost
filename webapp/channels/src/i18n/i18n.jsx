@@ -49,7 +49,7 @@ export const languages = {
     },
     hu: {
         value: 'hu',
-        name: 'Magyar (Beta)',
+        name: 'Magyar (Alpha)',
         order: 6,
         url: langFiles.hu,
     },

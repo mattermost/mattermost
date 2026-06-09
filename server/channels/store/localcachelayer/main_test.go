@@ -24,8 +24,12 @@ var mainHelper *testlib.MainHelper
 
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
-	mockCacheProvider.On("NewCache", mock.Anything).
-		Return(cache.NewLRU(&cache.CacheOptions{Size: 128}), nil)
+	// Each NewCache call returns a fresh LRU so that caches are isolated
+	// from each other, matching production behaviour.
+	call := mockCacheProvider.On("NewCache", mock.Anything)
+	call.Run(func(args mock.Arguments) {
+		call.ReturnArguments = mock.Arguments{cache.NewLRU(&cache.CacheOptions{Size: 128}), nil}
+	})
 	mockCacheProvider.On("Type").Return("lru")
 	return &mockCacheProvider
 }
@@ -50,6 +54,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeRole2 := model.Role{Id: "456", Name: "role-name2"}
 	mockRolesStore := mocks.RoleStore{}
 	mockRolesStore.On("Save", &fakeRole).Return(&model.Role{}, nil)
+	mockRolesStore.On("SavePreservingUnknownPermissions", &fakeRole).Return(&model.Role{}, nil)
 	mockRolesStore.On("Delete", "123").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByName", context.Background(), "role-name").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name"}).Return([]*model.Role{&fakeRole}, nil)
@@ -65,11 +70,11 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
-	fakeFileInfo := model.FileInfo{PostId: "123"}
+	fakeFileInfo := model.FileInfo{Id: "123", PostId: "123"}
 	mockFileInfoStore := mocks.FileInfoStore{}
 	mockFileInfoStore.On("GetForPost", "123", true, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockFileInfoStore.On("GetForPost", "123", true, true, true).Return([]*model.FileInfo{&fakeFileInfo}, nil)
-	mockFileInfoStore.On("GetByIds", []string{"123"}, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockFileInfoStore.On("GetByIds", []string{"123"}, true, false, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 	fakeWebhook := model.IncomingWebhook{Id: "123"}
@@ -103,6 +108,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeChannel2 := model.Channel{Id: "channel2", Name: "channel2-name"}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("Save", mock.IsType(&request.Context{}), &fakeChannel1, int64(0)).Return(&fakeChannel1, nil)
+	mockChannelStore.On("Update", mock.IsType(&request.Context{}), &fakeChannel1).Return(&fakeChannel1, nil)
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
@@ -162,7 +169,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	fakeUser := []*model.User{{
 		Id:          "123",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}}
 	mockUserStore := mocks.UserStore{}
@@ -181,7 +188,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 		fakeUser[0],
 		{
 			Id:          "456",
-			AuthData:    model.NewPointer("authData"),
+			AuthData:    new("authData"),
 			AuthService: "authService",
 		},
 	}
@@ -197,6 +204,17 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
+
+	mockSessionAttributeStore := mocks.SessionAttributeStore{}
+	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
+
+	fakeField := model.PropertyField{ID: "field-id", GroupID: "group-id", Name: "field-name"}
+	mockPropertyFieldStore := mocks.PropertyFieldStore{}
+	mockPropertyFieldStore.On("GetForGroup", context.Background(), "group-id").Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("Create", &fakeField).Return(&fakeField, nil)
+	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
+	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)

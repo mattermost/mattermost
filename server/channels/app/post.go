@@ -18,7 +18,6 @@ import (
 	"maps"
 	"slices"
 
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -256,6 +255,24 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
+	// Strip mm_blocks_actions from posts that are neither bot-authored nor
+	// created via an integration session. Either signal is sufficient:
+	//   - user.IsBot (DB-verified) covers PluginAPI.CreatePost where the
+	//     plugin's static rctx has no integration markers but the post
+	//     is authored by a bot user.
+	//   - rctx.Session().IsIntegration() (server-derived, unspoofable)
+	//     covers REST callers using bot tokens, PATs, or OAuth apps.
+	//
+	// Webhooks are handled separately at their entry point
+	// (CreateWebhookPost) — webhook payloads are user-controlled even
+	// when bound to a bot user, so the prop is dropped before the post
+	// reaches CreatePost. See TestCreateWebhookPostStripsMmBlocksActions.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		if !user.IsBot && !rctx.Session().IsIntegration() {
+			post.DelProp(model.PostPropsMmBlocksActions)
+		}
+	}
+
 	var ephemeralPost *model.Post
 	if post.Type == "" {
 		if hasPermission, _ := a.HasPermissionToChannel(rctx, user.Id, channel.Id, model.PermissionUseChannelMentions); !hasPermission {
@@ -301,8 +318,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, err
 	}
 
-	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
-	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment); ok {
+	// Temporary fix so old plugins don't clobber new fields in MessageAttachment struct, see MM-13088
+	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
 			attachmentsInterface := []any{}
@@ -314,39 +331,14 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	var metadata *model.PostMetadata
-	if post.Metadata != nil {
-		metadata = post.Metadata.Copy()
-	}
-	var rejectionError *model.AppError
 	pluginContext := pluginContext(rctx)
 
 	if post.Type != model.PostTypeBurnOnRead {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
-			if rejectionReason != "" {
-				id := "Post rejected by plugin. " + rejectionReason
-				if rejectionReason == plugin.DismissPostError {
-					id = plugin.DismissPostError
-				}
-				rejectionError = model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
-				return false
-			}
-			if replacementPost != nil {
-				post = replacementPost
-				if post.Metadata != nil && metadata != nil {
-					post.Metadata.Priority = metadata.Priority
-				} else {
-					post.Metadata = metadata
-				}
-			}
-
-			return true
-		}, plugin.MessageWillBePostedID)
-
-		if rejectionError != nil {
-			return nil, false, rejectionError
+		newPost, guardErr := a.runGuardedMessageWillBePosted(rctx, post)
+		if guardErr != nil {
+			return nil, false, guardErr
 		}
+		post = newPost
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
@@ -429,12 +421,13 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 			if translateErr != nil {
 				var notAvailErr *model.ErrAutoTranslationNotAvailable
-				if errors.As(translateErr, &notAvailErr) {
+				switch {
+				case errors.As(translateErr, &notAvailErr):
 					// Feature not available - log at debug level and continue
 					rctx.Logger().Debug("Auto-translation feature not available", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+				case translateErr.Id == "ent.autotranslation.no_translatable_content":
 					// No translatable content (only URLs/mentions) - this is expected, don't log
-				} else {
+				default:
 					// Unexpected error - log at warn level but don't fail post creation
 					rctx.Logger().Warn("Failed to translate post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
 				}
@@ -503,6 +496,12 @@ func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post, fileIDs mode
 	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, fileIDs)
 
 	if len(fileIDs) != len(attachedIds) {
+		// Remote-origin posts have a concurrent file-receive path that
+		// performs its own binding; stripping here can clobber a binding
+		// that path just made.
+		if post.GetRemoteID() != "" {
+			return fileIDs, nil
+		}
 		post.FileIds = attachedIds
 		if _, err := a.Srv().Store().Post().Overwrite(rctx, post); err != nil {
 			return nil, model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -569,9 +568,8 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		// This includes public channels and private channels where creator is a member
 		// Prevents information disclosure while supporting private channel mentions for members
 		for _, mentioned := range mentionedChannels {
-			// Check if post creator has permission to read this channel
-			// HasPermissionToReadChannel returns (hasPermission, isMember) for audit logging
-			if hasPermission, _ := a.HasPermissionToReadChannel(rctx, post.UserId, mentioned); hasPermission {
+			// Resolve the channel mention if the post creator may see the channel's name/link.
+			if a.HasPermissionToResolveChannelMention(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
@@ -704,6 +702,13 @@ func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Pos
 		post.SetProps(make(model.StringInterface))
 	}
 
+	// mm_blocks_actions cannot be resolved on click for ephemeral posts (no
+	// DB row, no per-action cookie transport). Drop the prop here so the
+	// client doesn't render a non-functional button.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		post.DelProp(model.PostPropsMmBlocksActions)
+	}
+
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
@@ -736,6 +741,13 @@ func (a *App) UpdateEphemeralPost(rctx request.CTX, userID string, post *model.P
 	post.UpdateAt = model.GetMillis()
 	if post.GetProps() == nil {
 		post.SetProps(make(model.StringInterface))
+	}
+
+	// mm_blocks_actions cannot be resolved on click for ephemeral posts (no
+	// DB row, no per-action cookie transport). Drop the prop here so the
+	// client doesn't render a non-functional button.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		post.DelProp(model.PostPropsMmBlocksActions)
 	}
 
 	post.GenerateActionIds()
@@ -856,6 +868,21 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
+		// mm_blocks_actions can only be modified by trusted paths that have
+		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session
+		// type is intentionally not a sufficient signal: a PAT/OAuth session
+		// from a regular user would otherwise bypass the freeze and inject
+		// mm_blocks_actions on edit, since from_bot on the original post is
+		// user-forgeable. All other callers keep whatever mm_blocks_actions
+		// the original post had (or none).
+		if !updatePostOptions.AllowMmBlocksActionsUpdate {
+			if oldVal, ok := oldPost.GetProps()[model.PostPropsMmBlocksActions]; ok {
+				newPost.AddProp(model.PostPropsMmBlocksActions, oldVal)
+			} else {
+				newPost.DelProp(model.PostPropsMmBlocksActions)
+			}
+		}
+
 		var fileIds []string
 		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
 		if appErr != nil {
@@ -874,18 +901,14 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	}
 
 	if receivedUpdatedPost.IsRemote() {
-		oldPost.RemoteId = model.NewPointer(*receivedUpdatedPost.RemoteId)
+		oldPost.RemoteId = new(*receivedUpdatedPost.RemoteId)
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
 	if newPost.Type != model.PostTypeBurnOnRead {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-			return newPost != nil
-		}, plugin.MessageWillBeUpdatedID)
-		if newPost == nil {
-			return nil, false, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		var appErr2 *model.AppError
+		newPost, appErr2 = a.runGuardedMessageWillBeUpdated(rctx, newPost, oldPost)
+		if appErr2 != nil {
+			return nil, false, appErr2
 		}
 	}
 
@@ -910,12 +933,13 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		}
 	}
 
+	pCtx := pluginContext(rctx)
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
 	if newPost.Type != model.PostTypeBurnOnRead {
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-				hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
+				hooks.MessageHasBeenUpdated(pCtx, pluginNewPost, pluginOldPost)
 				return true
 			}, plugin.MessageHasBeenUpdatedID)
 		})
@@ -942,12 +966,13 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 			if translateErr != nil {
 				var notAvailErr *model.ErrAutoTranslationNotAvailable
-				if errors.As(translateErr, &notAvailErr) {
+				switch {
+				case errors.As(translateErr, &notAvailErr):
 					// Feature not available - log at debug level and continue
 					rctx.Logger().Debug("Auto-translation feature not available for edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+				case translateErr.Id == "ent.autotranslation.no_translatable_content":
 					// No translatable content (only URLs/mentions) - this is expected, don't log
-				} else {
+				default:
 					// Unexpected error - log at warn level but don't fail post update
 					rctx.Logger().Warn("Failed to translate edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
 				}
@@ -956,6 +981,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
 		}
 	}
+
+	a.applyPostWillBeConsumedHook(&rpost)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
@@ -1033,8 +1060,42 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 		}
 	}
 
+	a.setupBroadcastHookForAbacFiles(post, message)
+
 	a.Publish(message)
 	return nil
+}
+
+// setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and
+// the post has file attachments. Skipped for burn-on-read posts (handled by their own hook).
+func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.WebSocketEvent) {
+	if a.Srv().Channels().AccessControl == nil {
+		return
+	}
+
+	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
+	if cfg == nil || !*cfg {
+		return
+	}
+
+	if !a.Config().FeatureFlags.PermissionPolicies {
+		return
+	}
+
+	if post.Type == model.PostTypeBurnOnRead {
+		return
+	}
+
+	// Prefer FileIds; fall back to Metadata.Files when PreparePostForClient has been called.
+	fileCount := len(post.FileIds)
+	if fileCount == 0 && post.Metadata != nil {
+		fileCount = len(post.Metadata.Files)
+	}
+	if fileCount == 0 {
+		return
+	}
+
+	useAbacFilesHook(message, post.ChannelId, fileCount)
 }
 
 func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, permalinkPreviewedPost *model.PreviewPost, previewProp string) *model.AppError {
@@ -1206,6 +1267,35 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 	}
 
 	// The postList is sorted as only rootPosts Order is included
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
+	a.applyPostsWillBeConsumedHook(postList.Posts)
+
+	return postList, nil
+}
+
+// GetPostsForView returns posts for a specific view. Currently returns all channel posts.
+// TODO: In the future, this will filter posts based on the view's configuration (e.g., property values, sort order).
+func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, false, a.Config().GetSanitizeOptions())
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts_for_view.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	var appErr *model.AppError
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
@@ -1829,6 +1919,13 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
 
+	if post.RootId == "" {
+		appErr = a.DeletePersistentNotification(rctx, post)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
@@ -2174,49 +2271,52 @@ func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.StoreResult[*model.Post], 1)
-	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
-		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
-		close(pchan)
-	}()
-
-	infos, firstInaccessibleFileTime, err := a.GetFileInfosForPost(rctx, postID, false, includeDeleted)
+	post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
 	if err != nil {
-		return nil, err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 {
-		// No FileInfos were returned so check if they need to be created for this post
-		result := <-pchan
-		if result.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(result.NErr, &nfErr):
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
-			default:
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
-			}
-		}
-		post := result.Data
+	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	if appErr != nil {
+		return nil, appErr
+	}
 
-		if len(post.Filenames) > 0 {
-			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
-			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
-			// The post has Filenames that need to be replaced with FileInfos
-			infos = a.MigrateFilenamesToFileInfos(rctx, post)
-		}
+	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
+		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
+		// The post has Filenames that need to be replaced with FileInfos
+		infos = a.MigrateFilenamesToFileInfos(rctx, post)
 	}
 
 	return infos, nil
 }
 
 // GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
-	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+	fileIDs := post.FileIds
+	if fromMaster {
+		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
+		if err != nil {
+			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		fileIDs = masterPost.FileIds
+	}
+
+	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
+	// by CreateAt DESC and the local cache layer interleaves cache hits), so
+	// reorder to match the post's stored attachment order.
+	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
 	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
 	if appErr != nil {
@@ -2226,6 +2326,34 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bo
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, firstInaccessibleFileTime, nil
+}
+
+func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {
+	if len(ids) == 0 || len(infos) < 2 {
+		// No sorting needed for just one file info
+		return infos
+	}
+
+	byID := make(map[string]*model.FileInfo, len(infos))
+	for _, info := range infos {
+		byID[info.Id] = info
+	}
+
+	ordered := make([]*model.FileInfo, 0, len(infos))
+	for _, id := range ids {
+		if info, ok := byID[id]; ok {
+			ordered = append(ordered, info)
+			delete(byID, id)
+		}
+	}
+
+	for _, info := range infos {
+		if _, ok := byID[info.Id]; ok {
+			ordered = append(ordered, info)
+		}
+	}
+
+	return ordered
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
@@ -2590,10 +2718,12 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 
 func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
 	for _, post := range editHistoryPosts {
-		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true)
+		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
 			return model.NewAppError("app.populateEditHistoryFileMetadata", "app.file_info.get_by_ids.app_error", map[string]any{"post_id": post.Id}, "", http.StatusInternalServerError).Wrap(err)
 		}
+
+		fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
@@ -2606,18 +2736,27 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 }
 
 func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError {
-	// Store the reminder in the DB
+	remindedPost, postErr := a.GetSinglePost(rctx, postID, false)
+	if postErr != nil {
+		return postErr
+	}
+	// Ephemeral ack must use the thread root so CRT/RHS thread views (keyed by root id) show the confirmation.
+	ephemeralRootID := remindedPost.Id
+	if remindedPost.RootId != "" {
+		ephemeralRootID = remindedPost.RootId
+	}
+
+	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	reminder := &model.PostReminder{
 		PostId:     postID,
 		UserId:     userID,
 		TargetTime: targetTime,
 	}
-	err := a.Srv().Store().Post().SetPostReminder(reminder)
-	if err != nil {
-		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
+	err = a.Srv().Store().Post().SetPostReminder(reminder)
 	if err != nil {
 		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2638,7 +2777,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		Id:        model.NewId(),
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
-		RootId:    postID,
+		RootId:    ephemeralRootID,
 		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
@@ -3065,7 +3204,7 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	}
 
 	if postHasFiles {
-		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id, nil)
 		if appErr != nil {
 			return appErr
 		}
@@ -3074,6 +3213,12 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+			return appErr
+		}
 	}
 
 	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
@@ -3088,12 +3233,6 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return appErr
-	}
-
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
-			return appErr
-		}
 	}
 
 	postJSON, err := json.Marshal(post)
@@ -3191,11 +3330,9 @@ func (a *App) RewriteMessage(
 	if rootID != "" {
 		context, appErr := a.buildThreadContextForRewrite(rctx, rootID)
 		if appErr != nil {
-			// Log error but continue without context rather than failing the rewrite
-			rctx.Logger().Warn("Failed to build thread context for rewrite", mlog.String("root_id", rootID), mlog.Err(appErr))
-		} else {
-			threadContext = context
+			return nil, appErr
 		}
+		threadContext = context
 	}
 
 	userPrompt := getRewritePromptForAction(action, message, customPrompt, threadContext)
@@ -3215,16 +3352,23 @@ func (a *App) RewriteMessage(
 
 	systemPrompt := buildRewriteSystemPrompt(userLocale)
 
-	// Prepare completion request in the format expected by the client
-	client := a.GetBridgeClient(rctx.Session().UserId)
-	completionRequest := agentclient.CompletionRequest{
-		Posts: []agentclient.Post{
+	sessionUserID := ""
+	if session := rctx.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+
+	completionRequest := BridgeCompletionRequest{
+		Operation:       BridgeOperationRewrite,
+		ClientOperation: "message_rewrite",
+		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		OperationSubType: normalizeRewriteAction(action),
+		UserID:           sessionUserID,
 	}
 
-	completion, err := client.AgentCompletion(agentID, completionRequest)
+	completion, err := a.ch.agentsBridge.AgentCompletion(sessionUserID, agentID, completionRequest)
 	if err != nil {
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}
@@ -3245,8 +3389,17 @@ func (a *App) RewriteMessage(
 func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (string, *model.AppError) {
 	const maxContextPosts = 10
 
-	// Get the thread posts
-	postList, appErr := a.GetPostThread(rctx, rootID, model.GetPostsOptions{}, rctx.Session().UserId)
+	anchorPost, appErr, _ := a.GetPostIfAuthorized(rctx, rootID, rctx.Session(), false)
+	if appErr != nil {
+		return "", appErr
+	}
+	threadRootID := anchorPost.RootId
+	if threadRootID == "" {
+		threadRootID = anchorPost.Id
+	}
+
+	// Get the thread posts (only after confirming the session may read the anchor post's channel)
+	postList, appErr := a.GetPostThread(rctx, anchorPost.Id, model.GetPostsOptions{}, rctx.Session().UserId)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -3256,7 +3409,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	// Get root post
-	rootPost, ok := postList.Posts[rootID]
+	rootPost, ok := postList.Posts[threadRootID]
 	if !ok {
 		return "", nil
 	}
@@ -3269,7 +3422,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	// Collect reply posts, filtering out system posts and deleted posts
 	var replies []*model.Post
 	for _, postID := range postList.Order {
-		if postID == rootID {
+		if postID == threadRootID {
 			continue // Skip root post
 		}
 		post, ok := postList.Posts[postID]
@@ -3335,6 +3488,23 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	return contextBuilder.String(), nil
+}
+
+// normalizeRewriteAction maps a RewriteAction to a known subtype string for
+// operation tracking. Unknown actions are mapped to "unknown".
+func normalizeRewriteAction(action model.RewriteAction) string {
+	switch action {
+	case model.RewriteActionCustom,
+		model.RewriteActionShorten,
+		model.RewriteActionElaborate,
+		model.RewriteActionImproveWriting,
+		model.RewriteActionFixSpelling,
+		model.RewriteActionSimplify,
+		model.RewriteActionSummarize:
+		return string(action)
+	default:
+		return "unknown"
+	}
 }
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
@@ -3450,6 +3620,19 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 		IncludePriority: true,
 		RetainContent:   true,
 	})
+
+	// Apply ABAC file sanitization after PreparePostForClient populates Metadata.Files.
+	// Treat errors as non-fatal: a transient channel-lookup failure must not prevent
+	// the reveal WS event from reaching the author (the read receipt is already persisted).
+	if sanitized, _, sanitizeErr := a.SanitizePostMetadataForUser(rctx, revealedPost, userID); sanitizeErr == nil {
+		revealedPost = sanitized
+	} else {
+		rctx.Logger().Warn("Failed to sanitize post metadata for revealed BOR post; proceeding without sanitization",
+			mlog.String("post_id", revealedPost.Id),
+			mlog.String("user_id", userID),
+			mlog.Err(sanitizeErr),
+		)
+	}
 
 	// Publish websocket event if this is the first time revealing
 	if isFirstReveal {
@@ -3796,7 +3979,8 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	// If user is the author, permanently delete the post
 	if post.UserId == userID {
-		return a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		_, appErr := a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		return appErr
 	}
 
 	// If not the author, check read receipt

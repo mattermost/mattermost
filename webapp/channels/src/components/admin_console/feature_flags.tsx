@@ -30,12 +30,12 @@ const FeatureFlags: React.FC<Props> = (props: Props) => {
     }
 
     return (
-        <div className='wrapper--admin'>
+        <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div className='admin-logs-content admin-console__content'>
+                <div className='admin-console__content'>
                     <div className={'banner info'}>
                         <div className='banner__content'>
                             <FormattedMessage
@@ -45,7 +45,7 @@ const FeatureFlags: React.FC<Props> = (props: Props) => {
                         </div>
                     </div>
                     <div className='job-table__panel'>
-                        <div className='job-table__table'>
+                        <div className='job-table__table job-table__table--full-height'>
                             <table
                                 className='table'
                             >

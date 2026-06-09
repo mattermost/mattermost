@@ -45,7 +45,7 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		}
 		err := req.IsValid(true, validReasons)
 		assert.NotNil(t, err)
-		assert.Equal(t, "api.content_flagging.error.comment_required", err.Id)
+		assert.Equal(t, "api.data_spillage.error.comment_required", err.Id)
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
@@ -56,7 +56,7 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		}
 		err := req.IsValid(false, validReasons)
 		assert.NotNil(t, err)
-		assert.Equal(t, "api.content_flagging.error.reason_required", err.Id)
+		assert.Equal(t, "api.data_spillage.error.reason_required", err.Id)
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
@@ -67,7 +67,7 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		}
 		err := req.IsValid(false, validReasons)
 		assert.NotNil(t, err)
-		assert.Equal(t, "api.content_flagging.error.reason_invalid", err.Id)
+		assert.Equal(t, "api.data_spillage.error.reason_invalid", err.Id)
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
@@ -79,7 +79,7 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		}
 		err := req.IsValid(false, validReasons)
 		assert.NotNil(t, err)
-		assert.Equal(t, "api.content_flagging.error.comment_too_long", err.Id)
+		assert.Equal(t, "api.data_spillage.error.comment_too_long", err.Id)
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 		assert.Equal(t, commentMaxRunes, err.params["MaxLength"])
 	})
@@ -103,7 +103,7 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		}
 		err := req.IsValid(false, validReasons)
 		assert.NotNil(t, err)
-		assert.Equal(t, "api.content_flagging.error.comment_too_long", err.Id)
+		assert.Equal(t, "api.data_spillage.error.comment_too_long", err.Id)
 	})
 
 	t.Run("empty valid reasons list", func(t *testing.T) {
@@ -113,6 +113,6 @@ func TestFlagContentRequest_IsValid(t *testing.T) {
 		}
 		err := req.IsValid(false, []string{})
 		assert.NotNil(t, err)
-		assert.Equal(t, "api.content_flagging.error.reason_invalid", err.Id)
+		assert.Equal(t, "api.data_spillage.error.reason_invalid", err.Id)
 	})
 }

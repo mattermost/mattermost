@@ -10,11 +10,30 @@ import (
 	"strings"
 	"time"
 
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+// summarizePostsJSONSchema is the structured output schema for the LLM summarization response.
+// Defined at package level to avoid re-allocating on every call.
+var summarizePostsJSONSchema = map[string]any{
+	"type": "object",
+	"properties": map[string]any{
+		"highlights": map[string]any{
+			"type":        "array",
+			"items":       map[string]any{"type": "string"},
+			"description": "Key discussion points, decisions, or important information",
+		},
+		"action_items": map[string]any{
+			"type":        "array",
+			"items":       map[string]any{"type": "string"},
+			"description": "Tasks, todos, or action items mentioned",
+		},
+	},
+	"required":             []any{"highlights", "action_items"},
+	"additionalProperties": false,
+}
 
 // SummarizePosts generates an AI summary of posts with highlights and action items
 func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AIRecapSummaryResponse, *model.AppError) {
@@ -58,13 +77,21 @@ Your response must be compacted valid JSON only, with no additional text, format
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.GetBridgeClient(sessionUserID)
-
-	completionRequest := agentclient.CompletionRequest{
-		Posts: []agentclient.Post{
+	requestUserID := userID
+	if sessionUserID != "" {
+		requestUserID = sessionUserID
+	}
+	completionRequest := BridgeCompletionRequest{
+		Operation:       BridgeOperationRecapSummary,
+		ClientOperation: "recaps",
+		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		JSONOutputFormat: summarizePostsJSONSchema,
+		OperationSubType: "summarize_channel",
+		UserID:           requestUserID,
+		ChannelID:        posts[0].ChannelId,
 	}
 
 	rctx.Logger().Debug("Calling AI agent for post summarization",
@@ -74,7 +101,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 		mlog.Int("post_count", len(posts)),
 	)
 
-	completion, err := client.AgentCompletion(agentID, completionRequest)
+	completion, err := a.ch.agentsBridge.AgentCompletion(sessionUserID, agentID, completionRequest)
 	if err != nil {
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}

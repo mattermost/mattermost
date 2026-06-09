@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
@@ -36,10 +37,10 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
+import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
@@ -47,6 +48,7 @@ import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {isChannelPopoutWindow, isPopoutWindow} from 'utils/popouts/popout_windows';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -74,7 +76,6 @@ export type Props = {
     isReadOnly?: boolean;
     pluginPostTypes?: {[postType: string]: PostPluginComponent};
     channelIsArchived?: boolean;
-    channelIsShared?: boolean;
     isConsecutivePost?: boolean;
     isLastPost?: boolean;
     recentEmojis: Emoji[];
@@ -109,6 +110,7 @@ export type Props = {
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
+        highlightPostInChannelPopout: (postId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -134,6 +136,7 @@ export type Props = {
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
     preventClickInteraction?: boolean;
+    permissionPoliciesEnabled: boolean;
 };
 
 const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
@@ -406,27 +409,39 @@ function PostComponent(props: Props) {
         }
 
         props.actions.setRhsExpanded(false);
+
+        if (isChannelPopoutWindow() && props.isPinnedPosts) {
+            props.actions.highlightPostInChannelPopout(post.id);
+            return;
+        }
+
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
-    }, [props.isMobileView, props.actions, props.teamName, post?.id]);
+    }, [props.isMobileView, props.actions, props.teamName, props.isPinnedPosts, post]);
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 
+    const isSearchPopoutWindow = useMemo(() => isPopoutWindow() && isSearchResultItem, [isSearchResultItem]);
     const handleCommentClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
+        if (isSearchPopoutWindow) {
+            const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+            getHistory().replace(`/_popout/thread/${props.teamName}/${post.root_id || post.id}?returnTo=${returnTo}`);
+            return;
+        }
         selectPostFromRightHandSideSearch(post);
-    }, [post, selectPostFromRightHandSideSearch]);
+    }, [post, props.teamName, selectPostFromRightHandSideSearch, isSearchPopoutWindow]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam?.id === teamId) {
+        if (isSearchPopoutWindow || props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId, isSearchPopoutWindow]);
 
     const translation = PostUtils.getPostTranslation(post, locale);
 
@@ -708,6 +723,7 @@ function PostComponent(props: Props) {
 
     // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
     const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder;
+    const redactedFileCount = post.metadata?.redacted_file_count ?? 0;
 
     return (
         <>
@@ -872,6 +888,12 @@ function PostComponent(props: Props) {
                                     handleFileDropdownOpened={handleFileDropdownOpened}
                                 />
                             }
+                            {props.permissionPoliciesEnabled && redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
+                                <RedactedFilesPlaceholder
+                                    count={redactedFileCount}
+                                    compactDisplay={props.compactDisplay}
+                                />
+                            )}
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
                                     <PostAcknowledgements

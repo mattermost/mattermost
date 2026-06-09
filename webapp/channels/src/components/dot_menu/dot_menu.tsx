@@ -7,6 +7,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {
+    AlertOutlineIcon,
     ArrowRightBoldOutlineIcon,
     BookmarkIcon,
     BookmarkOutlineIcon,
@@ -454,7 +455,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleDeleteMenuItemActivated();
             break;
 
-        // move thread
+            // move thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
             if (this.props.canMove) {
                 forceCloseMenu();
@@ -813,11 +814,11 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         id={`flag_post_${this.props.post.id}`}
                         className='flag_post_menu_item'
                         data-testid={`flag_post_${this.props.post.id}`}
-                        leadingElement={<i className='icon icon-flag-outline'/>}
+                        leadingElement={<AlertOutlineIcon size={18}/>}
                         labels={
                             <FormattedMessage
-                                id='post_info.flag'
-                                defaultMessage='Flag message'
+                                id='post_info.quarantine'
+                                defaultMessage='Quarantine for Review'
                             />
                         }
                         onClick={this.handleFlagPostMenuItemClicked}

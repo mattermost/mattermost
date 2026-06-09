@@ -19,6 +19,7 @@ import SearchKeywordMarking from 'components/admin_console/search_keyword_markin
 import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
 import DiscardChangesModal from 'components/discard_changes_modal';
+import GlobalClassificationBanner from 'components/global_classification_banner';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
 
@@ -89,7 +90,7 @@ const AdminConsole = (props: Props) => {
     useEffect(() => {
         props.actions.getConfig();
         props.actions.getEnvironmentConfig();
-        props.actions.loadRolesIfNeeded(['channel_user', 'team_user', 'system_user', 'channel_admin', 'team_admin', 'system_admin', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'system_manager']);
+        props.actions.loadRolesIfNeeded(['channel_user', 'team_user', 'system_user', 'channel_admin', 'team_admin', 'system_admin', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'system_manager', 'system_shared_channel_manager']);
         props.actions.selectLhsItem(LhsItemType.None);
         props.actions.selectTeam('');
         document.body.classList.add('console__body');
@@ -120,7 +121,8 @@ const AdminConsole = (props: Props) => {
             roles.system_user_manager &&
             roles.system_read_only_admin &&
             roles.system_custom_group_admin &&
-            roles.system_manager
+            roles.system_manager &&
+            roles.system_shared_channel_manager
         );
     };
 
@@ -237,6 +239,7 @@ const AdminConsole = (props: Props) => {
 
     return (
         <>
+            <GlobalClassificationBanner position='top'/>
             <AnnouncementBarController/>
             <SystemNotice/>
             <BackstageNavbar team={props.team}/>
@@ -253,6 +256,7 @@ const AdminConsole = (props: Props) => {
                     {renderRoutes(extraProps)}
                 </SearchKeywordMarking>
             </div>
+            <GlobalClassificationBanner position='bottom'/>
             <DiscardChangesModal
                 show={showNavigationPrompt}
                 onConfirm={confirmNavigation}

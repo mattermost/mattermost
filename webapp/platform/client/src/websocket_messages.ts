@@ -151,15 +151,29 @@ export type ThreadFollowedChanged = BaseWebSocketMessage<WebSocketEvents.ThreadF
     reply_count: number;
 }>;
 
-export type ThreadReadChanged = BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, {
-    thread_id?: string;
-    timestamp: number;
-    unread_mentions?: number;
-    unread_replies?: number;
-    previous_unread_mentions?: number;
-    previous_unread_replies?: number;
-    channel_id?: string;
-}>;
+export type ThreadReadChanged = BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, (
+
+    // App.UpdateThreadsReadForUser
+    Record<string, never>
+) | (
+
+    // App.MarkChannelsAsViewed
+    {
+        timestamp: number;
+    }
+) | (
+
+    // App.UpdateThreadReadForUser
+    {
+        thread_id: string;
+        timestamp: number;
+        unread_mentions: number;
+        unread_replies: number;
+        previous_unread_mentions: number;
+        previous_unread_replies: number;
+        channel_id: string;
+    }
+)>;
 
 // Channel and channel member messages
 
@@ -178,6 +192,11 @@ export type ChannelUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelUpdated
 }>;
 
 export type ChannelConverted = BaseWebSocketMessage<WebSocketEvents.ChannelConverted, {
+    channel_id: string;
+    channel_type?: ChannelType;
+}>;
+
+export type SharedChannelRemoteUpdated = BaseWebSocketMessage<WebSocketEvents.SharedChannelRemoteUpdated, {
     channel_id: string;
 }>;
 
@@ -241,6 +260,12 @@ export type ChannelBookmarkDeleted = BaseWebSocketMessage<WebSocketEvents.Channe
 
 export type ChannelBookmarkSorted = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkSorted, {
     bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo[]>;
+}>;
+
+// Channel access control messages
+
+export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelAccessControlUpdated, {
+    channel: JsonEncodedValue<Channel>;
 }>;
 
 // Team and team member messages
@@ -345,6 +370,30 @@ export type SidebarCategoryDeleted = BaseWebSocketMessage<WebSocketEvents.Sideba
 
 export type SidebarCategoryOrderUpdated = BaseWebSocketMessage<WebSocketEvents.SidebarCategoryOrderUpdated, {
     order: string[];
+}>;
+
+// Property system messages
+
+export type PropertyFieldCreated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldCreated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldUpdated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldDeleted = BaseWebSocketMessage<WebSocketEvents.PropertyFieldDeleted, {
+    field_id: string;
+    object_type: string;
+}>;
+
+export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyValuesUpdated, {
+    object_type?: string;
+    target_id?: string;
+    field_id?: string;
+    values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
 }>;
 
 // Emoji messages
@@ -453,6 +502,12 @@ export type FileDownloadRejected = BaseWebSocketMessage<WebSocketEvents.FileDown
     channel_id: string;
     post_id: string;
     download_type: string;
+}>;
+
+export type FileUploadRejected = BaseWebSocketMessage<WebSocketEvents.FileUploadRejected, {
+    file_name: string;
+    rejection_reason: string;
+    channel_id: string;
 }>;
 
 export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {

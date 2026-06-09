@@ -267,6 +267,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(200), nil) // Under hard limit of 250
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -282,6 +283,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(250), nil) // At hard limit of 250
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -297,6 +299,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(300), nil) // Over hard limit of 250
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -355,6 +358,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(6), nil) // At hard limit of 6 (5 + 1)
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -376,6 +380,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(7), nil) // Above hard limit of 6
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -461,21 +466,21 @@ func TestExtraUsersBehavior(t *testing.T) {
 			{
 				name:              "zero license users with extra users",
 				licenseUserLimit:  0,
-				extraUsers:        model.NewPointer(5),
+				extraUsers:        new(5),
 				expectedBaseLimit: 0,
 				expectedHardLimit: 5, // 0 + 5 extra users = 5
 			},
 			{
 				name:              "license with configured extra users",
 				licenseUserLimit:  10,
-				extraUsers:        model.NewPointer(2),
+				extraUsers:        new(2),
 				expectedBaseLimit: 10,
 				expectedHardLimit: 12, // 10 + 2 extra users = 12
 			},
 			{
 				name:              "license with zero extra users (hard cap)",
 				licenseUserLimit:  100,
-				extraUsers:        model.NewPointer(0),
+				extraUsers:        new(0),
 				expectedBaseLimit: 100,
 				expectedHardLimit: 100, // 100 + 0 extra users = 100 (hard cap)
 			},
@@ -489,7 +494,7 @@ func TestExtraUsersBehavior(t *testing.T) {
 			{
 				name:              "license with large number of extra users",
 				licenseUserLimit:  1000,
-				extraUsers:        model.NewPointer(200),
+				extraUsers:        new(200),
 				expectedBaseLimit: 1000,
 				expectedHardLimit: 1200, // 1000 + 200 extra users = 1200
 			},
@@ -583,6 +588,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 		mockStore.On("User").Return(&mockUserStore)
 
 		// Mock system store for GetLastAccessiblePostTime
@@ -616,6 +622,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 		mockStore.On("User").Return(&mockUserStore)
 
 		// Mock system store to return error
@@ -642,6 +649,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 		mockStore.On("User").Return(&mockUserStore)
 
 		// Mock system store to return ErrNotFound (all posts accessible)
@@ -665,6 +673,103 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		require.Equal(t, int64(5), serverLimits.ActiveUserCount)
 	})
 }
+func TestShouldTrackSingleChannelGuests(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("returns false for unlicensed server", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(nil)
+
+		require.False(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns false for Entry SKU license", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		th.App.Srv().SetLicense(license)
+
+		require.False(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns true when license GuestAccounts feature is disabled but config is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicense("")
+		license.Features.GuestAccounts = new(false)
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		require.True(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns false when config GuestAccountsSettings.Enable is false", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicense("")
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
+
+		require.False(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns true for non-Entry license with guest accounts enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicense("")
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		require.True(t, th.App.shouldTrackSingleChannelGuests())
+	})
+}
+
+func TestGetServerLimitsWithSingleChannelGuests(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("populates single channel guest fields when tracking is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.Features.Users = &userLimit
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		guest := th.CreateGuest(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, th.BasicChannel)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		require.Greater(t, serverLimits.SingleChannelGuestCount, int64(0))
+		require.Equal(t, int64(userLimit), serverLimits.SingleChannelGuestLimit)
+		require.Equal(t, serverLimits.ActiveUserCount, int64(4)-serverLimits.SingleChannelGuestCount)
+	})
+
+	t.Run("does not populate single channel guest fields for Entry SKU", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestCount)
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestLimit)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+	})
+}
+
 func TestGetPostHistoryLimit(t *testing.T) {
 	mainHelper.Parallel(t)
 

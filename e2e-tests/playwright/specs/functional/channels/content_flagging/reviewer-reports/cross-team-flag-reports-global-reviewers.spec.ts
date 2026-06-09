@@ -15,7 +15,7 @@ import {createPost, verifyFlaggedPostCardDetails, verifyRHSFlaggedPostDetails} f
  * 5. Verify the flagged post details in the reviewer's Content Review DM and RHS
  */
 test('Verify reviewer from another team can receive a review request for a flagged post', async ({pw}) => {
-    const reasonToFlag = 'Inappropriate content';
+    const reasonToFlag = 'Classification mismatch';
     const flagPostReviewStatus = 'Pending';
     const flagPostComment = 'This message is inappropriate';
 
@@ -24,7 +24,9 @@ test('Verify reviewer from another team can receive a review request for a flagg
 
     const secondUser = await pw.random.user('mentioned');
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
+    await adminClient.addToTeam(team.id, secondUserID);
     await adminClient.addToTeam(secondTeam.id, secondUserID);
+    await adminClient.updateUserRoles(secondUserID, 'system_user system_admin');
 
     // Configure content flagging
     await adminClient.saveContentFlaggingConfig({
@@ -45,7 +47,7 @@ test('Verify reviewer from another team can receive a review request for a flagg
             TeamAdminsAsReviewers: true,
         },
         AdditionalSettings: {
-            Reasons: ['Inappropriate content', 'Spam', 'Harassment', 'Other'],
+            Reasons: ['Classification mismatch', 'Need-to-know violation', 'Unauthorized disclosure', 'Other'],
             ReporterCommentRequired: true,
             ReviewerCommentRequired: true,
             HideFlaggedContent: true,

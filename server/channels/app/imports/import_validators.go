@@ -16,6 +16,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// IsRootJsonlFile reports whether the given zip entry name refers to a .jsonl
+// file at the root of the archive (no directory component). This is used to
+// locate the import manifest while ignoring .jsonl files that may exist as
+// exported attachments in subdirectories.
+func IsRootJsonlFile(name string) bool {
+	return filepath.Ext(name) == ".jsonl" && filepath.Dir(name) == "."
+}
+
 func ValidateSchemeImportData(data *SchemeImportData) *model.AppError {
 	if data.Scope == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.null_scope.error", nil, "", http.StatusBadRequest)
