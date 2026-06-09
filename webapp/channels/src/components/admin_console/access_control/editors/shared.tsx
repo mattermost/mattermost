@@ -12,6 +12,9 @@ import Markdown from 'components/markdown';
 
 import './shared.scss';
 
+// Sentinel emitted by the server in masked CEL expressions for values the caller cannot see.
+export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
+
 // CEL operator constants
 export enum CELOperator {
     EQUALS = '==',

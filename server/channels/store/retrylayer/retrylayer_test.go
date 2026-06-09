@@ -47,6 +47,7 @@ func genStore() *mocks.Store {
 	mock.On("Role").Return(&mocks.RoleStore{})
 	mock.On("Scheme").Return(&mocks.SchemeStore{})
 	mock.On("Session").Return(&mocks.SessionStore{})
+	mock.On("SessionAttribute").Return(&mocks.SessionAttributeStore{})
 	mock.On("Status").Return(&mocks.StatusStore{})
 	mock.On("System").Return(&mocks.SystemStore{})
 	mock.On("Team").Return(&mocks.TeamStore{})

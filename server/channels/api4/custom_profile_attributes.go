@@ -384,7 +384,7 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 			c.Err = model.NewAppError("cpaPatchValues", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
 			return
 		}
-		if !c.App.SessionHasPermissionToSetPropertyFieldValues(rctx, *c.AppContext.Session(), f) {
+		if !c.App.SessionHasPermissionToSetPropertyFieldValues(rctx, *c.AppContext.Session(), f, userID) {
 			c.Err = model.NewAppError("cpaPatchValues", "api.property_value.patch.no_values_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}

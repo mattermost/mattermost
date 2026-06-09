@@ -64,6 +64,10 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
+		if cookie.PostId != c.Params.PostId {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
 		channel, err := c.App.GetChannel(c.AppContext, cookie.ChannelId)
 		if err != nil {
 			c.Err = err
