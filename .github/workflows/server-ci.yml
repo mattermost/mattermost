@@ -323,7 +323,7 @@ jobs:
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
     # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.repository.fork == false && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
     needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
