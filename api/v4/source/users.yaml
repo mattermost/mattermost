@@ -22,6 +22,9 @@
                   type: string
                 device_id:
                   type: string
+                voip_device_id:
+                  description: VoIP push token. Same prefix shape as device_id. Optional; when provided, enables ring-style call push notifications.
+                  type: string
                 ldap_only:
                   type: boolean
                 password:
@@ -2098,6 +2101,9 @@
                 device_id:
                   description: Mobile device id. For Android prefix the id with `android:`
                     and Apple with `apple:`
+                  type: string
+                voip_device_id:
+                  description: VoIP push token. Same prefix shape as device_id. Optional; when provided, enables ring-style call push notifications.
                   type: string
                 deviceNotificationDisabled:
                   description: Whether the mobile device has notifications disabled.
