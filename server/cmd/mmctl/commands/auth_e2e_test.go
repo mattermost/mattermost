@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -20,16 +19,14 @@ func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 		// the subcommand, cobra executes the parent command.
 		// Instead of calling RootCmd, with its various subcommands and options,
 		// we duplicate part of the LoginCmd here.
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("name", "n", "name", "Name for the credentials")
-		cmd.Flags().StringP("username", "u", s.th.BasicUser.Username, "Username for the credentials")
-		cmd.Flags().StringP("password", "p", s.th.BasicUser.Password, "Password for the credentials")
-		cmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
-		cmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
-		cmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
+		s.cmd.Flags().StringP("name", "n", "name", "Name for the credentials")
+		s.cmd.Flags().StringP("username", "u", s.th.BasicUser.Username, "Username for the credentials")
+		s.cmd.Flags().StringP("password", "p", s.th.BasicUser.Password, "Password for the credentials")
+		s.cmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
+		s.cmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
+		s.cmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
 
-		_ = loginCmdF(cmd, []string{s.th.Client.URL + "/"}) // add a trailing slash
+		_ = loginCmdF(s.cmd, []string{s.th.Client.URL + "/"}) // add a trailing slash
 		errLines := printer.GetErrorLines()
 		s.Require().Lenf(errLines, 0, "expected no error, got %q", errLines)
 	})

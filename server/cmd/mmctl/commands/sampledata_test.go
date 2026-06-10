@@ -8,18 +8,15 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 	s.Run("should fail because you have more team memberships than teams", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int("teams", 10, "")
-		cmd.Flags().Int("team-memberships", 11, "")
-		err := sampledataCmdF(s.client, cmd, []string{})
+		s.cmd.Flags().Int("teams", 10, "")
+		s.cmd.Flags().Int("team-memberships", 11, "")
+		err := sampledataCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "more team memberships than teams")
 	})
@@ -27,11 +24,9 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 	s.Run("should fail because you have more channel memberships than channels per team", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int("channels-per-team", 10, "")
-		cmd.Flags().Int("channel-memberships", 11, "")
-		err := sampledataCmdF(s.client, cmd, []string{})
+		s.cmd.Flags().Int("channels-per-team", 10, "")
+		s.cmd.Flags().Int("channel-memberships", 11, "")
+		err := sampledataCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "more channel memberships than channels per team")
 	})
@@ -39,11 +34,9 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 	s.Run("should fail because you have group channels and don't have enough users (6 users)", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int("group-channels", 1, "")
-		cmd.Flags().Int("users", 5, "")
-		err := sampledataCmdF(s.client, cmd, []string{})
+		s.cmd.Flags().Int("group-channels", 1, "")
+		s.cmd.Flags().Int("users", 5, "")
+		err := sampledataCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "group channels generation with less than 6 users")
 	})
@@ -56,12 +49,10 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 		tmpFile.Close()
 		defer os.Remove(tmpFile.Name())
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("bulk", tmpFile.Name(), "")
-		cmd.Flags().Int("group-channels", 0, "")
-		cmd.Flags().Int("users", 5, "")
-		err = sampledataCmdF(s.client, cmd, []string{})
+		s.cmd.Flags().String("bulk", tmpFile.Name(), "")
+		s.cmd.Flags().Int("group-channels", 0, "")
+		s.cmd.Flags().Int("users", 5, "")
+		err = sampledataCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 	})
 }

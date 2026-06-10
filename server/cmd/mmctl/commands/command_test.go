@@ -14,7 +14,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
@@ -51,20 +50,18 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			AutoCompleteHint: autocompleteHint,
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", teamArg, "")
-		cmd.Flags().String("title", titleArg, "")
-		cmd.Flags().String("description", descriptionArg, "")
-		cmd.Flags().String("trigger-word", triggerWordArg, "")
-		cmd.Flags().String("url", urlArg, "")
-		cmd.Flags().String("creator", creatorIDArg, "")
-		cmd.Flags().String("response-username", responseUsernameArg, "")
-		cmd.Flags().String("icon", iconArg, "")
-		cmd.Flags().String("method", method, "")
-		cmd.Flags().Bool("autocomplete", autocomplete, "")
-		cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
-		cmd.Flags().String("autocompleteHint", autocompleteHint, "")
+		s.cmd.Flags().String("team", teamArg, "")
+		s.cmd.Flags().String("title", titleArg, "")
+		s.cmd.Flags().String("description", descriptionArg, "")
+		s.cmd.Flags().String("trigger-word", triggerWordArg, "")
+		s.cmd.Flags().String("url", urlArg, "")
+		s.cmd.Flags().String("creator", creatorIDArg, "")
+		s.cmd.Flags().String("response-username", responseUsernameArg, "")
+		s.cmd.Flags().String("icon", iconArg, "")
+		s.cmd.Flags().String("method", method, "")
+		s.cmd.Flags().Bool("autocomplete", autocomplete, "")
+		s.cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
+		s.cmd.Flags().String("autocompleteHint", autocompleteHint, "")
 
 		// createCommandCmdF will call getTeamFromTeamArg,  getUserFromUserArg which then calls GetUserByUsername
 		s.client.
@@ -83,7 +80,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
-		err := createCommandCmdF(s.client, cmd, []string{teamArg})
+		err := createCommandCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(&mockCommand, printer.GetLines()[0])
@@ -109,12 +106,10 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Method:    method,
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", teamArg, "")
-		cmd.Flags().String("trigger-word", triggerWordArg, "")
-		cmd.Flags().String("url", urlArg, "")
-		cmd.Flags().String("creator", creatorIDArg, "")
+		s.cmd.Flags().String("team", teamArg, "")
+		s.cmd.Flags().String("trigger-word", triggerWordArg, "")
+		s.cmd.Flags().String("url", urlArg, "")
+		s.cmd.Flags().String("creator", creatorIDArg, "")
 
 		s.client.
 			EXPECT().
@@ -132,7 +127,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
-		err := createCommandCmdF(s.client, cmd, []string{teamArg})
+		err := createCommandCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(&mockCommand, printer.GetLines()[0])
@@ -142,9 +137,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 	s.Run("Create slash command for a nonexistent team", func() {
 		printer.Clean()
 		teamArg := "example-team-id"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", teamArg, "")
+		s.cmd.Flags().String("team", teamArg, "")
 
 		s.client.
 			EXPECT().
@@ -157,7 +150,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := createCommandCmdF(s.client, cmd, []string{teamArg})
+		err := createCommandCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -183,20 +176,18 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		mockTeam := model.Team{Id: teamArg}
 		mockUser := model.User{Id: creatorIDArg, Username: creatorUsernameArg}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", teamArg, "")
-		cmd.Flags().String("title", titleArg, "")
-		cmd.Flags().String("description", descriptionArg, "")
-		cmd.Flags().String("trigger-word", triggerWordArg, "")
-		cmd.Flags().String("url", urlArg, "")
-		cmd.Flags().String("creator", creatorIDArg, "")
-		cmd.Flags().String("response-username", responseUsernameArg, "")
-		cmd.Flags().String("icon", iconArg, "")
-		cmd.Flags().String("method", method, "")
-		cmd.Flags().Bool("autocomplete", autocomplete, "")
-		cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
-		cmd.Flags().String("autocompleteHint", autocompleteHint, "")
+		s.cmd.Flags().String("team", teamArg, "")
+		s.cmd.Flags().String("title", titleArg, "")
+		s.cmd.Flags().String("description", descriptionArg, "")
+		s.cmd.Flags().String("trigger-word", triggerWordArg, "")
+		s.cmd.Flags().String("url", urlArg, "")
+		s.cmd.Flags().String("creator", creatorIDArg, "")
+		s.cmd.Flags().String("response-username", responseUsernameArg, "")
+		s.cmd.Flags().String("icon", iconArg, "")
+		s.cmd.Flags().String("method", method, "")
+		s.cmd.Flags().Bool("autocomplete", autocomplete, "")
+		s.cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
+		s.cmd.Flags().String("autocompleteHint", autocompleteHint, "")
 
 		s.client.
 			EXPECT().
@@ -209,7 +200,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := createCommandCmdF(s.client, cmd, []string{teamArg})
+		err := createCommandCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -235,20 +226,18 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		mockTeam := model.Team{Id: teamArg}
 		mockUser := model.User{Id: creatorIDArg, Username: creatorUsernameArg}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", teamArg, "")
-		cmd.Flags().String("title", titleArg, "")
-		cmd.Flags().String("description", descriptionArg, "")
-		cmd.Flags().String("trigger-word", triggerWordArg, "")
-		cmd.Flags().String("url", urlArg, "")
-		cmd.Flags().String("creator", creatorIDArg, "")
-		cmd.Flags().String("response-username", responseUsernameArg, "")
-		cmd.Flags().String("icon", iconArg, "")
-		cmd.Flags().String("method", method, "")
-		cmd.Flags().Bool("autocomplete", autocomplete, "")
-		cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
-		cmd.Flags().String("autocompleteHint", autocompleteHint, "")
+		s.cmd.Flags().String("team", teamArg, "")
+		s.cmd.Flags().String("title", titleArg, "")
+		s.cmd.Flags().String("description", descriptionArg, "")
+		s.cmd.Flags().String("trigger-word", triggerWordArg, "")
+		s.cmd.Flags().String("url", urlArg, "")
+		s.cmd.Flags().String("creator", creatorIDArg, "")
+		s.cmd.Flags().String("response-username", responseUsernameArg, "")
+		s.cmd.Flags().String("icon", iconArg, "")
+		s.cmd.Flags().String("method", method, "")
+		s.cmd.Flags().Bool("autocomplete", autocomplete, "")
+		s.cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
+		s.cmd.Flags().String("autocompleteHint", autocompleteHint, "")
 
 		s.client.
 			EXPECT().
@@ -261,7 +250,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := createCommandCmdF(s.client, cmd, []string{teamArg})
+		err := createCommandCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -301,20 +290,18 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			AutoCompleteHint: autocompleteHint,
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", teamArg, "")
-		cmd.Flags().String("title", titleArg, "")
-		cmd.Flags().String("description", descriptionArg, "")
-		cmd.Flags().String("trigger-word", triggerWordArg, "")
-		cmd.Flags().String("url", urlArg, "")
-		cmd.Flags().String("creator", creatorIDArg, "")
-		cmd.Flags().String("response-username", responseUsernameArg, "")
-		cmd.Flags().String("icon", iconArg, "")
-		cmd.Flags().String("method", method, "")
-		cmd.Flags().Bool("autocomplete", autocomplete, "")
-		cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
-		cmd.Flags().String("autocompleteHint", autocompleteHint, "")
+		s.cmd.Flags().String("team", teamArg, "")
+		s.cmd.Flags().String("title", titleArg, "")
+		s.cmd.Flags().String("description", descriptionArg, "")
+		s.cmd.Flags().String("trigger-word", triggerWordArg, "")
+		s.cmd.Flags().String("url", urlArg, "")
+		s.cmd.Flags().String("creator", creatorIDArg, "")
+		s.cmd.Flags().String("response-username", responseUsernameArg, "")
+		s.cmd.Flags().String("icon", iconArg, "")
+		s.cmd.Flags().String("method", method, "")
+		s.cmd.Flags().Bool("autocomplete", autocomplete, "")
+		s.cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
+		s.cmd.Flags().String("autocompleteHint", autocompleteHint, "")
 
 		s.client.
 			EXPECT().
@@ -333,7 +320,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := createCommandCmdF(s.client, cmd, []string{teamArg})
+		err := createCommandCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -353,9 +340,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := archiveCommandCmdF(s.client, cmd, []string{arg})
+		err := archiveCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -373,9 +358,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := archiveCommandCmdF(s.client, cmd, []string{arg})
+		err := archiveCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -393,9 +376,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := archiveCommandCmdF(s.client, cmd, []string{arg})
+		err := archiveCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Require().Equal(err, errors.New("Unable to archive command '"+arg+"' error: "+mockError.Error()))
 		s.Require().Len(printer.GetLines(), 0)
@@ -427,13 +408,11 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 			},
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		s.client.EXPECT().GetAllTeams(s.T().Context(), "", 0, DefaultPageSize).Return(teams, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().GetAllTeams(s.T().Context(), "", 1, DefaultPageSize).Return([]*model.Team{}, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(s.T().Context(), team1ID, true).Return(team1Commands, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(s.T().Context(), team2Id, true).Return(team2Commands, &model.Response{}, nil).Times(1)
-		err := listCommandCmdF(s.client, cmd, []string{})
+		err := listCommandCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
 		s.Equal(team1Commands[0], printer.GetLines()[0])
@@ -452,11 +431,9 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 			},
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		s.client.EXPECT().GetTeam(s.T().Context(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(s.T().Context(), teamID, true).Return(teamCommand, &model.Response{}, nil).Times(1)
-		err := listCommandCmdF(s.client, cmd, []string{teamID})
+		err := listCommandCmdF(s.client, s.cmd, []string{teamID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(teamCommand[0], printer.GetLines()[0])
@@ -466,13 +443,11 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 	s.Run("List commands for a non existing team", func() {
 		teamID := "non-existing-team"
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		// first try to get team by id
 		s.client.EXPECT().GetTeam(s.T().Context(), teamID, "").Return(nil, &model.Response{}, nil).Times(1)
 		// second try to search the team by name
 		s.client.EXPECT().GetTeamByName(s.T().Context(), teamID, "").Return(nil, &model.Response{}, nil).Times(1)
-		err := listCommandCmdF(s.client, cmd, []string{teamID})
+		err := listCommandCmdF(s.client, s.cmd, []string{teamID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -482,12 +457,10 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 	s.Run("Failling to list commands for an existing team", func() {
 		teamID := "team-id"
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		team := &model.Team{Id: teamID}
 		s.client.EXPECT().GetTeam(s.T().Context(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(s.T().Context(), teamID, true).Return(nil, &model.Response{}, errors.New("")).Times(1)
-		err := listCommandCmdF(s.client, cmd, []string{teamID})
+		err := listCommandCmdF(s.client, s.cmd, []string{teamID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -572,14 +545,14 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Return(mockCommandModified, &model.Response{}, nil).
 			Times(1)
 
-		// Reset the cmd and parse to force Flag.Changed to be true.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
-		err := cmd.ParseFlags(cli)
+		// Reset the s.cmd and parse to force Flag.Changed to be true.
+		s.cmd := CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
+		err := s.cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.client, cmd, []string{arg})
+		err = modifyCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(mockCommandModified, printer.GetLines()[0])
@@ -603,14 +576,14 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
-		err := cmd.ParseFlags(cli)
+		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
+		s.cmd := CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
+		err := s.cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.client, cmd, []string{arg})
+		err = modifyCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -646,14 +619,14 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
-		err := cmd.ParseFlags(cli)
+		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
+		s.cmd := CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
+		err := s.cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.client, cmd, []string{arg})
+		err = modifyCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -677,14 +650,14 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
-		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
-		err := cmd.ParseFlags(cli)
+		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
+		s.cmd := CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
+		err := s.cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.client, cmd, []string{arg})
+		err = modifyCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -708,14 +681,14 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
-		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
-		err := cmd.ParseFlags(cli)
+		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
+		s.cmd := CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
+		err := s.cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.client, cmd, []string{arg})
+		err = modifyCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -745,14 +718,14 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
-		err := cmd.ParseFlags(cli)
+		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
+		s.cmd := CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
+		err := s.cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.client, cmd, []string{arg})
+		err = modifyCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -773,8 +746,8 @@ func method2Bool(method string) bool {
 }
 
 //nolint:golint,unused
-func copyCommand(cmd *model.Command) *model.Command {
-	c := *cmd
+func copyCommand(s.cmd *model.Command) *model.Command {
+	c := *s.cmd
 	return &c
 }
 
@@ -823,9 +796,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := moveCommandCmdF(s.client, cmd, []string{teamArg, mockCommand.Id})
+		err := moveCommandCmdF(s.client, s.cmd, []string{teamArg, mockCommand.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessageOK)
@@ -845,9 +816,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := moveCommandCmdF(s.client, cmd, []string{teamArgBogus, commandArg})
+		err := moveCommandCmdF(s.client, s.cmd, []string{teamArgBogus, commandArg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find team '"+teamArgBogus+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -867,9 +836,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := moveCommandCmdF(s.client, cmd, []string{teamArg, commandArgBogus})
+		err := moveCommandCmdF(s.client, s.cmd, []string{teamArg, commandArgBogus})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find command '"+commandArgBogus+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -894,9 +861,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := moveCommandCmdF(s.client, cmd, []string{teamArg, commandArg})
+		err := moveCommandCmdF(s.client, s.cmd, []string{teamArg, commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessageError)
@@ -921,9 +886,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := moveCommandCmdF(s.client, cmd, []string{teamArg, commandArg})
+		err := moveCommandCmdF(s.client, s.cmd, []string{teamArg, commandArg})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "unable to move command '"+commandArg+"': "+mockError.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -962,9 +925,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := showCommandCmdF(s.client, cmd, []string{commandArg})
+		err := showCommandCmdF(s.client, s.cmd, []string{commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Equal(&mockCommand, printer.GetLines()[0])
@@ -980,9 +941,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := showCommandCmdF(s.client, cmd, []string{commandArgBogus})
+		err := showCommandCmdF(s.client, s.cmd, []string{commandArgBogus})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find command '"+commandArgBogus+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -1008,9 +967,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(list, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := showCommandCmdF(s.client, cmd, []string{fmt.Sprintf("%s:%s", mockTeam.Name, mockCommand.Trigger)})
+		err := showCommandCmdF(s.client, s.cmd, []string{fmt.Sprintf("%s:%s", mockTeam.Name, mockCommand.Trigger)})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Equal(&mockCommand, printer.GetLines()[0])
@@ -1039,9 +996,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(nil, &model.Response{}, errors.New("command not found")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := showCommandCmdF(s.client, cmd, []string{teamTrigger})
+		err := showCommandCmdF(s.client, s.cmd, []string{teamTrigger})
 		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1075,9 +1030,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(nil, &model.Response{}, errors.New("bogus")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := showCommandCmdF(s.client, cmd, []string{teamTrigger})
+		err := showCommandCmdF(s.client, s.cmd, []string{teamTrigger})
 		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1087,9 +1040,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		printer.Clean()
 		arg := "\"test/../hello?\"move"
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := showCommandCmdF(s.client, cmd, []string{arg})
+		err := showCommandCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find command '\"test/../hello?\"move'")
 	})

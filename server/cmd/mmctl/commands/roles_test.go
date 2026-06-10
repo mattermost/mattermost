@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
@@ -34,9 +33,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesSystemAdminCmdF(s.client, cmd, []string{mockUser.Email})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -56,9 +53,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesSystemAdminCmdF(s.client, cmd, []string{mockUser.Email})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -88,9 +83,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesSystemAdminCmdF(s.client, cmd, []string{emailArg})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -116,9 +109,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesSystemAdminCmdF(s.client, cmd, []string{mockUser.Email})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -145,9 +136,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesMemberCmdF(s.client, cmd, []string{mockUser.Email})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -166,9 +155,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesMemberCmdF(s.client, cmd, []string{mockUser.Email})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -192,9 +179,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesMemberCmdF(s.client, cmd, []string{mockUser.Email})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -225,9 +210,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := rolesMemberCmdF(s.client, cmd, []string{emailArg})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)

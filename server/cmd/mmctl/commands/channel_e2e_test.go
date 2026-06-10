@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -41,9 +40,7 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 			}...,
 		)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := listChannelsCmdF(s.th.Client, _cmd, []string{s.th.BasicTeam.Name})
+		err := listChannelsCmdF(s.th.Client, s.cmd, []string{s.th.BasicTeam.Name})
 		s.Require().Nil(err)
 		s.Equal(6, len(printer.GetLines()))
 		assertChannelNames(wantNames, printer.GetLines())
@@ -63,9 +60,7 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 			}...,
 		)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := listChannelsCmdF(c, _cmd, []string{s.th.BasicTeam.Name})
+		err := listChannelsCmdF(c, s.cmd, []string{s.th.BasicTeam.Name})
 		s.Require().Nil(err)
 		s.Equal(7, len(printer.GetLines()))
 		assertChannelNames(wantNames, printer.GetLines())
@@ -76,9 +71,7 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 		printer.Clean()
 		team := "non-existent-team"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := listChannelsCmdF(c, _cmd, []string{team})
+		err := listChannelsCmdF(c, s.cmd, []string{team})
 		s.Require().ErrorContains(err, "unable to find team \""+team+"\"")
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("unable to find team \""+team+"\"", printer.GetErrorLines()[0])
@@ -91,9 +84,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 	s.RunForAllClients("Search nonexistent channel", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchChannelCmdF(c, _cmd, []string{"test"})
+		err := searchChannelCmdF(c, s.cmd, []string{"test"})
 		s.Require().NotNil(err)
 		s.Require().Equal(`channel "test" was not found in any team`, err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -103,9 +94,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 	s.RunForSystemAdminAndLocal("Search existing channel", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchChannelCmdF(c, _cmd, []string{s.th.BasicChannel.Name})
+		err := searchChannelCmdF(c, s.cmd, []string{s.th.BasicChannel.Name})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -119,11 +108,9 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 	s.RunForSystemAdminAndLocal("Search existing channel of a team", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", s.th.BasicChannel.TeamId, "")
+		s.cmd.Flags().String("team", s.th.BasicChannel.TeamId, "")
 
-		err := searchChannelCmdF(c, cmd, []string{s.th.BasicChannel.Name})
+		err := searchChannelCmdF(c, s.cmd, []string{s.th.BasicChannel.Name})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -146,11 +133,9 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 		})
 		s.Require().Nil(appErr)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("team", team.Id, "")
+		s.cmd.Flags().String("team", team.Id, "")
 
-		err := searchChannelCmdF(c, cmd, []string{s.th.BasicChannel.Name})
+		err := searchChannelCmdF(c, s.cmd, []string{s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
 		s.Require().ErrorContains(err, `Channel does not exist.`)
 		s.Require().Len(printer.GetLines(), 0)
@@ -160,9 +145,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 	s.Run("Search existing channel should fail for Client", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchChannelCmdF(s.th.Client, _cmd, []string{s.th.BasicChannel.Name})
+		err := searchChannelCmdF(s.th.Client, s.cmd, []string{s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("channel \"%s\" was not found in any team", s.th.BasicChannel.Name), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -176,16 +159,14 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	s.RunForAllClients("create channel successfully", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		channelName := model.NewRandomString(10)
 		teamName := s.th.BasicTeam.Name
 		channelDisplayName := "channelDisplayName"
-		cmd.Flags().String("name", channelName, "channel name")
-		cmd.Flags().String("team", teamName, "team name")
-		cmd.Flags().String("display-name", channelDisplayName, "display name")
+		s.cmd.Flags().String("name", channelName, "channel name")
+		s.cmd.Flags().String("team", teamName, "team name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "display name")
 
-		err := createChannelCmdF(c, cmd, []string{})
+		err := createChannelCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -204,16 +185,14 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	s.RunForAllClients("create channel with nonexistent team", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		channelName := model.NewRandomString(10)
 		teamName := "nonexistent team"
 		channelDisplayName := "channelDisplayName"
-		cmd.Flags().String("name", channelName, "channel name")
-		cmd.Flags().String("team", teamName, "team name")
-		cmd.Flags().String("display-name", channelDisplayName, "display name")
+		s.cmd.Flags().String("name", channelName, "channel name")
+		s.cmd.Flags().String("team", teamName, "team name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "display name")
 
-		err := createChannelCmdF(c, cmd, []string{})
+		err := createChannelCmdF(c, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Equal("unable to find team: "+teamName, err.Error())
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -226,16 +205,14 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	s.RunForAllClients("create channel with invalid name", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		channelName := "invalid name"
 		teamName := s.th.BasicTeam.Name
 		channelDisplayName := "channelDisplayName"
-		cmd.Flags().String("name", channelName, "channel name")
-		cmd.Flags().String("team", teamName, "team name")
-		cmd.Flags().String("display-name", channelDisplayName, "display name")
+		s.cmd.Flags().String("name", channelName, "channel name")
+		s.cmd.Flags().String("team", teamName, "team name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "display name")
 
-		err := createChannelCmdF(c, cmd, []string{})
+		err := createChannelCmdF(c, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "Name must be 1 or more lowercase alphanumeric character")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -252,9 +229,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 	s.Run("Archive channel", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := archiveChannelsCmdF(s.th.SystemAdminClient, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
+		err := archiveChannelsCmdF(s.th.SystemAdminClient, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -263,9 +238,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 	s.Run("Archive channel without permissions", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := archiveChannelsCmdF(s.th.LocalClient, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
+		err := archiveChannelsCmdF(s.th.LocalClient, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
 		s.Require().Error(err)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to archive channel '%s'", s.th.BasicChannel.Name))
 	})
@@ -273,9 +246,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 	s.RunForAllClients("Archive nonexistent channel", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := archiveChannelsCmdF(c, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, "nonexistent-channel")})
+		err := archiveChannelsCmdF(c, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, "nonexistent-channel")})
 		s.Require().Error(err)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to find channel '%s:%s'", s.th.BasicTeam.Id, "nonexistent-channel"))
 	})
@@ -283,9 +254,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 	s.RunForSystemAdminAndLocal("Archive deleted channel", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := archiveChannelsCmdF(c, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
+		err := archiveChannelsCmdF(c, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
 		s.Require().Error(err)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to archive channel '%s'", s.th.BasicDeletedChannel.Name))
 		s.Require().Contains(printer.GetErrorLines()[0], "The channel has been archived or deleted.")
@@ -298,9 +267,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 	s.Run("Unarchive channel", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := unarchiveChannelsCmdF(s.th.SystemAdminClient, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
+		err := unarchiveChannelsCmdF(s.th.SystemAdminClient, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -313,9 +280,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 	s.Run("Unarchive channel without permissions", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := unarchiveChannelsCmdF(s.th.Client, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
+		err := unarchiveChannelsCmdF(s.th.Client, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
 		expectedError := fmt.Sprintf("Unable to unarchive channel '%s:%s'", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)
 		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(printer.GetErrorLines()[0], expectedError)
@@ -325,9 +290,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 	s.RunForAllClients("Unarchive nonexistent channel", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := unarchiveChannelsCmdF(c, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, "nonexistent-channel")})
+		err := unarchiveChannelsCmdF(c, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, "nonexistent-channel")})
 		expectedError := fmt.Sprintf("Unable to find channel '%s:%s'", s.th.BasicTeam.Id, "nonexistent-channel")
 		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(printer.GetErrorLines()[0], expectedError)
@@ -336,9 +299,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 	s.Run("Unarchive open channel", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := unarchiveChannelsCmdF(s.th.SystemAdminClient, _cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
+		err := unarchiveChannelsCmdF(s.th.SystemAdminClient, s.cmd, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
 		expectedError := fmt.Sprintf("Unable to unarchive channel '%s:%s'", s.th.BasicTeam.Id, s.th.BasicChannel.Name)
 		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(printer.GetErrorLines()[0], expectedError)
@@ -371,13 +332,11 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name", CreatorId: user.Id}, true)
 		s.Require().Nil(appErr)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 		args := []string{team.Id + ":" + channel.Id}
 
 		printer.Clean()
-		err := deleteChannelsCmdF(c, cmd, args)
+		err := deleteChannelsCmdF(c, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -400,13 +359,11 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousVal })
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 		args := []string{team.Id + ":" + channel.Id}
 
 		printer.Clean()
-		err := deleteChannelsCmdF(s.th.SystemAdminClient, cmd, args)
+		err := deleteChannelsCmdF(s.th.SystemAdminClient, s.cmd, args)
 
 		var expected error
 		expected = multierror.Append(expected, errors.New("unable to delete channel '\""+channel.Name+"\"' error: Permanent channel deletion feature is not enabled. ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information"))
@@ -430,13 +387,11 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousVal })
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 		args := []string{team.Id + ":" + channel.Id}
 
 		printer.Clean()
-		err := deleteChannelsCmdF(s.th.LocalClient, cmd, args)
+		err := deleteChannelsCmdF(s.th.LocalClient, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -450,13 +405,11 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	})
 
 	s.Run("Delete channel without permissions", func() {
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 		args := []string{team.Id + ":" + otherChannel.Id}
 
 		printer.Clean()
-		err := deleteChannelsCmdF(s.th.Client, cmd, args)
+		err := deleteChannelsCmdF(s.th.Client, s.cmd, args)
 
 		arg := team.Id + ":" + otherChannel.Id
 		var expected error
@@ -473,13 +426,11 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 
 	s.RunForAllClients("Delete not existing channel", func(c client.Client) {
 		notExistingChannelID := "not-existing-channel-ID"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 		args := []string{team.Id + ":" + notExistingChannelID}
 
 		printer.Clean()
-		err := deleteChannelsCmdF(c, cmd, args)
+		err := deleteChannelsCmdF(c, s.cmd, args)
 
 		arg := team.Id + ":" + notExistingChannelID
 		var expected error
@@ -515,12 +466,10 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 
 		nonexistentChannelName := api4.GenerateTestChannelName()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("name", "name", "")
-		cmd.Flags().String("display-name", "name", "")
+		s.cmd.Flags().String("name", "name", "")
+		s.cmd.Flags().String("display-name", "name", "")
 
-		err := renameChannelCmdF(c, cmd, []string{s.th.BasicTeam.Id + ":" + nonexistentChannelName})
+		err := renameChannelCmdF(c, s.cmd, []string{s.th.BasicTeam.Id + ":" + nonexistentChannelName})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("unable to find channel from \"%s:%s\"", s.th.BasicTeam.Id, nonexistentChannelName), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -533,12 +482,10 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 		newChannelName := api4.GenerateTestChannelName()
 		newChannelDisplayName := "dn_" + newChannelName
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("name", newChannelName, "")
-		cmd.Flags().String("display-name", newChannelDisplayName, "")
+		s.cmd.Flags().String("name", newChannelName, "")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, "")
 
-		err := renameChannelCmdF(c, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
+		err := renameChannelCmdF(c, s.cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -563,12 +510,10 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 		newChannelName := api4.GenerateTestChannelName()
 		newChannelDisplayName := "dn_" + newChannelName
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("name", newChannelName, "")
-		cmd.Flags().String("display-name", newChannelDisplayName, "")
+		s.cmd.Flags().String("name", newChannelName, "")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, "")
 
-		err := renameChannelCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
+		err := renameChannelCmdF(s.th.Client, s.cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -589,12 +534,10 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 		newChannelName := api4.GenerateTestChannelName()
 		newChannelDisplayName := "dn_" + newChannelName
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("name", newChannelName, "")
-		cmd.Flags().String("display-name", newChannelDisplayName, "")
+		s.cmd.Flags().String("name", newChannelName, "")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, "")
 
-		err := renameChannelCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
+		err := renameChannelCmdF(s.th.Client, s.cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -625,9 +568,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.RunForAllClients("Move nonexistent team", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := moveChannelCmdF(c, _cmd, []string{"test"})
+		err := moveChannelCmdF(c, s.cmd, []string{"test"})
 		s.Require().Error(err)
 		s.Require().Equal(`unable to find destination team "test"`, err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -647,10 +588,8 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		s.Require().Nil(appErr)
 
 		args := []string{team.Id, channel.Id}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
-		err := moveChannelCmdF(c, cmd, args)
+		err := moveChannelCmdF(c, s.cmd, args)
 
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -665,13 +604,11 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		printer.Clean()
 
 		args := []string{s.th.BasicTeam.Id, "no-channel"}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		var expected error
 		expected = multierror.Append(expected, fmt.Errorf("unable to find channel %q", "no-channel"))
 
-		err := moveChannelCmdF(c, cmd, args)
+		err := moveChannelCmdF(c, s.cmd, args)
 
 		s.Require().EqualError(err, expected.Error())
 	})
@@ -690,10 +627,8 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		args := []string{channel.TeamId, channel.Id}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
-		err := moveChannelCmdF(c, cmd, args)
+		err := moveChannelCmdF(c, s.cmd, args)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -712,10 +647,8 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		s.Require().Nil(appErr)
 
 		args := []string{team.Id, channel.Id}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
-		err := moveChannelCmdF(s.th.Client, cmd, args)
+		err := moveChannelCmdF(s.th.Client, s.cmd, args)
 		s.Require().Error(err)
 		s.Require().Equal(fmt.Sprintf("unable to find destination team %q", team.Id), err.Error())
 		s.Require().Len(printer.GetLines(), 0)

@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
@@ -24,12 +23,10 @@ func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int64("from", 0, "")
-		cmd.Flags().Int64("to", model.GetMillis()/1000, "")
+		s.cmd.Flags().Int64("from", 0, "")
+		s.cmd.Flags().Int64("to", model.GetMillis()/1000, "")
 
-		err := extractRunCmdF(s.th.Client, cmd, []string{})
+		err := extractRunCmdF(s.th.Client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to create content extraction job: You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
@@ -57,12 +54,10 @@ func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 		_, _, err = s.th.SystemAdminClient.UploadData(s.T().Context(), us.Id, file)
 		s.Require().NoError(err)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int64("from", 0, "")
-		cmd.Flags().Int64("to", model.GetMillis()/1000, "")
+		s.cmd.Flags().Int64("from", 0, "")
+		s.cmd.Flags().Int64("to", model.GetMillis()/1000, "")
 
-		err = extractRunCmdF(c, cmd, []string{})
+		err = extractRunCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
@@ -87,9 +82,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := extractJobShowCmdF(s.th.Client, _cmd, []string{job1.Id})
+		err := extractJobShowCmdF(s.th.Client, s.cmd, []string{job1.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to get content extraction job: You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
@@ -99,9 +92,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("not found", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := extractJobShowCmdF(c, _cmd, []string{model.NewId()})
+		err := extractJobShowCmdF(c, s.cmd, []string{model.NewId()})
 		s.Require().NotNil(err)
 		s.Require().ErrorContains(err, "failed to get content extraction job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
@@ -111,9 +102,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := extractJobShowCmdF(c, _cmd, []string{job.Id})
+		err := extractJobShowCmdF(c, s.cmd, []string{job.Id})
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 1)
@@ -127,13 +116,11 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", 200, "")
-		cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 200, "")
+		s.cmd.Flags().Bool("all", false, "")
 
-		err := extractJobListCmdF(s.th.Client, cmd, nil)
+		err := extractJobListCmdF(s.th.Client, s.cmd, nil)
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to get jobs: You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
@@ -143,13 +130,11 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 	s.RunForSystemAdminAndLocal("no content extraction jobs", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", 200, "")
-		cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 200, "")
+		s.cmd.Flags().Bool("all", false, "")
 
-		err := extractJobListCmdF(c, cmd, nil)
+		err := extractJobListCmdF(c, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
@@ -159,12 +144,10 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 	s.RunForSystemAdminAndLocal("some content extraction jobs", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		perPage := 2
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
 
 		_, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExtractContent,
@@ -190,7 +173,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		err := extractJobListCmdF(c, cmd, nil)
+		err := extractJobListCmdF(c, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), perPage)
 		s.Require().Empty(printer.GetErrorLines())

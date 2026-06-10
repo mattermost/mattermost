@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -31,9 +30,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := teamUsersRemoveCmdF(s.client, cmd, []string{teamArg, userArg})
+		err := teamUsersRemoveCmdF(s.client, s.cmd, []string{teamArg, userArg})
 		s.Require().Equal(err.Error(), "Unable to find team '"+teamArg+"'")
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -61,9 +58,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(nil, nil, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := teamUsersRemoveCmdF(s.client, cmd, []string{teamArg, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, s.cmd, []string{teamArg, mockUser.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -99,9 +94,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, s.cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -130,9 +123,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, s.cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -161,9 +152,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, s.cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -197,9 +186,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, s.cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -229,9 +216,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, s.cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -252,8 +237,6 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 	}
 
 	s.Run("Add users with a team that cannot be found returns error", func() {
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -267,15 +250,13 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
+		err := teamUsersAddCmdF(s.client, s.cmd, []string{"team1", "user1"})
 		s.Require().Equal(err.Error(), "Unable to find team 'team1'")
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
 	s.Run("Add users with nonexistent user in arguments prints error", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -295,7 +276,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
+		err := teamUsersAddCmdF(s.client, s.cmd, []string{"team1", "user1"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().ErrorContains(err, "can't find user 'user1'")
@@ -303,8 +284,6 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 	s.Run("Add users should print error when cannot add team member", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -326,7 +305,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
+		err := teamUsersAddCmdF(s.client, s.cmd, []string{"team1", "user1"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0],
@@ -336,8 +315,6 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 	s.Run("Add users should not print in console anything on success", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		s.client.
 			EXPECT().
 			GetTeam(s.T().Context(), "team1", "").
@@ -356,7 +333,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
+		err := teamUsersAddCmdF(s.client, s.cmd, []string{"team1", "user1"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)

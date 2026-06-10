@@ -24,9 +24,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.Run("MM-T3979 Should fail when regular user attempts to get server busy status", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := getBusyCmdF(s.th.Client, _cmd, nil)
+		err := getBusyCmdF(s.th.Client, s.cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -35,9 +33,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3956 Get server busy status", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := getBusyCmdF(c, _cmd, nil)
+		err := getBusyCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		state, ok := printer.GetLines()[0].(*model.ServerBusyState)
@@ -51,14 +47,12 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Clear()
-	cmd := &cobra.Command{}
-	cmd.SetContext(s.T().Context())
-	cmd.Flags().Uint("seconds", 60, "")
 
 	s.Run("MM-T3980 Should fail when regular user attempts to set server busy status", func() {
 		printer.Clean()
+		s.cmd.Flags().Uint("seconds", 60, "")
 
-		err := setBusyCmdF(s.th.Client, cmd, nil)
+		err := setBusyCmdF(s.th.Client, s.cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -66,8 +60,9 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 
 	s.RunForSystemAdminAndLocal("MM-T3957 Set server status to busy", func(c client.Client) {
 		printer.Clean()
+		s.cmd.Flags().Uint("seconds", 60, "")
 
-		err := setBusyCmdF(c, cmd, nil)
+		err := setBusyCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
 			s.th.App.Srv().Platform().Busy.Clear()
@@ -89,9 +84,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.Run("MM-T3981 Should fail when regular user attempts to clear server busy status", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := clearBusyCmdF(s.th.Client, _cmd, nil)
+		err := clearBusyCmdF(s.th.Client, s.cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -100,9 +93,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3958 Clear server status to busy", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := clearBusyCmdF(c, _cmd, nil)
+		err := clearBusyCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
 			s.th.App.Srv().Platform().Busy.Set(time.Minute)

@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -22,9 +21,7 @@ func (s *MmctlE2ETestSuite) TestRemoveLicenseCmd() {
 	s.Run("MM-T3955 Should fail when regular user attempts to remove the server license", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := removeLicenseCmdF(s.th.Client, _cmd, nil)
+		err := removeLicenseCmdF(s.th.Client, s.cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -33,9 +30,7 @@ func (s *MmctlE2ETestSuite) TestRemoveLicenseCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3954 Should be able to remove the server license", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := removeLicenseCmdF(c, _cmd, nil)
+		err := removeLicenseCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
 			s.Require().True(s.th.App.Srv().SetLicense(model.NewTestLicense()))
@@ -76,9 +71,7 @@ func (s *MmctlE2ETestSuite) TestUploadLicenseCmdF() {
 	s.Run("MM-T3953 Should fail when regular user attempts to upload a license file", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := uploadLicenseCmdF(s.th.Client, _cmd, []string{tmpFile.Name()})
+		err := uploadLicenseCmdF(s.th.Client, s.cmd, []string{tmpFile.Name()})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -87,9 +80,7 @@ func (s *MmctlE2ETestSuite) TestUploadLicenseCmdF() {
 	s.RunForSystemAdminAndLocal("MM-T3952 Should be able to upload a license file, fail on validation", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := uploadLicenseCmdF(c, _cmd, []string{tmpFile.Name()})
+		err := uploadLicenseCmdF(c, s.cmd, []string{tmpFile.Name()})
 		s.Require().Error(err)
 		appErr, ok := err.(*model.AppError)
 		s.Require().True(ok)

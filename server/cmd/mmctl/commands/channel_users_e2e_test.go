@@ -9,7 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -37,9 +36,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		printer.Clean()
 
 		nonexistentChannelName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersAddCmdF(c, _cmd, []string{nonexistentChannelName, user.Id})
+		err := channelUsersAddCmdF(c, s.cmd, []string{nonexistentChannelName, user.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("unable to find channel %q", nonexistentChannelName), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -57,9 +54,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		}()
 
 		nonexistentChannelName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersAddCmdF(s.th.Client, _cmd, []string{nonexistentChannelName, user.Id})
+		err := channelUsersAddCmdF(s.th.Client, s.cmd, []string{nonexistentChannelName, user.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("unable to find channel %q", nonexistentChannelName), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -70,9 +65,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		printer.Clean()
 
 		nonexistentUserName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersAddCmdF(c, _cmd, []string{channel.Id, nonexistentUserName})
+		err := channelUsersAddCmdF(c, s.cmd, []string{channel.Id, nonexistentUserName})
 		s.Require().ErrorContains(err, "unable to find user")
 		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
@@ -90,9 +83,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		}()
 
 		nonexistentUserName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersAddCmdF(s.th.Client, _cmd, []string{channel.Id, nonexistentUserName})
+		err := channelUsersAddCmdF(s.th.Client, s.cmd, []string{channel.Id, nonexistentUserName})
 		s.Require().ErrorContains(err, "unable to find user")
 		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
@@ -102,9 +93,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Add user to channel without permission/Client", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersAddCmdF(s.th.Client, _cmd, []string{channel.Id, user.Id})
+		err := channelUsersAddCmdF(s.th.Client, s.cmd, []string{channel.Id, user.Id})
 		s.Require().ErrorContains(err, "unable to add")
 		s.Require().ErrorContains(err, user.Id)
 		s.Require().ErrorContains(err, channelName)
@@ -124,9 +113,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 			s.Require().Nil(appErr)
 		}()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersAddCmdF(s.th.Client, _cmd, []string{channel.Id, user.Id})
+		err := channelUsersAddCmdF(s.th.Client, s.cmd, []string{channel.Id, user.Id})
 		s.Require().Nil(err)
 		defer func() {
 			appErr = s.th.App.RemoveUserFromChannel(s.th.Context, user.Id, s.th.SystemAdminUser.Id, channel)
@@ -144,9 +131,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 	s.RunForSystemAdminAndLocal("Add user to channel", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersAddCmdF(c, _cmd, []string{channel.Id, user.Id})
+		err := channelUsersAddCmdF(c, s.cmd, []string{channel.Id, user.Id})
 		s.Require().Nil(err)
 		defer func() {
 			appErr := s.th.App.RemoveUserFromChannel(s.th.Context, user.Id, s.th.SystemAdminUser.Id, channel)
@@ -184,9 +169,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		nonexistentChannelName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersRemoveCmdF(c, _cmd, []string{nonexistentChannelName, user.Id})
+		err := channelUsersRemoveCmdF(c, s.cmd, []string{nonexistentChannelName, user.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("unable to find channel %q", nonexistentChannelName), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -204,9 +187,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		}()
 
 		nonexistentChannelName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersRemoveCmdF(s.th.Client, _cmd, []string{nonexistentChannelName, user.Id})
+		err := channelUsersRemoveCmdF(s.th.Client, s.cmd, []string{nonexistentChannelName, user.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("unable to find channel %q", nonexistentChannelName), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -217,9 +198,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		nonexistentUserName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersRemoveCmdF(c, _cmd, []string{channel.Id, nonexistentUserName})
+		err := channelUsersRemoveCmdF(c, s.cmd, []string{channel.Id, nonexistentUserName})
 		s.Require().ErrorContains(err, "unable to find user")
 		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
@@ -238,9 +217,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		}()
 
 		nonexistentUserName := "nonexistent"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersRemoveCmdF(s.th.Client, _cmd, []string{channel.Id, nonexistentUserName})
+		err := channelUsersRemoveCmdF(s.th.Client, s.cmd, []string{channel.Id, nonexistentUserName})
 		s.Require().ErrorContains(err, "unable to find user")
 		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
@@ -259,9 +236,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersRemoveCmdF(s.th.Client, _cmd, []string{channel.Id, user.Id})
+		err := channelUsersRemoveCmdF(s.th.Client, s.cmd, []string{channel.Id, user.Id})
 		s.Require().ErrorContains(err, "unable to remove")
 		s.Require().ErrorContains(err, user.Id)
 		s.Require().ErrorContains(err, channelName)
@@ -289,9 +264,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersRemoveCmdF(s.th.Client, _cmd, []string{channel.Id, user.Id})
+		err := channelUsersRemoveCmdF(s.th.Client, s.cmd, []string{channel.Id, user.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -311,9 +284,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := channelUsersRemoveCmdF(c, _cmd, []string{channel.Id, user.Id})
+		err := channelUsersRemoveCmdF(c, s.cmd, []string{channel.Id, user.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)

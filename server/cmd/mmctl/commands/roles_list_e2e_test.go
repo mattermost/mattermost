@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -17,9 +16,7 @@ func (s *MmctlE2ETestSuite) TestRolesListCmd() {
 	s.RunForSystemAdminAndLocal("List all available roles", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := rolesListCmdF(c, _cmd, []string{})
+		err := rolesListCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 
 		lines := printer.GetLines()
@@ -38,9 +35,7 @@ func (s *MmctlE2ETestSuite) TestRolesListCmd() {
 	s.Run("List roles without permissions should fail", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := rolesListCmdF(s.th.Client, _cmd, []string{})
+		err := rolesListCmdF(s.th.Client, s.cmd, []string{})
 
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get roles")
