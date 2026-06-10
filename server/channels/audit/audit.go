@@ -10,7 +10,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-const DefMaxQueueSize = 1000
+// DefMaxQueueSize is the size of the central audit (logr) queue. Kept in line
+// with the per-target queue size (maxqueuesize in the advanced-logging config)
+// so the two stages feeding the delivery target don't mismatch at 10K vs 1K.
+const DefMaxQueueSize = 10000
 
 type Audit struct {
 	logger *mlog.Logger
