@@ -38,7 +38,8 @@ func newSqlAuditStorage(s *SqlStore) store.AuditStorageStore {
 // Mark appends a single user-post delivery event tagged with the mechanism.
 func (s *SqlAuditStorage) Mark(ctx context.Context, userID, postID string, mechanism int16) error {
 	_, err := s.GetMaster().ExecContext(ctx,
-		`INSERT INTO `+auditStorageTableName+` (user_id, post_id, mechanism, created_at) VALUES ($1, $2, $3, $4)`,
+		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at) VALUES ($1, $2, $3, $4)
+			ON CONFLICT (entity_id, user_id, mechanism) DO NOTHING`,
 		userID, postID, mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to mark user-post delivery")
@@ -53,9 +54,10 @@ func (s *SqlAuditStorage) MarkBulkSameUser(ctx context.Context, userID string, p
 		return nil
 	}
 	_, err := s.GetMaster().ExecContext(ctx,
-		`INSERT INTO `+auditStorageTableName+` (user_id, post_id, mechanism, created_at)
-		 SELECT $1, post_id, $3, $4
-		 FROM unnest($2::text[]) AS post_id`,
+		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
+		 SELECT $1, entity_id, $3, $4
+		 FROM unnest($2::text[]) AS entity_id
+		 ON CONFLICT (entity_id, user_id, mechanism) DO NOTHING`,
 		userID, pq.Array(postIDs), mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to bulk-mark same-user")
@@ -70,9 +72,10 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 		return nil
 	}
 	_, err := s.GetMaster().ExecContext(ctx,
-		`INSERT INTO `+auditStorageTableName+` (user_id, post_id, mechanism, created_at)
+		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
 		 SELECT user_id, $2, $3, $4
-		 FROM unnest($1::text[]) AS user_id`,
+		 FROM unnest($1::text[]) AS user_id
+		 ON CONFLICT (entity_id, user_id, mechanism) DO NOTHING`,
 		pq.Array(userIDs), postID, mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to bulk-mark same-post")
@@ -86,7 +89,7 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 func (s *SqlAuditStorage) HasRead(ctx context.Context, userID, postID string) (bool, error) {
 	var exists bool
 	err := s.GetReplica().DB().GetContext(ctx, &exists,
-		`SELECT EXISTS(SELECT 1 FROM `+auditStorageTableName+` WHERE user_id=$1 AND post_id=$2 LIMIT 1)`,
+		`SELECT EXISTS(SELECT 1 FROM `+auditStorageTableName+` WHERE user_id=$1 AND entity_id=$2 LIMIT 1)`,
 		userID, postID)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to query delivery state")
