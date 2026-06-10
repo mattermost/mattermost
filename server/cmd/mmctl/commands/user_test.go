@@ -1334,11 +1334,10 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	s.Run("Create user with email missing", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Email is required: flag accessed but not defined: email", err.Error())
 	})
@@ -1346,11 +1345,10 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	s.Run("Create user with username missing", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Username is required: flag accessed but not defined: username", err.Error())
 	})
@@ -1358,11 +1356,10 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	s.Run("Create user with password missing", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Password is required: flag accessed but not defined: password", err.Error())
 	})
@@ -1376,12 +1373,11 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1401,13 +1397,12 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("disable-welcome-email", mockUser.DisableWelcomeEmail, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("disable-welcome-email", mockUser.DisableWelcomeEmail, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		printerLines := printer.GetLines()[0]
@@ -1427,12 +1422,11 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 			Return(&mockUser, &model.Response{}, errors.New("remote error")).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Unable to create user. Error: remote error", err.Error())
 	})
@@ -1452,13 +1446,12 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system-admin", true, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("system-admin", true, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1480,13 +1473,12 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("guest", true, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("guest", true, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1508,13 +1500,12 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("remote error")).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system-admin", true, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("system-admin", true, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Unable to update user roles. Error: remote error", err.Error())
 	})
@@ -2810,7 +2801,6 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("User not found", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "newusername"
 
@@ -2826,7 +2816,7 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().EqualError(err, "user testUser not found")
 	})
@@ -2834,7 +2824,6 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("Edit username successfully", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "newusername"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
@@ -2852,7 +2841,7 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 			Return(&updatedUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -2863,7 +2852,6 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("Invalid username", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "!invalid!"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
@@ -2874,7 +2862,7 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().EqualError(err, "invalid username: '!invalid!'")
 	})
@@ -2882,7 +2870,6 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("UpdateUser API error", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "newusername"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
@@ -2900,7 +2887,7 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().EqualError(err, "failed to update user username: API error")
 	})
