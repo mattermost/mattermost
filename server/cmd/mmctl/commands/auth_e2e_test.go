@@ -21,6 +21,7 @@ func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 		// Instead of calling RootCmd, with its various subcommands and options,
 		// we duplicate part of the LoginCmd here.
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringP("name", "n", "name", "Name for the credentials")
 		cmd.Flags().StringP("username", "u", s.th.BasicUser.Username, "Username for the credentials")
 		cmd.Flags().StringP("password", "p", s.th.BasicUser.Password, "Password for the credentials")

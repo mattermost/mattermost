@@ -52,7 +52,9 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		appErr := unlinkUserFromTeam(team.Id, user.Id)
 		s.Require().Nil(appErr)
 
-		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{team.Id, user.Email})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersAddCmdF(c, _cmd, []string{team.Id, user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -70,7 +72,9 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		appErr := unlinkUserFromTeam(team.Id, user.Id)
 		s.Require().Nil(appErr)
 
-		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, user.Email})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersAddCmdF(s.th.Client, _cmd, []string{team.Id, user.Email})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -94,7 +98,9 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 			s.Require().Nil(appErr)
 		}()
 
-		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, user.Email})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersAddCmdF(s.th.Client, _cmd, []string{team.Id, user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -118,7 +124,9 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		s.Require().Nil(appErr)
 
 		nonexistentTeamName := "nonexistent"
-		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{nonexistentTeamName, user.Email})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersAddCmdF(c, _cmd, []string{nonexistentTeamName, user.Email})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -134,7 +142,9 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		nonexistentUserEmail := "nonexistent@email"
 		var expectedError error
 		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
-		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersAddCmdF(c, _cmd, []string{team.Id, nonexistentUserEmail})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Len(printer.GetLines(), 0)
@@ -157,7 +167,9 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		nonexistentUserEmail := "nonexistent@email"
 		var expectedError error
 		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
-		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersAddCmdF(s.th.Client, _cmd, []string{team.Id, nonexistentUserEmail})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -183,7 +195,9 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 		_, appErr = s.th.App.CreateTeamWithUser(s.th.Context, &team, user.Id)
 		s.Require().Nil(appErr)
 
-		err := teamUsersRemoveCmdF(c, &cobra.Command{}, []string{team.Name, user.Username})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(c, _cmd, []string{team.Name, user.Username})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -201,7 +215,9 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 		s.Require().Nil(appErr)
 
 		nonexistentTeamName := model.NewId()
-		err := teamUsersRemoveCmdF(c, &cobra.Command{}, []string{nonexistentTeamName, user.Username})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(c, _cmd, []string{nonexistentTeamName, user.Username})
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), fmt.Sprintf("Unable to find team '%s'", nonexistentTeamName))
 		s.Require().Len(printer.GetLines(), 0)
@@ -223,7 +239,9 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 		_, appErr = s.th.App.CreateTeamWithUser(s.th.Context, &team, user.Id)
 		s.Require().Nil(appErr)
 
-		err := teamUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{team.Name, user.Username})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.th.Client, _cmd, []string{team.Name, user.Username})
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), fmt.Sprintf("Unable to find team '%s'", team.Name))
 		s.Require().Len(printer.GetLines(), 0)

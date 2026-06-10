@@ -36,7 +36,9 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		}()
 
 		// try to reset the permissions
-		err2 := resetPermissionsCmdF(s.th.Client, &cobra.Command{}, []string{model.SystemUserManagerRoleId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err2 := resetPermissionsCmdF(s.th.Client, _cmd, []string{model.SystemUserManagerRoleId})
 		s.Require().Error(err2)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -67,7 +69,9 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		}()
 
 		// try to reset the permissions
-		err2 := resetPermissionsCmdF(c, &cobra.Command{}, []string{model.SystemUserManagerRoleId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err2 := resetPermissionsCmdF(c, _cmd, []string{model.SystemUserManagerRoleId})
 		s.Require().Nil(err2)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)

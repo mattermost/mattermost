@@ -69,7 +69,9 @@ func (s *MmctlE2ETestSuite) TestCPAFieldListCmd() {
 		printer.Clean()
 		s.cleanCPAFields()
 
-		err := cpaFieldListCmdF(c, &cobra.Command{}, []string{})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(c, _cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0) // No fields should be present initially
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -113,7 +115,9 @@ func (s *MmctlE2ETestSuite) TestCPAFieldListCmd() {
 		s.Require().NotNil(createdSelectField)
 
 		// Now test the list command
-		err := cpaFieldListCmdF(c, &cobra.Command{}, []string{})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(c, _cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2) // Should have 2 fields now
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -134,6 +138,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 
 		// Create command with arguments and managed flag
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -165,6 +170,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 
 		// Create command with arguments and option flags
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -215,6 +221,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.cleanCPAFields()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
@@ -250,6 +257,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 
 		// Now edit the field
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
@@ -306,6 +314,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 
 		// Now edit the field with --managed flag
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
@@ -346,6 +355,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 
 		// Now edit the field using its name instead of ID
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
@@ -413,6 +423,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 
 		// Now edit the field to add a third option while preserving the first two
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
@@ -487,6 +498,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		createdField := s.createCPAField(field)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 
 		err := cmd.Flags().Set("confirm", "true")
@@ -531,6 +543,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		createdField := s.createCPAField(field)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 
 		err := cmd.Flags().Set("confirm", "true")
@@ -565,6 +578,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		s.cleanCPAFields()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 
 		err := cmd.Flags().Set("confirm", "true")
@@ -580,6 +594,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		s.cleanCPAFields()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 
 		err := cmd.Flags().Set("confirm", "true")

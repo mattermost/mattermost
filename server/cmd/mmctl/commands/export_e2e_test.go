@@ -31,7 +31,9 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 	s.Run("MM-T3914 - no permissions", func() {
 		printer.Clean()
 
-		err := exportListCmdF(s.th.Client, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := exportListCmdF(s.th.Client, _cmd, nil)
 		s.Require().EqualError(err, "failed to list exports: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -40,7 +42,9 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 	s.RunForSystemAdminAndLocal("MM-T3913 - no exports", func(c client.Client) {
 		printer.Clean()
 
-		err := exportListCmdF(c, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := exportListCmdF(c, _cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
@@ -49,6 +53,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 
 	s.RunForSystemAdminAndLocal("MM-T3912 - some exports", func(c client.Client) {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		numExports := 3
 		for i := range numExports {
@@ -84,7 +89,9 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 	s.Run("MM-T3876 - no permissions", func() {
 		printer.Clean()
 
-		err := exportDeleteCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := exportDeleteCmdF(s.th.Client, _cmd, []string{exportName})
 		s.Require().EqualError(err, "failed to delete export: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -92,6 +99,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 
 	s.RunForSystemAdminAndLocal("MM-T3843 - delete export", func(c client.Client) {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		err := utils.CopyFile(importFilePath, filepath.Join(exportPath, exportName))
 		s.Require().Nil(err)
@@ -130,7 +138,9 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 	s.Run("MM-T3877 - no permissions", func() {
 		printer.Clean()
 
-		err := exportCreateCmdF(s.th.Client, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := exportCreateCmdF(s.th.Client, _cmd, nil)
 		s.Require().EqualError(err, "failed to create export process job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -140,6 +150,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		err := exportCreateCmdF(c, cmd, nil)
 		s.Require().Nil(err)
@@ -153,6 +164,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		cmd.Flags().Bool("no-attachments", true, "")
 
@@ -167,6 +179,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		cmd.Flags().Bool("no-roles-and-schemes", true, "")
 
@@ -192,6 +205,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("num-retries", 5, "")
 
 		err := exportDownloadCmdF(s.th.Client, cmd, []string{exportName})
@@ -204,6 +218,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("num-retries", 5, "")
 
 		downloadPath, err := filepath.Abs(exportName)
@@ -222,6 +237,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("num-retries", 5, "")
 
 		downloadPath, err := filepath.Abs(exportName)
@@ -238,6 +254,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("num-retries", 5, "")
 
 		exportFilePath := filepath.Join(exportPath, exportName)
@@ -267,6 +284,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("num-retries", 5, "")
 
 		exportFilePath := filepath.Join(exportPath, exportName)
@@ -315,7 +333,9 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		err := exportJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := exportJobShowCmdF(s.th.Client, _cmd, []string{job1.Id})
 		s.Require().EqualError(err, "failed to get export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -324,7 +344,9 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("MM-T3886 - not found", func(c client.Client) {
 		printer.Clean()
 
-		err := exportJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := exportJobShowCmdF(c, _cmd, []string{model.NewId()})
 		s.Require().ErrorContains(err, "failed to get export job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -333,7 +355,9 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("MM-T3841 - found", func(c client.Client) {
 		printer.Clean()
 
-		err := exportJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := exportJobShowCmdF(c, _cmd, []string{job.Id})
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 1)
@@ -348,6 +372,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", 200, "")
 		cmd.Flags().Bool("all", false, "")
@@ -362,6 +387,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", 200, "")
 		cmd.Flags().Bool("all", false, "")
@@ -377,6 +403,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 2
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -417,6 +444,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
@@ -435,6 +463,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		err := exportJobCancelCmdF(c, cmd, []string{model.NewId()})
 		s.Require().ErrorContains(err, "failed to get export job: Unable to get the job.")
@@ -446,6 +475,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,

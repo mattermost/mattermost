@@ -20,6 +20,7 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 		resetCmd := &cobra.Command{}
+		resetCmd.SetContext(s.T().Context())
 		resetCmd.Flags().Bool("confirm", true, "")
 		err := configResetCmdF(c, resetCmd, []string{"PrivacySettings"})
 		s.Require().Nil(err)
@@ -32,6 +33,7 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 	s.Run("Reset for user without permission", func() {
 		printer.Clean()
 		resetCmd := &cobra.Command{}
+		resetCmd.SetContext(s.T().Context())
 		args := []string{"PrivacySettings"}
 		resetCmd.Flags().Bool("confirm", true, "")
 		err := configResetCmdF(s.th.Client, resetCmd, args)
@@ -62,7 +64,9 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 	s.RunForSystemAdminAndLocal("MM-T4051 - System admin and local patch", func(c client.Client) {
 		printer.Clean()
 
-		err := configPatchCmdF(c, &cobra.Command{}, []string{tmpFile.Name()})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configPatchCmdF(c, _cmd, []string{tmpFile.Name()})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -71,7 +75,9 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 	s.RunForSystemAdminAndLocal("MM-T4052 - System admin and local patch with invalid file", func(c client.Client) {
 		printer.Clean()
 
-		err := configPatchCmdF(c, &cobra.Command{}, []string{invalidFile.Name()})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configPatchCmdF(c, _cmd, []string{invalidFile.Name()})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -80,7 +86,9 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 	s.Run("MM-T4053 - Patch config for user without permission", func() {
 		printer.Clean()
 
-		err := configPatchCmdF(s.th.Client, &cobra.Command{}, []string{tmpFile.Name()})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configPatchCmdF(s.th.Client, _cmd, []string{tmpFile.Name()})
 		s.Require().NotNil(err)
 		s.Assert().Errorf(err, "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 0)
@@ -100,7 +108,9 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		printer.Clean()
 
 		args := []string{"SqlSettings.DriverName"}
-		err := configGetCmdF(c, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configGetCmdF(c, _cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(driver, *(printer.GetLines()[0].(*string)))
@@ -111,7 +121,9 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		printer.Clean()
 
 		args := []string{"NonExistent.Key"}
-		err := configGetCmdF(c, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configGetCmdF(c, _cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -121,7 +133,9 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		printer.Clean()
 
 		args := []string{"SqlSettings.DriverName"}
-		err := configGetCmdF(s.th.Client, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.th.Client, _cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -135,7 +149,9 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		printer.Clean()
 
 		args := []string{"SqlSettings.DriverName", "postgres"}
-		err := configSetCmdF(c, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configSetCmdF(c, _cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -148,7 +164,9 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		printer.Clean()
 
 		args := []string{"SqlSettings.WrongKey", "postgres"}
-		err := configSetCmdF(c, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configSetCmdF(c, _cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -158,7 +176,9 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		printer.Clean()
 
 		args := []string{"SqlSettings.DriverName", "postgres"}
-		err := configSetCmdF(s.th.Client, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.th.Client, _cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -169,7 +189,9 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		originalDir := *s.th.App.Config().ImportSettings.Directory
 
 		args := []string{"ImportSettings.Directory", "./api-blocked-import"}
-		err := configSetCmdF(s.th.SystemAdminClient, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.th.SystemAdminClient, _cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "not allowed due to security reasons")
 		s.Require().Len(printer.GetLines(), 0)
@@ -179,7 +201,9 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 
 		printer.Clean()
 		args = []string{"ImportSettings.Directory", "./local-allowed-import"}
-		err = configSetCmdF(s.th.LocalClient, &cobra.Command{}, args)
+		_cmd = &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err = configSetCmdF(s.th.LocalClient, _cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		config, ok := printer.GetLines()[0].(*model.Config)
@@ -291,7 +315,9 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 	s.RunForSystemAdminAndLocal("Get config normally", func(c client.Client) {
 		printer.Clean()
 
-		err := configExportCmdF(c, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configExportCmdF(c, _cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -317,6 +343,7 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		printer.Clean()
 
 		exportCmd := &cobra.Command{}
+		exportCmd.SetContext(s.T().Context())
 		exportCmd.Flags().Bool("remove-masked", true, "")
 		err := configExportCmdF(s.th.SystemAdminClient, exportCmd, nil)
 		s.Require().Nil(err)
@@ -334,6 +361,7 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		printer.Clean()
 
 		exportCmd := &cobra.Command{}
+		exportCmd.SetContext(s.T().Context())
 		err := configExportCmdF(s.th.LocalClient, exportCmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -352,6 +380,7 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		printer.Clean()
 
 		exportCmd := &cobra.Command{}
+		exportCmd.SetContext(s.T().Context())
 		exportCmd.Flags().Bool("remove-defaults", true, "")
 		err := configExportCmdF(c, exportCmd, nil)
 		s.Require().Nil(err)
@@ -368,7 +397,9 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 	s.Run("Get config value for a given key without permissions", func() {
 		printer.Clean()
 
-		err := configExportCmdF(s.th.Client, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configExportCmdF(s.th.Client, _cmd, nil)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -382,7 +413,9 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 		printer.Clean()
 		args := []string{"config.json", "output.json"}
 
-		err := configMigrateCmdF(s.th.Client, &cobra.Command{}, args)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := configMigrateCmdF(s.th.Client, _cmd, args)
 		s.Require().Error(err)
 		s.Require().Equal("this command is only available in local mode. Please set the --local flag", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -394,6 +427,7 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 		args := []string{"config.json", "output.json"}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("local", true, "")
 
 		err := configMigrateCmdF(s.th.LocalClient, cmd, args)
@@ -409,6 +443,7 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 		args := []string{"config.json", currentDSN}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("local", true, "")
 
 		err := configMigrateCmdF(s.th.LocalClient, cmd, args)
@@ -421,6 +456,7 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 		args := []string{"from", "to"}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("local", true, "")
 
 		err := configMigrateCmdF(s.th.LocalClient, cmd, args)

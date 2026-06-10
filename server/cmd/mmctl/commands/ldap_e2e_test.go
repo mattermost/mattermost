@@ -55,7 +55,9 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 	s.Run("MM-T3971 Should not allow regular user to start LDAP sync job", func() {
 		printer.Clean()
 
-		err := ldapSyncCmdF(s.th.Client, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapSyncCmdF(s.th.Client, _cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -68,7 +70,9 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		s.Require().Nil(appErr)
 		initialNumJobs := len(jobs)
 
-		err := ldapSyncCmdF(c, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapSyncCmdF(c, _cmd, nil)
 		s.Require().NoError(err)
 
 		s.Require().NotEmpty(printer.GetLines())
@@ -103,7 +107,9 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 	s.Run("MM-T3973 Should not allow regular user to migrate LDAP ID attribute", func() {
 		printer.Clean()
 
-		err := ldapIDMigrateCmdF(s.th.Client, &cobra.Command{}, []string{"objectGUID"})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapIDMigrateCmdF(s.th.Client, _cmd, []string{"objectGUID"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -112,7 +118,9 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3972 Should migrate LDAP ID attribute", func(c client.Client) {
 		printer.Clean()
 
-		err := ldapIDMigrateCmdF(c, &cobra.Command{}, []string{"cn"})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapIDMigrateCmdF(c, _cmd, []string{"cn"})
 		s.Require().NoError(err)
 		defer func() {
 			s.Require().Nil(s.th.App.MigrateIdLDAP(s.th.Context, "uid"))
@@ -135,7 +143,9 @@ func (s *MmctlE2ETestSuite) TestLdapJobListCmd() {
 	s.Run("Should not allow regular user to list LDAP groups", func() {
 		printer.Clean()
 
-		err := ldapJobListCmdF(s.th.Client, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapJobListCmdF(s.th.Client, _cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -145,6 +155,7 @@ func (s *MmctlE2ETestSuite) TestLdapJobListCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", 200, "")
 		cmd.Flags().Bool("all", false, "")
@@ -160,6 +171,7 @@ func (s *MmctlE2ETestSuite) TestLdapJobListCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 2
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -207,7 +219,9 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		err := ldapJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapJobShowCmdF(s.th.Client, _cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to get LDAP sync job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -216,7 +230,9 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("no args", func(c client.Client) {
 		printer.Clean()
 
-		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapJobShowCmdF(c, _cmd, []string{})
 		s.Require().EqualError(err, "expected at least one argument (ldapJobID). See help text for details")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -225,7 +241,9 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("not found", func(c client.Client) {
 		printer.Clean()
 
-		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapJobShowCmdF(c, _cmd, []string{model.NewId()})
 		s.Require().ErrorContains(err, "failed to get LDAP sync job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -234,7 +252,9 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
 		printer.Clean()
 
-		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := ldapJobShowCmdF(c, _cmd, []string{job.Id})
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 1)

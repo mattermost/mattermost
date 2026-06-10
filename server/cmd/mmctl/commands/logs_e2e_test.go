@@ -14,6 +14,7 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 
 	s.RunForSystemAdminAndLocal("Display single log line", func(c client.Client) {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("number", 1, "")
 
 		data, err := testLogsCmdF(c, cmd, []string{})
@@ -23,6 +24,7 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 
 	s.RunForSystemAdminAndLocal("Display in logrus for formatting", func(c client.Client) {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("logrus", true, "")
 		cmd.Flags().Int("number", 1, "")
 
@@ -36,6 +38,7 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 
 	s.Run("Should not allow normal user to retrieve logs", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("number", 1, "")
 
 		_, err := testLogsCmdF(s.th.Client, cmd, []string{})

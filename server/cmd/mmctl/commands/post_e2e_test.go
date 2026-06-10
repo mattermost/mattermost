@@ -38,6 +38,7 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		channelName, post1, post2 := createNewChannelAndPosts()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("number", 2, "")
 
 		err := postListCmdF(c, cmd, []string{teamName + ":" + channelName})
@@ -61,6 +62,7 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		channelName, _, _ := createNewChannelAndPosts()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("number", 2, "")
 
 		err := postListCmdF(s.th.Client, cmd, []string{teamName + ":" + channelName})
@@ -76,6 +78,7 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		channelName, post1, post2 := createNewChannelAndPosts()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("since", ISO8601ValidString, "")
 
 		err := postListCmdF(c, cmd, []string{teamName + ":" + channelName})
@@ -100,6 +103,7 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		channelName, _, _ := createNewChannelAndPosts()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("since", ISO8601ValidString, "")
 
 		err := postListCmdF(s.th.Client, cmd, []string{teamName + ":" + channelName})
@@ -117,6 +121,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		msgArg := "some text"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 
 		err := postCreateCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
@@ -130,6 +135,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		msgArg := "some text"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 
 		err := postCreateCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
@@ -143,6 +149,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		msgArg := "some text"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
@@ -156,6 +163,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		msgArg := "some text"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
 
@@ -170,6 +178,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		msgArg := "some text"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
 
@@ -184,6 +193,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		msgArg := "some text"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
 
