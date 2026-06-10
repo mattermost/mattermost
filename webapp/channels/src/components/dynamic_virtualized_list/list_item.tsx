@@ -44,7 +44,7 @@ const ListItem = (props: Props) => {
         props.onHeightChange(props.itemId, newHeight, false);
     }, [props.itemId]);
 
-    // This effects adds the observer which calls height change callback debounced
+    // This effects adds the observer which calls height change callback
     useLayoutEffect(() => {
         function itemRowSizeObserverCallback(changedHeight: number) {
             if (!rowRef.current) {
