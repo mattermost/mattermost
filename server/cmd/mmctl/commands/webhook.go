@@ -149,13 +149,13 @@ func createIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	printer.SetSingle(true)
 
 	channelArg, _ := command.Flags().GetString("channel")
-	channel := getChannelFromChannelArg(c, channelArg)
+	channel := getChannelFromChannelArg(command.Context(), c, channelArg)
 	if channel == nil {
 		return errors.New("Unable to find channel '" + channelArg + "'")
 	}
 
 	userArg, _ := command.Flags().GetString("user")
-	user := getUserFromUserArg(c, userArg)
+	user := getUserFromUserArg(command.Context(), c, userArg)
 	if user == nil {
 		return errors.New("Unable to find user '" + userArg + "'")
 	}
@@ -201,7 +201,7 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
-		channel := getChannelFromChannelArg(c, channelArg)
+		channel := getChannelFromChannelArg(command.Context(), c, channelArg)
 		if channel == nil {
 			return errors.New("Unable to find channel '" + channelArg + "'")
 		}
@@ -237,13 +237,13 @@ func createOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	printer.SetSingle(true)
 
 	teamArg, _ := command.Flags().GetString("team")
-	team := getTeamFromTeamArg(c, teamArg)
+	team := getTeamFromTeamArg(command.Context(), c, teamArg)
 	if team == nil {
 		return errors.New("Unable to find team: " + teamArg)
 	}
 
 	userArg, _ := command.Flags().GetString("user")
-	user := getUserFromUserArg(c, userArg)
+	user := getUserFromUserArg(command.Context(), c, userArg)
 	if user == nil {
 		return errors.New("Unable to find user: " + userArg)
 	}
@@ -282,7 +282,7 @@ func createOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
-		channel := getChannelFromChannelArg(c, channelArg)
+		channel := getChannelFromChannelArg(command.Context(), c, channelArg)
 		if channel != nil {
 			outgoingWebhook.ChannelId = channel.Id
 		}
@@ -314,7 +314,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
-		channel := getChannelFromChannelArg(c, channelArg)
+		channel := getChannelFromChannelArg(command.Context(), c, channelArg)
 		if channel == nil {
 			return errors.New("unable to find channel '" + channelArg + "'")
 		}
