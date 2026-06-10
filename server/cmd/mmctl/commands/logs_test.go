@@ -112,14 +112,14 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 // testLogsCmdF is a wrapper around the logsCmdF function to capture
 // stdout for testing
-func testLogsCmdF(client client.Client, s.cmd *cobra.Command, args []string) ([]string, error) {
+func testLogsCmdF(client client.Client, cmd *cobra.Command, args []string) ([]string, error) {
 	// Redirect stdout
 	currStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
 	// Call logsCmdF
-	err := logsCmdF(client, s.cmd, args)
+	err := logsCmdF(client, cmd, args)
 	if err != nil {
 		return nil, err
 	}

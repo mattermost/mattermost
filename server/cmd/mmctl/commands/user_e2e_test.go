@@ -242,7 +242,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "5"))
 
 		err := listUsersCmdF(c, s.cmd, []string{})
@@ -259,7 +259,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of all user", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "12"))
 		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
@@ -276,7 +276,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "12"))
 		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 		s.Require().NoError(s.cmd.Flags().Set("inactive", "true"))
@@ -307,7 +307,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list users given team", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "40"))
 		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 		s.Require().NoError(s.cmd.Flags().Set("team", s.th.BasicTeam.Name))
@@ -341,7 +341,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "40"))
 		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 		s.Require().NoError(s.cmd.Flags().Set("team", s.th.BasicTeam.Name))
@@ -360,7 +360,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForSystemAdminAndLocal("Get list of users with given role", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "5"))
 		s.Require().NoError(s.cmd.Flags().Set("role", model.SystemAdminRoleId))
 

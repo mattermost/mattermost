@@ -267,7 +267,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		printer.Clean()
 
 		// Reset the s.cmd and parse to force Flag.Changed to be true.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		url := fmt.Sprintf("%s-%d", command.URL, index)
@@ -299,7 +299,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF with a space in trigger word", func(c client.Client) {
 		printer.Clean()
 		// Reset the s.cmd and parse to force Flag.Changed to be true.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		err := s.cmd.ParseFlags([]string{

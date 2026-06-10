@@ -546,7 +546,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Times(1)
 
 		// Reset the s.cmd and parse to force Flag.Changed to be true.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		err := s.cmd.ParseFlags(cli)
@@ -577,7 +577,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Times(1)
 
 		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		err := s.cmd.ParseFlags(cli)
@@ -620,7 +620,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Times(1)
 
 		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		err := s.cmd.ParseFlags(cli)
@@ -651,7 +651,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Times(1)
 
 		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		err := s.cmd.ParseFlags(cli)
@@ -682,7 +682,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Times(1)
 
 		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		err := s.cmd.ParseFlags(cli)
@@ -719,7 +719,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 			Times(1)
 
 		// Reset the s.cmd and parse to force Flag.Changed to be true for all flags on the CLI.
-		s.cmd := CommandModifyCmd
+		s.cmd = CommandModifyCmd
 		s.cmd.ResetFlags()
 		addCommandFieldsFlags(s.cmd)
 		err := s.cmd.ParseFlags(cli)
@@ -746,8 +746,8 @@ func method2Bool(method string) bool {
 }
 
 //nolint:golint,unused
-func copyCommand(s.cmd *model.Command) *model.Command {
-	c := *s.cmd
+func copyCommand(cmd *model.Command) *model.Command {
+	c := *cmd
 	return &c
 }
 

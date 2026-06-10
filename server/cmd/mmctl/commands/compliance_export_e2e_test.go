@@ -25,7 +25,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err := complianceExportListCmdF(s.th.Client, s.cmd, nil)
 		s.Require().EqualError(err, "failed to get jobs: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
@@ -45,7 +45,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		// Test default pagination
 		printer.Clean()
 		err = complianceExportListCmdF(c, s.cmd, nil)
@@ -106,7 +106,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 		// Test default pagination
 		printer.Clean()
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err = complianceExportListCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
@@ -160,7 +160,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err := complianceExportShowCmdF(s.th.Client, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to get compliance export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
@@ -170,7 +170,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	s.RunForSystemAdminAndLocal("Show non-existent job", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err := complianceExportShowCmdF(c, s.cmd, []string{"non-existent-job-id"})
 		s.Require().EqualError(err, "failed to get compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id'.  Typo? are you missing a team_id or user_id as part of the url?")
 		s.Require().Empty(printer.GetLines())
@@ -197,7 +197,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 		}()
 
 		printer.Clean()
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err = complianceExportShowCmdF(c, s.cmd, []string{job.Id})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -230,7 +230,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err = complianceExportCancelCmdF(s.th.Client, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to cancel compliance export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
@@ -240,7 +240,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 	s.RunForSystemAdminAndLocal("Cancel non-existent job", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err := complianceExportCancelCmdF(c, s.cmd, []string{"non-existent-job-id"})
 		s.Require().EqualError(err, "failed to cancel compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id/cancel'.  Typo? are you missing a team_id or user_id as part of the url?")
 		s.Require().Empty(printer.GetLines())
@@ -267,7 +267,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 		}()
 
 		printer.Clean()
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err = complianceExportCancelCmdF(c, s.cmd, []string{job.Id})
 		s.Require().NoError(err)
 		s.Require().Empty(printer.GetLines())
@@ -301,7 +301,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 		}()
 
 		printer.Clean()
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		err = complianceExportCancelCmdF(c, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to cancel compliance export job: Could not request cancellation for job that is not in a cancelable state.")
 		s.Require().Empty(printer.GetLines())
@@ -333,7 +333,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		s.cmd.Flags().Int("num-retries", 0, "")
 		err = complianceExportDownloadCmdF(s.th.Client, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to download compliance export after 0 retries: You do not have the appropriate permissions.")
@@ -344,7 +344,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 	s.RunForSystemAdminAndLocal("Download non-existent job", func(c client.Client) {
 		printer.Clean()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		s.cmd.Flags().Int("num-retries", 0, "")
 		err := complianceExportDownloadCmdF(c, s.cmd, []string{"non-existent-job-id"})
 		s.Require().EqualError(err, "failed to download compliance export after 0 retries: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id/download'.  Typo? are you missing a team_id or user_id as part of the url?")
@@ -437,7 +437,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		s.cmd.Flags().Int("num-retries", 0, "")
 
 		err = complianceExportDownloadCmdF(c, s.cmd, []string{job.Id, downloadPath})
@@ -548,7 +548,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		s.cmd := makeCmd()
+		s.cmd = makeCmd()
 		s.cmd.Flags().Int("num-retries", 0, "")
 
 		err = complianceExportDownloadCmdF(c, s.cmd, []string{job.Id})
