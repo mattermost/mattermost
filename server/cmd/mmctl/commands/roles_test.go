@@ -4,12 +4,13 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost/server/public/model"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -25,13 +26,13 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(gomock.Any(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
+			UpdateUserRoles(gomock.Any(), mockUser.Id, newRoles).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -51,7 +52,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(gomock.Any(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -69,19 +70,19 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -101,13 +102,13 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(gomock.Any(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
+			UpdateUserRoles(gomock.Any(), mockUser.Id, newRoles).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -128,13 +129,13 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(gomock.Any(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user").
+			UpdateUserRoles(gomock.Any(), mockUser.Id, "system_user").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -153,7 +154,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(gomock.Any(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -171,13 +172,13 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(gomock.Any(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user").
+			UpdateUserRoles(gomock.Any(), mockUser.Id, "system_user").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -196,19 +197,19 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 

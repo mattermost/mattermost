@@ -9,10 +9,11 @@ import (
 	"errors"
 
 	"github.com/golang/mock/gomock"
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
@@ -47,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
@@ -65,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
@@ -82,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 		expectedError := errors.New("API error")
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
@@ -107,7 +108,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return([]*model.PropertyField{invalidField}, &model.Response{}, nil).
 			Times(1)
 
@@ -134,7 +135,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return([]*model.PropertyField{adminField}, &model.Response{}, nil).
 			Times(1)
 
@@ -171,7 +172,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return([]*model.PropertyField{selectField}, &model.Response{}, nil).
 			Times(1)
 
@@ -208,7 +209,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateCPAField(context.TODO(), &model.PropertyField{
+			CreateCPAField(gomock.Any(), &model.PropertyField{
 				Name:       "Department",
 				Type:       model.PropertyFieldTypeText,
 				TargetType: "user",
@@ -243,7 +244,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateCPAField(context.TODO(), &model.PropertyField{
+			CreateCPAField(gomock.Any(), &model.PropertyField{
 				Name:       "Department",
 				Type:       model.PropertyFieldTypeText,
 				TargetType: "user",
@@ -286,7 +287,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 		// We need to match on a field that has options, but we can't predict the generated IDs
 		s.client.
 			EXPECT().
-			CreateCPAField(context.TODO(), gomock.Any()).
+			CreateCPAField(gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, field *model.PropertyField) (*model.PropertyField, *model.Response, error) {
 				// Verify the structure of the field being created
 				s.Require().Equal("Level", field.Name)
@@ -336,7 +337,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateCPAField(context.TODO(), &model.PropertyField{
+			CreateCPAField(gomock.Any(), &model.PropertyField{
 				Name:       "Department",
 				Type:       model.PropertyFieldTypeText,
 				TargetType: "user",
@@ -377,7 +378,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateCPAField(context.TODO(), &model.PropertyField{
+			CreateCPAField(gomock.Any(), &model.PropertyField{
 				Name:       "Department",
 				Type:       model.PropertyFieldTypeText,
 				TargetType: "user",
@@ -419,7 +420,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 		expectedError := errors.New("API error")
 		s.client.
 			EXPECT().
-			CreateCPAField(context.TODO(), gomock.Any()).
+			CreateCPAField(gomock.Any(), gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
@@ -457,13 +458,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		newName := "New Department"
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
+			PatchCPAField(gomock.Any(), fieldID, &model.PropertyFieldPatch{
 				Name: &newName,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -503,13 +504,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
+			PatchCPAField(gomock.Any(), fieldID, &model.PropertyFieldPatch{
 				Attrs: &expectedAttrs,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -551,13 +552,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
+			PatchCPAField(gomock.Any(), fieldID, &model.PropertyFieldPatch{
 				Attrs: &expectedAttrs,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -601,13 +602,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
+			PatchCPAField(gomock.Any(), fieldID, &model.PropertyFieldPatch{
 				Attrs: &expectedAttrs,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -649,13 +650,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, gomock.Any()).
+			PatchCPAField(gomock.Any(), fieldID, gomock.Any()).
 			DoAndReturn(func(ctx context.Context, receivedFieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
 				s.Require().Equal(fieldID, receivedFieldID)
 				s.Require().NotNil(patch.Attrs)
@@ -709,13 +710,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, gomock.Any()).
+			PatchCPAField(gomock.Any(), fieldID, gomock.Any()).
 			DoAndReturn(func(ctx context.Context, receivedFieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
 				s.Require().Equal(fieldID, receivedFieldID)
 				s.Require().NotNil(patch.Attrs)
@@ -760,14 +761,14 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{expectedField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		// Should only pass name, no attrs
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
+			PatchCPAField(gomock.Any(), fieldID, &model.PropertyFieldPatch{
 				Name: &newName,
 			}).
 			Return(expectedField, &model.Response{}, nil).
@@ -796,7 +797,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{mockField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
@@ -822,14 +823,14 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 		mockFields := []*model.PropertyField{mockField}
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		expectedError := errors.New("API error")
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, gomock.Any()).
+			PatchCPAField(gomock.Any(), fieldID, gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
@@ -873,13 +874,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchCPAField(context.TODO(), fieldID, &model.PropertyFieldPatch{
+			PatchCPAField(gomock.Any(), fieldID, &model.PropertyFieldPatch{
 				Name:  &newName,
 				Attrs: &expectedAttrs,
 			}).
@@ -917,13 +918,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteCPAField(context.TODO(), fieldID).
+			DeleteCPAField(gomock.Any(), fieldID).
 			Return(&model.Response{}, nil).
 			Times(1)
 
@@ -952,13 +953,13 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteCPAField(context.TODO(), fieldID).
+			DeleteCPAField(gomock.Any(), fieldID).
 			Return(&model.Response{}, nil).
 			Times(1)
 
@@ -987,7 +988,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
@@ -1005,7 +1006,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 		expectedError := errors.New("API error")
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
@@ -1043,14 +1044,14 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		expectedError := errors.New("API error")
 		s.client.
 			EXPECT().
-			DeleteCPAField(context.TODO(), fieldID).
+			DeleteCPAField(gomock.Any(), fieldID).
 			Return(&model.Response{}, expectedError).
 			Times(1)
 

@@ -4,11 +4,12 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+
+	gomock "github.com/golang/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -34,19 +35,19 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(gomock.Any(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(gomock.Any(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
+			UpdateUserRoles(gomock.Any(), mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -80,33 +81,33 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(gomock.Any(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByUsername(context.TODO(), user.Username, "").
+				GetUserByUsername(gomock.Any(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				UpdateUserRoles(context.TODO(), user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
+				UpdateUserRoles(gomock.Any(), user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), notFoundUser.Username, "").
+			GetUserByUsername(gomock.Any(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), notFoundUser.Username, "").
+			GetUser(gomock.Any(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -124,7 +125,7 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), "non-existent").
+			GetRoleByName(gomock.Any(), "non-existent").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
@@ -149,13 +150,13 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(gomock.Any(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(gomock.Any(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -175,19 +176,19 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(gomock.Any(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), requestedUser, "").
+			GetUserByUsername(gomock.Any(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), requestedUser, "").
+			GetUser(gomock.Any(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -213,13 +214,13 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(gomock.Any(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user team_admin").
+			UpdateUserRoles(gomock.Any(), mockUser.Id, "system_user team_admin").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -250,26 +251,26 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByUsername(context.TODO(), user.Username, "").
+				GetUserByUsername(gomock.Any(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				UpdateUserRoles(context.TODO(), user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
+				UpdateUserRoles(gomock.Any(), user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), notFoundUser.Username, "").
+			GetUserByUsername(gomock.Any(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), notFoundUser.Username, "").
+			GetUser(gomock.Any(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -289,7 +290,7 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(gomock.Any(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -303,13 +304,13 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), requestedUser, "").
+			GetUserByUsername(gomock.Any(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), requestedUser, "").
+			GetUser(gomock.Any(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -333,7 +334,7 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(gomock.Any(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
@@ -365,7 +366,7 @@ SchemeManaged false
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(gomock.Any(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
@@ -395,7 +396,7 @@ Permissions   edit_brand
 		// showRoleCmdF will look up role by name
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), commandArgBogus).
+			GetRoleByName(gomock.Any(), commandArgBogus).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 

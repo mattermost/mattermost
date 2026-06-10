@@ -4,15 +4,16 @@
 package commands
 
 import (
-	"context"
 	"errors"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/hashicorp/go-multierror"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
@@ -41,7 +42,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.TODO()).
+			CheckIntegrity(gomock.Any()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 
@@ -59,7 +60,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.TODO()).
+			CheckIntegrity(gomock.Any()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -99,7 +100,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.TODO()).
+			CheckIntegrity(gomock.Any()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 		var expected error

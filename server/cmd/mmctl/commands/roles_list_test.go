@@ -4,13 +4,14 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost/server/public/model"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/spf13/viper"
+
+	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -26,7 +27,7 @@ func (s *MmctlUnitTestSuite) TestRolesListPlain() {
 
 		s.client.
 			EXPECT().
-			GetAllRoles(context.TODO()).
+			GetAllRoles(gomock.Any()).
 			Return(roles, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -49,7 +50,7 @@ func (s *MmctlUnitTestSuite) TestRolesListJSON() {
 
 		s.client.
 			EXPECT().
-			GetAllRoles(context.TODO()).
+			GetAllRoles(gomock.Any()).
 			Return(roles, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -74,7 +75,7 @@ func (s *MmctlUnitTestSuite) TestRolesListPermissionError() {
 		forbiddenErr := fmt.Errorf("forbidden")
 		s.client.
 			EXPECT().
-			GetAllRoles(context.TODO()).
+			GetAllRoles(gomock.Any()).
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 

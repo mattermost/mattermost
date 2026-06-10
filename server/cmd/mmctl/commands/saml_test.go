@@ -4,7 +4,7 @@
 package commands
 
 import (
-	"context"
+	gomock "github.com/golang/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -29,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.TODO(), false, false, []string{}).
+			ResetSamlAuthDataToEmail(gomock.Any(), false, false, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.TODO(), false, true, []string{}).
+			ResetSamlAuthDataToEmail(gomock.Any(), false, true, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -65,7 +65,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		users := []string{"user1"}
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.TODO(), false, false, users).
+			ResetSamlAuthDataToEmail(gomock.Any(), false, false, users).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 

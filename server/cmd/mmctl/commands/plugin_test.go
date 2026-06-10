@@ -4,14 +4,14 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/golang/mock/gomock"
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -29,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
+			UploadPlugin(gomock.Any(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPluginForced(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
+			UploadPluginForced(gomock.Any(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, nil).
 			Times(1)
 
@@ -80,7 +80,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
+			UploadPlugin(gomock.Any(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, mockError).
 			Times(1)
 
@@ -102,13 +102,13 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 			if arg == "fail" {
 				s.client.
 					EXPECT().
-					UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
+					UploadPlugin(gomock.Any(), gomock.AssignableToTypeOf(tmpFile)).
 					Return(nil, &model.Response{}, mockError).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					UploadPlugin(context.TODO(), gomock.AssignableToTypeOf(tmpFile)).
+					UploadPlugin(gomock.Any(), gomock.AssignableToTypeOf(tmpFile)).
 					Return(&model.Manifest{}, &model.Response{}, nil).
 					Times(1)
 			}
@@ -137,13 +137,13 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.TODO(), pluginURL1, false).
+			InstallPluginFromURL(gomock.Any(), pluginURL1, false).
 			Return(manifest1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.TODO(), pluginURL2, false).
+			InstallPluginFromURL(gomock.Any(), pluginURL2, false).
 			Return(manifest2, &model.Response{}, nil).
 			Times(1)
 
@@ -163,7 +163,7 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.TODO(), pluginURL, true).
+			InstallPluginFromURL(gomock.Any(), pluginURL, true).
 			Return(manifest, &model.Response{}, nil).
 			Times(1)
 
@@ -187,13 +187,13 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.TODO(), pluginURL1, false).
+			InstallPluginFromURL(gomock.Any(), pluginURL1, false).
 			Return(manifest1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(context.TODO(), pluginURL2, false).
+			InstallPluginFromURL(gomock.Any(), pluginURL2, false).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -213,7 +213,7 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 
 		s.client.
 			EXPECT().
-			DisablePlugin(context.TODO(), arg).
+			DisablePlugin(gomock.Any(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -231,7 +231,7 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 
 		s.client.
 			EXPECT().
-			DisablePlugin(context.TODO(), arg).
+			DisablePlugin(gomock.Any(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -251,13 +251,13 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 			if strings.HasPrefix(arg, "fail") {
 				s.client.
 					EXPECT().
-					DisablePlugin(context.TODO(), arg).
+					DisablePlugin(gomock.Any(), arg).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					DisablePlugin(context.TODO(), arg).
+					DisablePlugin(gomock.Any(), arg).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 					Times(1)
 			}
@@ -281,7 +281,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 
 		s.client.
 			EXPECT().
-			EnablePlugin(context.TODO(), pluginArg).
+			EnablePlugin(gomock.Any(), pluginArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -299,7 +299,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range plugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(context.TODO(), plugin).
+				EnablePlugin(gomock.Any(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
@@ -320,7 +320,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 
 		s.client.
 			EXPECT().
-			EnablePlugin(context.TODO(), pluginArg).
+			EnablePlugin(gomock.Any(), pluginArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
@@ -343,7 +343,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range okPlugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(context.TODO(), plugin).
+				EnablePlugin(gomock.Any(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
@@ -351,7 +351,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range failPlugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(context.TODO(), plugin).
+				EnablePlugin(gomock.Any(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 				Times(1)
 		}
@@ -420,7 +420,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins(context.TODO()).
+			GetPlugins(gomock.Any()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
@@ -496,7 +496,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins(context.TODO()).
+			GetPlugins(gomock.Any()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
@@ -523,7 +523,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins(context.TODO()).
+			GetPlugins(gomock.Any()).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -542,7 +542,7 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.TODO(), args).
+			RemovePlugin(gomock.Any(), args).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -559,7 +559,7 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.TODO(), args).
+			RemovePlugin(gomock.Any(), args).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -585,25 +585,25 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.TODO(), args[0]).
+			RemovePlugin(gomock.Any(), args[0]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.TODO(), args[1]).
+			RemovePlugin(gomock.Any(), args[1]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErrors[0]).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.TODO(), args[2]).
+			RemovePlugin(gomock.Any(), args[2]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErrors[1]).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(context.TODO(), args[3]).
+			RemovePlugin(gomock.Any(), args[3]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

@@ -4,15 +4,15 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	gomock "github.com/golang/mock/gomock"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
@@ -24,7 +24,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		// Test with default pagination
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, DefaultPageSize).
+			GetJobs(gomock.Any(), "message_export", "", 0, DefaultPageSize).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -41,7 +41,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		_ = cmd.Flags().Set("per-page", "10")
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, 10).
+			GetJobs(gomock.Any(), "message_export", "", 0, 10).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -57,7 +57,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		_ = cmd.Flags().Set("all", "true")
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, DefaultPageSize).
+			GetJobs(gomock.Any(), "message_export", "", 0, DefaultPageSize).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -87,22 +87,22 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		// Expect 4 API calls (2 jobs each for first 2 pages, 1 job for last page, then a call with 0 jobs)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, 2).
+			GetJobs(gomock.Any(), "message_export", "", 0, 2).
 			Return(mockJobs[0:2], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 1, 2).
+			GetJobs(gomock.Any(), "message_export", "", 1, 2).
 			Return(mockJobs[2:4], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 2, 2).
+			GetJobs(gomock.Any(), "message_export", "", 2, 2).
 			Return(mockJobs[4:5], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 3, 2).
+			GetJobs(gomock.Any(), "message_export", "", 3, 2).
 			Return(mockJobs[5:], &model.Response{}, nil).
 			Times(1)
 
@@ -130,7 +130,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), mockJob.Id).
+			GetJob(gomock.Any(), mockJob.Id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -151,7 +151,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), "invalid-job-id").
+			GetJob(gomock.Any(), "invalid-job-id").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -172,7 +172,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), id).
+			CancelJob(gomock.Any(), id).
 			Return(&model.Response{}, nil).
 			Times(1)
 
@@ -192,7 +192,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), "invalid-job-id").
+			CancelJob(gomock.Any(), "invalid-job-id").
 			Return(&model.Response{}, mockError).
 			Times(1)
 
@@ -215,7 +215,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), id).
+			CancelJob(gomock.Any(), id).
 			Return(&model.Response{}, mockError).
 			Times(1)
 
@@ -266,7 +266,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 
 		s.client.
 			EXPECT().
-			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			DownloadComplianceExport(gomock.Any(), mockJob.Id, gomock.Any()).
 			Return("", nil).
 			Times(1)
 
@@ -287,7 +287,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 
 		s.client.
 			EXPECT().
-			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			DownloadComplianceExport(gomock.Any(), mockJob.Id, gomock.Any()).
 			Return("", mockError).
 			Times(6) // Initial attempt + 5 retries
 

@@ -4,12 +4,13 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/public/model"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -23,7 +24,7 @@ func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLdapGroups(context.TODO()).
+			GetLdapGroups(gomock.Any()).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -43,7 +44,7 @@ func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLdapGroups(context.TODO()).
+			GetLdapGroups(gomock.Any()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
@@ -65,13 +66,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), arg, "").
+			GetTeamByName(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -96,13 +97,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(gomock.Any(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(gomock.Any(), mockTeam.Id, groupOpts).
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
@@ -126,13 +127,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(gomock.Any(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(gomock.Any(), mockTeam.Id, groupOpts).
 			Return([]*model.GroupWithSchemeAdmin{}, 0, &model.Response{}, nil).
 			Times(1)
 
@@ -158,19 +159,19 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(gomock.Any(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(gomock.Any(), mockTeam.Id, groupOpts).
 			Return([]*model.GroupWithSchemeAdmin{{}}, 1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), mockTeam.Id, &teamPatch).
+			PatchTeam(gomock.Any(), mockTeam.Id, &teamPatch).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -195,19 +196,19 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(gomock.Any(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(gomock.Any(), mockTeam.Id, groupOpts).
 			Return([]*model.GroupWithSchemeAdmin{{}}, 1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), mockTeam.Id, &teamPatch).
+			PatchTeam(gomock.Any(), mockTeam.Id, &teamPatch).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -227,13 +228,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), teamArg, &teamPatch).
+			PatchTeam(gomock.Any(), teamArg, &teamPatch).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -248,13 +249,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -274,13 +275,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), teamArg, &teamPatch).
+			PatchTeam(gomock.Any(), teamArg, &teamPatch).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -316,19 +317,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
@@ -363,19 +364,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
@@ -408,19 +409,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
@@ -442,19 +443,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(gomock.Any(), channelID).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -475,13 +476,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -513,19 +514,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelID, *groupOpts).
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
@@ -548,19 +549,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(gomock.Any(), channelID).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -582,13 +583,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -605,13 +606,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(gomock.Any(), "team1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), "team1", "").
+			GetTeamByName(gomock.Any(), "team1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -646,13 +647,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(gomock.Any(), "team1", "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), "team1", groupOpts).
+			GetGroupsByTeam(gomock.Any(), "team1", groupOpts).
 			Return(groups, 2, &model.Response{}, mockError).
 			Times(1)
 
@@ -685,13 +686,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(gomock.Any(), "team1", "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), "team1", groupOpts).
+			GetGroupsByTeam(gomock.Any(), "team1", groupOpts).
 			Return(groups, 2, &model.Response{}, nil).
 			Times(1)
 
@@ -716,13 +717,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -742,7 +743,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
@@ -765,7 +766,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
@@ -788,7 +789,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
@@ -813,13 +814,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -841,19 +842,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(gomock.Any(), channelID).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -876,13 +877,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -908,13 +909,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -940,13 +941,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelID, teamID, "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -979,25 +980,25 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
+			PatchChannel(gomock.Any(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1017,13 +1018,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1045,19 +1046,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(gomock.Any(), channelPart).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1086,19 +1087,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelPart, *groupOpts).
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
@@ -1129,25 +1130,25 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
+			PatchChannel(gomock.Any(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1176,19 +1177,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
@@ -1208,13 +1209,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1235,19 +1236,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(gomock.Any(), channelPart).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1278,31 +1279,31 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(gomock.Any(), channelPart).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(gomock.Any(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
+			PatchChannel(gomock.Any(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1325,19 +1326,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
+			PatchChannel(gomock.Any(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1356,13 +1357,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1383,19 +1384,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(gomock.Any(), channelPart).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1418,25 +1419,25 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
+			PatchChannel(gomock.Any(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1456,13 +1457,13 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1484,19 +1485,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(gomock.Any(), channelPart).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1519,19 +1520,19 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
+			PatchChannel(gomock.Any(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1549,7 +1550,7 @@ func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
 
 		s.client.
 			EXPECT().
-			RestoreGroup(context.TODO(), "groupId", "").
+			RestoreGroup(gomock.Any(), "groupId", "").
 			Return(nil, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -1566,7 +1567,7 @@ func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
 		mockError := errors.New("no group found")
 		s.client.
 			EXPECT().
-			RestoreGroup(context.TODO(), "groupId", "").
+			RestoreGroup(gomock.Any(), "groupId", "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, mockError).
 			Times(1)
 

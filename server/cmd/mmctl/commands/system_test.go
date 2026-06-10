@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -26,7 +26,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(gomock.Any()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -45,7 +45,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(gomock.Any()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -60,7 +60,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(gomock.Any()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -81,7 +81,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			SetServerBusy(context.TODO(), minutes*60).
+			SetServerBusy(gomock.Any(), minutes*60).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -119,7 +119,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -134,7 +134,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -152,7 +152,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		expectedVersion := "1.23.4.dev"
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(gomock.Any()).
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
@@ -168,7 +168,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(gomock.Any()).
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -190,7 +190,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -210,7 +210,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		expectedStatus := map[string]any{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -229,7 +229,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -251,7 +251,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -273,7 +273,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -296,7 +296,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -321,7 +321,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -346,7 +346,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(gomock.Any(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -372,7 +372,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(gomock.Any()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
@@ -399,7 +399,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(gomock.Any()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
@@ -430,7 +430,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(gomock.Any()).
 			Return(nil, "", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
