@@ -128,7 +128,6 @@ export default function DateTimePickerModal({
             autoCloseOnConfirmButton={false}
             errorText={errorText}
             footerContent={footerContent}
-            footerDivider={useCustomFooter}
         >
             {bodyPrefix}
 
