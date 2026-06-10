@@ -80,6 +80,22 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeSystem,
 }
 
+// optionFieldTypes are the property field types whose `options` attribute is
+// meaningful: each stores a list of selectable options. Kept as a single
+// allow-list so the "does this field carry options?" check stays consistent
+// across the model, API, and access-control layers.
+var optionFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+	PropertyFieldTypeRank,
+}
+
+// SupportsOptions reports whether the field type carries a list of options
+// (select, multiselect, rank). Mirrors the webapp's supportsOptions helper.
+func (t PropertyFieldType) SupportsOptions() bool {
+	return slices.Contains(optionFieldTypes, t)
+}
+
 type PropertyField struct {
 	ID                string            `json:"id"`
 	GroupID           string            `json:"group_id"`
@@ -139,7 +155,7 @@ func (pf *PropertyField) PreSave() {
 // EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
 // This ensures option IDs are always set, similar to how field IDs are auto-generated.
 func (pf *PropertyField) EnsureOptionIDs() error {
-	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect && pf.Type != PropertyFieldTypeRank {
+	if !pf.Type.SupportsOptions() {
 		return nil
 	}
 

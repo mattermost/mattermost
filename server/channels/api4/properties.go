@@ -317,7 +317,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Permission branching (session-bound): options-only patches use a
 	// narrower permission than full edits.
 	isOptionsOnly := isOptionsOnlyPatch(patch)
-	if isOptionsOnly && existingField.Type != model.PropertyFieldTypeSelect && existingField.Type != model.PropertyFieldTypeMultiselect && existingField.Type != model.PropertyFieldTypeRank {
+	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
 	if isOptionsOnly {

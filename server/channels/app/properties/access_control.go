@@ -895,7 +895,7 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 // your rank and lower"), so a higher-cleared caller sees the full ladder up to
 // their level. See filterSharedOnlyRankFieldOptions.
 func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect && field.Type != model.PropertyFieldTypeRank {
+	if !field.Type.SupportsOptions() {
 		return field
 	}
 
