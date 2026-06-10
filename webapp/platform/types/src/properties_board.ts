@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption} from './system';
+import type {PropertyField, PropertyFieldOption} from './properties';
 
 // Boards' option-chip color palette. The token names are the canonical
 // on-the-wire values; hex values + i18n labels are presentation-only and
