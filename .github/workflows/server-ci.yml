@@ -74,7 +74,13 @@ jobs:
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the mocks using 'make mocks'"
+            git diff
+            exit 1
+          fi
   check-go-mod-tidy:
     name: Check go mod tidy
     needs: go
@@ -93,7 +99,13 @@ jobs:
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please tidy up the Go modules using make modules-tidy"
+            git diff
+            exit 1
+          fi
   check-go-fix:
     name: Check go fix
     needs: go
@@ -112,7 +124,13 @@ jobs:
       - name: Run go fix
         run: go fix ./...
       - name: Check go fix
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please run 'go fix ./...' and commit the changes"; git diff; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please run 'go fix ./...' and commit the changes"
+            git diff
+            exit 1
+          fi
   check-style:
     name: check-style
     needs: go
@@ -148,7 +166,13 @@ jobs:
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the serialized files using 'make gen-serialized'"
+            git diff
+            exit 1
+          fi
   check-mattermost-vet-api:
     name: Vet API
     needs: go
@@ -182,7 +206,13 @@ jobs:
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the migrations using make migrations-extract"
+            git diff
+            exit 1
+          fi
   check-email-templates:
     name: Generate email templates
     needs: go
@@ -201,7 +231,13 @@ jobs:
           npm install -g mjml@4.9.0
           make build-templates
       - name: Check generated email templates
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the email templates using 'make build-templates'"
+            git diff
+            exit 1
+          fi
   check-store-layers:
     name: Check store layers
     needs: go
@@ -220,7 +256,13 @@ jobs:
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the store layers using make store-layers"
+            git diff
+            exit 1
+          fi
   check-default-roles-permissions:
     name: Check default roles permissions
     needs: go
@@ -254,7 +296,13 @@ jobs:
           IS_CI: "true"
         run: make default-roles-permissions
       - name: Check generated code
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the default roles permissions using make default-roles-permissions"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the default roles permissions using make default-roles-permissions"
+            git diff
+            exit 1
+          fi
   check-mmctl-docs:
     name: Check mmctl docs
     needs: go
@@ -274,7 +322,12 @@ jobs:
         run: |
           echo "Making sure docs are updated"
           make mmctl-docs
-          if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the mmctl docs using make mmctl-docs"
+            git diff
+            exit 1
+          fi
   # NOTE: Postgres with binary parameters has been moved to server-ci-weekly.yml
   # (runs Monday 1am EST / 5am UTC). Low regression risk doesn't justify
   # consuming 8-core runners on every push.

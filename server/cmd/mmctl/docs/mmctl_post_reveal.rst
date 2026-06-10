@@ -1,36 +1,33 @@
-.. _mmctl_post_create:
+.. _mmctl_post_reveal:
 
-mmctl post create
+mmctl post reveal
 -----------------
 
-Create a post
+Reveal a post
 
 Synopsis
 ~~~~~~~~
 
 
-Create a post
+Reveal a post
 
 ::
 
-  mmctl post create [flags]
+  mmctl post reveal [post] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    post create myteam:mychannel --message "some text for the post"
+    post reveal udjmt396tjghi8wnsk3a1qs1sw
 
 Options
 ~~~~~~~
 
 ::
 
-  -b, --burn-on-read      Message will be deleted after a certain time after being read
-  -h, --help              help for create
-  -m, --message string    Message for the post
-  -r, --reply-to string   Post id to reply to
+  -h, --help   help for reveal
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
