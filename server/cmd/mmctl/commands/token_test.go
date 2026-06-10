@@ -11,10 +11,9 @@ import (
 	"time"
 
 	gomock "github.com/golang/mock/gomock"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 

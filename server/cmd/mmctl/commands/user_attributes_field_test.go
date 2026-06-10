@@ -9,11 +9,10 @@ import (
 	"errors"
 
 	"github.com/golang/mock/gomock"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
