@@ -36,7 +36,6 @@ import {
     UserTypes,
     RoleTypes,
     GeneralTypes,
-    AdminTypes,
     IntegrationTypes,
     PreferenceTypes,
     AppsTypes,
@@ -623,10 +622,6 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.LicenseChanged:
         handleLicenseChanged(msg);
-        break;
-
-    case WebSocketEvents.PluginStatusesChanged:
-        handlePluginStatusesChangedEvent(msg);
         break;
 
     case WebSocketEvents.OpenDialog:
@@ -1733,10 +1728,6 @@ function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
-}
-
-function handlePluginStatusesChangedEvent(msg: WebSocketMessages.PluginStatusesChanged) {
-    store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
 function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
