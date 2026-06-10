@@ -426,8 +426,7 @@ export function markMostRecentPostInChannelAsUnread(channelId: string): ActionFu
     return async (dispatch, getState) => {
         let state = getState();
         let postId = PostSelectors.getMostRecentNonSystemPostIdInChannel(state, channelId);
-        const postIdsInChannel = PostSelectors.getPostIdsInChannel(state, channelId);
-        if (!postId && !postIdsInChannel) {
+        if (!postId) {
             await dispatch(PostActions.getPosts(channelId));
             state = getState();
             postId = PostSelectors.getMostRecentNonSystemPostIdInChannel(state, channelId);

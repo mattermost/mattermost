@@ -415,10 +415,6 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
     },
 );
 
-// getMostRecentNonSystemPostIdInChannel returns the id of the most recent non-system post in the channel, regardless
-// of the user's join/leave message preference. The server excludes join/leave system messages from a channel's unread
-// count, so marking one of them as unread leaves the channel looking read. This selector is used when marking a
-// channel as unread from the sidebar so that a post the server will actually count gets selected.
 export const getMostRecentNonSystemPostIdInChannel: (state: GlobalState, channelId: Channel['id']) => Post['id'] | undefined = createSelector(
     'getMostRecentNonSystemPostIdInChannel',
     getAllPosts,

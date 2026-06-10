@@ -465,12 +465,13 @@ describe('Actions.Posts', () => {
 
             await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
 
+            expect(testStore.getActions().some((action) => action.type === 'MOCK_GET_POSTS')).toBe(false);
             const setUnreadAction = testStore.getActions().find((action) => action.type === 'MOCK_SET_UNREAD_POST');
             expect(setUnreadAction).toBeDefined();
             expect(setUnreadAction!.args).toEqual(['current_user_id', regularPost.id]);
         });
 
-        test('does not fetch posts when the channel is loaded but contains only system messages', async () => {
+        test('fetches posts when the channel is loaded but contains only system messages', async () => {
             const systemOnlyState = {
                 ...initialState,
                 entities: {
@@ -494,7 +495,7 @@ describe('Actions.Posts', () => {
             await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
 
             const actions = testStore.getActions();
-            expect(actions.some((action) => action.type === 'MOCK_GET_POSTS')).toBe(false);
+            expect(actions.some((action) => action.type === 'MOCK_GET_POSTS')).toBe(true);
             expect(actions.some((action) => action.type === 'MOCK_SET_UNREAD_POST')).toBe(false);
         });
 
