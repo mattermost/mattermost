@@ -93,7 +93,8 @@ describe('DmMenuOptions', () => {
     });
 
     it('renders today and tomorrow presets before 9am on weekdays', () => {
-        jest.setSystemTime(DateTime.fromISO('2026-06-09T08:00:00', {zone: 'America/New_York'}).toJSDate());
+        // Active timezone is Europe/London when useRecipientTimezone is true.
+        jest.setSystemTime(DateTime.fromISO('2026-06-09T07:00:00', {zone: 'Europe/London'}).toJSDate());
 
         renderWithContext(
             <WithTestMenuContext>

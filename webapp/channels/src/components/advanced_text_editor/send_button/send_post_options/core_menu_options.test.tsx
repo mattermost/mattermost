@@ -12,9 +12,13 @@ import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CoreMenuOptions from './core_menu_options';
 
-jest.mock('components/advanced_text_editor/send_button/schedule_message_dm_utils', () => ({
-    isDmScheduleRedesign: jest.fn(),
-}));
+jest.mock('components/advanced_text_editor/send_button/schedule_message_dm_utils', () => {
+    const actual = jest.requireActual('components/advanced_text_editor/send_button/schedule_message_dm_utils');
+    return {
+        ...actual,
+        isDmScheduleRedesign: jest.fn(),
+    };
+});
 
 jest.mock('components/advanced_text_editor/use_post_box_indicator');
 const mockedUseTimePostBoxIndicator = jest.mocked(useTimePostBoxIndicator);

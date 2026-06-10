@@ -50,6 +50,10 @@ jest.mock('components/advanced_text_editor/send_button/schedule_message_dm_utils
 });
 
 jest.mock('components/advanced_text_editor/use_post_box_indicator');
+jest.mock('mattermost-redux/selectors/entities/timezone', () => ({
+    generateCurrentTimezoneLabel: jest.fn(() => 'Eastern Time'),
+    getCurrentTimezone: jest.fn(() => 'America/New_York'),
+}));
 jest.mock('mattermost-redux/actions/preferences', () => ({
     savePreferences: jest.fn(() => ({type: 'MOCK_SAVE_PREFERENCES'})),
 }));
