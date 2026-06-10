@@ -10,7 +10,7 @@ import {
 } from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 
-import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ScheduledPostCustomTimeModal from './scheduled_post_custom_time_modal';
 
