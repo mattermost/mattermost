@@ -1660,7 +1660,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
 		s.client.
@@ -1683,7 +1683,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email2 := "example2@example.com"
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2}
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
@@ -1720,7 +1720,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email2 := "example2@example.com"
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, DeleteAt: model.GetMillis()}
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
@@ -1757,7 +1757,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email3 := "example3@example.com"
 		mockUser3 := model.User{Username: "ExampleUser3", Email: email3, DeleteAt: model.GetMillis()}
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 		s.Require().NoError(s.cmd.Flags().Set("inactive", "true"))
@@ -1795,7 +1795,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email1 := "del1@example.com"
 		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, DeleteAt: model.GetMillis()}
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("inactive", "true"))
@@ -1815,7 +1815,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Try to list all the users when there are no uses in store", func() {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
@@ -1833,7 +1833,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Return an error from GetUsersWithCustomQueryParameters call and verify that error is properly returned", func() {
 		printer.Clean()
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
@@ -1857,7 +1857,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "2"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
@@ -1882,7 +1882,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		resultID := "teamId"
 		team := "teamName"
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("team", team))
@@ -1916,7 +1916,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		resultID := "teamId"
 		team := "teamName"
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("team", team))
@@ -1952,7 +1952,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		resultID := "teamId"
 		team := "teamName"
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("team", team))
@@ -1999,7 +1999,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		role := "system_admin"
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "5"))
 		s.Require().NoError(s.cmd.Flags().Set("role", role))
@@ -2026,7 +2026,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		role := "system_user"
 
-		s.cmd := ResetListUsersCmd(s.T())
+		s.cmd = ResetListUsersCmd(s.T())
 		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
 		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 		s.Require().NoError(s.cmd.Flags().Set("role", role))
