@@ -69,7 +69,7 @@ const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, re
     const Component = pluginComponentInfo.component;
 
     return (
-        <ErrorBoundary>
+        <ErrorBoundary pluginId={pluginComponentInfo.pluginId}>
             <Component
                 key={pluginComponentInfo.pluginId}
                 onChangeSearch={searchChangeCallback}

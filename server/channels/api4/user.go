@@ -83,6 +83,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(handleDeviceProps)).Methods(http.MethodPut)
+	api.BaseRoutes.Users.Handle("/sessions/attributes/manifest", api.APIHandler(getSessionAttributesManifest)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods(http.MethodPost)
@@ -2623,6 +2624,18 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	ReturnStatusOK(w)
 }
 
+func getSessionAttributesManifest(c *Context, w http.ResponseWriter, r *http.Request) {
+	manifest, appErr := c.App.GetSessionAttributesManifest(c.AppContext, r)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		c.Logger.Warn("Error while writing session attributes manifest response", mlog.Err(err))
+	}
+}
+
 func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	receivedProps := model.MapFromJSON(r.Body)
 	deviceId := receivedProps["device_id"]
@@ -2912,10 +2925,6 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
-	// TODO: remove once the API officially supports setting expires_at; until
-	// then, strip any client-supplied value so that JSON-decoded requests cannot
-	// set an arbitrary (or zero) expiry through the create-token endpoint.
-	accessToken.ExpiresAt = 0
 
 	token, err := c.App.CreateUserAccessToken(c.AppContext, &accessToken)
 	if err != nil {

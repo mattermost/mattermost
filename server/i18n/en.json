@@ -3247,6 +3247,10 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Session attributes require an Enterprise Advanced license."
+  },
+  {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "The specified property group was not found."
   },
@@ -5025,6 +5029,10 @@
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Failed to send verification email successfully"
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Session attributes are not enabled."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -8927,6 +8935,10 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Session attribute fields cannot be created or deleted, and only their enabled, ttl_seconds and grace_period_seconds may be changed."
+  },
+  {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status."
   },
@@ -9549,6 +9561,18 @@
   {
     "id": "app.user_access_token.expired",
     "translation": "The personal access token has expired."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "The provided expires_at is in the past."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Personal access tokens must include an expiry date because the server enforces a maximum token lifetime."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "The provided expires_at exceeds the configured maximum personal access token lifetime ({{.Days}} days)."
   },
   {
     "id": "app.user_access_token.get_all.app_error",
@@ -11773,6 +11797,10 @@
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Invalid MaximumPersonalAccessTokenLifetimeDays. Must be between 0 (unlimited) and {{.Max}} days."
   },
   {
     "id": "model.config.is_valid.max_url_length.app_error",
