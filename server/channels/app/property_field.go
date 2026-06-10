@@ -63,6 +63,29 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	a.Publish(message)
 }
 
+// rankPropertyFieldGate blocks the rank property field type while the
+// PropertyFieldRank feature flag is disabled. Consolidated here so that both
+// CreatePropertyField (which blocks creating a rank field) and
+// UpdatePropertyFields (which blocks converting an existing field to rank)
+// share a single check. When the flag is off there should be no rank fields,
+// so rejecting any field whose resulting type is rank also defensively blocks
+// edits to a stray rank field.
+func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
+	if field == nil || field.Type != model.PropertyFieldTypeRank {
+		return nil
+	}
+	if a.Config().FeatureFlags.PropertyFieldRank {
+		return nil
+	}
+	return model.NewAppError(
+		where,
+		"app.property_field.rank_disabled.app_error",
+		nil,
+		"rank property fields are not enabled",
+		http.StatusBadRequest,
+	)
+}
+
 // CreatePropertyField creates a new property field.
 func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
 	if field == nil {
@@ -72,6 +95,10 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// Intrinsic invariants (apply to every caller — HTTP, plugin, internal).
 	CanonicalizeSystemObjectField(field)
 	field.Name = strings.TrimSpace(field.Name)
+
+	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
+		return nil, appErr
+	}
 
 	if !bypassProtectedCheck && field.Protected {
 		return nil, model.NewAppError(
@@ -248,6 +275,12 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			// Service-level GetPropertyFields returns an ErrResultsMismatch when
 			// any input ID is missing, so this branch is defensive.
 			continue
+		}
+
+		// Rank-type gate: block converting a field to rank while the feature
+		// flag is off (shares the create-path check).
+		if appErr := a.rankPropertyFieldGate("UpdatePropertyFields", f); appErr != nil {
+			return nil, nil, appErr
 		}
 
 		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&

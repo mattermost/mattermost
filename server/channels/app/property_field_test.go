@@ -1122,6 +1122,12 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
+	// Rank fields are gated behind the PropertyFieldRank feature flag.
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldRank = true
+	})
+
 	groupID := registerTestPropertyGroup(t, th)
 
 	newRankField := func(t *testing.T) *model.PropertyField {
@@ -1188,5 +1194,119 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 
 		appErr = th.App.DeletePropertyField(th.Context, groupID, f.ID, false, "")
 		require.Nil(t, appErr)
+	})
+}
+
+// TestPropertyFieldRankGate verifies the consolidated PropertyFieldRank feature
+// flag gate in CreatePropertyField / UpdatePropertyFields: when the flag is off
+// (the default), the app layer must reject both creating a rank field and
+// converting an existing field to rank, while leaving non-rank fields alone.
+func TestPropertyFieldRankGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// Feature flags are read-only at runtime by default; allow this test to
+	// toggle PropertyFieldRank on and off.
+	th.ConfigStore.SetReadOnlyFF(false)
+
+	setRankFlag := func(t *testing.T, enabled bool) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldRank = enabled
+		})
+	}
+
+	rankField := func() *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "rank_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "LOW", "rank": 1},
+					map[string]any{"name": "HIGH", "rank": 2},
+				},
+			},
+		}
+	}
+
+	textField := func() *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+	}
+
+	t.Run("rejects creating a rank field when the flag is off", func(t *testing.T) {
+		setRankFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, rankField(), false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, "app.property_field.rank_disabled.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("rejects converting an existing field to rank when the flag is off", func(t *testing.T) {
+		setRankFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, textField(), false, "")
+		require.Nil(t, appErr)
+
+		created.Type = model.PropertyFieldTypeRank
+		created.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "LOW", "rank": 1},
+			},
+		}
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.rank_disabled.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("allows non-rank field create and update when the flag is off", func(t *testing.T) {
+		setRankFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, textField(), false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "renamed_" + model.NewId()
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeText, updated.Type)
+	})
+
+	t.Run("allows creating a rank field when the flag is on", func(t *testing.T) {
+		setRankFlag(t, true)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, rankField(), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeRank, created.Type)
+	})
+
+	t.Run("allows converting an existing field to rank when the flag is on", func(t *testing.T) {
+		setRankFlag(t, true)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, textField(), false, "")
+		require.Nil(t, appErr)
+
+		created.Type = model.PropertyFieldTypeRank
+		created.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "LOW", "rank": 1},
+			},
+		}
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeRank, updated.Type)
 	})
 }

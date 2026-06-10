@@ -858,6 +858,7 @@ func TestPatchPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldRank = true
 	}).InitBasic(t)
 
 	// Register property groups for testing

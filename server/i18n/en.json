@@ -8393,6 +8393,10 @@
     "translation": "The specified property field does not exist."
   },
   {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Rank property fields are not enabled."
+  },
+  {
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields."
   },

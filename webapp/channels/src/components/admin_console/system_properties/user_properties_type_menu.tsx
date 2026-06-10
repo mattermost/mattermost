@@ -13,6 +13,7 @@ import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, FieldValueType, UserPropertyField} from '@mattermost/types/properties';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import * as Menu from 'components/menu';
 
 import './user_properties_type_menu.scss';
@@ -25,6 +26,7 @@ interface Props {
 const SelectType = (props: Props) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
+    const rankEnabled = useGetFeatureFlagValue('PropertyFieldRank') === 'true';
 
     const onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
@@ -44,9 +46,13 @@ const SelectType = (props: Props) => {
 
     const options = useMemo(() => {
         return Object.values(TYPE_DESCRIPTOR).filter((descriptor) => {
+            // Gate the rank type behind the PropertyFieldRank feature flag.
+            if (descriptor.fieldType === 'rank' && !rankEnabled) {
+                return false;
+            }
             return formatMessage(descriptor.label).toLowerCase().includes(filter.toLowerCase());
         });
-    }, [TYPE_DESCRIPTOR, filter]);
+    }, [TYPE_DESCRIPTOR, filter, rankEnabled, formatMessage]);
 
     const currentTypeDescriptor = useMemo(() => {
         return getTypeDescriptor(props.field);
