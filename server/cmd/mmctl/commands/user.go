@@ -645,7 +645,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		}
 	}
 
-	user, err := getUserFromArg(c, args[0])
+	user, err := getUserFromArg(cmd.Context(), c, args[0])
 	if err != nil {
 		return err
 	}
@@ -926,7 +926,7 @@ func convertUserToBot(c client.Client, cmd *cobra.Command, userArgs []string) er
 }
 
 func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	user, err := getUserFromArg(c, userArgs[0])
+	user, err := getUserFromArg(cmd.Context(), c, userArgs[0])
 	if err != nil {
 		return err
 	}
@@ -1119,7 +1119,7 @@ func userEditCmdF(c client.Client, cmd *cobra.Command, args []string, fieldName 
 	userArg := args[0]
 	newValue := args[1]
 
-	user, err := getUserFromArg(c, userArg)
+	user, err := getUserFromArg(cmd.Context(), c, userArg)
 	if err != nil {
 		return err
 	}

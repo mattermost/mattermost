@@ -55,15 +55,15 @@ func channelUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("not enough arguments")
 	}
 
-	channel := getChannelFromChannelArg(c, args[0])
+	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
 	if channel == nil {
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	var result *multierror.Error
-	users := getUsersFromUserArgs(c, args[1:])
+	users := getUsersFromUserArgs(cmd.Context(), c, args[1:])
 	for i, user := range users {
-		err := addUserToChannel(c, channel, user, args[i+1])
+		err := addUserToChannel(cmd.Context(), c, channel, user, args[i+1])
 		if err != nil {
 			printer.PrintError(err.Error())
 			result = multierror.Append(result, err)
@@ -73,11 +73,11 @@ func channelUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	return result.ErrorOrNil()
 }
 
-func addUserToChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) error {
+func addUserToChannel(ctx context.Context, c client.Client, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
 		return fmt.Errorf("unable to find user %q", userArg)
 	}
-	if _, _, err := c.AddChannelMember(context.TODO(), channel.Id, user.Id); err != nil {
+	if _, _, err := c.AddChannelMember(ctx, channel.Id, user.Id); err != nil {
 		return fmt.Errorf("unable to add %q to %q. Error: %w", userArg, channel.Name, err)
 	}
 	return nil
@@ -94,19 +94,19 @@ func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.New("you must specify some users to remove from the channel, or use the --all-users flag to remove them all")
 	}
 
-	channel := getChannelFromChannelArg(c, args[0])
+	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
 	if channel == nil {
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	var result *multierror.Error
 	if allUsers {
-		if err := removeAllUsersFromChannel(c, channel); err != nil {
+		if err := removeAllUsersFromChannel(cmd.Context(), c, channel); err != nil {
 			return err
 		}
 	} else {
-		for i, user := range getUsersFromUserArgs(c, args[1:]) {
-			err := removeUserFromChannel(c, channel, user, args[i+1])
+		for i, user := range getUsersFromUserArgs(cmd.Context(), c, args[1:]) {
+			err := removeUserFromChannel(cmd.Context(), c, channel, user, args[i+1])
 			if err != nil {
 				printer.PrintError(err.Error())
 				result = multierror.Append(result, err)
@@ -117,26 +117,26 @@ func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	return result.ErrorOrNil()
 }
 
-func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) error {
+func removeUserFromChannel(ctx context.Context, c client.Client, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
 		return fmt.Errorf("unable to find user %q", userArg)
 	}
-	if _, err := c.RemoveUserFromChannel(context.TODO(), channel.Id, user.Id); err != nil {
+	if _, err := c.RemoveUserFromChannel(ctx, channel.Id, user.Id); err != nil {
 		return fmt.Errorf("unable to remove %q from %q. Error: %w", userArg, channel.Name, err)
 	}
 	return nil
 }
 
-func removeAllUsersFromChannel(c client.Client, channel *model.Channel) error {
+func removeAllUsersFromChannel(ctx context.Context, c client.Client, channel *model.Channel) error {
 	var result *multierror.Error
-	members, _, err := c.GetChannelMembers(context.TODO(), channel.Id, 0, 10000, "")
+	members, _, err := c.GetChannelMembers(ctx, channel.Id, 0, 10000, "")
 	if err != nil {
 		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
 		return fmt.Errorf("unable to remove all users from %q: %w", channel.Name, err)
 	}
 
 	for _, member := range members {
-		if _, err := c.RemoveUserFromChannel(context.TODO(), channel.Id, member.UserId); err != nil {
+		if _, err := c.RemoveUserFromChannel(ctx, channel.Id, member.UserId); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to remove %q from %q Error: %w", member.UserId, channel.Name, err))
 			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + err.Error())
 		}

@@ -81,7 +81,7 @@ func extractRunCmdF(c client.Client, command *cobra.Command, args []string) erro
 		to = model.GetMillis() / 1000
 	}
 
-	job, _, err := c.CreateJob(context.TODO(), &model.Job{
+	job, _, err := c.CreateJob(command.Context(), &model.Job{
 		Type: model.JobTypeExtractContent,
 		Data: map[string]string{
 			"from": strconv.FormatInt(from, 10),
@@ -98,7 +98,7 @@ func extractRunCmdF(c client.Client, command *cobra.Command, args []string) erro
 }
 
 func extractJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
-	job, _, err := c.GetJob(context.TODO(), args[0])
+	job, _, err := c.GetJob(command.Context(), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get content extraction job: %w", err)
 	}

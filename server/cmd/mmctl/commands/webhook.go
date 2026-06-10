@@ -93,7 +93,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 		var err error
 		// If no team is specified, list all teams
 		teams, err = getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
-			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
+			return c.GetAllTeams(command.Context(), etag, page, numPerPage)
 		}, DefaultPageSize)
 		if err != nil {
 			return err
@@ -111,7 +111,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 		incomingResult := make(chan StoreResult[[]*model.IncomingWebhook], 1)
 		go func() {
 			incomingHooks, err := getPages(func(page, numPerPage int, etag string) ([]*model.IncomingWebhook, *model.Response, error) {
-				return c.GetIncomingWebhooksForTeam(context.TODO(), team.Id, page, numPerPage, etag)
+				return c.GetIncomingWebhooksForTeam(command.Context(), team.Id, page, numPerPage, etag)
 			}, DefaultPageSize)
 			incomingResult <- StoreResult[[]*model.IncomingWebhook]{Data: incomingHooks, Err: err}
 			close(incomingResult)
@@ -119,7 +119,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 		outgoingResult := make(chan StoreResult[[]*model.OutgoingWebhook], 1)
 		go func() {
 			outgoingHooks, err := getPages(func(page, numPerPage int, etag string) ([]*model.OutgoingWebhook, *model.Response, error) {
-				return c.GetOutgoingWebhooksForTeam(context.TODO(), team.Id, page, numPerPage, etag)
+				return c.GetOutgoingWebhooksForTeam(command.Context(), team.Id, page, numPerPage, etag)
 			}, DefaultPageSize)
 			outgoingResult <- StoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, Err: err}
 			close(outgoingResult)
@@ -175,7 +175,7 @@ func createIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 		UserId:        user.Id,
 	}
 
-	createdIncoming, _, err := c.CreateIncomingWebhook(context.TODO(), incomingWebhook)
+	createdIncoming, _, err := c.CreateIncomingWebhook(command.Context(), incomingWebhook)
 	if err != nil {
 		printer.PrintError("Unable to create webhook")
 		return err
@@ -192,7 +192,7 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	printer.SetSingle(true)
 
 	webhookArg := args[0]
-	oldHook, _, err := c.GetIncomingWebhook(context.TODO(), webhookArg, "")
+	oldHook, _, err := c.GetIncomingWebhook(command.Context(), webhookArg, "")
 	if err != nil {
 		return errors.New("Unable to find webhook '" + webhookArg + "'")
 	}
@@ -224,7 +224,7 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	updatedHook.ChannelLocked = channelLocked
 
 	var newHook *model.IncomingWebhook
-	if newHook, _, err = c.UpdateIncomingWebhook(context.TODO(), updatedHook); err != nil {
+	if newHook, _, err = c.UpdateIncomingWebhook(command.Context(), updatedHook); err != nil {
 		printer.PrintError("Unable to modify incoming webhook")
 		return err
 	}
@@ -288,7 +288,7 @@ func createOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 		}
 	}
 
-	createdOutgoing, _, err := c.CreateOutgoingWebhook(context.TODO(), outgoingWebhook)
+	createdOutgoing, _, err := c.CreateOutgoingWebhook(command.Context(), outgoingWebhook)
 	if err != nil {
 		printer.PrintError("Unable to create outgoing webhook")
 		return err
@@ -305,7 +305,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	printer.SetSingle(true)
 
 	webhookArg := args[0]
-	oldHook, _, err := c.GetOutgoingWebhook(context.TODO(), webhookArg)
+	oldHook, _, err := c.GetOutgoingWebhook(command.Context(), webhookArg)
 	if err != nil {
 		return errors.New("unable to find webhook '" + webhookArg + "'")
 	}
@@ -372,7 +372,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	}
 
 	var newHook *model.OutgoingWebhook
-	if newHook, _, err = c.UpdateOutgoingWebhook(context.TODO(), updatedHook); err != nil {
+	if newHook, _, err = c.UpdateOutgoingWebhook(command.Context(), updatedHook); err != nil {
 		printer.PrintError("Unable to modify outgoing webhook")
 		return err
 	}
@@ -385,8 +385,8 @@ func deleteWebhookCmdF(c client.Client, command *cobra.Command, args []string) e
 	printer.SetSingle(true)
 
 	webhookID := args[0]
-	if incomingWebhook, _, err := c.GetIncomingWebhook(context.TODO(), webhookID, ""); err == nil {
-		_, err := c.DeleteIncomingWebhook(context.TODO(), webhookID)
+	if incomingWebhook, _, err := c.GetIncomingWebhook(command.Context(), webhookID, ""); err == nil {
+		_, err := c.DeleteIncomingWebhook(command.Context(), webhookID)
 		if err != nil {
 			printer.PrintError("Unable to delete webhook '" + webhookID + "'")
 			return err
@@ -395,8 +395,8 @@ func deleteWebhookCmdF(c client.Client, command *cobra.Command, args []string) e
 		return nil
 	}
 
-	if outgoingWebhook, _, err := c.GetOutgoingWebhook(context.TODO(), webhookID); err == nil {
-		_, err := c.DeleteOutgoingWebhook(context.TODO(), webhookID)
+	if outgoingWebhook, _, err := c.GetOutgoingWebhook(command.Context(), webhookID); err == nil {
+		_, err := c.DeleteOutgoingWebhook(command.Context(), webhookID)
 		if err != nil {
 			printer.PrintError("Unable to delete webhook '" + webhookID + "'")
 			return err
@@ -413,12 +413,12 @@ func showWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 	printer.SetSingle(true)
 
 	webhookID := args[0]
-	if incomingWebhook, _, err := c.GetIncomingWebhook(context.TODO(), webhookID, ""); err == nil {
+	if incomingWebhook, _, err := c.GetIncomingWebhook(command.Context(), webhookID, ""); err == nil {
 		printer.Print(*incomingWebhook)
 		return nil
 	}
 
-	if outgoingWebhook, _, err := c.GetOutgoingWebhook(context.TODO(), webhookID); err == nil {
+	if outgoingWebhook, _, err := c.GetOutgoingWebhook(command.Context(), webhookID); err == nil {
 		printer.Print(*outgoingWebhook)
 		return nil
 	}

@@ -17,10 +17,10 @@ import (
 
 const channelArgSeparator = ":"
 
-func getChannelsFromChannelArgs(c client.Client, channelArgs []string) []*model.Channel {
+func getChannelsFromChannelArgs(ctx context.Context, c client.Client, channelArgs []string) []*model.Channel {
 	channels := make([]*model.Channel, 0, len(channelArgs))
 	for _, channelArg := range channelArgs {
-		channel := getChannelFromChannelArg(c, channelArg)
+		channel := getChannelFromChannelArg(ctx, c, channelArg)
 		channels = append(channels, channel)
 	}
 	return channels
@@ -34,7 +34,7 @@ func parseChannelArg(channelArg string) (string, string) {
 	return result[0], result[1]
 }
 
-func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel {
+func getChannelFromChannelArg(ctx context.Context, c client.Client, channelArg string) *model.Channel {
 	teamArg, channelPart := parseChannelArg(channelArg)
 	if teamArg == "" && channelPart == "" {
 		return nil
@@ -46,16 +46,16 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 
 	var channel *model.Channel
 	if teamArg != "" {
-		team := getTeamFromTeamArg(c, teamArg)
+		team := getTeamFromTeamArg(ctx, c, teamArg)
 		if team == nil {
 			return nil
 		}
 
-		channel, _, _ = c.GetChannelByNameIncludeDeleted(context.TODO(), channelPart, team.Id, "")
+		channel, _, _ = c.GetChannelByNameIncludeDeleted(ctx, channelPart, team.Id, "")
 	}
 
 	if channel == nil {
-		channel, _, _ = c.GetChannel(context.TODO(), channelPart)
+		channel, _, _ = c.GetChannel(ctx, channelPart)
 	}
 
 	return channel
@@ -65,11 +65,11 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 // at the same time
 //
 //nolint:golint,unused
-func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channel, error) {
+func getChannelsFromArgs(ctx context.Context, c client.Client, channelArgs []string) ([]*model.Channel, error) {
 	var channels []*model.Channel
 	var result *multierror.Error
 	for _, channelArg := range channelArgs {
-		channel, err := getChannelFromArg(c, channelArg)
+		channel, err := getChannelFromArg(ctx, c, channelArg)
 		if err != nil {
 			result = multierror.Append(result, err)
 			continue
@@ -80,7 +80,7 @@ func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channe
 }
 
 //nolint:golint,unused
-func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
+func getChannelFromArg(ctx context.Context, c client.Client, arg string) (*model.Channel, error) {
 	teamArg, channelArg := parseChannelArg(arg)
 	if teamArg == "" && channelArg == "" {
 		return nil, fmt.Errorf("invalid channel argument %q", arg)
@@ -91,11 +91,11 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 	var channel *model.Channel
 	var response *model.Response
 	if teamArg != "" {
-		team, err := getTeamFromArg(c, teamArg)
+		team, err := getTeamFromArg(ctx, c, teamArg)
 		if err != nil {
 			return nil, err
 		}
-		channel, response, err = c.GetChannelByNameIncludeDeleted(context.TODO(), channelArg, team.Id, "")
+		channel, response, err = c.GetChannelByNameIncludeDeleted(ctx, channelArg, team.Id, "")
 		if err != nil {
 			err = ExtractErrorFromResponse(response, err)
 			var nfErr *NotFoundError
@@ -109,7 +109,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		return channel, nil
 	}
 	var err error
-	channel, response, err = c.GetChannel(context.TODO(), channelArg)
+	channel, response, err = c.GetChannel(ctx, channelArg)
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError

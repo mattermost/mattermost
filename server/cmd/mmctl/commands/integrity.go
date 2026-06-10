@@ -85,7 +85,7 @@ func integrityCmdF(c client.Client, command *cobra.Command, args []string) error
 
 	verboseFlag, _ := command.Flags().GetBool("verbose")
 
-	results, _, err := c.CheckIntegrity(context.TODO())
+	results, _, err := c.CheckIntegrity(command.Context())
 	if err != nil {
 		return fmt.Errorf("unable to perform integrity check. Error: %w", err)
 	}

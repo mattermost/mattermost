@@ -75,7 +75,7 @@ func init() {
 	RootCmd.AddCommand(SampledataCmd)
 }
 
-func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
+func uploadAndProcess(ctx context.Context, c client.Client, zipPath string, isLocal bool) error {
 	zipFile, err := os.Open(zipPath)
 	if err != nil {
 		return fmt.Errorf("cannot open import file %q: %w", zipPath, err)
@@ -93,7 +93,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	}
 
 	// create session
-	us, _, err := c.CreateUpload(context.TODO(), &model.UploadSession{
+	us, _, err := c.CreateUpload(ctx, &model.UploadSession{
 		Filename: info.Name(),
 		FileSize: info.Size(),
 		Type:     model.UploadTypeImport,
@@ -106,7 +106,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	printer.PrintT("Upload session successfully created, ID: {{.Id}} ", us)
 
 	// upload file
-	finfo, _, err := c.UploadData(context.TODO(), us.Id, zipFile)
+	finfo, _, err := c.UploadData(ctx, us.Id, zipFile)
 	if err != nil {
 		return fmt.Errorf("failed to upload data: %w", err)
 	}
@@ -114,7 +114,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	printer.PrintT("Import file successfully uploaded, name: {{.Name}}", finfo)
 
 	// process
-	job, _, err := c.CreateJob(context.TODO(), &model.Job{
+	job, _, err := c.CreateJob(ctx, &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": us.Id + "_" + finfo.Name,
@@ -127,7 +127,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	printer.PrintT("Import process job successfully created, ID: {{.Id}}", job)
 
 	for {
-		job, _, err = c.GetJob(context.TODO(), job.Id)
+		job, _, err = c.GetJob(ctx, job.Id)
 		if err != nil {
 			return fmt.Errorf("failed to get import job status: %w", err)
 		}
@@ -404,7 +404,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		}
 
 		isLocal, _ := command.Flags().GetBool("local")
-		if err := uploadAndProcess(c, zipPath, isLocal); err != nil {
+		if err := uploadAndProcess(command.Context(), c, zipPath, isLocal); err != nil {
 			return fmt.Errorf("cannot upload and process zipfile: %w", err)
 		}
 	}

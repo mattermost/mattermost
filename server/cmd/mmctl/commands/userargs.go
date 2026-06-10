@@ -15,28 +15,28 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 )
 
-func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
+func getUsersFromUserArgs(ctx context.Context, c client.Client, userArgs []string) []*model.User {
 	users := make([]*model.User, 0, len(userArgs))
 	for _, userArg := range userArgs {
-		user := getUserFromUserArg(c, userArg)
+		user := getUserFromUserArg(ctx, c, userArg)
 		users = append(users, user)
 	}
 	return users
 }
 
-func getUserFromUserArg(c client.Client, userArg string) *model.User {
+func getUserFromUserArg(ctx context.Context, c client.Client, userArg string) *model.User {
 	var user *model.User
 	if !checkDots(userArg) && model.IsValidEmail(userArg) {
-		user, _, _ = c.GetUserByEmail(context.TODO(), userArg, "")
+		user, _, _ = c.GetUserByEmail(ctx, userArg, "")
 	}
 
 	if !checkSlash(userArg) {
 		if user == nil {
-			user, _, _ = c.GetUserByUsername(context.TODO(), userArg, "")
+			user, _, _ = c.GetUserByUsername(ctx, userArg, "")
 		}
 
 		if user == nil {
-			user, _, _ = c.GetUser(context.TODO(), userArg, "")
+			user, _, _ = c.GetUser(ctx, userArg, "")
 		}
 	}
 
@@ -57,11 +57,11 @@ func checkDots(arg string) bool {
 
 // getUsersFromArgs obtains all the users passed by `userArgs` parameter.
 // It can return users and errors at the same time
-func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error) {
+func getUsersFromArgs(ctx context.Context, c client.Client, userArgs []string) ([]*model.User, error) {
 	users := make([]*model.User, 0, len(userArgs))
 	var result *multierror.Error
 	for _, userArg := range userArgs {
-		user, err := getUserFromArg(c, userArg)
+		user, err := getUserFromArg(ctx, c, userArg)
 		if err != nil {
 			result = multierror.Append(result, err)
 			continue
@@ -71,12 +71,12 @@ func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error)
 	return users, result.ErrorOrNil()
 }
 
-func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
+func getUserFromArg(ctx context.Context, c client.Client, userArg string) (*model.User, error) {
 	var user *model.User
 	var response *model.Response
 	var err error
 	if !checkDots(userArg) && model.IsValidEmail(userArg) {
-		user, response, err = c.GetUserByEmail(context.TODO(), userArg, "")
+		user, response, err = c.GetUserByEmail(ctx, userArg, "")
 		if err != nil {
 			nErr := ExtractErrorFromResponse(response, err)
 			var nfErr *NotFoundError
@@ -89,7 +89,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 
 	if !checkSlash(userArg) {
 		if user == nil {
-			user, response, err = c.GetUserByUsername(context.TODO(), userArg, "")
+			user, response, err = c.GetUserByUsername(ctx, userArg, "")
 			if err != nil {
 				nErr := ExtractErrorFromResponse(response, err)
 				var nfErr *NotFoundError
@@ -101,7 +101,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 		}
 
 		if user == nil {
-			user, response, err = c.GetUser(context.TODO(), userArg, "")
+			user, response, err = c.GetUser(ctx, userArg, "")
 			if err != nil {
 				nErr := ExtractErrorFromResponse(response, err)
 				var nfErr *NotFoundError

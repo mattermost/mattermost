@@ -13,26 +13,26 @@ import (
 )
 
 // getCommandFromCommandArg retrieves a Command by command id or team:trigger.
-func getCommandFromCommandArg(c client.Client, commandArg string) *model.Command {
+func getCommandFromCommandArg(ctx context.Context, c client.Client, commandArg string) *model.Command {
 	if checkSlash(commandArg) {
 		return nil
 	}
 
-	cmd := getCommandFromTeamTrigger(c, commandArg)
+	cmd := getCommandFromTeamTrigger(ctx, c, commandArg)
 	if cmd == nil {
-		cmd, _, _ = c.GetCommandById(context.TODO(), commandArg)
+		cmd, _, _ = c.GetCommandById(ctx, commandArg)
 	}
 	return cmd
 }
 
 // getCommandFromTeamTrigger retrieves a Command via team:trigger syntax.
-func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Command {
+func getCommandFromTeamTrigger(ctx context.Context, c client.Client, teamTrigger string) *model.Command {
 	arr := strings.Split(teamTrigger, ":")
 	if len(arr) != 2 {
 		return nil
 	}
 
-	team, _, _ := c.GetTeamByName(context.TODO(), arr[0], "")
+	team, _, _ := c.GetTeamByName(ctx, arr[0], "")
 	if team == nil {
 		return nil
 	}
@@ -42,7 +42,7 @@ func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Comma
 		return nil
 	}
 
-	list, _, _ := c.ListCommands(context.TODO(), team.Id, false)
+	list, _, _ := c.ListCommands(ctx, team.Id, false)
 	if list == nil {
 		return nil
 	}
