@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {expect, PlaywrightExtended, SystemConsolePage, test} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended, SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test(
     'MM-63378 System Manager without team access permissions cannot view team details',

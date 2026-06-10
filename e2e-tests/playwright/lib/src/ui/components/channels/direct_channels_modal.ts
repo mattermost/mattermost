@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {UserProfile} from '@mattermost/types/users';
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class DirectChannelsModal {
     readonly container;

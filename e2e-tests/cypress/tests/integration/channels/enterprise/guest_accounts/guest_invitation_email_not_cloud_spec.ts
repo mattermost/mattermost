@@ -15,7 +15,7 @@
  * (email retrieval), so it is restricted to non-cloud editions.
  */
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {
     changeGuestFeatureSettings,

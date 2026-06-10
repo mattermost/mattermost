@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
 
 import {createBotPatch} from '@/support/api/bots';
 import {createChannelPatch} from '@/support/api/channel';
