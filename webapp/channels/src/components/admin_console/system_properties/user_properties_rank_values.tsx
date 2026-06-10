@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {KeyboardEvent} from 'react';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {components} from 'react-select';
 
@@ -11,6 +11,7 @@ import {CheckIcon, ChevronRightIcon} from '@mattermost/compass-icons/components'
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
@@ -57,14 +58,24 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
         updateField({...field, attrs: {...field.attrs, options: newOptions}});
     };
 
+    // Whether `name` already belongs to an option other than the one at
+    // exceptAscIndex (an index into the ascending-rank ordering). Names are
+    // compared exactly, matching the add-value duplicate check below.
+    const nameCollidesWith = useCallback(
+        (name: string, exceptAscIndex: number) =>
+            ascOptions.some((option, i) => i !== exceptAscIndex && option.name === name),
+        [ascOptions],
+    );
+
     const handleRename = (ascIndex: number, name: string) => {
         const trimmed = name.trim();
         if (!trimmed || ascOptions[ascIndex]?.name === trimmed) {
             return;
         }
 
-        // Ignore a rename that would collide with another option's name.
-        if (options.some((option, i) => option.name === trimmed && i !== options.indexOf(ascOptions[ascIndex]))) {
+        // Block a rename that would collide with another option's name. The chip
+        // surfaces the duplicate inline, so this no-op isn't a silent dead end.
+        if (nameCollidesWith(trimmed, ascIndex)) {
             return;
         }
         setOptions(ascOptions.map((option, i) => (i === ascIndex ? {...option, name: trimmed} : option)));
@@ -103,6 +114,7 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
                         ascIndex={ascIndex}
                         sortedRanks={sortedRanks}
                         disabled={isDisabled}
+                        nameCollidesWith={nameCollidesWith}
                         onRename={handleRename}
                         onMoveToPosition={handleMoveToPosition}
                         onRemove={handleRemove}
@@ -142,6 +154,7 @@ type RankChipProps = {
     ascIndex: number;
     sortedRanks: number[];
     disabled: boolean;
+    nameCollidesWith: (name: string, exceptAscIndex: number) => boolean;
     onRename: (ascIndex: number, name: string) => void;
     onMoveToPosition: (ascIndex: number, targetAscIndex: number) => void;
     onRemove: (ascIndex: number) => void;
@@ -149,7 +162,7 @@ type RankChipProps = {
 
 // A single ranked chip plus its inline editing popover. Owns the label-edit
 // draft so the popover's items can be direct children of Menu.Container.
-const RankChip = ({option, ascIndex, sortedRanks, disabled, onRename, onMoveToPosition, onRemove}: RankChipProps) => {
+const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, onRename, onMoveToPosition, onRemove}: RankChipProps) => {
     const {formatMessage} = useIntl();
     const total = sortedRanks.length;
     const [label, setLabel] = useState(option.name);
@@ -159,6 +172,24 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, onRename, onMoveToPo
     }, [option.name]);
 
     const commitLabel = () => onRename(ascIndex, label);
+
+    // Surface a duplicate-name collision inline beneath the label input, mirroring
+    // the add-value flow, so a blocked rename gives feedback instead of silently
+    // reverting. Memoized so its stable reference doesn't retrigger the input's
+    // customMessage effect on every keystroke.
+    const trimmedLabel = label.trim();
+    const labelError = useMemo<CustomMessageInputType>(() => {
+        if (!trimmedLabel || !nameCollidesWith(trimmedLabel, ascIndex)) {
+            return null;
+        }
+        return {
+            type: 'error',
+            value: formatMessage({
+                id: 'admin.system_properties.user_properties.table.validation.values_unique',
+                defaultMessage: 'Values must be unique.',
+            }),
+        };
+    }, [trimmedLabel, nameCollidesWith, ascIndex, formatMessage]);
 
     const chipId = `rank-chip-${option.id || option.name}`;
 
@@ -214,6 +245,7 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, onRename, onMoveToPo
                     type='text'
                     value={label}
                     maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                    customMessage={labelError}
                     placeholder={formatMessage({
                         id: 'admin.system_properties.user_properties.rank_popover.label_placeholder',
                         defaultMessage: 'Option label',
