@@ -339,12 +339,14 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		a.Srv().Go(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
 				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
-		})
+		}) {
+			c.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+		}
 	}
 
 	// delete upload session
