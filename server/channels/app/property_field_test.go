@@ -1244,6 +1244,27 @@ func TestPropertyFieldRankGate(t *testing.T) {
 		}
 	}
 
+	// classificationRankField models how the classification-markings feature
+	// uses the rank type: a non-user object type (template/system/channel). The
+	// gate is scoped to user-object fields, so these must remain creatable and
+	// editable even with the flag off — otherwise the classification admin
+	// panel breaks in the default configuration.
+	classificationRankField := func() *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "classification_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "UNCLASSIFIED", "rank": 1},
+					map[string]any{"name": "SECRET", "rank": 2},
+				},
+			},
+		}
+	}
+
 	t.Run("rejects creating a rank field when the flag is off", func(t *testing.T) {
 		setRankFlag(t, false)
 
@@ -1283,6 +1304,34 @@ func TestPropertyFieldRankGate(t *testing.T) {
 		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, model.PropertyFieldTypeText, updated.Type)
+	})
+
+	t.Run("allows creating a non-user (classification) rank field when the flag is off", func(t *testing.T) {
+		setRankFlag(t, false)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, classificationRankField(), false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeRank, created.Type)
+		assert.Equal(t, model.PropertyFieldObjectTypeChannel, created.ObjectType)
+	})
+
+	t.Run("allows converting a non-user field to rank when the flag is off", func(t *testing.T) {
+		setRankFlag(t, false)
+
+		channelText := textField()
+		channelText.ObjectType = model.PropertyFieldObjectTypeChannel
+		created, appErr := th.App.CreatePropertyField(th.Context, channelText, false, "")
+		require.Nil(t, appErr)
+
+		created.Type = model.PropertyFieldTypeRank
+		created.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "UNCLASSIFIED", "rank": 1},
+			},
+		}
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PropertyFieldTypeRank, updated.Type)
 	})
 
 	t.Run("allows creating a rank field when the flag is on", func(t *testing.T) {

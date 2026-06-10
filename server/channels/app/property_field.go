@@ -63,15 +63,25 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	a.Publish(message)
 }
 
-// rankPropertyFieldGate blocks the rank property field type while the
-// PropertyFieldRank feature flag is disabled. Consolidated here so that both
-// CreatePropertyField (which blocks creating a rank field) and
+// rankPropertyFieldGate blocks the user-facing "rank" custom profile attribute
+// type while the PropertyFieldRank feature flag is disabled. Consolidated here
+// so that both CreatePropertyField (which blocks creating a rank field) and
 // UpdatePropertyFields (which blocks converting an existing field to rank)
-// share a single check. When the flag is off there should be no rank fields,
-// so rejecting any field whose resulting type is rank also defensively blocks
-// edits to a stray rank field.
+// share a single check.
+//
+// The gate is scoped to user-object fields, because that is the only place the
+// user-facing rank type can originate: createCPAField forces ObjectType=user
+// before reaching CreatePropertyField. Rank fields on other object types are
+// intentionally exempt — in particular the classification-markings fields
+// (template/system/channel in the access_control group) legitimately use the
+// rank type and ship behind the separate, GA-by-default ClassificationMarkings
+// flag. Gating those here would break the classification admin panel (create
+// and edit alike) whenever PropertyFieldRank is off, which is the default.
 func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
 	if field == nil || field.Type != model.PropertyFieldTypeRank {
+		return nil
+	}
+	if field.ObjectType != model.PropertyFieldObjectTypeUser {
 		return nil
 	}
 	if a.Config().FeatureFlags.PropertyFieldRank {
