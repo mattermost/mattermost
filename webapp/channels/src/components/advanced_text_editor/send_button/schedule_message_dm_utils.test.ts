@@ -233,10 +233,7 @@ describe('schedule_message_dm_utils', () => {
         });
 
         it('returns false for non-DM channels', () => {
-            mockedGetDirectChannel.mockReturnValue({
-                id: channelId,
-                type: 'O',
-            } as never);
+            mockedGetDirectChannel.mockReturnValue(undefined);
 
             expect(isDmScheduleRedesign(state, channelId)).toBe(false);
         });
@@ -270,15 +267,15 @@ describe('schedule_message_dm_utils', () => {
             expect(isDmScheduleRedesign(state, channelId)).toBe(false);
         });
 
-        it('returns false when teammate profile is not loaded', () => {
+        it('returns true when teammate profile is not loaded yet', () => {
             mockedGetDirectChannel.mockReturnValue({
                 id: channelId,
                 teammate_id: 'teammate_user_id',
                 type: 'D',
             } as never);
-            mockedGetUser.mockReturnValue(undefined);
+            mockedGetUser.mockReturnValue(undefined as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+            expect(isDmScheduleRedesign(state, channelId)).toBe(true);
         });
 
         it('returns true for 1:1 DM with a human teammate', () => {

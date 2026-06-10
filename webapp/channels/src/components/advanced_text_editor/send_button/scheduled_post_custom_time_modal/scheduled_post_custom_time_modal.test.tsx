@@ -68,7 +68,7 @@ const defaultHookValue = {
     recipientTimezoneString: 'Europe/London',
     teammateDisplayName: 'Sarah',
     teammateFirstName: 'Sarah',
-    teammate: undefined,
+    teammate: {id: 'user2', username: 'sarah'} as ReturnType<typeof useTimePostBoxIndicator>['teammate'],
     isDM: true,
     isSelfDM: false,
     isBot: false,
@@ -87,7 +87,7 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
         onExited.mockReset();
         onConfirm.mockReset().mockResolvedValue({});
         mockedIsDmScheduleRedesign.mockReturnValue(true);
-        mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue as ReturnType<typeof useTimePostBoxIndicator>);
+        mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue);
         mockedReinterpretWallClock.mockImplementation(
             jest.requireActual('components/advanced_text_editor/send_button/schedule_message_dm_utils').reinterpretWallClock,
         );
@@ -112,7 +112,7 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
         expect(screen.getByText(/your time/)).toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Remove schedule'})).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Cancel'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Schedule', exact: true})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /^Schedule$/})).toBeInTheDocument();
     });
 
     it('shows remove schedule only when onRemoveSchedule is provided', () => {
@@ -186,7 +186,7 @@ describe('ScheduledPostCustomTimeModal legacy layout', () => {
         onExited.mockReset();
         onConfirm.mockReset().mockResolvedValue({});
         mockedIsDmScheduleRedesign.mockReturnValue(false);
-        mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue as ReturnType<typeof useTimePostBoxIndicator>);
+        mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue);
     });
 
     it('shows remove schedule when rescheduling an existing scheduled post', () => {
@@ -203,7 +203,23 @@ describe('ScheduledPostCustomTimeModal legacy layout', () => {
 
         expect(screen.getByRole('button', {name: 'Remove schedule'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Cancel'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Schedule', exact: true})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /^Schedule$/})).toBeInTheDocument();
+    });
+
+    it('shows DM checkbox when rescheduling a DM scheduled post', () => {
+        mockedIsDmScheduleRedesign.mockReturnValue(true);
+
+        renderWithContext(
+            <ScheduledPostCustomTimeModal
+                channelId='dm_channel_id'
+                onExited={onExited}
+                onConfirm={onConfirm}
+                onRemoveSchedule={jest.fn().mockResolvedValue({})}
+            />,
+        );
+
+        expect(screen.getByRole('checkbox', {name: /Use recipient's timezone/})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Remove schedule'})).toBeInTheDocument();
     });
 
     it('does not show remove schedule when scheduling a new message', () => {

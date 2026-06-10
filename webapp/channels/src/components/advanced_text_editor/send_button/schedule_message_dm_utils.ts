@@ -138,7 +138,7 @@ export function isDmScheduleRedesign(state: GlobalState, channelId: string): boo
     }
 
     const teammate = getUser(state, teammateId);
-    if (!teammate || teammate.is_bot) {
+    if (teammate?.is_bot) {
         return false;
     }
 
