@@ -10,8 +10,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
@@ -60,15 +58,13 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 		}
 		mockUser := model.User{Id: mockOAuthApp.CreatorId, Username: "mockuser"}
 
-		pageCmd := &cobra.Command{}
-		pageCmd.SetContext(s.T().Context())
-		pageCmd.Flags().Int("page", 0, "")
-		pageCmd.Flags().Int("per-page", 200, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 200, "")
 
 		page := 1
 		perPage := 2
-		_ = pageCmd.Flags().Set("page", strconv.Itoa(page))
-		_ = pageCmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = s.cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = s.cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 
 		s.client.
 			EXPECT().
@@ -82,7 +78,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
-		err := listOAuthAppsCmdF(s.client, pageCmd, []string{})
+		err := listOAuthAppsCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
