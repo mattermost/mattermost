@@ -204,11 +204,21 @@ describe('UserAccessTokenSection component', () => {
     };
 
     describe('create form validation branches', () => {
-        test('requires a description', () => {
-            renderSection();
+        test('disables Save until a description is provided', () => {
+            const {container} = renderSection();
             startCreating();
-            clickSave();
-            expect(screen.getByText('Please enter a description.')).toBeInTheDocument();
+
+            expect(screen.getByText('Save').closest('button')).toBeDisabled();
+
+            change(container, '#newTokenDescription', 'my token');
+            expect(screen.getByText('Save').closest('button')).toBeEnabled();
+        });
+
+        test('keeps Save disabled for a whitespace-only description', () => {
+            const {container} = renderSection();
+            startCreating();
+            change(container, '#newTokenDescription', '   ');
+            expect(screen.getByText('Save').closest('button')).toBeDisabled();
         });
 
         test('requires a date when the custom preset is chosen but left empty', () => {

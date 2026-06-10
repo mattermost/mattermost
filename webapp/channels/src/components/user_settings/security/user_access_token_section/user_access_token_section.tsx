@@ -164,11 +164,11 @@ type State = {
     confirmHideCancel?: boolean;
     expiryPreset: ExpiryPreset;
     customExpiryDate: string;
+    tokenDescription: string;
 }
 
 class UserAccessTokenSection extends React.PureComponent<Props, State> {
     private minRef: React.RefObject<SettingItemMinComponent>;
-    private newtokendescriptionRef: React.RefObject<HTMLInputElement>;
 
     constructor(props: Props) {
         super(props);
@@ -183,8 +183,8 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             saving: false,
             expiryPreset: this.defaultExpiryPreset(),
             customExpiryDate: this.defaultCustomExpiryDate(),
+            tokenDescription: '',
         };
-        this.newtokendescriptionRef = React.createRef();
         this.minRef = React.createRef();
     }
 
@@ -266,8 +266,13 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             tokenCreationState: TOKEN_CREATING,
             expiryPreset: this.defaultExpiryPreset(),
             customExpiryDate: this.defaultCustomExpiryDate(),
+            tokenDescription: '',
             tokenError: '',
         });
+    };
+
+    handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({tokenDescription: e.target.value, tokenError: ''});
     };
 
     stopCreatingToken = () => {
@@ -289,7 +294,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
     handleCreateToken = async () => {
         this.handleCancelConfirm();
 
-        const description = this.newtokendescriptionRef ? this.newtokendescriptionRef.current!.value : '';
+        const description = this.state.tokenDescription.trim();
 
         if (description === '') {
             this.setState({
@@ -878,7 +883,13 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             );
 
             newTokenSection = (
-                <div className='pl-3'>
+                <div className='setting-box__new-token'>
+                    <div className='setting-box__new-token-title'>
+                        <FormattedMessage
+                            id='user.settings.tokens.createHeading'
+                            defaultMessage='Create New Token'
+                        />
+                    </div>
                     <div className='row'>
                         <label
                             className='col-sm-auto control-label pr-3'
@@ -893,10 +904,11 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                             <input
                                 id='newTokenDescription'
                                 autoFocus={true}
-                                ref={this.newtokendescriptionRef}
                                 className='form-control'
                                 type='text'
                                 maxLength={64}
+                                value={this.state.tokenDescription}
+                                onChange={this.handleDescriptionChange}
                                 onKeyPress={this.saveTokenKeyPress}
                             />
                         </div>
@@ -925,6 +937,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                                 />
                             }
                             saving={this.state.saving}
+                            disabled={this.state.tokenDescription.trim() === ''}
                             onClick={this.confirmCreateToken}
                         />
                         <Button

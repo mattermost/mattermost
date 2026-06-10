@@ -534,6 +534,20 @@
                     }
                 }
 
+                .setting-box__new-token {
+                    margin-top: 20px;
+                    padding: 20px;
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                    border-radius: 4px;
+                    background: rgba(var(--center-channel-color-rgb), 0.04);
+                }
+
+                .setting-box__new-token-title {
+                    margin-bottom: 16px;
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+
                 .setting-box__token-id {
                     margin: 4px 0;
                 }
