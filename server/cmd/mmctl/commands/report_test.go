@@ -6,11 +6,9 @@
 package commands
 
 import (
-	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -19,16 +17,15 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 	s.Run("no channel specified", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 100, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 100, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{""})
+		err := reportPostsCmdF(s.client, s.cmd, []string{""})
 		s.Require().EqualError(err, "Unable to find channel ''")
 	})
 
@@ -38,20 +35,19 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "invalid_field", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 100, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "invalid_field", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 100, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().EqualError(err, "time-field must be either 'create_at' or 'update_at'")
 	})
 
@@ -61,20 +57,19 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "invalid", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 100, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "invalid", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 100, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().EqualError(err, "sort-direction must be either 'asc' or 'desc'")
 	})
 
@@ -84,20 +79,19 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 2000, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 2000, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Contains(err.Error(), "per-page must be between 1 and")
 	})
 
@@ -107,20 +101,19 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 0, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 0, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Contains(err.Error(), "per-page must be between 1 and")
 	})
 
@@ -131,13 +124,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -151,16 +144,15 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 100, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 100, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Contains(err.Error(), "failed to get posts for reporting")
 	})
 
@@ -179,13 +171,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -199,16 +191,15 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Return(mockResponse, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 100, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 100, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -229,13 +220,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -249,16 +240,15 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Return(mockResponse, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().String("cursor", "", "")
-		cmd.Flags().Int("per-page", 100, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().String("cursor", "", "")
+		s.cmd.Flags().Int("per-page", 100, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -278,13 +268,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -298,17 +288,16 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Return(mockResponse, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "create_at", "")
-		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
-		cmd.Flags().String("cursor", customCursor, "")
-		cmd.Flags().Int("per-page", 100, "")
-		cmd.Flags().Bool("include-deleted", false, "")
-		cmd.Flags().Bool("exclude-system-posts", false, "")
-		cmd.Flags().Bool("include-metadata", false, "")
+		s.cmd.Flags().String("time-field", "create_at", "")
+		s.cmd.Flags().String("sort-direction", "asc", "")
+		s.cmd.Flags().Int64("end-time", int64(0), "")
+		s.cmd.Flags().String("cursor", customCursor, "")
+		s.cmd.Flags().Int("per-page", 100, "")
+		s.cmd.Flags().Bool("include-deleted", false, "")
+		s.cmd.Flags().Bool("exclude-system-posts", false, "")
+		s.cmd.Flags().Bool("include-metadata", false, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -328,13 +317,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "update_at",
 				SortDirection:      "desc",
@@ -348,16 +337,15 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Return(mockResponse, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("time-field", "update_at", "")
-		cmd.Flags().String("sort-direction", "desc", "")
-		cmd.Flags().String("cursor", customCursor, "")
-		cmd.Flags().Int("per-page", 500, "")
-		cmd.Flags().Bool("include-deleted", true, "")
-		cmd.Flags().Bool("exclude-system-posts", true, "")
-		cmd.Flags().Bool("include-metadata", true, "")
+		s.cmd.Flags().String("time-field", "update_at", "")
+		s.cmd.Flags().String("sort-direction", "desc", "")
+		s.cmd.Flags().String("cursor", customCursor, "")
+		s.cmd.Flags().Int("per-page", 500, "")
+		s.cmd.Flags().Bool("include-deleted", true, "")
+		s.cmd.Flags().Bool("exclude-system-posts", true, "")
+		s.cmd.Flags().Bool("include-metadata", true, "")
 
-		err := reportPostsCmdF(s.client, cmd, []string{channelName})
+		err := reportPostsCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})

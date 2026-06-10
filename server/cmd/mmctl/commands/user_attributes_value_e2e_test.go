@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -17,7 +16,7 @@ import (
 // client (field-id → raw-JSON map, same shape the command returns).
 func (s *MmctlE2ETestSuite) listCPAValuesForUser(userID string) map[string]json.RawMessage {
 	s.T().Helper()
-	values, _, err := s.th.SystemAdminClient.ListCPAValues(context.Background(), userID)
+	values, _, err := s.th.SystemAdminClient.ListCPAValues(s.T().Context(), userID)
 	s.Require().NoError(err)
 	return values
 }
@@ -36,7 +35,7 @@ func (s *MmctlE2ETestSuite) cleanCPAValuesForUser(userID string) {
 		updates[fieldID] = json.RawMessage("null")
 	}
 
-	_, _, err := s.th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), userID, updates)
+	_, _, err := s.th.SystemAdminClient.PatchCPAValuesForUser(s.T().Context(), userID, updates)
 	s.Require().NoError(err)
 }
 
@@ -51,7 +50,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		s.cleanCPAValuesForUser(s.th.BasicUser.Id)
 
 		// Test listing when no values are set
-		err := cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		err := cpaValueListCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -81,12 +80,12 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		updates := map[string]json.RawMessage{
 			createdField.ID: json.RawMessage(`"Engineering"`),
 		}
-		_, _, err := s.th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), s.th.BasicUser.Id, updates)
+		_, _, err := s.th.SystemAdminClient.PatchCPAValuesForUser(s.T().Context(), s.th.BasicUser.Id, updates)
 		s.Require().NoError(err)
 
 		// Test listing the values with plain format (human-readable)
 		printer.SetFormat(printer.FormatPlain)
-		err = cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		err = cpaValueListCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -98,7 +97,9 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		// Test with JSON format to ensure raw data is preserved
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
-		err = cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		s.cmd = &cobra.Command{}
+		s.cmd.SetContext(s.T().Context())
+		err = cpaValueListCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -135,12 +136,11 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(textField)
 
 		// Set a text value
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{}, "")
-		err := cmd.Flags().Set("value", "Engineering")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
+		err := s.cmd.Flags().Set("value", "Engineering")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set
@@ -176,12 +176,11 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(selectField)
 
 		// Set a select value using the option name
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{}, "")
-		err := cmd.Flags().Set("value", "Senior")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
+		err := s.cmd.Flags().Set("value", "Senior")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set (should be stored as option ID)
@@ -227,17 +226,16 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(multiselectField)
 
 		// Set multiple values using option names
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{}, "")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
 
-		err := cmd.Flags().Set("value", "Go")
+		err := s.cmd.Flags().Set("value", "Go")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("value", "React")
+		err = s.cmd.Flags().Set("value", "React")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("value", "Python")
+		err = s.cmd.Flags().Set("value", "Python")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the values were set (should be stored as option IDs)
@@ -292,13 +290,12 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(multiselectField)
 
 		// Set a single value using option name
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{}, "")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
 
-		err := cmd.Flags().Set("value", "Python")
+		err := s.cmd.Flags().Set("value", "Python")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set (should be stored as an array with single option ID)
@@ -350,12 +347,11 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(userField)
 
 		// Set a user value using the system admin user ID
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{}, "")
-		err := cmd.Flags().Set("value", s.th.SystemAdminUser.Id)
+		s.cmd.Flags().StringSlice("value", []string{}, "")
+		err := s.cmd.Flags().Set("value", s.th.SystemAdminUser.Id)
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set

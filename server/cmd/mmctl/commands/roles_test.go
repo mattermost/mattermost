@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
@@ -25,17 +23,17 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
+			UpdateUserRoles(s.T().Context(), mockUser.Id, newRoles).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -51,11 +49,11 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -69,23 +67,23 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -101,17 +99,17 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
+			UpdateUserRoles(s.T().Context(), mockUser.Id, newRoles).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesSystemAdminCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -128,17 +126,17 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user").
+			UpdateUserRoles(s.T().Context(), mockUser.Id, "system_user").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -153,11 +151,11 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -171,17 +169,17 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user").
+			UpdateUserRoles(s.T().Context(), mockUser.Id, "system_user").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
@@ -196,23 +194,23 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := rolesMemberCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)

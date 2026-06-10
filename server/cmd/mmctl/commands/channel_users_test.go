@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
@@ -24,95 +22,91 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 
 	s.Run("Not enough command line parameters", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
 
 		// One argument provided.
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg})
 		s.EqualError(err, "not enough arguments")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 
 		// No arguments provided.
-		err = channelUsersAddCmdF(s.client, cmd, []string{})
+		err = channelUsersAddCmdF(s.client, s.cmd, []string{})
 		s.EqualError(err, "not enough arguments")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 	s.Run("Add existing user to existing channel", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userEmail, "").
+			GetUserByEmail(s.T().Context(), userEmail, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(3)
 
 		s.client.
 			EXPECT().
-			AddChannelMember(context.TODO(), channelID, userID).
+			AddChannelMember(s.T().Context(), channelID, userID).
 			Return(&model.ChannelMember{}, &model.Response{}, nil).
 			Times(2)
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 	s.Run("Add existing user to nonexistent channel", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		// No channel is returned by client.
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.EqualError(err, fmt.Sprintf("unable to find channel %q", channelArg))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 	s.Run("Add existing user to channel owned by nonexistent team", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
 
 		// No team is returned by client.
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.EqualError(err, fmt.Sprintf("unable to find channel %q", channelArg))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -120,30 +114,29 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Add multiple users, some nonexistent to existing channel", func() {
 		printer.Clean()
 		nilUserArg := "nonexistent-user"
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), nilUserArg, "").
+			GetUserByUsername(s.T().Context(), nilUserArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), nilUserArg, "").
+			GetUser(s.T().Context(), nilUserArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, nilUserArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, nilUserArg, userEmail})
 		s.Require().ErrorContains(err, "unable to find user")
 		s.Require().ErrorContains(err, nilUserArg)
 		s.Len(printer.GetLines(), 0)
@@ -151,26 +144,25 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	})
 	s.Run("Error adding existing user to existing channel", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			AddChannelMember(context.TODO(), channelID, userID).
+			AddChannelMember(s.T().Context(), channelID, userID).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.Require().ErrorContains(err, "unable to add")
 		s.Require().ErrorContains(err, userEmail)
 		s.Require().ErrorContains(err, channelName)
@@ -188,7 +180,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove user from channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 		args := []string{argsTeamChannel, userEmail}
 
 		foundTeam := &model.Team{
@@ -205,29 +196,29 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userEmail, "").
+			GetUserByEmail(s.T().Context(), userEmail, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -235,19 +226,17 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should throw error if both --all-users flag and user email are passed", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
+		s.cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel, userEmail}
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "individual users must not be specified in conjunction with the --all-users flag")
 	})
 
 	s.Run("should remove all users from channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
+		s.cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel}
 
 		foundTeam := &model.Team{
@@ -269,47 +258,47 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userEmail, "").
+			GetUserByEmail(s.T().Context(), userEmail, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelMembers(context.TODO(), foundChannel.Id, 0, 10000, "").
+			GetChannelMembers(s.T().Context(), foundChannel.Id, 0, 10000, "").
 			Return(mockChannelMembers, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser2.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser2.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser3.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser3.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -318,7 +307,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove multiple users from channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 		args := []string{argsTeamChannel, userEmail, mockUser2.Email}
 
 		foundTeam := &model.Team{
@@ -335,41 +323,41 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userEmail, "").
+			GetUserByEmail(s.T().Context(), userEmail, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser2.Email, "").
+			GetUserByUsername(s.T().Context(), mockUser2.Email, "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser2.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser2.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -377,8 +365,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove all users from channel throws error", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
+		s.cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel}
 
 		foundTeam := &model.Team{
@@ -398,29 +385,29 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelMembers(context.TODO(), foundChannel.Id, 0, 10000, "").
+			GetChannelMembers(s.T().Context(), foundChannel.Id, 0, 10000, "").
 			Return(mockChannelMembers, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().ErrorContains(err, "unable to remove")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -429,7 +416,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove user from channel throws error", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 		args := []string{argsTeamChannel, userEmail}
 
 		foundTeam := &model.Team{
@@ -446,23 +432,23 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveUserFromChannel(context.TODO(), foundChannel.Id, mockUser.Id).
+			RemoveUserFromChannel(s.T().Context(), foundChannel.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().ErrorContains(err, "unable to remove")
 		s.Require().ErrorContains(err, userEmail)
 		s.Require().ErrorContains(err, channelName)

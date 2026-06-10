@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -19,12 +18,12 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), notFoundTeam, "").
+			GetTeam(s.T().Context(), notFoundTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), notFoundTeam, "").
+			GetTeamByName(s.T().Context(), notFoundTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
@@ -39,12 +38,12 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), badRequestTeam, "").
+			GetTeam(s.T().Context(), badRequestTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), badRequestTeam, "").
+			GetTeamByName(s.T().Context(), badRequestTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
@@ -59,7 +58,7 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), forbidden, "").
+			GetTeam(s.T().Context(), forbidden, "").
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 
@@ -74,7 +73,7 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), errTeam, "").
+			GetTeam(s.T().Context(), errTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, internalServerErrorErr).
 			Times(1)
 
@@ -89,7 +88,7 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), successID, "").
+			GetTeam(s.T().Context(), successID, "").
 			Return(successTeam, nil, nil).
 			Times(1)
 

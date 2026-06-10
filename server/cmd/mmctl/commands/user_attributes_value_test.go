@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
@@ -55,23 +53,23 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(s.T().Context(), "user123").
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		err := cpaValueListCmdF(s.client, s.cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -114,23 +112,23 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(s.T().Context(), "user123").
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		err := cpaValueListCmdF(s.client, s.cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -182,23 +180,23 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(s.T().Context(), "user123").
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		err := cpaValueListCmdF(s.client, s.cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -228,23 +226,23 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(s.T().Context(), "user123").
 			Return(map[string]json.RawMessage{}, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		err := cpaValueListCmdF(s.client, s.cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -264,23 +262,23 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(s.T().Context(), "user123").
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		err := cpaValueListCmdF(s.client, s.cmd, []string{"testuser@example.com"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get CPA values for user")
 		s.Require().Contains(err.Error(), "API error")
@@ -293,11 +291,11 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		err := cpaValueListCmdF(s.client, s.cmd, []string{"testuser@example.com"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get CPA fields for template context")
 		s.Require().Contains(err.Error(), "fields API error")
@@ -311,7 +309,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
@@ -319,23 +317,23 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 		// All should return NotFoundError so it tries all methods
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "nonexistent@example.com", "").
+			GetUserByEmail(s.T().Context(), "nonexistent@example.com", "").
 			Return(nil, notFoundResponse, notFoundError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "nonexistent@example.com", "").
+			GetUserByUsername(s.T().Context(), "nonexistent@example.com", "").
 			Return(nil, notFoundResponse, notFoundError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), "nonexistent@example.com", "").
+			GetUser(s.T().Context(), "nonexistent@example.com", "").
 			Return(nil, notFoundResponse, notFoundError).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"nonexistent@example.com"})
+		err := cpaValueListCmdF(s.client, s.cmd, []string{"nonexistent@example.com"})
 		s.Require().Error(err)
 	})
 }
@@ -363,28 +361,27 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 			fieldID: json.RawMessage(`"Engineering"`),
 		}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
+		s.cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(2)
 
 		s.client.
 			EXPECT().
-			PatchCPAValuesForUser(context.TODO(), "user123", gomock.Any()).
+			PatchCPAValuesForUser(s.T().Context(), "user123", gomock.Any()).
 			Return(mockUpdatedValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueSetCmdF(s.client, cmd, []string{"testuser@example.com", fieldID})
+		err := cpaValueSetCmdF(s.client, s.cmd, []string{"testuser@example.com", fieldID})
 		s.Require().NoError(err)
 	})
 
@@ -410,28 +407,27 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 			fieldID: json.RawMessage(`["Go", "React", "Python"]`),
 		}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{"Go", "React", "Python"}, "")
+		s.cmd.Flags().StringSlice("value", []string{"Go", "React", "Python"}, "")
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(2)
 
 		s.client.
 			EXPECT().
-			PatchCPAValuesForUser(context.TODO(), "user123", gomock.Any()).
+			PatchCPAValuesForUser(s.T().Context(), "user123", gomock.Any()).
 			Return(mockUpdatedValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueSetCmdF(s.client, cmd, []string{"testuser@example.com", fieldID})
+		err := cpaValueSetCmdF(s.client, s.cmd, []string{"testuser@example.com", fieldID})
 		s.Require().NoError(err)
 	})
 
@@ -451,22 +447,21 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 			},
 		}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
+		s.cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueSetCmdF(s.client, cmd, []string{"testuser@example.com", "nonexistent_field"})
+		err := cpaValueSetCmdF(s.client, s.cmd, []string{"testuser@example.com", "nonexistent_field"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get field for \"nonexistent_field\"")
 	})
@@ -490,28 +485,27 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 
 		expectedError := errors.New("permission denied")
 
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
+		s.cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(2)
 
 		s.client.
 			EXPECT().
-			PatchCPAValuesForUser(context.TODO(), "user123", gomock.Any()).
+			PatchCPAValuesForUser(s.T().Context(), "user123", gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
-		err := cpaValueSetCmdF(s.client, cmd, []string{"testuser@example.com", fieldID})
+		err := cpaValueSetCmdF(s.client, s.cmd, []string{"testuser@example.com", fieldID})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to set CPA value")
 		s.Require().Contains(err.Error(), "permission denied")
@@ -527,22 +521,21 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 
 		expectedError := errors.New("fields API error")
 
-		cmd := &cobra.Command{}
-		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
+		s.cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(s.T().Context(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(s.T().Context()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
-		err := cpaValueSetCmdF(s.client, cmd, []string{"testuser@example.com", "field123"})
+		err := cpaValueSetCmdF(s.client, s.cmd, []string{"testuser@example.com", "field123"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get CPA fields")
 		s.Require().Contains(err.Error(), "fields API error")

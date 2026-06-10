@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestListBotCmdF() {
@@ -36,7 +35,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		deletedBot, appErr = s.th.App.UpdateBotActive(s.th.Context, deletedBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botListCmdF(c, &cobra.Command{}, []string{})
+		err := botListCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetLines()))
 
@@ -80,10 +79,9 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("orphaned", true, "")
+		s.cmd.Flags().Bool("orphaned", true, "")
 
-		err := botListCmdF(c, cmd, []string{})
+		err := botListCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetLines()))
 
@@ -127,10 +125,9 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		deletedBot, appErr = s.th.App.UpdateBotActive(s.th.Context, deletedBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("all", true, "")
+		s.cmd.Flags().Bool("all", true, "")
 
-		err := botListCmdF(c, cmd, []string{})
+		err := botListCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Equal(3, len(printer.GetLines()))
 		resultBot, ok := printer.GetLines()[0].(*model.Bot)
@@ -147,9 +144,8 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 	s.Run("List Bots without permission", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
-		err := botListCmdF(s.th.Client, cmd, []string{})
+		err := botListCmdF(s.th.Client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Equal("Failed to fetch bots: You do not have the appropriate permissions.", err.Error())
 	})
@@ -171,7 +167,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botEnableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		err := botEnableCmdF(c, s.cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -197,7 +193,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botEnableCmdF(s.th.Client, &cobra.Command{}, []string{newBot.UserId})
+		err := botEnableCmdF(s.th.Client, s.cmd, []string{newBot.UserId})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -208,7 +204,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 	s.RunForSystemAdminAndLocal("enable a nonexistent bot", func(c client.Client) {
 		printer.Clean()
 
-		err := botEnableCmdF(c, &cobra.Command{}, []string{"nonexistent-bot-userid"})
+		err := botEnableCmdF(c, s.cmd, []string{"nonexistent-bot-userid"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -225,7 +221,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
 		s.Require().Nil(appErr)
 
-		err := botEnableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		err := botEnableCmdF(c, s.cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -259,7 +255,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
 		s.Require().Nil(appErr)
 
-		err := botDisableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		err := botDisableCmdF(c, s.cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -283,7 +279,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
 		s.Require().Nil(appErr)
 
-		err := botDisableCmdF(s.th.Client, &cobra.Command{}, []string{newBot.UserId})
+		err := botDisableCmdF(s.th.Client, s.cmd, []string{newBot.UserId})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -294,7 +290,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 	s.RunForSystemAdminAndLocal("disable a nonexistent bot", func(c client.Client) {
 		printer.Clean()
 
-		err := botDisableCmdF(c, &cobra.Command{}, []string{"nonexistent-bot-userid"})
+		err := botDisableCmdF(c, s.cmd, []string{"nonexistent-bot-userid"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -311,7 +307,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botDisableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		err := botDisableCmdF(c, s.cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -355,7 +351,7 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		err := botAssignCmdF(c, &cobra.Command{}, []string{bot.UserId, newBotOwner.Id})
+		err := botAssignCmdF(c, s.cmd, []string{bot.UserId, newBotOwner.Id})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetLines()))
 		newBot, ok := printer.GetLines()[0].(*model.Bot)
@@ -388,7 +384,7 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		err := botAssignCmdF(s.th.Client, &cobra.Command{}, []string{bot.UserId, newBotOwner.Id})
+		err := botAssignCmdF(s.th.Client, s.cmd, []string{bot.UserId, newBotOwner.Id})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf(`can not assign bot '%s' to user '%s'`, bot.UserId, newBotOwner.Id), err.Error())
 	})
@@ -404,17 +400,16 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 	s.Run("MM-T3941 Create Bot with an access token", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("with-token", true, "")
+		s.cmd.Flags().Bool("with-token", true, "")
 
-		err := botCreateCmdF(s.th.Client, cmd, []string{"testbot"})
+		err := botCreateCmdF(s.th.Client, s.cmd, []string{"testbot"})
 		s.Require().Error(err)
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 
 		printer.Clean()
 
-		err = botCreateCmdF(s.th.SystemAdminClient, cmd, []string{"testbot"})
+		err = botCreateCmdF(s.th.SystemAdminClient, s.cmd, []string{"testbot"})
 		s.Require().NoError(err)
 		s.Require().Equal(2, len(printer.GetLines()))
 		bot, ok := printer.GetLines()[0].(*model.Bot)

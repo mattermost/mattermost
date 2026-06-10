@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -36,7 +35,7 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		}()
 
 		// try to reset the permissions
-		err2 := resetPermissionsCmdF(s.th.Client, &cobra.Command{}, []string{model.SystemUserManagerRoleId})
+		err2 := resetPermissionsCmdF(s.th.Client, s.cmd, []string{model.SystemUserManagerRoleId})
 		s.Require().Error(err2)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -67,7 +66,7 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		}()
 
 		// try to reset the permissions
-		err2 := resetPermissionsCmdF(c, &cobra.Command{}, []string{model.SystemUserManagerRoleId})
+		err2 := resetPermissionsCmdF(c, s.cmd, []string{model.SystemUserManagerRoleId})
 		s.Require().Nil(err2)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)

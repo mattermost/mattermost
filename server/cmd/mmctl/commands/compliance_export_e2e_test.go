@@ -5,7 +5,6 @@ package commands
 
 import (
 	"archive/zip"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -18,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
@@ -27,8 +25,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		cmd := makeCmd()
-		err := complianceExportListCmdF(s.th.Client, cmd, nil)
+		s.cmd = makeCmd()
+		err := complianceExportListCmdF(s.th.Client, s.cmd, nil)
 		s.Require().EqualError(err, "failed to get jobs: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -38,7 +36,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 	s.RunForSystemAdminAndLocal("List with no compliance export jobs", func(c client.Client) {
 		// Ensure no jobs exist
-		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), jobType, 0, 1000)
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(s.T().Context(), jobType, 0, 1000)
 		s.Require().NoError(err)
 
 		for _, job := range jobs {
@@ -47,29 +45,29 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}
 
-		cmd := makeCmd()
+		s.cmd = makeCmd()
 		// Test default pagination
 		printer.Clean()
-		err = complianceExportListCmdF(c, cmd, nil)
+		err = complianceExportListCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("No jobs found", printer.GetLines()[0])
 
 		// Test with 1 per page
 		printer.Clean()
-		cmd = makeCmd()
-		_ = cmd.Flags().Set("page", "0")
-		_ = cmd.Flags().Set("per-page", "1")
-		err = complianceExportListCmdF(c, cmd, nil)
+		s.cmd = makeCmd()
+		_ = s.cmd.Flags().Set("page", "0")
+		_ = s.cmd.Flags().Set("per-page", "1")
+		err = complianceExportListCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("No jobs found", printer.GetLines()[0])
 
 		// Test with all items
 		printer.Clean()
-		cmd = makeCmd()
-		_ = cmd.Flags().Set("all", "true")
-		err = complianceExportListCmdF(c, cmd, nil)
+		s.cmd = makeCmd()
+		_ = s.cmd.Flags().Set("all", "true")
+		err = complianceExportListCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("No jobs found", printer.GetLines()[0])
@@ -78,7 +76,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 	s.RunForSystemAdminAndLocal("List compliance export jobs", func(c client.Client) {
 		now := model.GetMillis()
 		// Create 2 jobs
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -88,7 +86,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 		})
 		s.Require().NoError(err)
 
-		job2, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job2, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 100,
 			Status:         model.JobStatusSuccess,
@@ -108,8 +106,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 		// Test default pagination
 		printer.Clean()
-		cmd := makeCmd()
-		err = complianceExportListCmdF(c, cmd, nil)
+		s.cmd = makeCmd()
+		err = complianceExportListCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(job2.Id, printer.GetLines()[0].(*model.Job).Id)
@@ -117,19 +115,19 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 		// Test with 1 per page
 		printer.Clean()
-		cmd = makeCmd()
-		_ = cmd.Flags().Set("page", "0")
-		_ = cmd.Flags().Set("per-page", "1")
-		err = complianceExportListCmdF(c, cmd, nil)
+		s.cmd = makeCmd()
+		_ = s.cmd.Flags().Set("page", "0")
+		_ = s.cmd.Flags().Set("per-page", "1")
+		err = complianceExportListCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(job2.Id, printer.GetLines()[0].(*model.Job).Id)
 
 		// Test with all items
 		printer.Clean()
-		cmd = makeCmd()
-		_ = cmd.Flags().Set("all", "true")
-		err = complianceExportListCmdF(c, cmd, nil)
+		s.cmd = makeCmd()
+		_ = s.cmd.Flags().Set("all", "true")
+		err = complianceExportListCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(job2.Id, printer.GetLines()[0].(*model.Job).Id)
@@ -143,7 +141,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	now := model.GetMillis()
 
 	// Create a job
-	job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+	job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 		Id:             st.NewTestID(),
 		CreateAt:       now - 1000,
 		Status:         model.JobStatusSuccess,
@@ -162,8 +160,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		cmd := makeCmd()
-		err := complianceExportShowCmdF(s.th.Client, cmd, []string{job.Id})
+		s.cmd = makeCmd()
+		err := complianceExportShowCmdF(s.th.Client, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to get compliance export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -172,8 +170,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	s.RunForSystemAdminAndLocal("Show non-existent job", func(c client.Client) {
 		printer.Clean()
 
-		cmd := makeCmd()
-		err := complianceExportShowCmdF(c, cmd, []string{"non-existent-job-id"})
+		s.cmd = makeCmd()
+		err := complianceExportShowCmdF(c, s.cmd, []string{"non-existent-job-id"})
 		s.Require().EqualError(err, "failed to get compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id'.  Typo? are you missing a team_id or user_id as part of the url?")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -182,7 +180,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	s.RunForSystemAdminAndLocal("Show existing job", func(c client.Client) {
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -199,8 +197,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 		}()
 
 		printer.Clean()
-		cmd := makeCmd()
-		err = complianceExportShowCmdF(c, cmd, []string{job.Id})
+		s.cmd = makeCmd()
+		err = complianceExportShowCmdF(c, s.cmd, []string{job.Id})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
@@ -216,7 +214,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusInProgress,
@@ -232,8 +230,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		cmd := makeCmd()
-		err = complianceExportCancelCmdF(s.th.Client, cmd, []string{job.Id})
+		s.cmd = makeCmd()
+		err = complianceExportCancelCmdF(s.th.Client, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to cancel compliance export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -242,8 +240,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 	s.RunForSystemAdminAndLocal("Cancel non-existent job", func(c client.Client) {
 		printer.Clean()
 
-		cmd := makeCmd()
-		err := complianceExportCancelCmdF(c, cmd, []string{"non-existent-job-id"})
+		s.cmd = makeCmd()
+		err := complianceExportCancelCmdF(c, s.cmd, []string{"non-existent-job-id"})
 		s.Require().EqualError(err, "failed to cancel compliance export job: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id/cancel'.  Typo? are you missing a team_id or user_id as part of the url?")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -252,7 +250,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 	s.RunForSystemAdminAndLocal("Cancel existing job", func(c client.Client) {
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusInProgress,
@@ -269,14 +267,14 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 		}()
 
 		printer.Clean()
-		cmd := makeCmd()
-		err = complianceExportCancelCmdF(c, cmd, []string{job.Id})
+		s.cmd = makeCmd()
+		err = complianceExportCancelCmdF(c, s.cmd, []string{job.Id})
 		s.Require().NoError(err)
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 
 		// Verify job was cancelled
-		job, _, err = s.th.SystemAdminClient.GetJob(context.Background(), job.Id)
+		job, _, err = s.th.SystemAdminClient.GetJob(s.T().Context(), job.Id)
 		s.Require().NoError(err)
 		s.Require().Equal(model.JobStatusCanceled, job.Status)
 	})
@@ -284,7 +282,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 	s.RunForSystemAdminAndLocal("Error cancelling job in non-cancellable state", func(c client.Client) {
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusInProgress,
@@ -293,7 +291,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 			LastActivityAt: now - 1000,
 		})
 		s.Require().NoError(err)
-		_, err = s.th.SystemAdminClient.UpdateJobStatus(context.Background(), job.Id, model.JobStatusCanceled, true)
+		_, err = s.th.SystemAdminClient.UpdateJobStatus(s.T().Context(), job.Id, model.JobStatusCanceled, true)
 		s.Require().NoError(err)
 		defer func() {
 			// Ensure job is deleted from the database
@@ -303,8 +301,8 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 		}()
 
 		printer.Clean()
-		cmd := makeCmd()
-		err = complianceExportCancelCmdF(c, cmd, []string{job.Id})
+		s.cmd = makeCmd()
+		err = complianceExportCancelCmdF(c, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to cancel compliance export job: Could not request cancellation for job that is not in a cancelable state.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -319,7 +317,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -335,9 +333,9 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		cmd := makeCmd()
-		cmd.Flags().Int("num-retries", 0, "")
-		err = complianceExportDownloadCmdF(s.th.Client, cmd, []string{job.Id})
+		s.cmd = makeCmd()
+		s.cmd.Flags().Int("num-retries", 0, "")
+		err = complianceExportDownloadCmdF(s.th.Client, s.cmd, []string{job.Id})
 		s.Require().EqualError(err, "failed to download compliance export after 0 retries: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -346,9 +344,9 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 	s.RunForSystemAdminAndLocal("Download non-existent job", func(c client.Client) {
 		printer.Clean()
 
-		cmd := makeCmd()
-		cmd.Flags().Int("num-retries", 0, "")
-		err := complianceExportDownloadCmdF(c, cmd, []string{"non-existent-job-id"})
+		s.cmd = makeCmd()
+		s.cmd.Flags().Int("num-retries", 0, "")
+		err := complianceExportDownloadCmdF(c, s.cmd, []string{"non-existent-job-id"})
 		s.Require().EqualError(err, "failed to download compliance export after 0 retries: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/jobs/non-existent-job-id/download'.  Typo? are you missing a team_id or user_id as part of the url?")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -370,10 +368,9 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 			s.Require().NoError(err)
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("num-retries", 0, "")
+		s.cmd.Flags().Int("num-retries", 0, "")
 
-		err = complianceExportDownloadCmdF(c, cmd, []string{"jobId", importFilePath})
+		err = complianceExportDownloadCmdF(c, s.cmd, []string{"jobId", importFilePath})
 		s.Require().EqualError(err, "compliance export file already exists")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -423,7 +420,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -440,10 +437,10 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		cmd := makeCmd()
-		cmd.Flags().Int("num-retries", 0, "")
+		s.cmd = makeCmd()
+		s.cmd.Flags().Int("num-retries", 0, "")
 
-		err = complianceExportDownloadCmdF(c, cmd, []string{job.Id, downloadPath})
+		err = complianceExportDownloadCmdF(c, s.cmd, []string{job.Id, downloadPath})
 		s.Require().NoError(err)
 		s.Require().Contains(printer.GetLines()[0], fmt.Sprintf("Compliance export file downloaded to %q", downloadPath))
 		s.Require().Empty(printer.GetErrorLines())
@@ -534,7 +531,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -551,10 +548,10 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 			s.Require().NoError(err, "Failed to delete job (result: %v)", result)
 		}()
 
-		cmd := makeCmd()
-		cmd.Flags().Int("num-retries", 0, "")
+		s.cmd = makeCmd()
+		s.cmd.Flags().Int("num-retries", 0, "")
 
-		err = complianceExportDownloadCmdF(c, cmd, []string{job.Id})
+		err = complianceExportDownloadCmdF(c, s.cmd, []string{job.Id})
 		s.Require().NoError(err)
 		s.Require().Contains(printer.GetLines()[0], fmt.Sprintf("Compliance export file downloaded to %q", expectedDownloadPath))
 		s.Require().Empty(printer.GetErrorLines())
@@ -604,7 +601,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 
 	s.RunForSystemAdminAndLocal("mmctl job uses batch_start_time from previous regular job", func(c client.Client) {
 		// Ensure no jobs exist before we start
-		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1000)
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 1000)
 		s.Require().NoError(err)
 		for _, job := range jobs {
 			var result string
@@ -627,15 +624,14 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 		regularJobBatchStartTime := regularJob.Data[shared.JobDataBatchStartTime]
 
 		// Run an mmctl-initiated export job
-		cmd := &cobra.Command{}
-		cmd.Flags().String("date", "", "")
-		cmd.Flags().Int("start", 0, "")
-		cmd.Flags().Int("end", 0, "")
-		err = complianceExportCreateCmdF(c, cmd, []string{model.ComplianceExportTypeActiance})
+		s.cmd.Flags().String("date", "", "")
+		s.cmd.Flags().Int("start", 0, "")
+		s.cmd.Flags().Int("end", 0, "")
+		err = complianceExportCreateCmdF(c, s.cmd, []string{model.ComplianceExportTypeActiance})
 		s.Require().NoError(err, "Should create mmctl job successfully")
 
 		// Find the mmctl job
-		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 10)
 		s.Require().NoError(err)
 		s.Require().True(len(jobs) > 1, "Should have at least 2 jobs")
 
@@ -660,7 +656,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 
 	s.RunForSystemAdminAndLocal("mmctl job ignores previous mmctl jobs and uses regular job", func(c client.Client) {
 		// Ensure no jobs exist before we start
-		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1000)
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 1000)
 		s.Require().NoError(err)
 		for _, job := range jobs {
 			var result string
@@ -683,15 +679,14 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 		regularJobBatchStartTime := regularJob.Data[shared.JobDataBatchStartTime]
 
 		// Run an mmctl-initiated export job with an explicit start time (different from the regular job)
-		cmd := &cobra.Command{}
-		cmd.Flags().String("date", "", "")
-		cmd.Flags().Int("start", int(now-2000), "")
-		cmd.Flags().Int("end", int(now-1000), "")
-		err = complianceExportCreateCmdF(c, cmd, []string{model.ComplianceExportTypeActiance})
+		s.cmd.Flags().String("date", "", "")
+		s.cmd.Flags().Int("start", int(now-2000), "")
+		s.cmd.Flags().Int("end", int(now-1000), "")
+		err = complianceExportCreateCmdF(c, s.cmd, []string{model.ComplianceExportTypeActiance})
 		s.Require().NoError(err, "Should create first mmctl job successfully")
 
 		// Find the mmctl job
-		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 10)
 		s.Require().NoError(err)
 		s.Require().True(len(jobs) > 1, "Should have at least 2 jobs")
 
@@ -708,15 +703,15 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 			"First mmctl job should have a different batch_start_time than regular job")
 
 		// Run a second mmctl-initiated export job WITHOUT a specified start time
-		cmd = &cobra.Command{}
-		cmd.Flags().String("date", "", "")
-		cmd.Flags().Int("start", 0, "")
-		cmd.Flags().Int("end", 0, "")
-		err = complianceExportCreateCmdF(c, cmd, []string{model.ComplianceExportTypeActiance})
+		s.cmd = s.cmd
+		s.cmd.Flags().String("date", "", "")
+		s.cmd.Flags().Int("start", 0, "")
+		s.cmd.Flags().Int("end", 0, "")
+		err = complianceExportCreateCmdF(c, s.cmd, []string{model.ComplianceExportTypeActiance})
 		s.Require().NoError(err, "Should create second mmctl job successfully")
 
 		// Find the second mmctl job
-		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 10)
 		s.Require().NoError(err)
 		s.Require().True(len(jobs) > 2, "Should have at least 3 jobs")
 

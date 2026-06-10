@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"os"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -26,11 +24,11 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(s.T().Context()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := getBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -45,11 +43,11 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(s.T().Context()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := getBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -60,11 +58,11 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(s.T().Context()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := getBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -76,16 +74,15 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		printer.Clean()
 		const minutes = 15
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Uint("seconds", minutes*60, "")
+		s.cmd.Flags().Uint("seconds", minutes*60, "")
 
 		s.client.
 			EXPECT().
-			SetServerBusy(context.TODO(), minutes*60).
+			SetServerBusy(s.T().Context(), minutes*60).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(minutes * 60)})
+		err := setBusyCmdF(s.client, s.cmd, []string{strconv.Itoa(minutes * 60)})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
@@ -95,7 +92,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 	s.Run("SetBusy with missing arg", func() {
 		printer.Clean()
 
-		err := setBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := setBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -104,10 +101,9 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 	s.Run("SetBusy zero seconds", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Uint("seconds", 0, "")
+		s.cmd.Flags().Uint("seconds", 0, "")
 
-		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(0)})
+		err := setBusyCmdF(s.client, s.cmd, []string{strconv.Itoa(0)})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -119,11 +115,11 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := clearBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
@@ -134,11 +130,11 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := clearBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -152,11 +148,11 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		expectedVersion := "1.23.4.dev"
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(s.T().Context()).
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
-		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemVersionCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -168,11 +164,11 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(s.T().Context()).
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemVersionCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -190,14 +186,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -210,14 +206,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		expectedStatus := map[string]any{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -229,14 +225,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -251,14 +247,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -273,14 +269,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -296,14 +292,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "server status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -321,14 +317,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "database status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -346,14 +342,14 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "filestore status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -372,7 +368,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(s.T().Context()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
@@ -399,13 +395,12 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(s.T().Context()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
-		systemSupportPacketCmd := &cobra.Command{}
-		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
-		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.cmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := s.cmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
 		defer func() {
@@ -413,7 +408,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 			s.Require().NoError(err)
 		}()
 
-		err = systemSupportPacketCmdF(s.client, systemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -430,7 +425,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(s.T().Context()).
 			Return(nil, "", &model.Response{}, errors.New("mock error")).
 			Times(1)
 

@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
@@ -21,7 +20,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	s.Run("MM-T3721 Should not allow normal user to assign a role", func() {
 		printer.Clean()
 
-		err := assignUsersCmdF(s.th.Client, &cobra.Command{}, []string{model.SystemAdminRoleId, user.Email})
+		err := assignUsersCmdF(s.th.Client, s.cmd, []string{model.SystemAdminRoleId, user.Email})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -30,7 +29,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3722 Assigning a user to a non-existent role", func(c client.Client) {
 		printer.Clean()
 
-		err := assignUsersCmdF(c, &cobra.Command{}, []string{"not_a_role", user.Email})
+		err := assignUsersCmdF(c, s.cmd, []string{"not_a_role", user.Email})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -39,7 +38,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	s.RunForSystemAdminAndLocal("Assigning non existen user to a role", func(c client.Client) {
 		printer.Clean()
 
-		err := assignUsersCmdF(c, &cobra.Command{}, []string{model.SystemManagerRoleId, "non_existent_user"})
+		err := assignUsersCmdF(c, s.cmd, []string{model.SystemManagerRoleId, "non_existent_user"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -49,7 +48,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3648 Assigning a user to a role", func(c client.Client) {
 		printer.Clean()
 
-		err := assignUsersCmdF(c, &cobra.Command{}, []string{model.SystemManagerRoleId, user.Email})
+		err := assignUsersCmdF(c, s.cmd, []string{model.SystemManagerRoleId, user.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -74,7 +73,7 @@ func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 	s.Run("MM-T3965 Should not allow normal user to unassign a user from a role", func() {
 		printer.Clean()
 
-		err := unassignUsersCmdF(s.th.Client, &cobra.Command{}, []string{model.SystemAdminRoleId, s.th.SystemAdminUser.Email})
+		err := unassignUsersCmdF(s.th.Client, s.cmd, []string{model.SystemAdminRoleId, s.th.SystemAdminUser.Email})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -92,7 +91,7 @@ func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 			s.Require().Nil(appErr)
 		}()
 
-		err := unassignUsersCmdF(c, &cobra.Command{}, []string{model.SystemManagerRoleId, user.Email})
+		err := unassignUsersCmdF(c, s.cmd, []string{model.SystemManagerRoleId, user.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)

@@ -5,7 +5,6 @@ package commands
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -35,11 +33,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("postgres", *(printer.GetLines()[0].(*string)))
@@ -54,11 +52,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(*(printer.GetLines()[0].(*int)), 50)
@@ -73,11 +71,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(int64(100*(1<<20)), *(printer.GetLines()[0].(*int64)))
@@ -92,11 +90,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(*(printer.GetLines()[0].(*bool)), false)
@@ -111,11 +109,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], []string{})
@@ -132,11 +130,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], sqlSettings)
@@ -153,11 +151,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -173,11 +171,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -200,47 +198,47 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(7)
 
 		printer.Clean()
-		err := configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.PluginStates.com.mattermost.testplugin"})
+		err := configGetCmdF(s.client, s.cmd, []string{"PluginSettings.PluginStates.com.mattermost.testplugin"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], pluginState)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin"})
+		err = configGetCmdF(s.client, s.cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], pluginSettings)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1"})
+		err = configGetCmdF(s.client, s.cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test2"})
+		err = configGetCmdF(s.client, s.cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test2"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], []string{"a", "b"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3"})
+		err = configGetCmdF(s.client, s.cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], map[string]string{"a": "b"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a"})
+		err = configGetCmdF(s.client, s.cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "b")
@@ -258,11 +256,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(0)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -275,11 +273,11 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		err := configGetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -299,16 +297,16 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -327,16 +325,16 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -355,16 +353,16 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -383,16 +381,16 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -410,16 +408,16 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -437,11 +435,11 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -456,11 +454,11 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -478,16 +476,16 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -518,30 +516,30 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(3)
 
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(3)
 
 		printer.Clean()
-		err := configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.PluginStates.com.mattermost.testplugin.Enable", "true"})
+		err := configSetCmdF(s.client, s.cmd, []string{"PluginSettings.PluginStates.com.mattermost.testplugin.Enable", "true"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1", "123"})
+		err = configSetCmdF(s.client, s.cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1", "123"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a", "123"})
+		err = configSetCmdF(s.client, s.cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a", "123"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -558,11 +556,11 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		err := configSetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -579,11 +577,11 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configSetCmdF(s.client, &cobra.Command{}, args)
+		err = configSetCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("changing this config path: %s is restricted in a cloud environment", "ServiceSettings.EnableDeveloper"))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -627,16 +625,16 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(s.T().Context(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
+		err = configPatchCmdF(s.client, s.cmd, []string{tmpFile.Name()})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -667,16 +665,16 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), expectedConfig).
+			PatchConfig(s.T().Context(), expectedConfig).
 			Return(expectedConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{pluginFile.Name()})
+		err = configPatchCmdF(s.client, s.cmd, []string{pluginFile.Name()})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], expectedConfig)
@@ -690,11 +688,11 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{invalidFile.Name()})
+		err = configPatchCmdF(s.client, s.cmd, []string{invalidFile.Name()})
 		s.Require().NotNil(err)
 	})
 
@@ -703,7 +701,7 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		path := "/path/to/nonexistentfile"
 		errMsg := "open " + path + ": no such file or directory"
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{path})
+		err = configPatchCmdF(s.client, s.cmd, []string{path})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, errMsg)
 	})
@@ -718,18 +716,17 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(context.TODO(), defaultConfig).
+			UpdateConfig(s.T().Context(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		resetCmd := &cobra.Command{}
-		resetCmd.Flags().Bool("confirm", true, "")
-		err := configResetCmdF(s.client, resetCmd, args)
+		s.cmd.Flags().Bool("confirm", true, "")
+		err := configResetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], defaultConfig)
@@ -744,19 +741,18 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(context.TODO(), defaultConfig).
+			UpdateConfig(s.T().Context(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		resetCmd := &cobra.Command{}
-		resetCmd.Flags().Bool("confirm", true, "")
-		_ = resetCmd.ParseFlags([]string{"confirm"})
-		err := configResetCmdF(s.client, resetCmd, args)
+		s.cmd.Flags().Bool("confirm", true, "")
+		_ = s.cmd.ParseFlags([]string{"confirm"})
+		err := configResetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], defaultConfig)
@@ -771,14 +767,13 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		resetCmd := &cobra.Command{}
-		resetCmd.Flags().Bool("confirm", true, "")
-		_ = resetCmd.ParseFlags([]string{"confirm"})
-		err := configResetCmdF(s.client, resetCmd, args)
+		s.cmd.Flags().Bool("confirm", true, "")
+		_ = s.cmd.ParseFlags([]string{"confirm"})
+		err := configResetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -792,11 +787,11 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(mockConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
+		err := configShowCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(mockConfig, printer.GetLines()[0])
@@ -809,11 +804,11 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(s.T().Context()).
 			Return(nil, &model.Response{}, configError).
 			Times(1)
 
-		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
+		err := configShowCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.EqualError(err, configError.Error())
 	})
@@ -825,11 +820,11 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig(context.TODO()).
+			ReloadConfig(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
+		err := configReloadCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -839,11 +834,11 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig(context.TODO()).
+			ReloadConfig(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
+		err := configReloadCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 	})
 }
@@ -853,7 +848,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 		printer.Clean()
 		args := []string{"from", "to"}
 
-		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		err := configMigrateCmdF(s.client, s.cmd, args)
 		s.Require().Error(err)
 	})
 
@@ -863,14 +858,13 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(context.TODO(), args[0], args[1]).
+			MigrateConfig(s.T().Context(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("local", true, "")
+		s.cmd.Flags().Bool("local", true, "")
 
-		err := configMigrateCmdF(s.client, cmd, args)
+		err := configMigrateCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -881,14 +875,13 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(context.TODO(), args[0], args[1]).
+			MigrateConfig(s.T().Context(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("local", true, "")
+		s.cmd.Flags().Bool("local", true, "")
 
-		err := configMigrateCmdF(s.client, cmd, args)
+		err := configMigrateCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 	})
 }
@@ -1011,7 +1004,7 @@ func (s *MmctlUnitTestSuite) TestConfigExportCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfigWithOptions(context.TODO(), model.GetConfigOptions{}).
+			GetConfigWithOptions(s.T().Context(), model.GetConfigOptions{}).
 			Return(map[string]any{
 				"SqlSettings": map[string]any{
 					"DriverName": "postgres",
@@ -1019,7 +1012,7 @@ func (s *MmctlUnitTestSuite) TestConfigExportCmd() {
 			}, &model.Response{}, nil).
 			Times(1)
 
-		err := configExportCmdF(s.client, &cobra.Command{}, nil)
+		err := configExportCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)

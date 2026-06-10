@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
@@ -34,24 +32,24 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(s.T().Context(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
+			UpdateUserRoles(s.T().Context(), mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, mockUser.Username}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := assignUsersCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -80,33 +78,33 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByUsername(context.TODO(), user.Username, "").
+				GetUserByUsername(s.T().Context(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				UpdateUserRoles(context.TODO(), user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
+				UpdateUserRoles(s.T().Context(), user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), notFoundUser.Username, "").
+			GetUserByUsername(s.T().Context(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), notFoundUser.Username, "").
+			GetUser(s.T().Context(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -114,7 +112,7 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user 'notfound'"))
 
 		args := []string{mockRole.Name, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := assignUsersCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
@@ -124,12 +122,12 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), "non-existent").
+			GetRoleByName(s.T().Context(), "non-existent").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
 		args := []string{"non-existent", "user1"}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := assignUsersCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError, err)
 	})
@@ -149,18 +147,18 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(s.T().Context(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, mockUser.Username}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := assignUsersCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -175,19 +173,19 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), requestedUser, "").
+			GetUserByUsername(s.T().Context(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), requestedUser, "").
+			GetUser(s.T().Context(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -195,7 +193,7 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user '%s'", requestedUser))
 
 		args := []string{mockRole.Name, requestedUser}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := assignUsersCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
@@ -213,18 +211,18 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(s.T().Context(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user team_admin").
+			UpdateUserRoles(s.T().Context(), mockUser.Id, "system_user team_admin").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		args := []string{roleName, mockUser.Username}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := unassignUsersCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -250,31 +248,31 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByUsername(context.TODO(), user.Username, "").
+				GetUserByUsername(s.T().Context(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
-				UpdateUserRoles(context.TODO(), user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
+				UpdateUserRoles(s.T().Context(), user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), notFoundUser.Username, "").
+			GetUserByUsername(s.T().Context(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), notFoundUser.Username, "").
+			GetUser(s.T().Context(), notFoundUser.Username, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{roleName, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := unassignUsersCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -289,12 +287,12 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Username, "").
+			GetUserByUsername(s.T().Context(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{roleName, mockUser.Username}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := unassignUsersCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -303,18 +301,18 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), requestedUser, "").
+			GetUserByUsername(s.T().Context(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), requestedUser, "").
+			GetUser(s.T().Context(), requestedUser, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{"mock-role-id", requestedUser}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		err := unassignUsersCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 }
@@ -333,11 +331,11 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		err := showRoleCmdF(s.client, s.cmd, []string{commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -365,11 +363,11 @@ SchemeManaged false
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		err := showRoleCmdF(s.client, s.cmd, []string{commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -395,11 +393,11 @@ Permissions   edit_brand
 		// showRoleCmdF will look up role by name
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), commandArgBogus).
+			GetRoleByName(s.T().Context(), commandArgBogus).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
+		err := showRoleCmdF(s.client, s.cmd, []string{commandArgBogus})
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError, err)
 		s.Require().Len(printer.GetLines(), 0)

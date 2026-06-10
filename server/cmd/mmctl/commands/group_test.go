@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
@@ -23,11 +21,11 @@ func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLdapGroups(context.TODO()).
+			GetLdapGroups(s.T().Context()).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listLdapGroupsCmdF(s.client, &cobra.Command{}, []string{})
+		err := listLdapGroupsCmdF(s.client, s.cmd, []string{})
 		s.Require().Equal(mockError, err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -43,11 +41,11 @@ func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLdapGroups(context.TODO()).
+			GetLdapGroups(s.T().Context()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
-		err := listLdapGroupsCmdF(s.client, &cobra.Command{}, []string{})
+		err := listLdapGroupsCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 3)
 		for i, v := range mockList {
@@ -65,17 +63,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), arg, "").
+			GetTeamByName(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := teamGroupEnableCmdF(s.client, s.cmd, []string{arg})
 		s.Require().EqualError(err, "Unable to find team '"+arg+"'")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -96,17 +94,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(s.T().Context(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(s.T().Context(), mockTeam.Id, groupOpts).
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := teamGroupEnableCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Equal(mockError, err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -126,17 +124,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(s.T().Context(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(s.T().Context(), mockTeam.Id, groupOpts).
 			Return([]*model.GroupWithSchemeAdmin{}, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := teamGroupEnableCmdF(s.client, s.cmd, []string{arg})
 		s.Require().EqualError(err, "Team '"+arg+"' has no groups associated. It cannot be group-constrained")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -158,23 +156,23 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(s.T().Context(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(s.T().Context(), mockTeam.Id, groupOpts).
 			Return([]*model.GroupWithSchemeAdmin{{}}, 1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), mockTeam.Id, &teamPatch).
+			PatchTeam(s.T().Context(), mockTeam.Id, &teamPatch).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := teamGroupEnableCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Equal(mockError, err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -195,23 +193,23 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), arg, "").
+			GetTeam(s.T().Context(), arg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), mockTeam.Id, groupOpts).
+			GetGroupsByTeam(s.T().Context(), mockTeam.Id, groupOpts).
 			Return([]*model.GroupWithSchemeAdmin{{}}, 1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), mockTeam.Id, &teamPatch).
+			PatchTeam(s.T().Context(), mockTeam.Id, &teamPatch).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := teamGroupEnableCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -227,17 +225,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), teamArg, &teamPatch).
+			PatchTeam(s.T().Context(), teamArg, &teamPatch).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		err := teamGroupDisableCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 	})
@@ -248,17 +246,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		err := teamGroupDisableCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -274,17 +272,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchTeam(context.TODO(), teamArg, &teamPatch).
+			PatchTeam(s.T().Context(), teamArg, &teamPatch).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		err := teamGroupDisableCmdF(s.client, s.cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -316,23 +314,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -363,23 +361,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -408,23 +406,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -442,23 +440,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(s.T().Context(), channelID).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -475,17 +473,17 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -513,23 +511,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelID, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelID, *groupOpts).
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.Require().Equal(err, mockError)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -548,23 +546,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(s.T().Context(), channelID).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -582,17 +580,17 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		err := channelGroupListCmdF(s.client, s.cmd, []string{cmdArg})
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -605,18 +603,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(s.T().Context(), "team1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), "team1", "").
+			GetTeamByName(s.T().Context(), "team1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		err := teamGroupListCmdF(s.client, cmd, []string{"team1"})
+		err := teamGroupListCmdF(s.client, s.cmd, []string{"team1"})
 
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), "Unable to find team 'team1'")
@@ -646,18 +643,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(s.T().Context(), "team1", "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), "team1", groupOpts).
+			GetGroupsByTeam(s.T().Context(), "team1", groupOpts).
 			Return(groups, 2, &model.Response{}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		err := teamGroupListCmdF(s.client, cmd, []string{"team1"})
+		err := teamGroupListCmdF(s.client, s.cmd, []string{"team1"})
 
 		s.Require().NotNil(err)
 		s.Require().Equal(err, mockError)
@@ -685,18 +681,17 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(s.T().Context(), "team1", "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByTeam(context.TODO(), "team1", groupOpts).
+			GetGroupsByTeam(s.T().Context(), "team1", groupOpts).
 			Return(groups, 2, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		err := teamGroupListCmdF(s.client, cmd, []string{"team1"})
+		err := teamGroupListCmdF(s.client, s.cmd, []string{"team1"})
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
@@ -712,21 +707,20 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupStatusCmdF(s.client, cmd, args)
+		err := teamGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().EqualError(err, "Unable to find team '"+args[0]+"'")
 	})
@@ -737,16 +731,15 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
-		cmd := &cobra.Command{}
 		team := &model.Team{Id: teamID}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupStatusCmdF(s.client, cmd, args)
+		err := teamGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -760,16 +753,15 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
-		cmd := &cobra.Command{}
 		team := &model.Team{Id: teamID, GroupConstrained: new(true)}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupStatusCmdF(s.client, cmd, args)
+		err := teamGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -783,16 +775,15 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
-		cmd := &cobra.Command{}
 		team := &model.Team{Id: teamID, GroupConstrained: new(false)}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupStatusCmdF(s.client, cmd, args)
+		err := teamGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -809,21 +800,20 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupStatusCmdF(s.client, cmd, args)
+		err := channelGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().EqualError(err, "Unable to find channel '"+args[0]+"'")
 	})
@@ -835,29 +825,28 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{Id: teamID}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(s.T().Context(), channelID).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupStatusCmdF(s.client, cmd, args)
+		err := channelGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().EqualError(err, "Unable to find channel '"+args[0]+"'")
 	})
@@ -869,24 +858,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{Id: teamID}
 		channel := &model.Channel{Id: channelID, GroupConstrained: new(true)}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupStatusCmdF(s.client, cmd, args)
+		err := channelGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -901,24 +889,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{Id: teamID}
 		channel := &model.Channel{Id: channelID, GroupConstrained: new(false)}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupStatusCmdF(s.client, cmd, args)
+		err := channelGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -933,24 +920,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{Id: teamID}
 		channel := &model.Channel{Id: channelID}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupStatusCmdF(s.client, cmd, args)
+		err := channelGroupStatusCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -979,29 +965,29 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
+			PatchChannel(s.T().Context(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1017,17 +1003,17 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1045,23 +1031,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(s.T().Context(), channelPart).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1086,23 +1072,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelPart, *groupOpts).
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1129,29 +1115,29 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
+			PatchChannel(s.T().Context(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1176,23 +1162,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1208,17 +1194,17 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1235,23 +1221,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(s.T().Context(), channelPart).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1278,35 +1264,35 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(s.T().Context(), channelPart).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(context.TODO(), channelPart, *groupOpts).
+			GetGroupsByChannel(s.T().Context(), channelPart, *groupOpts).
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
+			PatchChannel(s.T().Context(), channelPart, &model.ChannelPatch{GroupConstrained: new(true)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupEnableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1325,23 +1311,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
+			PatchChannel(s.T().Context(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupDisableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1356,17 +1342,17 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupDisableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1383,23 +1369,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(s.T().Context(), channelPart).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupDisableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1418,29 +1404,29 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
+			PatchChannel(s.T().Context(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupDisableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1456,17 +1442,17 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupDisableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1484,23 +1470,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart).
+			GetChannel(s.T().Context(), channelPart).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupDisableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1519,23 +1505,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelPart, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelPart, teamArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
+			PatchChannel(s.T().Context(), channelPart, &model.ChannelPatch{GroupConstrained: new(false)}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		err := channelGroupDisableCmdF(s.client, s.cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1549,12 +1535,11 @@ func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
 
 		s.client.
 			EXPECT().
-			RestoreGroup(context.TODO(), "groupId", "").
+			RestoreGroup(s.T().Context(), "groupId", "").
 			Return(nil, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		err := userGroupRestoreCmdF(s.client, cmd, []string{"groupId"})
+		err := userGroupRestoreCmdF(s.client, s.cmd, []string{"groupId"})
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -1566,12 +1551,11 @@ func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
 		mockError := errors.New("no group found")
 		s.client.
 			EXPECT().
-			RestoreGroup(context.TODO(), "groupId", "").
+			RestoreGroup(s.T().Context(), "groupId", "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		err := userGroupRestoreCmdF(s.client, cmd, []string{"groupId"})
+		err := userGroupRestoreCmdF(s.client, s.cmd, []string{"groupId"})
 
 		s.Require().NotNil(err)
 		s.Require().Equal(mockError, err)

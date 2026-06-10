@@ -16,8 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
-	"github.com/spf13/cobra"
 )
 
 func TestParseExpiresIn(t *testing.T) {
@@ -59,23 +57,23 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description, int64(0)).
+			CreateUserAccessToken(s.T().Context(), mockUser.Id, mockToken.Description, int64(0)).
 			Return(&mockToken, &model.Response{}, nil).
 			Times(1)
 
-		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockUser.Id, mockToken.Description})
+		err := generateTokenForAUserCmdF(s.client, s.cmd, []string{mockUser.Id, mockToken.Description})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockToken, printer.GetLines()[0])
@@ -87,17 +85,17 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		userArg := "some-text"
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given ID")).
 			Times(1)
 
-		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{userArg, "description"})
+		err := generateTokenForAUserCmdF(s.client, s.cmd, []string{userArg, "description"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not retrieve user information of %q", userArg))
 	})
@@ -110,17 +108,17 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.TODO(), mockUser.Id, "description", int64(0)).
+			CreateUserAccessToken(s.T().Context(), mockUser.Id, "description", int64(0)).
 			Return(nil, &model.Response{}, errors.New("error-message")).
 			Times(1)
 
-		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"user1", "description"})
+		err := generateTokenForAUserCmdF(s.client, s.cmd, []string{"user1", "description"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not create token for %q:", "user1"))
 	})
@@ -134,19 +132,19 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		now := time.Now()
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description, gomock.AssignableToTypeOf(int64(0))).
+			CreateUserAccessToken(s.T().Context(), mockUser.Id, mockToken.Description, gomock.AssignableToTypeOf(int64(0))).
 			DoAndReturn(func(_ context.Context, _, _ string, expiresAt int64) (*model.UserAccessToken, *model.Response, error) {
 				// 90 days = 7_776_000_000 ms; allow generous slack for clock between Now() calls.
 				expected := now.Add(90 * 24 * time.Hour).UnixMilli()
@@ -155,22 +153,20 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 			}).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("expires-in", "", "")
-		s.Require().NoError(cmd.Flags().Set("expires-in", "90d"))
+		s.cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(s.cmd.Flags().Set("expires-in", "90d"))
 
-		err := generateTokenForAUserCmdF(s.client, cmd, []string{mockUser.Id, mockToken.Description})
+		err := generateTokenForAUserCmdF(s.client, s.cmd, []string{mockUser.Id, mockToken.Description})
 		s.Require().NoError(err)
 	})
 
 	s.Run("Should reject invalid --expires-in", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("expires-in", "", "")
-		s.Require().NoError(cmd.Flags().Set("expires-in", "not-a-duration"))
+		s.cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(s.cmd.Flags().Set("expires-in", "not-a-duration"))
 
-		err := generateTokenForAUserCmdF(s.client, cmd, []string{"userId1", "desc"})
+		err := generateTokenForAUserCmdF(s.client, s.cmd, []string{"userId1", "desc"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "invalid --expires-in")
 	})
@@ -178,11 +174,10 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 	s.Run("Should reject non-positive --expires-in", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("expires-in", "", "")
-		s.Require().NoError(cmd.Flags().Set("expires-in", "-5h"))
+		s.cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(s.cmd.Flags().Set("expires-in", "-5h"))
 
-		err := generateTokenForAUserCmdF(s.client, cmd, []string{"userId1", "desc"})
+		err := generateTokenForAUserCmdF(s.client, s.cmd, []string{"userId1", "desc"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "must be positive")
 	})
@@ -192,12 +187,11 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	s.Run("Should list access tokens of a user", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", true, "")
-		command.Flags().Bool("active", false, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", true, "")
+		s.cmd.Flags().Bool("active", false, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 		mockToken1 := model.UserAccessToken{IsActive: true, Id: "token-1-id", Description: "token-1-desc"}
@@ -205,25 +199,25 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), mockUser.Id, "").
+			GetUser(s.T().Context(), mockUser.Id, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserAccessTokensForUser(context.TODO(), mockUser.Id, 0, 9999).
+			GetUserAccessTokensForUser(s.T().Context(), mockUser.Id, 0, 9999).
 			Return(
 				[]*model.UserAccessToken{&mockToken1, &mockToken2},
 				&model.Response{}, nil,
 			).Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Id})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&mockToken1, printer.GetLines()[0])
@@ -233,12 +227,11 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	s.Run("Should list only active user access tokens of a user", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", false, "")
-		command.Flags().Bool("active", true, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Bool("active", true, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 		mockToken1 := model.UserAccessToken{IsActive: true, Id: "token-1-id", Description: "token-1-desc"}
@@ -246,19 +239,19 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(&mockUser, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserAccessTokensForUser(context.TODO(), mockUser.Id, 0, 2).
+			GetUserAccessTokensForUser(s.T().Context(), mockUser.Id, 0, 2).
 			Return(
 				[]*model.UserAccessToken{&mockToken1, &mockToken2},
 				&model.Response{}, nil,
 			).Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Email})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockToken1, printer.GetLines()[0])
@@ -268,26 +261,25 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		printer.Clean()
 
 		userArg := "test-user"
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", false, "")
-		command.Flags().Bool("active", false, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Bool("active", false, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given user ID")).
 			Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{userArg})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{userArg})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not retrieve user information of %q", userArg))
 	})
@@ -295,30 +287,29 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	s.Run("Should error if there are no user access tokens for a valid user", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", false, "")
-		command.Flags().Bool("active", true, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Bool("active", true, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(&mockUser, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserAccessTokensForUser(context.TODO(), mockUser.Id, 0, 2).
+			GetUserAccessTokensForUser(s.T().Context(), mockUser.Id, 0, 2).
 			Return(
 				[]*model.UserAccessToken{},
 				&model.Response{}, nil,
 			).Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Email})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), fmt.Sprintf("there are no tokens for the %q", mockUser.Email))
 	})
@@ -333,17 +324,17 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			RevokeUserAccessToken(context.TODO(), mockToken1.Id).
+			RevokeUserAccessToken(s.T().Context(), mockToken1.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RevokeUserAccessToken(context.TODO(), mockToken2.Id).
+			RevokeUserAccessToken(s.T().Context(), mockToken2.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockToken1.Id, mockToken2.Id})
+		err := revokeTokenForAUserCmdF(s.client, s.cmd, []string{mockToken1.Id, mockToken2.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -351,11 +342,11 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 	s.Run("Should fail if can't revoke user access token", func() {
 		s.client.
 			EXPECT().
-			RevokeUserAccessToken(context.TODO(), "token-id").
+			RevokeUserAccessToken(s.T().Context(), "token-id").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"token-id"})
+		err := revokeTokenForAUserCmdF(s.client, s.cmd, []string{"token-id"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not revoke token %q", "token-id"))
 	})

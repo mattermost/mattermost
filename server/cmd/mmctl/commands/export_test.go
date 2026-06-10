@@ -4,14 +4,12 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
@@ -27,11 +25,11 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(s.T().Context(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := exportCreateCmdF(s.client, &cobra.Command{}, nil)
+		err := exportCreateCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -49,14 +47,13 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(s.T().Context(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("no-attachments", true, "")
+		s.cmd.Flags().Bool("no-attachments", true, "")
 
-		err := exportCreateCmdF(s.client, cmd, nil)
+		err := exportCreateCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -74,14 +71,13 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(s.T().Context(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("no-roles-and-schemes", true, "")
+		s.cmd.Flags().Bool("no-roles-and-schemes", true, "")
 
-		err := exportCreateCmdF(s.client, cmd, nil)
+		err := exportCreateCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -95,11 +91,11 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 
 	s.client.
 		EXPECT().
-		DeleteExport(context.TODO(), exportName).
+		DeleteExport(s.T().Context(), exportName).
 		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
-	err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
+	err := exportDeleteCmdF(s.client, s.cmd, []string{exportName})
 	s.Require().Nil(err)
 	s.Len(printer.GetLines(), 1)
 	s.Len(printer.GetErrorLines(), 0)
@@ -113,11 +109,11 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.TODO()).
+			ListExports(s.T().Context()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
-		err := exportListCmdF(s.client, &cobra.Command{}, nil)
+		err := exportListCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -134,11 +130,11 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.TODO()).
+			ListExports(s.T().Context()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
-		err := exportListCmdF(s.client, &cobra.Command{}, nil)
+		err := exportListCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockExports))
 		s.Len(printer.GetErrorLines(), 0)

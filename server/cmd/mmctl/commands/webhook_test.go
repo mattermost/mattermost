@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
@@ -63,53 +61,53 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(s.T().Context(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
+			GetAllTeams(s.T().Context(), "", 1, DefaultPageSize).
 			Return([]*model.Team{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			GetIncomingWebhooksForTeam(s.T().Context(), teamID, 0, 200, "").
 			Return(mockIncomingWebhooksPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			GetIncomingWebhooksForTeam(s.T().Context(), teamID, 1, 200, "").
 			Return(mockIncomingWebhooksPage2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			GetIncomingWebhooksForTeam(s.T().Context(), teamID, 2, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			GetOutgoingWebhooksForTeam(s.T().Context(), teamID, 0, 200, "").
 			Return(mockOutgoingWebhooksPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			GetOutgoingWebhooksForTeam(s.T().Context(), teamID, 1, 200, "").
 			Return(mockOutgoingWebhooksPage2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			GetOutgoingWebhooksForTeam(s.T().Context(), teamID, 2, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
+		err := listWebhookCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		if s.Len(printer.GetLines(), 500) {
 			for i := range 250 {
@@ -134,47 +132,47 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			GetIncomingWebhooksForTeam(s.T().Context(), teamID, 0, 200, "").
 			Return(mockIncomingWebhooksPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			GetIncomingWebhooksForTeam(s.T().Context(), teamID, 1, 200, "").
 			Return(mockIncomingWebhooksPage2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			GetIncomingWebhooksForTeam(s.T().Context(), teamID, 2, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			GetOutgoingWebhooksForTeam(s.T().Context(), teamID, 0, 200, "").
 			Return(mockOutgoingWebhooksPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 1, 200, "").
+			GetOutgoingWebhooksForTeam(s.T().Context(), teamID, 1, 200, "").
 			Return(mockOutgoingWebhooksPage2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 2, 200, "").
+			GetOutgoingWebhooksForTeam(s.T().Context(), teamID, 2, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{teamID})
+		err := listWebhookCmdF(s.client, s.cmd, []string{teamID})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 		if s.Len(printer.GetLines(), 500) {
@@ -199,29 +197,29 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(s.T().Context(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
+			GetAllTeams(s.T().Context(), "", 1, DefaultPageSize).
 			Return([]*model.Team{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			GetIncomingWebhooksForTeam(s.T().Context(), teamID, 0, 200, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhooksForTeam(context.TODO(), teamID, 0, 200, "").
+			GetOutgoingWebhooksForTeam(s.T().Context(), teamID, 0, 200, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
+		err := listWebhookCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 2)
@@ -238,10 +236,9 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 	userName := "userName"
 	displayName := "displayName"
 
-	cmd := &cobra.Command{}
-	cmd.Flags().String("channel", channelID, "")
-	cmd.Flags().String("user", emailID, "")
-	cmd.Flags().String("display-name", displayName, "")
+	s.cmd.Flags().String("channel", channelID, "")
+	s.cmd.Flags().String("user", emailID, "")
+	s.cmd.Flags().String("display-name", displayName, "")
 
 	s.Run("Successfully create new incoming webhook", func() {
 		printer.Clean()
@@ -265,23 +262,23 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(s.T().Context(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailID, "").
+			GetUserByUsername(s.T().Context(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
+			CreateIncomingWebhook(s.T().Context(), &mockIncomingWebhook).
 			Return(&returnedIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := createIncomingWebhookCmdF(s.client, cmd, []string{})
+		err := createIncomingWebhookCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -309,23 +306,23 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(s.T().Context(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailID, "").
+			GetUserByUsername(s.T().Context(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
+			CreateIncomingWebhook(s.T().Context(), &mockIncomingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := createIncomingWebhookCmdF(s.client, cmd, []string{})
+		err := createIncomingWebhookCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -354,23 +351,22 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		updatedIncomingWebhook := mockIncomingWebhook
 		updatedIncomingWebhook.ChannelLocked = lockToChannel
 
-		cmd := &cobra.Command{}
 
-		_ = cmd.Flags().Set("lock-to-channel", strconv.FormatBool(lockToChannel))
+		_ = s.cmd.Flags().Set("lock-to-channel", strconv.FormatBool(lockToChannel))
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
+			UpdateIncomingWebhook(s.T().Context(), &mockIncomingWebhook).
 			Return(&updatedIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := modifyIncomingWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
+		err := modifyIncomingWebhookCmdF(s.client, s.cmd, []string{incomingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -392,23 +388,22 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 
 		mockError := errors.New("mock error")
 
-		cmd := &cobra.Command{}
 
-		_ = cmd.Flags().Set("lock-to-channel", strconv.FormatBool(lockToChannel))
+		_ = s.cmd.Flags().Set("lock-to-channel", strconv.FormatBool(lockToChannel))
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateIncomingWebhook(context.TODO(), &mockIncomingWebhook).
+			UpdateIncomingWebhook(s.T().Context(), &mockIncomingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := modifyIncomingWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
+		err := modifyIncomingWebhookCmdF(s.client, s.cmd, []string{incomingWebhookID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -424,10 +419,9 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 	userName := "userName"
 	triggerWhen := "exact"
 
-	cmd := &cobra.Command{}
-	cmd.Flags().String("team", teamID, "")
-	cmd.Flags().String("user", emailID, "")
-	cmd.Flags().String("trigger-when", triggerWhen, "")
+	s.cmd.Flags().String("team", teamID, "")
+	s.cmd.Flags().String("user", emailID, "")
+	s.cmd.Flags().String("trigger-when", triggerWhen, "")
 
 	s.Run("Successfully create outgoing webhook", func() {
 		printer.Clean()
@@ -454,23 +448,23 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailID, "").
+			GetUserByUsername(s.T().Context(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
+			CreateOutgoingWebhook(s.T().Context(), &mockOutgoingWebhook).
 			Return(&createdOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := createOutgoingWebhookCmdF(s.client, cmd, []string{})
+		err := createOutgoingWebhookCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -500,23 +494,23 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailID, "").
+			GetUserByUsername(s.T().Context(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
+			CreateOutgoingWebhook(s.T().Context(), &mockOutgoingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := createOutgoingWebhookCmdF(s.client, cmd, []string{})
+		err := createOutgoingWebhookCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -540,24 +534,23 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		updatedOutgoingWebhook := mockOutgoingWebhook
 		updatedOutgoingWebhook.TriggerWhen = 1
 
-		cmd := &cobra.Command{}
-		cmd.Flags().StringArray("url", []string{}, "")
-		cmd.Flags().StringArray("trigger-word", []string{}, "")
-		cmd.Flags().String("trigger-when", "start", "")
+		s.cmd.Flags().StringArray("url", []string{}, "")
+		s.cmd.Flags().StringArray("trigger-word", []string{}, "")
+		s.cmd.Flags().String("trigger-when", "start", "")
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			GetOutgoingWebhook(s.T().Context(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
+			UpdateOutgoingWebhook(s.T().Context(), &mockOutgoingWebhook).
 			Return(&updatedOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := modifyOutgoingWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
+		err := modifyOutgoingWebhookCmdF(s.client, s.cmd, []string{outgoingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -575,24 +568,23 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		}
 		mockError := errors.New("mock error")
 
-		cmd := &cobra.Command{}
-		cmd.Flags().StringArray("url", []string{}, "")
-		cmd.Flags().StringArray("trigger-word", []string{}, "")
-		cmd.Flags().String("trigger-when", "start", "")
+		s.cmd.Flags().StringArray("url", []string{}, "")
+		s.cmd.Flags().StringArray("trigger-word", []string{}, "")
+		s.cmd.Flags().String("trigger-when", "start", "")
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			GetOutgoingWebhook(s.T().Context(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateOutgoingWebhook(context.TODO(), &mockOutgoingWebhook).
+			UpdateOutgoingWebhook(s.T().Context(), &mockOutgoingWebhook).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := modifyOutgoingWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
+		err := modifyOutgoingWebhookCmdF(s.client, s.cmd, []string{outgoingWebhookID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -611,17 +603,17 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteIncomingWebhook(context.TODO(), incomingWebhookID).
+			DeleteIncomingWebhook(s.T().Context(), incomingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
+		err := deleteWebhookCmdF(s.client, s.cmd, []string{incomingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -636,23 +628,23 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), outgoingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), outgoingWebhookID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			GetOutgoingWebhook(s.T().Context(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			DeleteOutgoingWebhook(s.T().Context(), outgoingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
+		err := deleteWebhookCmdF(s.client, s.cmd, []string{outgoingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -667,17 +659,17 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteIncomingWebhook(context.TODO(), incomingWebhookID).
+			DeleteIncomingWebhook(s.T().Context(), incomingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
+		err := deleteWebhookCmdF(s.client, s.cmd, []string{incomingWebhookID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -692,23 +684,23 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), outgoingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), outgoingWebhookID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			GetOutgoingWebhook(s.T().Context(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			DeleteOutgoingWebhook(s.T().Context(), outgoingWebhookID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
+		err := deleteWebhookCmdF(s.client, s.cmd, []string{outgoingWebhookID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -728,11 +720,11 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), incomingWebhookID, "").
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
+		err := showWebhookCmdF(s.client, s.cmd, []string{incomingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -747,17 +739,17 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), outgoingWebhookID, "").
+			GetIncomingWebhook(s.T().Context(), outgoingWebhookID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			GetOutgoingWebhook(s.T().Context(), outgoingWebhookID).
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
+		err := showWebhookCmdF(s.client, s.cmd, []string{outgoingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -771,17 +763,17 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetIncomingWebhook(context.TODO(), nonExistentID, "").
+			GetIncomingWebhook(s.T().Context(), nonExistentID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetOutgoingWebhook(context.TODO(), nonExistentID).
+			GetOutgoingWebhook(s.T().Context(), nonExistentID).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{nonExistentID})
+		err := showWebhookCmdF(s.client, s.cmd, []string{nonExistentID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)

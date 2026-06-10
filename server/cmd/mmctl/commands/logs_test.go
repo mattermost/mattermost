@@ -5,7 +5,6 @@ package commands
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -27,16 +26,15 @@ const (
 func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	s.Run("Display single log line", func() {
 		mockSingleLogLine := []string{testLogInfo}
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("number", 1, "")
+		s.cmd.Flags().Int("number", 1, "")
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 1).
+			GetLogs(s.T().Context(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
-		data, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
@@ -45,15 +43,14 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Display logs", func() {
 		mockSingleLogLine := []string{testLogInfo}
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 0).
+			GetLogs(s.T().Context(), 0, 0).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
-		data, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
@@ -62,17 +59,16 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Display logs logrus format", func() {
 		mockSingleLogLine := []string{testLogInfo}
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("logrus", true, "")
-		cmd.Flags().Int("number", 1, "")
+		s.cmd.Flags().Bool("logrus", true, "")
+		s.cmd.Flags().Int("number", 1, "")
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 1).
+			GetLogs(s.T().Context(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
-		data, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
@@ -80,20 +76,19 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	})
 
 	s.Run("Error when using format flag", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().String("format", "json", "")
-		cmd.Flags().Lookup("format").Changed = true
+		s.cmd.Flags().String("format", "json", "")
+		s.cmd.Flags().Lookup("format").Changed = true
 
-		data, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Error(err)
 		s.Require().Equal(err.Error(), fmt.Sprintf("the %q and %q flags cannot be used with this command", "--format", "--json"))
 		s.Require().Len(data, 0)
 
-		cmd.Flags().Lookup("format").Changed = false
-		cmd.Flags().Bool("json", true, "")
-		cmd.Flags().Lookup("json").Changed = true
-		data, err = testLogsCmdF(s.client, cmd, []string{})
+		s.cmd.Flags().Lookup("format").Changed = false
+		s.cmd.Flags().Bool("json", true, "")
+		s.cmd.Flags().Lookup("json").Changed = true
+		data, err = testLogsCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Error(err)
 		s.Require().Equal(err.Error(), fmt.Sprintf("the %q and %q flags cannot be used with this command", "--format", "--json"))
@@ -103,10 +98,9 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	s.Run("Error when setting json format with environment variable", func() {
 		formatTmp := viper.GetString("format")
 
-		cmd := &cobra.Command{}
 		viper.Set("format", "json")
 
-		data, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Error(err)
 		s.Require().Equal(err.Error(), "json formatting cannot be applied on this command. Please check the value of \"MMCTL_FORMAT\"")

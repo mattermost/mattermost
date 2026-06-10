@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -58,7 +57,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 
 		defer removePluginIfInstalled(c, s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
+		err := pluginMarketplaceInstallCmdF(c, s.cmd, []string{pluginID})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -84,7 +83,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 
 		defer removePluginIfInstalled(s.th.Client, s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(s.th.Client, &cobra.Command{}, []string{pluginID})
+		err := pluginMarketplaceInstallCmdF(s.th.Client, s.cmd, []string{pluginID})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -105,7 +104,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 
 		defer removePluginIfInstalled(c, s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
+		err := pluginMarketplaceInstallCmdF(c, s.cmd, []string{pluginID})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "Could not find the requested marketplace plugin")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -119,7 +118,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 }
 
 func removePluginIfInstalled(c client.Client, s *MmctlE2ETestSuite, pluginID string) {
-	appErr := pluginDeleteCmdF(c, &cobra.Command{}, []string{pluginID})
+	appErr := pluginDeleteCmdF(c, s.cmd, []string{pluginID})
 	if appErr != nil {
 		s.Require().Contains(appErr.Error(), "Unable to delete plugin.")
 	}
@@ -131,7 +130,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
 	s.RunForSystemAdminAndLocal("List Marketplace Plugins for Admin User", func(c client.Client) {
 		printer.Clean()
 
-		err := pluginMarketplaceListCmdF(c, &cobra.Command{}, nil)
+		err := pluginMarketplaceListCmdF(c, s.cmd, nil)
 
 		pluginList := printer.GetLines()
 
@@ -144,7 +143,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
 	s.Run("List Marketplace Plugins for non-admin User", func() {
 		printer.Clean()
 
-		err := pluginMarketplaceListCmdF(s.th.Client, &cobra.Command{}, nil)
+		err := pluginMarketplaceListCmdF(s.th.Client, s.cmd, nil)
 
 		s.Require().ErrorContains(err, "Failed to fetch plugins: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetErrorLines())

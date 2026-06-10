@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestHasAttrsChanges() {
@@ -78,21 +77,20 @@ func (s *MmctlUnitTestSuite) TestHasAttrsChanges() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Name, func() {
-			cmd := &cobra.Command{}
 
 			// Set up all the flags that might be used
-			cmd.Flags().Bool("managed", false, "")
-			cmd.Flags().String("attrs", "", "")
-			cmd.Flags().StringSlice("option", []string{}, "")
-			cmd.Flags().String("name", "", "")
+			s.cmd.Flags().Bool("managed", false, "")
+			s.cmd.Flags().String("attrs", "", "")
+			s.cmd.Flags().StringSlice("option", []string{}, "")
+			s.cmd.Flags().String("name", "", "")
 
 			// Apply the flag changes for this test case
 			for flagName, flagValue := range tc.FlagChanges {
-				err := cmd.Flags().Set(flagName, flagValue)
+				err := s.cmd.Flags().Set(flagName, flagValue)
 				s.Require().NoError(err)
 			}
 
-			result := hasAttrsChanges(cmd)
+			result := hasAttrsChanges(s.cmd)
 			s.Require().Equal(tc.Expected, result)
 		})
 	}
@@ -176,12 +174,11 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Name, func() {
-			cmd := &cobra.Command{}
 
 			// Set up all the flags that might be used
-			cmd.Flags().Bool("managed", false, "")
-			cmd.Flags().String("attrs", "", "")
-			cmd.Flags().StringSlice("option", []string{}, "")
+			s.cmd.Flags().Bool("managed", false, "")
+			s.cmd.Flags().String("attrs", "", "")
+			s.cmd.Flags().StringSlice("option", []string{}, "")
 
 			// Apply the flag changes for this test case
 			for flagName, flagValue := range tc.FlagChanges {
@@ -189,20 +186,20 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 					// Handle option flag with list of values
 					if options, ok := flagValue.([]string); ok {
 						for _, optionName := range options {
-							err := cmd.Flags().Set("option", optionName)
+							err := s.cmd.Flags().Set("option", optionName)
 							s.Require().NoError(err)
 						}
 					}
 				} else {
 					// Handle other flags as strings
 					if stringValue, ok := flagValue.(string); ok {
-						err := cmd.Flags().Set(flagName, stringValue)
+						err := s.cmd.Flags().Set(flagName, stringValue)
 						s.Require().NoError(err)
 					}
 				}
 			}
 
-			result, err := buildFieldAttrs(cmd, nil)
+			result, err := buildFieldAttrs(s.cmd, nil)
 
 			if tc.ShouldError {
 				s.Require().Error(err)
@@ -387,10 +384,9 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 
 		for _, tc := range existingAttrsTestCases {
 			s.Run(tc.Name, func() {
-				cmd := &cobra.Command{}
-				cmd.Flags().Bool("managed", false, "")
-				cmd.Flags().String("attrs", "", "")
-				cmd.Flags().StringSlice("option", []string{}, "")
+				s.cmd.Flags().Bool("managed", false, "")
+				s.cmd.Flags().String("attrs", "", "")
+				s.cmd.Flags().StringSlice("option", []string{}, "")
 
 				// Set flags based on test case
 				for flagName, flagValue := range tc.FlagChanges {
@@ -398,17 +394,17 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 					case "option":
 						if options, ok := flagValue.([]string); ok {
 							for _, opt := range options {
-								err := cmd.Flags().Set(flagName, opt)
+								err := s.cmd.Flags().Set(flagName, opt)
 								s.Require().NoError(err)
 							}
 						}
 					default:
-						err := cmd.Flags().Set(flagName, fmt.Sprintf("%v", flagValue))
+						err := s.cmd.Flags().Set(flagName, fmt.Sprintf("%v", flagValue))
 						s.Require().NoError(err)
 					}
 				}
 
-				result, err := buildFieldAttrs(cmd, tc.ExistingAttrs)
+				result, err := buildFieldAttrs(s.cmd, tc.ExistingAttrs)
 
 				if tc.ShouldError {
 					s.Require().Error(err)

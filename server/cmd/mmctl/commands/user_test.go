@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -28,17 +27,17 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, true).
+			UpdateUserActive(s.T().Context(), mockUser.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := userActivateCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -50,23 +49,23 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
-		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := userActivateCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -80,17 +79,17 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, true).
+			UpdateUserActive(s.T().Context(), mockUser.Id, true).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := userActivateCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -107,65 +106,65 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[0], "").
+			GetUserByEmail(s.T().Context(), emailArgs[0], "").
 			Return(&mockUser0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArgs[1], "").
+			GetUserByUsername(s.T().Context(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArgs[1], "").
+			GetUser(s.T().Context(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[2], "").
+			GetUserByEmail(s.T().Context(), emailArgs[2], "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[3], "").
+			GetUserByEmail(s.T().Context(), emailArgs[3], "").
 			Return(&mockUser3, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[4], "").
+			GetUserByEmail(s.T().Context(), emailArgs[4], "").
 			Return(&mockUser4, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser0.Id, true).
+			UpdateUserActive(s.T().Context(), mockUser0.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser2.Id, true).
+			UpdateUserActive(s.T().Context(), mockUser2.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser3.Id, true).
+			UpdateUserActive(s.T().Context(), mockUser3.Id, true).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser4.Id, true).
+			UpdateUserActive(s.T().Context(), mockUser4.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userActivateCmdF(s.client, &cobra.Command{}, emailArgs)
+		err := userActivateCmdF(s.client, s.cmd, emailArgs)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
@@ -195,11 +194,11 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 			s.client.
 				EXPECT().
-				GetUsersWithCustomQueryParameters(context.Background(), 0, DefaultPageSize, "inactive=true", "").
+				GetUsersWithCustomQueryParameters(s.T().Context(), 0, DefaultPageSize, "inactive=true", "").
 				Return(mockUsers, &model.Response{}, nil).
 				Times(1)
 
-			r, dir := userActivateCompletionF(context.Background(), s.client, nil, nil, "1")
+			r, dir := userActivateCompletionF(s.T().Context(), s.client, nil, nil, "1")
 			s.Equal(cobra.ShellCompDirectiveNoFileComp, dir)
 			s.Equal([]string{"1_id"}, r)
 		})
@@ -214,17 +213,17 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -236,23 +235,23 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -266,17 +265,17 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -290,17 +289,17 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+mockUser.Id+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
@@ -317,65 +316,65 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[0], "").
+			GetUserByEmail(s.T().Context(), emailArgs[0], "").
 			Return(&mockUser0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArgs[1], "").
+			GetUserByUsername(s.T().Context(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArgs[1], "").
+			GetUser(s.T().Context(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[2], "").
+			GetUserByEmail(s.T().Context(), emailArgs[2], "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[3], "").
+			GetUserByEmail(s.T().Context(), emailArgs[3], "").
 			Return(&mockUser3, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[4], "").
+			GetUserByEmail(s.T().Context(), emailArgs[4], "").
 			Return(&mockUser4, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser0.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser0.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser2.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser2.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser3.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser3.Id, false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser4.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser4.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, emailArgs)
+		err := userDeactivateCmdF(s.client, s.cmd, emailArgs)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+mockUser2.Id+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
@@ -394,9 +393,8 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	mockUser2 := model.User{Username: "User2", Email: email2, Id: userID2}
 
 	s.Run("Delete users with confirm false returns an error", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", false, "")
-		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
+		s.cmd.Flags().Bool("confirm", false, "")
+		err := deleteUsersCmdF(s.client, s.cmd, []string{"some"})
 		s.Require().NotNil(err)
 		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
@@ -410,25 +408,24 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
-		err := deleteUsersCmdF(s.client, cmd, []string{arg})
+		s.cmd.Flags().Bool("confirm", true, "")
+		err := deleteUsersCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Error(err)
 		s.Require().EqualError(err, expectedErr.Error())
 	})
@@ -438,30 +435,29 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(s.T().Context(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(s.T().Context(), userID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email2, "").
+			GetUserByEmail(s.T().Context(), email2, "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID2).
+			PermanentDeleteUser(s.T().Context(), userID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
+		err := deleteUsersCmdF(s.client, s.cmd, []string{email1, email2})
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
 		s.Require().Equal(&mockUser2, printer.GetLines()[1])
@@ -477,20 +473,19 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(s.T().Context(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(s.T().Context(), userID1).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		err := deleteUsersCmdF(s.client, cmd, []string{email1})
+		err := deleteUsersCmdF(s.client, s.cmd, []string{email1})
 		s.Require().EqualError(err, expectedErr.Error())
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -505,30 +500,29 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(s.T().Context(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email2, "").
+			GetUserByEmail(s.T().Context(), email2, "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(s.T().Context(), userID1).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID2).
+			PermanentDeleteUser(s.T().Context(), userID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
+		err := deleteUsersCmdF(s.client, s.cmd, []string{email1, email2})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, expectedErr.Error())
 		s.Require().Equal(&mockUser2, printer.GetLines()[0])
@@ -543,19 +537,18 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(s.T().Context(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(s.T().Context(), userID1).
 			Return(&model.Response{StatusCode: http.StatusAccepted}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		err := deleteUsersCmdF(s.client, cmd, []string{email1})
+		err := deleteUsersCmdF(s.client, s.cmd, []string{email1})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, expectedErr.Error())
 	})
@@ -564,16 +557,15 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
 	s.Run("Delete all users", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		s.client.
 			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
+			PermanentDeleteAllUsers(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := deleteAllUsersCmdF(s.client, cmd, []string{})
+		err := deleteAllUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -582,16 +574,15 @@ func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
 
 	s.Run("Delete all users call fails", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		s.client.
 			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
+			PermanentDeleteAllUsers(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := deleteAllUsersCmdF(s.client, cmd, []string{})
+		err := deleteAllUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -605,11 +596,11 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := searchUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Require().Equal(userOut{User: mockUser, Deactivated: false}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -622,11 +613,11 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := searchUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(userOut{User: mockUser, Deactivated: true}, printer.GetLines()[0])
@@ -640,11 +631,11 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := searchUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(userOut{User: mockUser, Deactivated: false, AuthData: "1234"}, printer.GetLines()[0])
@@ -657,23 +648,23 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := searchUserCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("1 error occurred:\n\t* user example@example.com not found\n\n", printer.GetErrorLines()[0])
@@ -683,7 +674,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		printer.Clean()
 		arg := "test/../hello?@mattermost.com"
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := searchUserCmdF(s.client, s.cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Require().Equal("1 error occurred:\n\t* user test/../hello?@mattermost.com not found\n\n", printer.GetErrorLines()[0])
 	})
@@ -694,11 +685,11 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user by email")).
 			Times(1)
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := searchUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("1 error occurred:\n\t* Error while getting user by email\n\n", err.Error())
@@ -711,11 +702,11 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), usernameArg, "").
+			GetUserByUsername(s.T().Context(), usernameArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user by username")).
 			Times(1)
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{usernameArg})
+		err := searchUserCmdF(s.client, s.cmd, []string{usernameArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("1 error occurred:\n\t* Error while getting user by username\n\n", err.Error())
@@ -728,17 +719,17 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user")).
 			Times(1)
 
-		err := searchUserCmdF(s.client, &cobra.Command{}, []string{userArg})
+		err := searchUserCmdF(s.client, s.cmd, []string{userArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("1 error occurred:\n\t* Error while getting user\n\n", err.Error())
@@ -756,21 +747,20 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, currentPassword, password).
+			UpdateUserPassword(s.T().Context(), mockUser.Id, currentPassword, password).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("password", password, "")
-		cmd.Flags().String("current", currentPassword, "")
+		s.cmd.Flags().String("password", password, "")
+		s.cmd.Flags().String("current", currentPassword, "")
 
-		err := changePasswordUserCmdF(s.client, cmd, []string{emailArg})
+		err := changePasswordUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -785,20 +775,19 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, "", password).
+			UpdateUserPassword(s.T().Context(), mockUser.Id, "", password).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("password", password, "")
+		s.cmd.Flags().String("password", password, "")
 
-		err := changePasswordUserCmdF(s.client, cmd, []string{emailArg})
+		err := changePasswordUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -815,21 +804,20 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, currentPassword, password).
+			UpdateUserPassword(s.T().Context(), mockUser.Id, currentPassword, password).
 			Return(&model.Response{StatusCode: http.StatusOK}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("password", password, "")
-		cmd.Flags().String("current", currentPassword, "")
+		s.cmd.Flags().String("password", password, "")
+		s.cmd.Flags().String("current", currentPassword, "")
 
-		err := changePasswordUserCmdF(s.client, cmd, []string{emailArg})
+		err := changePasswordUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "changing user password failed: mock error")
 		s.Require().Len(printer.GetLines(), 0)
@@ -845,20 +833,19 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, "", password).
+			UpdateUserPassword(s.T().Context(), mockUser.Id, "", password).
 			Return(&model.Response{StatusCode: http.StatusOK}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("password", password, "")
+		s.cmd.Flags().String("password", password, "")
 
-		err := changePasswordUserCmdF(s.client, cmd, []string{emailArg})
+		err := changePasswordUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "changing user password failed: mock error")
 		s.Require().Len(printer.GetLines(), 0)
@@ -872,26 +859,25 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("password", password, "")
+		s.cmd.Flags().String("password", password, "")
 
-		err := changePasswordUserCmdF(s.client, cmd, []string{arg})
+		err := changePasswordUserCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "user example@example.com not found")
 		s.Require().Len(printer.GetLines(), 0)
@@ -906,21 +892,20 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserHashedPassword(context.TODO(), mockUser.Id, hashedPassword).
+			UpdateUserHashedPassword(s.T().Context(), mockUser.Id, hashedPassword).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("password", hashedPassword, "")
-		cmd.Flags().Bool("hashed", true, "")
+		s.cmd.Flags().String("password", hashedPassword, "")
+		s.cmd.Flags().Bool("hashed", true, "")
 
-		err := changePasswordUserCmdF(s.client, cmd, []string{emailArg})
+		err := changePasswordUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -936,21 +921,20 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserHashedPassword(context.TODO(), mockUser.Id, hashedPassword).
+			UpdateUserHashedPassword(s.T().Context(), mockUser.Id, hashedPassword).
 			Return(&model.Response{StatusCode: http.StatusOK}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("password", hashedPassword, "")
-		cmd.Flags().Bool("hashed", true, "")
+		s.cmd.Flags().String("password", hashedPassword, "")
+		s.cmd.Flags().Bool("hashed", true, "")
 
-		err := changePasswordUserCmdF(s.client, cmd, []string{emailArg})
+		err := changePasswordUserCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().EqualError(err, "changing user hashed password failed: mock error")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -964,11 +948,11 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 
 		s.client.
 			EXPECT().
-			SendPasswordResetEmail(context.TODO(), emailArg).
+			SendPasswordResetEmail(s.T().Context(), emailArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := sendPasswordResetEmailCmdF(s.client, s.cmd, []string{emailArg})
 
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -982,7 +966,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 		var expected error
 		expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", emailArg))
 
-		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := sendPasswordResetEmailCmdF(s.client, s.cmd, []string{emailArg})
 
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -997,14 +981,14 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 
 		s.client.
 			EXPECT().
-			SendPasswordResetEmail(context.TODO(), emailArg).
+			SendPasswordResetEmail(s.T().Context(), emailArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		var expected error
 		expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", emailArg, mockError))
 
-		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := sendPasswordResetEmailCmdF(s.client, s.cmd, []string{emailArg})
 
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -1029,7 +1013,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			case strings.HasPrefix(email, "error"):
 				s.client.
 					EXPECT().
-					SendPasswordResetEmail(context.TODO(), email).
+					SendPasswordResetEmail(s.T().Context(), email).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
 				expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", email, mockError))
@@ -1038,13 +1022,13 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			default:
 				s.client.
 					EXPECT().
-					SendPasswordResetEmail(context.TODO(), email).
+					SendPasswordResetEmail(s.T().Context(), email).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 					Times(1)
 			}
 		}
 
-		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, emailArg)
+		err := sendPasswordResetEmailCmdF(s.client, s.cmd, emailArg)
 
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -1062,17 +1046,17 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(s.T().Context(), argTeam, "").
 			Return(&model.Team{Id: argTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), argTeam, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), argTeam, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
+		err := userInviteCmdF(s.client, s.cmd, []string{argUser, argTeam})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[0])
@@ -1087,23 +1071,23 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(s.T().Context(), argTeam, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam, "").
+			GetTeamByName(s.T().Context(), argTeam, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultID, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), resultID, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
+		err := userInviteCmdF(s.client, s.cmd, []string{argUser, argTeam})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[0])
@@ -1124,38 +1108,38 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		// Setup GetTeam
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[0], "").
+			GetTeam(s.T().Context(), argTeam[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[1], "").
+			GetTeam(s.T().Context(), argTeam[1], "").
 			Return(resultTeamModels[1], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[2], "").
+			GetTeam(s.T().Context(), argTeam[2], "").
 			Return(resultTeamModels[2], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[3], "").
+			GetTeam(s.T().Context(), argTeam[3], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// Setup GetTeamByName
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[0], "").
+			GetTeamByName(s.T().Context(), argTeam[0], "").
 			Return(resultTeamModels[0], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[3], "").
+			GetTeamByName(s.T().Context(), argTeam[3], "").
 			Return(resultTeamModels[3], &model.Response{}, nil).
 			Times(1)
 
@@ -1163,12 +1147,12 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		for _, resultTeamModel := range resultTeamModels {
 			s.client.
 				EXPECT().
-				InviteUsersToTeam(context.TODO(), resultTeamModel.Id, []string{argUser}).
+				InviteUsersToTeam(s.T().Context(), resultTeamModel.Id, []string{argUser}).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
+		err := userInviteCmdF(s.client, s.cmd, append([]string{argUser}, argTeam...))
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), len(argTeam))
 		for i := range argTeam {
@@ -1184,17 +1168,17 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(s.T().Context(), argTeam, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam, "").
+			GetTeamByName(s.T().Context(), argTeam, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
+		err := userInviteCmdF(s.client, s.cmd, []string{argUser, argTeam})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -1210,17 +1194,17 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(s.T().Context(), argTeam, "").
 			Return(&model.Team{Id: argTeam, Name: resultName}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), argTeam, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), argTeam, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
+		err := userInviteCmdF(s.client, s.cmd, []string{argUser, argTeam})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -1244,91 +1228,91 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		// Setup GetTeam
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[0], "").
+			GetTeam(s.T().Context(), argTeam[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[1], "").
+			GetTeam(s.T().Context(), argTeam[1], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[2], "").
+			GetTeam(s.T().Context(), argTeam[2], "").
 			Return(resultTeamModels[2], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[3], "").
+			GetTeam(s.T().Context(), argTeam[3], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[4], "").
+			GetTeam(s.T().Context(), argTeam[4], "").
 			Return(resultTeamModels[4], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[5], "").
+			GetTeam(s.T().Context(), argTeam[5], "").
 			Return(resultTeamModels[5], &model.Response{}, nil).
 			Times(1)
 
 		// Setup GetTeamByName
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[0], "").
+			GetTeamByName(s.T().Context(), argTeam[0], "").
 			Return(resultTeamModels[0], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[1], "").
+			GetTeamByName(s.T().Context(), argTeam[1], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[3], "").
+			GetTeamByName(s.T().Context(), argTeam[3], "").
 			Return(resultTeamModels[3], &model.Response{}, nil).
 			Times(1)
 
 		// Setup InviteUsersToTeam
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[0].Id, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), resultTeamModels[0].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[2].Id, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), resultTeamModels[2].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[3].Id, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), resultTeamModels[3].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[4].Id, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), resultTeamModels[4].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[5].Id, []string{argUser}).
+			InviteUsersToTeam(s.T().Context(), resultTeamModels[5].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
+		err := userInviteCmdF(s.client, s.cmd, append([]string{argUser}, argTeam...))
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 4)
 		for i := range 4 {
@@ -1350,11 +1334,10 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	s.Run("Create user with email missing", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Email is required: flag accessed but not defined: email", err.Error())
 	})
@@ -1362,11 +1345,10 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	s.Run("Create user with username missing", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Username is required: flag accessed but not defined: username", err.Error())
 	})
@@ -1374,11 +1356,10 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	s.Run("Create user with password missing", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Password is required: flag accessed but not defined: password", err.Error())
 	})
@@ -1388,16 +1369,15 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(s.T().Context(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1413,17 +1393,16 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(s.T().Context(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("disable-welcome-email", mockUser.DisableWelcomeEmail, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("disable-welcome-email", mockUser.DisableWelcomeEmail, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		printerLines := printer.GetLines()[0]
@@ -1439,16 +1418,15 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(s.T().Context(), &mockUser).
 			Return(&mockUser, &model.Response{}, errors.New("remote error")).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Unable to create user. Error: remote error", err.Error())
 	})
@@ -1458,23 +1436,22 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(s.T().Context(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user system_admin").
+			UpdateUserRoles(s.T().Context(), mockUser.Id, "system_user system_admin").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system-admin", true, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("system-admin", true, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1486,23 +1463,22 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(s.T().Context(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DemoteUserToGuest(context.TODO(), mockUser.Id).
+			DemoteUserToGuest(s.T().Context(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("guest", true, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("guest", true, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1514,23 +1490,22 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(s.T().Context(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user system_admin").
+			UpdateUserRoles(s.T().Context(), mockUser.Id, "system_user system_admin").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("remote error")).
 			Times(1)
 
-		command := cobra.Command{}
-		command.Flags().String("username", mockUser.Username, "")
-		command.Flags().String("email", mockUser.Email, "")
-		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system-admin", true, "")
+		s.cmd.Flags().String("username", mockUser.Username, "")
+		s.cmd.Flags().String("email", mockUser.Email, "")
+		s.cmd.Flags().String("password", mockUser.Password, "")
+		s.cmd.Flags().Bool("system-admin", true, "")
 
-		err := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, s.cmd, []string{})
 
 		s.Require().Equal("Unable to update user roles. Error: remote error", err.Error())
 	})
@@ -1542,17 +1517,17 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "userId", "").
+			GetUserByUsername(s.T().Context(), "userId", "").
 			Return(&model.User{Id: "userId"}, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserMfa(context.TODO(), "userId", "", false).
+			UpdateUserMfa(s.T().Context(), "userId", "", false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
+		err := resetUserMfaCmdF(s.client, s.cmd, []string{"userId"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1563,17 +1538,17 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "userId", "").
+			GetUserByUsername(s.T().Context(), "userId", "").
 			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), "userId", "").
+			GetUser(s.T().Context(), "userId", "").
 			Return(nil, nil, nil).
 			Times(1)
 
-		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
+		err := resetUserMfaCmdF(s.client, s.cmd, []string{"userId"})
 
 		var expected error
 
@@ -1594,17 +1569,17 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "userId", "").
+			GetUserByUsername(s.T().Context(), "userId", "").
 			Return(&model.User{Id: "userId"}, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserMfa(context.TODO(), "userId", "", false).
+			UpdateUserMfa(s.T().Context(), "userId", "", false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
+		err := resetUserMfaCmdF(s.client, s.cmd, []string{"userId"})
 
 		var expected error
 
@@ -1625,19 +1600,19 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			if user == "notfounduser" {
 				s.client.
 					EXPECT().
-					GetUserByUsername(context.TODO(), user, "").
+					GetUserByUsername(s.T().Context(), user, "").
 					Return(nil, nil, nil).
 					Times(1)
 
 				s.client.
 					EXPECT().
-					GetUser(context.TODO(), user, "").
+					GetUser(s.T().Context(), user, "").
 					Return(nil, nil, nil).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					GetUserByUsername(context.TODO(), user, "").
+					GetUserByUsername(s.T().Context(), user, "").
 					Return(&model.User{Id: user}, nil, nil).
 					Times(1)
 			}
@@ -1647,19 +1622,19 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			if user == "error1" {
 				s.client.
 					EXPECT().
-					UpdateUserMfa(context.TODO(), user, "", false).
+					UpdateUserMfa(s.T().Context(), user, "", false).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
 			} else if user != "notfounduser" {
 				s.client.
 					EXPECT().
-					UpdateUserMfa(context.TODO(), user, "", false).
+					UpdateUserMfa(s.T().Context(), user, "", false).
 					Return(&model.Response{StatusCode: http.StatusOK}, nil).
 					Times(1)
 			}
 		}
 
-		err := resetUserMfaCmdF(s.client, &cobra.Command{}, users)
+		err := resetUserMfaCmdF(s.client, s.cmd, users)
 
 		var expected *multierror.Error
 
@@ -1685,16 +1660,16 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1708,29 +1683,29 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email2 := "example2@example.com"
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2}
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 1, 1, "", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 2, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
@@ -1745,29 +1720,29 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email2 := "example2@example.com"
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, DeleteAt: model.GetMillis()}
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 1, 1, "", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 2, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
@@ -1782,30 +1757,30 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email3 := "example3@example.com"
 		mockUser3 := model.User{Username: "ExampleUser3", Email: email3, DeleteAt: model.GetMillis()}
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
-		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
+		s.Require().NoError(s.cmd.Flags().Set("inactive", "true"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 1, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser3}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 2, 1, "inactive=true", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&mockUser2, printer.GetLines()[0])
@@ -1820,18 +1795,18 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email1 := "del1@example.com"
 		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, DeleteAt: model.GetMillis()}
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "1"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("inactive", "true"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 1, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
@@ -1840,17 +1815,17 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Try to list all the users when there are no uses in store", func() {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "0"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -1858,20 +1833,20 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Return an error from GetUsersWithCustomQueryParameters call and verify that error is properly returned", func() {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "0"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
 		mockError := errors.New("mock error")
 		mockErrorW := errors.Wrap(mockError, "Failed to fetch users")
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "", "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, mockErrorW.Error())
 	})
@@ -1882,17 +1857,17 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "2"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "2"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 2, 1, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1907,24 +1882,24 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		resultID := "teamId"
 		team := "teamName"
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "0"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("team", team))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("team", team))
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(s.T().Context(), team, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1941,24 +1916,24 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		resultID := "teamId"
 		team := "teamName"
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "0"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("team", team))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("team", team))
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(s.T().Context(), team, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
@@ -1977,37 +1952,37 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		resultID := "teamId"
 		team := "teamName"
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "0"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("team", team))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("team", team))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(s.T().Context(), team, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 1, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 2, 1, "in_team="+resultID, "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
@@ -2024,18 +1999,18 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		role := "system_admin"
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "0"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
-		s.Require().NoError(cmd.Flags().Set("role", role))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "5"))
+		s.Require().NoError(s.cmd.Flags().Set("role", role))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 5, "role="+role, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 5, "role="+role, "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser2, printer.GetLines()[0])
@@ -2051,29 +2026,29 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		role := "system_user"
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("page", "0"))
-		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
-		s.Require().NoError(cmd.Flags().Set("role", role))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.cmd = ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("page", "0"))
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(s.cmd.Flags().Set("role", role))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "role="+role, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 0, 1, "role="+role, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "role="+role, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 1, 1, "role="+role, "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "role="+role, "").
+			GetUsersWithCustomQueryParameters(s.T().Context(), 2, 1, "role="+role, "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
-		err := listUsersCmdF(s.client, cmd, []string{})
+		err := listUsersCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
@@ -2089,17 +2064,17 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2112,17 +2087,17 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), usernameArg, "").
+			GetUserByUsername(s.T().Context(), usernameArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser.Username})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{mockUser.Username})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2134,23 +2109,23 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), mockUser.Id, "").
+			GetUser(s.T().Context(), mockUser.Id, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser.Id})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2163,17 +2138,17 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(s.T().Context(), arg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+mockUser.Id+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
@@ -2186,23 +2161,23 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(s.T().Context(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -2221,7 +2196,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		for i := range argEmails {
 			s.client.
 				EXPECT().
-				GetUserByEmail(context.TODO(), argEmails[i], "").
+				GetUserByEmail(s.T().Context(), argEmails[i], "").
 				Return(&argUsers[i], &model.Response{}, nil).
 				Times(1)
 		}
@@ -2229,12 +2204,12 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		for i := range argEmails {
 			s.client.
 				EXPECT().
-				UpdateUserActive(context.TODO(), argUsers[i].Id, false).
+				UpdateUserActive(s.T().Context(), argUsers[i].Id, false).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, argEmails)
+		err := userDeactivateCmdF(s.client, s.cmd, argEmails)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2252,39 +2227,39 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		// mockUser1
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), argsDelete[0], "").
+			GetUserByUsername(s.T().Context(), argsDelete[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), argsDelete[0], "").
+			GetUser(s.T().Context(), argsDelete[0], "").
 			Return(&argUsers[0], &model.Response{}, nil).
 			Times(1)
 
 		// mockUser2
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), argsDelete[1], "").
+			GetUserByEmail(s.T().Context(), argsDelete[1], "").
 			Return(&argUsers[1], &model.Response{}, nil).
 			Times(1)
 
 		// mockUser3
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), argsDelete[2], "").
+			GetUserByUsername(s.T().Context(), argsDelete[2], "").
 			Return(&argUsers[2], &model.Response{}, nil).
 			Times(1)
 
 		for _, user := range argUsers {
 			s.client.
 				EXPECT().
-				UpdateUserActive(context.TODO(), user.Id, false).
+				UpdateUserActive(s.T().Context(), user.Id, false).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, argsDelete)
+		err := userDeactivateCmdF(s.client, s.cmd, argsDelete)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2298,36 +2273,36 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		// mockUser1
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser1.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser1.Email, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 
 		// nonexistent email
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), nonexistentEmail, "").
+			GetUserByEmail(s.T().Context(), nonexistentEmail, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), nonexistentEmail, "").
+			GetUserByUsername(s.T().Context(), nonexistentEmail, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), nonexistentEmail, "").
+			GetUser(s.T().Context(), nonexistentEmail, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser1.Id, false).
+			UpdateUserActive(s.T().Context(), mockUser1.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser1.Email, nonexistentEmail})
+		err := userDeactivateCmdF(s.client, s.cmd, []string{mockUser1.Email, nonexistentEmail})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -2343,17 +2318,17 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			VerifyUserEmailWithoutToken(context.TODO(), mockUser.Id).
+			VerifyUserEmailWithoutToken(s.T().Context(), mockUser.Id).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := verifyUserEmailWithoutTokenCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -2366,17 +2341,17 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("")).
 			Times(1)
 
-		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{userArg})
+		err := verifyUserEmailWithoutTokenCmdF(s.client, s.cmd, []string{userArg})
 
 		var expected error
 
@@ -2398,17 +2373,17 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			VerifyUserEmailWithoutToken(context.TODO(), mockUser.Id).
+			VerifyUserEmailWithoutToken(s.T().Context(), mockUser.Id).
 			Return(nil, &model.Response{}, errors.New("some-message")).
 			Times(1)
 
-		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := verifyUserEmailWithoutTokenCmdF(s.client, s.cmd, []string{emailArg})
 
 		var expected error
 
@@ -2428,22 +2403,21 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		mockUser := model.User{Id: "example", Email: emailArg}
 		mockBot := model.Bot{UserId: "example"}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("bot", true, "")
+		s.cmd.Flags().Bool("bot", true, "")
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertUserToBot(context.TODO(), mockUser.Id).
+			ConvertUserToBot(s.T().Context(), mockUser.Id).
 			Return(&mockBot, &model.Response{}, nil).
 			Times(1)
 
-		err := userConvertCmdF(s.client, cmd, []string{emailArg})
+		err := userConvertCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockBot, printer.GetLines()[0])
@@ -2463,25 +2437,24 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 			Username: new("example-user"),
 		}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("user", true, "")
-		cmd.Flags().String("password", "password", "")
-		cmd.Flags().String("email", "example@example.com", "")
-		cmd.Flags().String("username", "example-user", "")
+		s.cmd.Flags().Bool("user", true, "")
+		s.cmd.Flags().String("password", "password", "")
+		s.cmd.Flags().String("email", "example@example.com", "")
+		s.cmd.Flags().String("username", "example-user", "")
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userNameArg, "").
+			GetUserByUsername(s.T().Context(), userNameArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertBotToUser(context.TODO(), mockBot.UserId, &userPatch, false).
+			ConvertBotToUser(s.T().Context(), mockBot.UserId, &userPatch, false).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userConvertCmdF(s.client, cmd, []string{userNameArg})
+		err := userConvertCmdF(s.client, s.cmd, []string{userNameArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -2492,9 +2465,8 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		printer.Clean()
 		emailArg := "example@example.com"
 
-		cmd := &cobra.Command{}
 
-		err := userConvertCmdF(s.client, cmd, []string{emailArg})
+		err := userConvertCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2504,22 +2476,21 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		emailArg := "example@example.com"
 		mockUser := model.User{Id: "example", Email: emailArg}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("bot", true, "")
+		s.cmd.Flags().Bool("bot", true, "")
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertUserToBot(context.TODO(), mockUser.Id).
+			ConvertUserToBot(s.T().Context(), mockUser.Id).
 			Return(nil, &model.Response{}, errors.New("some-message")).
 			Times(1)
 
-		err := userConvertCmdF(s.client, cmd, []string{emailArg})
+		err := userConvertCmdF(s.client, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Equal("1 error occurred:\n\t* some-message\n\n", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -2538,25 +2509,24 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 			Username: new("example-user"),
 		}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("user", true, "")
-		cmd.Flags().String("password", "password", "")
-		cmd.Flags().String("email", "example@example.com", "")
-		cmd.Flags().String("username", "example-user", "")
+		s.cmd.Flags().Bool("user", true, "")
+		s.cmd.Flags().String("password", "password", "")
+		s.cmd.Flags().String("email", "example@example.com", "")
+		s.cmd.Flags().String("username", "example-user", "")
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userNameArg, "").
+			GetUserByUsername(s.T().Context(), userNameArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertBotToUser(context.TODO(), mockBot.UserId, &userPatch, false).
+			ConvertBotToUser(s.T().Context(), mockBot.UserId, &userPatch, false).
 			Return(nil, &model.Response{}, errors.New("some-message")).
 			Times(1)
 
-		err := userConvertCmdF(s.client, cmd, []string{userNameArg})
+		err := userConvertCmdF(s.client, s.cmd, []string{userNameArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2570,16 +2540,15 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		toAuth := "ldap"
 		matchField := "username"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("force", false, "")
+		s.cmd.Flags().Bool("force", false, "")
 
 		s.client.
 			EXPECT().
-			MigrateAuthToLdap(context.TODO(), fromAuth, matchField, false).
+			MigrateAuthToLdap(s.T().Context(), fromAuth, matchField, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		err := migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth, matchField})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2609,16 +2578,15 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		err = file.Sync()
 		s.Require().NoError(err)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("auto", false, "")
+		s.cmd.Flags().Bool("auto", false, "")
 
 		s.client.
 			EXPECT().
-			MigrateAuthToSaml(context.TODO(), fromAuth, userData, false).
+			MigrateAuthToSaml(s.T().Context(), fromAuth, userData, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err = migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, usersFile})
+		err = migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth, usersFile})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2630,17 +2598,16 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		fromAuth := "email"
 		toAuth := "saml"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("auto", true, "")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("auto", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		s.client.
 			EXPECT().
-			MigrateAuthToSaml(context.TODO(), fromAuth, map[string]string{}, true).
+			MigrateAuthToSaml(s.T().Context(), fromAuth, map[string]string{}, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth})
+		err := migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -2653,11 +2620,10 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		toAuth := "ldap"
 		matchField := "username"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("auto", true, "")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("auto", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		err := migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth, matchField})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2669,10 +2635,9 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		toAuth := "ldap"
 		matchField := "groups"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("force", false, "")
+		s.cmd.Flags().Bool("force", false, "")
 
-		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		err := migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth, matchField})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2684,10 +2649,9 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		toAuth := "saml"
 		usersFile := "./nofile.json"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("auto", false, "")
+		s.cmd.Flags().Bool("auto", false, "")
 
-		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, usersFile})
+		err := migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth, usersFile})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2699,16 +2663,15 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		toAuth := "ldap"
 		matchField := "username"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("force", false, "")
+		s.cmd.Flags().Bool("force", false, "")
 
 		s.client.
 			EXPECT().
-			MigrateAuthToLdap(context.TODO(), fromAuth, matchField, false).
+			MigrateAuthToLdap(s.T().Context(), fromAuth, matchField, false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		err := migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth, matchField})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2719,17 +2682,16 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		fromAuth := "email"
 		toAuth := "saml"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("auto", true, "")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("auto", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		s.client.
 			EXPECT().
-			MigrateAuthToSaml(context.TODO(), fromAuth, map[string]string{}, true).
+			MigrateAuthToSaml(s.T().Context(), fromAuth, map[string]string{}, true).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth})
+		err := migrateAuthCmdF(s.client, s.cmd, []string{fromAuth, toAuth})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2743,13 +2705,13 @@ func (s *MmctlUnitTestSuite) TestPromoteGuestToUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PromoteGuestToUser(context.TODO(), mockUser.Id).
+			PromoteGuestToUser(s.T().Context(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2767,13 +2729,13 @@ func (s *MmctlUnitTestSuite) TestPromoteGuestToUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PromoteGuestToUser(context.TODO(), mockUser.Id).
+			PromoteGuestToUser(s.T().Context(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -2793,13 +2755,13 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DemoteUserToGuest(context.TODO(), mockUser.Id).
+			DemoteUserToGuest(s.T().Context(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2817,13 +2779,13 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DemoteUserToGuest(context.TODO(), mockUser.Id).
+			DemoteUserToGuest(s.T().Context(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -2839,23 +2801,22 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("User not found", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "newusername"
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().EqualError(err, "user testUser not found")
 	})
@@ -2863,7 +2824,6 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("Edit username successfully", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "newusername"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
@@ -2871,17 +2831,17 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(s.T().Context(), &updatedUser).
 			Return(&updatedUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -2892,18 +2852,17 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("Invalid username", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "!invalid!"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().EqualError(err, "invalid username: '!invalid!'")
 	})
@@ -2911,7 +2870,6 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 	s.Run("UpdateUser API error", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newUsername := "newusername"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
@@ -2919,17 +2877,17 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(s.T().Context(), &updatedUser).
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 
-		err := userEditUsernameCmdF(s.client, &command, []string{userArg, newUsername})
+		err := userEditUsernameCmdF(s.client, s.cmd, []string{userArg, newUsername})
 
 		s.Require().EqualError(err, "failed to update user username: API error")
 	})
@@ -2939,23 +2897,22 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 	s.Run("User not found", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newEmail := "newemail@example.com"
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+		err := userEditEmailCmdF(s.client, s.cmd, []string{userArg, newEmail})
 
 		s.Require().EqualError(err, "user testUser not found")
 	})
@@ -2963,7 +2920,6 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 	s.Run("Edit email successfully", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newEmail := "newemail@example.com"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
@@ -2971,17 +2927,17 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(s.T().Context(), &updatedUser).
 			Return(&updatedUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+		err := userEditEmailCmdF(s.client, s.cmd, []string{userArg, newEmail})
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -2992,18 +2948,17 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 	s.Run("Invalid email", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newEmail := "invalidemail"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+		err := userEditEmailCmdF(s.client, s.cmd, []string{userArg, newEmail})
 
 		s.Require().EqualError(err, "invalid email: 'invalidemail'")
 	})
@@ -3011,7 +2966,6 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 	s.Run("UpdateUser API error", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newEmail := "newemail@example.com"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
@@ -3019,17 +2973,17 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(s.T().Context(), &updatedUser).
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 
-		err := userEditEmailCmdF(s.client, &command, []string{userArg, newEmail})
+		err := userEditEmailCmdF(s.client, s.cmd, []string{userArg, newEmail})
 
 		s.Require().EqualError(err, "failed to update user email: API error")
 	})
@@ -3039,23 +2993,22 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 	s.Run("User not found", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newAuthdata := "newauth123"
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(s.T().Context(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+		err := userEditAuthdataCmdF(s.client, s.cmd, []string{userArg, newAuthdata})
 
 		s.Require().EqualError(err, "user testUser not found")
 	})
@@ -3063,7 +3016,6 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 	s.Run("Edit authdata successfully", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newAuthdata := "newauth123"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: nil}
@@ -3071,17 +3023,17 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
+			UpdateUserAuth(s.T().Context(), mockUser.Id, &userAuth).
 			Return(&userAuth, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+		err := userEditAuthdataCmdF(s.client, s.cmd, []string{userArg, newAuthdata})
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -3092,7 +3044,6 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 	s.Run("Clear authdata returns error", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newAuthdata := ""
 		authData := "existingauth"
@@ -3100,11 +3051,11 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+		err := userEditAuthdataCmdF(s.client, s.cmd, []string{userArg, newAuthdata})
 
 		s.Require().EqualError(err, "cannot clear authdata as the user is using gitlab to log in")
 		s.Require().Len(printer.GetLines(), 0)
@@ -3114,18 +3065,17 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 	s.Run("Authdata too long", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newAuthdata := strings.Repeat("x", model.UserAuthDataMaxLength+1)
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com"}
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+		err := userEditAuthdataCmdF(s.client, s.cmd, []string{userArg, newAuthdata})
 
 		s.Require().EqualError(err, fmt.Sprintf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength))
 	})
@@ -3133,7 +3083,6 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 	s.Run("UpdateUser API error", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
 		userArg := "testUser"
 		newAuthdata := "newauth123"
 		mockUser := model.User{Id: "userId", Username: "testUser", Email: "test@example.com", AuthData: nil}
@@ -3141,17 +3090,17 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(s.T().Context(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
+			UpdateUserAuth(s.T().Context(), mockUser.Id, &userAuth).
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 
-		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
+		err := userEditAuthdataCmdF(s.client, s.cmd, []string{userArg, newAuthdata})
 
 		s.Require().EqualError(err, "failed to update user authdata: API error")
 	})

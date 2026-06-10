@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -36,22 +34,21 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Name: channelName}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("team", teamID, "")
+		s.cmd.Flags().String("team", teamID, "")
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, teamID, "").
+			GetChannelByName(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := searchChannelCmdF(s.client, cmd, []string{channelName})
+		err := searchChannelCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(&mockChannel, printer.GetLines()[0])
@@ -69,31 +66,31 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(s.T().Context(), "", 0, DefaultPageSize).
 			Return(mockTeams, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
+			GetAllTeams(s.T().Context(), "", 1, DefaultPageSize).
 			Return([]*model.Team{}, &model.Response{}, nil).
 			Times(1)
 
 		// first call is for the other team, that doesn't have the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, otherTeamID, "").
+			GetChannelByName(s.T().Context(), channelName, otherTeamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// second call is for the team that contains the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, teamID, "").
+			GetChannelByName(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := searchChannelCmdF(s.client, &cobra.Command{}, []string{channelName})
+		err := searchChannelCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(&mockChannel, printer.GetLines()[0])
@@ -104,22 +101,21 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		printer.Clean()
 		mockTeam := model.Team{Id: teamID}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("team", teamID, "")
+		s.cmd.Flags().String("team", teamID, "")
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, teamID, "").
+			GetChannelByName(s.T().Context(), channelName, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := searchChannelCmdF(s.client, cmd, []string{channelName})
+		err := searchChannelCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -129,22 +125,21 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	s.Run("Search for a channel in a nonexistent team", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("team", teamID, "")
+		s.cmd.Flags().String("team", teamID, "")
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := searchChannelCmdF(s.client, cmd, []string{channelName})
+		err := searchChannelCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -156,12 +151,11 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 	s.Run("Both public and private the same value (false)", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", false, "")
-		cmd.Flags().Bool("private", false, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", false, "")
+		s.cmd.Flags().Bool("private", false, "")
 
-		err := modifyChannelCmdF(s.client, cmd, []string{})
+		err := modifyChannelCmdF(s.client, s.cmd, []string{})
 		s.Require().EqualError(err, "you must specify only one of --public or --private")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -170,12 +164,11 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 	s.Run("Both public and private the same value (true)", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", true, "")
-		cmd.Flags().Bool("private", true, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", true, "")
+		s.cmd.Flags().Bool("private", true, "")
 
-		err := modifyChannelCmdF(s.client, cmd, []string{})
+		err := modifyChannelCmdF(s.client, s.cmd, []string{})
 		s.Require().EqualError(err, "you must specify only one of --public or --private")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -185,18 +178,17 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 		args := []string{channelID}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", true, "")
-		cmd.Flags().Bool("private", false, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", true, "")
+		s.cmd.Flags().Bool("private", false, "")
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(s.T().Context(), args[0]).
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
-		err := modifyChannelCmdF(s.client, cmd, args)
+		err := modifyChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel %q", args[0]))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -208,24 +200,23 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		channel := channelID
 		args := []string{team + ":" + channel}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", true, "")
-		cmd.Flags().Bool("private", false, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", true, "")
+		s.cmd.Flags().Bool("private", false, "")
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), team, "").
+			GetTeam(s.T().Context(), team, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(s.T().Context(), team, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
-		err := modifyChannelCmdF(s.client, cmd, args)
+		err := modifyChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel %q", args[0]))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -239,18 +230,17 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		}
 		args := []string{channel.Id}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", true, "")
-		cmd.Flags().Bool("private", false, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", true, "")
+		s.cmd.Flags().Bool("private", false, "")
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(s.T().Context(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
-		err := modifyChannelCmdF(s.client, cmd, args)
+		err := modifyChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "you can only change the type of public/private channels")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -264,18 +254,17 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		}
 		args := []string{channel.Id}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", true, "")
-		cmd.Flags().Bool("private", false, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", true, "")
+		s.cmd.Flags().Bool("private", false, "")
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(s.T().Context(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
-		err := modifyChannelCmdF(s.client, cmd, args)
+		err := modifyChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "you can only change the type of public/private channels")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -291,24 +280,23 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		args := []string{channel.Id}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", true, "")
-		cmd.Flags().Bool("private", false, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", true, "")
+		s.cmd.Flags().Bool("private", false, "")
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(s.T().Context(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypeOpen).
+			UpdateChannelPrivacy(s.T().Context(), channel.Id, model.ChannelTypeOpen).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := modifyChannelCmdF(s.client, cmd, args)
+		err := modifyChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("failed to update channel (%q) privacy: %s", channel.Id, mockError.Error()))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -326,24 +314,23 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		}
 		args := []string{channel.Id}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", true, "")
-		cmd.Flags().Bool("private", false, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", true, "")
+		s.cmd.Flags().Bool("private", false, "")
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(s.T().Context(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypeOpen).
+			UpdateChannelPrivacy(s.T().Context(), channel.Id, model.ChannelTypeOpen).
 			Return(returnedChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := modifyChannelCmdF(s.client, cmd, args)
+		err := modifyChannelCmdF(s.client, s.cmd, args)
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -361,24 +348,23 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		}
 		args := []string{channel.Id}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("username", "mockUser", "")
-		cmd.Flags().Bool("public", false, "")
-		cmd.Flags().Bool("private", true, "")
+		s.cmd.Flags().String("username", "mockUser", "")
+		s.cmd.Flags().Bool("public", false, "")
+		s.cmd.Flags().Bool("private", true, "")
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(s.T().Context(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypePrivate).
+			UpdateChannelPrivacy(s.T().Context(), channel.Id, model.ChannelTypePrivate).
 			Return(returnedChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := modifyChannelCmdF(s.client, cmd, args)
+		err := modifyChannelCmdF(s.client, s.cmd, args)
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -389,7 +375,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 	s.Run("Archive channel without args returns an error", func() {
 		printer.Clean()
 
-		err := archiveChannelsCmdF(s.client, &cobra.Command{}, []string{})
+		err := archiveChannelsCmdF(s.client, s.cmd, []string{})
 		mockErr := errors.New("enter at least one channel to archive")
 
 		expected := mockErr.Error()
@@ -406,28 +392,27 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
-		cmd := &cobra.Command{}
 		args := teamID + ":" + channelName
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID).
+			DeleteChannel(s.T().Context(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := archiveChannelsCmdF(s.client, cmd, []string{args})
+		err := archiveChannelsCmdF(s.client, s.cmd, []string{args})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -438,22 +423,21 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
-		cmd := &cobra.Command{}
 		args := []string{channelName}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID).
+			DeleteChannel(s.T().Context(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := archiveChannelsCmdF(s.client, cmd, args)
+		err := archiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -470,34 +454,33 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		channelID2 := "some-other-channel-id"
 		mockChannel2 := model.Channel{Id: channelID2, Name: channelArg2}
 
-		cmd := &cobra.Command{}
 		args := []string{channelArg1, channelArg2}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg1).
+			GetChannel(s.T().Context(), channelArg1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg2).
+			GetChannel(s.T().Context(), channelArg2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID1).
+			DeleteChannel(s.T().Context(), channelID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID2).
+			DeleteChannel(s.T().Context(), channelID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := archiveChannelsCmdF(s.client, cmd, args)
+		err := archiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -509,22 +492,21 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		teamArg := "some-non-existent-team-id"
 		channelArg := "some-channel"
 
-		cmd := &cobra.Command{}
 		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := archiveChannelsCmdF(s.client, cmd, args)
+		err := archiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -541,28 +523,27 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		mockTeam := model.Team{Id: teamArg}
 		channelArg := "some-non-existing-channel"
 
-		cmd := &cobra.Command{}
 		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelArg, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelArg, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(s.T().Context(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := archiveChannelsCmdF(s.client, cmd, args)
+		err := archiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -576,16 +557,15 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		printer.Clean()
 
 		channelArg := "some-non-existing-channel"
-		cmd := &cobra.Command{}
 		args := []string{channelArg}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(s.T().Context(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := archiveChannelsCmdF(s.client, cmd, args)
+		err := archiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -602,23 +582,22 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		channelID := "some-channel-id"
 		mockChannel := model.Channel{Id: channelID, Name: channelArg}
 
-		cmd := &cobra.Command{}
 		args := []string{channelArg}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(s.T().Context(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockErr := errors.New("mock error")
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID).
+			DeleteChannel(s.T().Context(), channelID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
-		err := archiveChannelsCmdF(s.client, cmd, args)
+		err := archiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -630,10 +609,9 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 	s.Run("Fail to archive when team and channel not provided", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
 		args := []string{":"}
 
-		err := archiveChannelsCmdF(s.client, cmd, args)
+		err := archiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -647,7 +625,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		printer.Clean()
 		arg := "team:/../hello/channel-test"
 
-		err := archiveChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := archiveChannelsCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Error(err)
 		s.Require().Equal("Unable to find channel 'team:/../hello/channel-test'", printer.GetErrorLines()[0])
 	})
@@ -660,21 +638,20 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 		args := []string{""}
 		args[0] = teamID
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(s.T().Context(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, "unable to find team \""+teamID+"\"")
 		s.Len(printer.GetLines(), 0)
@@ -686,7 +663,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{
 			Id: teamID,
@@ -700,34 +676,34 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
@@ -738,7 +714,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{
 			Id: teamID,
@@ -757,41 +732,41 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
@@ -804,7 +779,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{
 			Id: teamID,
@@ -823,41 +797,41 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
@@ -870,7 +844,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{
 			Id: teamID,
@@ -891,53 +864,53 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
@@ -954,12 +927,11 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 		team := &model.Team{
 			Id: teamID,
 		}
-		cmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
-		_ = viper.BindPFlag("local", cmd.PersistentFlags().Lookup("local"))
+		s.cmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
+		_ = viper.BindPFlag("local", s.cmd.PersistentFlags().Lookup("local"))
 
 		archivedChannel1 := &model.Channel{Name: "archivedChannelName1"}
 		publicChannel1 := &model.Channel{Name: "publicChannelName1"}
@@ -972,34 +944,34 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(1)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
@@ -1012,7 +984,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 
 		team := &model.Team{
 			Id: teamID,
@@ -1022,35 +993,35 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
@@ -1062,7 +1033,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 		team := &model.Team{
 			Id: teamID,
 		}
@@ -1071,34 +1041,34 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
@@ -1110,7 +1080,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
 		team := &model.Team{
 			Id: teamID,
 		}
@@ -1119,35 +1088,35 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1) // falls through to GetChannelsForTeamForUser in non-local mode
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
@@ -1159,9 +1128,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
-		cmd.PersistentFlags().Bool("local", true, "allows communicating with the server through a unix socket")
-		_ = viper.BindPFlag("local", cmd.PersistentFlags().Lookup("local"))
+		s.cmd.PersistentFlags().Bool("local", true, "allows communicating with the server through a unix socket")
+		_ = viper.BindPFlag("local", s.cmd.PersistentFlags().Lookup("local"))
 		team := &model.Team{
 			Id: teamID,
 		}
@@ -1170,35 +1138,35 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(0) // does not fall through to GetChannelsForTeamForUser in local mode
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
@@ -1210,9 +1178,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 
 		args := []string{teamID}
-		cmd := &cobra.Command{}
-		cmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
-		_ = viper.BindPFlag("local", cmd.PersistentFlags().Lookup("local"))
+		s.cmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
+		_ = viper.BindPFlag("local", s.cmd.PersistentFlags().Lookup("local"))
 
 		team := &model.Team{
 			Id: teamID,
@@ -1222,35 +1189,35 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID, "me", false, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
@@ -1266,7 +1233,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		teamID1 := "teamID1"
 		teamID2 := "teamID2"
 		args := []string{teamID1, teamID2}
-		cmd := &cobra.Command{}
 
 		team1 := &model.Team{Id: teamID1}
 
@@ -1282,64 +1248,64 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID1, "").
+			GetTeam(s.T().Context(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID2, "").
+			GetTeam(s.T().Context(), teamID2, "").
 			Return(nil, &model.Response{}, nil). // Team 2 not found
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID2, "").
+			GetTeamByName(s.T().Context(), teamID2, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID1, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, "unable to find team \""+teamID2+"\"")
 		s.Len(printer.GetErrorLines(), 1)
@@ -1357,7 +1323,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		teamID1 := "teamID1"
 		teamID2 := "teamID2"
 		args := []string{teamID1, teamID2}
-		cmd := &cobra.Command{}
 
 		team1 := &model.Team{Id: teamID1}
 		team2 := &model.Team{Id: teamID2}
@@ -1374,49 +1339,49 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID1, "").
+			GetTeam(s.T().Context(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID1, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1424,34 +1389,34 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID2, "").
+			GetTeam(s.T().Context(), teamID2, "").
 			Return(team2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID2, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID2, "me", false, "").
 			Return(privateChannels, &model.Response{}, mockError).
 			Times(1)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetErrorLines(), 3)
@@ -1468,31 +1433,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		team1ID := "team1ID"
 		team2ID := "team2ID"
 		args := []string{team1ID, team2ID}
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), team1ID, "").
+			GetTeam(s.T().Context(), team1ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), team2ID, "").
+			GetTeam(s.T().Context(), team2ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team1ID, "").
+			GetTeamByName(s.T().Context(), team1ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team2ID, "").
+			GetTeamByName(s.T().Context(), team2ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().ErrorContains(err, "unable to find team \""+team1ID+"\"")
 		s.Require().ErrorContains(err, "unable to find team \""+team2ID+"\"")
@@ -1508,7 +1472,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		teamID1 := "teamID1"
 		teamID2 := "teamID2"
 		args := []string{teamID1, teamID2}
-		cmd := &cobra.Command{}
 
 		team1 := &model.Team{Id: teamID1}
 		team2 := &model.Team{Id: teamID2}
@@ -1526,101 +1489,101 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID1, "").
+			GetTeam(s.T().Context(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID1, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID2, "").
+			GetTeam(s.T().Context(), teamID2, "").
 			Return(team2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID2, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID2, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(s.T().Context(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID2, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID2, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(s.T().Context(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID2, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(s.T().Context(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID2, "me", false, "").
+			GetChannelsForTeamForUser(s.T().Context(), teamID2, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
-		err := listChannelsCmdF(s.client, cmd, args)
+		err := listChannelsCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
@@ -1639,7 +1602,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 		arg := "\"test/../hello?\"channel-test"
 
-		err := listChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := listChannelsCmdF(s.client, s.cmd, []string{arg})
 		s.Require().ErrorContains(err, "unable to find team \"\\\"test/../hello?\\\"channel-test\"")
 		s.Require().Equal("unable to find team \"\\\"test/../hello?\\\"channel-test\"", printer.GetErrorLines()[0])
 	})
@@ -1649,7 +1612,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 	s.Run("Unarchive channel without args returns an error", func() {
 		printer.Clean()
 
-		err := unarchiveChannelsCmdF(s.client, &cobra.Command{}, []string{})
+		err := unarchiveChannelsCmdF(s.client, s.cmd, []string{})
 		mockErr := errors.New("enter at least one channel")
 
 		expected := mockErr.Error()
@@ -1665,28 +1628,27 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
-		cmd := &cobra.Command{}
 		args := teamID + ":" + channelName
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID).
+			RestoreChannel(s.T().Context(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := unarchiveChannelsCmdF(s.client, cmd, []string{args})
+		err := unarchiveChannelsCmdF(s.client, s.cmd, []string{args})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1697,22 +1659,21 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
-		cmd := &cobra.Command{}
 		args := []string{channelName}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID).
+			RestoreChannel(s.T().Context(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := unarchiveChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1729,34 +1690,33 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		channelID2 := "some-other-channel-id"
 		mockChannel2 := model.Channel{Id: channelID2, Name: channelArg2}
 
-		cmd := &cobra.Command{}
 		args := []string{channelArg1, channelArg2}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg1).
+			GetChannel(s.T().Context(), channelArg1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg2).
+			GetChannel(s.T().Context(), channelArg2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID1).
+			RestoreChannel(s.T().Context(), channelID1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID2).
+			RestoreChannel(s.T().Context(), channelID2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
-		err := unarchiveChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1767,22 +1727,21 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		teamArg := "some-non-existent-team-id"
 
-		cmd := &cobra.Command{}
 		args := []string{teamArg + ":" + channelName}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := unarchiveChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, s.cmd, args)
 		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
 
 		s.Require().ErrorContains(err, expectedError)
@@ -1799,28 +1758,27 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		mockTeam := model.Team{Id: teamArg}
 		channelArg := "some-non-existing-channel"
 
-		cmd := &cobra.Command{}
 		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelArg, teamArg, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelArg, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(s.T().Context(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := unarchiveChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, s.cmd, args)
 		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
 
 		s.Require().ErrorContains(err, expectedError)
@@ -1834,16 +1792,15 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		printer.Clean()
 
 		channelArg := "some-non-existing-channel"
-		cmd := &cobra.Command{}
 		args := []string{channelArg}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(s.T().Context(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := unarchiveChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, s.cmd, args)
 		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
 
 		s.Require().ErrorContains(err, expectedError)
@@ -1858,23 +1815,22 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
-		cmd := &cobra.Command{}
 		args := []string{channelName}
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockErr := errors.New("mock error")
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID).
+			RestoreChannel(s.T().Context(), channelID).
 			Return(nil, &model.Response{}, mockErr).
 			Times(1)
 
-		err := unarchiveChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, s.cmd, args)
 		expectedError := fmt.Sprintf("Unable to unarchive channel '%s'. Error: %s", channelName, mockErr.Error())
 
 		s.Require().ErrorContains(err, expectedError)
@@ -1887,10 +1843,9 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 	s.Run("Fail to unarchive when team and channel not provided", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 		args := []string{":"}
 
-		err := unarchiveChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, s.cmd, args)
 		expectedError := fmt.Sprintf("Unable to find channel '%s'", args[0])
 
 		s.Require().ErrorContains(err, expectedError)
@@ -1905,22 +1860,20 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 	s.Run("It should fail when no name and display name is supplied", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		args := []string{""}
 		args[0] = "teamName:channelName"
 
-		cmd.Flags().String("name", "", "Channel Name")
-		cmd.Flags().String("display-name", "", channelDisplayName)
+		s.cmd.Flags().String("name", "", "Channel Name")
+		s.cmd.Flags().String("display-name", "", channelDisplayName)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "require at least one flag to rename channel, either 'name' or 'display-name'")
 	})
 
 	s.Run("It should fail when empty team and channel name are supplied", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := ""
 		channelName := ""
@@ -1929,17 +1882,16 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when empty channel is supplied", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		channelName := ""
 		argsTeamChannel := teamName + ":" + channelName
@@ -1947,8 +1899,8 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -1957,36 +1909,35 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail with empty team and non existing channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := ""
 		channelName := "nonExistingChannelName"
@@ -1995,23 +1946,22 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when team is not found", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := "nonExistingteamName"
 		argsTeamChannel := teamName + ":" + channelName
@@ -2019,29 +1969,28 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when channel is not found", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		channelName := "nonExistingChannelName"
 		argsTeamChannel := teamName + ":" + channelName
@@ -2049,12 +1998,12 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2066,38 +2015,37 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when api fails to rename", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2118,45 +2066,44 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockError := model.NewAppError("at-random-location.go", "mock error", nil, "mocking a random error", 0)
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(s.T().Context(), foundChannel.Id, channelPatch).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("cannot rename channel %q, error: %s", foundChannel.Name, mockError.Error()))
 	})
 
 	s.Run("It should work as expected", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2183,29 +2130,29 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(s.T().Context(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -2215,7 +2162,6 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 	s.Run("It should work with empty team and existing channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := ""
 		argsTeamChannel := teamName + ":" + channelName
@@ -2223,8 +2169,8 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundChannel := &model.Channel{
 			Id:          channelID,
@@ -2245,17 +2191,17 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(s.T().Context(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -2265,15 +2211,14 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 	s.Run("It should work even if only name flag is passed", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := ""
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2299,29 +2244,29 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(s.T().Context(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -2331,15 +2276,14 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 	s.Run("It should work even if only display name flag is passed", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
 
 		newChannelName := ""
 		newChannelDisplayName := "New Channel Name"
-		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		s.cmd.Flags().String("name", newChannelName, "Channel Name")
+		s.cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2365,29 +2309,29 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(s.T().Context(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := renameChannelCmdF(s.client, cmd, args)
+		err := renameChannelCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -2421,45 +2365,44 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Id:     channelID,
 		}
 
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamName, "").
+			GetTeam(s.T().Context(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), dstTeamName, "").
+			GetTeamByName(s.T().Context(), dstTeamName, "").
 			Return(&mockTeam1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), srcTeamName, "").
+			GetTeam(s.T().Context(), srcTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), srcTeamName, "").
+			GetTeamByName(s.T().Context(), srcTeamName, "").
 			Return(&mockTeam2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, mockTeam2.Id, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, mockTeam2.Id, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			MoveChannel(context.TODO(), mockChannel.Id, mockTeam1.Id, false).
+			MoveChannel(s.T().Context(), mockChannel.Id, mockTeam1.Id, false).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, srcTeamName + ":" + channelName})
+		err := moveChannelCmdF(s.client, s.cmd, []string{dstTeamName, srcTeamName + ":" + channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(&mockChannel, printer.GetLines()[0])
@@ -2471,21 +2414,20 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		dstTeamName := "destination-team-name"
 
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamName, "").
+			GetTeam(s.T().Context(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), dstTeamName, "").
+			GetTeamByName(s.T().Context(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
-		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, "team:channel"})
+		err := moveChannelCmdF(s.client, s.cmd, []string{dstTeamName, "team:channel"})
 
 		s.Require().EqualError(err, fmt.Sprintf("unable to find destination team %q", dstTeamName))
 	})
@@ -2502,21 +2444,20 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		channelID := "channel-id"
 
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamID, "").
+			GetTeam(s.T().Context(), dstTeamID, "").
 			Return(&mockTeam1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(s.T().Context(), channelID).
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
-		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		err := moveChannelCmdF(s.client, s.cmd, []string{dstTeamID, channelID})
 		var expected error
 		expected = multierror.Append(expected, fmt.Errorf("unable to find channel %q", channelID))
 
@@ -2533,27 +2474,26 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		channelID := "channel-id"
 
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamID, "").
+			GetTeam(s.T().Context(), dstTeamID, "").
 			Return(&mockTeam1, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(s.T().Context(), channelID).
 			Return(&model.Channel{Id: channelID, Name: "some-name"}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			MoveChannel(context.TODO(), channelID, mockTeam1.Id, false).
+			MoveChannel(s.T().Context(), channelID, mockTeam1.Id, false).
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
-		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		err := moveChannelCmdF(s.client, s.cmd, []string{dstTeamID, channelID})
 		var expected error
 		expected = multierror.Append(expected, fmt.Errorf("unable to move channel %q: some-error", "some-name"))
 
@@ -2565,57 +2505,53 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 	s.Run("should not create channel without display name", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := "teamName"
 		channelName := "channelName"
 		args := []string{teamName + ":" + channelName}
 
-		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("name", channelName, "Channel Name")
+		s.cmd.Flags().String("team", teamName, "Team Name")
+		s.cmd.Flags().String("name", channelName, "Channel Name")
 
-		err := createChannelCmdF(s.client, cmd, args)
+		err := createChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "display-name is required")
 	})
 
 	s.Run("should not create channel without name", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := "teamName"
 		channelDisplayName := "channelDisplayName"
 		argsTeamChannel := teamName + ":" + channelDisplayName
 		args := []string{argsTeamChannel}
 
-		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
+		s.cmd.Flags().String("team", teamName, "Team Name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
-		err := createChannelCmdF(s.client, cmd, args)
+		err := createChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "name is required")
 	})
 
 	s.Run("should not create channel without team", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		channelName := "channelName"
 		channelDisplayName := "channelDisplayName"
 		argsTeamChannel := channelName + ":" + channelDisplayName
 		args := []string{argsTeamChannel}
 
-		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
+		s.cmd.Flags().String("name", channelName, "Channel Name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
-		err := createChannelCmdF(s.client, cmd, args)
+		err := createChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "team is required")
 	})
 
 	s.Run("should fail when team does not exist", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2623,32 +2559,31 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
 		args := []string{argsTeamChannel}
 
-		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
+		s.cmd.Flags().String("team", teamName, "Team Name")
+		s.cmd.Flags().String("name", channelName, "Channel Name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := createChannelCmdF(s.client, cmd, args)
+		err := createChannelCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find team: %s", teamName))
 	})
 
 	s.Run("should create public channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2656,9 +2591,9 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
 		args := []string{argsTeamChannel}
 
-		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
+		s.cmd.Flags().String("team", teamName, "Team Name")
+		s.cmd.Flags().String("name", channelName, "Channel Name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		foundTeam := &model.Team{
 			Id:          "teamId",
@@ -2675,23 +2610,23 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(context.TODO(), foundChannel).
+			CreateChannel(s.T().Context(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := createChannelCmdF(s.client, cmd, args)
+		err := createChannelCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], foundChannel)
@@ -2700,7 +2635,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 	s.Run("should create private channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2708,10 +2642,10 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
 		args := []string{argsTeamChannel}
 
-		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
-		cmd.Flags().Bool("private", true, "Create a private channel")
+		s.cmd.Flags().String("team", teamName, "Team Name")
+		s.cmd.Flags().String("name", channelName, "Channel Name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
+		s.cmd.Flags().Bool("private", true, "Create a private channel")
 
 		foundTeam := &model.Team{
 			Id:          "teamId",
@@ -2728,17 +2662,17 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(context.TODO(), foundChannel).
+			CreateChannel(s.T().Context(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := createChannelCmdF(s.client, cmd, args)
+		err := createChannelCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], foundChannel)
@@ -2747,7 +2681,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 	s.Run("should create channel with header and purpose", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2757,12 +2690,12 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
 		args := []string{argsTeamChannel}
 
-		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
-		cmd.Flags().String("header", header, "Channel header")
-		cmd.Flags().String("purpose", purpose, "Channel purpose")
-		cmd.Flags().Bool("private", true, "Create a private channel")
+		s.cmd.Flags().String("team", teamName, "Team Name")
+		s.cmd.Flags().String("name", channelName, "Channel Name")
+		s.cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
+		s.cmd.Flags().String("header", header, "Channel header")
+		s.cmd.Flags().String("purpose", purpose, "Channel purpose")
+		s.cmd.Flags().Bool("private", true, "Create a private channel")
 
 		foundTeam := &model.Team{
 			Id:          "teamId",
@@ -2781,17 +2714,17 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(context.TODO(), foundChannel).
+			CreateChannel(s.T().Context(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := createChannelCmdF(s.client, cmd, args)
+		err := createChannelCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], foundChannel)
@@ -2814,9 +2747,8 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 	}
 
 	s.Run("Delete channels without confirm flag returns an error", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", false, "")
-		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
+		s.cmd.Flags().Bool("confirm", false, "")
+		err := deleteChannelsCmdF(s.client, s.cmd, []string{"some"})
 		s.Require().NotNil(err)
 		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
@@ -2826,27 +2758,26 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		arg := teamID + ":" + channelName
-		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
+		err := deleteChannelsCmdF(s.client, s.cmd, []string{arg})
 		var expected error
 		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
 		s.Require().EqualError(err, expected.Error())
@@ -2857,21 +2788,20 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(s.T().Context(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		arg := teamName + ":" + channelName
-		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
+		err := deleteChannelsCmdF(s.client, s.cmd, []string{arg})
 
 		var expected error
 		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
@@ -2882,27 +2812,26 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteChannel(context.TODO(), channelID).
+			PermanentDeleteChannel(s.T().Context(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		arg := teamID + ":" + channelName
-		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
+		err := deleteChannelsCmdF(s.client, s.cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Equal(&mockChannel, printer.GetLines()[0])
 	})
@@ -2912,7 +2841,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(&mockTeam, nil, nil).
 			Times(2)
 
@@ -2921,34 +2850,33 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelNameDoesNotExist, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelNameDoesNotExist, teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelNameDoesNotExist).
+			GetChannel(s.T().Context(), channelNameDoesNotExist).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelName, teamID, "").
 			Return(&mockChannel, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteChannel(context.TODO(), channelID).
+			PermanentDeleteChannel(s.T().Context(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		arg1 := teamID + ":" + channelNameDoesNotExist
 		arg2 := teamID + ":" + channelName
-		err := deleteChannelsCmdF(s.client, cmd, []string{arg1, arg2})
+		err := deleteChannelsCmdF(s.client, s.cmd, []string{arg1, arg2})
 
 		var expected error
 		expected = multierror.Append(expected, fmt.Errorf("unable to find channel '%s'", arg1))
