@@ -15,10 +15,18 @@
     font-weight: 400;
 }
 
+// Cap the list height and scroll it internally so a long schema (dozens of
+// values) doesn't grow the modal past the viewport and push the footer's
+// Save/Cancel buttons off-screen. As the droppable's own scroll container this
+// also gives react-beautiful-dnd a surface to auto-scroll while dragging. The
+// right padding keeps the scrollbar from overlapping the remove buttons.
 .ranked-schema-modal__rows {
     display: flex;
+    max-height: 50vh;
     flex-direction: column;
+    padding-right: 4px;
     gap: 4px;
+    overflow-y: auto;
 }
 
 .ranked-schema-modal__row {
