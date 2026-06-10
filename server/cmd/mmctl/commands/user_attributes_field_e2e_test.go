@@ -4,10 +4,8 @@
 package commands
 
 import (
-	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -17,7 +15,7 @@ import (
 // returns the server response reshaped as a typed CPAField.
 func (s *MmctlE2ETestSuite) createCPAField(field *model.CPAField) *model.CPAField {
 	s.T().Helper()
-	created, _, err := s.th.SystemAdminClient.CreateCPAField(context.Background(), field.ToPropertyField())
+	created, _, err := s.th.SystemAdminClient.CreateCPAField(s.T().Context(), field.ToPropertyField())
 	s.Require().NoError(err)
 	cpa, err := model.NewCPAFieldFromPropertyField(created)
 	s.Require().NoError(err)
@@ -28,7 +26,7 @@ func (s *MmctlE2ETestSuite) createCPAField(field *model.CPAField) *model.CPAFiel
 // them as typed CPAFields.
 func (s *MmctlE2ETestSuite) listCPAFields() []*model.CPAField {
 	s.T().Helper()
-	fields, _, err := s.th.SystemAdminClient.ListCPAFields(context.Background())
+	fields, _, err := s.th.SystemAdminClient.ListCPAFields(s.T().Context())
 	s.Require().NoError(err)
 	out := make([]*model.CPAField, 0, len(fields))
 	for _, pf := range fields {
@@ -57,7 +55,7 @@ func (s *MmctlE2ETestSuite) getCPAField(id string) *model.CPAField {
 func (s *MmctlE2ETestSuite) cleanCPAFields() {
 	s.T().Helper()
 	for _, field := range s.listCPAFields() {
-		_, err := s.th.SystemAdminClient.DeleteCPAField(context.Background(), field.ID)
+		_, err := s.th.SystemAdminClient.DeleteCPAField(s.T().Context(), field.ID)
 		s.Require().NoError(err)
 	}
 }
@@ -70,7 +68,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldListCmd() {
 		printer.Clean()
 		s.cleanCPAFields()
 
-		err := cpaFieldListCmdF(c, &cobra.Command{}, []string{})
+		err := cpaFieldListCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0) // No fields should be present initially
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -114,7 +112,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldListCmd() {
 		s.Require().NotNil(createdSelectField)
 
 		// Now test the list command
-		err := cpaFieldListCmdF(c, &cobra.Command{}, []string{})
+		err := cpaFieldListCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2) // Should have 2 fields now
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -134,16 +132,15 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 		s.cleanCPAFields()
 
 		// Create command with arguments and managed flag
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("managed", false, "")
-		cmd.Flags().String("attrs", "", "")
-		cmd.Flags().StringSlice("option", []string{}, "")
+		s.cmd.Flags().Bool("managed", false, "")
+		s.cmd.Flags().String("attrs", "", "")
+		s.cmd.Flags().StringSlice("option", []string{}, "")
 
 		// Set the managed flag to true
-		err := cmd.Flags().Set("managed", "true")
+		err := s.cmd.Flags().Set("managed", "true")
 		s.Require().Nil(err)
 
-		err = cpaFieldCreateCmdF(c, cmd, []string{"Department", "text"})
+		err = cpaFieldCreateCmdF(c, s.cmd, []string{"Department", "text"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -165,20 +162,19 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 		s.cleanCPAFields()
 
 		// Create command with arguments and option flags
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("managed", false, "")
-		cmd.Flags().String("attrs", "", "")
-		cmd.Flags().StringSlice("option", []string{}, "")
+		s.cmd.Flags().Bool("managed", false, "")
+		s.cmd.Flags().String("attrs", "", "")
+		s.cmd.Flags().StringSlice("option", []string{}, "")
 
 		// Set the option flags
-		err := cmd.Flags().Set("option", "Go")
+		err := s.cmd.Flags().Set("option", "Go")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("option", "React")
+		err = s.cmd.Flags().Set("option", "React")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("option", "Python")
+		err = s.cmd.Flags().Set("option", "Python")
 		s.Require().Nil(err)
 
-		err = cpaFieldCreateCmdF(c, cmd, []string{"Skills", "multiselect"})
+		err = cpaFieldCreateCmdF(c, s.cmd, []string{"Skills", "multiselect"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -215,16 +211,15 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		printer.Clean()
 		s.cleanCPAFields()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("name", "", "")
-		cmd.Flags().Bool("managed", false, "")
-		cmd.Flags().String("attrs", "", "")
-		cmd.Flags().StringSlice("option", []string{}, "")
+		s.cmd.Flags().String("name", "", "")
+		s.cmd.Flags().Bool("managed", false, "")
+		s.cmd.Flags().String("attrs", "", "")
+		s.cmd.Flags().StringSlice("option", []string{}, "")
 
-		err := cmd.Flags().Set("name", "New Name")
+		err := s.cmd.Flags().Set("name", "New Name")
 		s.Require().Nil(err)
 
-		err = cpaFieldEditCmdF(c, cmd, []string{"nonexistent-field-id"})
+		err = cpaFieldEditCmdF(c, s.cmd, []string{"nonexistent-field-id"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "failed to get field for \"nonexistent-field-id\"")
 	})
@@ -250,20 +245,19 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		createdField := s.createCPAField(field)
 
 		// Now edit the field
-		cmd := &cobra.Command{}
-		cmd.Flags().String("name", "", "")
-		cmd.Flags().Bool("managed", false, "")
-		cmd.Flags().String("attrs", "", "")
-		cmd.Flags().StringSlice("option", []string{}, "")
+		s.cmd.Flags().String("name", "", "")
+		s.cmd.Flags().Bool("managed", false, "")
+		s.cmd.Flags().String("attrs", "", "")
+		s.cmd.Flags().StringSlice("option", []string{}, "")
 
-		err := cmd.Flags().Set("name", "Programming Languages")
+		err := s.cmd.Flags().Set("name", "Programming Languages")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("option", "Go")
+		err = s.cmd.Flags().Set("option", "Go")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("option", "Python")
+		err = s.cmd.Flags().Set("option", "Python")
 		s.Require().Nil(err)
 
-		err = cpaFieldEditCmdF(c, cmd, []string{createdField.ID})
+		err = cpaFieldEditCmdF(c, s.cmd, []string{createdField.ID})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -306,16 +300,15 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		createdField := s.createCPAField(field)
 
 		// Now edit the field with --managed flag
-		cmd := &cobra.Command{}
-		cmd.Flags().String("name", "", "")
-		cmd.Flags().Bool("managed", false, "")
-		cmd.Flags().String("attrs", "", "")
-		cmd.Flags().StringSlice("option", []string{}, "")
+		s.cmd.Flags().String("name", "", "")
+		s.cmd.Flags().Bool("managed", false, "")
+		s.cmd.Flags().String("attrs", "", "")
+		s.cmd.Flags().StringSlice("option", []string{}, "")
 
-		err := cmd.Flags().Set("managed", "true")
+		err := s.cmd.Flags().Set("managed", "true")
 		s.Require().Nil(err)
 
-		err = cpaFieldEditCmdF(c, cmd, []string{createdField.ID})
+		err = cpaFieldEditCmdF(c, s.cmd, []string{createdField.ID})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -346,19 +339,18 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		createdField := s.createCPAField(field)
 
 		// Now edit the field using its name instead of ID
-		cmd := &cobra.Command{}
-		cmd.Flags().String("name", "", "")
-		cmd.Flags().Bool("managed", false, "")
-		cmd.Flags().String("attrs", "", "")
-		cmd.Flags().StringSlice("option", []string{}, "")
+		s.cmd.Flags().String("name", "", "")
+		s.cmd.Flags().Bool("managed", false, "")
+		s.cmd.Flags().String("attrs", "", "")
+		s.cmd.Flags().StringSlice("option", []string{}, "")
 
-		err := cmd.Flags().Set("name", "Team")
+		err := s.cmd.Flags().Set("name", "Team")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("managed", "true")
+		err = s.cmd.Flags().Set("managed", "true")
 		s.Require().Nil(err)
 
 		// Edit using field name "Department" instead of the field ID
-		err = cpaFieldEditCmdF(c, cmd, []string{"Department"})
+		err = cpaFieldEditCmdF(c, s.cmd, []string{"Department"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -413,20 +405,19 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().NotEmpty(originalPythonID)
 
 		// Now edit the field to add a third option while preserving the first two
-		cmd := &cobra.Command{}
-		cmd.Flags().String("name", "", "")
-		cmd.Flags().Bool("managed", false, "")
-		cmd.Flags().String("attrs", "", "")
-		cmd.Flags().StringSlice("option", []string{}, "")
+		s.cmd.Flags().String("name", "", "")
+		s.cmd.Flags().Bool("managed", false, "")
+		s.cmd.Flags().String("attrs", "", "")
+		s.cmd.Flags().StringSlice("option", []string{}, "")
 
-		err := cmd.Flags().Set("option", "Go")
+		err := s.cmd.Flags().Set("option", "Go")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("option", "Python")
+		err = s.cmd.Flags().Set("option", "Python")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("option", "React")
+		err = s.cmd.Flags().Set("option", "React")
 		s.Require().Nil(err)
 
-		err = cpaFieldEditCmdF(c, cmd, []string{createdField.ID})
+		err = cpaFieldEditCmdF(c, s.cmd, []string{createdField.ID})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -487,13 +478,12 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 
 		createdField := s.createCPAField(field)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", false, "")
+		s.cmd.Flags().Bool("confirm", false, "")
 
-		err := cmd.Flags().Set("confirm", "true")
+		err := s.cmd.Flags().Set("confirm", "true")
 		s.Require().Nil(err)
 
-		err = cpaFieldDeleteCmdF(c, cmd, []string{createdField.ID})
+		err = cpaFieldDeleteCmdF(c, s.cmd, []string{createdField.ID})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -531,14 +521,13 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 
 		createdField := s.createCPAField(field)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", false, "")
+		s.cmd.Flags().Bool("confirm", false, "")
 
-		err := cmd.Flags().Set("confirm", "true")
+		err := s.cmd.Flags().Set("confirm", "true")
 		s.Require().Nil(err)
 
 		// Delete using field name instead of ID
-		err = cpaFieldDeleteCmdF(c, cmd, []string{"Department"})
+		err = cpaFieldDeleteCmdF(c, s.cmd, []string{"Department"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -565,13 +554,12 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		printer.Clean()
 		s.cleanCPAFields()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", false, "")
+		s.cmd.Flags().Bool("confirm", false, "")
 
-		err := cmd.Flags().Set("confirm", "true")
+		err := s.cmd.Flags().Set("confirm", "true")
 		s.Require().Nil(err)
 
-		err = cpaFieldDeleteCmdF(c, cmd, []string{"nonexistent-field-id"})
+		err = cpaFieldDeleteCmdF(c, s.cmd, []string{"nonexistent-field-id"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), `failed to get field for "nonexistent-field-id"`)
 	})
@@ -580,13 +568,12 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		printer.Clean()
 		s.cleanCPAFields()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", false, "")
+		s.cmd.Flags().Bool("confirm", false, "")
 
-		err := cmd.Flags().Set("confirm", "true")
+		err := s.cmd.Flags().Set("confirm", "true")
 		s.Require().Nil(err)
 
-		err = cpaFieldDeleteCmdF(c, cmd, []string{"NonexistentField"})
+		err = cpaFieldDeleteCmdF(c, s.cmd, []string{"NonexistentField"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), `failed to get field for "NonexistentField"`)
 	})

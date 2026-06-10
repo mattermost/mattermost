@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"crypto/x509"
 	"encoding/json"
 	"net"
@@ -188,7 +187,7 @@ func TestNewAPIv4Client(t *testing.T) {
 		t.Setenv("HTTP_PROXY", proxyAddr)
 
 		client := NewAPIv4Client("http://somethingelse:"+port, false, false)
-		_, _, err = client.GetMe(context.Background(), "")
+		_, _, err = client.GetMe(t.Context(), "")
 		require.NoError(t, err)
 	})
 }

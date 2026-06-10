@@ -5,7 +5,6 @@ package commands
 
 import (
 	"archive/zip"
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -29,11 +27,11 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 
 		s.client.
 			EXPECT().
-			ListImports(context.TODO()).
+			ListImports(s.T().Context()).
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
-		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
+		err := importListAvailableCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -50,11 +48,11 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 
 		s.client.
 			EXPECT().
-			ListImports(context.TODO()).
+			ListImports(s.T().Context()).
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
-		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
+		err := importListAvailableCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockImports))
 		s.Len(printer.GetErrorLines(), 0)
@@ -71,11 +69,11 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUploadsForUser(context.TODO(), "me").
+			GetUploadsForUser(s.T().Context(), "me").
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
-		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
+		err := importListIncompleteCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -101,11 +99,11 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUploadsForUser(context.TODO(), "me").
+			GetUploadsForUser(s.T().Context(), "me").
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
-		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
+		err := importListIncompleteCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
 		s.Empty(printer.GetErrorLines())
@@ -122,11 +120,11 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), jobID).
+			GetJob(s.T().Context(), jobID).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
-		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{jobID})
+		err := importJobShowCmdF(s.client, s.cmd, []string{jobID})
 		s.Require().NotNil(err)
 		s.Empty(printer.GetLines())
 		s.Empty(printer.GetErrorLines())
@@ -140,11 +138,11 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), mockJob.Id).
+			GetJob(s.T().Context(), mockJob.Id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		err := importJobShowCmdF(s.client, s.cmd, []string{mockJob.Id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -157,19 +155,18 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 		printer.Clean()
 		var mockJobs []*model.Job
 
-		cmd := &cobra.Command{}
 		perPage := 10
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeImportProcess, "", 0, perPage).
+			GetJobs(s.T().Context(), model.JobTypeImportProcess, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
-		err := importJobListCmdF(s.client, cmd, nil)
+		err := importJobListCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -190,19 +187,18 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 			},
 		}
 
-		cmd := &cobra.Command{}
 		perPage := 3
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeImportProcess, "", 0, perPage).
+			GetJobs(s.T().Context(), model.JobTypeImportProcess, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
-		err := importJobListCmdF(s.client, cmd, nil)
+		err := importJobListCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockJobs))
 		s.Empty(printer.GetErrorLines())
@@ -227,16 +223,15 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(s.T().Context(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("bypass-upload", false, "")
-		cmd.Flags().Bool("extract-content", false, "")
-		cmd.Flags().Int("workers", 0, "")
+		s.cmd.Flags().Bool("bypass-upload", false, "")
+		s.cmd.Flags().Bool("extract-content", false, "")
+		s.cmd.Flags().Int("workers", 0, "")
 
-		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		err := importProcessCmdF(s.client, s.cmd, []string{importFile})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -248,13 +243,12 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		importFile := "import.zip"
 		tooMany := runtime.NumCPU()*4 + 1
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("bypass-upload", false, "")
-		cmd.Flags().Bool("extract-content", false, "")
-		cmd.Flags().Int("workers", 0, "")
-		_ = cmd.Flags().Set("workers", strconv.Itoa(tooMany))
+		s.cmd.Flags().Bool("bypass-upload", false, "")
+		s.cmd.Flags().Bool("extract-content", false, "")
+		s.cmd.Flags().Int("workers", 0, "")
+		_ = s.cmd.Flags().Set("workers", strconv.Itoa(tooMany))
 
-		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		err := importProcessCmdF(s.client, s.cmd, []string{importFile})
 		s.Require().NotNil(err)
 		s.Contains(err.Error(), "exceeds maximum allowed")
 		s.Empty(printer.GetLines())
@@ -276,17 +270,16 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(s.T().Context(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("bypass-upload", false, "")
-		cmd.Flags().Bool("extract-content", false, "")
-		cmd.Flags().Int("workers", 0, "")
-		_ = cmd.Flags().Set("workers", "2")
+		s.cmd.Flags().Bool("bypass-upload", false, "")
+		s.cmd.Flags().Bool("extract-content", false, "")
+		s.cmd.Flags().Int("workers", 0, "")
+		_ = s.cmd.Flags().Set("workers", "2")
 
-		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		err := importProcessCmdF(s.client, s.cmd, []string{importFile})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -440,19 +433,19 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 0, 200, "").
+			GetUsers(s.T().Context(), 0, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, 200).
+			GetAllTeams(s.T().Context(), "", 0, 200).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetClientConfig(context.TODO(), "").
+			GetClientConfig(s.T().Context(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -501,19 +494,19 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 0, 200, "").
+			GetUsers(s.T().Context(), 0, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, 200).
+			GetAllTeams(s.T().Context(), "", 0, 200).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetClientConfig(context.TODO(), "").
+			GetClientConfig(s.T().Context(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -560,19 +553,19 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 0, 200, "").
+			GetUsers(s.T().Context(), 0, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, 200).
+			GetAllTeams(s.T().Context(), "", 0, 200).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetClientConfig(context.TODO(), "").
+			GetClientConfig(s.T().Context(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -601,17 +594,17 @@ func (s *MmctlUnitTestSuite) TestDeleteImportCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			DeleteImport(context.TODO(), "import.zip").
+			DeleteImport(s.T().Context(), "import.zip").
 			Return(&model.Response{}, nil).
 			Times(2)
 
-		err := importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
+		err := importDeleteCmdF(s.client, s.cmd, []string{"import.zip"})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[0])
 
 		//idempotency check
-		err = importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
+		err = importDeleteCmdF(s.client, s.cmd, []string{"import.zip"})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
 		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[1])

@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -49,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestAuthList() {
 		err = SaveCredentials(credentials)
 		s.Require().NoError(err)
 
-		errListCmdF := listCmdF(&cobra.Command{}, []string{})
+		errListCmdF := listCmdF(s.cmd, []string{})
 		s.Require().NoError(errListCmdF)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		lines := printer.GetLines()
@@ -76,7 +75,7 @@ func (s *MmctlUnitTestSuite) TestAuthList() {
 		err = SaveCredentials(credentials)
 		s.Require().NoError(err)
 
-		errListCmdF := listCmdF(&cobra.Command{}, []string{})
+		errListCmdF := listCmdF(s.cmd, []string{})
 		s.Require().NoError(errListCmdF)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		lines := printer.GetLines()

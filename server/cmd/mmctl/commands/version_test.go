@@ -3,7 +3,6 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -12,7 +11,7 @@ func (s *MmctlUnitTestSuite) TestVersionCmd() {
 	printer.Clean()
 	printer.SetFormat(printer.FormatPlain)
 
-	err := versionCmdF(&cobra.Command{}, []string{})
+	err := versionCmdF(s.cmd, []string{})
 	s.Require().NoError(err)
 	s.Require().Len(printer.GetErrorLines(), 0)
 	s.Require().Len(printer.GetLines(), 1)

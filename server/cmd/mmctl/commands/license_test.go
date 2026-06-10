@@ -4,13 +4,11 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -25,11 +23,11 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 		s.client.
 			EXPECT().
-			RemoveLicenseFile(context.TODO()).
+			RemoveLicenseFile(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := removeLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		err := removeLicenseCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -42,11 +40,11 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 		s.client.
 			EXPECT().
-			RemoveLicenseFile(context.TODO()).
+			RemoveLicenseFile(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
-		err := removeLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		err := removeLicenseCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -70,11 +68,11 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.TODO(), mockLicenseFile).
+			UploadLicenseFile(s.T().Context(), mockLicenseFile).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
+		err := uploadLicenseCmdF(s.client, s.cmd, []string{tmpFile.Name()})
 		s.Require().Nil(err)
 	})
 
@@ -84,16 +82,16 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		errMsg := "open " + path + ": no such file or directory"
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.TODO(), mockLicenseFile).
+			UploadLicenseFile(s.T().Context(), mockLicenseFile).
 			Times(0)
 
-		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{path})
+		err := uploadLicenseCmdF(s.client, s.cmd, []string{path})
 		s.Require().EqualError(err, errMsg)
 	})
 
 	s.Run("Fail to upload license if no path is given", func() {
 		printer.Clean()
-		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		err := uploadLicenseCmdF(s.client, s.cmd, []string{})
 		s.Require().EqualError(err, "enter one license file to upload")
 	})
 }
@@ -108,17 +106,17 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseStringCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.TODO(), mockLicenseFile).
+			UploadLicenseFile(s.T().Context(), mockLicenseFile).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{licenseString})
+		err := uploadLicenseStringCmdF(s.client, s.cmd, []string{licenseString})
 		s.Require().Nil(err)
 	})
 
 	s.Run("Fail to upload license if no license string is given", func() {
 		printer.Clean()
-		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{})
+		err := uploadLicenseStringCmdF(s.client, s.cmd, []string{})
 		s.Require().EqualError(err, "enter one license file to upload")
 	})
 }
@@ -143,11 +141,11 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientLicense(context.TODO(), "").
+			GetOldClientLicense(s.T().Context(), "").
 			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		err := getLicenseCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -170,11 +168,11 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientLicense(context.TODO(), "").
+			GetOldClientLicense(s.T().Context(), "").
 			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		err := getLicenseCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "No license installed")
@@ -186,11 +184,11 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientLicense(context.TODO(), "").
+			GetOldClientLicense(s.T().Context(), "").
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, mockErr).
 			Times(1)
 
-		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		err := getLicenseCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Equal(err, mockErr)
 		s.Require().Len(printer.GetLines(), 0)

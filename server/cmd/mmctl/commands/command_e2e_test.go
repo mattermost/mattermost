@@ -4,12 +4,10 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -23,7 +21,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 
 		nonexistentTeamID := "nonexistent-team-id"
 
-		err := listCommandCmdF(c, &cobra.Command{}, []string{nonexistentTeamID})
+		err := listCommandCmdF(c, s.cmd, []string{nonexistentTeamID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -58,7 +56,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			s.Require().Nil(appErr)
 		}()
 
-		err := listCommandCmdF(c, &cobra.Command{}, []string{team.Id})
+		err := listCommandCmdF(c, s.cmd, []string{team.Id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(command, printer.GetLines()[0])
@@ -121,7 +119,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		s.RunForSystemAdminAndLocal("Run list command", func(c client.Client) {
 			printer.Clean()
 
-			err := listCommandCmdF(c, &cobra.Command{}, []string{})
+			err := listCommandCmdF(c, s.cmd, []string{})
 			s.Require().Nil(err)
 			s.Len(printer.GetLines(), 2)
 			s.ElementsMatch([]*model.Command{command1, command2}, printer.GetLines())
@@ -154,7 +152,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			s.Require().Nil(appErr)
 		}()
 
-		err := listCommandCmdF(s.th.Client, &cobra.Command{}, []string{team.Id})
+		err := listCommandCmdF(s.th.Client, s.cmd, []string{team.Id})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -181,7 +179,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 
 		nonexistentCommandID := "nonexistent-command-id"
 
-		err := archiveCommandCmdF(c, &cobra.Command{}, []string{nonexistentCommandID})
+		err := archiveCommandCmdF(c, s.cmd, []string{nonexistentCommandID})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("Unable to archive command '%s' error: Sorry, we could not find the page., There doesn't appear to be an api call for the url='/api/v4/commands/nonexistent-command-id'.  Typo? are you missing a team_id or user_id as part of the url?", nonexistentCommandID), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -204,7 +202,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		err := archiveCommandCmdF(c, &cobra.Command{}, []string{command.Id})
+		err := archiveCommandCmdF(c, s.cmd, []string{command.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(map[string]any{"status": "ok"}, printer.GetLines()[0])
@@ -240,7 +238,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		err := archiveCommandCmdF(s.th.Client, &cobra.Command{}, []string{command.Id})
+		err := archiveCommandCmdF(s.th.Client, s.cmd, []string{command.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal(fmt.Sprintf("Unable to archive command '%s' error: Unable to get the command.", command.Id), err.Error())
 
@@ -263,24 +261,24 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		Trigger:   "trigger",
 	}
 
-	command, _, _ := s.th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
+	command, _, _ := s.th.SystemAdminClient.CreateCommand(s.T().Context(), newCmd)
 	index := 0
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()
 
-		// Reset the cmd and parse to force Flag.Changed to be true.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
+		// Reset the s.cmd and parse to force Flag.Changed to be true.
+		s.cmd = CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
 		url := fmt.Sprintf("%s-%d", command.URL, index)
 		index++
-		err := cmd.ParseFlags([]string{
+		err := s.cmd.ParseFlags([]string{
 			command.Id,
 			"--url=" + url,
 		})
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(c, cmd, []string{command.Id})
+		err = modifyCommandCmdF(c, s.cmd, []string{command.Id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -292,26 +290,25 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF for command that does not exist", func(c client.Client) {
 		printer.Clean()
-		cmd := &cobra.Command{}
 
-		err := modifyCommandCmdF(c, cmd, []string{"nothing"})
+		err := modifyCommandCmdF(c, s.cmd, []string{"nothing"})
 		s.Require().NotNil(err)
 		s.Require().Equal("unable to find command 'nothing'", err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF with a space in trigger word", func(c client.Client) {
 		printer.Clean()
-		// Reset the cmd and parse to force Flag.Changed to be true.
-		cmd := CommandModifyCmd
-		cmd.ResetFlags()
-		addCommandFieldsFlags(cmd)
-		err := cmd.ParseFlags([]string{
+		// Reset the s.cmd and parse to force Flag.Changed to be true.
+		s.cmd = CommandModifyCmd
+		s.cmd.ResetFlags()
+		addCommandFieldsFlags(s.cmd)
+		err := s.cmd.ParseFlags([]string{
 			command.Id,
 			"--trigger-word=modified with space",
 		})
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(c, cmd, []string{command.Id})
+		err = modifyCommandCmdF(c, s.cmd, []string{command.Id})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -325,14 +322,14 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 	s.RunForSystemAdminAndLocal("Show non existent cmd", func(c client.Client) {
 		printer.Clean()
 
-		err := showCommandCmdF(c, &cobra.Command{}, []string{"nonexistent-command-id"})
+		err := showCommandCmdF(c, s.cmd, []string{"nonexistent-command-id"})
 		s.Require().Error(err)
 		s.Require().Equal("unable to find command 'nonexistent-command-id'", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Show commands with cmd id", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Show commands with s.cmd id", func(c client.Client) {
 		// create new command
 		printer.Clean()
 		newCmd := &model.Command{
@@ -343,9 +340,9 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 			Trigger:   model.NewRandomString(6),
 		}
 
-		command, _, err := c.CreateCommand(context.Background(), newCmd)
+		command, _, err := c.CreateCommand(s.T().Context(), newCmd)
 		s.Require().NoError(err)
-		err = showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
+		err = showCommandCmdF(c, s.cmd, []string{command.Id})
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -364,10 +361,10 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 			Trigger:   trigger,
 		}
 
-		command, _, err := c.CreateCommand(context.Background(), newCmd)
+		command, _, err := c.CreateCommand(s.T().Context(), newCmd)
 
 		s.Require().NoError(err)
-		err = showCommandCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + trigger})
+		err = showCommandCmdF(c, s.cmd, []string{s.th.BasicTeam.Name + ":" + trigger})
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)

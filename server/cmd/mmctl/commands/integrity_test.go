@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 
 	"github.com/hashicorp/go-multierror"
@@ -12,14 +11,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 	s.Run("Integrity check succeeds", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		mockData := model.RelationalIntegrityCheckData{
 			ParentName:   "parent",
@@ -41,11 +38,11 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.TODO()).
+			CheckIntegrity(s.T().Context()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 
-		err := integrityCmdF(s.client, cmd, []string{})
+		err := integrityCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -54,16 +51,15 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 
 	s.Run("Integrity check fails", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.TODO()).
+			CheckIntegrity(s.T().Context()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := integrityCmdF(s.client, cmd, []string{})
+		err := integrityCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -72,8 +68,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 
 	s.Run("Integrity check with errors", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		mockData := model.RelationalIntegrityCheckData{
 			ParentName:   "parent",
@@ -99,13 +94,13 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity(context.TODO()).
+			CheckIntegrity(s.T().Context()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 		var expected error
 		expected = multierror.Append(expected, errors.New("test error"))
 
-		err := integrityCmdF(s.client, cmd, []string{})
+		err := integrityCmdF(s.client, s.cmd, []string{})
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)

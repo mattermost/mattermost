@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -37,10 +36,9 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		teamName := s.th.BasicTeam.Name
 		channelName, post1, post2 := createNewChannelAndPosts()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("number", 2, "")
+		s.cmd.Flags().Int("number", 2, "")
 
-		err := postListCmdF(c, cmd, []string{teamName + ":" + channelName})
+		err := postListCmdF(c, s.cmd, []string{teamName + ":" + channelName})
 		s.Require().Nil(err)
 		s.Equal(2, len(printer.GetLines()))
 
@@ -60,10 +58,9 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		teamName := s.th.BasicTeam.Name
 		channelName, _, _ := createNewChannelAndPosts()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("number", 2, "")
+		s.cmd.Flags().Int("number", 2, "")
 
-		err := postListCmdF(s.th.Client, cmd, []string{teamName + ":" + channelName})
+		err := postListCmdF(s.th.Client, s.cmd, []string{teamName + ":" + channelName})
 		s.Require().NotNil(err)
 		//s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
 	})
@@ -75,10 +72,9 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		teamName := s.th.BasicTeam.Name
 		channelName, post1, post2 := createNewChannelAndPosts()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("since", ISO8601ValidString, "")
+		s.cmd.Flags().String("since", ISO8601ValidString, "")
 
-		err := postListCmdF(c, cmd, []string{teamName + ":" + channelName})
+		err := postListCmdF(c, s.cmd, []string{teamName + ":" + channelName})
 		s.Require().Nil(err)
 		s.Equal(2, len(printer.GetLines()))
 
@@ -99,10 +95,9 @@ func (s *MmctlE2ETestSuite) TestPostListCmd() {
 		teamName := s.th.BasicTeam.Name
 		channelName, _, _ := createNewChannelAndPosts()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("since", ISO8601ValidString, "")
+		s.cmd.Flags().String("since", ISO8601ValidString, "")
 
-		err := postListCmdF(s.th.Client, cmd, []string{teamName + ":" + channelName})
+		err := postListCmdF(s.th.Client, s.cmd, []string{teamName + ":" + channelName})
 		s.Require().NotNil(err)
 		//s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
 	})
@@ -116,10 +111,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		msgArg := "some text"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
 
-		err := postCreateCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
+		err := postCreateCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -129,10 +123,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		msgArg := "some text"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
 
-		err := postCreateCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
+		err := postCreateCmdF(s.th.Client, s.cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -142,10 +135,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		msgArg := "some text"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
 
-		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
+		err := postCreateCmdF(s.th.LocalClient, s.cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -155,11 +147,10 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		msgArg := "some text"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
+		s.cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
 
-		err := postCreateCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
+		err := postCreateCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -169,11 +160,10 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		msgArg := "some text"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
+		s.cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
 
-		err := postCreateCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
+		err := postCreateCmdF(s.th.Client, s.cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -183,11 +173,10 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		msgArg := "some text"
 
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
+		s.cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
 
-		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
+		err := postCreateCmdF(s.th.LocalClient, s.cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})

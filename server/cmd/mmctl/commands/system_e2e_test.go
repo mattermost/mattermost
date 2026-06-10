@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
@@ -24,7 +23,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.Run("MM-T3979 Should fail when regular user attempts to get server busy status", func() {
 		printer.Clean()
 
-		err := getBusyCmdF(s.th.Client, &cobra.Command{}, nil)
+		err := getBusyCmdF(s.th.Client, s.cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -33,7 +32,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3956 Get server busy status", func(c client.Client) {
 		printer.Clean()
 
-		err := getBusyCmdF(c, &cobra.Command{}, nil)
+		err := getBusyCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		state, ok := printer.GetLines()[0].(*model.ServerBusyState)
@@ -47,13 +46,12 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.th.App.Srv().Platform().Busy.Clear()
-	cmd := &cobra.Command{}
-	cmd.Flags().Uint("seconds", 60, "")
 
 	s.Run("MM-T3980 Should fail when regular user attempts to set server busy status", func() {
 		printer.Clean()
+		s.cmd.Flags().Uint("seconds", 60, "")
 
-		err := setBusyCmdF(s.th.Client, cmd, nil)
+		err := setBusyCmdF(s.th.Client, s.cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -61,8 +59,9 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 
 	s.RunForSystemAdminAndLocal("MM-T3957 Set server status to busy", func(c client.Client) {
 		printer.Clean()
+		s.cmd.Flags().Uint("seconds", 60, "")
 
-		err := setBusyCmdF(c, cmd, nil)
+		err := setBusyCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
 			s.th.App.Srv().Platform().Busy.Clear()
@@ -84,7 +83,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.Run("MM-T3981 Should fail when regular user attempts to clear server busy status", func() {
 		printer.Clean()
 
-		err := clearBusyCmdF(s.th.Client, &cobra.Command{}, nil)
+		err := clearBusyCmdF(s.th.Client, s.cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -93,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3958 Clear server status to busy", func(c client.Client) {
 		printer.Clean()
 
-		err := clearBusyCmdF(c, &cobra.Command{}, nil)
+		err := clearBusyCmdF(c, s.cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
 			s.th.App.Srv().Platform().Busy.Set(time.Minute)
@@ -147,16 +146,15 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 	s.Run("Download Support Packet with custom filename", func() {
 		printer.Clean()
 
-		systemSupportPacketCmd := &cobra.Command{}
-		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
-		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.cmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := s.cmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
 		defer func() {
 			s.Require().NoError(os.Remove("foo.zip"))
 		}()
 
-		err = systemSupportPacketCmdF(s.th.SystemAdminClient, systemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.th.SystemAdminClient, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
