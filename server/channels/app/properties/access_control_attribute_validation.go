@@ -175,8 +175,8 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 				return fmt.Errorf("invalid options: option at index %d is missing rank for rank field: %w", i, ErrInvalidFieldAttrs)
 			}
 			rank := *opt.Rank
-			if rank < 0 {
-				return fmt.Errorf("invalid options: option rank must be non-negative, got %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
+			if rank <= 0 {
+				return fmt.Errorf("invalid options: option rank must be a positive integer, got %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
 			}
 			if _, exists := ranks[rank]; exists {
 				return fmt.Errorf("invalid options: duplicate option rank %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)

@@ -16,10 +16,10 @@ import (
 // rankOptions returns a four-rung classification ladder for rank-field tests.
 func rankOptions() []any {
 	return []any{
-		map[string]any{"id": "opt_public", "name": "Public", "rank": 0},
-		map[string]any{"id": "opt_confidential", "name": "Confidential", "rank": 1},
-		map[string]any{"id": "opt_secret", "name": "Secret", "rank": 2},
-		map[string]any{"id": "opt_topsecret", "name": "TopSecret", "rank": 3},
+		map[string]any{"id": "opt_public", "name": "Public", "rank": 1},
+		map[string]any{"id": "opt_confidential", "name": "Confidential", "rank": 2},
+		map[string]any{"id": "opt_secret", "name": "Secret", "rank": 3},
+		map[string]any{"id": "opt_topsecret", "name": "TopSecret", "rank": 4},
 	}
 }
 
@@ -103,7 +103,7 @@ func TestRankSharedOnly_FieldOptions(t *testing.T) {
 	t.Run("caller at the lowest rank sees only that rank", func(t *testing.T) {
 		field := newRankField(t, "clearance-bottom")
 		userID := model.NewId()
-		assignRank(t, field.ID, userID, "opt_public") // rank 0
+		assignRank(t, field.ID, userID, "opt_public") // rank 1
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
@@ -204,7 +204,7 @@ func TestRankSharedOnly_Value(t *testing.T) {
 	})
 
 	t.Run("caller with no value of their own sees nothing", func(t *testing.T) {
-		target := assignRank(t, model.NewId(), "opt_public") // rank 0, the lowest
+		target := assignRank(t, model.NewId(), "opt_public") // rank 1, the lowest
 		noRankCaller := RequestContextWithCallerID(th.Context, model.NewId())
 		retrieved, getErr := th.service.GetPropertyValue(noRankCaller, th.CPAGroupID, target.ID)
 		require.NoError(t, getErr)

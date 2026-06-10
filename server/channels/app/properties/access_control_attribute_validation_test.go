@@ -1124,7 +1124,7 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 
 // TestAccessControlAttributeValidationHookRankOptions exercises the rank-field
 // option validation in sanitizeAndValidateOptions: rank-typed fields require a
-// non-negative, unique rank on every option, while non-rank fields must have
+// positive, unique rank on every option, while non-rank fields must have
 // any stray rank values stripped before the options are persisted.
 func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 	th := Setup(t)
@@ -1182,16 +1182,13 @@ func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 		}
 	})
 
-	t.Run("zero rank is allowed (non-negative boundary)", func(t *testing.T) {
-		created, createErr := th.service.CreatePropertyField(th.Context, rankField([]any{
+	t.Run("zero rank is rejected", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, rankField([]any{
 			map[string]any{"name": "BASE", "rank": 0},
 			map[string]any{"name": "HIGHER", "rank": 5},
 		}))
-		require.NoError(t, createErr)
-
-		got, present := optionRank(t, created, 0)
-		assert.True(t, present, "zero rank should be persisted, not treated as absent")
-		assert.Equal(t, float64(0), got)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "positive")
 	})
 
 	t.Run("option missing rank is rejected", func(t *testing.T) {
@@ -1208,7 +1205,7 @@ func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 			map[string]any{"name": "NEGATIVE", "rank": -1},
 		}))
 		require.Error(t, createErr)
-		assert.Contains(t, createErr.Error(), "non-negative")
+		assert.Contains(t, createErr.Error(), "positive")
 	})
 
 	t.Run("duplicate rank is rejected", func(t *testing.T) {

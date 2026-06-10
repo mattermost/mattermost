@@ -12,7 +12,7 @@ WHERE Type = 'select'
   );
 
 -- Backfill a rank onto every option. A 'rank' field requires each option to
--- carry a unique, non-negative rank, but the prior 'select' representation never
+-- carry a unique, positive integer rank, but the prior 'select' representation never
 -- persisted one: the option struct had no rank field, so any rank the admin UI
 -- sent was dropped on save. Without this backfill the type flip above would
 -- leave an invalid rank field whose options all have a null rank.

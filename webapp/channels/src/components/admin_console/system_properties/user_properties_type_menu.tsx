@@ -31,7 +31,14 @@ const SelectType = (props: Props) => {
     };
 
     const handleTypeChange = (descriptor: TypeDescriptor) => {
-        props.updateField({...props.field, type: descriptor.fieldType, attrs: {...props.field.attrs, value_type: descriptor.valueType}});
+        let attrs = {...props.field.attrs, value_type: descriptor.valueType};
+        if (descriptor.fieldType === 'rank' && props.field.type !== 'rank') {
+            const existingOptions = attrs.options ?? [];
+            if (existingOptions.length > 0) {
+                attrs = {...attrs, options: existingOptions.map((opt, i) => ({...opt, rank: i + 1}))};
+            }
+        }
+        props.updateField({...props.field, type: descriptor.fieldType, attrs});
         setFilter('');
     };
 
