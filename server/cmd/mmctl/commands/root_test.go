@@ -54,6 +54,19 @@ func captureStderr(t *testing.T, fn func()) string {
 	return buf.String()
 }
 
+// executeRoot runs RootCmd with the given args and replicates Run()'s
+// stderr-printing behavior without re-registering persistent flags (which
+// would panic on a second call in the same test binary).
+func executeRoot(args []string) error {
+	RootCmd.SetArgs(args)
+	err := RootCmd.ExecuteContext(context.Background())
+	_ = printer.Flush()
+	if err != nil && !errors.Is(err, context.Canceled) {
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+	}
+	return err
+}
+
 func TestRunContextCanceledSuppressed(t *testing.T) {
 	cmd := &cobra.Command{
 		Use:           "cancel-test",
@@ -67,7 +80,7 @@ func TestRunContextCanceledSuppressed(t *testing.T) {
 	defer RootCmd.RemoveCommand(cmd)
 
 	stderr := captureStderr(t, func() {
-		err := Run([]string{"cancel-test"})
+		err := executeRoot([]string{"cancel-test"})
 		assert.ErrorIs(t, err, context.Canceled)
 	})
 
@@ -88,7 +101,7 @@ func TestRunOtherErrorsPrinted(t *testing.T) {
 	defer RootCmd.RemoveCommand(cmd)
 
 	stderr := captureStderr(t, func() {
-		err := Run([]string{"error-test"})
+		err := executeRoot([]string{"error-test"})
 		assert.ErrorIs(t, err, sentinelErr)
 	})
 

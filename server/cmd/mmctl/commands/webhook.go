@@ -4,7 +4,6 @@
 package commands
 
 import (
-
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
