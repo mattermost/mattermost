@@ -96,6 +96,75 @@ describe('components/SizeAwareImage', () => {
         expect(miniPreviewImg?.getAttribute('src')).toEqual('data:mime_type;base64,mini_preview');
     });
 
+    test('should retry loading the image when mini preview is shown', () => {
+        jest.useFakeTimers();
+        try {
+            const props = {
+                ...baseProps,
+                onImageLoadFail: jest.fn(),
+                fileInfo: TestHelper.getFileInfoMock({
+                    ...baseProps.fileInfo,
+                    mime_type: 'image/png',
+                    mini_preview: 'mini_preview',
+                }),
+            };
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            simulateImageError(container.querySelector('.file-preview__button img')!);
+            act(() => {
+                jest.runOnlyPendingTimers();
+            });
+
+            expect(container.querySelector('.file-preview__button img')?.getAttribute('src')).toEqual(`${props.src}?retry=1`);
+            expect(props.onImageLoadFail).not.toHaveBeenCalled();
+
+            for (let retry = 2; retry <= 3; retry++) {
+                simulateImageError(container.querySelector('.file-preview__button img')!);
+                act(() => {
+                    jest.runOnlyPendingTimers();
+                });
+
+                expect(container.querySelector('.file-preview__button img')?.getAttribute('src')).toEqual(`${props.src}?retry=${retry}`);
+                expect(props.onImageLoadFail).not.toHaveBeenCalled();
+            }
+
+            simulateImageError(container.querySelector('.file-preview__button img')!);
+
+            expect(props.onImageLoadFail).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    test('should not retry loading rejected files', () => {
+        jest.useFakeTimers();
+        try {
+            const props = {
+                ...baseProps,
+                isFileRejected: true,
+                onImageLoadFail: jest.fn(),
+                fileInfo: TestHelper.getFileInfoMock({
+                    ...baseProps.fileInfo,
+                    mime_type: 'image/png',
+                    mini_preview: 'mini_preview',
+                }),
+            };
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            simulateImageError(container.querySelector('.file-preview__button img')!);
+            act(() => {
+                jest.runOnlyPendingTimers();
+            });
+
+            expect(container.querySelector('.file-preview__button img')?.getAttribute('src')).toEqual(props.src);
+            expect(props.onImageLoadFail).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     test('should have display set to initial in loaded state', () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
