@@ -155,7 +155,7 @@ jobs:
 
               def handle_endtag(self, tag):
                   if tag in ("td", "th") and self.cell is not None:
-                      self.row.append("".join(self.cell).strip())
+                      self.row.append("".join(self.cell))
                       self.cell = None
                   elif tag == "tr" and self.row is not None:
                       self.rows.append(self.row)
@@ -177,7 +177,10 @@ jobs:
 
 
           def cell(text):
-              return html.unescape(text).replace("|", "\\|")
+              # Collapse all whitespace (incl. newlines) so a cell stays on one
+              # line; otherwise an embedded newline would break the markdown row.
+              text = " ".join(html.unescape(text).split())
+              return text.replace("|", "\\|")
 
 
           if len(rows) >= 2:
