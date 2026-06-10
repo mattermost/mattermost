@@ -878,7 +878,8 @@ func (s *Server) GoBuffered(f func()) {
 
 // GoExtraction submits f to the bounded document extraction worker pool without
 // blocking the caller. It returns false if the pool is saturated and f was not
-// run, in which case the work is left for the periodic ExtractContent job.
+// run; skipped files stay unextracted until an admin runs a content extraction
+// job (e.g. mmctl extract).
 func (s *Server) GoExtraction(f func()) bool {
 	return s.platform.GoExtraction(f)
 }

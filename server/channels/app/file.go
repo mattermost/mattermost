@@ -926,7 +926,7 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		}) {
-			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; content will be backfilled by the ExtractContent job", mlog.String("fileInfoId", infoCopy.Id))
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
 		}
 	}
 
@@ -1195,7 +1195,7 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		}) {
-			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; content will be backfilled by the ExtractContent job", mlog.String("fileInfoId", infoCopy.Id))
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
 		}
 	}
 
