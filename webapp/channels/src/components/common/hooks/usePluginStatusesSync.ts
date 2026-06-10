@@ -16,12 +16,6 @@ const DEBOUNCE_DELAY_MS = 500;
 
 /**
  * Refetches the cluster-wide plugin statuses whenever the server signals that they changed.
- *
- * The plugin_statuses_changed websocket event carries no payload; it only signals admin clients
- * to refetch on demand. Subscribing from a component means the refetch only happens while that
- * component is mounted, and the debounce collapses bursts such as a daily restart's
- * prepackaged-plugin reinstall. A refetch is also triggered on websocket reconnect, since any
- * signals fired while disconnected (e.g. during an HA node restart) would otherwise be missed.
  */
 export default function usePluginStatusesSync() {
     const dispatch = useDispatch();
