@@ -8,6 +8,8 @@ import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {generateCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
+import type {GlobalState} from 'types/store';
+
 import {
     formatTimezoneOffsetShort,
     getNextMonday9amTimestamp,
@@ -20,8 +22,6 @@ import {
     reinterpretWallClock,
     shouldShowToday9amPreset,
 } from './schedule_message_dm_utils';
-
-import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getDirectChannel: jest.fn(),
