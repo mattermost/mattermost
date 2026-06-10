@@ -140,4 +140,24 @@ describe('usePluginStatusesSync', () => {
 
         expect(getPluginStatuses).not.toHaveBeenCalled();
     });
+
+    test('returns the plugin statuses from the store', () => {
+        const pluginStatuses = {
+            'com.example.plugin': {
+                id: 'com.example.plugin',
+                name: 'Example',
+                description: '',
+                version: '1.0.0',
+                active: true,
+                state: 1,
+                instances: [],
+            },
+        };
+
+        const {result} = renderHookWithContext(usePluginStatusesSync, {
+            entities: {admin: {pluginStatuses}},
+        });
+
+        expect(result.current).toEqual(pluginStatuses);
+    });
 });
