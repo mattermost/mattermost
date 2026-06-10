@@ -55,15 +55,15 @@ func channelUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("not enough arguments")
 	}
 
-	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	var result *multierror.Error
-	users := getUsersFromUserArgs(cmd.Context(), c, args[1:])
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args[1:])
 	for i, user := range users {
-		err := addUserToChannel(cmd.Context(), c, channel, user, args[i+1])
+		err := addUserToChannel(cmdContext(cmd), c, channel, user, args[i+1])
 		if err != nil {
 			printer.PrintError(err.Error())
 			result = multierror.Append(result, err)
@@ -94,19 +94,19 @@ func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.New("you must specify some users to remove from the channel, or use the --all-users flag to remove them all")
 	}
 
-	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	var result *multierror.Error
 	if allUsers {
-		if err := removeAllUsersFromChannel(cmd.Context(), c, channel); err != nil {
+		if err := removeAllUsersFromChannel(cmdContext(cmd), c, channel); err != nil {
 			return err
 		}
 	} else {
-		for i, user := range getUsersFromUserArgs(cmd.Context(), c, args[1:]) {
-			err := removeUserFromChannel(cmd.Context(), c, channel, user, args[i+1])
+		for i, user := range getUsersFromUserArgs(cmdContext(cmd), c, args[1:]) {
+			err := removeUserFromChannel(cmdContext(cmd), c, channel, user, args[i+1])
 			if err != nil {
 				printer.PrintError(err.Error())
 				result = multierror.Append(result, err)

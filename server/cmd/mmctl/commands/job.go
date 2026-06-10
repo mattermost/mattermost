@@ -89,7 +89,7 @@ func listJobsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 				continue
 			}
 
-			job, _, err := c.GetJob(cmd.Context(), id)
+			job, _, err := c.GetJob(cmdContext(cmd), id)
 			if err != nil {
 				result = multierror.Append(result, err)
 				continue
@@ -120,7 +120,7 @@ func updateJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid job status: %s", status)
 	}
 
-	_, err = c.UpdateJobStatus(cmd.Context(), jobId, status, force)
+	_, err = c.UpdateJobStatus(cmdContext(cmd), jobId, status, force)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string, status
 	}
 
 	for {
-		jobs, _, err := c.GetJobs(command.Context(), jobType, status, page, perPage)
+		jobs, _, err := c.GetJobs(cmdContext(command), jobType, status, page, perPage)
 		if err != nil {
 			return fmt.Errorf("failed to get jobs: %w", err)
 		}

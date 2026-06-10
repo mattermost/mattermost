@@ -156,7 +156,7 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		AllowOpenInvite: allowOpenInvite,
 	}
 
-	newTeam, _, err := c.CreateTeam(cmd.Context(), team)
+	newTeam, _, err := c.CreateTeam(cmdContext(cmd), team)
 	if err != nil {
 		return errors.New("Team creation failed: " + err.Error())
 	}
@@ -179,14 +179,14 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		}
 	}
 
-	teams := getTeamsFromTeamArgs(cmd.Context(), c, args)
+	teams := getTeamsFromTeamArgs(cmdContext(cmd), c, args)
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			result = multierror.Append(result, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
-		if _, err := c.SoftDeleteTeam(cmd.Context(), team.Id); err != nil {
+		if _, err := c.SoftDeleteTeam(cmdContext(cmd), team.Id); err != nil {
 			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
 			result = multierror.Append(result, errors.New("Unable to archive team '"+team.Name+"' error: "+err.Error()))
 		} else {
@@ -200,7 +200,7 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	page := 0
 	for {
-		teams, _, err := c.GetAllTeams(cmd.Context(), "", page, DefaultPageSize)
+		teams, _, err := c.GetAllTeams(cmdContext(cmd), "", page, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -227,7 +227,7 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {
-		foundTeams, _, err := c.SearchTeams(cmd.Context(), &model.TeamSearch{Term: searchTerm})
+		foundTeams, _, err := c.SearchTeams(cmdContext(cmd), &model.TeamSearch{Term: searchTerm})
 		if err != nil {
 			return err
 		}
@@ -273,7 +273,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("display-name is required")
 	}
 
-	team := getTeamFromTeamArg(cmd.Context(), c, oldTeamName)
+	team := getTeamFromTeamArg(cmdContext(cmd), c, oldTeamName)
 	if team == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
@@ -281,7 +281,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	team.DisplayName = newDisplayName
 
 	// Using UpdateTeam API Method to rename team
-	_, _, err := c.UpdateTeam(cmd.Context(), team)
+	_, _, err := c.UpdateTeam(cmdContext(cmd), team)
 	if err != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
@@ -300,14 +300,14 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	var result *multierror.Error
 
-	teams := getTeamsFromTeamArgs(cmd.Context(), c, args)
+	teams := getTeamsFromTeamArgs(cmdContext(cmd), c, args)
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			result = multierror.Append(result, fmt.Errorf("unable to find team %s", args[i]))
 			continue
 		}
-		if _, err := deleteTeam(cmd.Context(), c, team); err != nil {
+		if _, err := deleteTeam(cmdContext(cmd), c, team); err != nil {
 			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + err.Error())
 			result = multierror.Append(result, fmt.Errorf("unable to delete team %s error: %w", team.Name, err))
 		} else {
@@ -335,14 +335,14 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		privacy = model.TeamOpen
 	}
 
-	teams := getTeamsFromTeamArgs(cmd.Context(), c, args)
+	teams := getTeamsFromTeamArgs(cmdContext(cmd), c, args)
 	for i, team := range teams {
 		if team == nil {
 			errs = multierror.Append(errs, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
 
-		updatedTeam, _, err := c.UpdateTeamPrivacy(cmd.Context(), team.Id, privacy)
+		updatedTeam, _, err := c.UpdateTeamPrivacy(cmdContext(cmd), team.Id, privacy)
 		if err != nil {
 			errs = multierror.Append(errs, errors.New("Unable to modify team '"+team.Name+"' error: "+err.Error()))
 			continue
@@ -359,7 +359,7 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	teams := getTeamsFromTeamArgs(cmd.Context(), c, args)
+	teams := getTeamsFromTeamArgs(cmdContext(cmd), c, args)
 	var result *multierror.Error
 	for i, team := range teams {
 		if team == nil {
@@ -367,7 +367,7 @@ func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if rteam, _, err := c.RestoreTeam(cmd.Context(), team.Id); err != nil {
+		if rteam, _, err := c.RestoreTeam(cmdContext(cmd), team.Id); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to restore team '%s' error: %w", team.Name, err))
 			printer.PrintError("Unable to restore team '" + team.Name + "' error: " + err.Error())
 		} else {

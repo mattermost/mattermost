@@ -52,18 +52,18 @@ func cpaValueListCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	userArg := args[0]
 
 	// Setup template context for field and value resolution
-	if tErr := setupCPATemplateContext(cmd.Context(), c); tErr != nil {
+	if tErr := setupCPATemplateContext(cmdContext(cmd), c); tErr != nil {
 		return tErr
 	}
 
 	// Resolve user
-	user, err := getUserFromArg(cmd.Context(), c, userArg)
+	user, err := getUserFromArg(cmdContext(cmd), c, userArg)
 	if err != nil {
 		return err
 	}
 
 	// Get all values for the user
-	values, _, err := c.ListCPAValues(cmd.Context(), user.Id)
+	values, _, err := c.ListCPAValues(cmdContext(cmd), user.Id)
 	if err != nil {
 		return fmt.Errorf("failed to get CPA values for user %s: %w", user.Username, err)
 	}
@@ -88,19 +88,19 @@ func cpaValueSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	// Resolve user
-	user, err := getUserFromArg(cmd.Context(), c, userArg)
+	user, err := getUserFromArg(cmdContext(cmd), c, userArg)
 	if err != nil {
 		return err
 	}
 
 	// Resolve field
-	field, err := getFieldFromArg(cmd.Context(), c, fieldArg)
+	field, err := getFieldFromArg(cmdContext(cmd), c, fieldArg)
 	if err != nil {
 		return err
 	}
 
 	// Setup template context for field and value resolution
-	if tErr := setupCPATemplateContext(cmd.Context(), c); tErr != nil {
+	if tErr := setupCPATemplateContext(cmdContext(cmd), c); tErr != nil {
 		return tErr
 	}
 
@@ -130,7 +130,7 @@ func cpaValueSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		field.ID: valueJSON,
 	}
 
-	updatedValues, _, vErr := c.PatchCPAValuesForUser(cmd.Context(), user.Id, patchValues)
+	updatedValues, _, vErr := c.PatchCPAValuesForUser(cmdContext(cmd), user.Id, patchValues)
 	if vErr != nil {
 		return fmt.Errorf("failed to set CPA value: %w", vErr)
 	}

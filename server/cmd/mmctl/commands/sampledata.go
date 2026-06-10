@@ -404,7 +404,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		}
 
 		isLocal, _ := command.Flags().GetBool("local")
-		if err := uploadAndProcess(command.Context(), c, zipPath, isLocal); err != nil {
+		if err := uploadAndProcess(cmdContext(command), c, zipPath, isLocal); err != nil {
 			return fmt.Errorf("cannot upload and process zipfile: %w", err)
 		}
 	}

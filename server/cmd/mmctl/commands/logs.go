@@ -39,7 +39,7 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	number, _ := cmd.Flags().GetInt("number")
-	logLines, _, err := c.GetLogs(cmd.Context(), 0, number)
+	logLines, _, err := c.GetLogs(cmdContext(cmd), 0, number)
 	if err != nil {
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
 	}

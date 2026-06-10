@@ -178,7 +178,7 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		channelType = model.ChannelTypePrivate
 	}
 
-	team := getTeamFromTeamArg(cmd.Context(), c, teamArg)
+	team := getTeamFromTeamArg(cmdContext(cmd), c, teamArg)
 	if team == nil {
 		return errors.Errorf("unable to find team: %s", teamArg)
 	}
@@ -193,7 +193,7 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		CreatorId:   "",
 	}
 
-	newChannel, _, err := c.CreateChannel(cmd.Context(), channel)
+	newChannel, _, err := c.CreateChannel(cmdContext(cmd), channel)
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("enter at least one channel to archive")
 	}
 
-	channels := getChannelsFromChannelArgs(cmd.Context(), c, args)
+	channels := getChannelsFromChannelArgs(cmdContext(cmd), c, args)
 	var errors *multierror.Error
 	for i, channel := range channels {
 		if channel == nil {
@@ -216,7 +216,7 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 			errors = multierror.Append(errors, fmt.Errorf("unable to find channel %q", args[i]))
 			continue
 		}
-		if _, err := c.DeleteChannel(cmd.Context(), channel.Id); err != nil {
+		if _, err := c.DeleteChannel(cmdContext(cmd), channel.Id); err != nil {
 			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
 			errors = multierror.Append(errors, fmt.Errorf("unable to archive channel %q, error: %w", channel.Name, err))
 		}
@@ -268,7 +268,7 @@ func getAllDeletedChannelsForTeam(ctx context.Context, c client.Client, teamID s
 }
 
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	teams := getTeamsFromTeamArgs(cmd.Context(), c, args)
+	teams := getTeamsFromTeamArgs(cmdContext(cmd), c, args)
 
 	var multierr *multierror.Error
 	for i, team := range teams {
@@ -279,7 +279,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			continue
 		}
 
-		publicChannels, err := getAllPublicChannelsForTeam(cmd.Context(), c, team.Id)
+		publicChannels, err := getAllPublicChannelsForTeam(cmdContext(cmd), c, team.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("unable to list public channels for %q: %s", args[i], err))
 			multierr = multierror.Append(multierr, err)
@@ -288,7 +288,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintT("{{.Name}}", channel)
 		}
 
-		deletedChannels, err := getAllDeletedChannelsForTeam(cmd.Context(), c, team.Id)
+		deletedChannels, err := getAllDeletedChannelsForTeam(cmdContext(cmd), c, team.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("unable to list archived channels for %q: %s", args[i], err))
 			multierr = multierror.Append(multierr, err)
@@ -297,7 +297,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintT("{{.Name}} (archived)", channel)
 		}
 
-		privateChannels, appErr := getPrivateChannels(cmd.Context(), c, team.Id)
+		privateChannels, appErr := getPrivateChannels(cmdContext(cmd), c, team.Id)
 		if appErr != nil {
 			printer.PrintError(fmt.Sprintf("unable to list private channels for %q: %s", args[i], appErr.Error()))
 			multierr = multierror.Append(multierr, appErr)
@@ -317,7 +317,7 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 
 	var errs *multierror.Error
 
-	channels := getChannelsFromChannelArgs(cmd.Context(), c, args)
+	channels := getChannelsFromChannelArgs(cmdContext(cmd), c, args)
 	for i, channel := range channels {
 		if channel == nil {
 			msg := "Unable to find channel '" + args[i] + "'"
@@ -325,7 +325,7 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 			errs = multierror.Append(errs, errors.New(msg))
 			continue
 		}
-		if _, _, err := c.RestoreChannel(cmd.Context(), channel.Id); err != nil {
+		if _, _, err := c.RestoreChannel(cmdContext(cmd), channel.Id); err != nil {
 			msg := "Unable to unarchive channel '" + args[i] + "'. Error: " + err.Error()
 			printer.PrintError(msg)
 			errs = multierror.Append(errs, errors.New(msg))
@@ -343,7 +343,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("you must specify only one of --public or --private")
 	}
 
-	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
@@ -357,7 +357,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		privacy = model.ChannelTypePrivate
 	}
 
-	if _, _, err := c.UpdateChannelPrivacy(cmd.Context(), channel.Id, privacy); err != nil {
+	if _, _, err := c.UpdateChannelPrivacy(cmdContext(cmd), channel.Id, privacy); err != nil {
 		return errors.Errorf("failed to update channel (%q) privacy: %s", args[0], err.Error())
 	}
 
@@ -382,7 +382,7 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("require at least one flag to rename channel, either 'name' or 'display-name'")
 	}
 
-	channel := getChannelFromChannelArg(cmd.Context(), c, existingTeamChannel)
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, existingTeamChannel)
 	if channel == nil {
 		return errors.Errorf("unable to find channel from %q", existingTeamChannel)
 	}
@@ -396,7 +396,7 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	// Using PatchChannel API to rename channel
-	updatedChannel, _, err := c.PatchChannel(cmd.Context(), channel.Id, channelPatch)
+	updatedChannel, _, err := c.PatchChannel(cmdContext(cmd), channel.Id, channelPatch)
 	if err != nil {
 		return errors.Errorf("cannot rename channel %q, error: %s", channel.Name, err.Error())
 	}
@@ -411,13 +411,13 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	var channel *model.Channel
 
 	if teamArg, _ := cmd.Flags().GetString("team"); teamArg != "" {
-		team := getTeamFromTeamArg(cmd.Context(), c, teamArg)
+		team := getTeamFromTeamArg(cmdContext(cmd), c, teamArg)
 		if team == nil {
 			return errors.Errorf("team %s was not found", teamArg)
 		}
 
 		var err error
-		channel, _, err = c.GetChannelByName(cmd.Context(), args[0], team.Id, "")
+		channel, _, err = c.GetChannelByName(cmdContext(cmd), args[0], team.Id, "")
 		if err != nil {
 			return err
 		}
@@ -426,20 +426,20 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 	} else {
 		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
-			return c.GetAllTeams(cmd.Context(), etag, page, numPerPage)
+			return c.GetAllTeams(cmdContext(cmd), etag, page, numPerPage)
 		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
 
 		for _, team := range teams {
-			channel, _, _ = c.GetChannelByName(cmd.Context(), args[0], team.Id, "")
+			channel, _, _ = c.GetChannelByName(cmdContext(cmd), args[0], team.Id, "")
 			if channel != nil && channel.Name == args[0] {
 				break
 			}
 			// Stop scanning if the context was canceled (e.g. Ctrl+C) rather
 			// than silently treating it as "not found in this team".
-			if err := cmd.Context().Err(); err != nil {
+			if err := cmdContext(cmd).Err(); err != nil {
 				return err
 			}
 		}
@@ -460,14 +460,14 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
 
-	team := getTeamFromTeamArg(cmd.Context(), c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return fmt.Errorf("unable to find destination team %q", args[0])
 	}
 
 	var result *multierror.Error
 
-	channels := getChannelsFromChannelArgs(cmd.Context(), c, args[1:])
+	channels := getChannelsFromChannelArgs(cmdContext(cmd), c, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
 			result = multierror.Append(result, fmt.Errorf("unable to find channel %q", args[i+1]))
@@ -478,7 +478,7 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		newChannel, _, err := c.MoveChannel(cmd.Context(), channel.Id, team.Id, force)
+		newChannel, _, err := c.MoveChannel(cmdContext(cmd), channel.Id, team.Id, force)
 		if err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to move channel %q: %w", channel.Name, err))
 			continue
@@ -549,13 +549,13 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 
 	var result *multierror.Error
 
-	channels := getChannelsFromChannelArgs(cmd.Context(), c, args)
+	channels := getChannelsFromChannelArgs(cmdContext(cmd), c, args)
 	for i, channel := range channels {
 		if channel == nil {
 			result = multierror.Append(result, fmt.Errorf("unable to find channel '%s'", args[i]))
 			continue
 		}
-		if _, err := c.PermanentDeleteChannel(cmd.Context(), channel.Id); err != nil {
+		if _, err := c.PermanentDeleteChannel(cmdContext(cmd), channel.Id); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to delete channel '%q' error: %w", channel.Name, err))
 		} else {
 			printer.PrintT("Deleted channel '{{.Name}}'", channel)

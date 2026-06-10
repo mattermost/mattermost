@@ -146,7 +146,7 @@ func prettyRole(role *model.Role) string {
 }
 
 func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(cmd.Context(), args[0])
+	role, _, err := c.GetRoleByName(cmdContext(cmd), args[0])
 	if err != nil {
 		return err
 	}
@@ -157,12 +157,12 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(cmd.Context(), args[0])
+	role, _, err := c.GetRoleByName(cmdContext(cmd), args[0])
 	if err != nil {
 		return err
 	}
 
-	users := getUsersFromUserArgs(cmd.Context(), c, args[1:])
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args[1:])
 
 	var errs *multierror.Error
 	for i, user := range users {
@@ -186,7 +186,7 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		userRoles := startingRoles
 		userRoles = append(userRoles, role.Name)
-		_, err = c.UpdateUserRoles(cmd.Context(), user.Id, strings.Join(userRoles, " "))
+		_, err = c.UpdateUserRoles(cmdContext(cmd), user.Id, strings.Join(userRoles, " "))
 		if err != nil {
 			return err
 		}
@@ -196,7 +196,7 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	users := getUsersFromUserArgs(cmd.Context(), c, args[1:])
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args[1:])
 
 	for i, user := range users {
 		if user == nil {
@@ -215,7 +215,7 @@ func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 
 		if originalCount > len(userRoles) {
-			_, err := c.UpdateUserRoles(cmd.Context(), user.Id, strings.Join(userRoles, " "))
+			_, err := c.UpdateUserRoles(cmdContext(cmd), user.Id, strings.Join(userRoles, " "))
 			if err != nil {
 				return err
 			}

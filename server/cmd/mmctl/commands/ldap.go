@@ -96,7 +96,7 @@ func init() {
 func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	resp, err := c.SyncLdap(cmd.Context())
+	resp, err := c.SyncLdap(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func ldapIDMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	toAttribute := args[0]
-	resp, err := c.MigrateIdLdap(cmd.Context(), toAttribute)
+	resp, err := c.MigrateIdLdap(cmdContext(cmd), toAttribute)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func ldapJobShowCmdF(c client.Client, command *cobra.Command, args []string) err
 		return errors.New("expected at least one argument (ldapJobID). See help text for details")
 	}
 
-	job, _, err := c.GetJob(command.Context(), args[0])
+	job, _, err := c.GetJob(cmdContext(command), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get LDAP sync job: %w", err)
 	}

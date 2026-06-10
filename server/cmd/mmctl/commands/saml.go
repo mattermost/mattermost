@@ -59,7 +59,7 @@ func samlAuthDataResetCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		}
 	}
 
-	numAffected, _, err := c.ResetSamlAuthDataToEmail(cmd.Context(), includeDeleted, dryRun, userIDs)
+	numAffected, _, err := c.ResetSamlAuthDataToEmail(cmdContext(cmd), includeDeleted, dryRun, userIDs)
 	if err != nil {
 		return err
 	}

@@ -149,7 +149,7 @@ func init() {
 }
 
 func listLdapGroupsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	groups, _, err := c.GetLdapGroups(cmd.Context())
+	groups, _, err := c.GetLdapGroups(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func listLdapGroupsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 }
 
 func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
@@ -174,7 +174,7 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		},
 	}
 
-	groups, _, _, err := c.GetGroupsByChannel(cmd.Context(), channel.Id, *groupOpts)
+	groups, _, _, err := c.GetGroupsByChannel(cmdContext(cmd), channel.Id, *groupOpts)
 	if err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	}
 
 	channelPatch := model.ChannelPatch{GroupConstrained: new(true)}
-	if _, _, err = c.PatchChannel(cmd.Context(), channel.Id, &channelPatch); err != nil {
+	if _, _, err = c.PatchChannel(cmdContext(cmd), channel.Id, &channelPatch); err != nil {
 		return err
 	}
 
@@ -192,13 +192,13 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 }
 
 func channelGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
 	channelPatch := model.ChannelPatch{GroupConstrained: new(false)}
-	if _, _, err := c.PatchChannel(cmd.Context(), channel.Id, &channelPatch); err != nil {
+	if _, _, err := c.PatchChannel(cmdContext(cmd), channel.Id, &channelPatch); err != nil {
 		return err
 	}
 
@@ -208,7 +208,7 @@ func channelGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string)
 func channelGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
@@ -223,7 +223,7 @@ func channelGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) 
 }
 
 func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
@@ -234,7 +234,7 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 			PerPage: 9999,
 		},
 	}
-	groups, _, _, err := c.GetGroupsByChannel(cmd.Context(), channel.Id, groupOpts)
+	groups, _, _, err := c.GetGroupsByChannel(cmdContext(cmd), channel.Id, groupOpts)
 	if err != nil {
 		return err
 	}
@@ -247,7 +247,7 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 }
 
 func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	team := getTeamFromTeamArg(cmd.Context(), c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
@@ -258,7 +258,7 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 			PerPage: 10,
 		},
 	}
-	groups, _, _, err := c.GetGroupsByTeam(cmd.Context(), team.Id, groupOpts)
+	groups, _, _, err := c.GetGroupsByTeam(cmdContext(cmd), team.Id, groupOpts)
 	if err != nil {
 		return err
 	}
@@ -268,7 +268,7 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	teamPatch := model.TeamPatch{GroupConstrained: new(true)}
-	if _, _, err = c.PatchTeam(cmd.Context(), team.Id, &teamPatch); err != nil {
+	if _, _, err = c.PatchTeam(cmdContext(cmd), team.Id, &teamPatch); err != nil {
 		return err
 	}
 
@@ -276,13 +276,13 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 }
 
 func teamGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	team := getTeamFromTeamArg(cmd.Context(), c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
 	teamPatch := model.TeamPatch{GroupConstrained: new(false)}
-	if _, _, err := c.PatchTeam(cmd.Context(), team.Id, &teamPatch); err != nil {
+	if _, _, err := c.PatchTeam(cmdContext(cmd), team.Id, &teamPatch); err != nil {
 		return err
 	}
 
@@ -292,7 +292,7 @@ func teamGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) er
 func teamGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	team := getTeamFromTeamArg(cmd.Context(), c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
@@ -307,7 +307,7 @@ func teamGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) err
 }
 
 func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	team := getTeamFromTeamArg(cmd.Context(), c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
@@ -318,7 +318,7 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			PerPage: 9999,
 		},
 	}
-	groups, _, _, err := c.GetGroupsByTeam(cmd.Context(), team.Id, groupOpts)
+	groups, _, _, err := c.GetGroupsByTeam(cmdContext(cmd), team.Id, groupOpts)
 	if err != nil {
 		return err
 	}
@@ -332,7 +332,7 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 func userGroupRestoreCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	groupID := args[0]
-	_, resp, err := c.RestoreGroup(cmd.Context(), groupID, "")
+	_, resp, err := c.RestoreGroup(cmdContext(cmd), groupID, "")
 	if err != nil {
 		return err
 	}

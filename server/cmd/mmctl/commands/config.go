@@ -339,7 +339,7 @@ func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FormatJSON)
 
-	config, _, err := c.GetConfig(cmd.Context())
+	config, _, err := c.GetConfig(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -359,7 +359,7 @@ func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	config, _, err := c.GetConfig(cmd.Context())
+	config, _, err := c.GetConfig(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -372,7 +372,7 @@ func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		return cErr
 	}
-	newConfig, _, err := c.PatchConfig(cmd.Context(), config)
+	newConfig, _, err := c.PatchConfig(cmdContext(cmd), config)
 	if err != nil {
 		return err
 	}
@@ -387,7 +387,7 @@ func configPatchCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, _, err := c.GetConfig(cmd.Context())
+	config, _, err := c.GetConfig(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -407,7 +407,7 @@ func configPatchCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	// result to the config key
 	config.PluginSettings.Plugins = MergePluginConfigs(pluginConfig, config.PluginSettings.Plugins)
 
-	newConfig, _, err := c.PatchConfig(cmd.Context(), config)
+	newConfig, _, err := c.PatchConfig(cmdContext(cmd), config)
 	if err != nil {
 		return err
 	}
@@ -417,7 +417,7 @@ func configPatchCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func configEditCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
-	config, _, err := c.GetConfig(cmd.Context())
+	config, _, err := c.GetConfig(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -462,7 +462,7 @@ func configEditCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 		return jErr
 	}
 
-	newConfig, _, err := c.UpdateConfig(cmd.Context(), config)
+	newConfig, _, err := c.UpdateConfig(cmdContext(cmd), config)
 	if err != nil {
 		return err
 	}
@@ -484,7 +484,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	defaultConfig := &model.Config{}
 	defaultConfig.SetDefaults()
-	config, _, err := c.GetConfig(cmd.Context())
+	config, _, err := c.GetConfig(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -500,7 +500,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return nErr
 		}
 	}
-	newConfig, _, err := c.UpdateConfig(cmd.Context(), config)
+	newConfig, _, err := c.UpdateConfig(cmdContext(cmd), config)
 	if err != nil {
 		return err
 	}
@@ -512,7 +512,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func configShowCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FormatJSON)
-	config, _, err := c.GetConfig(cmd.Context())
+	config, _, err := c.GetConfig(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -527,7 +527,7 @@ func parseConfigPath(configPath string) []string {
 }
 
 func configReloadCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
-	_, err := c.ReloadConfig(cmd.Context())
+	_, err := c.ReloadConfig(cmdContext(cmd))
 	if err != nil {
 		return err
 	}
@@ -541,7 +541,7 @@ func configMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("this command is only available in local mode. Please set the --local flag")
 	}
 
-	_, err := c.MigrateConfig(cmd.Context(), args[0], args[1])
+	_, err := c.MigrateConfig(cmdContext(cmd), args[0], args[1])
 	if err != nil {
 		return err
 	}
@@ -595,7 +595,7 @@ func cloudRestrictedR(t reflect.Type, path []string) bool {
 func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	removeDefaults, _ := cmd.Flags().GetBool("remove-defaults")
 	removeMasked, _ := cmd.Flags().GetBool("remove-masked")
-	config, _, err := c.GetConfigWithOptions(cmd.Context(), model.GetConfigOptions{
+	config, _, err := c.GetConfigWithOptions(cmdContext(cmd), model.GetConfigOptions{
 		RemoveDefaults: removeDefaults,
 		RemoveMasked:   removeMasked,
 	})

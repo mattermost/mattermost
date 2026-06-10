@@ -171,7 +171,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not parse the instance url: %w", err)
 	}
 
-	ctx := cmd.Context()
+	ctx := cmdContext(cmd)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, instanceURL, nil)
 	if err != nil {
@@ -371,7 +371,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ctx := cmd.Context()
+	ctx := cmdContext(cmd)
 
 	if (credentials.AuthMethod == MethodPassword || credentials.AuthMethod == MethodMFA) && password == "" {
 		if password == "" {

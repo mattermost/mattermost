@@ -103,7 +103,7 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	displayName, _ := cmd.Flags().GetString("display-name")
 	description, _ := cmd.Flags().GetString("description")
 
-	bot, _, err := c.CreateBot(cmd.Context(), &model.Bot{
+	bot, _, err := c.CreateBot(cmdContext(cmd), &model.Bot{
 		Username:    username,
 		DisplayName: displayName,
 		Description: description,
@@ -126,7 +126,7 @@ func botUpdateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("at least one of --username, --display-name or --description must be set")
 	}
 
-	user := getUserFromUserArg(cmd.Context(), c, args[0])
+	user := getUserFromUserArg(cmdContext(cmd), c, args[0])
 	if user == nil {
 		return errors.New("unable to find user '" + args[0] + "'")
 	}
@@ -144,7 +144,7 @@ func botUpdateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		patch.Description = &description
 	}
 
-	bot, _, err := c.PatchBot(cmd.Context(), user.Id, &patch)
+	bot, _, err := c.PatchBot(cmdContext(cmd), user.Id, &patch)
 	if err != nil {
 		return errors.Errorf("could not update bot: %s", err)
 	}
@@ -165,11 +165,11 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		var bots []*model.Bot
 		var err error
 		if all { //nolint:gocritic
-			bots, _, err = c.GetBotsIncludeDeleted(cmd.Context(), page, perPage, "")
+			bots, _, err = c.GetBotsIncludeDeleted(cmdContext(cmd), page, perPage, "")
 		} else if orphaned {
-			bots, _, err = c.GetBotsOrphaned(cmd.Context(), page, perPage, "")
+			bots, _, err = c.GetBotsOrphaned(cmdContext(cmd), page, perPage, "")
 		} else {
-			bots, _, err = c.GetBots(cmd.Context(), page, perPage, "")
+			bots, _, err = c.GetBots(cmdContext(cmd), page, perPage, "")
 		}
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch bots")
@@ -180,7 +180,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			userIds = append(userIds, bot.OwnerId)
 		}
 
-		users, _, err := c.GetUsersByIds(cmd.Context(), userIds)
+		users, _, err := c.GetUsersByIds(cmdContext(cmd), userIds)
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch bots")
 		}
@@ -216,7 +216,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	users := getUsersFromUserArgs(cmd.Context(), c, args)
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args)
 
 	var result *multierror.Error
 
@@ -227,7 +227,7 @@ func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		bot, _, err := c.EnableBot(cmd.Context(), user.Id)
+		bot, _, err := c.EnableBot(cmdContext(cmd), user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not enable bot '%v'", args[i]))
 			result = multierror.Append(result, fmt.Errorf("could not enable bot %q: %w", args[i], err))
@@ -241,7 +241,7 @@ func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func botDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	users := getUsersFromUserArgs(cmd.Context(), c, args)
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args)
 
 	var result *multierror.Error
 	for i, user := range users {
@@ -251,7 +251,7 @@ func botDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		bot, _, err := c.DisableBot(cmd.Context(), user.Id)
+		bot, _, err := c.DisableBot(cmdContext(cmd), user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not disable bot '%v'", args[i]))
 			result = multierror.Append(result, fmt.Errorf("could not disable bot %q: %w", args[i], err))
@@ -265,16 +265,16 @@ func botDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func botAssignCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	botUser := getUserFromUserArg(cmd.Context(), c, args[0])
+	botUser := getUserFromUserArg(cmdContext(cmd), c, args[0])
 	if botUser == nil {
 		return errors.New("unable to find user '" + args[0] + "'")
 	}
-	newOwnerUser := getUserFromUserArg(cmd.Context(), c, args[1])
+	newOwnerUser := getUserFromUserArg(cmdContext(cmd), c, args[1])
 	if newOwnerUser == nil {
 		return errors.New("unable to find user '" + args[1] + "'")
 	}
 
-	newBot, _, err := c.AssignBot(cmd.Context(), botUser.Id, newOwnerUser.Id)
+	newBot, _, err := c.AssignBot(cmdContext(cmd), botUser.Id, newOwnerUser.Id)
 	if err != nil {
 		return errors.Errorf("can not assign bot '%s' to user '%s'", args[0], args[1])
 	}

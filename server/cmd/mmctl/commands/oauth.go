@@ -39,7 +39,7 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 		return err
 	}
 
-	apps, _, err := c.GetOAuthApps(command.Context(), page, perPage)
+	apps, _, err := c.GetOAuthApps(cmdContext(command), page, perPage)
 	if err != nil {
 		return errors.Wrap(err, "Failed to fetch oauth2 apps")
 	}
@@ -49,7 +49,7 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 		userIds[i] = apps[i].CreatorId
 	}
 
-	users, _, err := c.GetUsersByIds(command.Context(), userIds)
+	users, _, err := c.GetUsersByIds(cmdContext(command), userIds)
 	if err != nil {
 		return errors.Wrap(err, "Failed to fetch users for oauth2 apps")
 	}

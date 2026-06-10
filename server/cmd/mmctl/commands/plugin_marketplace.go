@@ -67,7 +67,7 @@ func pluginMarketplaceInstallCmdF(c client.Client, cmd *cobra.Command, args []st
 	id := args[0]
 
 	pluginRequest := &model.InstallMarketplacePluginRequest{Id: id}
-	manifest, _, err := c.InstallMarketplacePlugin(cmd.Context(), pluginRequest)
+	manifest, _, err := c.InstallMarketplacePlugin(cmdContext(cmd), pluginRequest)
 	if err != nil {
 		return errors.Wrap(err, "couldn't install plugin from marketplace")
 	}
@@ -96,7 +96,7 @@ func pluginMarketplaceListCmdF(c client.Client, cmd *cobra.Command, _ []string) 
 			LocalOnly: localOnly,
 		}
 
-		plugins, _, err := c.GetMarketplacePlugins(cmd.Context(), pluginFilter)
+		plugins, _, err := c.GetMarketplacePlugins(cmdContext(cmd), pluginFilter)
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch plugins")
 		}
