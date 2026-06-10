@@ -36,7 +36,9 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		deletedBot, appErr = s.th.App.UpdateBotActive(s.th.Context, deletedBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botListCmdF(c, &cobra.Command{}, []string{})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botListCmdF(c, _cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetLines()))
 
@@ -81,6 +83,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		}()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", true, "")
 
 		err := botListCmdF(c, cmd, []string{})
@@ -128,6 +131,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		s.Require().Nil(appErr)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("all", true, "")
 
 		err := botListCmdF(c, cmd, []string{})
@@ -148,6 +152,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		err := botListCmdF(s.th.Client, cmd, []string{})
 		s.Require().Error(err)
@@ -171,7 +176,9 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botEnableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botEnableCmdF(c, _cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -197,7 +204,9 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botEnableCmdF(s.th.Client, &cobra.Command{}, []string{newBot.UserId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botEnableCmdF(s.th.Client, _cmd, []string{newBot.UserId})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -208,7 +217,9 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 	s.RunForSystemAdminAndLocal("enable a nonexistent bot", func(c client.Client) {
 		printer.Clean()
 
-		err := botEnableCmdF(c, &cobra.Command{}, []string{"nonexistent-bot-userid"})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botEnableCmdF(c, _cmd, []string{"nonexistent-bot-userid"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -225,7 +236,9 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
 		s.Require().Nil(appErr)
 
-		err := botEnableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botEnableCmdF(c, _cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -259,7 +272,9 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
 		s.Require().Nil(appErr)
 
-		err := botDisableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botDisableCmdF(c, _cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -283,7 +298,9 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, true)
 		s.Require().Nil(appErr)
 
-		err := botDisableCmdF(s.th.Client, &cobra.Command{}, []string{newBot.UserId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botDisableCmdF(s.th.Client, _cmd, []string{newBot.UserId})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -294,7 +311,9 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 	s.RunForSystemAdminAndLocal("disable a nonexistent bot", func(c client.Client) {
 		printer.Clean()
 
-		err := botDisableCmdF(c, &cobra.Command{}, []string{"nonexistent-bot-userid"})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botDisableCmdF(c, _cmd, []string{"nonexistent-bot-userid"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -311,7 +330,9 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		_, appErr = s.th.App.UpdateBotActive(s.th.Context, newBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botDisableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botDisableCmdF(c, _cmd, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -355,7 +376,9 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		err := botAssignCmdF(c, &cobra.Command{}, []string{bot.UserId, newBotOwner.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botAssignCmdF(c, _cmd, []string{bot.UserId, newBotOwner.Id})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetLines()))
 		newBot, ok := printer.GetLines()[0].(*model.Bot)
@@ -388,7 +411,9 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 			s.Require().Nil(err)
 		}()
 
-		err := botAssignCmdF(s.th.Client, &cobra.Command{}, []string{bot.UserId, newBotOwner.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := botAssignCmdF(s.th.Client, _cmd, []string{bot.UserId, newBotOwner.Id})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf(`can not assign bot '%s' to user '%s'`, bot.UserId, newBotOwner.Id), err.Error())
 	})
@@ -405,6 +430,7 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("with-token", true, "")
 
 		err := botCreateCmdF(s.th.Client, cmd, []string{"testbot"})

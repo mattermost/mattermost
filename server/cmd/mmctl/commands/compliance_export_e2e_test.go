@@ -370,6 +370,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 		}()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("num-retries", 0, "")
 
 		err = complianceExportDownloadCmdF(c, cmd, []string{"jobId", importFilePath})
@@ -627,6 +628,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 
 		// Run an mmctl-initiated export job
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("date", "", "")
 		cmd.Flags().Int("start", 0, "")
 		cmd.Flags().Int("end", 0, "")
@@ -683,6 +685,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 
 		// Run an mmctl-initiated export job with an explicit start time (different from the regular job)
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("date", "", "")
 		cmd.Flags().Int("start", int(now-2000), "")
 		cmd.Flags().Int("end", int(now-1000), "")
@@ -707,7 +710,9 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 			"First mmctl job should have a different batch_start_time than regular job")
 
 		// Run a second mmctl-initiated export job WITHOUT a specified start time
-		cmd = &cobra.Command{}
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		cmd = _cmd
 		cmd.Flags().String("date", "", "")
 		cmd.Flags().Int("start", 0, "")
 		cmd.Flags().Int("end", 0, "")

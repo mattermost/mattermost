@@ -24,7 +24,9 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.Run("MM-T3979 Should fail when regular user attempts to get server busy status", func() {
 		printer.Clean()
 
-		err := getBusyCmdF(s.th.Client, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := getBusyCmdF(s.th.Client, _cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -33,7 +35,9 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3956 Get server busy status", func(c client.Client) {
 		printer.Clean()
 
-		err := getBusyCmdF(c, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := getBusyCmdF(c, _cmd, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		state, ok := printer.GetLines()[0].(*model.ServerBusyState)
@@ -48,6 +52,7 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 
 	s.th.App.Srv().Platform().Busy.Clear()
 	cmd := &cobra.Command{}
+	cmd.SetContext(s.T().Context())
 	cmd.Flags().Uint("seconds", 60, "")
 
 	s.Run("MM-T3980 Should fail when regular user attempts to set server busy status", func() {
@@ -84,7 +89,9 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.Run("MM-T3981 Should fail when regular user attempts to clear server busy status", func() {
 		printer.Clean()
 
-		err := clearBusyCmdF(s.th.Client, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := clearBusyCmdF(s.th.Client, _cmd, nil)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -93,7 +100,9 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3958 Clear server status to busy", func(c client.Client) {
 		printer.Clean()
 
-		err := clearBusyCmdF(c, &cobra.Command{}, nil)
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := clearBusyCmdF(c, _cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
 			s.th.App.Srv().Platform().Busy.Set(time.Minute)
@@ -148,6 +157,7 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 		printer.Clean()
 
 		systemSupportPacketCmd := &cobra.Command{}
+		systemSupportPacketCmd.SetContext(s.T().Context())
 		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
 		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)

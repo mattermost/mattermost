@@ -25,6 +25,7 @@ func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int64("from", 0, "")
 		cmd.Flags().Int64("to", model.GetMillis()/1000, "")
 
@@ -57,6 +58,7 @@ func (s *MmctlE2ETestSuite) TestExtractRunCmdF() {
 		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int64("from", 0, "")
 		cmd.Flags().Int64("to", model.GetMillis()/1000, "")
 
@@ -85,7 +87,9 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		err := extractJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := extractJobShowCmdF(s.th.Client, _cmd, []string{job1.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to get content extraction job: You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
@@ -95,7 +99,9 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("not found", func(c client.Client) {
 		printer.Clean()
 
-		err := extractJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := extractJobShowCmdF(c, _cmd, []string{model.NewId()})
 		s.Require().NotNil(err)
 		s.Require().ErrorContains(err, "failed to get content extraction job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
@@ -105,7 +111,9 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
 		printer.Clean()
 
-		err := extractJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := extractJobShowCmdF(c, _cmd, []string{job.Id})
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 1)
@@ -120,6 +128,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", 200, "")
 		cmd.Flags().Bool("all", false, "")
@@ -135,6 +144,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", 200, "")
 		cmd.Flags().Bool("all", false, "")
@@ -150,6 +160,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobListCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 2
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")

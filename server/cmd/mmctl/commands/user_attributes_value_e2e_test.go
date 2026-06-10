@@ -50,7 +50,9 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		s.cleanCPAValuesForUser(s.th.BasicUser.Id)
 
 		// Test listing when no values are set
-		err := cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(c, _cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -85,7 +87,9 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 
 		// Test listing the values with plain format (human-readable)
 		printer.SetFormat(printer.FormatPlain)
-		err = cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		_cmd := &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err = cpaValueListCmdF(c, _cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -97,7 +101,9 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		// Test with JSON format to ensure raw data is preserved
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
-		err = cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		_cmd = &cobra.Command{}
+		_cmd.SetContext(s.T().Context())
+		err = cpaValueListCmdF(c, _cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -135,6 +141,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Set a text value
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{}, "")
 		err := cmd.Flags().Set("value", "Engineering")
 		s.Require().Nil(err)
@@ -176,6 +183,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Set a select value using the option name
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{}, "")
 		err := cmd.Flags().Set("value", "Senior")
 		s.Require().Nil(err)
@@ -227,6 +235,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Set multiple values using option names
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{}, "")
 
 		err := cmd.Flags().Set("value", "Go")
@@ -292,6 +301,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Set a single value using option name
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{}, "")
 
 		err := cmd.Flags().Set("value", "Python")
@@ -350,6 +360,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Set a user value using the system admin user ID
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{}, "")
 		err := cmd.Flags().Set("value", s.th.SystemAdminUser.Id)
 		s.Require().Nil(err)

@@ -18,6 +18,7 @@ func (s *MmctlE2ETestSuite) TestCreateIncomingWebhookCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("channel", s.th.BasicChannel.Id, "")
 		cmd.Flags().String("user", s.th.BasicUser2.Username, "")
 		cmd.Flags().String("display-name", "webhook-test-1", "")
