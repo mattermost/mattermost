@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
@@ -147,17 +146,15 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 	s.Run("Download Support Packet with custom filename", func() {
 		printer.Clean()
 
-		systemSupportPacketCmd := &cobra.Command{}
-		systemSupportPacketCmd.SetContext(s.T().Context())
-		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
-		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.cmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := s.cmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
 		defer func() {
 			s.Require().NoError(os.Remove("foo.zip"))
 		}()
 
-		err = systemSupportPacketCmdF(s.th.SystemAdminClient, systemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.th.SystemAdminClient, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)

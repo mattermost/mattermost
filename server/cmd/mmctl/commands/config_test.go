@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -726,10 +725,8 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		resetCmd := &cobra.Command{}
-		resetCmd.SetContext(s.T().Context())
-		resetCmd.Flags().Bool("confirm", true, "")
-		err := configResetCmdF(s.client, resetCmd, args)
+		s.cmd.Flags().Bool("confirm", true, "")
+		err := configResetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], defaultConfig)
@@ -753,11 +750,9 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		resetCmd := &cobra.Command{}
-		resetCmd.SetContext(s.T().Context())
-		resetCmd.Flags().Bool("confirm", true, "")
-		_ = resetCmd.ParseFlags([]string{"confirm"})
-		err := configResetCmdF(s.client, resetCmd, args)
+		s.cmd.Flags().Bool("confirm", true, "")
+		_ = s.cmd.ParseFlags([]string{"confirm"})
+		err := configResetCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], defaultConfig)
@@ -776,11 +771,9 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		resetCmd := &cobra.Command{}
-		resetCmd.SetContext(s.T().Context())
-		resetCmd.Flags().Bool("confirm", true, "")
-		_ = resetCmd.ParseFlags([]string{"confirm"})
-		err := configResetCmdF(s.client, resetCmd, args)
+		s.cmd.Flags().Bool("confirm", true, "")
+		_ = s.cmd.ParseFlags([]string{"confirm"})
+		err := configResetCmdF(s.client, s.cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)

@@ -16,8 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
-	"github.com/spf13/cobra"
 )
 
 func TestParseExpiresIn(t *testing.T) {
@@ -189,12 +187,11 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	s.Run("Should list access tokens of a user", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", true, "")
-		command.Flags().Bool("active", false, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", true, "")
+		s.cmd.Flags().Bool("active", false, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 		mockToken1 := model.UserAccessToken{IsActive: true, Id: "token-1-id", Description: "token-1-desc"}
@@ -220,7 +217,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 				&model.Response{}, nil,
 			).Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Id})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&mockToken1, printer.GetLines()[0])
@@ -230,12 +227,11 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	s.Run("Should list only active user access tokens of a user", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", false, "")
-		command.Flags().Bool("active", true, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Bool("active", true, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 		mockToken1 := model.UserAccessToken{IsActive: true, Id: "token-1-id", Description: "token-1-desc"}
@@ -255,7 +251,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 				&model.Response{}, nil,
 			).Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Email})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockToken1, printer.GetLines()[0])
@@ -265,12 +261,11 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		printer.Clean()
 
 		userArg := "test-user"
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", false, "")
-		command.Flags().Bool("active", false, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Bool("active", false, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		s.client.
 			EXPECT().
@@ -284,7 +279,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 			Return(nil, &model.Response{}, errors.New("no user found with the given user ID")).
 			Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{userArg})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{userArg})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not retrieve user information of %q", userArg))
 	})
@@ -292,12 +287,11 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	s.Run("Should error if there are no user access tokens for a valid user", func() {
 		printer.Clean()
 
-		command := cobra.Command{}
-		command.Flags().Int("page", 0, "")
-		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", false, "")
-		command.Flags().Bool("active", true, "")
-		command.Flags().Bool("inactive", false, "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 2, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().Bool("active", true, "")
+		s.cmd.Flags().Bool("inactive", false, "")
 
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 
@@ -315,7 +309,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 				&model.Response{}, nil,
 			).Times(1)
 
-		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Email})
+		err := listTokensOfAUserCmdF(s.client, s.cmd, []string{mockUser.Email})
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), fmt.Sprintf("there are no tokens for the %q", mockUser.Email))
 	})

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -400,10 +399,8 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
-		systemSupportPacketCmd := &cobra.Command{}
-		systemSupportPacketCmd.SetContext(s.T().Context())
-		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
-		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.cmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := s.cmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
 		defer func() {
@@ -411,7 +408,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 			s.Require().NoError(err)
 		}()
 
-		err = systemSupportPacketCmdF(s.client, systemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
