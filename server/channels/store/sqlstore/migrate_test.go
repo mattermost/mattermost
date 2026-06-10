@@ -48,32 +48,7 @@ func TestMigratorPreMigrate(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 	const markerName = "renumber_roles_schemeid_migrations"
 
-	t.Run("dry-run does not write the completion marker", func(t *testing.T) {
-		settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
-		if err != nil {
-			t.Skip(err)
-		}
-
-		// New() runs preMigration() during startup; clear the marker afterwards
-		// so we can observe whether PreMigrate(true) writes it.
-		store, err := New(*settings, logger, nil)
-		require.NoError(t, err)
-		defer store.Close()
-		_, err = store.GetMaster().Exec("DELETE FROM Systems WHERE Name = $1", markerName)
-		require.NoError(t, err)
-
-		migrator, err := NewMigrator(*settings, logger, true)
-		require.NoError(t, err)
-		defer migrator.Close()
-
-		require.NoError(t, migrator.PreMigrate(true))
-
-		done, err := store.isPreMigrationComplete(markerName)
-		require.NoError(t, err)
-		assert.False(t, done, "dry-run must not run pre-migrations or set the marker")
-	})
-
-	t.Run("non-dry-run runs pre-migrations and marks them complete", func(t *testing.T) {
+	t.Run("runs pre-migrations and marks them complete", func(t *testing.T) {
 		settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
 		if err != nil {
 			t.Skip(err)
@@ -89,7 +64,7 @@ func TestMigratorPreMigrate(t *testing.T) {
 		require.NoError(t, err)
 		defer migrator.Close()
 
-		require.NoError(t, migrator.PreMigrate(false))
+		require.NoError(t, migrator.PreMigrate())
 
 		done, err := store.isPreMigrationComplete(markerName)
 		require.NoError(t, err)
@@ -110,7 +85,7 @@ func TestMigratorPreMigrate(t *testing.T) {
 		require.NoError(t, err)
 		defer migrator.Close()
 
-		require.NoError(t, migrator.PreMigrate(false))
-		require.NoError(t, migrator.PreMigrate(false), "second invocation must be a safe no-op")
+		require.NoError(t, migrator.PreMigrate())
+		require.NoError(t, migrator.PreMigrate(), "second invocation must be a safe no-op")
 	})
 }

@@ -177,11 +177,10 @@ func (m *Migrator) MigrateWithPlan(plan *models.Plan, dryRun bool) error {
 // migrate`, used by cloud upgrades) must invoke this before MigrateWithPlan so
 // the same fixes apply outside of server startup. Skipped under dryRun because
 // preMigration writes directly via GetMaster().Exec and does not participate
-// in Morph's dry-run. Must NOT be called from the downgrade path.
-func (m *Migrator) PreMigrate(dryRun bool) error {
-	if dryRun {
-		return nil
-	}
+// in Morph's dry-run.
+// This is intentionally only called for forward migrations and skipped for
+// downgrades.
+func (m *Migrator) PreMigrate() error {
 	return m.store.preMigration()
 }
 
