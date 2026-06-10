@@ -64,19 +64,9 @@ export function hasRecipientTimezone(teammate?: UserProfile): boolean {
         return false;
     }
 
-    const {
-        useAutomaticTimezone,
-        automaticTimezone,
-        manualTimezone,
-    } = teammate.timezone;
+    const {automaticTimezone, manualTimezone} = teammate.timezone;
 
-    let useAutomatic = useAutomaticTimezone;
-    if (typeof useAutomaticTimezone === 'string') {
-        useAutomatic = useAutomaticTimezone === 'true';
-    }
-
-    const zone = useAutomatic ? automaticTimezone : manualTimezone;
-    return Boolean(zone?.trim());
+    return Boolean(automaticTimezone?.trim() || manualTimezone?.trim());
 }
 
 export function getRecipientTimezoneString(teammateTimezone: UserTimezone): string {

@@ -74,6 +74,23 @@ describe('schedule_message_dm_utils', () => {
                 },
             } as never)).toBe(false);
         });
+
+        it('returns true when either automatic or manual timezone is set', () => {
+            expect(hasRecipientTimezone({
+                timezone: {
+                    useAutomaticTimezone: 'false',
+                    automaticTimezone: 'Europe/London',
+                    manualTimezone: '',
+                },
+            } as never)).toBe(true);
+            expect(hasRecipientTimezone({
+                timezone: {
+                    useAutomaticTimezone: 'true',
+                    automaticTimezone: '',
+                    manualTimezone: 'America/Chicago',
+                },
+            } as never)).toBe(true);
+        });
     });
 
     describe('getTheirMorningTimestamp', () => {
