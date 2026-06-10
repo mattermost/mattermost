@@ -70,7 +70,9 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(s.client, cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -129,7 +131,9 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(s.client, cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -197,7 +201,9 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(s.client, cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -243,7 +249,9 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 			Return(map[string]json.RawMessage{}, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(s.client, cmd, []string{"testuser@example.com"})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -279,7 +287,9 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(s.client, cmd, []string{"testuser@example.com"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get CPA values for user")
 		s.Require().Contains(err.Error(), "API error")
@@ -296,7 +306,9 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"testuser@example.com"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(s.client, cmd, []string{"testuser@example.com"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get CPA fields for template context")
 		s.Require().Contains(err.Error(), "fields API error")
@@ -334,7 +346,9 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 			Return(nil, notFoundResponse, notFoundError).
 			Times(1)
 
-		err := cpaValueListCmdF(s.client, &cobra.Command{}, []string{"nonexistent@example.com"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaValueListCmdF(s.client, cmd, []string{"nonexistent@example.com"})
 		s.Require().Error(err)
 	})
 }
@@ -363,6 +377,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.
@@ -410,6 +425,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{"Go", "React", "Python"}, "")
 
 		s.client.
@@ -451,6 +467,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.
@@ -490,6 +507,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 		expectedError := errors.New("permission denied")
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.
@@ -527,6 +545,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 		expectedError := errors.New("fields API error")
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("value", []string{"Engineering"}, "")
 
 		s.client.

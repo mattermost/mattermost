@@ -15,6 +15,7 @@ import (
 func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 	s.Run("Reset auth data without confirmation returns an error", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := samlAuthDataResetCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
@@ -23,6 +24,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 	s.Run("Reset auth data without errors", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("yes", true, "")
 		outputMessage := "1 user records were changed.\n"
 
@@ -44,6 +46,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		outputMessage := "1 user records would be affected.\n"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("dry-run", true, "")
 
 		s.client.
@@ -69,6 +72,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("yes", true, "")
 		cmd.Flags().StringSlice("users", users, "")
 

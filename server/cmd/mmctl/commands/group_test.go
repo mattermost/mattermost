@@ -26,7 +26,9 @@ func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listLdapGroupsCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listLdapGroupsCmdF(s.client, cmd, []string{})
 		s.Require().Equal(mockError, err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -46,7 +48,9 @@ func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
-		err := listLdapGroupsCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listLdapGroupsCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 3)
 		for i, v := range mockList {
@@ -74,7 +78,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupEnableCmdF(s.client, cmd, []string{arg})
 		s.Require().EqualError(err, "Unable to find team '"+arg+"'")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -105,7 +111,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupEnableCmdF(s.client, cmd, []string{arg})
 		s.Require().Equal(mockError, err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -135,7 +143,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 			Return([]*model.GroupWithSchemeAdmin{}, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupEnableCmdF(s.client, cmd, []string{arg})
 		s.Require().EqualError(err, "Team '"+arg+"' has no groups associated. It cannot be group-constrained")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -173,7 +183,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupEnableCmdF(s.client, cmd, []string{arg})
 		s.Require().Equal(mockError, err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -210,7 +222,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupEnableCmdF(s.client, cmd, []string{arg})
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -236,7 +250,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupDisableCmdF(s.client, cmd, []string{teamArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 	})
@@ -257,7 +273,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupDisableCmdF(s.client, cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -283,7 +301,9 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamGroupDisableCmdF(s.client, cmd, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -331,7 +351,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -378,7 +400,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -423,7 +447,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -457,7 +483,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -484,7 +512,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -528,7 +558,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.Require().Equal(err, mockError)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -563,7 +595,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -591,7 +625,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupListCmdF(s.client, cmd, []string{cmdArg})
 		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -615,6 +651,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := teamGroupListCmdF(s.client, cmd, []string{"team1"})
 
 		s.Require().NotNil(err)
@@ -656,6 +693,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := teamGroupListCmdF(s.client, cmd, []string{"team1"})
 
 		s.Require().NotNil(err)
@@ -695,6 +733,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := teamGroupListCmdF(s.client, cmd, []string{"team1"})
 
 		s.Require().Nil(err)
@@ -712,6 +751,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -737,6 +777,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		team := &model.Team{Id: teamID}
 
 		s.client.
@@ -760,6 +801,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		team := &model.Team{Id: teamID, GroupConstrained: new(true)}
 
 		s.client.
@@ -783,6 +825,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		team := &model.Team{Id: teamID, GroupConstrained: new(false)}
 
 		s.client.
@@ -809,6 +852,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -835,6 +879,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{Id: teamID}
 
@@ -869,6 +914,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{Id: teamID}
 		channel := &model.Channel{Id: channelID, GroupConstrained: new(true)}
@@ -901,6 +947,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{Id: teamID}
 		channel := &model.Channel{Id: channelID, GroupConstrained: new(false)}
@@ -933,6 +980,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{Id: teamID}
 		channel := &model.Channel{Id: channelID}
@@ -1000,7 +1048,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1026,7 +1076,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1060,7 +1112,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1101,7 +1155,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(nil, 0, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1150,7 +1206,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1191,7 +1249,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(mockGroups, 0, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1217,7 +1277,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1250,7 +1312,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1305,7 +1369,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupEnableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupEnableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1340,7 +1406,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupDisableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1365,7 +1433,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupDisableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1398,7 +1468,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupDisableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1439,7 +1511,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupDisableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1465,7 +1539,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupDisableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1499,7 +1575,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupDisableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1534,7 +1612,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := channelGroupDisableCmdF(s.client, &cobra.Command{}, []string{channelArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := channelGroupDisableCmdF(s.client, cmd, []string{channelArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1553,6 +1633,7 @@ func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := userGroupRestoreCmdF(s.client, cmd, []string{"groupId"})
 
 		s.Require().Nil(err)
@@ -1570,6 +1651,7 @@ func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := userGroupRestoreCmdF(s.client, cmd, []string{"groupId"})
 
 		s.Require().NotNil(err)

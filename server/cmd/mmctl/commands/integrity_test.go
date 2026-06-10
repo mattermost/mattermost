@@ -18,6 +18,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 	s.Run("Integrity check succeeds", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		mockData := model.RelationalIntegrityCheckData{
@@ -54,6 +55,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 	s.Run("Integrity check fails", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		s.client.
@@ -72,6 +74,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 	s.Run("Integrity check with errors", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		mockData := model.RelationalIntegrityCheckData{

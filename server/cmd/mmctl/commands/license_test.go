@@ -28,7 +28,9 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := removeLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := removeLicenseCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -45,7 +47,9 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
-		err := removeLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := removeLicenseCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -73,7 +77,9 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := uploadLicenseCmdF(s.client, cmd, []string{tmpFile.Name()})
 		s.Require().Nil(err)
 	})
 
@@ -86,13 +92,17 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 			UploadLicenseFile(s.T().Context(), mockLicenseFile).
 			Times(0)
 
-		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{path})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := uploadLicenseCmdF(s.client, cmd, []string{path})
 		s.Require().EqualError(err, errMsg)
 	})
 
 	s.Run("Fail to upload license if no path is given", func() {
 		printer.Clean()
-		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := uploadLicenseCmdF(s.client, cmd, []string{})
 		s.Require().EqualError(err, "enter one license file to upload")
 	})
 }
@@ -111,13 +121,17 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseStringCmdF() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{licenseString})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := uploadLicenseStringCmdF(s.client, cmd, []string{licenseString})
 		s.Require().Nil(err)
 	})
 
 	s.Run("Fail to upload license if no license string is given", func() {
 		printer.Clean()
-		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := uploadLicenseStringCmdF(s.client, cmd, []string{})
 		s.Require().EqualError(err, "enter one license file to upload")
 	})
 }
@@ -146,7 +160,9 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := getLicenseCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -173,7 +189,9 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := getLicenseCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "No license installed")
@@ -189,7 +207,9 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, mockErr).
 			Times(1)
 
-		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := getLicenseCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Equal(err, mockErr)
 		s.Require().Len(printer.GetLines(), 0)

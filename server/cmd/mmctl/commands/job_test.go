@@ -18,6 +18,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		var mockJobs []*model.Job
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 10
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -54,6 +55,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 3
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -85,6 +87,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 3
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -122,6 +125,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 2
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -159,6 +163,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 2
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -189,6 +194,7 @@ func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
 		id := model.NewId()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("force", true, "")
 
 		s.client.

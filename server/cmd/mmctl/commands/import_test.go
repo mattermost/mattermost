@@ -32,7 +32,9 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
-		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := importListAvailableCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -53,7 +55,9 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
-		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := importListAvailableCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockImports))
 		s.Len(printer.GetErrorLines(), 0)
@@ -74,7 +78,9 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
-		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := importListIncompleteCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -104,7 +110,9 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
-		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := importListIncompleteCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
 		s.Empty(printer.GetErrorLines())
@@ -125,7 +133,9 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
-		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{jobID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := importJobShowCmdF(s.client, cmd, []string{jobID})
 		s.Require().NotNil(err)
 		s.Empty(printer.GetLines())
 		s.Empty(printer.GetErrorLines())
@@ -143,7 +153,9 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := importJobShowCmdF(s.client, cmd, []string{mockJob.Id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -157,6 +169,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 		var mockJobs []*model.Job
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 10
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -190,6 +203,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 3
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -231,6 +245,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("bypass-upload", false, "")
 		cmd.Flags().Bool("extract-content", false, "")
 		cmd.Flags().Int("workers", 0, "")
@@ -248,6 +263,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		tooMany := runtime.NumCPU()*4 + 1
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("bypass-upload", false, "")
 		cmd.Flags().Bool("extract-content", false, "")
 		cmd.Flags().Int("workers", 0, "")
@@ -280,6 +296,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("bypass-upload", false, "")
 		cmd.Flags().Bool("extract-content", false, "")
 		cmd.Flags().Int("workers", 0, "")
@@ -604,13 +621,17 @@ func (s *MmctlUnitTestSuite) TestDeleteImportCmdF() {
 			Return(&model.Response{}, nil).
 			Times(2)
 
-		err := importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := importDeleteCmdF(s.client, cmd, []string{"import.zip"})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[0])
 
 		//idempotency check
-		err = importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = importDeleteCmdF(s.client, cmd, []string{"import.zip"})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
 		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[1])

@@ -20,6 +20,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 	userID := "userID"
 
 	cmd := &cobra.Command{}
+	cmd.SetContext(s.T().Context())
 	cmd.Flags().Int("page", 0, "")
 	cmd.Flags().Int("per-page", 200, "")
 
@@ -63,6 +64,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 		mockUser := model.User{Id: mockOAuthApp.CreatorId, Username: "mockuser"}
 
 		pageCmd := &cobra.Command{}
+		pageCmd.SetContext(s.T().Context())
 		pageCmd.Flags().Int("page", 0, "")
 		pageCmd.Flags().Int("per-page", 200, "")
 

@@ -16,6 +16,7 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("teams", 10, "")
 		cmd.Flags().Int("team-memberships", 11, "")
 		err := sampledataCmdF(s.client, cmd, []string{})
@@ -27,6 +28,7 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("channels-per-team", 10, "")
 		cmd.Flags().Int("channel-memberships", 11, "")
 		err := sampledataCmdF(s.client, cmd, []string{})
@@ -38,6 +40,7 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("group-channels", 1, "")
 		cmd.Flags().Int("users", 5, "")
 		err := sampledataCmdF(s.client, cmd, []string{})
@@ -54,6 +57,7 @@ func (s *MmctlUnitTestSuite) TestSampledataCmd() {
 		defer os.Remove(tmpFile.Name())
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("bulk", tmpFile.Name(), "")
 		cmd.Flags().Int("group-channels", 0, "")
 		cmd.Flags().Int("users", 5, "")

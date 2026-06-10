@@ -30,7 +30,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := exportCreateCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -53,6 +55,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("no-attachments", true, "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -78,6 +81,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("no-roles-and-schemes", true, "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -98,7 +102,9 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
-	err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
+	cmd := &cobra.Command{}
+	cmd.SetContext(s.T().Context())
+	err := exportDeleteCmdF(s.client, cmd, []string{exportName})
 	s.Require().Nil(err)
 	s.Len(printer.GetLines(), 1)
 	s.Len(printer.GetErrorLines(), 0)
@@ -116,7 +122,9 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
-		err := exportListCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := exportListCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -137,7 +145,9 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
-		err := exportListCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := exportListCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockExports))
 		s.Len(printer.GetErrorLines(), 0)

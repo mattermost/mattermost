@@ -51,7 +51,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaFieldListCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -69,7 +71,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaFieldListCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 
 		lines := printer.GetLines()
@@ -86,7 +90,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
-		err := cpaFieldListCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(s.client, cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to get CPA fields")
 		s.Require().Contains(err.Error(), "API error")
@@ -111,7 +117,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 			Return([]*model.PropertyField{invalidField}, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaFieldListCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(s.client, cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to convert field")
 		s.Require().Contains(err.Error(), "Invalid Field")
@@ -138,7 +146,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 			Return([]*model.PropertyField{adminField}, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaFieldListCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 
 		// Verify that exactly one field is printed (since printer.SetSingle(true) is used)
@@ -175,7 +185,9 @@ func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {
 			Return([]*model.PropertyField{selectField}, &model.Response{}, nil).
 			Times(1)
 
-		err := cpaFieldListCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := cpaFieldListCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 
 		// Verify that exactly one field is printed
@@ -218,6 +230,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := cpaFieldCreateCmdF(s.client, cmd, []string{"Department", "text"})
 		s.Require().NoError(err)
 
@@ -255,6 +268,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		_ = cmd.Flags().Set("managed", "true")
 		err := cpaFieldCreateCmdF(s.client, cmd, []string{"Department", "text"})
@@ -307,6 +321,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringSlice("option", []string{}, "")
 		_ = cmd.Flags().Set("option", "Junior")
 		_ = cmd.Flags().Set("option", "Senior")
@@ -349,6 +364,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("attrs", "", "")
 		_ = cmd.Flags().Set("attrs", `{"visibility":"always","required":true}`)
 		err := cpaFieldCreateCmdF(s.client, cmd, []string{"Department", "text"})
@@ -390,6 +406,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().Bool("managed", false, "")
 		_ = cmd.Flags().Set("attrs", `{"visibility":"always","managed":""}`)
@@ -406,6 +423,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("attrs", "", "")
 		_ = cmd.Flags().Set("attrs", `{"invalid": json}`) // Invalid JSON
 		err := cpaFieldCreateCmdF(s.client, cmd, []string{"Department", "text"})
@@ -424,6 +442,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldCreateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := cpaFieldCreateCmdF(s.client, cmd, []string{"Department", "text"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "failed to create CPA field")
@@ -470,6 +489,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		_ = cmd.Flags().Set("name", "New Department")
 		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
@@ -516,6 +536,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -564,6 +585,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -614,6 +636,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -675,6 +698,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -729,6 +753,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -774,6 +799,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		_ = cmd.Flags().Set("name", "New Name")
 		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
@@ -801,6 +827,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
@@ -834,6 +861,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		_ = cmd.Flags().Set("name", "New Name")
 		err := cpaFieldEditCmdF(s.client, cmd, []string{fieldID})
@@ -887,6 +915,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldEditCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", "", "")
 		cmd.Flags().Bool("managed", false, "")
 		cmd.Flags().String("attrs", "", "")
@@ -928,6 +957,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		_ = cmd.Flags().Set("confirm", "true")
 		err := cpaFieldDeleteCmdF(s.client, cmd, []string{fieldID})
@@ -963,6 +993,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		_ = cmd.Flags().Set("confirm", "true")
 		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"Department"})
@@ -992,6 +1023,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		_ = cmd.Flags().Set("confirm", "true")
 		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"NonexistentField"})
@@ -1010,6 +1042,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		_ = cmd.Flags().Set("confirm", "true")
 		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"field-name"})
@@ -1023,6 +1056,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 
 		// No client call expected since confirmation fails in non-interactive shell
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		err := cpaFieldDeleteCmdF(s.client, cmd, []string{"field-id"})
 		s.Require().Error(err)
@@ -1055,6 +1089,7 @@ func (s *MmctlUnitTestSuite) TestCPAFieldDeleteCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		_ = cmd.Flags().Set("confirm", "true")
 		err := cpaFieldDeleteCmdF(s.client, cmd, []string{fieldID})

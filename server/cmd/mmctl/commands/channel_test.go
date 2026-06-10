@@ -36,6 +36,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		mockChannel := model.Channel{Name: channelName}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamID, "")
 
 		s.client.
@@ -92,7 +93,9 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		err := searchChannelCmdF(s.client, &cobra.Command{}, []string{channelName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchChannelCmdF(s.client, cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(&mockChannel, printer.GetLines()[0])
@@ -104,6 +107,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		mockTeam := model.Team{Id: teamID}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamID, "")
 
 		s.client.
@@ -129,6 +133,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamID, "")
 
 		s.client.
@@ -156,6 +161,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", false, "")
 		cmd.Flags().Bool("private", false, "")
@@ -170,6 +176,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", true, "")
@@ -185,6 +192,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		args := []string{channelID}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", false, "")
@@ -208,6 +216,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		args := []string{team + ":" + channel}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", false, "")
@@ -239,6 +248,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		args := []string{channel.Id}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", false, "")
@@ -264,6 +274,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		args := []string{channel.Id}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", false, "")
@@ -291,6 +302,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		args := []string{channel.Id}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", false, "")
@@ -326,6 +338,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		args := []string{channel.Id}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", false, "")
@@ -361,6 +374,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		args := []string{channel.Id}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", false, "")
 		cmd.Flags().Bool("private", true, "")
@@ -388,7 +402,9 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 	s.Run("Archive channel without args returns an error", func() {
 		printer.Clean()
 
-		err := archiveChannelsCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := archiveChannelsCmdF(s.client, cmd, []string{})
 		mockErr := errors.New("enter at least one channel to archive")
 
 		expected := mockErr.Error()
@@ -406,6 +422,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := teamID + ":" + channelName
 
 		s.client.
@@ -438,6 +455,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelName}
 
 		s.client.
@@ -470,6 +488,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		mockChannel2 := model.Channel{Id: channelID2, Name: channelArg2}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelArg1, channelArg2}
 
 		s.client.
@@ -509,6 +528,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		channelArg := "some-channel"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
@@ -541,6 +561,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		channelArg := "some-non-existing-channel"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
@@ -576,6 +597,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		channelArg := "some-non-existing-channel"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelArg}
 
 		s.client.
@@ -602,6 +624,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		mockChannel := model.Channel{Id: channelID, Name: channelArg}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelArg}
 
 		s.client.
@@ -630,6 +653,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 	s.Run("Fail to archive when team and channel not provided", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{":"}
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
@@ -646,7 +670,9 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		printer.Clean()
 		arg := "team:/../hello/channel-test"
 
-		err := archiveChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := archiveChannelsCmdF(s.client, cmd, []string{arg})
 		s.Require().Error(err)
 		s.Require().Equal("Unable to find channel 'team:/../hello/channel-test'", printer.GetErrorLines()[0])
 	})
@@ -660,6 +686,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		args := []string{""}
 		args[0] = teamID
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -686,6 +713,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{
 			Id: teamID,
@@ -738,6 +766,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{
 			Id: teamID,
@@ -804,6 +833,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{
 			Id: teamID,
@@ -870,6 +900,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{
 			Id: teamID,
@@ -954,6 +985,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		team := &model.Team{
 			Id: teamID,
 		}
@@ -1012,6 +1044,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team := &model.Team{
 			Id: teamID,
@@ -1062,6 +1095,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		team := &model.Team{
 			Id: teamID,
 		}
@@ -1110,6 +1144,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		team := &model.Team{
 			Id: teamID,
 		}
@@ -1159,6 +1194,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.PersistentFlags().Bool("local", true, "allows communicating with the server through a unix socket")
 		_ = viper.BindPFlag("local", cmd.PersistentFlags().Lookup("local"))
 		team := &model.Team{
@@ -1210,6 +1246,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		args := []string{teamID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 		_ = viper.BindPFlag("local", cmd.PersistentFlags().Lookup("local"))
 
@@ -1266,6 +1303,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		teamID2 := "teamID2"
 		args := []string{teamID1, teamID2}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team1 := &model.Team{Id: teamID1}
 
@@ -1357,6 +1395,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		teamID2 := "teamID2"
 		args := []string{teamID1, teamID2}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team1 := &model.Team{Id: teamID1}
 		team2 := &model.Team{Id: teamID2}
@@ -1468,6 +1507,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		team2ID := "team2ID"
 		args := []string{team1ID, team2ID}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -1508,6 +1548,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		teamID2 := "teamID2"
 		args := []string{teamID1, teamID2}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		team1 := &model.Team{Id: teamID1}
 		team2 := &model.Team{Id: teamID2}
@@ -1638,7 +1679,9 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		printer.Clean()
 		arg := "\"test/../hello?\"channel-test"
 
-		err := listChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listChannelsCmdF(s.client, cmd, []string{arg})
 		s.Require().ErrorContains(err, "unable to find team \"\\\"test/../hello?\\\"channel-test\"")
 		s.Require().Equal("unable to find team \"\\\"test/../hello?\\\"channel-test\"", printer.GetErrorLines()[0])
 	})
@@ -1648,7 +1691,9 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 	s.Run("Unarchive channel without args returns an error", func() {
 		printer.Clean()
 
-		err := unarchiveChannelsCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := unarchiveChannelsCmdF(s.client, cmd, []string{})
 		mockErr := errors.New("enter at least one channel")
 
 		expected := mockErr.Error()
@@ -1665,6 +1710,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := teamID + ":" + channelName
 
 		s.client.
@@ -1697,6 +1743,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelName}
 
 		s.client.
@@ -1729,6 +1776,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		mockChannel2 := model.Channel{Id: channelID2, Name: channelArg2}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelArg1, channelArg2}
 
 		s.client.
@@ -1767,6 +1815,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		teamArg := "some-non-existent-team-id"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{teamArg + ":" + channelName}
 
 		s.client.
@@ -1799,6 +1848,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		channelArg := "some-non-existing-channel"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
@@ -1834,6 +1884,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		channelArg := "some-non-existing-channel"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelArg}
 
 		s.client.
@@ -1858,6 +1909,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{channelName}
 
 		s.client.
@@ -1887,6 +1939,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{":"}
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
@@ -1905,6 +1958,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		args := []string{""}
 		args[0] = "teamName:channelName"
@@ -1920,6 +1974,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := ""
 		channelName := ""
@@ -1939,6 +1994,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		channelName := ""
 		argsTeamChannel := teamName + ":" + channelName
@@ -1986,6 +2042,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := ""
 		channelName := "nonExistingChannelName"
@@ -2011,6 +2068,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := "nonExistingteamName"
 		argsTeamChannel := teamName + ":" + channelName
@@ -2041,6 +2099,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		channelName := "nonExistingChannelName"
 		argsTeamChannel := teamName + ":" + channelName
@@ -2089,6 +2148,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
@@ -2148,6 +2208,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
@@ -2215,6 +2276,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := ""
 		argsTeamChannel := teamName + ":" + channelName
@@ -2265,6 +2327,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
@@ -2331,6 +2394,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
@@ -2421,6 +2485,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -2471,6 +2536,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		dstTeamName := "destination-team-name"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -2502,6 +2568,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		channelID := "channel-id"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -2533,6 +2600,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		channelID := "channel-id"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -2565,6 +2633,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2581,6 +2650,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := "teamName"
 		channelDisplayName := "channelDisplayName"
@@ -2598,6 +2668,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		channelName := "channelName"
 		channelDisplayName := "channelDisplayName"
@@ -2615,6 +2686,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2648,6 +2720,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2700,6 +2773,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2747,6 +2821,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		teamName := "teamName"
 		channelName := "channelName"
@@ -2814,6 +2889,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 	s.Run("Delete channels without confirm flag returns an error", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
@@ -2842,6 +2918,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		arg := teamID + ":" + channelName
@@ -2867,6 +2944,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		arg := teamName + ":" + channelName
@@ -2898,6 +2976,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		arg := teamID + ":" + channelName
@@ -2943,6 +3022,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		arg1 := teamID + ":" + channelNameDoesNotExist

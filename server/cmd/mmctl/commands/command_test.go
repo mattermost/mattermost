@@ -52,6 +52,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamArg, "")
 		cmd.Flags().String("title", titleArg, "")
 		cmd.Flags().String("description", descriptionArg, "")
@@ -109,6 +110,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamArg, "")
 		cmd.Flags().String("trigger-word", triggerWordArg, "")
 		cmd.Flags().String("url", urlArg, "")
@@ -141,6 +143,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		printer.Clean()
 		teamArg := "example-team-id"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamArg, "")
 
 		s.client.
@@ -181,6 +184,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		mockUser := model.User{Id: creatorIDArg, Username: creatorUsernameArg}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamArg, "")
 		cmd.Flags().String("title", titleArg, "")
 		cmd.Flags().String("description", descriptionArg, "")
@@ -232,6 +236,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		mockUser := model.User{Id: creatorIDArg, Username: creatorUsernameArg}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamArg, "")
 		cmd.Flags().String("title", titleArg, "")
 		cmd.Flags().String("description", descriptionArg, "")
@@ -297,6 +302,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("team", teamArg, "")
 		cmd.Flags().String("title", titleArg, "")
 		cmd.Flags().String("description", descriptionArg, "")
@@ -347,7 +353,9 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := archiveCommandCmdF(s.client, cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -365,7 +373,9 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := archiveCommandCmdF(s.client, cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -383,7 +393,9 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := archiveCommandCmdF(s.client, cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.Require().Equal(err, errors.New("Unable to archive command '"+arg+"' error: "+mockError.Error()))
 		s.Require().Len(printer.GetLines(), 0)
@@ -416,6 +428,7 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		s.client.EXPECT().GetAllTeams(s.T().Context(), "", 0, DefaultPageSize).Return(teams, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().GetAllTeams(s.T().Context(), "", 1, DefaultPageSize).Return([]*model.Team{}, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(s.T().Context(), team1ID, true).Return(team1Commands, &model.Response{}, nil).Times(1)
@@ -440,6 +453,7 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		s.client.EXPECT().GetTeam(s.T().Context(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(s.T().Context(), teamID, true).Return(teamCommand, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
@@ -453,6 +467,7 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		teamID := "non-existing-team"
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		// first try to get team by id
 		s.client.EXPECT().GetTeam(s.T().Context(), teamID, "").Return(nil, &model.Response{}, nil).Times(1)
 		// second try to search the team by name
@@ -468,6 +483,7 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		teamID := "team-id"
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		team := &model.Team{Id: teamID}
 		s.client.EXPECT().GetTeam(s.T().Context(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(s.T().Context(), teamID, true).Return(nil, &model.Response{}, errors.New("")).Times(1)
@@ -807,7 +823,9 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, mockCommand.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := moveCommandCmdF(s.client, cmd, []string{teamArg, mockCommand.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessageOK)
@@ -827,7 +845,9 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArgBogus, commandArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := moveCommandCmdF(s.client, cmd, []string{teamArgBogus, commandArg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find team '"+teamArgBogus+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -847,7 +867,9 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArgBogus})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := moveCommandCmdF(s.client, cmd, []string{teamArg, commandArgBogus})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find command '"+commandArgBogus+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -872,7 +894,9 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := moveCommandCmdF(s.client, cmd, []string{teamArg, commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessageError)
@@ -897,7 +921,9 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := moveCommandCmdF(s.client, cmd, []string{teamArg, commandArg})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "unable to move command '"+commandArg+"': "+mockError.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -936,7 +962,9 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
-		err := showCommandCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showCommandCmdF(s.client, cmd, []string{commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Equal(&mockCommand, printer.GetLines()[0])
@@ -952,7 +980,9 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := showCommandCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showCommandCmdF(s.client, cmd, []string{commandArgBogus})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find command '"+commandArgBogus+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -978,7 +1008,9 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(list, &model.Response{}, nil).
 			Times(1)
 
-		err := showCommandCmdF(s.client, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", mockTeam.Name, mockCommand.Trigger)})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showCommandCmdF(s.client, cmd, []string{fmt.Sprintf("%s:%s", mockTeam.Name, mockCommand.Trigger)})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Equal(&mockCommand, printer.GetLines()[0])
@@ -1007,7 +1039,9 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(nil, &model.Response{}, errors.New("command not found")).
 			Times(1)
 
-		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showCommandCmdF(s.client, cmd, []string{teamTrigger})
 		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1041,7 +1075,9 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Return(nil, &model.Response{}, errors.New("bogus")).
 			Times(1)
 
-		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showCommandCmdF(s.client, cmd, []string{teamTrigger})
 		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1051,7 +1087,9 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		printer.Clean()
 		arg := "\"test/../hello?\"move"
 
-		err := showCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showCommandCmdF(s.client, cmd, []string{arg})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find command '\"test/../hello?\"move'")
 	})

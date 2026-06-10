@@ -25,7 +25,9 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := ldapSyncCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := ldapSyncCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -42,7 +44,9 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := ldapSyncCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := ldapSyncCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -59,7 +63,9 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := ldapSyncCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := ldapSyncCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Equal(err, mockError)
 		s.Require().Len(printer.GetLines(), 0)
@@ -77,7 +83,9 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := ldapIDMigrateCmdF(s.client, cmd, []string{"test-id"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Contains(printer.GetLines()[0], "test-id")
@@ -93,7 +101,9 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("test-error")).
 			Times(1)
 
-		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := ldapIDMigrateCmdF(s.client, cmd, []string{"test-id"})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -105,6 +115,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 		var mockJobs []*model.Job
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 10
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -138,6 +149,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		perPage := 3
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", perPage, "")
@@ -171,7 +183,9 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
-		err := ldapJobShowCmdF(s.client, &cobra.Command{}, []string{jobID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := ldapJobShowCmdF(s.client, cmd, []string{jobID})
 		s.Require().NotNil(err)
 		s.Empty(printer.GetLines())
 		s.Empty(printer.GetErrorLines())
@@ -189,7 +203,9 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := ldapJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := ldapJobShowCmdF(s.client, cmd, []string{mockJob.Id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
