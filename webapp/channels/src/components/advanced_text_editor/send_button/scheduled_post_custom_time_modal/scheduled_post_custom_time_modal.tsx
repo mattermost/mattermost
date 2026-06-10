@@ -155,6 +155,47 @@ export default function ScheduledPostCustomTimeModal({
         );
     }, [channelId, selectedDateTime]);
 
+    const rescheduleFooterContent = useMemo(() => (
+        <footer className='scheduled_post_dm_custom_time_modal__footer'>
+            {onRemoveSchedule && (
+                <Button
+                    type='button'
+                    emphasis='tertiary'
+                    variant='destructive'
+                    className='scheduled_post_dm_custom_time_modal__remove'
+                    onClick={handleRemoveSchedule}
+                >
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.remove_schedule'
+                        defaultMessage='Remove schedule'
+                    />
+                </Button>
+            )}
+            <div className='scheduled_post_dm_custom_time_modal__footer-actions'>
+                <Button
+                    type='button'
+                    emphasis='tertiary'
+                    onClick={onExited}
+                >
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.cancel_button_text'
+                        defaultMessage='Cancel'
+                    />
+                </Button>
+                <Button
+                    type='submit'
+                    emphasis='primary'
+                    onClick={() => handleOnConfirm(selectedDateTime)}
+                >
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.confirm_button_text'
+                        defaultMessage='Schedule'
+                    />
+                </Button>
+            </div>
+        </footer>
+    ), [handleOnConfirm, handleRemoveSchedule, onExited, onRemoveSchedule, selectedDateTime]);
+
     if (isDmRedesign) {
         const bodyPrefix = (
             <ScheduleRecipientTimezoneCheckbox
@@ -173,47 +214,6 @@ export default function ScheduledPostCustomTimeModal({
                 senderTimezone={userTimezone}
                 recipientTimezone={recipientTimezoneString}
             />
-        );
-
-        const footerContent = (
-            <footer className='scheduled_post_dm_custom_time_modal__footer'>
-                {onRemoveSchedule && (
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        variant='destructive'
-                        className='scheduled_post_dm_custom_time_modal__remove'
-                        onClick={handleRemoveSchedule}
-                    >
-                        <FormattedMessage
-                            id='schedule_post.custom_time_modal.remove_schedule'
-                            defaultMessage='Remove schedule'
-                        />
-                    </Button>
-                )}
-                <div className='scheduled_post_dm_custom_time_modal__footer-actions'>
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        onClick={onExited}
-                    >
-                        <FormattedMessage
-                            id='schedule_post.custom_time_modal.cancel_button_text'
-                            defaultMessage='Cancel'
-                        />
-                    </Button>
-                    <Button
-                        type='submit'
-                        emphasis='primary'
-                        onClick={() => handleOnConfirm(selectedDateTime)}
-                    >
-                        <FormattedMessage
-                            id='schedule_post.custom_time_modal.confirm_button_text'
-                            defaultMessage='Schedule'
-                        />
-                    </Button>
-                </div>
-            </footer>
         );
 
         return (
@@ -236,14 +236,14 @@ export default function ScheduledPostCustomTimeModal({
                 errorText={errorMessage}
                 timePickerInterval={timePickerInterval}
                 timezone={activeTimezone}
-                footerContent={footerContent}
+                footerContent={rescheduleFooterContent}
             />
         );
     }
 
     return (
         <DateTimePickerModal
-            className='scheduled_post_custom_time_modal'
+            className={onRemoveSchedule ? 'scheduled_post_custom_time_modal scheduled_post_dm_custom_time_modal' : 'scheduled_post_custom_time_modal'}
             initialTime={selectedDateTime}
             header={
                 <FormattedMessage
@@ -252,27 +252,28 @@ export default function ScheduledPostCustomTimeModal({
                 />
             }
             subheading={userTimezoneLabel}
-            confirmButtonText={
+            confirmButtonText={onRemoveSchedule ? undefined : (
                 <FormattedMessage
                     id='schedule_post.custom_time_modal.confirm_button_text'
                     defaultMessage='Schedule'
                 />
-            }
-            cancelButtonText={
+            )}
+            cancelButtonText={onRemoveSchedule ? undefined : (
                 <FormattedMessage
                     id='schedule_post.custom_time_modal.cancel_button_text'
                     defaultMessage='Cancel'
                 />
-            }
+            )}
             ariaLabel={label}
             onExited={onExited}
             onConfirm={handleOnConfirm}
             onChange={setSelectedDateTime}
             bodySuffix={legacyBodySuffix}
             relativeDate={true}
-            onCancel={onExited}
+            onCancel={onRemoveSchedule ? undefined : onExited}
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
+            footerContent={onRemoveSchedule ? rescheduleFooterContent : undefined}
         />
     );
 }

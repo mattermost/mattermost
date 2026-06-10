@@ -177,3 +177,44 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
         expect(screen.getByText(/Sarah's time/)).toBeInTheDocument();
     });
 });
+
+describe('ScheduledPostCustomTimeModal legacy layout', () => {
+    const onExited = jest.fn();
+    const onConfirm = jest.fn().mockResolvedValue({});
+
+    beforeEach(() => {
+        onExited.mockReset();
+        onConfirm.mockReset().mockResolvedValue({});
+        mockedIsDmScheduleRedesign.mockReturnValue(false);
+        mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue as ReturnType<typeof useTimePostBoxIndicator>);
+    });
+
+    it('shows remove schedule when rescheduling an existing scheduled post', () => {
+        const onRemoveSchedule = jest.fn().mockResolvedValue({});
+
+        renderWithContext(
+            <ScheduledPostCustomTimeModal
+                channelId='channel_id'
+                onExited={onExited}
+                onConfirm={onConfirm}
+                onRemoveSchedule={onRemoveSchedule}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Remove schedule'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Cancel'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Schedule', exact: true})).toBeInTheDocument();
+    });
+
+    it('does not show remove schedule when scheduling a new message', () => {
+        renderWithContext(
+            <ScheduledPostCustomTimeModal
+                channelId='channel_id'
+                onExited={onExited}
+                onConfirm={onConfirm}
+            />,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Remove schedule'})).not.toBeInTheDocument();
+    });
+});
