@@ -475,3 +475,94 @@ jobs:
           name: server-build-artifact
           path: server/build/
           retention-days: 2
+
+  # ci-complete is used to determine if the Server CI is complete since
+  # fips steps are optional and can be skipped. When we build with fips,
+  # we want to ensure that the Server CI is complete before running the
+  # artifacts upload workflow.
+  ci-complete:
+    name: Server CI Complete
+    if: >-
+      always() &&
+      (needs.test-mmctl-fips.result == 'success' || needs.test-mmctl-fips.result == 'skipped' || needs.test-mmctl-fips.result == 'failure') &&
+      (needs.merge-postgres-fips-test-results.result == 'success' || needs.merge-postgres-fips-test-results.result == 'skipped' || needs.merge-postgres-fips-test-results.result == 'failure')
+    permissions: {}
+    runs-on: ubuntu-22.04
+    needs:
+      - merge-postgres-test-results
+      - test-elasticsearch-v8
+      - test-opensearch-v2
+      - test-mmctl
+      - test-mmctl-fips
+      - build-mattermost-server
+      - merge-postgres-fips-test-results
+    steps:
+      - name: Server CI Complete
+        run: echo "Server CI Complete"
+
+  ci-report:
+    name: Server CI Report
+    if: always()
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      pull-requests: write
+      issues: write
+    needs:
+      - ci-complete
+    uses: ./.github/workflows/server-ci-report.yml
+    secrets:
+      WEBHOOK_URL_FLAKY_TEST: ${{ secrets.WEBHOOK_URL_FLAKY_TEST }}
+      WEBHOOK_AUTH_TOKEN_FLAKY_TEST: ${{ secrets.WEBHOOK_AUTH_TOKEN_FLAKY_TEST }}
+      WEBHOOK_URL_FLAKY_TEST_MM: ${{ secrets.WEBHOOK_URL_FLAKY_TEST_MM }}
+    with:
+      source-run-id: ${{ github.run_id }}
+      source-event: ${{ github.event_name }}
+      head-commit-id: ${{ github.event.pull_request.head.sha || github.sha }}
+      head-repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+      workflow-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  ci-artifacts:
+    name: Server CI Artifacts
+    if: >-
+      success('ci-complete') &&
+      github.repository_owner == 'mattermost' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      actions: read
+      statuses: write
+    needs:
+      - ci-complete
+    uses: ./.github/workflows/server-ci-artifacts.yml
+    secrets:
+      PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID: ${{ secrets.PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID }}
+      PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY: ${{ secrets.PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY }}
+      DOCKERHUB_DEV_TOKEN: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+      WIZ_DEVOPS_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
+      WIZ_DEVOPS_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
+    with:
+      source-run-id: ${{ github.run_id }}
+      source-event: ${{ github.event_name }}
+      head-sha: ${{ github.event.pull_request.head.sha }}
+      head-repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+  ci-sentry:
+    name: Sentry Upload
+    # Only run Sentry upload for master branch as mentioned in old workflow title.
+    if: >-
+      always() &&
+      github.repository_owner == 'mattermost' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
+    needs:
+      - ci-complete
+    uses: ./.github/workflows/sentry.yaml
+    secrets:
+      SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
