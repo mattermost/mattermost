@@ -7,10 +7,12 @@ import {useDispatch} from 'react-redux';
 import type {AccessControlAttribute} from '@mattermost/types/access_control';
 
 import {getChannelAccessControlAttributes} from 'mattermost-redux/actions/channels';
+import {getTeamAccessControlAttributes} from 'mattermost-redux/actions/teams';
 
 // Define supported entity types
 export enum EntityType {
     Channel = 'channel',
+    Team = 'team',
 
     // more entity types will be added here in the future
 }
@@ -159,6 +161,9 @@ export const useAccessControlAttributes = (
             switch (entityType) {
             case EntityType.Channel:
                 result = await dispatch(getChannelAccessControlAttributes(entityId));
+                break;
+            case EntityType.Team:
+                result = await dispatch(getTeamAccessControlAttributes(entityId));
                 break;
             default:
                 // defensive programming: if we add new entity types, we should handle them here

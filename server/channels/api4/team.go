@@ -47,6 +47,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/stats", api.APISessionRequired(getTeamStats)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods(http.MethodPost)
 	api.BaseRoutes.Team.Handle("/access_control/policy", api.APISessionRequired(getTeamAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.Team.Handle("/access_control/attributes", api.APISessionRequired(getTeamAccessControlAttributes)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -241,6 +242,33 @@ func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getTeamAccessControlAttributes(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	// Members may see which attributes govern their team so the invite and
+	// members surfaces can explain the requirement. source_only/shared_only
+	// values are stripped by the app layer, so no sensitive value leaks.
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	// A team child policy shares the team's id. Ask for the membership action
+	// explicitly so only the rule that governs who can be a member is surfaced.
+	attributes, appErr := c.App.GetAccessControlPolicyAttributes(c.AppContext, c.Params.TeamId, model.AccessControlPolicyActionMembership)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(attributes); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

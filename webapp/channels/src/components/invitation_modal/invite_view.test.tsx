@@ -17,6 +17,18 @@ import {InviteType} from './invite_as';
 import InviteView from './invite_view';
 import type {Props} from './invite_view';
 
+jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
+    __esModule: true,
+    EntityType: {Channel: 'channel', Team: 'team'},
+    default: jest.fn(() => ({
+        attributeTags: ['Engineering'],
+        structuredAttributes: [{name: 'Department', values: ['Engineering']}],
+        loading: false,
+        error: null,
+        fetchAttributes: jest.fn(),
+    })),
+}));
+
 const defaultProps: Props = deepFreeze({
     setInviteAs: jest.fn(),
     inviteType: InviteType.MEMBER,
@@ -35,6 +47,7 @@ const defaultProps: Props = deepFreeze({
     channelsLoader: jest.fn(),
     regenerateTeamInviteId: jest.fn(),
     isAdmin: false,
+    membershipPolicyEnforced: false,
     usersLoader: jest.fn(),
     onChangeUsersEmails: jest.fn(),
     isCloud: false,
@@ -340,5 +353,41 @@ describe('InviteView', () => {
         expect(onUsersInputChange).toHaveBeenCalledWith('one@example.com');
         expect(input).toHaveValue('one@example.com');
         expect(screen.getByTestId('inviteButton')).toBeDisabled();
+    });
+
+    it('shows the membership-policy notice, attribute tags, and invite-link warning on a governed team', () => {
+        props = {
+            ...defaultProps,
+            membershipPolicyEnforced: true,
+            currentTeam: {id: 'team1', display_name: 'Team One', invite_id: 'abc'} as Team,
+        };
+
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
+        );
+
+        expect(screen.getByText('Only users who meet the membership requirements can be added to this team.')).toBeInTheDocument();
+        expect(screen.getByText('Department: Engineering')).toBeInTheDocument();
+        expect(screen.getByText('People who use this link must meet the membership requirements to join.')).toBeInTheDocument();
+
+        // The notice and the link warning are exposed as live status regions.
+        expect(screen.getAllByRole('status').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('does not show the membership-policy notice on a non-governed team', () => {
+        props = {
+            ...defaultProps,
+            membershipPolicyEnforced: false,
+            currentTeam: {id: 'team1', display_name: 'Team One', invite_id: 'abc'} as Team,
+        };
+
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
+        );
+
+        expect(screen.queryByText('Only users who meet the membership requirements can be added to this team.')).not.toBeInTheDocument();
+        expect(screen.queryByText('People who use this link must meet the membership requirements to join.')).not.toBeInTheDocument();
     });
 });

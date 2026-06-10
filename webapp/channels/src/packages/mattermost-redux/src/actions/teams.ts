@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {AccessControlAttributes} from '@mattermost/types/access_control';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership, TeamMemberWithError, GetTeamMembersOpts, TeamsWithCount, TeamSearchOpts, NotPagedTeamSearchOpts, PagedTeamSearchOpts} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -323,6 +324,21 @@ export function regenerateTeamInviteId(teamId: string) {
             teamId,
         ],
     });
+}
+
+export function getTeamAccessControlAttributes(teamId: string): ActionFuncAsync<AccessControlAttributes> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getTeamAccessControlAttributes(teamId);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+            return {error};
+        }
+
+        return {data};
+    };
 }
 
 export function getMyTeamMembers(): ActionFuncAsync<TeamMembership[]> {
