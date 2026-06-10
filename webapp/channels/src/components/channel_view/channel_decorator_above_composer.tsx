@@ -4,27 +4,23 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import ChannelDecoratorRenderer from 'components/channel_decorator_renderer/channel_decorator_renderer';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
-import {useChannelDecorators} from 'hooks/useChannelDecorators';
+import Pluggable from 'plugins/pluggable';
 
 import type {GlobalState} from 'types/store';
 
 export const ChannelDecoratorAboveComposer = ({channelId}: {channelId: string}) => {
-    const matches = useChannelDecorators(channelId, 'above_composer');
-    const channel = useSelector((state: GlobalState) => state.entities.channels.channels[channelId]);
-    if (!matches.length || !channel) {
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
+
+    if (!channel) {
         return null;
     }
+
     return (
-        <>
-            {matches.map((reg) => (
-                <ChannelDecoratorRenderer
-                    key={reg.id}
-                    registration={reg}
-                    channel={channel}
-                />
-            ))}
-        </>
+        <Pluggable
+            pluggableName='ChannelComposerDecorator'
+            channel={channel}
+        />
     );
 };

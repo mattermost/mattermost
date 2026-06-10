@@ -10,7 +10,9 @@ jest.mock('components/post_view/channel_intro_message', () => {
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import ChannelDecoratorIntroSlot from './channel_decorator_intro_slot';
+import type {ChannelIntroOverrideComponent} from 'types/store/plugins';
+
+import ChannelDecoratorIntroSlot, {clearLoggedDecoratorErrors, getMatchingChannelIntroOverrideComponent} from './channel_decorator_intro_slot';
 
 const makeStateWithChannel = (channelId: string, decorators: any[] = []) => ({
     entities: {
@@ -22,7 +24,7 @@ const makeStateWithChannel = (channelId: string, decorators: any[] = []) => ({
     },
     plugins: {
         components: {
-            ChannelDecorator: decorators,
+            ChannelIntroOverride: decorators,
         },
     },
 } as any);
@@ -126,5 +128,56 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
         expect(screen.getByTestId('decorator-content-alpha')).toBeInTheDocument();
         expect(screen.queryByTestId('decorator-content-beta')).not.toBeInTheDocument();
         expect(screen.queryByTestId('channel-intro-message')).not.toBeInTheDocument();
+    });
+});
+
+function makeRegistration(partial: Partial<ChannelIntroOverrideComponent> = {}): ChannelIntroOverrideComponent {
+    return {
+        id: 'reg-1',
+        pluginId: 'test-plugin',
+        slot: 'after_channel_name',
+        matcher: () => true,
+        component: () => null,
+        ...partial,
+    } as ChannelIntroOverrideComponent;
+}
+
+describe('getMatchingChannelIntroOverrideComponent', () => {
+    beforeEach(() => {
+        clearLoggedDecoratorErrors();
+    });
+
+    it('returns undefined when channelId is empty', () => {
+        const result = getMatchingChannelIntroOverrideComponent(
+            {plugins: {components: {ChannelIntroOverride: []}}} as any,
+            '',
+        );
+        expect(result).toEqual(undefined);
+    });
+
+    it('returns undefined when no decorators are registered', () => {
+        const channel = TestHelper.getChannelMock();
+        const result = getMatchingChannelIntroOverrideComponent(
+            {
+                plugins: {components: {ChannelIntroOverride: []}},
+                entities: {channels: {channels: {[channel.id]: channel}}},
+            } as any,
+            channel.id,
+        );
+        expect(result).toEqual(undefined);
+    });
+
+    it('returns at most one entry for intro slot (first-match-wins)', () => {
+        const channel = TestHelper.getChannelMock();
+        const reg1 = makeRegistration({id: 'r1', pluginId: 'alpha'});
+        const reg2 = makeRegistration({id: 'r2', pluginId: 'beta'});
+        const result = getMatchingChannelIntroOverrideComponent(
+            {
+                plugins: {components: {ChannelIntroOverride: [reg1, reg2]}},
+                entities: {channels: {channels: {[channel.id]: channel}}},
+            } as any,
+            channel.id,
+        );
+        expect(result).toBe(reg1.id);
     });
 });

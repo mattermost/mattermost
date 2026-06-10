@@ -12,6 +12,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelComposerDecoratorComponent} from 'types/store/plugins';
 
 import CreateComment from './create_comment';
 
@@ -152,16 +153,16 @@ describe('components/threading/CreateComment', () => {
             plugins: {
                 components: {
                     ChannelIconOverride: [],
-                    ChannelDecorator: [{
-                        id: 'above-1',
-                        pluginId: 'test-plugin',
-                        slot: 'above_composer' as const,
-                        matcher: () => true,
-                        component: () => <div data-testid='decorator-content-above-composer'/>,
-                    }],
+                    ChannelComposerDecorator: [
+                        {
+                            id: 'above-1',
+                            pluginId: 'test-plugin',
+                            component: () => <div data-testid='decorator-content-above-composer'/>,
+                        } as ChannelComposerDecoratorComponent,
+                    ],
                 },
             },
-        } as any;
+        };
 
         renderWithContext(
             <CreateComment threadId={threadId}/>,

@@ -10,11 +10,9 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import ChannelHeader from './channel_header';
+import type {ChannelHeaderDecoratorComponent} from 'types/store/plugins';
 
-jest.mock('hooks/useChannelDecorators', () => ({
-    useChannelDecorators: jest.fn(() => []),
-}));
+import ChannelHeader from './channel_header';
 
 describe('components/ChannelHeader', () => {
     const baseProps = {
@@ -358,13 +356,6 @@ describe('components/ChannelHeader', () => {
 });
 
 describe('components/ChannelHeader — after_channel_name decorator slot', () => {
-    // useChannelDecorators is mocked at the module level above. Each test overrides it
-    // via mockReturnValue to control which registrations are returned for the
-    // 'after_channel_name' slot. ChannelDecoratorRenderer is NOT mocked — each
-    // registration's component is a real sentinel so it only renders if it passes
-    // through the real renderer and error boundary.
-    const {useChannelDecorators} = jest.requireMock('hooks/useChannelDecorators');
-
     const baseProps = {
         actions: {
             showPinnedPosts: jest.fn(),
@@ -407,28 +398,30 @@ describe('components/ChannelHeader — after_channel_name decorator slot', () =>
         isChannelAutotranslated: false,
     };
 
-    afterEach(() => {
-        (useChannelDecorators as jest.Mock).mockReturnValue([]);
-    });
-
     test('no decorators — nothing extra in the icon group', () => {
-        (useChannelDecorators as jest.Mock).mockReturnValue([]);
-
         const {container} = renderWithContext(<ChannelHeader {...baseProps}/>);
 
         expect(container.querySelector('[data-testid="decorator-content-1"]')).toBeNull();
     });
 
     test('one decorator — sentinel renders inside .channel-header__icons', () => {
-        (useChannelDecorators as jest.Mock).mockReturnValue([{
-            id: 'reg-1',
-            pluginId: 'test-plugin',
-            slot: 'after_channel_name',
-            matcher: () => true,
-            component: () => <div data-testid='decorator-content-1'/>,
-        }]);
-
-        const {container} = renderWithContext(<ChannelHeader {...baseProps}/>);
+        const {container} = renderWithContext(
+            <ChannelHeader {...baseProps}/>,
+            {
+                plugins: {
+                    components: {
+                        CallButton: [],
+                        ChannelHeaderDecorator: [
+                            {
+                                id: 'reg-1',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='decorator-content-1'/>,
+                            } as ChannelHeaderDecoratorComponent,
+                        ],
+                    },
+                },
+            },
+        );
 
         const sentinel = screen.getByTestId('decorator-content-1');
         expect(sentinel).toBeInTheDocument();
@@ -439,24 +432,28 @@ describe('components/ChannelHeader — after_channel_name decorator slot', () =>
     });
 
     test('two decorators — both sentinels render in order inside .channel-header__icons', () => {
-        (useChannelDecorators as jest.Mock).mockReturnValue([
+        const {container} = renderWithContext(
+            <ChannelHeader {...baseProps}/>,
             {
-                id: 'reg-1',
-                pluginId: 'test-plugin',
-                slot: 'after_channel_name',
-                matcher: () => true,
-                component: () => <div data-testid='decorator-content-1'/>,
+                plugins: {
+                    components: {
+                        CallButton: [],
+                        ChannelHeaderDecorator: [
+                            {
+                                id: 'reg-1',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='decorator-content-1'/>,
+                            } as ChannelHeaderDecoratorComponent,
+                            {
+                                id: 'reg-2',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='decorator-content-2'/>,
+                            } as ChannelHeaderDecoratorComponent,
+                        ],
+                    },
+                },
             },
-            {
-                id: 'reg-2',
-                pluginId: 'test-plugin',
-                slot: 'after_channel_name',
-                matcher: () => true,
-                component: () => <div data-testid='decorator-content-2'/>,
-            },
-        ]);
-
-        const {container} = renderWithContext(<ChannelHeader {...baseProps}/>);
+        );
 
         const sentinel1 = screen.getByTestId('decorator-content-1');
         const sentinel2 = screen.getByTestId('decorator-content-2');
@@ -473,20 +470,34 @@ describe('components/ChannelHeader — after_channel_name decorator slot', () =>
     });
 
     test('decorator precedes the mute button (#toggleMute) in the icon group', () => {
-        (useChannelDecorators as jest.Mock).mockReturnValue([{
-            id: 'reg-1',
-            pluginId: 'test-plugin',
-            slot: 'after_channel_name',
-            matcher: () => true,
-            component: () => <div data-testid='decorator-content-1'/>,
-        }]);
-
         const props = {
             ...baseProps,
             isChannelMuted: true,
         };
 
-        renderWithContext(<ChannelHeader {...props}/>);
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+            {
+                plugins: {
+                    components: {
+                        CallButton: [],
+                        ChannelHeaderDecorator: [
+                            {
+                                id: 'reg-1',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='decorator-content-1'/>,
+                            } as ChannelHeaderDecoratorComponent,
+                            {
+                                id: 'reg-2',
+                                pluginId: 'test-plugin',
+                                slot: 'after_channel_name',
+                                component: () => <div data-testid='decorator-content-2'/>,
+                            } as ChannelHeaderDecoratorComponent,
+                        ],
+                    },
+                },
+            },
+        );
 
         const sentinel = screen.getByTestId('decorator-content-1');
         const muteButton = document.querySelector('#toggleMute');

@@ -4,29 +4,62 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
-import ChannelDecoratorRenderer from 'components/channel_decorator_renderer/channel_decorator_renderer';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+
 import ChannelIntroMessage from 'components/post_view/channel_intro_message';
 
-import {useChannelDecorators} from 'hooks/useChannelDecorators';
+import Pluggable from 'plugins/pluggable';
+import {createMatcherErrorLog} from 'utils/matcher_error_log';
 
 import type {GlobalState} from 'types/store';
 
 type Props = {channelId: string};
 
 const ChannelDecoratorIntroSlot = ({channelId}: Props) => {
-    const matches = useChannelDecorators(channelId, 'intro');
-    const firstMatch = matches[0] ?? null;
-    const channel = useSelector((state: GlobalState) => state.entities.channels.channels[channelId]);
+    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
+    const matchingId = useSelector((state: GlobalState) => getMatchingChannelIntroOverrideComponent(state, channelId));
 
-    if (firstMatch && channel) {
+    if (channel && matchingId) {
         return (
-            <ChannelDecoratorRenderer
-                registration={firstMatch}
+            <Pluggable
+                pluggableName='ChannelIntroOverride'
+                pluggableId={matchingId}
                 channel={channel}
             />
         );
     }
+
     return <ChannelIntroMessage/>;
 };
 
 export default ChannelDecoratorIntroSlot;
+
+const matcherErrorLog = createMatcherErrorLog('ChannelDecorator');
+
+export const clearLoggedDecoratorErrors = matcherErrorLog.clear;
+
+export function getMatchingChannelIntroOverrideComponent(
+    state: GlobalState,
+    channelId: string,
+): string | undefined {
+    if (!channelId) {
+        return undefined;
+    }
+
+    const channel = getChannel(state, channelId);
+    if (!channel) {
+        return undefined;
+    }
+
+    const components = state.plugins.components.ChannelIntroOverride;
+    const matching = components.find((component) => {
+        try {
+            return component.matcher(state, channel) === true;
+        } catch (err) {
+            matcherErrorLog.logOnce(component.pluginId, err);
+            return false;
+        }
+    });
+
+    return matching?.id;
+}
