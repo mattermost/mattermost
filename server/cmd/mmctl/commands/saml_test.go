@@ -9,23 +9,18 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 	s.Run("Reset auth data without confirmation returns an error", func() {
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := samlAuthDataResetCmdF(s.client, cmd, nil)
+		err := samlAuthDataResetCmdF(s.client, s.cmd, nil)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
 	})
 
 	s.Run("Reset auth data without errors", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("yes", true, "")
+		s.cmd.Flags().Bool("yes", true, "")
 		outputMessage := "1 user records were changed.\n"
 
 		s.client.
@@ -34,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
-		err := samlAuthDataResetCmdF(s.client, cmd, nil)
+		err := samlAuthDataResetCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -45,9 +40,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		printer.Clean()
 		outputMessage := "1 user records would be affected.\n"
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("dry-run", true, "")
+		s.cmd.Flags().Bool("dry-run", true, "")
 
 		s.client.
 			EXPECT().
@@ -55,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
-		err := samlAuthDataResetCmdF(s.client, cmd, nil)
+		err := samlAuthDataResetCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -71,12 +64,10 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("yes", true, "")
-		cmd.Flags().StringSlice("users", users, "")
+		s.cmd.Flags().Bool("yes", true, "")
+		s.cmd.Flags().StringSlice("users", users, "")
 
-		err := samlAuthDataResetCmdF(s.client, cmd, nil)
+		err := samlAuthDataResetCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

@@ -50,9 +50,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		s.cleanCPAValuesForUser(s.th.BasicUser.Id)
 
 		// Test listing when no values are set
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := cpaValueListCmdF(c, _cmd, []string{s.th.BasicUser.Email})
+		err := cpaValueListCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -87,9 +85,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 
 		// Test listing the values with plain format (human-readable)
 		printer.SetFormat(printer.FormatPlain)
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err = cpaValueListCmdF(c, _cmd, []string{s.th.BasicUser.Email})
+		err = cpaValueListCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -101,9 +97,9 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		// Test with JSON format to ensure raw data is preserved
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
-		_cmd = &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err = cpaValueListCmdF(c, _cmd, []string{s.th.BasicUser.Email})
+		s.cmd = &cobra.Command{}
+		s.s.cmd.SetContext(s.T().Context())
+		err = cpaValueListCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -140,13 +136,11 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(textField)
 
 		// Set a text value
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringSlice("value", []string{}, "")
-		err := cmd.Flags().Set("value", "Engineering")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
+		err := s.cmd.Flags().Set("value", "Engineering")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set
@@ -182,13 +176,11 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(selectField)
 
 		// Set a select value using the option name
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringSlice("value", []string{}, "")
-		err := cmd.Flags().Set("value", "Senior")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
+		err := s.cmd.Flags().Set("value", "Senior")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set (should be stored as option ID)
@@ -234,18 +226,16 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(multiselectField)
 
 		// Set multiple values using option names
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringSlice("value", []string{}, "")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
 
-		err := cmd.Flags().Set("value", "Go")
+		err := s.cmd.Flags().Set("value", "Go")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("value", "React")
+		err = s.cmd.Flags().Set("value", "React")
 		s.Require().Nil(err)
-		err = cmd.Flags().Set("value", "Python")
+		err = s.cmd.Flags().Set("value", "Python")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the values were set (should be stored as option IDs)
@@ -300,14 +290,12 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(multiselectField)
 
 		// Set a single value using option name
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringSlice("value", []string{}, "")
+		s.cmd.Flags().StringSlice("value", []string{}, "")
 
-		err := cmd.Flags().Set("value", "Python")
+		err := s.cmd.Flags().Set("value", "Python")
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set (should be stored as an array with single option ID)
@@ -359,13 +347,11 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 		createdField := s.createCPAField(userField)
 
 		// Set a user value using the system admin user ID
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringSlice("value", []string{}, "")
-		err := cmd.Flags().Set("value", s.th.SystemAdminUser.Id)
+		s.cmd.Flags().StringSlice("value", []string{}, "")
+		err := s.cmd.Flags().Set("value", s.th.SystemAdminUser.Id)
 		s.Require().Nil(err)
 
-		err = cpaValueSetCmdF(c, cmd, []string{s.th.BasicUser.Email, createdField.ID})
+		err = cpaValueSetCmdF(c, s.cmd, []string{s.th.BasicUser.Email, createdField.ID})
 		s.Require().Nil(err)
 
 		// Verify the value was set

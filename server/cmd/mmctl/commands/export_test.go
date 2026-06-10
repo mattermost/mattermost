@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
@@ -30,9 +29,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := exportCreateCmdF(s.client, cmd, nil)
+		err := exportCreateCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -54,11 +51,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("no-attachments", true, "")
+		s.cmd.Flags().Bool("no-attachments", true, "")
 
-		err := exportCreateCmdF(s.client, cmd, nil)
+		err := exportCreateCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -80,11 +75,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("no-roles-and-schemes", true, "")
+		s.cmd.Flags().Bool("no-roles-and-schemes", true, "")
 
-		err := exportCreateCmdF(s.client, cmd, nil)
+		err := exportCreateCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -102,9 +95,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
-	cmd := &cobra.Command{}
-	cmd.SetContext(s.T().Context())
-	err := exportDeleteCmdF(s.client, cmd, []string{exportName})
+	err := exportDeleteCmdF(s.client, s.cmd, []string{exportName})
 	s.Require().Nil(err)
 	s.Len(printer.GetLines(), 1)
 	s.Len(printer.GetErrorLines(), 0)
@@ -122,9 +113,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := exportListCmdF(s.client, cmd, nil)
+		err := exportListCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -145,9 +134,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := exportListCmdF(s.client, cmd, nil)
+		err := exportListCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockExports))
 		s.Len(printer.GetErrorLines(), 0)

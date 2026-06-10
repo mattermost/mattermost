@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
@@ -23,25 +22,21 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 
 	s.Run("Not enough command line parameters", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		// One argument provided.
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg})
 		s.EqualError(err, "not enough arguments")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 
 		// No arguments provided.
-		err = channelUsersAddCmdF(s.client, cmd, []string{})
+		err = channelUsersAddCmdF(s.client, s.cmd, []string{})
 		s.EqualError(err, "not enough arguments")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 	s.Run("Add existing user to existing channel", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -65,15 +60,13 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			AddChannelMember(s.T().Context(), channelID, userID).
 			Return(&model.ChannelMember{}, &model.Response{}, nil).
 			Times(2)
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 	s.Run("Add existing user to nonexistent channel", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -93,15 +86,13 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.EqualError(err, fmt.Sprintf("unable to find channel %q", channelArg))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 	s.Run("Add existing user to channel owned by nonexistent team", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		// No team is returned by client.
 		s.client.
@@ -115,7 +106,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.EqualError(err, fmt.Sprintf("unable to find channel %q", channelArg))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -123,8 +114,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Add multiple users, some nonexistent to existing channel", func() {
 		printer.Clean()
 		nilUserArg := "nonexistent-user"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -147,7 +136,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			GetUser(s.T().Context(), nilUserArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, nilUserArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, nilUserArg, userEmail})
 		s.Require().ErrorContains(err, "unable to find user")
 		s.Require().ErrorContains(err, nilUserArg)
 		s.Len(printer.GetLines(), 0)
@@ -155,8 +144,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	})
 	s.Run("Error adding existing user to existing channel", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -175,7 +162,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			AddChannelMember(s.T().Context(), channelID, userID).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
-		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
+		err := channelUsersAddCmdF(s.client, s.cmd, []string{channelArg, userEmail})
 		s.Require().ErrorContains(err, "unable to add")
 		s.Require().ErrorContains(err, userEmail)
 		s.Require().ErrorContains(err, channelName)
@@ -193,8 +180,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove user from channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{argsTeamChannel, userEmail}
 
 		foundTeam := &model.Team{
@@ -233,7 +218,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -241,21 +226,17 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should throw error if both --all-users flag and user email are passed", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
+		s.cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel, userEmail}
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "individual users must not be specified in conjunction with the --all-users flag")
 	})
 
 	s.Run("should remove all users from channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
+		s.cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel}
 
 		foundTeam := &model.Team{
@@ -317,7 +298,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -326,8 +307,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove multiple users from channel", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{argsTeamChannel, userEmail, mockUser2.Email}
 
 		foundTeam := &model.Team{
@@ -378,7 +357,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -386,9 +365,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove all users from channel throws error", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
+		s.cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel}
 
 		foundTeam := &model.Team{
@@ -430,7 +407,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().ErrorContains(err, "unable to remove")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -439,8 +416,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("should remove user from channel throws error", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{argsTeamChannel, userEmail}
 
 		foundTeam := &model.Team{
@@ -473,7 +448,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
-		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		err := channelUsersRemoveCmdF(s.client, s.cmd, args)
 		s.Require().ErrorContains(err, "unable to remove")
 		s.Require().ErrorContains(err, userEmail)
 		s.Require().ErrorContains(err, channelName)

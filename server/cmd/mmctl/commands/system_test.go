@@ -29,9 +29,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := getBusyCmdF(s.client, cmd, []string{})
+		err := getBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -50,9 +48,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := getBusyCmdF(s.client, cmd, []string{})
+		err := getBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -67,9 +63,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := getBusyCmdF(s.client, cmd, []string{})
+		err := getBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -81,9 +75,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		printer.Clean()
 		const minutes = 15
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Uint("seconds", minutes*60, "")
+		s.cmd.Flags().Uint("seconds", minutes*60, "")
 
 		s.client.
 			EXPECT().
@@ -91,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(minutes * 60)})
+		err := setBusyCmdF(s.client, s.cmd, []string{strconv.Itoa(minutes * 60)})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
@@ -101,9 +93,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 	s.Run("SetBusy with missing arg", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := setBusyCmdF(s.client, cmd, []string{})
+		err := setBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -112,11 +102,9 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 	s.Run("SetBusy zero seconds", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Uint("seconds", 0, "")
+		s.cmd.Flags().Uint("seconds", 0, "")
 
-		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(0)})
+		err := setBusyCmdF(s.client, s.cmd, []string{strconv.Itoa(0)})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -132,9 +120,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := clearBusyCmdF(s.client, cmd, []string{})
+		err := clearBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
@@ -149,9 +135,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := clearBusyCmdF(s.client, cmd, []string{})
+		err := clearBusyCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -169,9 +153,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemVersionCmdF(s.client, cmd, []string{})
+		err := systemVersionCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -187,9 +169,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemVersionCmdF(s.client, cmd, []string{})
+		err := systemVersionCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -214,9 +194,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -236,9 +214,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -257,9 +233,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -281,9 +255,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -305,9 +277,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -330,9 +300,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "server status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -357,9 +325,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "database status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -384,9 +350,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := systemStatusCmdF(s.client, cmd, []string{})
+		err := systemStatusCmdF(s.client, s.cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "filestore status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)

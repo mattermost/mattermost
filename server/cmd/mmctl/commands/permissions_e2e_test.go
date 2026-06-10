@@ -9,7 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
@@ -18,9 +17,7 @@ func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
 	s.RunForAllClients("MM-T3928 Should allow all users to see a role", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := showRoleCmdF(c, _cmd, []string{model.SystemAdminRoleId})
+		err := showRoleCmdF(c, s.cmd, []string{model.SystemAdminRoleId})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -29,9 +26,7 @@ func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
 	s.RunForAllClients("MM-T3959 Should return error to all users for a none exitent role", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := showRoleCmdF(c, _cmd, []string{"none_existent_role"})
+		err := showRoleCmdF(c, s.cmd, []string{"none_existent_role"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -48,9 +43,7 @@ func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 	s.Run("MM-T3961 Should not allow normal user to add a permission to a role", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := addPermissionsCmdF(s.th.Client, _cmd, []string{model.SystemUserRoleId, model.PermissionCreateBot.Id})
+		err := addPermissionsCmdF(s.th.Client, s.cmd, []string{model.SystemUserRoleId, model.PermissionCreateBot.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -59,9 +52,7 @@ func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3960 Should be able to add a permission to a role", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := addPermissionsCmdF(c, _cmd, []string{model.SystemUserRoleId, model.PermissionCreateBot.Id})
+		err := addPermissionsCmdF(c, s.cmd, []string{model.SystemUserRoleId, model.PermissionCreateBot.Id})
 		s.Require().NoError(err)
 		defer func() {
 			permissions := role.Permissions
@@ -88,9 +79,7 @@ func (s *MmctlE2ETestSuite) TestRemovePermissionsCmd() {
 	s.Run("MM-T3963 Should not allow normal user to remove a permission from a role", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := removePermissionsCmdF(s.th.Client, _cmd, []string{model.SystemUserRoleId, model.PermissionCreateDirectChannel.Id})
+		err := removePermissionsCmdF(s.th.Client, s.cmd, []string{model.SystemUserRoleId, model.PermissionCreateDirectChannel.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -99,9 +88,7 @@ func (s *MmctlE2ETestSuite) TestRemovePermissionsCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3962 Should be able to remove a permission from a role", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := removePermissionsCmdF(c, _cmd, []string{model.SystemUserRoleId, model.PermissionCreateDirectChannel.Id})
+		err := removePermissionsCmdF(c, s.cmd, []string{model.SystemUserRoleId, model.PermissionCreateDirectChannel.Id})
 		s.Require().NoError(err)
 		defer func() {
 			permissions := []string{model.PermissionCreateDirectChannel.Id}

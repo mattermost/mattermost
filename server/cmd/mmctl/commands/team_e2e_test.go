@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/spf13/cobra"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -22,24 +21,20 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.RunForAllClients("Error renaming team which does not exist", func(c client.Client) {
 		printer.Clean()
 		nonExistentTeamName := "existingName"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{nonExistentTeamName}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
-		err := renameTeamCmdF(c, cmd, args)
+		err := renameTeamCmdF(c, s.cmd, args)
 		s.Require().EqualError(err, "Unable to find team 'existingName', to see the all teams try 'team list' command")
 	})
 
 	s.RunForSystemAdminAndLocal("Rename an existing team", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
-		err := renameTeamCmdF(c, cmd, args)
+		err := renameTeamCmdF(c, s.cmd, args)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
@@ -49,12 +44,10 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.Run("Permission error renaming an existing team", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
-		err := renameTeamCmdF(s.th.Client, cmd, args)
+		err := renameTeamCmdF(s.th.Client, s.cmd, args)
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.ErrorContains(err, "Cannot rename team '"+s.th.BasicTeam.Name+"', error : You do not have the appropriate permissions.")
@@ -67,13 +60,11 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 	s.RunForAllClients("Error deleting team which does not exist", func(c client.Client) {
 		printer.Clean()
 		nonExistentName := "existingName"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{nonExistentName}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		_ = deleteTeamsCmdF(c, cmd, args)
+		_ = deleteTeamsCmdF(c, s.cmd, args)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to find team '"+nonExistentName+"'", printer.GetErrorLines()[0])
 	})
@@ -81,13 +72,11 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 	s.Run("Permission error while deleting a valid team", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		_ = deleteTeamsCmdF(s.th.Client, cmd, args)
+		_ = deleteTeamsCmdF(s.th.Client, s.cmd, args)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: You do not have the appropriate permissions.", printer.GetErrorLines()[0])
@@ -100,19 +89,15 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		teamName := "teamname" + model.NewRandomString(10)
 		teamDisplayname := "Mock Display Name"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display-name", teamDisplayname, "")
-		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.cmd.Flags().String("name", teamName, "")
+		s.cmd.Flags().String("display-name", teamDisplayname, "")
+		err := createTeamCmdF(s.th.LocalClient, s.cmd, []string{})
 		s.Require().Nil(err)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		cmd = _cmd
+		s.cmd = s.cmd
 		args := []string{teamName}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		// Set EnableAPITeamDeletion
 		enableConfig := true
@@ -121,7 +106,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		_, _, _ = c.UpdateConfig(s.T().Context(), config)
 
 		// Deletion should succeed for both local and SystemAdmin client now
-		err = deleteTeamsCmdF(c, cmd, args)
+		err = deleteTeamsCmdF(c, s.cmd, args)
 		s.Require().Nil(err)
 		team := printer.GetLines()[0].(*model.Team)
 		s.Equal(teamName, team.Name)
@@ -142,19 +127,15 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		teamName := "teamname" + model.NewRandomString(10)
 		teamDisplayname := "Mock Display Name"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display-name", teamDisplayname, "")
-		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.cmd.Flags().String("name", teamName, "")
+		s.cmd.Flags().String("display-name", teamDisplayname, "")
+		err := createTeamCmdF(s.th.LocalClient, s.cmd, []string{})
 		s.Require().Nil(err)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		cmd = _cmd
+		s.cmd = s.cmd
 		args := []string{teamName}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		c := s.th.LocalClient
 
@@ -166,7 +147,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		_, _, _ = c.UpdateConfig(s.T().Context(), config)
 
 		// Deletion should succeed for local client now
-		err = deleteTeamsCmdF(c, cmd, args)
+		err = deleteTeamsCmdF(c, s.cmd, args)
 		s.Require().Nil(err)
 		team := printer.GetLines()[0].(*model.Team)
 		s.Equal(teamName, team.Name)
@@ -186,13 +167,11 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		printer.Clean()
 
 		args := []string{s.th.BasicTeam.Name}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		s.cmd.Flags().Bool("confirm", true, "")
 
 		// Delete should fail for SystemAdmin client
-		err := deleteTeamsCmdF(s.th.SystemAdminClient, cmd, args)
+		err := deleteTeamsCmdF(s.th.SystemAdminClient, s.cmd, args)
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -204,7 +183,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Delete should succeed for local client
 		printer.Clean()
-		err = deleteTeamsCmdF(s.th.LocalClient, cmd, args)
+		err = deleteTeamsCmdF(s.th.LocalClient, s.cmd, args)
 		s.Require().Nil(err)
 		team = printer.GetLines()[0].(*model.Team)
 		s.Equal(team.Name, s.th.BasicTeam.Name)
@@ -218,10 +197,8 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 	s.RunForSystemAdminAndLocal("system & local accounts can set a team to private", func(c client.Client) {
 		printer.Clean()
 		teamID := s.th.BasicTeam.Id
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("private", true, "")
-		err := modifyTeamsCmdF(c, cmd, []string{teamID})
+		s.cmd.Flags().Bool("private", true, "")
+		err := modifyTeamsCmdF(c, s.cmd, []string{teamID})
 		s.Require().NoError(err)
 
 		s.Require().Equal(model.TeamInvite, printer.GetLines()[0].(*model.Team).Type)
@@ -236,10 +213,8 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 	s.Run("user that creates the team can't set team's privacy due to permissions", func() {
 		printer.Clean()
 		teamID := s.th.BasicTeam.Id
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("private", true, "")
-		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
+		s.cmd.Flags().Bool("private", true, "")
+		err := modifyTeamsCmdF(s.th.Client, s.cmd, []string{teamID})
 
 		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
 		s.Require().ErrorContains(err, expectedError)
@@ -255,11 +230,9 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 	s.Run("basic user with normal permissions that hasn't created the team can't set team's privacy", func() {
 		printer.Clean()
 		teamID := s.th.BasicTeam.Id
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("private", true, "")
+		s.cmd.Flags().Bool("private", true, "")
 		s.th.LoginBasic2(s.T())
-		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
+		err := modifyTeamsCmdF(s.th.Client, s.cmd, []string{teamID})
 
 		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
 		s.Require().ErrorContains(err, expectedError)
@@ -278,37 +251,31 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 
 	s.RunForAllClients("Should not create a team w/o name", func(c client.Client) {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("display-name", "somedisplayname", "")
+		s.cmd.Flags().String("display-name", "somedisplayname", "")
 
-		err := createTeamCmdF(c, cmd, []string{})
+		err := createTeamCmdF(c, s.cmd, []string{})
 		s.EqualError(err, "name is required")
 		s.Require().Empty(printer.GetLines())
 	})
 
 	s.RunForAllClients("Should not create a team w/o display-name", func(c client.Client) {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("name", model.NewId(), "")
+		s.cmd.Flags().String("name", model.NewId(), "")
 
-		err := createTeamCmdF(c, cmd, []string{})
+		err := createTeamCmdF(c, s.cmd, []string{})
 		s.EqualError(err, "display-name is required")
 		s.Require().Empty(printer.GetLines())
 	})
 
 	s.Run("Should create a new team w/ email using LocalClient", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		teamName := model.NewId()
-		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display-name", "somedisplayname", "")
+		s.cmd.Flags().String("name", teamName, "")
+		s.cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
-		cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("email", email, "")
 
-		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		err := createTeamCmdF(s.th.LocalClient, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		newTeam, err := s.th.App.GetTeamByName(teamName)
@@ -318,15 +285,13 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 
 	s.Run("Should create a new team w/ assigned email using SystemAdminClient", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		teamName := model.NewId()
-		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display-name", "somedisplayname", "")
+		s.cmd.Flags().String("name", teamName, "")
+		s.cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
-		cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("email", email, "")
 
-		err := createTeamCmdF(s.th.SystemAdminClient, cmd, []string{})
+		err := createTeamCmdF(s.th.SystemAdminClient, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		newTeam, err := s.th.App.GetTeamByName(teamName)
@@ -336,15 +301,13 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 
 	s.Run("Should create a new team w/ assigned email using Client", func() {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		teamName := model.NewId()
-		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display-name", "somedisplayname", "")
+		s.cmd.Flags().String("name", teamName, "")
+		s.cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
-		cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("email", email, "")
 
-		err := createTeamCmdF(s.th.Client, cmd, []string{})
+		err := createTeamCmdF(s.th.Client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		newTeam, err := s.th.App.GetTeamByName(teamName)
@@ -354,13 +317,11 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 
 	s.RunForAllClients("Should create a new open team", func(c client.Client) {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		teamName := model.NewId()
-		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display-name", "somedisplayname", "")
+		s.cmd.Flags().String("name", teamName, "")
+		s.cmd.Flags().String("display-name", "somedisplayname", "")
 
-		err := createTeamCmdF(c, cmd, []string{})
+		err := createTeamCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		newTeam, err := s.th.App.GetTeamByName(teamName)
@@ -371,14 +332,12 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 
 	s.RunForAllClients("Should create a new private team", func(c client.Client) {
 		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		teamName := model.NewId()
-		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display-name", "somedisplayname", "")
-		cmd.Flags().Bool("private", true, "")
+		s.cmd.Flags().String("name", teamName, "")
+		s.cmd.Flags().String("display-name", "somedisplayname", "")
+		s.cmd.Flags().Bool("private", true, "")
 
-		err := createTeamCmdF(c, cmd, []string{})
+		err := createTeamCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		newTeam, err := s.th.App.GetTeamByName(teamName)
@@ -394,9 +353,7 @@ func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 	s.RunForSystemAdminAndLocal("Search for existing team", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchTeamCmdF(c, _cmd, []string{s.th.BasicTeam.Name})
+		err := searchTeamCmdF(c, s.cmd, []string{s.th.BasicTeam.Name})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		team := printer.GetLines()[0].(*model.Team)
@@ -406,9 +363,7 @@ func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 	s.Run("Search for existing team with Client", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchTeamCmdF(s.th.Client, _cmd, []string{s.th.BasicTeam.Name})
+		err := searchTeamCmdF(s.th.Client, s.cmd, []string{s.th.BasicTeam.Name})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -419,9 +374,7 @@ func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 		printer.Clean()
 
 		teamnameArg := "nonexistentteam"
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchTeamCmdF(c, _cmd, []string{teamnameArg})
+		err := searchTeamCmdF(c, s.cmd, []string{teamnameArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -432,14 +385,12 @@ func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 	s.SetupTestHelper().InitBasic(s.T())
 
-	cmd := &cobra.Command{}
-	cmd.SetContext(s.T().Context())
-	cmd.Flags().Bool("confirm", true, "Confirm you really want to archive the team and a DB backup has been performed.")
+	s.cmd.Flags().Bool("confirm", true, "Confirm you really want to archive the team and a DB backup has been performed.")
 
 	s.RunForAllClients("Archive nonexistent team", func(c client.Client) {
 		printer.Clean()
 
-		err := archiveTeamsCmdF(c, cmd, []string{"unknown-team"})
+		err := archiveTeamsCmdF(c, s.cmd, []string{"unknown-team"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -449,7 +400,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 	s.RunForSystemAdminAndLocal("Archive basic team", func(c client.Client) {
 		printer.Clean()
 
-		err := archiveTeamsCmdF(c, cmd, []string{s.th.BasicTeam.Name})
+		err := archiveTeamsCmdF(c, s.cmd, []string{s.th.BasicTeam.Name})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		team := printer.GetLines()[0].(*model.Team)
@@ -467,7 +418,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 	s.Run("Archive team without permissions", func() {
 		printer.Clean()
 
-		err := archiveTeamsCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Name})
+		err := archiveTeamsCmdF(s.th.Client, s.cmd, []string{s.th.BasicTeam.Name})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -489,9 +440,7 @@ func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
 	s.RunForSystemAdminAndLocal("Should print both active and archived teams for syasdmin and local clients", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := listTeamsCmdF(c, _cmd, []string{})
+		err := listTeamsCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
 		team := printer.GetLines()[0].(*model.Team)
@@ -504,9 +453,7 @@ func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
 	s.Run("Should not list teams for Client", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := listTeamsCmdF(s.th.Client, _cmd, []string{})
+		err := listTeamsCmdF(s.th.Client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 	})
@@ -522,9 +469,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := restoreTeamsCmdF(c, _cmd, []string{team.Name})
+		err := restoreTeamsCmdF(c, s.cmd, []string{team.Name})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -536,9 +481,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 
 		teamName := "non-existent-team"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := restoreTeamsCmdF(c, _cmd, []string{teamName})
+		err := restoreTeamsCmdF(c, s.cmd, []string{teamName})
 		var expected error
 		errMessage := "unable to find team '" + teamName + "'"
 		expected = multierror.Append(expected, errors.New(errMessage))
@@ -554,9 +497,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := restoreTeamsCmdF(s.th.Client, _cmd, []string{team.Name})
+		err := restoreTeamsCmdF(s.th.Client, s.cmd, []string{team.Name})
 		var expected error
 		errMessage := "unable to find team '" + team.Name + "'"
 		expected = multierror.Append(expected, errors.New(errMessage))

@@ -9,28 +9,23 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 	s.Run("create a post with empty text", func() {
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
-		err := postCreateCmdF(s.client, cmd, []string{"some-channel", ""})
+		err := postCreateCmdF(s.client, s.cmd, []string{"some-channel", ""})
 		s.Require().EqualError(err, "message cannot be empty")
 	})
 
 	s.Run("no channel specified", func() {
 		msgArg := "some text"
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
 
-		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
+		err := postCreateCmdF(s.client, s.cmd, []string{"", msgArg})
 		s.Require().EqualError(err, "Unable to find channel ''")
 	})
 
@@ -38,10 +33,8 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		msgArg := "some text"
 		replyToArg := "a-non-existing-post"
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("reply-to", replyToArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("reply-to", replyToArg, "")
 
 		s.client.
 			EXPECT().
@@ -49,7 +42,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
-		err := postCreateCmdF(s.client, cmd, []string{msgArg})
+		err := postCreateCmdF(s.client, s.cmd, []string{msgArg})
 		s.Require().Contains(err.Error(), "some-error")
 	})
 
@@ -61,9 +54,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		data, err := mockPost.ToJSON()
 		s.Require().NoError(err)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
 
 		s.client.
 			EXPECT().
@@ -77,7 +68,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Return(nil, errors.New("some-error")).
 			Times(1)
 
-		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err = postCreateCmdF(s.client, s.cmd, []string{channelArg, msgArg})
 		s.Require().Contains(err.Error(), "could not create post")
 	})
 
@@ -89,9 +80,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		data, err := mockPost.ToJSON()
 		s.Require().NoError(err)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
 
 		s.client.
 			EXPECT().
@@ -105,7 +94,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Return(nil, nil).
 			Times(1)
 
-		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err = postCreateCmdF(s.client, s.cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -121,10 +110,8 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		data, err := mockPost.ToJSON()
 		s.Require().NoError(err)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("reply-to", replyToArg, "")
-		cmd.Flags().String("message", msgArg, "")
+		s.cmd.Flags().String("reply-to", replyToArg, "")
+		s.cmd.Flags().String("message", msgArg, "")
 
 		s.client.
 			EXPECT().
@@ -144,7 +131,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Return(nil, nil).
 			Times(1)
 
-		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err = postCreateCmdF(s.client, s.cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -154,11 +141,9 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 	s.Run("no channel specified", func() {
 		sinceArg := "invalid-date"
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("since", sinceArg, "")
+		s.cmd.Flags().String("since", sinceArg, "")
 
-		err := postListCmdF(s.client, cmd, []string{"", sinceArg})
+		err := postListCmdF(s.client, s.cmd, []string{"", sinceArg})
 		s.Require().EqualError(err, "Unable to find channel ''")
 	})
 
@@ -172,11 +157,9 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("since", sinceArg, "")
+		s.cmd.Flags().String("since", sinceArg, "")
 
-		err := postListCmdF(s.client, cmd, []string{channelName, sinceArg})
+		err := postListCmdF(s.client, s.cmd, []string{channelName, sinceArg})
 		s.Require().Contains(err.Error(), "invalid since time 'invalid-date'")
 	})
 
@@ -189,9 +172,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		mockPostList.AddOrder(mockPost.Id)
 		mockUser := model.User{Id: userID, Username: "some-user"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int("number", 1, "")
+		s.cmd.Flags().Int("number", 1, "")
 
 		s.client.
 			EXPECT().
@@ -212,7 +193,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 			Times(1)
 
 		printer.Clean()
-		err := postListCmdF(s.client, cmd, []string{channelName})
+		err := postListCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], mockPost)
@@ -237,10 +218,8 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		mockPostList.AddOrder(mockPost.Id)
 		mockUser := model.User{Id: userID, Username: "some-user"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Int("number", 1, "")
-		cmd.Flags().String("since", sinceArg, "")
+		s.cmd.Flags().Int("number", 1, "")
+		s.cmd.Flags().String("since", sinceArg, "")
 
 		s.client.
 			EXPECT().
@@ -260,7 +239,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		err = postListCmdF(s.client, cmd, []string{channelName})
+		err = postListCmdF(s.client, s.cmd, []string{channelName})
 		s.Require().Nil(err)
 		s.Require().Equal(printer.GetLines()[0], mockPost)
 		s.Len(printer.GetLines(), 1)
@@ -275,12 +254,10 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 	s.Run("invalid post id", func() {
 		id := "invalid-id"
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
-		cmd.Flags().Bool("permanent", false, "")
+		s.cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("permanent", false, "")
 
-		err := deletePostsCmdF(s.client, cmd, []string{id})
+		err := deletePostsCmdF(s.client, s.cmd, []string{id})
 		s.Require().Nil(err)
 		s.Require().Equal("Invalid postID: invalid-id", printer.GetErrorLines()[0])
 	})
@@ -292,12 +269,10 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			PermanentDeletePost(s.T().Context(), postID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
-		cmd.Flags().Bool("permanent", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("permanent", true, "")
 
-		err := deletePostsCmdF(s.client, cmd, []string{postID1})
+		err := deletePostsCmdF(s.client, s.cmd, []string{postID1})
 		s.Require().Nil(err)
 		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
 	})
@@ -309,12 +284,10 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			DeletePost(s.T().Context(), postID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
-		cmd.Flags().Bool("permanent", false, "")
+		s.cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("permanent", false, "")
 
-		err := deletePostsCmdF(s.client, cmd, []string{postID1})
+		err := deletePostsCmdF(s.client, s.cmd, []string{postID1})
 		s.Require().Nil(err)
 		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
 	})
@@ -331,12 +304,10 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			PermanentDeletePost(s.T().Context(), postID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
-		cmd.Flags().Bool("permanent", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("permanent", true, "")
 
-		err := deletePostsCmdF(s.client, cmd, []string{postID1, postID2})
+		err := deletePostsCmdF(s.client, s.cmd, []string{postID1, postID2})
 		s.Require().Nil(err)
 		s.Require().Equal(postID1+" successfully deleted", printer.GetLines()[0])
 		s.Require().Equal(postID2+" successfully deleted", printer.GetLines()[1])
@@ -353,12 +324,10 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
-		cmd.Flags().Bool("permanent", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("permanent", true, "")
 
-		err := deletePostsCmdF(s.client, cmd, []string{postID1})
+		err := deletePostsCmdF(s.client, s.cmd, []string{postID1})
 		s.Require().ErrorContains(err, "an error occurred on deleting a post")
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Error deleting post: "+postID1+". Error: an error occurred on deleting a post",
@@ -378,12 +347,10 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			PermanentDeletePost(s.T().Context(), postID2).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
-		cmd.Flags().Bool("permanent", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("permanent", true, "")
 
-		err := deletePostsCmdF(s.client, cmd, []string{postID1, postID2})
+		err := deletePostsCmdF(s.client, s.cmd, []string{postID1, postID2})
 		s.Require().ErrorContains(err, "an error occurred on deleting a post")
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)

@@ -19,13 +19,10 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 	oauthAppName := "oauthAppName"
 	userID := "userID"
 
-	cmd := &cobra.Command{}
-	cmd.SetContext(s.T().Context())
-	cmd.Flags().Int("page", 0, "")
-	cmd.Flags().Int("per-page", 200, "")
-
 	s.Run("Listing oauth apps", func() {
 		printer.Clean()
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 200, "")
 
 		mockOAuthApp := model.OAuthApp{
 			Id:        oauthAppID,
@@ -46,7 +43,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
-		err := listOAuthAppsCmdF(s.client, cmd, []string{})
+		err := listOAuthAppsCmdF(s.client, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -94,6 +91,8 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 	s.Run("Unable to list oauth apps", func() {
 		printer.Clean()
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 200, "")
 
 		mockError := errors.New("mock error")
 
@@ -103,7 +102,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listOAuthAppsCmdF(s.client, cmd, []string{})
+		err := listOAuthAppsCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.EqualError(err, "Failed to fetch oauth2 apps: mock error")
@@ -111,6 +110,8 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 	s.Run("Unable to get users for oauth apps", func() {
 		printer.Clean()
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", 200, "")
 
 		mockOAuthApp := model.OAuthApp{
 			Id:        oauthAppID,
@@ -131,7 +132,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listOAuthAppsCmdF(s.client, cmd, []string{})
+		err := listOAuthAppsCmdF(s.client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.EqualError(err, "Failed to fetch users for oauth2 apps: mock error")

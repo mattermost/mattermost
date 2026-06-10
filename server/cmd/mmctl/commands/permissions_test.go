@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
@@ -42,9 +41,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name, newPermission}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := addPermissionsCmdF(s.client, cmd, args)
+		err := addPermissionsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -58,9 +55,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 			Times(1)
 
 		args := []string{"mockRole", "newPermission"}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := addPermissionsCmdF(s.client, cmd, args)
+		err := addPermissionsCmdF(s.client, s.cmd, args)
 		s.Require().Equal(expectedError, err)
 	})
 
@@ -90,9 +85,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 				Return(&model.Role{}, &model.Response{}, nil).
 				Times(1)
 			args := []string{mockRole.Name, newPermission}
-			cmd := &cobra.Command{}
-			cmd.SetContext(s.T().Context())
-			err := addPermissionsCmdF(s.client, cmd, args)
+			err := addPermissionsCmdF(s.client, s.cmd, args)
 			s.Require().Nil(err)
 		})
 	})
@@ -121,9 +114,7 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name, "delete"}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := removePermissionsCmdF(s.client, cmd, args)
+		err := removePermissionsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -149,9 +140,7 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name, "view", "delete"}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := removePermissionsCmdF(s.client, cmd, args)
+		err := removePermissionsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -177,9 +166,7 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name, "delete"}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := removePermissionsCmdF(s.client, cmd, args)
+		err := removePermissionsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -196,9 +183,7 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name, "delete"}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := removePermissionsCmdF(s.client, cmd, args)
+		err := removePermissionsCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "role_not_found")
 	})
 }
@@ -218,9 +203,7 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := resetPermissionsCmdF(s.client, cmd, args)
+		err := resetPermissionsCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "role_not_found")
 	})
 
@@ -238,9 +221,7 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := resetPermissionsCmdF(s.client, cmd, args)
+		err := resetPermissionsCmdF(s.client, s.cmd, args)
 		s.Require().EqualError(err, "no default permissions available for role")
 	})
 
@@ -287,9 +268,7 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name}
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		err := resetPermissionsCmdF(s.client, cmd, args)
+		err := resetPermissionsCmdF(s.client, s.cmd, args)
 		s.Require().Nil(err)
 	})
 }

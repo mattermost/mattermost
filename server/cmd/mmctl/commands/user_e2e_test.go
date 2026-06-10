@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -27,9 +26,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		_, appErr := s.th.App.UpdateActive(s.th.Context, user, false)
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userActivateCmdF(c, _cmd, []string{user.Email})
+		err := userActivateCmdF(c, s.cmd, []string{user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -45,9 +42,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		_, appErr := s.th.App.UpdateActive(s.th.Context, user, false)
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userActivateCmdF(s.th.Client, _cmd, []string{user.Email})
+		err := userActivateCmdF(s.th.Client, s.cmd, []string{user.Email})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -61,9 +56,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 	s.RunForAllClients("Activate nonexistent user", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userActivateCmdF(c, _cmd, []string{"nonexistent@email"})
+		err := userActivateCmdF(c, s.cmd, []string{"nonexistent@email"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -83,9 +76,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		_, appErr := s.th.App.UpdateActive(s.th.Context, user, true)
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userDeactivateCmdF(c, _cmd, []string{user.Email})
+		err := userDeactivateCmdF(c, s.cmd, []string{user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -101,9 +92,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		_, appErr := s.th.App.UpdateActive(s.th.Context, user, true)
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userDeactivateCmdF(s.th.Client, _cmd, []string{user.Email})
+		err := userDeactivateCmdF(s.th.Client, s.cmd, []string{user.Email})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -117,9 +106,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 	s.RunForAllClients("Deactivate nonexistent user", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userDeactivateCmdF(c, _cmd, []string{"nonexistent@email"})
+		err := userDeactivateCmdF(c, s.cmd, []string{"nonexistent@email"})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -133,9 +120,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	s.RunForAllClients("Search for an existing user", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchUserCmdF(c, _cmd, []string{s.th.BasicUser.Email})
+		err := searchUserCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user := printer.GetLines()[0].(userOut)
@@ -158,9 +143,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		})
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchUserCmdF(c, _cmd, []string{disabledUser.Email})
+		err := searchUserCmdF(c, s.cmd, []string{disabledUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user := printer.GetLines()[0].(userOut)
@@ -182,9 +165,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 
 	s.RunForSystemAdminAndLocal("Search for a user with authData", func(c client.Client) {
 		printer.Clean()
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchUserCmdF(c, _cmd, []string{ldapUser.Email})
+		err := searchUserCmdF(c, s.cmd, []string{ldapUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user := printer.GetLines()[0].(userOut)
@@ -198,9 +179,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	s.Run("Search for a user with authData/Client", func() {
 		printer.Clean()
 		// Non-admin should not be able to see AuthData or AuthService
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchUserCmdF(s.th.Client, _cmd, []string{ldapUser.Email})
+		err := searchUserCmdF(s.th.Client, s.cmd, []string{ldapUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user := printer.GetLines()[0].(userOut)
@@ -215,9 +194,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		printer.Clean()
 		emailArg := "nonexistentUser@example.com"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := searchUserCmdF(c, _cmd, []string{emailArg})
+		err := searchUserCmdF(c, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -265,10 +242,10 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
+		s.cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "5"))
 
-		err := listUsersCmdF(c, cmd, []string{})
+		err := listUsersCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().GreaterOrEqual(len(printer.GetLines()), 5)
 		s.Len(printer.GetErrorLines(), 0)
@@ -282,11 +259,11 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of all user", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
+		s.cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
 
-		err := listUsersCmdF(c, cmd, []string{})
+		err := listUsersCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().GreaterOrEqual(len(printer.GetLines()), 16)
 		s.Len(printer.GetErrorLines(), 0)
@@ -299,12 +276,12 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "12"))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
-		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+		s.cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "12"))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
+		s.Require().NoError(s.cmd.Flags().Set("inactive", "true"))
 
-		err := listUsersCmdF(c, cmd, []string{})
+		err := listUsersCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().GreaterOrEqual(len(printer.GetLines()), 2)
 		s.Len(printer.GetErrorLines(), 0)
@@ -330,12 +307,12 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list users given team", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
-		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
+		s.cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
+		s.Require().NoError(s.cmd.Flags().Set("team", s.th.BasicTeam.Name))
 
-		err := listUsersCmdF(c, cmd, []string{})
+		err := listUsersCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().GreaterOrEqual(len(printer.GetLines()), 10)
 		s.Len(printer.GetErrorLines(), 0)
@@ -364,13 +341,13 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "40"))
-		s.Require().NoError(cmd.Flags().Set("all", "true"))
-		s.Require().NoError(cmd.Flags().Set("team", s.th.BasicTeam.Name))
-		s.Require().NoError(cmd.Flags().Set("inactive", "true"))
+		s.cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "40"))
+		s.Require().NoError(s.cmd.Flags().Set("all", "true"))
+		s.Require().NoError(s.cmd.Flags().Set("team", s.th.BasicTeam.Name))
+		s.Require().NoError(s.cmd.Flags().Set("inactive", "true"))
 
-		err := listUsersCmdF(c, cmd, []string{})
+		err := listUsersCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().GreaterOrEqual(len(printer.GetLines()), 10)
 		s.Len(printer.GetErrorLines(), 0)
@@ -383,11 +360,11 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForSystemAdminAndLocal("Get list of users with given role", func(c client.Client) {
 		printer.Clean()
 
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
-		s.Require().NoError(cmd.Flags().Set("role", model.SystemAdminRoleId))
+		s.cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(s.cmd.Flags().Set("per-page", "5"))
+		s.Require().NoError(s.cmd.Flags().Set("role", model.SystemAdminRoleId))
 
-		err := listUsersCmdF(c, cmd, []string{})
+		err := listUsersCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().GreaterOrEqual(len(printer.GetLines()), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -409,9 +386,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userInviteCmdF(c, _cmd, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+		err := userInviteCmdF(c, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Invites may or may not have been sent.")
@@ -427,9 +402,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
 		}()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userInviteCmdF(c, _cmd, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+		err := userInviteCmdF(c, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -457,9 +430,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		s.Require().Nil(appErr)
 
 		user := s.th.CreateUser(s.T())
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userInviteCmdF(c, _cmd, []string{user.Email, team.Id})
+		err := userInviteCmdF(c, s.cmd, []string{user.Email, team.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -487,9 +458,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := resetUserMfaCmdF(c, _cmd, []string{user.Email})
+		err := resetUserMfaCmdF(c, s.cmd, []string{user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -512,9 +481,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		userMfaInactive, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), MfaActive: false})
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := resetUserMfaCmdF(c, _cmd, []string{userMfaInactive.Email})
+		err := resetUserMfaCmdF(c, s.cmd, []string{userMfaInactive.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -530,9 +497,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
 		}()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := resetUserMfaCmdF(s.th.Client, _cmd, []string{user.Email})
+		err := resetUserMfaCmdF(s.th.Client, s.cmd, []string{user.Email})
 
 		var expected error
 
@@ -555,9 +520,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.RunForSystemAdminAndLocal("Verify user email without token", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := verifyUserEmailWithoutTokenCmdF(c, _cmd, []string{user.Email})
+		err := verifyUserEmailWithoutTokenCmdF(c, s.cmd, []string{user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -566,9 +529,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.Run("Verify user email without token (without permission)", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := verifyUserEmailWithoutTokenCmdF(s.th.Client, _cmd, []string{user.Email})
+		err := verifyUserEmailWithoutTokenCmdF(s.th.Client, s.cmd, []string{user.Email})
 		var expected error
 
 		expected = multierror.Append(
@@ -582,9 +543,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.RunForAllClients("Verify user email without token for nonexistent user", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := verifyUserEmailWithoutTokenCmdF(c, _cmd, []string{"nonexistent@email"})
+		err := verifyUserEmailWithoutTokenCmdF(c, s.cmd, []string{"nonexistent@email"})
 		var expected error
 
 		expected = multierror.Append(
@@ -605,12 +564,10 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForAllClients("Should not create a user w/o username", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("password", "somepass", "")
-		cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("password", "somepass", "")
+		s.cmd.Flags().String("email", email, "")
 
-		err := userCreateCmdF(c, cmd, []string{})
+		err := userCreateCmdF(c, s.cmd, []string{})
 		s.EqualError(err, "Username is required: flag accessed but not defined: username")
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
@@ -621,12 +578,10 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
 		printer.Clean()
 		username := model.NewUsername()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("username", username, "")
-		cmd.Flags().String("password", "somepass", "")
+		s.cmd.Flags().String("username", username, "")
+		s.cmd.Flags().String("password", "somepass", "")
 
-		err := userCreateCmdF(c, cmd, []string{})
+		err := userCreateCmdF(c, s.cmd, []string{})
 		s.EqualError(err, "Email is required: flag accessed but not defined: email")
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByUsername(username)
@@ -637,12 +592,10 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("username", model.NewId(), "")
-		cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("username", model.NewId(), "")
+		s.cmd.Flags().String("email", email, "")
 
-		err := userCreateCmdF(c, cmd, []string{})
+		err := userCreateCmdF(c, s.cmd, []string{})
 		s.EqualError(err, "Password is required: flag accessed but not defined: password")
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
@@ -654,14 +607,12 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewUsername()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("username", username, "")
-		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", model.NewTestPassword(), "")
-		cmd.Flags().Bool("system-admin", true, "")
+		s.cmd.Flags().String("username", username, "")
+		s.cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("password", model.NewTestPassword(), "")
+		s.cmd.Flags().Bool("system-admin", true, "")
 
-		err := userCreateCmdF(s.th.Client, cmd, []string{})
+		err := userCreateCmdF(s.th.Client, s.cmd, []string{})
 		s.EqualError(err, "Unable to update user roles. Error: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		user, err := s.th.App.GetUserByEmail(email)
@@ -674,14 +625,12 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewUsername()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("username", username, "")
-		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", model.NewTestPassword(), "")
-		cmd.Flags().Bool("system-admin", true, "")
+		s.cmd.Flags().String("username", username, "")
+		s.cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("password", model.NewTestPassword(), "")
+		s.cmd.Flags().Bool("system-admin", true, "")
 
-		err := userCreateCmdF(c, cmd, []string{})
+		err := userCreateCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user, err := s.th.App.GetUserByEmail(email)
@@ -694,13 +643,11 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewUsername()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("username", username, "")
-		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", model.NewTestPassword(), "")
+		s.cmd.Flags().String("username", username, "")
+		s.cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("password", model.NewTestPassword(), "")
 
-		err := userCreateCmdF(c, cmd, []string{})
+		err := userCreateCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user, err := s.th.App.GetUserByEmail(email)
@@ -713,14 +660,12 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewUsername()
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().String("username", username, "")
-		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", model.NewTestPassword(), "")
-		cmd.Flags().Bool("email-verified", true, "")
+		s.cmd.Flags().String("username", username, "")
+		s.cmd.Flags().String("email", email, "")
+		s.cmd.Flags().String("password", model.NewTestPassword(), "")
+		s.cmd.Flags().Bool("email-verified", true, "")
 
-		err := userCreateCmdF(c, cmd, []string{})
+		err := userCreateCmdF(c, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user, err := s.th.App.GetUserByEmail(email)
@@ -741,13 +686,11 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser(s.T())
-		err := deleteUsersCmdF(c, cmd, []string{newUser.Email})
+		err := deleteUsersCmdF(c, s.cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -774,12 +717,10 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		err := deleteUsersCmdF(c, cmd, []string{emailArg})
+		err := deleteUsersCmdF(c, s.cmd, []string{emailArg})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, expectedErr.Error())
 	})
@@ -793,10 +734,8 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser(s.T())
 
@@ -804,7 +743,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
 			fmt.Errorf("You do not have the appropriate permissions.")))
 
-		err := deleteUsersCmdF(s.th.Client, cmd, []string{newUser.Email})
+		err := deleteUsersCmdF(s.th.Client, s.cmd, []string{newUser.Email})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, expectedErr.Error())
 
@@ -823,10 +762,8 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser(s.T())
 
@@ -834,7 +771,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
 			fmt.Errorf("Permanent user deletion feature is not enabled. ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information.")))
 
-		err := deleteUsersCmdF(s.th.SystemAdminClient, cmd, []string{newUser.Email})
+		err := deleteUsersCmdF(s.th.SystemAdminClient, s.cmd, []string{newUser.Email})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, expectedErr.Error())
 
@@ -853,13 +790,11 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 		}()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser(s.T())
-		err := deleteUsersCmdF(s.th.LocalClient, cmd, []string{newUser.Email})
+		err := deleteUsersCmdF(s.th.LocalClient, s.cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -881,10 +816,8 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		printer.Clean()
 
 		emailArg := "example@example.com"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 
-		err := userConvertCmdF(c, cmd, []string{emailArg})
+		err := userConvertCmdF(c, s.cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Equal("either \"user\" flag or \"bot\" flag should be provided", err.Error())
@@ -894,11 +827,9 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		printer.Clean()
 
 		emailArg := "something@something.com"
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("bot", true, "")
+		s.cmd.Flags().Bool("bot", true, "")
 
-		err := userConvertCmdF(c, cmd, []string{emailArg})
+		err := userConvertCmdF(c, s.cmd, []string{emailArg})
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.ErrorContains(err, "user something@something.com not found")
@@ -910,11 +841,9 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		user, _ := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 
 		email := user.Email
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("bot", true, "")
+		s.cmd.Flags().Bool("bot", true, "")
 
-		err := userConvertCmdF(c, cmd, []string{email})
+		err := userConvertCmdF(c, s.cmd, []string{email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		bot := printer.GetLines()[0].(*model.Bot)
@@ -928,11 +857,9 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		printer.Clean()
 
 		email := s.th.BasicUser2.Email
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("bot", true, "")
+		s.cmd.Flags().Bool("bot", true, "")
 
-		err := userConvertCmdF(s.th.Client, cmd, []string{email})
+		err := userConvertCmdF(s.th.Client, s.cmd, []string{email})
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.ErrorContains(err, "You do not have the appropriate permissions")
@@ -944,12 +871,10 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		username := "fakeuser" + model.NewRandomString(10)
 		bot, _ := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: username, DisplayName: username, OwnerId: username})
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("user", true, "")
-		cmd.Flags().String("password", model.NewTestPassword(), "")
+		s.cmd.Flags().Bool("user", true, "")
+		s.cmd.Flags().String("password", model.NewTestPassword(), "")
 
-		err := userConvertCmdF(c, cmd, []string{bot.Username})
+		err := userConvertCmdF(c, s.cmd, []string{bot.Username})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		user := printer.GetLines()[0].(*model.User)
@@ -963,12 +888,10 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		username := "fakeuser" + model.NewRandomString(10)
 		bot, _ := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: username, DisplayName: username, OwnerId: username})
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("user", true, "")
-		cmd.Flags().String("password", "password", "")
+		s.cmd.Flags().Bool("user", true, "")
+		s.cmd.Flags().String("password", "password", "")
 
-		err := userConvertCmdF(s.th.Client, cmd, []string{bot.Username})
+		err := userConvertCmdF(s.th.Client, s.cmd, []string{bot.Username})
 		s.Require().Error(err)
 		s.EqualError(err, "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 0)
@@ -982,12 +905,10 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 	s.Run("Delete all user as unpriviliged user should not work", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		err := deleteAllUsersCmdF(s.th.Client, cmd, []string{})
+		err := deleteAllUsersCmdF(s.th.Client, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -1004,12 +925,10 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 	s.Run("Delete all user as system admin through the port API should not work", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		err := deleteAllUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
+		err := deleteAllUsersCmdF(s.th.SystemAdminClient, s.cmd, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
@@ -1037,13 +956,11 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 			s.Require().Nil(err)
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		s.cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		// delete all users only works on local mode
-		err := deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
+		err := deleteAllUsersCmdF(s.th.LocalClient, s.cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -1146,12 +1063,10 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	s.Run("Should fail when regular user tries to migrate auth", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("auto", true, "")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("auto", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		err := migrateAuthCmdF(s.th.Client, cmd, []string{"ldap", "saml"})
+		err := migrateAuthCmdF(s.th.Client, s.cmd, []string{"ldap", "saml"})
 		s.Require().Error(err)
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -1160,12 +1075,10 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	s.RunForSystemAdminAndLocal("Migrate from ldap to saml", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("auto", true, "")
-		cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("auto", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
 
-		err := migrateAuthCmdF(c, cmd, []string{"ldap", "saml"})
+		err := migrateAuthCmdF(c, s.cmd, []string{"ldap", "saml"})
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
@@ -1190,12 +1103,10 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	s.RunForSystemAdminAndLocal("Migrate from saml to ldap", func(c client.Client) {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("confirm", true, "")
-		cmd.Flags().Bool("force", true, "")
+		s.cmd.Flags().Bool("confirm", true, "")
+		s.cmd.Flags().Bool("force", true, "")
 
-		err := migrateAuthCmdF(c, cmd, []string{"saml", "ldap", "email"})
+		err := migrateAuthCmdF(c, s.cmd, []string{"saml", "ldap", "email"})
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
@@ -1256,11 +1167,9 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 	s.Run("list all preferences for single user", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", "", "")
+		s.cmd.Flags().StringP("category", "c", "", "")
 
-		err = preferencesListCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		err = preferencesListCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 3)
 		s.Require().Equal(preference1, printer.GetLines()[0])
@@ -1272,11 +1181,9 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 	s.Run("list filtered preferences for single user", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
 
-		err = preferencesListCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		err = preferencesListCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(preference1, printer.GetLines()[0])
@@ -1287,11 +1194,9 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 	s.Run("list all preferences for multiple users as admin", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", "", "")
+		s.cmd.Flags().StringP("category", "c", "", "")
 
-		err = preferencesListCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err = preferencesListCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 4)
 		s.Require().Equal(preference1, printer.GetLines()[0])
@@ -1304,11 +1209,9 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 	s.Run("list filtered preferences for multiple users as admin", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
 
-		err = preferencesListCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err = preferencesListCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 3)
 		s.Require().Equal(preference1, printer.GetLines()[0])
@@ -1320,11 +1223,9 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 	s.Run("list preferences for multiple users as non-admin", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
 
-		err = preferencesListCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err = preferencesListCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().Error(err)
 	})
 }
@@ -1352,12 +1253,10 @@ func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
 	s.Run("get preference for single user", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
-		cmd.Flags().StringP("name", "n", preference1.Name, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference1.Name, "")
 
-		err = preferencesGetCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		err = preferencesGetCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&preference1, printer.GetLines()[0])
@@ -1367,12 +1266,10 @@ func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
 	s.Run("get preferences for multiple users as admin", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
-		cmd.Flags().StringP("name", "n", preference1.Name, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference1.Name, "")
 
-		err = preferencesGetCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err = preferencesGetCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(&preference1, printer.GetLines()[0])
@@ -1383,12 +1280,10 @@ func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
 	s.Run("get preferences for multiple users as non-admin", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
-		cmd.Flags().StringP("name", "n", preference1.Name, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference1.Name, "")
 
-		err = preferencesGetCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err = preferencesGetCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().Error(err)
 	})
 }
@@ -1425,13 +1320,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 
 		preferenceNew := model.Preference{UserId: s.th.BasicUser.Id, Category: "zzz_custom", Name: "new", Value: "value"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preferenceNew.Category, "")
-		cmd.Flags().StringP("name", "n", preferenceNew.Name, "")
-		cmd.Flags().StringP("value", "v", preferenceNew.Value, "")
+		s.cmd.Flags().StringP("category", "c", preferenceNew.Category, "")
+		s.cmd.Flags().StringP("name", "n", preferenceNew.Name, "")
+		s.cmd.Flags().StringP("value", "v", preferenceNew.Value, "")
 
-		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		err := preferencesUpdateCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -1457,13 +1350,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		preferenceNew := model.Preference{UserId: s.th.BasicUser.Id, Category: "zzz_custom", Name: "new", Value: "value"}
 		preferenceNew2 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "zzz_custom", Name: "new", Value: "value"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preferenceNew.Category, "")
-		cmd.Flags().StringP("name", "n", preferenceNew.Name, "")
-		cmd.Flags().StringP("value", "v", preferenceNew.Value, "")
+		s.cmd.Flags().StringP("category", "c", preferenceNew.Category, "")
+		s.cmd.Flags().StringP("name", "n", preferenceNew.Name, "")
+		s.cmd.Flags().StringP("value", "v", preferenceNew.Value, "")
 
-		err := preferencesUpdateCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err := preferencesUpdateCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -1489,13 +1380,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 
 		preference := model.Preference{Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference.Category, "")
-		cmd.Flags().StringP("name", "n", preference.Name, "")
-		cmd.Flags().StringP("value", "v", preference.Value, "")
+		s.cmd.Flags().StringP("category", "c", preference.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference.Name, "")
+		s.cmd.Flags().StringP("value", "v", preference.Value, "")
 
-		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err := preferencesUpdateCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().Error(err)
 	})
 
@@ -1505,13 +1394,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 
 		preferenceUpdated := model.Preference{UserId: s.th.BasicUser.Id, Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
-		cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
-		cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
+		s.cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
+		s.cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
+		s.cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
 
-		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		err := preferencesUpdateCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -1538,13 +1425,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 		preferenceUpdated := model.Preference{UserId: s.th.BasicUser.Id, Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
 		preferenceUpdated2 := model.Preference{UserId: s.th.BasicUser2.Id, Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
-		cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
-		cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
+		s.cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
+		s.cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
+		s.cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
 
-		err := preferencesUpdateCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err := preferencesUpdateCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -1569,13 +1454,11 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 
 		preferenceUpdated := model.Preference{Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
-		cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
-		cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
+		s.cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
+		s.cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
+		s.cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
 
-		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err := preferencesUpdateCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().Error(err)
 	})
 }
@@ -1605,12 +1488,10 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 
 		preference := model.Preference{Category: "does", Name: "not"}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference.Category, "")
-		cmd.Flags().StringP("name", "n", preference.Name, "")
+		s.cmd.Flags().StringP("category", "c", preference.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference.Name, "")
 
-		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		err := preferencesDeleteCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -1631,12 +1512,10 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 	s.Run("delete existing preference for single user", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
-		cmd.Flags().StringP("name", "n", preference1.Name, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference1.Name, "")
 
-		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		err := preferencesDeleteCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -1656,12 +1535,10 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 	s.Run("delete existing preferences for multiple users as admin", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
-		cmd.Flags().StringP("name", "n", preference1.Name, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference1.Name, "")
 
-		err := preferencesDeleteCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err := preferencesDeleteCmdF(s.th.SystemAdminClient, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -1680,12 +1557,10 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 	s.Run("delete existing preferences for multiple users as non-admin", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().StringP("category", "c", preference1.Category, "")
-		cmd.Flags().StringP("name", "n", preference1.Name, "")
+		s.cmd.Flags().StringP("category", "c", preference1.Category, "")
+		s.cmd.Flags().StringP("name", "n", preference1.Name, "")
 
-		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		err := preferencesDeleteCmdF(s.th.Client, s.cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
 		s.Require().Error(err)
 	})
 }
@@ -1697,9 +1572,7 @@ func (s *MmctlE2ETestSuite) TestSendPasswordResetEmailCmd() {
 		emailArg1 := "demo1@example.com"
 		emailArg2 := "demo2@example.com"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := sendPasswordResetEmailCmdF(c, _cmd, []string{emailArg1, emailArg2})
+		err := sendPasswordResetEmailCmdF(c, s.cmd, []string{emailArg1, emailArg2})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1713,18 +1586,14 @@ func (s *MmctlE2ETestSuite) TestSendPasswordResetEmailCmd() {
 		var expected error
 		expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", emailArg2))
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := sendPasswordResetEmailCmdF(c, _cmd, []string{emailArg1, emailArg2})
+		err := sendPasswordResetEmailCmdF(c, s.cmd, []string{emailArg1, emailArg2})
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 
 	s.RunForAllClients("no arguments passed", func(c client.Client) {
 		printer.Clean()
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := sendPasswordResetEmailCmdF(c, _cmd, []string{})
+		err := sendPasswordResetEmailCmdF(c, s.cmd, []string{})
 		s.Require().EqualError(err, "expected at least one argument. See help text for details")
 	})
 }
@@ -1745,9 +1614,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		oldUsername := user.Username
 		newUsername := "editedusername" + model.NewRandomString(5)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditUsernameCmdF(c, _cmd, []string{user.Username, newUsername})
+		err := userEditUsernameCmdF(c, s.cmd, []string{user.Username, newUsername})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1768,9 +1635,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 
 		newUsername := "unauthorizedusername"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditUsernameCmdF(s.th.Client, _cmd, []string{user.Username, newUsername})
+		err := userEditUsernameCmdF(s.th.Client, s.cmd, []string{user.Username, newUsername})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1786,9 +1651,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 
 		invalidUsername := "invalid username with spaces"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditUsernameCmdF(c, _cmd, []string{user.Username, invalidUsername})
+		err := userEditUsernameCmdF(c, s.cmd, []string{user.Username, invalidUsername})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "invalid username: '"+invalidUsername+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -1806,9 +1669,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		nonexistentUser := "nonexistentuser"
 		newUsername := "newusername"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditUsernameCmdF(c, _cmd, []string{nonexistentUser, newUsername})
+		err := userEditUsernameCmdF(c, s.cmd, []string{nonexistentUser, newUsername})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "user "+nonexistentUser+" not found")
 		s.Require().Len(printer.GetLines(), 0)
@@ -1832,9 +1693,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		oldEmail := user.Email
 		newEmail := "newemail" + model.NewRandomString(5) + "@example.com"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditEmailCmdF(c, _cmd, []string{user.Username, newEmail})
+		err := userEditEmailCmdF(c, s.cmd, []string{user.Username, newEmail})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1855,9 +1714,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 
 		newEmail := "unauthorized@example.com"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditEmailCmdF(s.th.Client, _cmd, []string{user.Username, newEmail})
+		err := userEditEmailCmdF(s.th.Client, s.cmd, []string{user.Username, newEmail})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1873,9 +1730,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 
 		invalidEmail := "invalidemail"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditEmailCmdF(c, _cmd, []string{user.Username, invalidEmail})
+		err := userEditEmailCmdF(c, s.cmd, []string{user.Username, invalidEmail})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "invalid email: '"+invalidEmail+"'")
 		s.Require().Len(printer.GetLines(), 0)
@@ -1893,9 +1748,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		nonexistentUser := "nonexistentuser"
 		newEmail := "newemail@example.com"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditEmailCmdF(c, _cmd, []string{nonexistentUser, newEmail})
+		err := userEditEmailCmdF(c, s.cmd, []string{nonexistentUser, newEmail})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "user "+nonexistentUser+" not found")
 		s.Require().Len(printer.GetLines(), 0)
@@ -1919,9 +1772,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 	s.Run("Edit authdata without permission", func() {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditAuthdataCmdF(s.th.Client, _cmd, []string{user.Username, newAuthdata})
+		err := userEditAuthdataCmdF(s.th.Client, s.cmd, []string{user.Username, newAuthdata})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1937,9 +1788,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		printer.Clean()
 
 		// Attempt to clear authdata with empty string should return error
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditAuthdataCmdF(c, _cmd, []string{user.Username, ""})
+		err := userEditAuthdataCmdF(c, s.cmd, []string{user.Username, ""})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1960,9 +1809,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 			longAuthdata[i] = 'a'
 		}
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditAuthdataCmdF(c, _cmd, []string{user.Username, string(longAuthdata)})
+		err := userEditAuthdataCmdF(c, s.cmd, []string{user.Username, string(longAuthdata)})
 		s.Require().Error(err)
 		s.Require().EqualError(err, fmt.Sprintf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength))
 		s.Require().Len(printer.GetLines(), 0)
@@ -1980,9 +1827,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 
 		nonexistentUser := "nonexistentuser"
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditAuthdataCmdF(c, _cmd, []string{nonexistentUser, newAuthdata})
+		err := userEditAuthdataCmdF(c, s.cmd, []string{nonexistentUser, newAuthdata})
 		s.Require().Error(err)
 		s.Require().EqualError(err, "user "+nonexistentUser+" not found")
 		s.Require().Len(printer.GetLines(), 0)
@@ -1991,9 +1836,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 	s.RunForSystemAdminAndLocal("Edit authdata successfully", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := userEditAuthdataCmdF(c, _cmd, []string{user.Username, newAuthdata})
+		err := userEditAuthdataCmdF(c, s.cmd, []string{user.Username, newAuthdata})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)

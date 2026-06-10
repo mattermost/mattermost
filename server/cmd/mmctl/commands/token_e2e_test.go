@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -28,9 +27,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := generateTokenForAUserCmdF(c, _cmd, []string{user.Email, tokenDescription})
+		err := generateTokenForAUserCmdF(c, s.cmd, []string{user.Email, tokenDescription})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
@@ -51,9 +48,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 
 		nonExistentUserEmail := s.th.GenerateTestEmail()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := generateTokenForAUserCmdF(c, _cmd, []string{nonExistentUserEmail, tokenDescription})
+		err := generateTokenForAUserCmdF(c, s.cmd, []string{nonExistentUserEmail, tokenDescription})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -68,9 +63,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := generateTokenForAUserCmdF(s.th.Client, _cmd, []string{user.Email, tokenDescription})
+		err := generateTokenForAUserCmdF(s.th.Client, s.cmd, []string{user.Email, tokenDescription})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -103,9 +96,7 @@ func (s *MmctlE2ETestSuite) TestRevokeTokenForAUserCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := revokeTokenForAUserCmdF(c, _cmd, []string{token.Id})
+		err := revokeTokenForAUserCmdF(c, s.cmd, []string{token.Id})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -118,9 +109,7 @@ func (s *MmctlE2ETestSuite) TestRevokeTokenForAUserCmdF() {
 	s.RunForSystemAdminAndLocal("Fail to revoke non-existent token", func(c client.Client) {
 		printer.Clean()
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := revokeTokenForAUserCmdF(c, _cmd, []string{"non-existent-token-id"})
+		err := revokeTokenForAUserCmdF(c, s.cmd, []string{"non-existent-token-id"})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "could not revoke token")
 		s.Require().Len(printer.GetLines(), 0)
@@ -139,9 +128,7 @@ func (s *MmctlE2ETestSuite) TestRevokeTokenForAUserCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		_cmd := &cobra.Command{}
-		_cmd.SetContext(s.T().Context())
-		err := revokeTokenForAUserCmdF(s.th.Client, _cmd, []string{token.Id})
+		err := revokeTokenForAUserCmdF(s.th.Client, s.cmd, []string{token.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)

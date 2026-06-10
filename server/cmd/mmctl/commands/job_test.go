@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
@@ -17,15 +16,13 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 		printer.Clean()
 		var mockJobs []*model.Job
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		perPage := 10
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
-		cmd.Flags().StringSlice("ids", []string{}, "")
-		cmd.Flags().String("status", "", "")
-		cmd.Flags().String("type", "", "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().StringSlice("ids", []string{}, "")
+		s.cmd.Flags().String("status", "", "")
+		s.cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -33,7 +30,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
-		err := listJobsCmdF(s.client, cmd, nil)
+		err := listJobsCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -54,15 +51,13 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			},
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		perPage := 3
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
-		cmd.Flags().StringSlice("ids", []string{}, "")
-		cmd.Flags().String("status", "", "")
-		cmd.Flags().String("type", "", "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().StringSlice("ids", []string{}, "")
+		s.cmd.Flags().String("status", "", "")
+		s.cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -70,7 +65,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
-		err := listJobsCmdF(s.client, cmd, nil)
+		err := listJobsCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockJobs))
 		s.Empty(printer.GetErrorLines())
@@ -86,15 +81,13 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			Id: id,
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		perPage := 3
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
-		cmd.Flags().StringSlice("ids", []string{id}, "")
-		cmd.Flags().String("status", "", "")
-		cmd.Flags().String("type", "", "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().StringSlice("ids", []string{id}, "")
+		s.cmd.Flags().String("status", "", "")
+		s.cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -102,7 +95,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := listJobsCmdF(s.client, cmd, nil)
+		err := listJobsCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
@@ -124,15 +117,13 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			},
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		perPage := 2
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
-		cmd.Flags().String("status", model.JobStatusSuccess, "")
-		cmd.Flags().StringSlice("ids", []string{}, "")
-		cmd.Flags().String("type", "", "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().String("status", model.JobStatusSuccess, "")
+		s.cmd.Flags().StringSlice("ids", []string{}, "")
+		s.cmd.Flags().String("type", "", "")
 
 		s.client.
 			EXPECT().
@@ -140,7 +131,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
-		err := listJobsCmdF(s.client, cmd, nil)
+		err := listJobsCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockJobs))
 		s.Empty(printer.GetErrorLines())
@@ -162,15 +153,13 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			},
 		}
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
 		perPage := 2
-		cmd.Flags().Int("page", 0, "")
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Bool("all", false, "")
-		cmd.Flags().String("type", model.JobTypeDataRetention, "")
-		cmd.Flags().StringSlice("ids", []string{}, "")
-		cmd.Flags().String("status", "", "")
+		s.cmd.Flags().Int("page", 0, "")
+		s.cmd.Flags().Int("per-page", perPage, "")
+		s.cmd.Flags().Bool("all", false, "")
+		s.cmd.Flags().String("type", model.JobTypeDataRetention, "")
+		s.cmd.Flags().StringSlice("ids", []string{}, "")
+		s.cmd.Flags().String("status", "", "")
 
 		s.client.
 			EXPECT().
@@ -178,7 +167,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
-		err := listJobsCmdF(s.client, cmd, nil)
+		err := listJobsCmdF(s.client, s.cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockJobs))
 		s.Empty(printer.GetErrorLines())
@@ -193,9 +182,7 @@ func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
 		printer.Clean()
 		id := model.NewId()
 
-		cmd := &cobra.Command{}
-		cmd.SetContext(s.T().Context())
-		cmd.Flags().Bool("force", true, "")
+		s.cmd.Flags().Bool("force", true, "")
 
 		s.client.
 			EXPECT().
@@ -203,7 +190,7 @@ func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
 			Return(&model.Response{}, nil).
 			Times(1)
 
-		err := updateJobCmdF(s.client, cmd, []string{id, model.JobStatusPending})
+		err := updateJobCmdF(s.client, s.cmd, []string{id, model.JobStatusPending})
 		s.Require().Nil(err)
 	})
 }
