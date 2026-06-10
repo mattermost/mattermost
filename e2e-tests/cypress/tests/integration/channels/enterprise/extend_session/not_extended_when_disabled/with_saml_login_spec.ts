@@ -14,13 +14,12 @@
 
 // Group: @channels @enterprise @not_cloud @extend_session @ldap @saml @keycloak
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {verifyExtendedSession, verifyNotExtendedSession} from './helpers';
 
-import {LdapUser} from '@/support/ldap_server_commands';
+import type {LdapUser} from '@/support/ldap_server_commands';
 import {getKeycloakServerSettings} from '@/utils/config';
-
 
 describe('Extended Session Length', () => {
     const sessionLengthInDays = 1;

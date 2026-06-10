@@ -4093,6 +4093,8 @@ func (s *ExportSettings) SetDefaults() {
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
+	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
+	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4102,6 +4104,14 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnableUserManagedAttributes == nil {
 		s.EnableUserManagedAttributes = new(false)
+	}
+
+	if s.TrustProxyDeviceIdentityHeader == nil {
+		s.TrustProxyDeviceIdentityHeader = new(false)
+	}
+
+	if s.EnforceDeviceIDConsistency == nil {
+		s.EnforceDeviceIDConsistency = new(false)
 	}
 }
 
