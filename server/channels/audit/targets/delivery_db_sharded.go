@@ -36,14 +36,20 @@ import (
 //     the request goroutine.
 //
 // Why sharding (the key difference from DeliveryDBTarget): records are routed
-// to a shard by hash(entity_id), and each shard is drained by exactly one
-// worker. Because a given entity_id is owned by one worker, concurrent
-// workers never write overlapping (user, entity, mechanism) keys, so their
-// ON CONFLICT DO NOTHING inserts never contend on the same unique-index
-// tuples and cannot deadlock against each other. The per-shard worker also
-// deduplicates within a batch (a re-read or overlapping broadcast collapses
-// to one row) so the DB never sees redundant rows that ON CONFLICT would
-// just discard.
+// to a shard by hash(user_id), and each shard is drained by exactly one worker.
+// Because a given user_id is owned by one worker, concurrent workers never
+// write overlapping (user, entity, mechanism) keys (the triple shares a user_id
+// so it always lands on the same shard), so their ON CONFLICT DO NOTHING
+// inserts never contend on the same unique-index tuples and cannot deadlock
+// against each other. The per-shard worker also deduplicates within a batch (a
+// re-read or overlapping broadcast collapses to one row) so the DB never sees
+// redundant rows that ON CONFLICT would just discard.
+//
+// Sharding on user_id (rather than entity_id) keeps a large fan-out parallel:
+// a single post delivered to many users spreads across all shards instead of
+// piling onto one worker. The only thing that concentrates on a single shard is
+// fan-in (one user reading many posts), which is bounded by page size and far
+// smaller than a broadcast.
 type ShardedDeliveryDBTarget struct {
 	store  store.AuditStorageStore
 	logger *mlog.Logger
@@ -141,7 +147,7 @@ func (t *ShardedDeliveryDBTarget) Write(p []byte, rec *mlog.LogRec) (int, error)
 // discarding under load.
 func (t *ShardedDeliveryDBTarget) enqueue(items []auditDeliveryItem) {
 	for _, item := range items {
-		ch := t.shards[shardFor(item.entityID, t.numShards)]
+		ch := t.shards[shardFor(item.userID, t.numShards)]
 		select {
 		case ch <- item:
 		default:
@@ -314,16 +320,16 @@ func (t *ShardedDeliveryDBTarget) logBlocked(queueLen int) {
 	)
 }
 
-// shardFor maps an entity_id to a shard with an inline FNV-1a hash. Inlining
-// avoids the per-call allocation of hash/fnv.New32a on this hot path.
-func shardFor(entityID string, numShards int) int {
+// shardFor maps a key (the user_id) to a shard with an inline FNV-1a hash.
+// Inlining avoids the per-call allocation of hash/fnv.New32a on this hot path.
+func shardFor(key string, numShards int) int {
 	const (
 		offset32 = uint32(2166136261)
 		prime32  = uint32(16777619)
 	)
 	h := offset32
-	for i := 0; i < len(entityID); i++ {
-		h ^= uint32(entityID[i])
+	for i := 0; i < len(key); i++ {
+		h ^= uint32(key[i])
 		h *= prime32
 	}
 	return int(h % uint32(numShards))
