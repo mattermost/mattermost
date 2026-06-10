@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from '@mattermost/client';
-import {PluginManifest} from '@mattermost/types/plugins';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
+import type {PluginManifest} from '@mattermost/types/plugins';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {createNewTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';
 import {testConfig} from './test_config';

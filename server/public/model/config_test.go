@@ -148,6 +148,30 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: false,
 		},
+		"MaximumPersonalAccessTokenLifetimeDays zero (unlimited) is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(0),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays negative is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(-1),
+			},
+			ExpectError: true,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays at upper bound is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays beyond upper bound is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays + 1),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.ServiceSettings.SetDefaults(false)
@@ -320,6 +344,46 @@ func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
 			assert.Equal(t, tc.errID, err.Id)
 		})
 	}
+}
+
+func TestFileSettingsAzureAuthMode(t *testing.T) {
+	t.Run("defaults to shared_key", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.AzureAuthMode)
+		require.NotNil(t, cfg.FileSettings.ExportAzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.AzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.ExportAzureAuthMode)
+	})
+
+	t.Run("default_credential is accepted", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("unknown primary mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.azure_auth_mode.app_error", err.Id)
+	})
+
+	t.Run("unknown export mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.export_azure_auth_mode.app_error", err.Id)
+	})
 }
 
 func TestFileSettingsAzureCloudValidation(t *testing.T) {

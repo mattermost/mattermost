@@ -139,6 +139,8 @@ export {it};
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
 const FILE_STORAGE_DRIVER_AZURE = 'azureblob';
+const AZURE_AUTH_MODE_SHARED_KEY = 'shared_key';
+const AZURE_AUTH_MODE_DEFAULT_CREDENTIAL = 'default_credential';
 const AZURE_CLOUD_COMMERCIAL = 'commercial';
 const AZURE_CLOUD_GOVERNMENT = 'government';
 const AZURE_CLOUD_CUSTOM = 'custom';
@@ -731,6 +733,40 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
+            session_attributes: {
+                url: 'system_attributes/session_attributes',
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'SessionAttributes',
+                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
+                    sections: [
+                        {
+                            key: 'admin.session_attributes.settings',
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
+                                    label: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderTitle', defaultMessage: 'Trust proxy device identity header'}),
+                                    help_text: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderDesc', defaultMessage: 'When enabled, the server trusts the device identity provided by a reverse proxy in the request header. Only enable this when a trusted proxy sets the device identity header.'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnforceDeviceIDConsistency',
+                                    label: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyTitle', defaultMessage: 'Enforce device ID consistency'}),
+                                    help_text: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyDesc', defaultMessage: 'When enabled, the session is revoked if the device identity changes from the value previously recorded for that session.'}),
+                                },
+                            ],
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
             },
             membership_policy_details_edit: {
                 url: `system_attributes/membership_policies/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
@@ -1417,6 +1453,28 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
                         },
                         {
+                            type: 'dropdown',
+                            key: 'FileSettings.AzureAuthMode',
+                            label: defineMessage({id: 'admin.image.azureAuthModeTitle', defaultMessage: 'Azure Authentication:'}),
+                            help_text: defineMessage({id: 'admin.image.azureAuthModeDescription', defaultMessage: '"Shared key" signs requests with the Storage Account access key.\n \n"Default credential (Microsoft Entra ID)" reads the identity from the host environment - managed identity on Azure-hosted deployments, workload identity, service principal env vars, or "az login" for local development. No access key required.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
+                            help_text_markdown: true,
+                            options: [
+                                {
+                                    value: AZURE_AUTH_MODE_SHARED_KEY,
+                                    display_name: defineMessage({id: 'admin.image.azureAuthModeSharedKey', defaultMessage: 'Shared key'}),
+                                },
+                                {
+                                    value: AZURE_AUTH_MODE_DEFAULT_CREDENTIAL,
+                                    display_name: defineMessage({id: 'admin.image.azureAuthModeDefaultCredential', defaultMessage: 'Default credential (Microsoft Entra ID)'}),
+                                },
+                            ],
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            ),
+                            isHidden: it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                        },
+                        {
                             type: 'text',
                             key: 'FileSettings.AzureAccessKey',
                             label: defineMessage({id: 'admin.image.azureAccessKeyTitle', defaultMessage: 'Azure Storage Account Key:'}),
@@ -1425,8 +1483,12 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.not(it.stateEquals('FileSettings.AzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
                             ),
-                            isHidden: it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                            isHidden: it.any(
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.not(it.stateEquals('FileSettings.AzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
+                            ),
                         },
                         {
                             type: 'text',
@@ -1736,6 +1798,28 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
                         },
                         {
+                            type: 'dropdown',
+                            key: 'FileSettings.ExportAzureAuthMode',
+                            label: defineMessage({id: 'admin.image.azureAuthModeTitle', defaultMessage: 'Azure Authentication:'}),
+                            help_text: defineMessage({id: 'admin.image.azureAuthModeDescription', defaultMessage: '"Shared key" signs requests with the Storage Account access key.\n \n"Default credential (Microsoft Entra ID)" reads the identity from the host environment - managed identity on Azure-hosted deployments, workload identity, service principal env vars, or "az login" for local development. No access key required.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
+                            help_text_markdown: true,
+                            options: [
+                                {
+                                    value: AZURE_AUTH_MODE_SHARED_KEY,
+                                    display_name: defineMessage({id: 'admin.image.azureAuthModeSharedKey', defaultMessage: 'Shared key'}),
+                                },
+                                {
+                                    value: AZURE_AUTH_MODE_DEFAULT_CREDENTIAL,
+                                    display_name: defineMessage({id: 'admin.image.azureAuthModeDefaultCredential', defaultMessage: 'Default credential (Microsoft Entra ID)'}),
+                                },
+                            ],
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
                             type: 'text',
                             key: 'FileSettings.ExportAzureAccessKey',
                             label: defineMessage({id: 'admin.image.azureAccessKeyTitle', defaultMessage: 'Azure Storage Account Key:'}),
@@ -1744,8 +1828,13 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.stateEquals('FileSettings.DedicatedExportStore', false),
+                                it.not(it.stateEquals('FileSettings.ExportAzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
                             ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                            isHidden: it.any(
+                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                                it.not(it.stateEquals('FileSettings.ExportAzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
+                            ),
                         },
                         {
                             type: 'text',

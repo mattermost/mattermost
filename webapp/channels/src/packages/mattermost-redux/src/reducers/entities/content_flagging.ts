@@ -83,6 +83,15 @@ function postValues(state: ContentFlaggingState['postValues'] = {}, action: MMRe
             [postId]: Object.values(valuesByFieldId),
         };
     }
+    case ContentFlaggingTypes.FLAGGED_POST_REMOVED: {
+        const postId = action.data?.postId as string | undefined;
+        if (!postId || !(postId in state)) {
+            return state;
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, postId);
+        return nextState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -97,6 +106,15 @@ function flaggedPosts(state: ContentFlaggingState['flaggedPosts'] = {}, action: 
             ...state,
             [action.data.id]: action.data,
         };
+    }
+    case ContentFlaggingTypes.FLAGGED_POST_REMOVED: {
+        const postId = action.data?.postId as string | undefined;
+        if (!postId || !(postId in state)) {
+            return state;
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, postId);
+        return nextState;
     }
     case UserTypes.LOGOUT_SUCCESS:
         return {};

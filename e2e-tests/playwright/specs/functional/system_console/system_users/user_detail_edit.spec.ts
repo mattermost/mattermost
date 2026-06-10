@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
+import type {SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verifies that authentication data field is displayed and editable for users with auth_service

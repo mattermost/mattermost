@@ -18,6 +18,14 @@ firefox:         $(firefox --version || true)
 INNEREOF
 EOF
 
+mme2e_log "Prepare Cypress: install dependencies"
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<EOF
+cd webapp/
+npm install --cache /tmp/empty-cache
+cd ../e2e-tests/cypress
+npm install --cache /tmp/empty-cache
+EOF
+
 # Initialize cypress report directory
 mme2e_log "Prepare Cypress: clean and initialize report and logs directory"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<EOF

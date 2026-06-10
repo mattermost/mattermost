@@ -81,9 +81,11 @@ func (ps *PlatformService) LoadLicense() {
 	}
 
 	licenseId := ""
-	props, nErr := ps.Store.System().Get()
+	// Read from master: SaveLicense writes the active license ID then calls
+	// LoadLicense, so a replica read can return a stale ID and revert the license.
+	activeLicense, nErr := ps.Store.System().GetByNameWithContext(sqlstore.RequestContextWithMaster(c), model.SystemActiveLicenseId)
 	if nErr == nil {
-		licenseId = props[model.SystemActiveLicenseId]
+		licenseId = activeLicense.Value
 	}
 
 	if !model.IsValidId(licenseId) {
