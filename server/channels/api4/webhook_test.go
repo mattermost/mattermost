@@ -1226,6 +1226,69 @@ func TestUpdateIncomingHook(t *testing.T) {
 	})
 }
 
+func TestMoveIncomingHook(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer func() {
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	}()
+	addIncomingWebhookPermissionsWithOthers(t, th, model.TeamAdminRoleId)
+	removeIncomingWebhookPermissions(t, th, model.TeamUserRoleId)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		createdHook, _, err := th.SystemAdminClient.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.NoError(t, err)
+		defer func() {
+			_, _ = th.SystemAdminClient.DeleteIncomingWebhook(context.Background(), createdHook.Id)
+		}()
+
+		movedHook, _, err := client.MoveIncomingWebhook(context.Background(), createdHook.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		require.NotNil(t, movedHook)
+		assert.Equal(t, th.BasicUser2.Id, movedHook.UserId, "ownership should be transferred")
+	}, "transfers ownership")
+
+	t.Run("requires manage others permission", func(t *testing.T) {
+		createdHook, _, err := th.SystemAdminClient.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.NoError(t, err)
+		defer func() {
+			_, _ = th.SystemAdminClient.DeleteIncomingWebhook(context.Background(), createdHook.Id)
+		}()
+
+		_, resp, err := th.Client.MoveIncomingWebhook(context.Background(), createdHook.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("rejects a bot as the new owner", func(t *testing.T) {
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "movehookbot" + model.NewId()[:8],
+			DisplayName: "Move Hook Bot",
+			OwnerId:     th.SystemAdminUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		createdHook, _, err := th.SystemAdminClient.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.NoError(t, err)
+		defer func() {
+			_, _ = th.SystemAdminClient.DeleteIncomingWebhook(context.Background(), createdHook.Id)
+		}()
+
+		_, resp, err := th.SystemAdminClient.MoveIncomingWebhook(context.Background(), createdHook.Id, bot.UserId)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("returns not found for an unknown webhook", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.MoveIncomingWebhook(context.Background(), model.NewId(), th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+}
+
 func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

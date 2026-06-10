@@ -46,6 +46,7 @@ const initialState: DeepPartial<GlobalState> = {
 
 describe('components/integrations/AddIncomingWebhook', () => {
     const createIncomingHook = jest.fn().mockResolvedValue({data: true});
+    const getBots = jest.fn();
     const props = {
         team: TestHelper.getTeamMock({
             id: 'testteamid',
@@ -53,7 +54,8 @@ describe('components/integrations/AddIncomingWebhook', () => {
         }),
         enablePostUsernameOverride: true,
         enablePostIconOverride: true,
-        actions: {createIncomingHook},
+        bots: [],
+        actions: {createIncomingHook, getBots},
     };
 
     test('should match snapshot', () => {
@@ -75,7 +77,7 @@ describe('components/integrations/AddIncomingWebhook', () => {
         });
         renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        await userEvent.selectOptions(screen.getByRole('combobox'), [hook.channel_id]);
+        await userEvent.selectOptions(screen.getAllByRole('combobox')[0], [hook.channel_id]);
         await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), hook.display_name);
         await userEvent.type(screen.getByRole('textbox', {name: 'Description'}), hook.description);
         await userEvent.type(screen.getByRole('textbox', {name: 'Username'}), hook.username);

@@ -98,6 +98,158 @@ func TestHandleIncomingWebhookRootId(t *testing.T) {
 	})
 }
 
+func TestHandleIncomingWebhookAuthor(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	findPost := func(t *testing.T, message string) *model.Post {
+		t.Helper()
+		list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 30)
+		require.Nil(t, err)
+		for _, p := range list.Posts {
+			if p.Message == message {
+				return p
+			}
+		}
+		require.FailNow(t, "expected to find webhook post", message)
+		return nil
+	}
+
+	t.Run("defaults to the system bot, decoupled from creator", func(t *testing.T) {
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		// Creator is retained on the webhook config.
+		require.Equal(t, th.BasicUser.Id, hook.UserId)
+		require.Empty(t, hook.BotUserId)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		appErr = th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "default author post"})
+		require.Nil(t, appErr)
+
+		post := findPost(t, "default author post")
+		assert.Equal(t, systemBot.UserId, post.UserId, "post should be authored by the system bot")
+		assert.NotEqual(t, th.BasicUser.Id, post.UserId, "post should not be authored by the creator")
+		assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
+	})
+
+	t.Run("uses a configured custom bot as the author", func(t *testing.T) {
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "webhook_author_" + model.NewId()[:10],
+			DisplayName: "Webhook Author",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+			ChannelId: th.BasicChannel.Id,
+			BotUserId: bot.UserId,
+		})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+		require.Equal(t, bot.UserId, hook.BotUserId)
+
+		appErr = th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "custom bot author post"})
+		require.Nil(t, appErr)
+
+		post := findPost(t, "custom bot author post")
+		assert.Equal(t, bot.UserId, post.UserId, "post should be authored by the configured bot")
+	})
+
+	t.Run("rejects a non-bot author", func(t *testing.T) {
+		_, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+			ChannelId: th.BasicChannel.Id,
+			BotUserId: th.BasicUser2.Id,
+		})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.incoming_webhook.invalid_bot_user.app_error", appErr.Id)
+	})
+}
+
+func TestMoveIncomingWebhook(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	t.Run("transfers ownership to another active user and persists it", func(t *testing.T) {
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		moved, appErr := th.App.MoveIncomingWebhook(th.Context, model.Session{}, hook.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, th.BasicUser2.Id, moved.UserId)
+
+		fetched, appErr := th.App.GetIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, th.BasicUser2.Id, fetched.UserId, "new owner should be persisted")
+	})
+
+	t.Run("rejects a bot as the new owner", func(t *testing.T) {
+		bot := th.CreateBot(t)
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		_, appErr = th.App.MoveIncomingWebhook(th.Context, model.Session{}, hook.Id, bot.UserId)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.webhook.move_incoming.invalid_bot_owner.app_error", appErr.Id)
+	})
+
+	t.Run("rejects an inactive new owner", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		_, appErr = th.App.MoveIncomingWebhook(th.Context, model.Session{}, hook.Id, user.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.webhook.move_incoming.inactive_owner.app_error", appErr.Id)
+	})
+
+	t.Run("rejects a new owner without access to the channel", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, privateChannel, &model.IncomingWebhook{ChannelId: privateChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		outsider := th.CreateUser(t)
+		th.LinkUserToTeam(t, outsider, th.BasicTeam)
+		_, appErr = th.App.MoveIncomingWebhook(th.Context, model.Session{}, hook.Id, outsider.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.webhook.incoming.user_membership.app_error", appErr.Id)
+	})
+
+	t.Run("rejects assigning an owner with higher privileges than the requester", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+
+		hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		defer func() { require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id)) }()
+
+		// An empty session lacks manage_system, so it cannot attribute posts to a system admin.
+		_, appErr = th.App.MoveIncomingWebhook(th.Context, model.Session{}, hook.Id, th.SystemAdminUser.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.webhook.incoming.user_role.app_error", appErr.Id)
+
+		// A session with manage_system may.
+		adminSession := model.Session{Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
+		moved, appErr := th.App.MoveIncomingWebhook(th.Context, adminSession, hook.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, th.SystemAdminUser.Id, moved.UserId)
+	})
+}
+
 func TestHandleIncomingWebhookDirectMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

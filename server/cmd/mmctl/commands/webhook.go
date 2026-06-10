@@ -59,6 +59,15 @@ var ModifyIncomingWebhookCmd = &cobra.Command{
 	RunE:    withClient(modifyIncomingWebhookCmdF),
 }
 
+var MoveIncomingWebhookCmd = &cobra.Command{
+	Use:     "move-incoming [webhookID] [newOwner]",
+	Short:   "Move incoming webhook",
+	Long:    "Transfer ownership of an existing incoming webhook to another user. The new owner must be an active, non-bot user with access to the webhook's channel. Post authorship is unaffected.",
+	Args:    cobra.ExactArgs(2),
+	Example: "  webhook move-incoming w16zb5tu3n1zkqo18goqry1je newowner@example.com",
+	RunE:    withClient(moveIncomingWebhookCmdF),
+}
+
 var CreateOutgoingWebhookCmd = &cobra.Command{
 	Use:   "create-outgoing",
 	Short: "Create outgoing webhook",
@@ -230,6 +239,30 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	}
 
 	printer.PrintT("Webhook {{.Id}} successfully updated", newHook)
+	return nil
+}
+
+func moveIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
+	webhookArg := args[0]
+	if _, _, err := c.GetIncomingWebhook(context.TODO(), webhookArg, ""); err != nil {
+		return errors.New("Unable to find webhook '" + webhookArg + "'")
+	}
+
+	userArg := args[1]
+	user := getUserFromUserArg(c, userArg)
+	if user == nil {
+		return errors.New("Unable to find user '" + userArg + "'")
+	}
+
+	movedHook, _, err := c.MoveIncomingWebhook(context.TODO(), webhookArg, user.Id)
+	if err != nil {
+		printer.PrintError("Unable to move webhook '" + webhookArg + "'")
+		return err
+	}
+
+	printer.PrintT("Webhook {{.Id}} ownership successfully transferred", movedHook)
 	return nil
 }
 
@@ -471,6 +504,7 @@ func init() {
 		ListWebhookCmd,
 		CreateIncomingWebhookCmd,
 		ModifyIncomingWebhookCmd,
+		MoveIncomingWebhookCmd,
 		CreateOutgoingWebhookCmd,
 		ModifyOutgoingWebhookCmd,
 		DeleteWebhookCmd,
