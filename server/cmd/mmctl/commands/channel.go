@@ -437,6 +437,11 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			if channel != nil && channel.Name == args[0] {
 				break
 			}
+			// Stop scanning if the context was canceled (e.g. Ctrl+C) rather
+			// than silently treating it as "not found in this team".
+			if err := cmd.Context().Err(); err != nil {
+				return err
+			}
 		}
 
 		if channel == nil {
