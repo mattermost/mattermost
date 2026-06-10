@@ -270,7 +270,18 @@ describe('schedule_message_dm_utils', () => {
             expect(isDmScheduleRedesign(state, channelId)).toBe(false);
         });
 
-        it('returns false when teammate has no timezone', () => {
+        it('returns false when teammate profile is not loaded', () => {
+            mockedGetDirectChannel.mockReturnValue({
+                id: channelId,
+                teammate_id: 'teammate_user_id',
+                type: 'D',
+            } as never);
+            mockedGetUser.mockReturnValue(undefined);
+
+            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+        });
+
+        it('returns true for 1:1 DM with a human teammate', () => {
             mockedGetDirectChannel.mockReturnValue({
                 id: channelId,
                 teammate_id: 'teammate_user_id',
@@ -281,10 +292,10 @@ describe('schedule_message_dm_utils', () => {
                 is_bot: false,
             } as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+            expect(isDmScheduleRedesign(state, channelId)).toBe(true);
         });
 
-        it('returns false when teammate timezone object has empty zone strings', () => {
+        it('returns true for 1:1 DM when teammate timezone object has empty zone strings', () => {
             mockedGetDirectChannel.mockReturnValue({
                 id: channelId,
                 teammate_id: 'teammate_user_id',
@@ -300,7 +311,7 @@ describe('schedule_message_dm_utils', () => {
                 },
             } as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+            expect(isDmScheduleRedesign(state, channelId)).toBe(true);
         });
 
         it('returns true for 1:1 DM with known recipient timezone', () => {

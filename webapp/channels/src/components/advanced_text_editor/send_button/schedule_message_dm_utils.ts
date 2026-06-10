@@ -10,6 +10,7 @@ import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {generateCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import type {GlobalState} from 'types/store';
@@ -126,22 +127,22 @@ export function reinterpretWallClock(dateTime: Moment, newTimezone: string): Mom
 
 export function isDmScheduleRedesign(state: GlobalState, channelId: string): boolean {
     const channel = getDirectChannel(state, channelId);
-    if (!channel?.teammate_id) {
+    if (!channel) {
         return false;
     }
 
     const currentUserId = getCurrentUserId(state);
-    const teammate = getUser(state, channel.teammate_id);
+    const teammateId = channel.teammate_id || getUserIdFromChannelName(currentUserId, channel.name);
+    if (!teammateId || teammateId === currentUserId) {
+        return false;
+    }
 
+    const teammate = getUser(state, teammateId);
     if (!teammate || teammate.is_bot) {
         return false;
     }
 
-    if (channel.teammate_id === currentUserId) {
-        return false;
-    }
-
-    return hasRecipientTimezone(teammate);
+    return true;
 }
 
 export function getDefaultScheduleDateTime(
