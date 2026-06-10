@@ -15,7 +15,6 @@ import {fillCredentialsForUser} from './helpers';
 
 import timeouts from '@/fixtures/timeouts';
 
-
 describe('Authentication', () => {
     let testTeam;
     let testTeam2;

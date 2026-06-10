@@ -10506,3 +10506,97 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestGetSessionAttributesManifest(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("disabled without feature flag", func(t *testing.T) {
+		_, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.session_attributes.disabled.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.SessionAttributes = true
+	})
+
+	t.Run("returns empty manifest when all fields disabled", func(t *testing.T) {
+		manifest, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, manifest)
+	})
+}
+
+// setSessionAttributeDeviceID configures the test client to send a desktop
+// User-Agent and a client session-attributes header carrying the given
+// hardware_id, so the next request reports that device ID.
+func setSessionAttributeDeviceID(t *testing.T, th *TestHelper, deviceID string) {
+	t.Helper()
+	const desktopUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"
+	attrs, err := json.Marshal(map[string]any{model.SessionAttributesPropertyFieldHardwareID: deviceID})
+	require.NoError(t, err)
+	th.Client.HTTPHeader = map[string]string{
+		"User-Agent": desktopUserAgent,
+		model.SessionAttributeHeaderClientAttributes: base64.StdEncoding.EncodeToString(attrs),
+	}
+}
+
+func TestSessionAttributesDeviceMismatchRejectsSubsequentRequest(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.SessionAttributes = true
+		cfg.AccessControlSettings.EnforceDeviceIDConsistency = model.NewPointer(true)
+	})
+
+	// Enable the desktop-only hardware_id device attribute so a changing value
+	// triggers the device-consistency revoke inside ProcessSessionAttributesRequest.
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+	fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{
+		ObjectType: model.PropertyFieldObjectTypeSession,
+		PerPage:    100,
+	})
+	require.Nil(t, appErr)
+
+	var hardwareField *model.PropertyField
+	for _, field := range fields {
+		if field.Name == model.SessionAttributesPropertyFieldHardwareID {
+			hardwareField = field
+			break
+		}
+	}
+	require.NotNil(t, hardwareField)
+	if hardwareField.Attrs == nil {
+		hardwareField.Attrs = model.StringInterface{}
+	}
+	hardwareField.Attrs["enabled"] = true
+	_, _, appErr = th.App.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{hardwareField}, true, "")
+	require.Nil(t, appErr)
+
+	// Establish the initial device ID for the session.
+	setSessionAttributeDeviceID(t, th, "device-a")
+	_, _, err := th.Client.GetMe(context.Background(), "")
+	require.NoError(t, err)
+
+	// A changed device ID revokes the session during processing. The request
+	// that triggers the revoke still succeeds because its in-memory session is
+	// already loaded.
+	setSessionAttributeDeviceID(t, th, "device-b")
+	_, _, err = th.Client.GetMe(context.Background(), "")
+	require.NoError(t, err)
+
+	// The next session-required request must be rejected now that the session
+	// has been revoked.
+	_, resp, err := th.Client.GetMe(context.Background(), "")
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+}

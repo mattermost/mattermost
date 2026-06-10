@@ -9,10 +9,9 @@
 
 // Group: @channels @enterprise @system_console @group_mentions
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
-
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Group} from '@mattermost/types/groups';
 
 import {
     disablePermission,

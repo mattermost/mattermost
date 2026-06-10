@@ -14,7 +14,7 @@ export function changeGuestFeatureSettings(featureFlag = true, emailInvitation =
     });
 }
 
-export function invitePeople(typeText: string, resultsCount: number, verifyText: string, channelName = 'Town Square', clickInvite = true) {
+export function invitePeople(typeText: string, resultsCount: number, verifyText: string, channelName: string | string[] = 'Town Square', clickInvite = true) {
     // # Open team menu and click 'Invite People'
     cy.uiOpenTeamMenu('Invite people');
 
@@ -28,13 +28,16 @@ export function invitePeople(typeText: string, resultsCount: number, verifyText:
     cy.get('.users-emails-input__menu').
         children().should('have.length', resultsCount).eq(0).should('contain', verifyText).click();
 
-    // # Search and add a Channel
-    cy.get('.channels-input__control').should('be.visible').within(() => {
-        cy.get('input').typeWithForce(channelName);
+    // # Search and add one or more channels
+    const channelNames = Array.isArray(channelName) ? channelName : [channelName];
+    channelNames.forEach((name) => {
+        cy.get('.channels-input__control').should('be.visible').within(() => {
+            cy.get('input').typeWithForce(name);
+        });
+        cy.get('.channels-input__menu').
+            children().should('have.length', 1).
+            eq(0).should('contain', name).click();
     });
-    cy.get('.channels-input__menu').
-        children().should('have.length', 1).
-        eq(0).should('contain', channelName).click();
 
     if (clickInvite) {
         // # Click Invite Guests Button
