@@ -1457,12 +1457,14 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			teamsWithCount.TotalCount -= int64(dropped)
+			c.App.AnnotateRecommendedTeamsForUser(c.AppContext, teamsWithCount.Teams, userID)
 		} else {
 			teams, _, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teams, userID)
 			if appErr != nil {
 				c.Err = appErr
 				return
 			}
+			c.App.AnnotateRecommendedTeamsForUser(c.AppContext, teams, userID)
 		}
 	}
 
@@ -1549,6 +1551,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		totalCount -= int64(dropped)
+		c.App.AnnotateRecommendedTeamsForUser(c.AppContext, teams, c.AppContext.Session().UserId)
 	}
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
