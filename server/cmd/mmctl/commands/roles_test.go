@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -25,13 +24,13 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
+			UpdateUserRoles(s.T().Context(), mockUser.Id, newRoles).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -51,7 +50,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -69,19 +68,19 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -101,13 +100,13 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, newRoles).
+			UpdateUserRoles(s.T().Context(), mockUser.Id, newRoles).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -128,13 +127,13 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user").
+			UpdateUserRoles(s.T().Context(), mockUser.Id, "system_user").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -153,7 +152,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -171,13 +170,13 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Email, "").
+			GetUserByEmail(s.T().Context(), mockUser.Email, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user").
+			UpdateUserRoles(s.T().Context(), mockUser.Id, "system_user").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -196,19 +195,19 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(s.T().Context(), emailArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 

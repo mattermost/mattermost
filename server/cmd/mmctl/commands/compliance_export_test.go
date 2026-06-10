@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -24,7 +23,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		// Test with default pagination
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, DefaultPageSize).
+			GetJobs(s.T().Context(), "message_export", "", 0, DefaultPageSize).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -41,7 +40,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		_ = cmd.Flags().Set("per-page", "10")
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, 10).
+			GetJobs(s.T().Context(), "message_export", "", 0, 10).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -57,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		_ = cmd.Flags().Set("all", "true")
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, DefaultPageSize).
+			GetJobs(s.T().Context(), "message_export", "", 0, DefaultPageSize).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -87,22 +86,22 @@ func (s *MmctlUnitTestSuite) TestComplianceExportListCmdF() {
 		// Expect 4 API calls (2 jobs each for first 2 pages, 1 job for last page, then a call with 0 jobs)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 0, 2).
+			GetJobs(s.T().Context(), "message_export", "", 0, 2).
 			Return(mockJobs[0:2], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 1, 2).
+			GetJobs(s.T().Context(), "message_export", "", 1, 2).
 			Return(mockJobs[2:4], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 2, 2).
+			GetJobs(s.T().Context(), "message_export", "", 2, 2).
 			Return(mockJobs[4:5], &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "message_export", "", 3, 2).
+			GetJobs(s.T().Context(), "message_export", "", 3, 2).
 			Return(mockJobs[5:], &model.Response{}, nil).
 			Times(1)
 
@@ -130,7 +129,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), mockJob.Id).
+			GetJob(s.T().Context(), mockJob.Id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -151,7 +150,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), "invalid-job-id").
+			GetJob(s.T().Context(), "invalid-job-id").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -172,7 +171,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), id).
+			CancelJob(s.T().Context(), id).
 			Return(&model.Response{}, nil).
 			Times(1)
 
@@ -192,7 +191,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), "invalid-job-id").
+			CancelJob(s.T().Context(), "invalid-job-id").
 			Return(&model.Response{}, mockError).
 			Times(1)
 
@@ -215,7 +214,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportCancelCmdF() {
 
 		s.client.
 			EXPECT().
-			CancelJob(context.TODO(), id).
+			CancelJob(s.T().Context(), id).
 			Return(&model.Response{}, mockError).
 			Times(1)
 
@@ -266,7 +265,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 
 		s.client.
 			EXPECT().
-			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			DownloadComplianceExport(s.T().Context(), mockJob.Id, gomock.Any()).
 			Return("", nil).
 			Times(1)
 
@@ -287,7 +286,7 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 
 		s.client.
 			EXPECT().
-			DownloadComplianceExport(context.TODO(), mockJob.Id, gomock.Any()).
+			DownloadComplianceExport(s.T().Context(), mockJob.Id, gomock.Any()).
 			Return("", mockError).
 			Times(6) // Initial attempt + 5 retries
 

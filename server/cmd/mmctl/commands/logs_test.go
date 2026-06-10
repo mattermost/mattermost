@@ -5,7 +5,6 @@ package commands
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -32,7 +31,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 1).
+			GetLogs(s.T().Context(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 0).
+			GetLogs(s.T().Context(), 0, 0).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
@@ -68,7 +67,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 1).
+			GetLogs(s.T().Context(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 

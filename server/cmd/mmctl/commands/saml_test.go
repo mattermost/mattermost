@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -29,7 +28,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.TODO(), false, false, []string{}).
+			ResetSamlAuthDataToEmail(s.T().Context(), false, false, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.TODO(), false, true, []string{}).
+			ResetSamlAuthDataToEmail(s.T().Context(), false, true, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -65,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		users := []string{"user1"}
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(context.TODO(), false, false, users).
+			ResetSamlAuthDataToEmail(s.T().Context(), false, false, users).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 

@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -72,7 +71,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 			userID = "nouser"
 		}
 
-		us, _, err := c.CreateUpload(context.TODO(), &model.UploadSession{
+		us, _, err := c.CreateUpload(s.T().Context(), &model.UploadSession{
 			Filename: importName,
 			FileSize: info.Size(),
 			Type:     model.UploadTypeImport,
@@ -200,7 +199,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 		cmd := &cobra.Command{}
 		userID := "nouser"
 		if c == s.th.SystemAdminClient {
-			user, _, err := s.th.SystemAdminClient.GetMe(context.Background(), "")
+			user, _, err := s.th.SystemAdminClient.GetMe(s.T().Context(), "")
 			s.Require().NoError(err)
 			userID = user.Id
 		} else {

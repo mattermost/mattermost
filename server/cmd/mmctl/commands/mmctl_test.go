@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -133,7 +132,7 @@ func (s *MmctlE2ETestSuite) CheckErrorID(err error, errorId string) {
 
 // getMostRecentJobWithId gets the most recent job with the specified ID
 func (s *MmctlE2ETestSuite) getMostRecentJobWithId(id string) *model.Job {
-	list, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1)
+	list, _, err := s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 1)
 	s.Require().NoError(err)
 	s.Require().Len(list, 1)
 	s.Require().Equal(id, list[0].Id)
@@ -164,7 +163,7 @@ func (s *MmctlE2ETestSuite) checkJobForStatus(id string, status string) {
 
 // runJobForTest creates a job and waits for it to complete
 func (s *MmctlE2ETestSuite) runJobForTest(jobData map[string]string) *model.Job {
-	job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(),
+	job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(),
 		&model.Job{Type: model.JobTypeMessageExport, Data: jobData})
 	s.Require().NoError(err)
 	// poll until completion
