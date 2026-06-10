@@ -8,8 +8,8 @@ type NotificationData = {title: string} & NotificationOptions;
 // Extend the Window interface to add custom properties
 declare global {
     interface Window {
-        _originalNotification: typeof Notification;
-        _notifications: NotificationData[];
+        originalNotification: typeof Notification;
+        capturedNotifications: NotificationData[];
         getNotifications: () => NotificationData[];
     }
 }
@@ -21,17 +21,17 @@ declare global {
 function installNotificationStub(notificationPermission: NotificationPermission) {
     window.Notification.requestPermission = () => Promise.resolve(notificationPermission);
 
-    if (!window._originalNotification) {
-        window._originalNotification = window.Notification;
+    if (!window.originalNotification) {
+        window.originalNotification = window.Notification;
     }
 
-    window._notifications = window._notifications ?? [];
+    window.capturedNotifications = window.capturedNotifications ?? [];
 
-    class CustomNotification extends window._originalNotification {
+    class CustomNotification extends window.originalNotification {
         constructor(title: string, options?: NotificationOptions) {
             super(title, options);
             const notification = {title, ...options};
-            window._notifications.push(notification);
+            window.capturedNotifications.push(notification);
         }
     }
 
@@ -45,7 +45,7 @@ function installNotificationStub(notificationPermission: NotificationPermission)
     });
 
     window.Notification = CustomNotification as unknown as typeof Notification;
-    window.getNotifications = () => window._notifications;
+    window.getNotifications = () => window.capturedNotifications;
 }
 
 /**
@@ -66,7 +66,7 @@ export async function stubNotification(page: Page, permission: NotificationPermi
 /** Clears notifications captured by {@link stubNotification}. */
 export async function clearCapturedNotifications(page: Page) {
     await page.evaluate(() => {
-        window._notifications = [];
+        window.capturedNotifications = [];
     });
 }
 
