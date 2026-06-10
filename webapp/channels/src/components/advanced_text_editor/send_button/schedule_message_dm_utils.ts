@@ -60,7 +60,23 @@ export function getNextMonday9amTimestamp(timezone: string): number {
 }
 
 export function hasRecipientTimezone(teammate?: UserProfile): boolean {
-    return Boolean(teammate?.timezone);
+    if (!teammate?.timezone) {
+        return false;
+    }
+
+    const {
+        useAutomaticTimezone,
+        automaticTimezone,
+        manualTimezone,
+    } = teammate.timezone;
+
+    let useAutomatic = useAutomaticTimezone;
+    if (typeof useAutomaticTimezone === 'string') {
+        useAutomatic = useAutomaticTimezone === 'true';
+    }
+
+    const zone = useAutomatic ? automaticTimezone : manualTimezone;
+    return Boolean(zone?.trim());
 }
 
 export function getRecipientTimezoneString(teammateTimezone: UserTimezone): string {

@@ -76,6 +76,11 @@ export default function ScheduledPostCustomTimeModal({
 
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
+            if (isDmRedesign) {
+                const activeTz = initialUseRecipientTimezone ? recipientTimezoneString : userTimezone;
+                return reinterpretWallClock(initialTime, activeTz);
+            }
+
             return initialTime;
         }
 
@@ -172,18 +177,20 @@ export default function ScheduledPostCustomTimeModal({
 
         const footerContent = (
             <footer className='scheduled_post_dm_custom_time_modal__footer'>
-                <Button
-                    type='button'
-                    emphasis='tertiary'
-                    variant='destructive'
-                    className='scheduled_post_dm_custom_time_modal__remove'
-                    onClick={handleRemoveSchedule}
-                >
-                    <FormattedMessage
-                        id='schedule_post.custom_time_modal.remove_schedule'
-                        defaultMessage='Remove schedule'
-                    />
-                </Button>
+                {onRemoveSchedule && (
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        variant='destructive'
+                        className='scheduled_post_dm_custom_time_modal__remove'
+                        onClick={handleRemoveSchedule}
+                    >
+                        <FormattedMessage
+                            id='schedule_post.custom_time_modal.remove_schedule'
+                            defaultMessage='Remove schedule'
+                        />
+                    </Button>
+                )}
                 <div className='scheduled_post_dm_custom_time_modal__footer-actions'>
                     <Button
                         type='button'

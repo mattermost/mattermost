@@ -110,9 +110,17 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
 
         expect(screen.getByRole('checkbox', {name: /Use recipient's timezone/})).toBeInTheDocument();
         expect(screen.getByText(/your time/)).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Remove schedule'})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Remove schedule'})).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Cancel'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Schedule', exact: true})).toBeInTheDocument();
+    });
+
+    it('shows remove schedule only when onRemoveSchedule is provided', () => {
+        const onRemoveSchedule = jest.fn().mockResolvedValue({});
+
+        renderModal({onRemoveSchedule});
+
+        expect(screen.getByRole('button', {name: 'Remove schedule'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Remove schedule'})).toHaveClass('scheduled_post_dm_custom_time_modal__remove');
     });
 
@@ -151,12 +159,12 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
         expect(onExited).not.toHaveBeenCalled();
     });
 
-    it('calls onExited when remove schedule has no handler', async () => {
-        renderModal();
+    it('converts initialTime to active timezone on mount for DM reschedule', () => {
+        const initialTime = moment.tz('2026-06-10 09:00', 'America/New_York');
 
-        await userEvent.click(screen.getByRole('button', {name: 'Remove schedule'}));
+        renderModal({initialTime});
 
-        expect(onExited).toHaveBeenCalled();
+        expect(mockedReinterpretWallClock).toHaveBeenCalledWith(initialTime, 'Europe/London');
     });
 
     it('uses recipient timezone when checkbox starts unchecked', () => {

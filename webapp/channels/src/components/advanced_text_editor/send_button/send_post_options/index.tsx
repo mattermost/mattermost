@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -16,7 +16,7 @@ import ScheduleRecipientTimezoneCheckbox from 'components/advanced_text_editor/s
 import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
 import DmMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/dm_menu_options';
 import RecentUsedCustomDate from 'components/advanced_text_editor/send_button/send_post_options/recent_used_custom_date';
-import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
+import {useScheduleRecipientInfo} from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -37,8 +37,12 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
-    const {userCurrentTimezone, recipientTimezoneString, teammateDisplayName} = useTimePostBoxIndicator(channelId);
+    const {userCurrentTimezone, recipientTimezoneString, teammateDisplayName} = useScheduleRecipientInfo(channelId);
     const [useRecipientTimezone, setUseRecipientTimezone] = useState(true);
+
+    useEffect(() => {
+        setUseRecipientTimezone(true);
+    }, [channelId]);
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
         e.preventDefault();

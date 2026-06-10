@@ -57,6 +57,23 @@ describe('schedule_message_dm_utils', () => {
                 },
             } as never)).toBe(true);
         });
+
+        it('returns false when timezone object exists but zone strings are empty', () => {
+            expect(hasRecipientTimezone({
+                timezone: {
+                    useAutomaticTimezone: 'true',
+                    automaticTimezone: '',
+                    manualTimezone: '',
+                },
+            } as never)).toBe(false);
+            expect(hasRecipientTimezone({
+                timezone: {
+                    useAutomaticTimezone: 'false',
+                    automaticTimezone: '',
+                    manualTimezone: '   ',
+                },
+            } as never)).toBe(false);
+        });
     });
 
     describe('getTheirMorningTimestamp', () => {
@@ -245,6 +262,25 @@ describe('schedule_message_dm_utils', () => {
             mockedGetUser.mockReturnValue({
                 id: 'teammate_user_id',
                 is_bot: false,
+            } as never);
+
+            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+        });
+
+        it('returns false when teammate timezone object has empty zone strings', () => {
+            mockedGetDirectChannel.mockReturnValue({
+                id: channelId,
+                teammate_id: 'teammate_user_id',
+                type: 'D',
+            } as never);
+            mockedGetUser.mockReturnValue({
+                id: 'teammate_user_id',
+                is_bot: false,
+                timezone: {
+                    useAutomaticTimezone: 'true',
+                    automaticTimezone: '',
+                    manualTimezone: '',
+                },
             } as never);
 
             expect(isDmScheduleRedesign(state, channelId)).toBe(false);
