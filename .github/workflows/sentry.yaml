@@ -28,5 +28,5 @@ jobs:
         with:
           persist-credentials: false
       - name: cd/Create Sentry release
-        uses: getsentry/action-release@dab6548b3c03c4717878099e43782cf5be654289 # v3.5.0
+        uses: getsentry/action-release@5657c9e888b4e2cc85f4d29143ea4131fde4a73a # v3.6.0
 
