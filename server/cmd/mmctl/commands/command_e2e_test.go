@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -263,7 +262,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		Trigger:   "trigger",
 	}
 
-	command, _, _ := s.th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
+	command, _, _ := s.th.SystemAdminClient.CreateCommand(s.T().Context(), newCmd)
 	index := 0
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()
@@ -343,7 +342,7 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 			Trigger:   model.NewRandomString(6),
 		}
 
-		command, _, err := c.CreateCommand(context.Background(), newCmd)
+		command, _, err := c.CreateCommand(s.T().Context(), newCmd)
 		s.Require().NoError(err)
 		err = showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
 		s.Require().NoError(err)
@@ -364,7 +363,7 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 			Trigger:   trigger,
 		}
 
-		command, _, err := c.CreateCommand(context.Background(), newCmd)
+		command, _, err := c.CreateCommand(s.T().Context(), newCmd)
 
 		s.Require().NoError(err)
 		err = showCommandCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + trigger})

@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ import (
 // returns the server response reshaped as a typed CPAField.
 func (s *MmctlE2ETestSuite) createCPAField(field *model.CPAField) *model.CPAField {
 	s.T().Helper()
-	created, _, err := s.th.SystemAdminClient.CreateCPAField(context.Background(), field.ToPropertyField())
+	created, _, err := s.th.SystemAdminClient.CreateCPAField(s.T().Context(), field.ToPropertyField())
 	s.Require().NoError(err)
 	cpa, err := model.NewCPAFieldFromPropertyField(created)
 	s.Require().NoError(err)
@@ -28,7 +27,7 @@ func (s *MmctlE2ETestSuite) createCPAField(field *model.CPAField) *model.CPAFiel
 // them as typed CPAFields.
 func (s *MmctlE2ETestSuite) listCPAFields() []*model.CPAField {
 	s.T().Helper()
-	fields, _, err := s.th.SystemAdminClient.ListCPAFields(context.Background())
+	fields, _, err := s.th.SystemAdminClient.ListCPAFields(s.T().Context())
 	s.Require().NoError(err)
 	out := make([]*model.CPAField, 0, len(fields))
 	for _, pf := range fields {
@@ -57,7 +56,7 @@ func (s *MmctlE2ETestSuite) getCPAField(id string) *model.CPAField {
 func (s *MmctlE2ETestSuite) cleanCPAFields() {
 	s.T().Helper()
 	for _, field := range s.listCPAFields() {
-		_, err := s.th.SystemAdminClient.DeleteCPAField(context.Background(), field.ID)
+		_, err := s.th.SystemAdminClient.DeleteCPAField(s.T().Context(), field.ID)
 		s.Require().NoError(err)
 	}
 }

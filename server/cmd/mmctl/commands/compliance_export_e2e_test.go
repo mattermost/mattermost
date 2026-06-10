@@ -5,7 +5,6 @@ package commands
 
 import (
 	"archive/zip"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -38,7 +37,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 
 	s.RunForSystemAdminAndLocal("List with no compliance export jobs", func(c client.Client) {
 		// Ensure no jobs exist
-		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), jobType, 0, 1000)
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(s.T().Context(), jobType, 0, 1000)
 		s.Require().NoError(err)
 
 		for _, job := range jobs {
@@ -78,7 +77,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 	s.RunForSystemAdminAndLocal("List compliance export jobs", func(c client.Client) {
 		now := model.GetMillis()
 		// Create 2 jobs
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -88,7 +87,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportListCmdE2E() {
 		})
 		s.Require().NoError(err)
 
-		job2, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job2, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 100,
 			Status:         model.JobStatusSuccess,
@@ -143,7 +142,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	now := model.GetMillis()
 
 	// Create a job
-	job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+	job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 		Id:             st.NewTestID(),
 		CreateAt:       now - 1000,
 		Status:         model.JobStatusSuccess,
@@ -182,7 +181,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportShowCmdE2E() {
 	s.RunForSystemAdminAndLocal("Show existing job", func(c client.Client) {
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -216,7 +215,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusInProgress,
@@ -252,7 +251,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 	s.RunForSystemAdminAndLocal("Cancel existing job", func(c client.Client) {
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusInProgress,
@@ -276,7 +275,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 		s.Require().Empty(printer.GetErrorLines())
 
 		// Verify job was cancelled
-		job, _, err = s.th.SystemAdminClient.GetJob(context.Background(), job.Id)
+		job, _, err = s.th.SystemAdminClient.GetJob(s.T().Context(), job.Id)
 		s.Require().NoError(err)
 		s.Require().Equal(model.JobStatusCanceled, job.Status)
 	})
@@ -284,7 +283,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 	s.RunForSystemAdminAndLocal("Error cancelling job in non-cancellable state", func(c client.Client) {
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusInProgress,
@@ -293,7 +292,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportCancelCmdE2E() {
 			LastActivityAt: now - 1000,
 		})
 		s.Require().NoError(err)
-		_, err = s.th.SystemAdminClient.UpdateJobStatus(context.Background(), job.Id, model.JobStatusCanceled, true)
+		_, err = s.th.SystemAdminClient.UpdateJobStatus(s.T().Context(), job.Id, model.JobStatusCanceled, true)
 		s.Require().NoError(err)
 		defer func() {
 			// Ensure job is deleted from the database
@@ -319,7 +318,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -423,7 +422,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -534,7 +533,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportDownloadCmdE2E() {
 
 		now := model.GetMillis()
 		// Create a job
-		job, _, err := s.th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+		job, _, err := s.th.SystemAdminClient.CreateJob(s.T().Context(), &model.Job{
 			Id:             st.NewTestID(),
 			CreateAt:       now - 1000,
 			Status:         model.JobStatusSuccess,
@@ -604,7 +603,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 
 	s.RunForSystemAdminAndLocal("mmctl job uses batch_start_time from previous regular job", func(c client.Client) {
 		// Ensure no jobs exist before we start
-		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1000)
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 1000)
 		s.Require().NoError(err)
 		for _, job := range jobs {
 			var result string
@@ -635,7 +634,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 		s.Require().NoError(err, "Should create mmctl job successfully")
 
 		// Find the mmctl job
-		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 10)
 		s.Require().NoError(err)
 		s.Require().True(len(jobs) > 1, "Should have at least 2 jobs")
 
@@ -660,7 +659,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 
 	s.RunForSystemAdminAndLocal("mmctl job ignores previous mmctl jobs and uses regular job", func(c client.Client) {
 		// Ensure no jobs exist before we start
-		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 1000)
+		jobs, _, err := s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 1000)
 		s.Require().NoError(err)
 		for _, job := range jobs {
 			var result string
@@ -691,7 +690,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 		s.Require().NoError(err, "Should create first mmctl job successfully")
 
 		// Find the mmctl job
-		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 10)
 		s.Require().NoError(err)
 		s.Require().True(len(jobs) > 1, "Should have at least 2 jobs")
 
@@ -716,7 +715,7 @@ func (s *MmctlE2ETestSuite) TestComplianceExportMmctlJobStartTimeE2E() {
 		s.Require().NoError(err, "Should create second mmctl job successfully")
 
 		// Find the second mmctl job
-		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeMessageExport, 0, 10)
+		jobs, _, err = s.th.SystemAdminClient.GetJobsByType(s.T().Context(), model.JobTypeMessageExport, 0, 10)
 		s.Require().NoError(err)
 		s.Require().True(len(jobs) > 2, "Should have at least 3 jobs")
 

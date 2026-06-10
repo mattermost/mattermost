@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"os"
@@ -26,7 +25,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(s.T().Context()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -45,7 +44,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(s.T().Context()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -60,7 +59,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(s.T().Context()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -81,7 +80,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			SetServerBusy(context.TODO(), minutes*60).
+			SetServerBusy(s.T().Context(), minutes*60).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -119,7 +118,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -134,7 +133,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -152,7 +151,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		expectedVersion := "1.23.4.dev"
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(s.T().Context()).
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
@@ -168,7 +167,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(s.T().Context()).
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -190,7 +189,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -210,7 +209,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		expectedStatus := map[string]any{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -229,7 +228,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -251,7 +250,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -273,7 +272,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -296,7 +295,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -321,7 +320,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -346,7 +345,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+			GetPingWithOptions(s.T().Context(), model.SystemPingOptions{
 				FullStatus:    true,
 				RESTSemantics: true,
 			}).
@@ -372,7 +371,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(s.T().Context()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
@@ -399,7 +398,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(s.T().Context()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
@@ -430,7 +429,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(s.T().Context()).
 			Return(nil, "", &model.Response{}, errors.New("mock error")).
 			Times(1)
 

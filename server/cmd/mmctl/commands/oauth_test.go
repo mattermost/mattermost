@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -36,13 +35,13 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 		s.client.
 			EXPECT().
-			GetOAuthApps(context.Background(), 0, 200).
+			GetOAuthApps(s.T().Context(), 0, 200).
 			Return([]*model.OAuthApp{&mockOAuthApp}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersByIds(context.Background(), []string{mockOAuthApp.CreatorId}).
+			GetUsersByIds(s.T().Context(), []string{mockOAuthApp.CreatorId}).
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -74,13 +73,13 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 		s.client.
 			EXPECT().
-			GetOAuthApps(context.Background(), 1, 2).
+			GetOAuthApps(s.T().Context(), 1, 2).
 			Return([]*model.OAuthApp{&mockOAuthApp}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersByIds(context.Background(), []string{mockOAuthApp.CreatorId}).
+			GetUsersByIds(s.T().Context(), []string{mockOAuthApp.CreatorId}).
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -98,7 +97,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 		s.client.
 			EXPECT().
-			GetOAuthApps(context.Background(), 0, 200).
+			GetOAuthApps(s.T().Context(), 0, 200).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -120,13 +119,13 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 		s.client.
 			EXPECT().
-			GetOAuthApps(context.Background(), 0, 200).
+			GetOAuthApps(s.T().Context(), 0, 200).
 			Return([]*model.OAuthApp{&mockOAuthApp}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersByIds(context.Background(), []string{mockOAuthApp.CreatorId}).
+			GetUsersByIds(s.T().Context(), []string{mockOAuthApp.CreatorId}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 

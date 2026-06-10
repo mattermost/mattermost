@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -26,7 +25,7 @@ func (s *MmctlUnitTestSuite) TestRolesListPlain() {
 
 		s.client.
 			EXPECT().
-			GetAllRoles(context.TODO()).
+			GetAllRoles(s.T().Context()).
 			Return(roles, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -49,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestRolesListJSON() {
 
 		s.client.
 			EXPECT().
-			GetAllRoles(context.TODO()).
+			GetAllRoles(s.T().Context()).
 			Return(roles, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -74,7 +73,7 @@ func (s *MmctlUnitTestSuite) TestRolesListPermissionError() {
 		forbiddenErr := fmt.Errorf("forbidden")
 		s.client.
 			EXPECT().
-			GetAllRoles(context.TODO()).
+			GetAllRoles(s.T().Context()).
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 

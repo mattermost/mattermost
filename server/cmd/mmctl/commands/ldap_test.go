@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -22,7 +21,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO()).
+			SyncLdap(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -39,7 +38,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO()).
+			SyncLdap(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -56,7 +55,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO()).
+			SyncLdap(s.T().Context()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -74,7 +73,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap(context.TODO(), "test-id").
+			MigrateIdLdap(s.T().Context(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -90,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap(context.TODO(), "test-id").
+			MigrateIdLdap(s.T().Context(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("test-error")).
 			Times(1)
 
@@ -113,7 +112,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
+			GetJobs(s.T().Context(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -146,7 +145,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
+			GetJobs(s.T().Context(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -168,7 +167,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), jobID).
+			GetJob(s.T().Context(), jobID).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
@@ -186,7 +185,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), mockJob.Id).
+			GetJob(s.T().Context(), mockJob.Id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -199,7 +198,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 	s.Run("shell completion", func() {
 		s.Run("no match for empty argument", func() {
-			r, dir := ldapJobShowCompletionF(context.Background(), s.client, nil, nil, "")
+			r, dir := ldapJobShowCompletionF(s.T().Context(), s.client, nil, nil, "")
 			s.Equal(cobra.ShellCompDirectiveNoFileComp, dir)
 			s.Equal([]string{}, r)
 		})
@@ -219,11 +218,11 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 			s.client.
 				EXPECT().
-				GetJobsByType(context.Background(), model.JobTypeLdapSync, 0, DefaultPageSize).
+				GetJobsByType(s.T().Context(), model.JobTypeLdapSync, 0, DefaultPageSize).
 				Return(mockJobs, &model.Response{}, nil).
 				Times(1)
 
-			r, dir := ldapJobShowCompletionF(context.Background(), s.client, nil, nil, "1")
+			r, dir := ldapJobShowCompletionF(s.T().Context(), s.client, nil, nil, "1")
 			s.Equal(cobra.ShellCompDirectiveNoFileComp, dir)
 			s.Equal([]string{"1_id"}, r)
 		})
@@ -243,11 +242,11 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 			s.client.
 				EXPECT().
-				GetJobsByType(context.Background(), model.JobTypeLdapSync, 0, DefaultPageSize).
+				GetJobsByType(s.T().Context(), model.JobTypeLdapSync, 0, DefaultPageSize).
 				Return(mockJobs, &model.Response{}, nil).
 				Times(1)
 
-			r, dir := ldapJobShowCompletionF(context.Background(), s.client, nil, nil, "id_")
+			r, dir := ldapJobShowCompletionF(s.T().Context(), s.client, nil, nil, "id_")
 			s.Equal(cobra.ShellCompDirectiveNoFileComp, dir)
 			s.Equal(expected, r)
 		})

@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -109,9 +108,9 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Set EnableAPITeamDeletion
 		enableConfig := true
-		config, _, _ := c.GetConfig(context.TODO())
+		config, _, _ := c.GetConfig(s.T().Context())
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
-		_, _, _ = c.UpdateConfig(context.TODO(), config)
+		_, _, _ = c.UpdateConfig(s.T().Context(), config)
 
 		// Deletion should succeed for both local and SystemAdmin client now
 		err = deleteTeamsCmdF(c, cmd, args)
@@ -122,9 +121,9 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Reset config
 		enableConfig = false
-		config, _, _ = c.GetConfig(context.TODO())
+		config, _, _ = c.GetConfig(s.T().Context())
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
-		_, _, _ = c.UpdateConfig(context.TODO(), config)
+		_, _, _ = c.UpdateConfig(s.T().Context(), config)
 
 		_, err = s.th.App.GetTeam(teamName)
 		s.Require().NotNil(err)
@@ -149,11 +148,11 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		c := s.th.LocalClient
 
 		enableConfig := false
-		config, _, _ := c.GetConfig(context.TODO())
+		config, _, _ := c.GetConfig(s.T().Context())
 		holdConfig := config.ServiceSettings.EnableAPITeamDeletion
 		// Set EnableAPITeamDeletion
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
-		_, _, _ = c.UpdateConfig(context.TODO(), config)
+		_, _, _ = c.UpdateConfig(s.T().Context(), config)
 
 		// Deletion should succeed for local client now
 		err = deleteTeamsCmdF(c, cmd, args)
@@ -163,9 +162,9 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		s.Len(printer.GetErrorLines(), 0)
 
 		// Reset config
-		config, _, _ = c.GetConfig(context.TODO())
+		config, _, _ = c.GetConfig(s.T().Context())
 		config.ServiceSettings.EnableAPITeamDeletion = holdConfig
-		_, _, _ = c.UpdateConfig(context.TODO(), config)
+		_, _, _ = c.UpdateConfig(s.T().Context(), config)
 
 		// expect team is deleted
 		_, err = s.th.App.GetTeam(teamName)

@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 
 	gomock "github.com/golang/mock/gomock"
@@ -32,13 +31,13 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchRole(context.TODO(), mockRole.Id, expectedPatch).
+			PatchRole(s.T().Context(), mockRole.Id, expectedPatch).
 			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
@@ -52,7 +51,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), gomock.Any()).
+			GetRoleByName(s.T().Context(), gomock.Any()).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
@@ -71,7 +70,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
@@ -83,7 +82,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 			}
 			s.client.
 				EXPECT().
-				PatchRole(context.TODO(), mockRole.Id, expectedPatch).
+				PatchRole(s.T().Context(), mockRole.Id, expectedPatch).
 				Return(&model.Role{}, &model.Response{}, nil).
 				Times(1)
 			args := []string{mockRole.Name, newPermission}
@@ -107,12 +106,12 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchRole(context.TODO(), mockRole.Id, expectedPatch).
+			PatchRole(s.T().Context(), mockRole.Id, expectedPatch).
 			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
@@ -133,12 +132,12 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchRole(context.TODO(), mockRole.Id, expectedPatch).
+			PatchRole(s.T().Context(), mockRole.Id, expectedPatch).
 			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
@@ -159,12 +158,12 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchRole(context.TODO(), mockRole.Id, expectedPatch).
+			PatchRole(s.T().Context(), mockRole.Id, expectedPatch).
 			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
@@ -181,7 +180,7 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		mockError := errors.New("role_not_found")
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, mockError).
 			Times(1)
 
@@ -201,7 +200,7 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, mockError).
 			Times(1)
 
@@ -219,7 +218,7 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(&mockRole, &model.Response{}, nil).
 			Times(1)
 
@@ -260,13 +259,13 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(context.TODO(), mockRole.Name).
+			GetRoleByName(s.T().Context(), mockRole.Name).
 			Return(&mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchRole(context.TODO(), mockRole.Id, expectedPatch).
+			PatchRole(s.T().Context(), mockRole.Id, expectedPatch).
 			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 

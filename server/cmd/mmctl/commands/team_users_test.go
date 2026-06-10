@@ -3,7 +3,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"net/http"
 
@@ -22,13 +21,13 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -44,19 +43,19 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), mockUser.Id, "").
+			GetUser(s.T().Context(), mockUser.Id, "").
 			Return(nil, nil, nil).
 			Times(1)
 
@@ -74,25 +73,25 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(s.T().Context(), teamArg, "").
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveTeamMember(context.TODO(), mockTeam.Id, mockUser.Id).
+			RemoveTeamMember(s.T().Context(), mockTeam.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -109,19 +108,19 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveTeamMember(context.TODO(), mockTeam.Id, mockUser.Id).
+			RemoveTeamMember(s.T().Context(), mockTeam.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -138,19 +137,19 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveTeamMember(context.TODO(), mockTeam.Id, mockUser.Id).
+			RemoveTeamMember(s.T().Context(), mockTeam.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -166,25 +165,25 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		mockUser := &model.User{Id: userArg}
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), mockUser.Id, "").
+			GetUser(s.T().Context(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveTeamMember(context.TODO(), mockTeam.Id, mockUser.Id).
+			RemoveTeamMember(s.T().Context(), mockTeam.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -202,19 +201,19 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(s.T().Context(), teamArg, "").
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(s.T().Context(), mockUser.Id, "").
 			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemoveTeamMember(context.TODO(), mockTeam.Id, mockUser.Id).
+			RemoveTeamMember(s.T().Context(), mockTeam.Id, mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -243,13 +242,13 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(s.T().Context(), "team1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), "team1", "").
+			GetTeamByName(s.T().Context(), "team1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -264,19 +263,19 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(s.T().Context(), "team1", "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "user1", "").
+			GetUserByUsername(s.T().Context(), "user1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), "user1", "").
+			GetUser(s.T().Context(), "user1", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -292,13 +291,13 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(s.T().Context(), "team1", "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "user1", "").
+			GetUserByUsername(s.T().Context(), "user1", "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -306,7 +305,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 		s.client.
 			EXPECT().
-			AddTeamMember(context.TODO(), "TeamId", "UserID").
+			AddTeamMember(s.T().Context(), "TeamId", "UserID").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -323,19 +322,19 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		cmd := &cobra.Command{}
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "team1", "").
+			GetTeam(s.T().Context(), "team1", "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "user1", "").
+			GetUserByUsername(s.T().Context(), "user1", "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			AddTeamMember(context.TODO(), "TeamId", "UserID").
+			AddTeamMember(s.T().Context(), "TeamId", "UserID").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 

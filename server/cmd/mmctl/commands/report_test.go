@@ -6,7 +6,6 @@
 package commands
 
 import (
-	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
@@ -38,7 +37,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -61,7 +60,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -84,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -107,7 +106,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -131,13 +130,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -179,13 +178,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -229,13 +228,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -278,13 +277,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "create_at",
 				SortDirection:      "asc",
@@ -328,13 +327,13 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(s.T().Context(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
+			GetPostsForReporting(s.T().Context(), model.ReportPostOptions{
 				ChannelId:          channelID,
 				TimeField:          "update_at",
 				SortDirection:      "desc",
