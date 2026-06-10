@@ -54,9 +54,9 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
         [options, trimmedQuery],
     );
 
-    const setOptions = (newOptions: PropertyFieldOption[]) => {
+    const setOptions = useCallback((newOptions: PropertyFieldOption[]) => {
         updateField({...field, attrs: {...field.attrs, options: newOptions}});
-    };
+    }, [field, updateField]);
 
     // Whether `name` already belongs to an option other than the one at
     // exceptAscIndex (an index into the ascending-rank ordering). Names are
@@ -67,7 +67,7 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
         [ascOptions],
     );
 
-    const handleRename = (ascIndex: number, name: string) => {
+    const handleRename = useCallback((ascIndex: number, name: string) => {
         const trimmed = name.trim();
         if (!trimmed || ascOptions[ascIndex]?.name === trimmed) {
             return;
@@ -79,30 +79,30 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
             return;
         }
         setOptions(ascOptions.map((option, i) => (i === ascIndex ? {...option, name: trimmed} : option)));
-    };
+    }, [ascOptions, nameCollidesWith, setOptions]);
 
-    const handleMoveToPosition = (ascIndex: number, targetAscIndex: number) => {
+    const handleMoveToPosition = useCallback((ascIndex: number, targetAscIndex: number) => {
         setOptions(moveOptionByAscIndex(options, ascIndex, targetAscIndex));
-    };
+    }, [options, setOptions]);
 
-    const handleRemove = (ascIndex: number) => {
+    const handleRemove = useCallback((ascIndex: number) => {
         setOptions(ascOptions.filter((_, i) => i !== ascIndex));
-    };
+    }, [ascOptions, setOptions]);
 
-    const addValue = () => {
+    const addValue = useCallback(() => {
         if (!trimmedQuery || isDuplicate) {
             return;
         }
         setOptions([...options, {id: '', name: trimmedQuery, rank: nextRank(options)}]);
         setQuery('');
-    };
+    }, [trimmedQuery, isDuplicate, options, setOptions]);
 
-    const handleQueryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const handleQueryKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
             event.preventDefault();
             addValue();
         }
-    };
+    }, [addValue]);
 
     return (
         <div className='user-property-rank-values'>
@@ -171,7 +171,7 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, on
         setLabel(option.name);
     }, [option.name]);
 
-    const commitLabel = () => onRename(ascIndex, label);
+    const commitLabel = useCallback(() => onRename(ascIndex, label), [onRename, ascIndex, label]);
 
     // Surface a duplicate-name collision inline beneath the label input, mirroring
     // the add-value flow, so a blocked rename gives feedback instead of silently

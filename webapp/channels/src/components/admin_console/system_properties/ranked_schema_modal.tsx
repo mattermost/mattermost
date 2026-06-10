@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {KeyboardEvent} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {DropResult} from 'react-beautiful-dnd';
 import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
 import {createPortal} from 'react-dom';
@@ -45,12 +45,12 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
     const {formatMessage} = useIntl();
 
     const clientIdCounter = useRef(0);
-    const makeRow = (option: Pick<PropertyFieldOption, 'id' | 'name' | 'color'>): Row => ({
+    const makeRow = useCallback((option: Pick<PropertyFieldOption, 'id' | 'name' | 'color'>): Row => ({
         clientId: `rank-row-${clientIdCounter.current++}`,
         id: option.id,
         name: option.name,
         color: option.color,
-    });
+    }), []);
 
     // Seed lowest-rank-first; from here on array order is the source of truth and
     // ranks are derived from it.
@@ -70,7 +70,7 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
     const trimmedDraft = draft.trim();
     const isDuplicate = Boolean(trimmedDraft) && rows.some((row) => row.name === trimmedDraft);
 
-    const moveRow = (fromIndex: number, toIndex: number) => {
+    const moveRow = useCallback((fromIndex: number, toIndex: number) => {
         setRows((prev) => {
             const clampedTo = Math.max(0, Math.min(toIndex, prev.length - 1));
             if (fromIndex === clampedTo || fromIndex < 0 || fromIndex >= prev.length) {
@@ -81,36 +81,36 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
             reordered.splice(clampedTo, 0, moved);
             return reordered;
         });
-    };
+    }, []);
 
-    const handleDragEnd = (result: DropResult) => {
+    const handleDragEnd = useCallback((result: DropResult) => {
         if (!result.destination) {
             return;
         }
         moveRow(result.source.index, result.destination.index);
-    };
+    }, [moveRow]);
 
-    const removeRow = (clientId: string) => {
+    const removeRow = useCallback((clientId: string) => {
         setRows((prev) => prev.filter((row) => row.clientId !== clientId));
-    };
+    }, []);
 
     // Appends a typed value as the new highest rank. A blank or duplicate name is
     // ignored. Returns whether a value was added.
-    const commitNewValue = (): boolean => {
+    const commitNewValue = useCallback((): boolean => {
         if (!trimmedDraft || isDuplicate) {
             return false;
         }
         setRows((prev) => [...prev, makeRow({id: '', name: trimmedDraft})]);
         setDraft('');
         return true;
-    };
+    }, [trimmedDraft, isDuplicate, makeRow]);
 
-    const closeAdd = () => {
+    const closeAdd = useCallback(() => {
         setAdding(false);
         setDraft('');
-    };
+    }, []);
 
-    const handleConfirm = () => {
+    const handleConfirm = useCallback(() => {
         if (rows.length === 0) {
             return;
         }
@@ -122,7 +122,7 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
         }));
         onSave({...field, attrs: {...field.attrs, options}});
         onExited();
-    };
+    }, [rows, field, onSave, onExited]);
 
     return (
         <GenericModal
