@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err = cpaValueListCmdF(c, s.cmd, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)

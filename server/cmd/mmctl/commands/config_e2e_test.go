@@ -182,7 +182,7 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		printer.Clean()
 		args = []string{"ImportSettings.Directory", "./local-allowed-import"}
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err = configSetCmdF(s.th.LocalClient, s.cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)

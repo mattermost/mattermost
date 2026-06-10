@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -24,6 +25,7 @@ type MmctlUnitTestSuite struct {
 	suite.Suite
 	mockCtrl *gomock.Controller
 	client   *mocks.MockClient
+	cmd      *cobra.Command
 }
 
 func (s *MmctlUnitTestSuite) SetupTest() {
@@ -32,6 +34,13 @@ func (s *MmctlUnitTestSuite) SetupTest() {
 
 	s.mockCtrl = gomock.NewController(s.T())
 	s.client = mocks.NewMockClient(s.mockCtrl)
+	s.cmd = &cobra.Command{}
+	s.cmd.SetContext(s.T().Context())
+}
+
+func (s *MmctlUnitTestSuite) SetupSubTest() {
+	s.cmd = &cobra.Command{}
+	s.cmd.SetContext(s.T().Context())
 }
 
 func (s *MmctlUnitTestSuite) TearDownTest() {
@@ -40,12 +49,20 @@ func (s *MmctlUnitTestSuite) TearDownTest() {
 
 type MmctlE2ETestSuite struct {
 	suite.Suite
-	th *api4.TestHelper
+	th  *api4.TestHelper
+	cmd *cobra.Command
 }
 
 func (s *MmctlE2ETestSuite) SetupTest() {
 	printer.Clean()
 	printer.SetFormat(printer.FormatJSON)
+	s.cmd = &cobra.Command{}
+	s.cmd.SetContext(s.T().Context())
+}
+
+func (s *MmctlE2ETestSuite) SetupSubTest() {
+	s.cmd = &cobra.Command{}
+	s.cmd.SetContext(s.T().Context())
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {

@@ -46,7 +46,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		printer.Clean()
 
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err = pluginAddCmdF(c, s.cmd, []string{pluginPath})
 		s.Require().ErrorContains(err, "Unable to install plugin. A plugin with the same ID is already installed.")
 
@@ -62,7 +62,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		// teardown
 		pInfo := plugins.Inactive[0]
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err = pluginDeleteCmdF(c, s.cmd, []string{pInfo.Id})
 		s.Require().Nil(err)
 	})
@@ -104,7 +104,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		// teardown
 		pInfo := plugins.Inactive[0]
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err = pluginDeleteCmdF(c, s.cmd, []string{pInfo.Id})
 		s.Require().Nil(err)
 	})
@@ -144,7 +144,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		// teardown
 		pInfo := res.Inactive[0]
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err = pluginDeleteCmdF(c, s.cmd, []string{pInfo.Id})
 		s.Require().Nil(err)
 	})
@@ -253,7 +253,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		var expected error
 		expected = multierror.Append(expected, errors.New("Unable to install plugin. A plugin with the same ID is already installed.")) //nolint:revive
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err = pluginInstallURLCmdF(c, s.cmd, []string{jiraURL})
 		s.Require().ErrorContains(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)
@@ -325,7 +325,7 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 		s.Require().Len(pluginsAvail.Inactive, 1)
 
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err := pluginDeleteCmdF(c, s.cmd, []string{jiraPluginID})
 		s.Require().Nil(err)
 
@@ -377,7 +377,7 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 
 		// Delete Test
 		s.cmd = &cobra.Command{}
-		s.s.cmd.SetContext(s.T().Context())
+		s.cmd.SetContext(s.T().Context())
 		err := pluginDeleteCmdF(s.th.Client, s.cmd, []string{jiraPluginID})
 		s.Require().ErrorContains(err, "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 1)
