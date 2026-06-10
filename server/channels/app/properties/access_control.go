@@ -948,14 +948,9 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 // used for select/multiselect. A caller who holds no value for the field (and
 // therefore has no rank) sees no options.
 func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
-	rankByID := buildOptionRankMap(field)
-	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
-	if !ok {
-		filteredField := h.copyPropertyField(field)
-		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
-		return filteredField
-	}
-
+	// Bail out before building the rank map or the caller-rank store lookup when
+	// there are no options to filter: an absent or malformed options array has
+	// nothing to hide, so the field is returned untouched.
 	if field.Attrs == nil {
 		return field
 	}
@@ -966,6 +961,14 @@ func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.Proper
 	optionsSlice, ok := optionsArr.([]any)
 	if !ok {
 		return field
+	}
+
+	rankByID := buildOptionRankMap(field)
+	callerRank, ok := h.callerRankForField(field, callerID, rankByID)
+	if !ok {
+		filteredField := h.copyPropertyField(field)
+		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+		return filteredField
 	}
 
 	filteredOptions := []any{}
