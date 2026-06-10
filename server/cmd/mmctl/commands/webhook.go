@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
