@@ -174,7 +174,6 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 
 	// Call plugin hook to allow customization of emailNotification
 	rejectionReason := ""
-	customized := false
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementContent *model.EmailNotificationContent
 		replacementContent, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
@@ -187,7 +186,6 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		}
 		if replacementContent != nil {
 			emailNotification.EmailNotificationContent = *replacementContent
-			customized = true
 		}
 		return true
 	}, plugin.EmailNotificationWillBeSentID)
@@ -206,11 +204,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		return nil, nil
 	}
 
-	// If a plugin replaced the email content above, send it immediately instead of batching.
-	// The plugin's replacement lives only on this in-memory emailNotification; batching stores
-	// just the raw post (AddNotificationEmailToBatch below), and the batch is later re-rendered
-	// from post.Message, which would discard the replacement and send the original message.
-	if *a.Config().EmailSettings.EnableEmailBatching && !customized {
+	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
 		if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications

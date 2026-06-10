@@ -7885,10 +7885,6 @@
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
-    "id": "app.plugin.draft.channel_mutation.app_error",
-    "translation": "Plugin {{.PluginID}} attempted to move the draft to a different channel via DraftWillBeUpserted; this is not permitted"
-  },
-  {
     "id": "app.plugin.extract.app_error",
     "translation": "An error occurred extracting the plugin bundle."
   },
@@ -8003,10 +7999,6 @@
   {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade."
-  },
-  {
-    "id": "app.plugin.scheduled_post.channel_mutation.app_error",
-    "translation": "Plugin {{.PluginID}} attempted to move the scheduled post to a different channel via ScheduledPostWillBeCreated; this is not permitted"
   },
   {
     "id": "app.plugin.seek.app_error",
