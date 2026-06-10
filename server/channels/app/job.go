@@ -226,6 +226,8 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeAccessControlTeamSync:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	case model.JobTypeAccessControlSync:
 		// Allow system admins to create access control sync jobs
 		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
@@ -298,7 +300,7 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionManageJobs
-	case model.JobTypeAccessControlSync:
+	case model.JobTypeAccessControlSync, model.JobTypeAccessControlTeamSync:
 		permission = model.PermissionManageSystem
 	}
 
@@ -336,7 +338,7 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
-	case model.JobTypeAccessControlSync:
+	case model.JobTypeAccessControlSync, model.JobTypeAccessControlTeamSync:
 		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	}
 

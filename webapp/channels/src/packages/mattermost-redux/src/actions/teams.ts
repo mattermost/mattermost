@@ -304,6 +304,17 @@ export function patchTeam(team: Partial<Team> & {id: string}) {
     });
 }
 
+export function updateTeamPrivacy(teamId: string, privacy: string) {
+    return bindClientFunc({
+        clientFunc: Client4.updateTeamPrivacy,
+        onSuccess: TeamTypes.PATCHED_TEAM,
+        params: [
+            teamId,
+            privacy,
+        ],
+    });
+}
+
 export function regenerateTeamInviteId(teamId: string) {
     return bindClientFunc({
         clientFunc: Client4.regenerateTeamInviteId,

@@ -13,7 +13,7 @@ import {
     getTeamAccessControlPolicy,
     searchUsersForExpression,
 } from 'mattermost-redux/actions/access_control';
-import {patchTeam, regenerateTeamInviteId, getTeamStats} from 'mattermost-redux/actions/teams';
+import {patchTeam, regenerateTeamInviteId, getTeamStats, updateTeamPrivacy} from 'mattermost-redux/actions/teams';
 
 import TeamAccessTab from './team_access_tab';
 
@@ -29,6 +29,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             patchTeam,
+            updateTeamPrivacy,
             regenerateTeamInviteId,
             getTeamStats,
             getTeamAccessControlPolicy,

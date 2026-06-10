@@ -59,7 +59,7 @@ describe('SearchableSyncJobTeamList', () => {
         renderWithContext(<SearchableSyncJobTeamList
             {...baseProps}
             onViewDetails={onViewDetails}
-                          />);
+        />);
 
         await userEvent.click(screen.getByTestId('TeamRow-engineering'));
 
@@ -70,7 +70,7 @@ describe('SearchableSyncJobTeamList', () => {
         renderWithContext(<SearchableSyncJobTeamList
             {...baseProps}
             teams={[]}
-                          />);
+        />);
 
         expect(screen.getByText('No results')).toBeInTheDocument();
     });

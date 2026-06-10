@@ -97,10 +97,16 @@ function TeamMembershipTab({
     }, [actions]);
 
     useEffect(() => {
+        // Guard against the modal closing (or team changing) mid-fetch: a late
+        // response must not write state onto an unmounted/re-keyed component.
+        let cancelled = false;
         const loadTeamPolicy = async () => {
             try {
-                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: {policy: AccessControlPolicy | null; enforced: boolean}; error?: unknown};
-                const policy = result.data?.policy;
+                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: AccessControlPolicy | null; error?: unknown};
+                if (cancelled) {
+                    return;
+                }
+                const policy = result.data;
                 if (policy) {
                     const existingExpression = getMembershipRule(policy.rules)?.expression || '';
                     const existingAutoAdd = policy.active || false;
@@ -120,18 +126,28 @@ function TeamMembershipTab({
                                 return pr.data ?? null;
                             }),
                         );
+                        if (cancelled) {
+                            return;
+                        }
                         setSystemPolicies(fetchedPolicies.filter((p): p is AccessControlPolicy => p !== null));
                     }
                 }
             } catch {
-                setExpression('');
-                setOriginalExpression('');
+                if (!cancelled) {
+                    setExpression('');
+                    setOriginalExpression('');
+                }
             } finally {
-                setPoliciesLoaded(true);
+                if (!cancelled) {
+                    setPoliciesLoaded(true);
+                }
             }
         };
         loadTeamPolicy();
-    }, [team.id]); // eslint-disable-line react-hooks/exhaustive-deps
+        return () => {
+            cancelled = true;
+        };
+    }, [team.id, actions, dispatch]);
 
     useEffect(() => {
         const unsaved = expression !== originalExpression || autoAddMembers !== originalAutoAddMembers;
@@ -195,8 +211,12 @@ function TeamMembershipTab({
             ]);
 
             const allowed = searchResult.data?.total ?? null;
-            const totalMembers = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
-            const restricted = allowed !== null && totalMembers !== null ? Math.max(0, totalMembers - allowed) : null;
+
+            // Use active_member_count, not total_member_count: the allowed count from the
+            // expression search excludes deactivated users, so the subtraction must too,
+            // or deactivated members would inflate the "do not match" warning.
+            const activeMembers = (statsResult?.data as {active_member_count?: number} | null)?.active_member_count ?? null;
+            const restricted = allowed !== null && activeMembers !== null ? Math.max(0, activeMembers - allowed) : null;
 
             return {allowed, restricted};
         } catch {
@@ -213,8 +233,6 @@ function TeamMembershipTab({
                 name: team.display_name,
                 type: 'team',
                 active: false,
-                revision: 1,
-                created_at: Date.now(),
                 rules: buildRulesWithMembership(existingRules, expression),
                 imports: existingImports,
             };
@@ -224,10 +242,12 @@ function TeamMembershipTab({
                 throw new Error((result.error as Error).message || 'Failed to save policy');
             }
 
-            try {
-                await actions.updateAccessControlPoliciesActive([{id: team.id, active: autoAddMembers}]);
-            } catch {
-                // Non-fatal
+            // The active flag is the auto-add toggle; if it fails to persist the
+            // save must not report success, or the UI would show auto-add on while
+            // the backend has it off and no sync would run.
+            const activeResult = await actions.updateAccessControlPoliciesActive([{id: team.id, active: autoAddMembers}]);
+            if (activeResult.error) {
+                throw new Error((activeResult.error as Error).message || 'Failed to update auto-add status');
             }
 
             const rulesChanged = expression !== originalExpression;
@@ -306,7 +326,11 @@ function TeamMembershipTab({
     }, [performSave, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
     const handleSaveChanges = useCallback(async () => {
-        if (saveInProgressRef.current) {
+        // showConfirmModal guards the window between opening the confirm modal and
+        // the user acting on it: the lock below is released as soon as handleSave
+        // returns (the modal is still open), so without this a re-trigger would
+        // recompute counts and reopen the modal.
+        if (saveInProgressRef.current || showConfirmModal) {
             return;
         }
         saveInProgressRef.current = true;
@@ -315,7 +339,7 @@ function TeamMembershipTab({
         } finally {
             saveInProgressRef.current = false;
         }
-    }, [handleSave]);
+    }, [handleSave, showConfirmModal]);
 
     const handleCancel = useCallback(() => {
         setExpression(originalExpression);

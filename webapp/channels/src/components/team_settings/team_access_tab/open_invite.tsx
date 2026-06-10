@@ -16,10 +16,11 @@ type Props = {
     isPublic: boolean;
     isGroupConstrained?: boolean;
     policyEnforced?: boolean;
+    policyIsActive?: boolean;
     onChange: (isPublic: boolean) => void;
 };
 
-const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, onChange}: Props) => {
+const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, policyIsActive, onChange}: Props) => {
     const {formatMessage} = useIntl();
 
     if (isGroupConstrained) {
@@ -57,7 +58,12 @@ const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, onChange}: Pr
         );
     }
 
-    const policyNotice = policyEnforced ? (
+    // Only lock the cards and show the "managed" notice when auto-add is actively managing membership.
+    // When the policy exists but auto-add is off, cards remain clickable so the mode-flip flow can run.
+    // On a private team the public card is never locked: switching to public reduces restriction and is always allowed.
+    const cardsDisabled = Boolean(policyIsActive) && isPublic;
+
+    const policyNotice = (policyEnforced && policyIsActive) ? (
         <p className='TeamAccessTab__policyEnforcedNotice'>
             <FormattedMessage
                 id='team_settings.discoverability.policy_enforced_notice'
@@ -83,8 +89,8 @@ const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, onChange}: Pr
                         id: 'team_settings.discoverability.public_description',
                         defaultMessage: 'Anyone on the server can find and join',
                     }),
-                    disabled: policyEnforced,
-                    tooltip: policyEnforced ? formatMessage({
+                    disabled: cardsDisabled,
+                    tooltip: cardsDisabled ? formatMessage({
                         id: 'team_settings.discoverability.policy_enforced_tooltip',
                         defaultMessage: 'Membership is managed by a policy',
                     }) : undefined,
@@ -98,8 +104,8 @@ const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, onChange}: Pr
                         id: 'team_settings.discoverability.private_description',
                         defaultMessage: 'Only invited members can join',
                     }),
-                    disabled: policyEnforced,
-                    tooltip: policyEnforced ? formatMessage({
+                    disabled: cardsDisabled,
+                    tooltip: cardsDisabled ? formatMessage({
                         id: 'team_settings.discoverability.policy_enforced_tooltip',
                         defaultMessage: 'Membership is managed by a policy',
                     }) : undefined,

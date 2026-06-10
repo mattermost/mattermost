@@ -123,14 +123,14 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
         {
             name: 'team_membership',
             uiName: formatMessage({id: 'team_settings_modal.teamMembershipTab', defaultMessage: 'Team Membership'}),
-            icon: 'icon icon-shield-outline',
+            icon: 'icon icon-iframe-list-outline',
             iconTitle: formatMessage({id: 'generic_icons.team_membership', defaultMessage: 'Team Membership Icon'}),
             display: teamMembershipAbacEnabled && canManageTeamAccessRules,
         },
         {
             name: 'access_policies',
             uiName: formatMessage({id: 'team_settings_modal.accessPoliciesTab', defaultMessage: 'Channel Membership'}),
-            icon: 'icon icon-shield-outline',
+            icon: 'icon icon-message-check-outline',
             iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Membership Policy Icon'}),
             display: abacEnabled && canManageTeamAccessRules,
         },

@@ -22,7 +22,7 @@ describe('components/TeamSettings/OpenInvite', () => {
         renderWithContext(<OpenInvite
             {...defaultProps}
             isGroupConstrained={true}
-                          />);
+        />);
         expect(screen.getByText(/members of this team are added and removed by linked groups/i)).toBeInTheDocument();
         expect(screen.getByText('Learn More')).toBeInTheDocument();
     });
@@ -37,7 +37,7 @@ describe('components/TeamSettings/OpenInvite', () => {
         renderWithContext(<OpenInvite
             {...defaultProps}
             isPublic={false}
-                          />);
+        />);
         await userEvent.click(screen.getByText('Public Team'));
         expect(onChange).toHaveBeenCalledWith(true);
     });
@@ -46,16 +46,45 @@ describe('components/TeamSettings/OpenInvite', () => {
         renderWithContext(<OpenInvite
             {...defaultProps}
             isPublic={true}
-                          />);
+        />);
         await userEvent.click(screen.getByText('Private Team'));
         expect(onChange).toHaveBeenCalledWith(false);
     });
 
-    test('shows policy-enforced notice and disables cards when policyEnforced is true', () => {
+    test('shows policy-enforced notice and disables cards when policyEnforced and policyIsActive are true on a public team', () => {
         renderWithContext(<OpenInvite
             {...defaultProps}
+            isPublic={true}
             policyEnforced={true}
-                          />);
+            policyIsActive={true}
+        />);
         expect(screen.getByText(/membership is managed by a policy/i)).toBeInTheDocument();
+        const publicBtn = screen.getByRole('button', {name: /public team/i});
+        const privateBtn = screen.getByRole('button', {name: /private team/i});
+        expect(publicBtn.className).toMatch(/disabled/);
+        expect(privateBtn.className).toMatch(/disabled/);
+    });
+
+    test('does not disable cards when policyEnforced but policyIsActive is false', async () => {
+        renderWithContext(<OpenInvite
+            {...defaultProps}
+            isPublic={true}
+            policyEnforced={true}
+            policyIsActive={false}
+        />);
+        expect(screen.queryByText(/membership is managed by a policy/i)).not.toBeInTheDocument();
+        await userEvent.click(screen.getByText('Private Team'));
+        expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    test('does not disable cards on a private team even when policyIsActive is true', async () => {
+        renderWithContext(<OpenInvite
+            {...defaultProps}
+            isPublic={false}
+            policyEnforced={true}
+            policyIsActive={true}
+        />);
+        await userEvent.click(screen.getByText('Public Team'));
+        expect(onChange).toHaveBeenCalledWith(true);
     });
 });

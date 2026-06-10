@@ -1373,6 +1373,13 @@ export default class Client4 {
         );
     };
 
+    updateTeamPrivacy = (teamId: string, privacy: string) => {
+        return this.doFetch<Team>(
+            `${this.getTeamRoute(teamId)}/privacy`,
+            {method: 'put', body: JSON.stringify({privacy})},
+        );
+    };
+
     regenerateTeamInviteId = (teamId: string) => {
         return this.doFetch<Team>(
             `${this.getTeamRoute(teamId)}/regenerate_invite_id`,

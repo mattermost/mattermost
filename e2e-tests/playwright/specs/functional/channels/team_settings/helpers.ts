@@ -195,6 +195,40 @@ export async function waitForAttributeViewToInclude(
     );
 }
 
+export async function waitForAttributeViewToExclude(
+    adminClient: Client4,
+    expression: string,
+    excludedUserIds: string[],
+    timeoutMs = 45_000,
+    pollIntervalMs = 1_000,
+): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastSeen = new Set<string>();
+    while (Date.now() < deadline) {
+        const response: any = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/access_control_policies/cel/test`,
+            {
+                method: 'post',
+                body: JSON.stringify({
+                    expression,
+                    term: '',
+                    after: '',
+                    limit: 1000,
+                }),
+            },
+        );
+        lastSeen = new Set<string>((response?.users || []).map((u: any) => u.id));
+        if (excludedUserIds.every((id) => !lastSeen.has(id))) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    }
+    const stillPresent = excludedUserIds.filter((id) => lastSeen.has(id));
+    throw new Error(
+        `AttributeView still includes users [${stillPresent.join(', ')}] for expression "${expression}" after ${timeoutMs}ms`,
+    );
+}
+
 export async function createPrivateChannel(client: Client4, teamId: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
     return client.createChannel({team_id: teamId, name: `abac-${id}`, display_name: `ABAC-${id}`, type: 'P'} as any);
@@ -277,8 +311,8 @@ export async function enableTeamMembershipABACConfig(client: Client4) {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: true,
         },
-        ServiceSettings: {
-            FeatureFlagTeamMembershipAccessControl: true,
+        FeatureFlags: {
+            TeamMembershipAccessControl: true,
         },
     } as any);
 }
@@ -304,10 +338,15 @@ export async function createTeamMembershipPolicy(
 }
 
 export async function assignTeamToParentPolicy(client: Client4, policyId: string, teamId: string) {
-    return (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}/assign`, {
-        method: 'post',
+    const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/assign`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${client.getToken()}`},
         body: JSON.stringify({team_ids: [teamId]}),
     });
+    if (!response.ok) {
+        throw new Error(`assignTeamToParentPolicy failed: ${response.status}`);
+    }
 }
 
 export async function getTeamAccessControlPolicy(client: Client4, teamId: string) {

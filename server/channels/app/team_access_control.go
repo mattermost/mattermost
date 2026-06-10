@@ -353,26 +353,32 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 // SendTeamAccessControlRemovalNotification DMs the user, from the system bot,
 // that the team's membership policy removed them. The message carries only the
 // team name — never any policy/attribute detail.
-func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, userID string, team *model.Team) *model.AppError {
-	return a.sendTeamAccessControlMembershipDM(rctx, userID, team, model.PostTypeAccessControlTeamRemoval, "api.team.access_control.removed.system_message")
+// The systemBot may be pre-resolved by the caller (the sync worker resolves it
+// once per team rather than once per user, since GetSystemBot is not free); pass
+// nil to have it resolved here.
+func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamRemoval, "api.team.access_control.removed.system_message")
 }
 
 // SendTeamAccessControlAdditionNotification audits the auto-add and DMs the
 // user, from the system bot, that they were added to the team because they meet
-// its membership policy. Like the removal DM, it leaks no policy detail.
-func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, userID string, team *model.Team) *model.AppError {
+// its membership policy. Like the removal DM, it leaks no policy detail. The
+// audit record is always written; only the DM depends on the system bot.
+func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
 	rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipAdded, model.AuditStatusSuccess)
 	model.AddEventParameterToAuditRec(rec, "user_id", userID)
 	model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
 	a.LogAuditRec(rctx, rec, nil)
 
-	return a.sendTeamAccessControlMembershipDM(rctx, userID, team, model.PostTypeAccessControlTeamAddition, "api.team.access_control.added.system_message")
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamAddition, "api.team.access_control.added.system_message")
 }
 
-func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, userID string, team *model.Team, postType, messageKey string) *model.AppError {
-	systemBot, appErr := a.GetSystemBot(rctx)
-	if appErr != nil {
-		return appErr
+func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team, postType, messageKey string) *model.AppError {
+	if systemBot == nil {
+		var appErr *model.AppError
+		if systemBot, appErr = a.GetSystemBot(rctx); appErr != nil {
+			return appErr
+		}
 	}
 
 	channel, appErr := a.GetOrCreateDirectChannel(rctx, userID, systemBot.UserId)

@@ -482,7 +482,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             }
         }
 
-        const newOriginalAutoAdd = !serverError ? this.state.autoAddMembers : this.state.originalAutoAddMembers;
+        const newOriginalAutoAdd = serverError ? this.state.originalAutoAddMembers : this.state.autoAddMembers;
         this.setState({
             usersToRemoveCount: 0,
             rolesToUpdate: {},

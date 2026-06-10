@@ -33,6 +33,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     const isPublicTeamInitial = team.type === 'O' && (team.allow_open_invite ?? false);
     const [isPublicTeam, setIsPublicTeam] = useState<boolean>(isPublicTeamInitial);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
+    const [isSaving, setIsSaving] = useState(false);
 
     // Mode-flip confirmation modal state
     const [showModeFlipModal, setShowModeFlipModal] = useState(false);
@@ -54,11 +55,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         if (isPublicTeam === isPublicTeamInitial) {
             return true;
         }
-        const {error} = await actions.patchTeam({
-            id: team.id,
-            type: isPublicTeam ? 'O' : 'I',
-            allow_open_invite: isPublicTeam,
-        });
+        const {error} = await actions.updateTeamPrivacy(team.id, isPublicTeam ? 'O' : 'I');
         if (error) {
             return false;
         }
@@ -67,11 +64,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
 
     const computeModeFlipCount = useCallback(async (): Promise<number | null> => {
         try {
-            const [policyResult, statsResult] = await Promise.all([
-                actions.getTeamAccessControlPolicy(team.id),
-                actions.getTeamStats(team.id),
-            ]);
-
+            const policyResult = await actions.getTeamAccessControlPolicy(team.id);
             const policyData = policyResult?.data as {policy: AccessControlPolicy | null; enforced: boolean} | undefined;
             const expression = getMembershipRule(policyData?.policy?.rules)?.expression ?? '';
 
@@ -79,15 +72,25 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
                 return null;
             }
 
-            const usersResult = await actions.searchUsersForExpression(expression, '', '', 1000, undefined, team.id);
-            const qualifyingCount = usersResult?.data?.total ?? 0;
-            const totalCount = statsResult?.data?.total_member_count ?? null;
+            // Count the members who would be removed as (active members) minus
+            // (members matching the rules). Both counts come from the server:
+            // searchUsersForExpression with the team id scopes the match count to
+            // this team's members, and the stats endpoint gives the active total.
+            // This avoids paging the member list, which the server caps at 200 per
+            // request and would silently undercount on larger teams.
+            const [searchResult, statsResult] = await Promise.all([
+                actions.searchUsersForExpression(expression, '', '', 1, undefined, team.id),
+                actions.getTeamStats(team.id),
+            ]);
 
-            if (totalCount === null) {
+            const allowed = searchResult?.data?.total ?? null;
+            const activeMembers = (statsResult?.data as {active_member_count?: number} | null)?.active_member_count ?? null;
+
+            if (allowed === null || activeMembers === null) {
                 return null;
             }
 
-            return Math.max(0, totalCount - qualifyingCount);
+            return Math.max(0, activeMembers - allowed);
         } catch {
             return null;
         }
@@ -118,8 +121,12 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         if (team.policy_enforced) {
             try {
                 await actions.createAccessControlTeamSyncJob({policy_id: team.id});
-            } catch {
-                // Job creation failure does not block the privacy change
+            } catch (jobError) {
+                // Job creation failure does not block the privacy change; the
+                // periodic sync still converges membership. Log so an operator
+                // can see why immediate enforcement did not kick in.
+                // eslint-disable-next-line no-console
+                console.error('Failed to create team access control sync job after mode flip:', jobError);
             }
         }
     }, [actions, team.id, team.policy_enforced]);
@@ -142,8 +149,13 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     }, [handleClose, isPublicTeamInitial, team.allowed_domains]);
 
     const handleSaveChanges = useCallback(async () => {
+        if (isSaving) {
+            return;
+        }
+        setIsSaving(true);
         const allowedDomainSuccess = await handleAllowedDomainsSubmit();
         const privacySuccess = await handlePrivacySubmit();
+        setIsSaving(false);
         if (!allowedDomainSuccess || !privacySuccess) {
             setSaveChangesPanelState('error');
             return;
@@ -153,18 +165,18 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
 
         // allows modal to close immediately
         setAreThereUnsavedChanges(false);
-    }, [handleAllowedDomainsSubmit, handlePrivacySubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
+    }, [isSaving, handleAllowedDomainsSubmit, handlePrivacySubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
-    const modeFlipMessage = modeFlipMemberCount !== null ? (
+    const modeFlipMessage = modeFlipMemberCount === null ? (
+        <FormattedMessage
+            id='team_settings.mode_flip_confirm.message_generic'
+            defaultMessage='Switching to Private will activate strict ABAC enforcement. Some members may not meet the current policy criteria and will be removed at the next sync.'
+        />
+    ) : (
         <FormattedMessage
             id='team_settings.mode_flip_confirm.message_with_count'
             defaultMessage='Switching to Private will activate strict ABAC enforcement. {count} current {count, plural, one {member does} other {members do}} not meet criteria and will be removed at the next sync.'
             values={{count: modeFlipMemberCount}}
-        />
-    ) : (
-        <FormattedMessage
-            id='team_settings.mode_flip_confirm.message_generic'
-            defaultMessage='Switching to Private will activate strict ABAC enforcement. Some members may not meet the current policy criteria and will be removed at the next sync.'
         />
     );
 
@@ -175,21 +187,24 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             aria-labelledby='accessButton'
             role='tabpanel'
         >
-            {!team.group_constrained && (
-                <AllowedDomainsSelect
-                    allowedDomains={allowedDomains}
-                    setAllowedDomains={setAllowedDomains}
-                    setHasChanges={setAreThereUnsavedChanges}
-                    setSaveChangesPanelState={setSaveChangesPanelState}
-                />
-            )}
-            <div className='divider-light'/>
             <OpenInvite
                 isPublic={isPublicTeam}
                 isGroupConstrained={team.group_constrained}
                 policyEnforced={team.policy_enforced}
+                policyIsActive={team.policy_is_active}
                 onChange={handlePrivacyChange}
             />
+            {!team.group_constrained && (
+                <>
+                    <div className='divider-light'/>
+                    <AllowedDomainsSelect
+                        allowedDomains={allowedDomains}
+                        setAllowedDomains={setAllowedDomains}
+                        setHasChanges={setAreThereUnsavedChanges}
+                        setSaveChangesPanelState={setSaveChangesPanelState}
+                    />
+                </>
+            )}
             <div className='divider-light'/>
             {!team.group_constrained && (
                 <InviteSectionInput regenerateTeamInviteId={actions.regenerateTeamInviteId}/>
@@ -201,6 +216,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
                     handleClose={handleClose}
                     tabChangeError={showTabSwitchError}
                     state={saveChangesPanelState}
+                    saving={isSaving}
                 />
             )}
 

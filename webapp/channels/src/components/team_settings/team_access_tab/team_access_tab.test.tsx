@@ -13,13 +13,15 @@ import AccessTab from './team_access_tab';
 
 describe('components/TeamSettings', () => {
     const patchTeam = jest.fn().mockReturnValue({data: true});
+    const updateTeamPrivacy = jest.fn().mockResolvedValue({data: true});
     const regenerateTeamInviteId = jest.fn().mockReturnValue({data: true});
-    const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 10}});
+    const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 10, active_member_count: 10}});
     const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({data: {policy: null, enforced: false}});
     const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [], total: 0}});
     const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
     const baseActions = {
         patchTeam,
+        updateTeamPrivacy,
         regenerateTeamInviteId,
         getTeamStats,
         getTeamAccessControlPolicy,

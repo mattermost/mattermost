@@ -15,8 +15,8 @@ export async function enableTeamMembershipPolicies(client: Client4): Promise<voi
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: true,
         },
-        FeatureFlags: {
-            TeamMembershipAccessControl: true,
+        ServiceSettings: {
+            FeatureFlagTeamMembershipAccessControl: true,
         },
     } as any);
 }

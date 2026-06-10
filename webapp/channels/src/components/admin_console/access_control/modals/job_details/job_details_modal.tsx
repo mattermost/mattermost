@@ -13,8 +13,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import AlertBanner from 'components/alert_banner';
 import CodeBlock from 'components/code_block/code_block';
@@ -82,11 +80,11 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const [teamSyncResults, setTeamSyncResults] = useState<TeamSyncResults | null>(null);
     const [teamSearchTerm, setTeamSearchTerm] = useState('');
     const [allTeamsForList, setAllTeamsForList] = useState<Team[]>([]);
-    const [teamEntityLookup, setTeamEntityLookup] = useState<IDMappedObjects<Team>>({});
 
     const pageSize = 10;
 
-    const state = useSelector((state: GlobalState) => state);
+    const channelsMap = useSelector((state: GlobalState) => state.entities.channels.channels);
+    const teamsMap = useSelector((state: GlobalState) => state.entities.teams.teams);
 
     const isChannelSyncJob = job.type === 'access_control_sync';
     const isTeamSyncJob = job.type === 'access_control_team_sync';
@@ -129,12 +127,12 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
         const channelsForList: Channel[] = [];
 
         Object.keys(syncResults).forEach((channelId) => {
-            const channel = getChannel(state, channelId);
+            const channel = channelsMap[channelId];
             if (channel) {
                 channels[channelId] = channel;
                 channelsForList.push(channel);
                 if (!teams[channel.team_id]) {
-                    const team = getTeam(state, channel.team_id);
+                    const team = teamsMap[channel.team_id];
                     if (team) {
                         teams[team.id] = team;
                     }
@@ -145,7 +143,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
         setTeamLookup(teams);
         setChannelLookup(channels);
         setAllChannelsForList(channelsForList);
-    }, [syncResults, state]);
+    }, [syncResults, channelsMap, teamsMap]);
 
     // Build team lookup
     useEffect(() => {
@@ -156,16 +154,15 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
         const teamsForList: Team[] = [];
 
         Object.keys(teamSyncResults).forEach((teamId) => {
-            const team = getTeam(state, teamId);
+            const team = teamsMap[teamId];
             if (team) {
                 teams[teamId] = team;
                 teamsForList.push(team);
             }
         });
 
-        setTeamEntityLookup(teams);
         setAllTeamsForList(teamsForList);
-    }, [teamSyncResults, state]);
+    }, [teamSyncResults, teamsMap]);
 
     const handleViewChannelDetails = (channelId: string, channelName: string, results: ChannelMembersSyncResults) => {
         setSelectedChannel(channelId);

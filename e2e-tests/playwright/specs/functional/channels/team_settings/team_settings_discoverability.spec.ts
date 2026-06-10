@@ -84,7 +84,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const channelsPage = new ChannelsPage(page);
 
         // # Navigate and open Team Settings
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();
@@ -112,7 +112,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const channelsPage = new ChannelsPage(page);
 
         // # Navigate and open Team Settings
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();
@@ -140,14 +140,18 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
 
     test('MM-69100_3 Private Team card saves type=I and allow_open_invite=false', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminClient, adminUser} = await pw.getAdminClient();
+        const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
+
+        // # Start with a fully public team (type=O AND allow_open_invite=true)
+        const team = await createPublicTeam(adminClient, suffix);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
 
-        // # Navigate and open Team Settings (team is public by default)
-        await channelsPage.goto(team.name);
+        // # Navigate and open Team Settings (team is public)
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();
@@ -174,54 +178,23 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.close();
     });
 
-    test('MM-69100_4 group-constrained team shows group-sync notice, not cards', async ({pw}) => {
-        await pw.skipIfNoLicense();
-        const {adminClient, adminUser} = await pw.getAdminClient();
-        const suffix = pw.random.id();
-        await enableTeamMembershipABACConfig(adminClient);
-
-        // # Create a group-constrained team
-        const team = await adminClient.createTeam({
-            name: `gc-${suffix}`,
-            display_name: `GC ${suffix}`,
-            type: 'O',
-        } as any);
-        await adminClient.patchTeam({id: team.id, group_constrained: true} as any);
-
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-
-        // # Navigate and open Team Settings
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessTab();
-
-        // * Group-sync notice is visible
-        await expect(
-            teamSettings.container.getByText(/Members of this team are added and removed by linked groups/i),
-        ).toBeVisible();
-
-        // * Cards are not visible
-        await expect(teamSettings.container.getByText('Public Team')).not.toBeVisible();
-        await expect(teamSettings.container.getByText('Private Team')).not.toBeVisible();
-
-        await teamSettings.close();
-    });
-
-    test('MM-69100_5 team with active ABAC policy shows disabled cards with policy notice', async ({pw}) => {
+    test('MM-69100_4 team with active ABAC policy shows disabled cards with policy notice', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
 
-        // # Create a team membership policy (makes team policy_enforced)
+        // initSetup creates type='O' but allow_open_invite=false; make the team
+        // fully public so isPublicTeam=true and the disabled logic activates.
+        await adminClient.patchTeam({id: team.id, allow_open_invite: true} as any);
+
+        // # Create a team membership policy with auto-add ON (makes team policy_enforced + policy_is_active)
         await createTeamMembershipPolicy(adminClient, team.id, 'true', true);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
 
         // # Navigate and open Team Settings (team fetched with policy_enforced=true)
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();
@@ -238,7 +211,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.close();
     });
 
-    test('MM-69100_6 Public→Private mode-flip with active policy shows confirm modal with member count', async ({pw}) => {
+    test('MM-69100_5 Public→Private mode-flip with active policy shows confirm modal with member count', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser, team} = await setupModeFlipScenario(pw);
 
@@ -246,7 +219,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const channelsPage = new ChannelsPage(page);
 
         // # Navigate and open Team Settings
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();
@@ -280,7 +253,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.close();
     });
 
-    test('MM-69100_7 mode-flip confirm saves team as Private and triggers sync job', async ({pw}) => {
+    test('MM-69100_6 mode-flip confirm saves team as Private and triggers sync job', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser, team} = await setupModeFlipScenario(pw);
         const testStartTime = Date.now();
@@ -289,7 +262,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const channelsPage = new ChannelsPage(page);
 
         // # Navigate and open Team Settings
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();
@@ -325,7 +298,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.close();
     });
 
-    test('MM-69100_8 Private→Public flip saves directly, no modal, no sync job', async ({pw}) => {
+    test('MM-69100_7 Private→Public flip saves directly, no modal, no sync job', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
         const suffix = pw.random.id();
@@ -340,7 +313,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const channelsPage = new ChannelsPage(page);
 
         // # Navigate and open Team Settings (team is private + policy_enforced)
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();

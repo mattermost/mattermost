@@ -11,14 +11,14 @@ import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
 import {enableTeamMembershipABACConfig} from './helpers';
 
 test.describe('Team Settings Modal - Tab Order', {tag: ['@abac', '@team_membership']}, () => {
-    test('MM-69100_27 Four-tab order: Info, Access, Team Membership, Channel Membership', async ({pw}) => {
+    test('MM-69100_20 Four-tab order: Info, Access, Team Membership, Channel Membership', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
@@ -41,14 +41,14 @@ test.describe('Team Settings Modal - Tab Order', {tag: ['@abac', '@team_membersh
         await teamSettings.close();
     });
 
-    test('MM-69100_28 Channel Membership tab label is "Channel Membership", not "Membership Policies"', async ({pw}) => {
+    test('MM-69100_21 Channel Membership tab label is "Channel Membership", not "Membership Policies"', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
@@ -67,14 +67,14 @@ test.describe('Team Settings Modal - Tab Order', {tag: ['@abac', '@team_membersh
         await teamSettings.close();
     });
 
-    test('MM-69100_29 Channel Membership tab (4th) opens the policy editor content', async ({pw}) => {
+    test('MM-69100_22 Channel Membership tab (4th) opens the policy editor content', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
@@ -90,14 +90,14 @@ test.describe('Team Settings Modal - Tab Order', {tag: ['@abac', '@team_membersh
         await teamSettings.close();
     });
 
-    test('MM-69100_30 Team Membership and Channel Membership tabs are independently navigable', async ({pw}) => {
+    test('MM-69100_23 Team Membership and Channel Membership tabs are independently navigable', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();

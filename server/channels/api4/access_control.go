@@ -386,11 +386,19 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	// Scope results to a team's current members only for callers authorized on
+	// that team. A channel admin clears the permission gate via the channel
+	// branch, so binding the team scope to teamID alone would let them point the
+	// search at any team — gate it on the verified team permission instead.
+	if hasSystemPermission || hasTeamPermission {
+		searchOpts.TeamID = teamID
+	}
+
 	// Only system admins see ALL matching users (unrestricted).
 	// Delegated admins (team and channel) see only users matching expressions with attributes they possess.
 	if hasSystemPermission {
 		users, count, appErr = c.App.TestExpression(c.AppContext, checkExpressionRequest.Expression, searchOpts)
-	} else if teamID != "" {
+	} else if hasTeamPermission {
 		users, count, appErr = c.App.TestExpressionWithTeamContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)
 	} else {
 		users, count, appErr = c.App.TestExpressionWithChannelContext(c.AppContext, checkExpressionRequest.Expression, searchOpts)

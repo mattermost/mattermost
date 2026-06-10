@@ -123,6 +123,13 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(page.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 5000});
 
         await page.getByRole('button', {name: 'Save'}).click();
+
+        // Assigning a new policy triggers a confirmation dialog ("Apply membership policy").
+        // Confirm it so handleSubmit actually runs and the assignment is persisted.
+        const applyBtn = page.getByRole('button', {name: 'Apply'});
+        await expect(applyBtn).toBeVisible({timeout: 5000});
+        await applyBtn.click();
+
         await page.waitForLoadState('networkidle');
 
         await expect

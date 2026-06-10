@@ -8,7 +8,7 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
-import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamMembershipTab from './team_membership_tab';
@@ -21,7 +21,7 @@ jest.mock('mattermost-redux/actions/access_control', () => ({
 }));
 jest.mock('mattermost-redux/actions/teams', () => ({
     ...jest.requireActual('mattermost-redux/actions/teams'),
-    getTeamStats: jest.fn(() => () => Promise.resolve({data: {total_member_count: 10}})),
+    getTeamStats: jest.fn(() => () => Promise.resolve({data: {total_member_count: 10, active_member_count: 10}})),
 }));
 
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
@@ -108,12 +108,6 @@ describe('components/team_settings/TeamMembershipTab', () => {
                     user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_admin'}),
                 },
             },
-            access_control: {
-                settings: {
-                    EnableAttributeBasedAccessControl: true,
-                    EnableUserManagedAttributes: false,
-                },
-            },
         },
     };
 
@@ -126,7 +120,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         mockActions.updateAccessControlPoliciesActive.mockResolvedValue({data: {}});
         mockActions.createAccessControlTeamSyncJob.mockResolvedValue({data: {}});
         mockActions.validateExpressionAgainstRequester.mockResolvedValue({data: {requester_matches: true}});
-        mockActions.searchUsers.mockResolvedValue({data: {users: [], total_count: 5}});
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 5}});
 
         mockUseChannelAccessControlActions.mockReturnValue(mockActions as any);
     });
@@ -139,9 +133,8 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => {
             expect(screen.getByText('Team Membership Rules')).toBeInTheDocument();
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
-
-        expect(screen.getByTestId('table-editor')).toBeInTheDocument();
     });
 
     it('renders auto-add checkbox reflecting initial policy state', async () => {
@@ -208,21 +201,15 @@ describe('components/team_settings/TeamMembershipTab', () => {
         await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
 
         // Simulate expression change
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('table-editor-change'));
-        });
+        await userEvent.click(screen.getByTestId('table-editor-change'));
 
         // Trigger save
-        await act(async () => {
-            await userEvent.click(screen.getByText('Save'));
-        });
+        await userEvent.click(screen.getByText('Save'));
 
         // Confirm modal
         await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
-        await act(async () => {
-            const confirmButtons = screen.getAllByText('Save');
-            await userEvent.click(confirmButtons[confirmButtons.length - 1]);
-        });
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
 
         await waitFor(() => {
             expect(createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: 'team_id'});
@@ -247,21 +234,15 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeInTheDocument());
 
-        await act(async () => {
-            await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
-        });
+        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
 
         // Trigger save
-        await act(async () => {
-            await userEvent.click(screen.getByText('Save'));
-        });
+        await userEvent.click(screen.getByText('Save'));
 
         await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
 
         const confirmButtons = screen.getAllByText('Save');
-        await act(async () => {
-            await userEvent.click(confirmButtons[confirmButtons.length - 1]);
-        });
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
 
         await waitFor(() => {
             expect(createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: 'team_id'});
@@ -289,20 +270,14 @@ describe('components/team_settings/TeamMembershipTab', () => {
             expect(checkbox).toBeChecked();
         });
 
-        await act(async () => {
-            await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
-        });
+        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
 
-        await act(async () => {
-            await userEvent.click(screen.getByText('Save'));
-        });
+        await userEvent.click(screen.getByText('Save'));
 
         await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
 
         const confirmButtons = screen.getAllByText('Save');
-        await act(async () => {
-            await userEvent.click(confirmButtons[confirmButtons.length - 1]);
-        });
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
 
         await waitFor(() => {
             expect(createAccessControlTeamSyncJob).not.toHaveBeenCalled();
@@ -325,13 +300,9 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
 
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('table-editor-change'));
-        });
+        await userEvent.click(screen.getByTestId('table-editor-change'));
 
-        await act(async () => {
-            await userEvent.click(screen.getByText('Save'));
-        });
+        await userEvent.click(screen.getByText('Save'));
 
         await waitFor(() => {
             expect(screen.getByText('Cannot save access rules')).toBeInTheDocument();
@@ -340,7 +311,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
     });
 
     it('shows empty team warning in confirm modal when no users match and team is private', async () => {
-        mockActions.searchUsers.mockResolvedValue({data: {users: [], total_count: 0}});
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 0}});
 
         const privateTeam = TestHelper.getTeamMock({
             id: 'team_id',
@@ -356,13 +327,9 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
 
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('table-editor-change'));
-        });
+        await userEvent.click(screen.getByTestId('table-editor-change'));
 
-        await act(async () => {
-            await userEvent.click(screen.getByText('Save'));
-        });
+        await userEvent.click(screen.getByText('Save'));
 
         await waitFor(() => {
             expect(screen.getByText(/empty private team/i)).toBeInTheDocument();
@@ -370,7 +337,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
     });
 
     it('shows allowed count in confirmation modal', async () => {
-        mockActions.searchUsers.mockResolvedValue({data: {users: [], total_count: 7}});
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 7}});
 
         renderWithContext(
             <TeamMembershipTab {...baseProps}/>,
@@ -379,13 +346,9 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
 
-        await act(async () => {
-            await userEvent.click(screen.getByTestId('table-editor-change'));
-        });
+        await userEvent.click(screen.getByTestId('table-editor-change'));
 
-        await act(async () => {
-            await userEvent.click(screen.getByText('Save'));
-        });
+        await userEvent.click(screen.getByText('Save'));
 
         await waitFor(() => {
             expect(screen.getByText(/7 users match/i)).toBeInTheDocument();
