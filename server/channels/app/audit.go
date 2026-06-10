@@ -144,6 +144,15 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 			}
 			return nil, fmt.Errorf("audit target type %q is unrecognized", targetType)
 		},
+		// The delivery target reads fields directly off the LogRec and ignores
+		// the formatted bytes, so a real formatter (e.g. "json") would just burn
+		// CPU on the target's single host goroutine. NoopFormatter skips it.
+		FormatterFactory: func(format string, _ json.RawMessage) (logr.Formatter, error) {
+			if strings.ToLower(format) == audittargets.DeliveryNoopFormat {
+				return audittargets.NoopFormatter{}, nil
+			}
+			return nil, fmt.Errorf("audit formatter %q is unrecognized", format)
+		},
 	}
 
 	var logConfigSrc config.LogConfigSrc

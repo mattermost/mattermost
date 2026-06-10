@@ -37,6 +37,14 @@ func init() {
 			}
 			return nil, fmt.Errorf("unrecognized target type %q", targetType)
 		},
+		// Config validation resolves the formatter too, so the "noop" format
+		// name must be recognized here as well or IsValid rejects the config.
+		FormatterFactory: func(format string, _ json.RawMessage) (logr.Formatter, error) {
+			if strings.ToLower(format) == DeliveryNoopFormat {
+				return NoopFormatter{}, nil
+			}
+			return nil, fmt.Errorf("unrecognized formatter %q", format)
+		},
 	}
 }
 
