@@ -11,6 +11,13 @@ ul#dropdown_send_post_options {
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     }
 
+    .MuiDivider-root {
+        height: 1px;
+        border: none;
+        margin: 0;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
     li.core-menu-options,
     li.dm-menu-options {
         display: flex;
