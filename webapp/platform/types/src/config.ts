@@ -559,6 +559,7 @@ export type FileSettings = {
     Directory: string;
     EnablePublicLink: boolean;
     ExtractContent: boolean;
+    ExtractContentTimeout: number;
     ArchiveRecursion: boolean;
     PublicLinkSalt: string;
     InitialFont: string;

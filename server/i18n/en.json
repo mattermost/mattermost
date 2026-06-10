@@ -10857,6 +10857,10 @@
     "translation": "Invalid value for RetentionDays. Value should be greater than 0"
   },
   {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'."
   },
