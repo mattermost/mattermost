@@ -113,7 +113,7 @@ jobs:
       start_time: ${{ steps.matrix.outputs.start_time }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -174,13 +174,13 @@ jobs:
       contents: read
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: ".nvmrc"
       - name: ci/cache-platform-pkgs
@@ -189,7 +189,7 @@ jobs:
         # @mattermost/types. Without them, module resolution fails inside
         # the slim slice.
         id: cache-platform-pkgs
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             webapp/**/node_modules
@@ -206,7 +206,7 @@ jobs:
         # Caches node_modules + the rolled-up @mattermost/playwright-lib dist
         # so workers don't re-run rollup on every job.
         id: cache-playwright
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             e2e-tests/playwright/node_modules
@@ -227,7 +227,7 @@ jobs:
         # Cache chromium binary (~150MB) keyed on the playwright lockfile so a
         # version bump invalidates. Restored by workers; no docker image needed.
         id: cache-pw-browsers
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
@@ -247,7 +247,7 @@ jobs:
       statuses: write
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
@@ -293,7 +293,7 @@ jobs:
         # Sparse-checkout just .github/actions from the triggering ref (master)
         # so the composite action below is available before the full checkout
         # overwrites the workspace with inputs.commit_sha.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
           sparse-checkout: .github/actions
@@ -301,19 +301,19 @@ jobs:
       - name: ci/runner-prep-for-openldap
         uses: ./.github/actions/runner-prep-openldap
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: ".nvmrc"
       - name: ci/restore-platform-pkgs
         # Built lib/ for @mattermost/client and @mattermost/types, plus the
         # webapp workspace symlinks under webapp/node_modules/@mattermost/.
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             webapp/**/node_modules
@@ -322,7 +322,7 @@ jobs:
           key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
           fail-on-cache-miss: true
       - name: ci/restore-playwright-deps
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             e2e-tests/playwright/node_modules
@@ -331,7 +331,7 @@ jobs:
           key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
           fail-on-cache-miss: true
       - name: ci/restore-playwright-browsers
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
@@ -366,7 +366,7 @@ jobs:
         run: make cloud-teardown
       - name: ci/upload-debug-artifacts
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-full-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
           path: |
@@ -389,7 +389,7 @@ jobs:
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
       - name: ci/run-summary
