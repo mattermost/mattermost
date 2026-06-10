@@ -123,6 +123,11 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                       value=""
                     />
                   </label>
+                  <span
+                    class="SystemUserDetail__email-verification verified"
+                  >
+                    Email verified
+                  </span>
                 </div>
               </div>
               <div
@@ -370,6 +375,11 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                       value=""
                     />
                   </label>
+                  <span
+                    class="SystemUserDetail__email-verification verified"
+                  >
+                    Email verified
+                  </span>
                 </div>
               </div>
               <div
@@ -617,6 +627,11 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                       value=""
                     />
                   </label>
+                  <span
+                    class="SystemUserDetail__email-verification verified"
+                  >
+                    Email verified
+                  </span>
                 </div>
               </div>
               <div
@@ -864,6 +879,11 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                       value=""
                     />
                   </label>
+                  <span
+                    class="SystemUserDetail__email-verification verified"
+                  >
+                    Email verified
+                  </span>
                 </div>
               </div>
               <div
@@ -1111,6 +1131,11 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                       value=""
                     />
                   </label>
+                  <span
+                    class="SystemUserDetail__email-verification verified"
+                  >
+                    Email verified
+                  </span>
                 </div>
               </div>
               <div
@@ -1364,6 +1389,11 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                       value=""
                     />
                   </label>
+                  <span
+                    class="SystemUserDetail__email-verification verified"
+                  >
+                    Email verified
+                  </span>
                 </div>
               </div>
               <div
@@ -1613,6 +1643,11 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                       value=""
                     />
                   </label>
+                  <span
+                    class="SystemUserDetail__email-verification verified"
+                  >
+                    Email verified
+                  </span>
                 </div>
               </div>
               <div

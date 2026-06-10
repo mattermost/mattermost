@@ -43,6 +43,7 @@ export type UserProfile = {
     auth_data?: string;
     auth_service: string;
     email: string;
+    email_verified?: boolean;
     nickname: string;
     first_name: string;
     last_name: string;

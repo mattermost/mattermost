@@ -778,6 +778,13 @@ export default class Client4 {
         );
     };
 
+    verifyUserEmailWithoutToken = (userId: string) => {
+        return this.doFetch<UserProfile>(
+            `${this.getUserRoute(userId)}/email/verify/member`,
+            {method: 'post'},
+        );
+    };
+
     updateMyTermsOfServiceStatus = (termsOfServiceId: string, accepted: boolean) => {
         return this.doFetch<StatusOK>(
             `${this.getUserRoute('me')}/terms_of_service`,
