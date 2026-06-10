@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useCallback, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
@@ -9,6 +9,7 @@ import {WebSocketEvents} from '@mattermost/client';
 
 import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 
+import {useDebounce} from 'hooks/useDebounce';
 import {useWebSocket, useWebSocketClient} from 'utils/use_websocket/hooks';
 
 const DEBOUNCE_DELAY_MS = 500;
@@ -25,24 +26,10 @@ const DEBOUNCE_DELAY_MS = 500;
 export default function usePluginStatusesSync() {
     const dispatch = useDispatch();
     const wsClient = useWebSocketClient();
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => {
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, []);
-
-    const debouncedRefetch = useCallback(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-        debounceTimerRef.current = setTimeout(() => {
-            dispatch(getPluginStatuses());
-        }, DEBOUNCE_DELAY_MS);
-    }, [dispatch]);
+    const debouncedRefetch = useDebounce(() => {
+        dispatch(getPluginStatuses());
+    }, DEBOUNCE_DELAY_MS);
 
     const handleWebSocketMessage = useCallback((msg: WebSocketMessage) => {
         if (msg.event === WebSocketEvents.PluginStatusesChanged) {
