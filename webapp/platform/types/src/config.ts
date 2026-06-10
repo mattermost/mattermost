@@ -255,11 +255,12 @@ export type License = {
     id: string;
     issued_at: number;
     starts_at: number;
-    expires_at: string;
-    customer: LicenseCustomer;
+    expires_at: number;
+    customer?: LicenseCustomer;
     features: LicenseFeatures;
     sku_name: string;
-    short_sku_name: string;
+    sku_short_name: string;
+    is_gov_sku?: boolean;
 };
 
 export type LicenseCustomer = {
@@ -1034,6 +1035,8 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
+    TrustProxyDeviceIdentityHeader: boolean;
+    EnforceDeviceIDConsistency: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {

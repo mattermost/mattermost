@@ -11,7 +11,6 @@ import {resolvePlaywrightPath} from './util';
 const commonAssetPath = path.resolve(__dirname, 'asset');
 export const assetPath = resolvePlaywrightPath('asset');
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const availableFiles = ['mattermost-icon_128x128.png'] as const;
 type AvailableFilename = (typeof availableFiles)[number];
 

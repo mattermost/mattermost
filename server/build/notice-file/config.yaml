@@ -7,6 +7,5 @@ search:
   - "webapp/package.json"
   - "webapp/channels/package.json"
 ignoreDependencies:
-  - "@mattermost/dynamic-virtualized-list"
   - "@mattermost/shared"
 includeDevDependencies: false

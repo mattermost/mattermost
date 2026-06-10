@@ -75,6 +75,7 @@ type FileBackendSettings struct {
 	AzureEndpoint                      string
 	AzureSSL                           bool
 	AzureRequestTimeoutMilliseconds    int64
+	AzurePresignExpiresSeconds         int64
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -137,6 +138,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 			AzureEndpoint:                   *fileSettings.ExportAzureEndpoint,
 			AzureSSL:                        fileSettings.ExportAzureSSL == nil || *fileSettings.ExportAzureSSL,
 			AzureRequestTimeoutMilliseconds: *fileSettings.ExportAzureRequestTimeoutMilliseconds,
+			AzurePresignExpiresSeconds:      *fileSettings.ExportAzurePresignExpiresSeconds,
 			SkipVerify:                      skipVerify,
 		}
 	}

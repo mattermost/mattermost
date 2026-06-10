@@ -870,6 +870,10 @@ type PluginStore interface {
 
 type RoleStore interface {
 	Save(role *model.Role) (*model.Role, error)
+	// SavePreservingUnknownPermissions behaves like Save but tolerates and preserves
+	// permissions not recognized by this server build instead of rejecting the role.
+	// Unrecognized permissions are logged (see MM-68830).
+	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
 	GetByName(ctx context.Context, name string) (*model.Role, error)
@@ -1173,6 +1177,7 @@ type PropertyFieldStore interface {
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
+	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
@@ -1228,8 +1233,10 @@ type AttributesStore interface {
 }
 
 type SessionAttributeStore interface {
-	Refresh(sessionID string, attrs map[string]any) error
-	Get(sessionID string) (map[string]any, error)
+	Refresh(sessionID string, attrs map[string]any, updatedAt int64) error
+	Get(sessionID string) (map[string]any, map[string]int64, error)
+	Invalidate(sessionID string) error
+	Clear() error
 }
 
 type AutoTranslationStore interface {

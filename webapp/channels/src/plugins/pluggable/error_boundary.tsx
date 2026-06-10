@@ -7,7 +7,7 @@ import styled from 'styled-components';
 
 type Props = {
     children: React.ReactNode;
-    pluginId?: string;
+    pluginId: string;
 }
 
 type State = {

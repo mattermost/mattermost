@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * Column toggle menu that appears when clicking the Columns button
@@ -105,7 +106,7 @@ export class FilterPopover {
      * Select a team from the dropdown. For "All teams" and "No teams", opens the
      * dropdown directly. For specific team names, searches first then selects.
      */
-    async filterByTeam(team: 'All teams' | 'No teams' | (string & {})) {
+    async filterByTeam(team: 'All teams' | 'No teams' | string) {
         if (team === 'All teams' || team === 'No teams') {
             await expect(this.teamMenuInput).toBeVisible();
             await this.teamMenuInput.click();

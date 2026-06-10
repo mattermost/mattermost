@@ -342,7 +342,10 @@ components:
           type: string
         type:
           type: string
-          enum: [link, file]
+          enum: [link, file, board]
+        target_id:
+          type: string
+          description: Mattermost 26-character ID of a referenced Mattermost entity when the bookmark includes one.
         original_id:
           description: The ID of the original channel bookmark
           type: string
@@ -3289,6 +3292,15 @@ components:
           type: string
         type:
           type: string
+        sub_type:
+          type: string
+          description: Additional message type information for mobile clients. Use "calls" for Calls plugin notifications.
+        transport:
+          type: string
+          description: Delivery path for the push proxy. Use "voip" for VoIP (CallKit) notifications; omit for standard delivery.
+          enum:
+            - ""
+            - voip
         sender_id:
           type: string
         sender_name:
@@ -3301,8 +3313,13 @@ components:
           type: string
         version:
           type: string
+        is_crt_enabled:
+          type: boolean
+          description: Whether Collapsed Reply Threads is enabled for the recipient.
         is_id_loaded:
           type: boolean
+        signature:
+          type: string
     PluginStatus:
       type: object
       properties:

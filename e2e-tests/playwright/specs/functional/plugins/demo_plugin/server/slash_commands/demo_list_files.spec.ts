@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Page} from '@playwright/test';
-import {Client4} from '@mattermost/client';
+import type {Client4} from '@mattermost/client';
 
 import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
