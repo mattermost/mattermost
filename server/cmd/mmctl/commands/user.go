@@ -453,7 +453,7 @@ Global Flags:
 }
 
 func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return changeUsersActiveStatus(c, command.Context(), args, true)
+	return changeUsersActiveStatus(command.Context(), c, args, true)
 }
 
 func userActivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -467,7 +467,7 @@ func userActivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Co
 
 func changeUsersActiveStatus(ctx context.Context, c client.Client, userArgs []string, active bool) error {
 	var multiErr *multierror.Error
-	users, err := getUsersFromArgs(c, userArgs)
+	users, err := getUsersFromArgs(ctx, c, userArgs)
 	if err != nil {
 		printer.PrintError(err.Error())
 		multiErr = multierror.Append(multiErr, err)
@@ -670,7 +670,7 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	}
 
 	var result *multierror.Error
-	users, err := getUsersFromArgs(c, args)
+	users, err := getUsersFromArgs(cmd.Context(), c, args)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
@@ -692,7 +692,7 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	users, err := getUsersFromArgs(c, args)
+	users, err := getUsersFromArgs(cmd.Context(), c, args)
 	if err != nil {
 		return err
 	}
@@ -751,7 +751,7 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	users, err := getUsersFromArgs(c, args)
+	users, err := getUsersFromArgs(cmd.Context(), c, args)
 	if err != nil {
 		printer.PrintError(err.Error())
 		return err
@@ -876,7 +876,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	var result *multierror.Error
-	users, err := getUsersFromArgs(c, userArgs)
+	users, err := getUsersFromArgs(cmd.Context(), c, userArgs)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
@@ -907,7 +907,7 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 }
 
 func convertUserToBot(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	users, err := getUsersFromArgs(c, userArgs)
+	users, err := getUsersFromArgs(cmd.Context(), c, userArgs)
 	if err != nil {
 		return err
 	}
