@@ -367,6 +367,7 @@ export type SearchButtonsComponent = PluginComponent & {
 export type PostActionComponent = PluginComponent & {
     component: React.ComponentType<{
         post: Post;
+        handleDropdownOpened?: (open: boolean) => void;
     }>;
 };
 
