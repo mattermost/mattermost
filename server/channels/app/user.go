@@ -228,7 +228,7 @@ func (a *App) CreateUserWithInviteId(rctx request.CTX, user *model.User, inviteI
 	}
 
 	if !users.CheckUserDomain(user, team.AllowedDomains) {
-		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateUserWithInviteId", "api.user.create_user.invalid_invitation_email.app_error", map[string]any{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
 	}
 
 	user.EmailVerified = false
