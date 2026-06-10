@@ -4,12 +4,15 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
+	"syscall"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -62,7 +65,10 @@ func Run(args []string) error {
 		}
 	}()
 
-	err := RootCmd.Execute()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	err := RootCmd.ExecuteContext(ctx)
 	// Flush the printer first before printing any error
 	_ = printer.Flush()
 	if err != nil {
