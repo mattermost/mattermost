@@ -696,6 +696,25 @@ func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicies(rctx request.
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+}
+
 func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
 
 	tries := 0
@@ -862,6 +881,25 @@ func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, grou
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
 
+}
+
+func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 }
 
 func (s *RetryLayerAttributesStore) RefreshAttributes() error {

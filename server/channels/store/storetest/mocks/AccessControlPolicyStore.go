@@ -93,6 +93,34 @@ func (_m *AccessControlPolicyStore) GetActionsForPolicies(rctx request.CTX, poli
 	return r0, r1
 }
 
+// GetMaxUpdateAt provides a mock function with given fields: rctx
+func (_m *AccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMaxUpdateAt")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX) (int64, error)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) int64); ok {
+		r0 = rf(rctx)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetActionsForPolicy provides a mock function with given fields: rctx, policyID
 func (_m *AccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
 	ret := _m.Called(rctx, policyID)

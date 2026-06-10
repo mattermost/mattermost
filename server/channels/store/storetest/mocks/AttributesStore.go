@@ -75,6 +75,34 @@ func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID strin
 	return r0, r1
 }
 
+// GetUserPropertyValuesEpoch provides a mock function with fields: rctx, userID
+func (_m *AttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+	ret := _m.Called(rctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserPropertyValuesEpoch")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (int64, error)); ok {
+		return rf(rctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) int64); ok {
+		r0 = rf(rctx, userID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RefreshAttributes provides a mock function with no fields
 func (_m *AttributesStore) RefreshAttributes() error {
 	ret := _m.Called()

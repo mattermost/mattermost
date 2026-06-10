@@ -240,6 +240,10 @@ const state: GlobalState = {
             values: {byTargetId: {}, byFieldId: {}},
             groups: {byId: {}, byName: {}},
         },
+        renderPermissions: {
+            byResource: {},
+            channelsWithStalePosts: {},
+        },
     },
     errors: [],
     requests: {

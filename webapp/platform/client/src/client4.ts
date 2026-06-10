@@ -122,6 +122,7 @@ import type {
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
+import type {ActionSearchResponse} from '@mattermost/types/render_permissions';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
@@ -2513,10 +2514,14 @@ export default class Client4 {
         );
     };
 
-    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, reload = false) => {
         return this.doFetch<PostList>(
             `${this.getChannelRoute(channelId)}/posts${buildQueryString({page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
-            {method: 'get'},
+
+            // reload bypasses a stale ETag for this single request so ABAC-driven
+            // file redaction (download_file_attachment) is reflected even when the
+            // post timeline itself is unchanged.
+            {method: 'get', ...(reload ? {cache: 'reload' as const} : {})},
         );
     };
 
@@ -4906,6 +4911,13 @@ export default class Client4 {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
             {method: 'post', body: JSON.stringify({term, type: 'permission', cursor: {id: after}, limit})},
+        );
+    };
+
+    searchAccessControlDecisionActions = (resourceType: string, resourceId: string, actions: string[]) => {
+        return this.doFetch<ActionSearchResponse>(
+            `${this.getBaseRoute()}/access_control/decisions/actions/search`,
+            {method: 'post', body: JSON.stringify({resource: {type: resourceType, id: resourceId}, actions})},
         );
     };
 

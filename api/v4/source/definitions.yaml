@@ -5430,6 +5430,66 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the recap channel was created
+    AccessControlResource:
+      type: object
+      description: Identifies a resource (type + id) for an ABAC decision request.
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          description: The resource type (e.g. "channel").
+        id:
+          type: string
+          description: The resource identifier.
+    RenderPermissionDecision:
+      type: object
+      description: |
+        A non-authoritative, render-time ABAC decision for a single action.
+        Must not be used to authorize an action — server enforcement is authoritative.
+      required:
+        - allowed
+        - evaluated
+      properties:
+        allowed:
+          type: boolean
+          description: Whether the action is permitted for rendering purposes.
+        evaluated:
+          type: boolean
+          description: Whether the server intentionally computed this decision.
+        reason:
+          type: string
+          description: Generic denial reason (e.g. "restricted_by_policy"). Never contains policy names, expressions, or attribute values.
+    ActionSearchRequest:
+      type: object
+      description: Request body for the Action Search render-decision endpoint.
+      required:
+        - resource
+        - actions
+      properties:
+        resource:
+          $ref: "#/components/schemas/AccessControlResource"
+        actions:
+          type: array
+          description: List of action names to evaluate (max 16).
+          maxItems: 16
+          items:
+            type: string
+    ActionSearchResponse:
+      type: object
+      description: Response from the Action Search render-decision endpoint.
+      required:
+        - resource
+        - actions
+      properties:
+        resource:
+          $ref: "#/components/schemas/AccessControlResource"
+        actions:
+          type: object
+          description: Map of action name to its render-time decision.
+          additionalProperties:
+            $ref: "#/components/schemas/RenderPermissionDecision"
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'
