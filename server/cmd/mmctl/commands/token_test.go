@@ -75,7 +75,9 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 			Return(&mockToken, &model.Response{}, nil).
 			Times(1)
 
-		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockUser.Id, mockToken.Description})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := generateTokenForAUserCmdF(s.client, cmd, []string{mockUser.Id, mockToken.Description})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockToken, printer.GetLines()[0])
@@ -97,7 +99,9 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 			Return(nil, &model.Response{}, errors.New("no user found with the given ID")).
 			Times(1)
 
-		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{userArg, "description"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := generateTokenForAUserCmdF(s.client, cmd, []string{userArg, "description"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not retrieve user information of %q", userArg))
 	})
@@ -120,7 +124,9 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 			Return(nil, &model.Response{}, errors.New("error-message")).
 			Times(1)
 
-		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"user1", "description"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := generateTokenForAUserCmdF(s.client, cmd, []string{"user1", "description"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not create token for %q:", "user1"))
 	})
@@ -156,6 +162,7 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("expires-in", "", "")
 		s.Require().NoError(cmd.Flags().Set("expires-in", "90d"))
 
@@ -167,6 +174,7 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("expires-in", "", "")
 		s.Require().NoError(cmd.Flags().Set("expires-in", "not-a-duration"))
 
@@ -179,6 +187,7 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("expires-in", "", "")
 		s.Require().NoError(cmd.Flags().Set("expires-in", "-5h"))
 
@@ -343,7 +352,9 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockToken1.Id, mockToken2.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := revokeTokenForAUserCmdF(s.client, cmd, []string{mockToken1.Id, mockToken2.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -355,7 +366,9 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"token-id"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := revokeTokenForAUserCmdF(s.client, cmd, []string{"token-id"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not revoke token %q", "token-id"))
 	})

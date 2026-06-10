@@ -27,6 +27,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	s.Run("Display single log line", func() {
 		mockSingleLogLine := []string{testLogInfo}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("number", 1, "")
 
 		s.client.
@@ -45,6 +46,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	s.Run("Display logs", func() {
 		mockSingleLogLine := []string{testLogInfo}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -62,6 +64,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	s.Run("Display logs logrus format", func() {
 		mockSingleLogLine := []string{testLogInfo}
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("logrus", true, "")
 		cmd.Flags().Int("number", 1, "")
 
@@ -80,6 +83,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Error when using format flag", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("format", "json", "")
 		cmd.Flags().Lookup("format").Changed = true
 
@@ -103,6 +107,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		formatTmp := viper.GetString("format")
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		viper.Set("format", "json")
 
 		data, err := testLogsCmdF(s.client, cmd, []string{})

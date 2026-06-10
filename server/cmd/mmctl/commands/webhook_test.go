@@ -108,7 +108,9 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listWebhookCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		if s.Len(printer.GetLines(), 500) {
 			for i := range 250 {
@@ -173,7 +175,9 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{teamID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listWebhookCmdF(s.client, cmd, []string{teamID})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 		if s.Len(printer.GetLines(), 500) {
@@ -220,7 +224,9 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listWebhookCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 2)
@@ -238,6 +244,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 	displayName := "displayName"
 
 	cmd := &cobra.Command{}
+	cmd.SetContext(s.T().Context())
 	cmd.Flags().String("channel", channelID, "")
 	cmd.Flags().String("user", emailID, "")
 	cmd.Flags().String("display-name", displayName, "")
@@ -354,6 +361,7 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		updatedIncomingWebhook.ChannelLocked = lockToChannel
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		_ = cmd.Flags().Set("lock-to-channel", strconv.FormatBool(lockToChannel))
 
@@ -392,6 +400,7 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		mockError := errors.New("mock error")
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		_ = cmd.Flags().Set("lock-to-channel", strconv.FormatBool(lockToChannel))
 
@@ -424,6 +433,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 	triggerWhen := "exact"
 
 	cmd := &cobra.Command{}
+	cmd.SetContext(s.T().Context())
 	cmd.Flags().String("team", teamID, "")
 	cmd.Flags().String("user", emailID, "")
 	cmd.Flags().String("trigger-when", triggerWhen, "")
@@ -540,6 +550,7 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		updatedOutgoingWebhook.TriggerWhen = 1
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringArray("url", []string{}, "")
 		cmd.Flags().StringArray("trigger-word", []string{}, "")
 		cmd.Flags().String("trigger-when", "start", "")
@@ -575,6 +586,7 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		mockError := errors.New("mock error")
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().StringArray("url", []string{}, "")
 		cmd.Flags().StringArray("trigger-word", []string{}, "")
 		cmd.Flags().String("trigger-when", "start", "")
@@ -620,7 +632,9 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := deleteWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -651,7 +665,9 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := deleteWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -676,7 +692,9 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := deleteWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -707,7 +725,9 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := deleteWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -731,7 +751,9 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -756,7 +778,9 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
-		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -780,7 +804,9 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{nonExistentID})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showWebhookCmdF(s.client, cmd, []string{nonExistentID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)

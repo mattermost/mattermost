@@ -79,6 +79,7 @@ func (s *MmctlUnitTestSuite) TestHasAttrsChanges() {
 	for _, tc := range testCases {
 		s.Run(tc.Name, func() {
 			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
 
 			// Set up all the flags that might be used
 			cmd.Flags().Bool("managed", false, "")
@@ -177,6 +178,7 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 	for _, tc := range testCases {
 		s.Run(tc.Name, func() {
 			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
 
 			// Set up all the flags that might be used
 			cmd.Flags().Bool("managed", false, "")
@@ -388,6 +390,7 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 		for _, tc := range existingAttrsTestCases {
 			s.Run(tc.Name, func() {
 				cmd := &cobra.Command{}
+				cmd.SetContext(s.T().Context())
 				cmd.Flags().Bool("managed", false, "")
 				cmd.Flags().String("attrs", "", "")
 				cmd.Flags().StringSlice("option", []string{}, "")

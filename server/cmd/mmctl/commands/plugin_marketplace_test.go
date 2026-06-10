@@ -36,7 +36,9 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 			Return(manifest, &model.Response{}, nil).
 			Times(1)
 
-		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := pluginMarketplaceInstallCmdF(s.client, cmd, args)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -56,7 +58,9 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := pluginMarketplaceInstallCmdF(s.client, cmd, args)
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -68,6 +72,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("page", 0, "")
 		cmd.Flags().Int("per-page", 1, "")
 		pluginFilter := &model.MarketplacePluginFilter{Page: 0, PerPage: 1}
@@ -91,6 +96,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("per-page", 1, "")
 		cmd.Flags().Bool("all", true, "")
 		mockPlugin1 := createMarketplacePlugin("My Plugin One")
@@ -126,6 +132,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("per-page", 200, "")
 
 		s.client.
@@ -145,6 +152,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 
 		filter := "jit"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("per-page", 200, "")
 		cmd.Flags().String("filter", filter, "")
 		cmd.Flags().Bool("local-only", true, "")

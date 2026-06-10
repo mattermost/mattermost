@@ -19,6 +19,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().String("cursor", "", "")
@@ -42,6 +43,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "invalid_field", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().String("cursor", "", "")
@@ -65,6 +67,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "invalid", "")
 		cmd.Flags().String("cursor", "", "")
@@ -88,6 +91,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().String("cursor", "", "")
@@ -111,6 +115,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().String("cursor", "", "")
@@ -151,6 +156,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().String("cursor", "", "")
@@ -199,6 +205,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().String("cursor", "", "")
@@ -249,6 +256,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().String("cursor", "", "")
@@ -298,6 +306,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
 		cmd.Flags().Int64("end-time", int64(0), "")
@@ -348,6 +357,7 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("time-field", "update_at", "")
 		cmd.Flags().String("sort-direction", "desc", "")
 		cmd.Flags().String("cursor", customCursor, "")

@@ -422,6 +422,7 @@ func TestGetStartAndEnd(t *testing.T) {
 
 func makeCmd() *cobra.Command {
 	cmd := &cobra.Command{}
+	cmd.SetContext(t.Context())
 	cmd.Flags().Int("page", 0, "")
 	cmd.Flags().Int("per-page", DefaultPageSize, "")
 	cmd.Flags().Bool("all", false, "")

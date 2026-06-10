@@ -50,7 +50,9 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name, mockUser.Username}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := assignUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -113,7 +115,9 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user 'notfound'"))
 
 		args := []string{mockRole.Name, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := assignUsersCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
@@ -128,7 +132,9 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			Times(1)
 
 		args := []string{"non-existent", "user1"}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := assignUsersCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError, err)
 	})
@@ -159,7 +165,9 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			Times(1)
 
 		args := []string{mockRole.Name, mockUser.Username}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := assignUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -194,7 +202,9 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user '%s'", requestedUser))
 
 		args := []string{mockRole.Name, requestedUser}
-		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := assignUsersCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
@@ -223,7 +233,9 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Times(1)
 
 		args := []string{roleName, mockUser.Username}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := unassignUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -273,7 +285,9 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Times(1)
 
 		args := []string{roleName, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := unassignUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -293,7 +307,9 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Times(1)
 
 		args := []string{roleName, mockUser.Username}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := unassignUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 	})
 
@@ -313,7 +329,9 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Times(1)
 
 		args := []string{"mock-role-id", requestedUser}
-		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := unassignUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 	})
 }
@@ -336,7 +354,9 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showRoleCmdF(s.client, cmd, []string{commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -368,7 +388,9 @@ SchemeManaged false
 			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showRoleCmdF(s.client, cmd, []string{commandArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -398,7 +420,9 @@ Permissions   edit_brand
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := showRoleCmdF(s.client, cmd, []string{commandArgBogus})
 		s.Require().NotNil(err)
 		s.Require().Equal(expectedError, err)
 		s.Require().Len(printer.GetLines(), 0)

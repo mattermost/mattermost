@@ -31,7 +31,9 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, userArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.client, cmd, []string{teamArg, userArg})
 		s.Require().Equal(err.Error(), "Unable to find team '"+teamArg+"'")
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -59,7 +61,9 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(nil, nil, nil).
 			Times(1)
 
-		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, mockUser.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.client, cmd, []string{teamArg, mockUser.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -95,7 +99,9 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -124,7 +130,9 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -153,7 +161,9 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -187,7 +197,9 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
-		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -217,7 +229,9 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
-		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := teamUsersRemoveCmdF(s.client, cmd, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -239,6 +253,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 
 	s.Run("Add users with a team that cannot be found returns error", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -260,6 +275,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 	s.Run("Add users with nonexistent user in arguments prints error", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -288,6 +304,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 	s.Run("Add users should print error when cannot add team member", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -320,6 +337,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		s.client.
 			EXPECT().
 			GetTeam(s.T().Context(), "team1", "").

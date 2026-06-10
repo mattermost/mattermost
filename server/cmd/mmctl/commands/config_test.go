@@ -38,7 +38,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("postgres", *(printer.GetLines()[0].(*string)))
@@ -57,7 +59,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(*(printer.GetLines()[0].(*int)), 50)
@@ -76,7 +80,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(int64(100*(1<<20)), *(printer.GetLines()[0].(*int64)))
@@ -95,7 +101,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(*(printer.GetLines()[0].(*bool)), false)
@@ -114,7 +122,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], []string{})
@@ -135,7 +145,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], sqlSettings)
@@ -156,7 +168,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -176,7 +190,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -204,42 +220,54 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Times(7)
 
 		printer.Clean()
-		err := configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.PluginStates.com.mattermost.testplugin"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, []string{"PluginSettings.PluginStates.com.mattermost.testplugin"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], pluginState)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configGetCmdF(s.client, cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], pluginSettings)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configGetCmdF(s.client, cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test2"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configGetCmdF(s.client, cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test2"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], []string{"a", "b"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configGetCmdF(s.client, cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], map[string]string{"a": "b"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configGetCmdF(s.client, cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "b")
@@ -261,7 +289,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(0)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -278,7 +308,9 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configGetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -307,7 +339,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -335,7 +369,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -363,7 +399,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -391,7 +429,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -418,7 +458,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -440,7 +482,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -459,7 +503,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -486,7 +532,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(inputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -528,19 +576,25 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Times(3)
 
 		printer.Clean()
-		err := configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.PluginStates.com.mattermost.testplugin.Enable", "true"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, []string{"PluginSettings.PluginStates.com.mattermost.testplugin.Enable", "true"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1", "123"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configSetCmdF(s.client, cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1", "123"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		err = configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a", "123"})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configSetCmdF(s.client, cmd, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a", "123"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -561,7 +615,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configSetCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -582,7 +638,9 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configSetCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configSetCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("changing this config path: %s is restricted in a cloud environment", "ServiceSettings.EnableDeveloper"))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -635,7 +693,9 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configPatchCmdF(s.client, cmd, []string{tmpFile.Name()})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], inputConfig)
@@ -675,7 +735,9 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 			Return(expectedConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{pluginFile.Name()})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configPatchCmdF(s.client, cmd, []string{pluginFile.Name()})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], expectedConfig)
@@ -693,7 +755,9 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{invalidFile.Name()})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configPatchCmdF(s.client, cmd, []string{invalidFile.Name()})
 		s.Require().NotNil(err)
 	})
 
@@ -702,7 +766,9 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		path := "/path/to/nonexistentfile"
 		errMsg := "open " + path + ": no such file or directory"
 
-		err = configPatchCmdF(s.client, &cobra.Command{}, []string{path})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err = configPatchCmdF(s.client, cmd, []string{path})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, errMsg)
 	})
@@ -727,6 +793,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 			Times(1)
 
 		resetCmd := &cobra.Command{}
+		resetCmd.SetContext(s.T().Context())
 		resetCmd.Flags().Bool("confirm", true, "")
 		err := configResetCmdF(s.client, resetCmd, args)
 		s.Require().Nil(err)
@@ -753,6 +820,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 			Times(1)
 
 		resetCmd := &cobra.Command{}
+		resetCmd.SetContext(s.T().Context())
 		resetCmd.Flags().Bool("confirm", true, "")
 		_ = resetCmd.ParseFlags([]string{"confirm"})
 		err := configResetCmdF(s.client, resetCmd, args)
@@ -775,6 +843,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 			Times(1)
 
 		resetCmd := &cobra.Command{}
+		resetCmd.SetContext(s.T().Context())
 		resetCmd.Flags().Bool("confirm", true, "")
 		_ = resetCmd.ParseFlags([]string{"confirm"})
 		err := configResetCmdF(s.client, resetCmd, args)
@@ -795,7 +864,9 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 			Return(mockConfig, &model.Response{}, nil).
 			Times(1)
 
-		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configShowCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(mockConfig, printer.GetLines()[0])
@@ -812,7 +883,9 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 			Return(nil, &model.Response{}, configError).
 			Times(1)
 
-		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configShowCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.EqualError(err, configError.Error())
 	})
@@ -828,7 +901,9 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configReloadCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -842,7 +917,9 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configReloadCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 	})
 }
@@ -852,7 +929,9 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 		printer.Clean()
 		args := []string{"from", "to"}
 
-		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configMigrateCmdF(s.client, cmd, args)
 		s.Require().Error(err)
 	})
 
@@ -867,6 +946,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("local", true, "")
 
 		err := configMigrateCmdF(s.client, cmd, args)
@@ -885,6 +965,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("local", true, "")
 
 		err := configMigrateCmdF(s.client, cmd, args)
@@ -1018,7 +1099,9 @@ func (s *MmctlUnitTestSuite) TestConfigExportCmd() {
 			}, &model.Response{}, nil).
 			Times(1)
 
-		err := configExportCmdF(s.client, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := configExportCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)

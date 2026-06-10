@@ -21,6 +21,7 @@ func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("display-name", "some-name", "")
 		cmd.Flags().String("description", "some-text", "")
 		mockBot := model.Bot{Username: botArg, DisplayName: "some-name", Description: "some-text"}
@@ -43,6 +44,7 @@ func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("display-name", "some-name", "")
 		cmd.Flags().String("description", "some-text", "")
 		cmd.Flags().Bool("with-token", true, "")
@@ -86,7 +88,9 @@ func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
-		err := botCreateCmdF(s.client, &cobra.Command{}, []string{botArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botCreateCmdF(s.client, cmd, []string{botArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "could not create bot")
@@ -100,6 +104,7 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "new-username", "")
 		cmd.Flags().String("display-name", "some-name", "")
 		cmd.Flags().String("description", "some-text", "")
@@ -132,6 +137,7 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 
 		botArg := "a-bot"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("username", "bot-username", "")
 		cmd.Flags().Lookup("username").Changed = true
 
@@ -158,6 +164,7 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 
 		botArg := "a-bot"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("display-name", "some-name", "")
 		cmd.Flags().String("description", "some-text", "")
 		cmd.Flags().Lookup("display-name").Changed = true
@@ -189,6 +196,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", true, "")
 		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: model.NewId()}
@@ -217,6 +225,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", true, "")
 
@@ -237,6 +246,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", true, "")
 		cmd.Flags().Bool("all", false, "")
 		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: model.NewId()}
@@ -265,6 +275,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", true, "")
 		cmd.Flags().Bool("all", false, "")
 
@@ -285,6 +296,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", false, "")
 		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: model.NewId()}
@@ -313,6 +325,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", false, "")
 		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: "Mr.Robot"}
@@ -340,6 +353,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", false, "")
 
@@ -360,6 +374,7 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", false, "")
 		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: model.NewId()}
@@ -404,7 +419,9 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 			Return(&mockBot, &model.Response{}, nil).
 			Times(1)
 
-		err := botDisableCmdF(s.client, &cobra.Command{}, []string{botArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botDisableCmdF(s.client, cmd, []string{botArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockBot, printer.GetLines()[0])
@@ -427,7 +444,9 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := botDisableCmdF(s.client, &cobra.Command{}, []string{botArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botDisableCmdF(s.client, cmd, []string{botArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "can't find user 'a-bot'")
@@ -438,6 +457,7 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 
 		botArg := "a-bot"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("display-name", "some-name", "")
 		cmd.Flags().String("description", "some-text", "")
 		cmd.Flags().Lookup("display-name").Changed = true
@@ -484,7 +504,9 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 			Return(&mockBot, &model.Response{}, nil).
 			Times(1)
 
-		err := botEnableCmdF(s.client, &cobra.Command{}, []string{botArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botEnableCmdF(s.client, cmd, []string{botArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockBot, printer.GetLines()[0])
@@ -507,7 +529,9 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := botEnableCmdF(s.client, &cobra.Command{}, []string{botArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botEnableCmdF(s.client, cmd, []string{botArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "can't find user 'a-bot'")
@@ -518,6 +542,7 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 
 		botArg := "a-bot"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("display-name", "some-name", "")
 		cmd.Flags().String("description", "some-text", "")
 		cmd.Flags().Lookup("display-name").Changed = true
@@ -572,7 +597,9 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 			Return(&mockBot, &model.Response{}, nil).
 			Times(1)
 
-		err := botAssignCmdF(s.client, &cobra.Command{}, []string{botArg, userArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botAssignCmdF(s.client, cmd, []string{botArg, userArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockBot, printer.GetLines()[0])
@@ -596,7 +623,9 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := botAssignCmdF(s.client, &cobra.Command{}, []string{botArg, userArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botAssignCmdF(s.client, cmd, []string{botArg, userArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "unable to find user 'a-bot'")
@@ -628,7 +657,9 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := botAssignCmdF(s.client, &cobra.Command{}, []string{botArg, userArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botAssignCmdF(s.client, cmd, []string{botArg, userArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "unable to find user 'a-user'")
@@ -661,7 +692,9 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := botAssignCmdF(s.client, &cobra.Command{}, []string{botArg, userArg})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := botAssignCmdF(s.client, cmd, []string{botArg, userArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "can not assign bot 'a-bot' to user 'a-user'")

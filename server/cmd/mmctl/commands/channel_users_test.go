@@ -24,6 +24,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Not enough command line parameters", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		// One argument provided.
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg})
@@ -40,6 +41,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Add existing user to existing channel", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -71,6 +73,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Add existing user to nonexistent channel", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -98,6 +101,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Add existing user to channel owned by nonexistent team", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		// No team is returned by client.
 		s.client.
@@ -120,6 +124,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 		printer.Clean()
 		nilUserArg := "nonexistent-user"
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -151,6 +156,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	s.Run("Error adding existing user to existing channel", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		s.client.
 			EXPECT().
@@ -188,6 +194,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{argsTeamChannel, userEmail}
 
 		foundTeam := &model.Team{
@@ -235,6 +242,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel, userEmail}
 
@@ -246,6 +254,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel}
 
@@ -318,6 +327,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{argsTeamChannel, userEmail, mockUser2.Email}
 
 		foundTeam := &model.Team{
@@ -377,6 +387,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
 		args := []string{argsTeamChannel}
 
@@ -429,6 +440,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		args := []string{argsTeamChannel, userEmail}
 
 		foundTeam := &model.Team{

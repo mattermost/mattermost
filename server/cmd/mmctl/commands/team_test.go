@@ -24,6 +24,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 	s.Run("Create team with no name returns error", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		err := createTeamCmdF(s.client, cmd, []string{})
 
 		s.Require().Equal(err, errors.New("name is required"))
@@ -33,6 +34,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 	s.Run("Create team with a name but no display name returns error", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", mockTeamName, "")
 
 		err := createTeamCmdF(s.client, cmd, []string{})
@@ -43,6 +45,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 	s.Run("Create valid open team prints the created team", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", mockTeamName, "")
 		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 
@@ -68,6 +71,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 	s.Run("Create valid invite team with email prints the created team", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", mockTeamName, "")
 		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 		cmd.Flags().String("email", mockTeamEmail, "")
@@ -96,6 +100,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 	s.Run("Create returns an error when the client returns an error", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("name", mockTeamName, "")
 		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 
@@ -123,6 +128,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 	s.Run("Team rename should fail when unknown existing team name is entered", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		args := []string{""}
 		args[0] = "existingName"
@@ -149,6 +155,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 	s.Run("Team rename should fail when api fails to rename", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		existingName := "existingTeamName"
 		existingDisplayName := "existingDisplayName"
@@ -197,6 +204,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		existingName := "existingTeamName"
 		existingDisplayName := "existingDisplayName"
@@ -251,7 +259,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listTeamsCmdF(s.client, cmd, []string{})
 		s.Require().EqualError(err, mockError.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -272,7 +282,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 		s.Run("JSON Format", func() {
 			printer.Clean()
 
-			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
+			err := listTeamsCmdF(s.client, cmd, []string{})
 			s.Require().NoError(err)
 			s.Require().Len(printer.GetLines(), 1)
 			s.Require().Equal(&mockTeam, printer.GetLines()[0])
@@ -284,7 +296,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			printer.SetFormat(printer.FormatPlain)
 			defer printer.SetFormat(printer.FormatJSON)
 
-			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
+			err := listTeamsCmdF(s.client, cmd, []string{})
 			s.Require().NoError(err)
 			s.Require().Len(printer.GetLines(), 1)
 			s.Require().Equal(mockTeam.Name+" (archived)", printer.GetLines()[0])
@@ -306,7 +320,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 		s.Run("JSON Format", func() {
 			printer.Clean()
 
-			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
+			err := listTeamsCmdF(s.client, cmd, []string{})
 			s.Require().NoError(err)
 			s.Require().Len(printer.GetLines(), 1)
 			s.Require().Equal(&mockTeam, printer.GetLines()[0])
@@ -318,7 +334,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			printer.SetFormat(printer.FormatPlain)
 			defer printer.SetFormat(printer.FormatJSON)
 
-			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
+			err := listTeamsCmdF(s.client, cmd, []string{})
 			s.Require().NoError(err)
 			s.Require().Len(printer.GetLines(), 1)
 			s.Require().Equal(mockTeam.Name, printer.GetLines()[0])
@@ -353,7 +371,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 		s.Run("JSON Format", func() {
 			printer.Clean()
 
-			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
+			err := listTeamsCmdF(s.client, cmd, []string{})
 			s.Require().NoError(err)
 			s.Require().Len(printer.GetLines(), 4)
 			s.Require().Equal(mockTeams[0], printer.GetLines()[0])
@@ -368,7 +388,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			printer.SetFormat(printer.FormatPlain)
 			defer printer.SetFormat(printer.FormatJSON)
 
-			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+			cmd := &cobra.Command{}
+			cmd.SetContext(s.T().Context())
+			err := listTeamsCmdF(s.client, cmd, []string{})
 			s.Require().NoError(err)
 			s.Require().Len(printer.GetLines(), 4)
 			s.Require().Equal(mockTeams[0].Name, printer.GetLines()[0])
@@ -400,7 +422,9 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			Return(mockTeamsPage2, &model.Response{}, nil).
 			Times(1)
 
-		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := listTeamsCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), DefaultPageSize+1)
 		for i := range DefaultPageSize + 1 {
@@ -416,6 +440,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 	s.Run("Delete teams with confirm false returns an error", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
@@ -438,6 +463,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
@@ -465,6 +491,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
@@ -494,6 +521,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
@@ -515,7 +543,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam}, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{teamName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -533,7 +563,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam}, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{displayName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{displayName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -550,7 +582,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{teamName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to find team '"+teamName+"'", printer.GetErrorLines()[0])
@@ -567,7 +601,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{displayName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{displayName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Len(printer.GetLines(), 0)
@@ -594,7 +630,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam2}, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{mockTeam1Name, mockTeam2DisplayName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{mockTeam1Name, mockTeam2DisplayName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -615,7 +653,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam1, mockTeam2}, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{teamVariableName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -644,7 +684,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{"team", teamVariableName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{"team", teamVariableName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 4)
@@ -666,7 +708,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4, mockTeam5}, &model.Response{}, nil).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{teamVariableName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 5)
@@ -686,7 +730,9 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
+		err := searchTeamCmdF(s.client, cmd, []string{teamName})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -698,6 +744,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 	s.Run("Modify teams with no flags returns an error", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("private", false, "")
 		cmd.Flags().Bool("public", false, "")
 		err := modifyTeamsCmdF(s.client, cmd, []string{"some"})
@@ -707,6 +754,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 	s.Run("Modify teams with both flags returns an error", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("private", true, "")
 		cmd.Flags().Bool("public", true, "")
 		err := modifyTeamsCmdF(s.client, cmd, []string{"some"})
@@ -730,6 +778,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("private", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
@@ -761,6 +810,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("private", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
@@ -790,6 +840,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("public", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
@@ -821,6 +872,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("public", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
@@ -836,6 +888,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 	teamName := "team1"
 	teamID := "teamId"
 	cmd := &cobra.Command{}
+	cmd.SetContext(s.T().Context())
 
 	s.Run("Restore teams with team not exist in db returns an error", func() {
 		printer.Clean()

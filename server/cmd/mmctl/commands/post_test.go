@@ -17,6 +17,7 @@ import (
 func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 	s.Run("create a post with empty text", func() {
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 
 		err := postCreateCmdF(s.client, cmd, []string{"some-channel", ""})
 		s.Require().EqualError(err, "message cannot be empty")
@@ -26,6 +27,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		msgArg := "some text"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 
 		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
@@ -37,6 +39,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		replyToArg := "a-non-existing-post"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("reply-to", replyToArg, "")
 
@@ -59,6 +62,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 
 		s.client.
@@ -86,6 +90,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("message", msgArg, "")
 
 		s.client.
@@ -117,6 +122,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("reply-to", replyToArg, "")
 		cmd.Flags().String("message", msgArg, "")
 
@@ -149,6 +155,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		sinceArg := "invalid-date"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("since", sinceArg, "")
 
 		err := postListCmdF(s.client, cmd, []string{"", sinceArg})
@@ -166,6 +173,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().String("since", sinceArg, "")
 
 		err := postListCmdF(s.client, cmd, []string{channelName, sinceArg})
@@ -182,6 +190,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		mockUser := model.User{Id: userID, Username: "some-user"}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("number", 1, "")
 
 		s.client.
@@ -229,6 +238,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		mockUser := model.User{Id: userID, Username: "some-user"}
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Int("number", 1, "")
 		cmd.Flags().String("since", sinceArg, "")
 
@@ -266,6 +276,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 		id := "invalid-id"
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 		cmd.Flags().Bool("permanent", false, "")
 
@@ -282,6 +293,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 		cmd.Flags().Bool("permanent", true, "")
 
@@ -298,6 +310,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 		cmd.Flags().Bool("permanent", false, "")
 
@@ -319,6 +332,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 		cmd.Flags().Bool("permanent", true, "")
 
@@ -340,6 +354,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 		cmd.Flags().Bool("permanent", true, "")
 
@@ -364,6 +379,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 		cmd := &cobra.Command{}
+		cmd.SetContext(s.T().Context())
 		cmd.Flags().Bool("confirm", true, "")
 		cmd.Flags().Bool("permanent", true, "")
 
