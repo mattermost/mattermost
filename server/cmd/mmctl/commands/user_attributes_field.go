@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -83,7 +82,7 @@ func init() {
 }
 
 func cpaFieldListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	fields, _, err := c.ListCPAFields(context.TODO())
+	fields, _, err := c.ListCPAFields(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("failed to get CPA fields: %w", err)
 	}
@@ -173,7 +172,7 @@ func cpaFieldCreateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 
 	// Create the field
-	createdField, _, err := c.CreateCPAField(context.TODO(), field)
+	createdField, _, err := c.CreateCPAField(cmd.Context(), field)
 	if err != nil {
 		return fmt.Errorf("failed to create CPA field: %w", err)
 	}
@@ -199,7 +198,7 @@ func cpaFieldCreateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 }
 
 func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	field, fErr := getFieldFromArg(c, args[0])
+	field, fErr := getFieldFromArg(cmd.Context(), c, args[0])
 	if fErr != nil {
 		return fErr
 	}
@@ -224,7 +223,7 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	}
 
 	// Update the field
-	updatedField, _, err := c.PatchCPAField(context.TODO(), field.ID, patch)
+	updatedField, _, err := c.PatchCPAField(cmd.Context(), field.ID, patch)
 	if err != nil {
 		return fmt.Errorf("failed to update CPA field: %w", err)
 	}
@@ -257,13 +256,13 @@ func cpaFieldDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	field, fErr := getFieldFromArg(c, args[0])
+	field, fErr := getFieldFromArg(cmd.Context(), c, args[0])
 	if fErr != nil {
 		return fErr
 	}
 
 	// Delete the field
-	_, err := c.DeleteCPAField(context.TODO(), field.ID)
+	_, err := c.DeleteCPAField(cmd.Context(), field.ID)
 	if err != nil {
 		return fmt.Errorf("failed to delete CPA field: %w", err)
 	}

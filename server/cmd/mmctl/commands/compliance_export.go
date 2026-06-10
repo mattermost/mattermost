@@ -104,7 +104,7 @@ func complianceExportListCmdF(c client.Client, command *cobra.Command, args []st
 }
 
 func complianceExportShowCmdF(c client.Client, command *cobra.Command, args []string) error {
-	job, _, err := c.GetJob(context.TODO(), args[0])
+	job, _, err := c.GetJob(command.Context(), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get compliance export job: %w", err)
 	}
@@ -115,7 +115,7 @@ func complianceExportShowCmdF(c client.Client, command *cobra.Command, args []st
 }
 
 func complianceExportCancelCmdF(c client.Client, command *cobra.Command, args []string) error {
-	if _, err := c.CancelJob(context.TODO(), args[0]); err != nil {
+	if _, err := c.CancelJob(command.Context(), args[0]); err != nil {
 		return fmt.Errorf("failed to cancel compliance export job: %w", err)
 	}
 
@@ -134,7 +134,7 @@ func complianceExportDownloadCmdF(c client.Client, command *cobra.Command, args 
 	retries, _ := command.Flags().GetInt("num-retries")
 
 	downloadFn := func(outFile *os.File) (string, error) {
-		return c.DownloadComplianceExport(context.TODO(), jobID, outFile)
+		return c.DownloadComplianceExport(command.Context(), jobID, outFile)
 	}
 
 	suggestedFilename, err := downloadFile(path, downloadFn, retries, "compliance export")
@@ -208,7 +208,7 @@ func complianceExportCreateCmdF(c client.Client, command *cobra.Command, args []
 		Data: data,
 	}
 
-	if job, _, err = c.CreateJob(context.TODO(), job); err != nil {
+	if job, _, err = c.CreateJob(command.Context(), job); err != nil {
 		return fmt.Errorf("failed to create compliance export job: %w", err)
 	}
 

@@ -453,7 +453,7 @@ Global Flags:
 }
 
 func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return changeUsersActiveStatus(c, args, true)
+	return changeUsersActiveStatus(command.Context(), c, args, true)
 }
 
 func userActivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -465,15 +465,15 @@ func userActivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Co
 	)(ctx, c, cmd, args, toComplete)
 }
 
-func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) error {
+func changeUsersActiveStatus(ctx context.Context, c client.Client, userArgs []string, active bool) error {
 	var multiErr *multierror.Error
-	users, err := getUsersFromArgs(c, userArgs)
+	users, err := getUsersFromArgs(ctx, c, userArgs)
 	if err != nil {
 		printer.PrintError(err.Error())
 		multiErr = multierror.Append(multiErr, err)
 	}
 	for _, user := range users {
-		if err := changeUserActiveStatus(c, user, active); err != nil {
+		if err := changeUserActiveStatus(ctx, c, user, active); err != nil {
 			printer.PrintError(err.Error())
 			multiErr = multierror.Append(multiErr, err)
 		}
@@ -481,11 +481,11 @@ func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) er
 	return multiErr.ErrorOrNil()
 }
 
-func changeUserActiveStatus(c client.Client, user *model.User, activate bool) error {
+func changeUserActiveStatus(ctx context.Context, c client.Client, user *model.User, activate bool) error {
 	if !activate && user.IsSSOUser() {
 		printer.Print("You must also deactivate user " + user.Id + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	if _, err := c.UpdateUserActive(context.TODO(), user.Id, activate); err != nil {
+	if _, err := c.UpdateUserActive(ctx, user.Id, activate); err != nil {
 		return fmt.Errorf("unable to change activation status of user %v: %w", user.Id, err)
 	}
 
@@ -493,7 +493,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 }
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	return changeUsersActiveStatus(c, args, false)
+	return changeUsersActiveStatus(cmd.Context(), c, args, false)
 }
 
 func userDeactivateCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -541,18 +541,18 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		DisableWelcomeEmail: disableWelcomeEmail,
 	}
 
-	ruser, _, err := c.CreateUser(context.TODO(), user)
+	ruser, _, err := c.CreateUser(cmd.Context(), user)
 
 	if err != nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
 
 	if systemAdmin {
-		if _, err := c.UpdateUserRoles(context.TODO(), ruser.Id, "system_user system_admin"); err != nil {
+		if _, err := c.UpdateUserRoles(cmd.Context(), ruser.Id, "system_user system_admin"); err != nil {
 			return errors.New("Unable to update user roles. Error: " + err.Error())
 		}
 	} else if guest {
-		if _, err := c.DemoteUserToGuest(context.TODO(), ruser.Id); err != nil {
+		if _, err := c.DemoteUserToGuest(cmd.Context(), ruser.Id); err != nil {
 			return errors.Wrapf(err, "Unable to demote use to guest")
 		}
 	}
@@ -573,9 +573,9 @@ func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		errs = multierror.Append(errs, fmt.Errorf("invalid email %q", email))
 	}
 
-	teams := getTeamsFromTeamArgs(c, args[1:])
+	teams := getTeamsFromTeamArgs(cmd.Context(), c, args[1:])
 	for i, team := range teams {
-		err := inviteUser(c, email, team, args[i+1])
+		err := inviteUser(cmd.Context(), c, email, team, args[i+1])
 		if err != nil {
 			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())
@@ -585,13 +585,13 @@ func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return errs.ErrorOrNil()
 }
 
-func inviteUser(c client.Client, email string, team *model.Team, teamArg string) error {
+func inviteUser(ctx context.Context, c client.Client, email string, team *model.Team, teamArg string) error {
 	invites := []string{email}
 	if team == nil {
 		return fmt.Errorf("can't find team '%v'", teamArg)
 	}
 
-	if _, err := c.InviteUsersToTeam(context.TODO(), team.Id, invites); err != nil {
+	if _, err := c.InviteUsersToTeam(ctx, team.Id, invites); err != nil {
 		return errors.New("Unable to invite user with email " + email + " to team " + team.Name + ". Error: " + err.Error())
 	}
 
@@ -613,7 +613,7 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 			printer.PrintError("Invalid email '" + email + "'")
 			continue
 		}
-		if _, err := c.SendPasswordResetEmail(context.TODO(), email); err != nil {
+		if _, err := c.SendPasswordResetEmail(cmd.Context(), email); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable send reset password email to email %s: %w", email, err))
 			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + err.Error())
 		}
@@ -645,17 +645,17 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		}
 	}
 
-	user, err := getUserFromArg(c, args[0])
+	user, err := getUserFromArg(cmd.Context(), c, args[0])
 	if err != nil {
 		return err
 	}
 
 	if hashed {
-		if _, err := c.UpdateUserHashedPassword(context.TODO(), user.Id, password); err != nil {
+		if _, err := c.UpdateUserHashedPassword(cmd.Context(), user.Id, password); err != nil {
 			return errors.Wrap(err, "changing user hashed password failed")
 		}
 	} else {
-		if _, err := c.UpdateUserPassword(context.TODO(), user.Id, current, password); err != nil {
+		if _, err := c.UpdateUserPassword(cmd.Context(), user.Id, current, password); err != nil {
 			return errors.Wrap(err, "changing user password failed")
 		}
 	}
@@ -670,13 +670,13 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	}
 
 	var result *multierror.Error
-	users, err := getUsersFromArgs(c, args)
+	users, err := getUsersFromArgs(cmd.Context(), c, args)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
-		if _, err := c.UpdateUserMfa(context.TODO(), user.Id, "", false); err != nil {
+		if _, err := c.UpdateUserMfa(cmd.Context(), user.Id, "", false); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to reset user %q MFA. Error: %w", user.Id, err))
 		}
 	}
@@ -692,7 +692,7 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	users, err := getUsersFromArgs(c, args)
+	users, err := getUsersFromArgs(cmd.Context(), c, args)
 	if err != nil {
 		return err
 	}
@@ -703,7 +703,7 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if res, err := c.PermanentDeleteUser(context.TODO(), user.Id); err != nil {
+		if res, err := c.PermanentDeleteUser(cmd.Context(), user.Id); err != nil {
 			errs = multierror.Append(errs,
 				fmt.Errorf("unable to delete user %s error: %w", user.Username, err))
 		} else {
@@ -728,7 +728,7 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	if _, err := c.PermanentDeleteAllUsers(context.TODO()); err != nil {
+	if _, err := c.PermanentDeleteAllUsers(cmd.Context()); err != nil {
 		return err
 	}
 
@@ -751,7 +751,7 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	users, err := getUsersFromArgs(c, args)
+	users, err := getUsersFromArgs(cmd.Context(), c, args)
 	if err != nil {
 		printer.PrintError(err.Error())
 		return err
@@ -832,7 +832,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	var team *model.Team
 	if teamName != "" {
 		var err error
-		team, _, err = c.GetTeamByName(context.TODO(), teamName, "")
+		team, _, err = c.GetTeamByName(command.Context(), teamName, "")
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Failed to get team %s", teamName))
 		}
@@ -852,7 +852,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 
 	for {
-		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params.Encode(), "")
+		users, _, err := c.GetUsersWithCustomQueryParameters(command.Context(), page, perPage, params.Encode(), "")
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch users")
 		}
@@ -876,13 +876,13 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	var result *multierror.Error
-	users, err := getUsersFromArgs(c, userArgs)
+	users, err := getUsersFromArgs(cmd.Context(), c, userArgs)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
-		if newUser, _, err := c.VerifyUserEmailWithoutToken(context.TODO(), user.Id); err != nil {
+		if newUser, _, err := c.VerifyUserEmailWithoutToken(cmd.Context(), user.Id); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to verify user %s email: %w", user.Id, err))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)
@@ -906,15 +906,15 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 	return convertBotToUser(c, cmd, userArgs)
 }
 
-func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
-	users, err := getUsersFromArgs(c, userArgs)
+func convertUserToBot(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	users, err := getUsersFromArgs(cmd.Context(), c, userArgs)
 	if err != nil {
 		return err
 	}
 
 	var multiErr *multierror.Error
 	for _, user := range users {
-		bot, _, err := c.ConvertUserToBot(context.TODO(), user.Id)
+		bot, _, err := c.ConvertUserToBot(cmd.Context(), user.Id)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 			continue
@@ -926,7 +926,7 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 }
 
 func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	user, err := getUserFromArg(c, userArgs[0])
+	user, err := getUserFromArg(cmd.Context(), c, userArgs[0])
 	if err != nil {
 		return err
 	}
@@ -978,7 +978,7 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 
 	systemAdmin, _ := cmd.Flags().GetBool("system-admin")
 
-	user, _, err = c.ConvertBotToUser(context.TODO(), user.Id, up, systemAdmin)
+	user, _, err = c.ConvertBotToUser(cmd.Context(), user.Id, up, systemAdmin)
 	if err != nil {
 		return err
 	}
@@ -1022,7 +1022,7 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 		return errors.New("invalid from_auth argument")
 	}
 
-	resp, err := c.MigrateAuthToSaml(context.TODO(), fromAuth, matches, auto)
+	resp, err := c.MigrateAuthToSaml(cmd.Context(), fromAuth, matches, auto)
 	if err != nil {
 		return err
 	} else if resp.StatusCode == http.StatusOK {
@@ -1045,7 +1045,7 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 
 	force, _ := cmd.Flags().GetBool("force")
 
-	resp, err := c.MigrateAuthToLdap(context.TODO(), fromAuth, matchField, force)
+	resp, err := c.MigrateAuthToLdap(cmd.Context(), fromAuth, matchField, force)
 	if err != nil {
 		return err
 	} else if resp.StatusCode == http.StatusOK {
@@ -1055,9 +1055,9 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	return nil
 }
 
-func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+func promoteGuestToUserCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find guest '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1065,7 +1065,7 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 			continue
 		}
 
-		if _, err := c.PromoteGuestToUser(context.TODO(), user.Id); err != nil {
+		if _, err := c.PromoteGuestToUser(cmd.Context(), user.Id); err != nil {
 			err = fmt.Errorf("unable to promote guest %s: %w", userArgs[i], err)
 			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())
@@ -1078,9 +1078,9 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 	return errs.ErrorOrNil()
 }
 
-func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+func demoteUserToGuestCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1088,7 +1088,7 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 			continue
 		}
 
-		if _, err := c.DemoteUserToGuest(context.TODO(), user.Id); err != nil {
+		if _, err := c.DemoteUserToGuest(cmd.Context(), user.Id); err != nil {
 			err = fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
 			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())
@@ -1113,13 +1113,13 @@ func userEditCompletionF(ctx context.Context, c client.Client, cmd *cobra.Comman
 	)(ctx, c, cmd, args, toComplete)
 }
 
-func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName string) error {
+func userEditCmdF(c client.Client, cmd *cobra.Command, args []string, fieldName string) error {
 	printer.SetSingle(true)
 
 	userArg := args[0]
 	newValue := args[1]
 
-	user, err := getUserFromArg(c, userArg)
+	user, err := getUserFromArg(cmd.Context(), c, userArg)
 	if err != nil {
 		return err
 	}
@@ -1132,7 +1132,7 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 		}
 		user.Username = newValue
 
-		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		ruser, _, err := c.UpdateUser(cmd.Context(), user)
 		if err != nil {
 			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
 		}
@@ -1144,7 +1144,7 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 		}
 		user.Email = newValue
 
-		ruser, _, err := c.UpdateUser(context.TODO(), user)
+		ruser, _, err := c.UpdateUser(cmd.Context(), user)
 		if err != nil {
 			return fmt.Errorf("failed to update user %s: %w", fieldName, err)
 		}
@@ -1158,7 +1158,7 @@ func userEditCmdF(c client.Client, _ *cobra.Command, args []string, fieldName st
 			return fmt.Errorf("authdata too long. Maximum length is %d characters", model.UserAuthDataMaxLength)
 		}
 
-		_, _, err := c.UpdateUserAuth(context.TODO(), user.Id, &model.UserAuth{
+		_, _, err := c.UpdateUserAuth(cmd.Context(), user.Id, &model.UserAuth{
 			AuthData:    &newValue,
 			AuthService: user.AuthService,
 		})
@@ -1210,7 +1210,7 @@ func preferencesListCmdF(c client.Client, cmd *cobra.Command, userArgs []string)
 	category, _ := cmd.Flags().GetString("category")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1221,7 +1221,7 @@ func preferencesListCmdF(c client.Client, cmd *cobra.Command, userArgs []string)
 		var preferences model.Preferences
 		var err error
 		if category == "" {
-			preferences, _, err = c.GetPreferences(context.TODO(), user.Id)
+			preferences, _, err = c.GetPreferences(cmd.Context(), user.Id)
 
 			if err != nil {
 				err = fmt.Errorf("unable to list user preferences %s: %w", userArgs[i], err)
@@ -1230,7 +1230,7 @@ func preferencesListCmdF(c client.Client, cmd *cobra.Command, userArgs []string)
 				continue
 			}
 		} else {
-			preferences, _, err = c.GetPreferencesByCategory(context.TODO(), user.Id, category)
+			preferences, _, err = c.GetPreferencesByCategory(cmd.Context(), user.Id, category)
 
 			if err != nil {
 				err = fmt.Errorf("unable to list user preferences by category %s for %s: %w", category, userArgs[i], err)
@@ -1263,7 +1263,7 @@ func preferencesGetCmdF(c client.Client, cmd *cobra.Command, userArgs []string) 
 	preferenceName, _ := cmd.Flags().GetString("name")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1271,7 +1271,7 @@ func preferencesGetCmdF(c client.Client, cmd *cobra.Command, userArgs []string) 
 			continue
 		}
 
-		preference, _, err := c.GetPreferenceByCategoryAndName(context.TODO(), user.Id, category, preferenceName)
+		preference, _, err := c.GetPreferenceByCategoryAndName(cmd.Context(), user.Id, category, preferenceName)
 		if err != nil {
 			err = fmt.Errorf("unable to get user preference %s %s for %s: %w", category, preferenceName, userArgs[i], err)
 			errs = multierror.Append(errs, err)
@@ -1296,7 +1296,7 @@ func preferencesUpdateCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	value, _ := cmd.Flags().GetString("value")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1313,7 +1313,7 @@ func preferencesUpdateCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 			},
 		}
 
-		_, err := c.UpdatePreferences(context.TODO(), user.Id, preferences)
+		_, err := c.UpdatePreferences(cmd.Context(), user.Id, preferences)
 		if err != nil {
 			err = fmt.Errorf("unable to update user preference %s %s for %s: %w", category, preferenceName, userArgs[i], err)
 			errs = multierror.Append(errs, err)
@@ -1332,7 +1332,7 @@ func preferencesDeleteCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	preferenceName, _ := cmd.Flags().GetString("name")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1348,7 +1348,7 @@ func preferencesDeleteCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 			},
 		}
 
-		_, err := c.DeletePreferences(context.TODO(), user.Id, preferences)
+		_, err := c.DeletePreferences(cmd.Context(), user.Id, preferences)
 		if err != nil {
 			err = fmt.Errorf("unable to delete user preference %s %s for %s: %w", category, preferenceName, userArgs[i], err)
 			errs = multierror.Append(errs, err)

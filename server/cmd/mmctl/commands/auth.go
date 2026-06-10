@@ -5,7 +5,6 @@ package commands
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -182,7 +181,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 	method := MethodPassword
 
-	ctx := context.TODO()
+	ctx := cmd.Context()
 
 	if name == "" {
 		reader := bufio.NewReader(os.Stdin)
@@ -367,7 +366,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ctx := context.TODO()
+	ctx := cmd.Context()
 
 	if (credentials.AuthMethod == MethodPassword || credentials.AuthMethod == MethodMFA) && password == "" {
 		if password == "" {

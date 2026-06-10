@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -67,7 +66,7 @@ func init() {
 }
 
 func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	channel := getChannelFromChannelArg(c, args[0])
+	channel := getChannelFromChannelArg(cmd.Context(), c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
@@ -108,7 +107,7 @@ func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		Cursor: cursor,
 	}
 
-	response, _, err := c.GetPostsForReporting(context.TODO(), options, cursorObj)
+	response, _, err := c.GetPostsForReporting(cmd.Context(), options, cursorObj)
 	if err != nil {
 		return fmt.Errorf("failed to get posts for reporting: %w", err)
 	}

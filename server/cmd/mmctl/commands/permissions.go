@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -61,7 +60,7 @@ func init() {
 }
 
 func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(context.TODO(), args[0])
+	role, _, err := c.GetRoleByName(cmd.Context(), args[0])
 	if err != nil {
 		return err
 	}
@@ -82,7 +81,7 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		Permissions: &newPermissions,
 	}
 
-	if _, _, err = c.PatchRole(context.TODO(), role.Id, &patchRole); err != nil {
+	if _, _, err = c.PatchRole(cmd.Context(), role.Id, &patchRole); err != nil {
 		return err
 	}
 
@@ -90,7 +89,7 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 }
 
 func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(context.TODO(), args[0])
+	role, _, err := c.GetRoleByName(cmd.Context(), args[0])
 	if err != nil {
 		return err
 	}
@@ -121,7 +120,7 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		Permissions: &newPermissionSet,
 	}
 
-	if _, _, err = c.PatchRole(context.TODO(), role.Id, &patchRole); err != nil {
+	if _, _, err = c.PatchRole(cmd.Context(), role.Id, &patchRole); err != nil {
 		return err
 	}
 
@@ -129,7 +128,7 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 }
 
 func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(context.TODO(), args[0])
+	role, _, err := c.GetRoleByName(cmd.Context(), args[0])
 	if err != nil {
 		return err
 	}
@@ -143,7 +142,7 @@ func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) er
 		Permissions: &defaultRole.Permissions,
 	}
 
-	role, _, err = c.PatchRole(context.TODO(), role.Id, &patchRole)
+	role, _, err = c.PatchRole(cmd.Context(), role.Id, &patchRole)
 	if err != nil {
 		return err
 	}
