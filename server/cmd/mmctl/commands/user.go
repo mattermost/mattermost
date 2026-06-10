@@ -573,7 +573,7 @@ func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		errs = multierror.Append(errs, fmt.Errorf("invalid email %q", email))
 	}
 
-	teams := getTeamsFromTeamArgs(c, args[1:])
+	teams := getTeamsFromTeamArgs(cmd.Context(), c, args[1:])
 	for i, team := range teams {
 		err := inviteUser(cmd.Context(), c, email, team, args[i+1])
 		if err != nil {
@@ -1057,7 +1057,7 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 
 func promoteGuestToUserCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find guest '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1080,7 +1080,7 @@ func promoteGuestToUserCmdF(c client.Client, cmd *cobra.Command, userArgs []stri
 
 func demoteUserToGuestCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1210,7 +1210,7 @@ func preferencesListCmdF(c client.Client, cmd *cobra.Command, userArgs []string)
 	category, _ := cmd.Flags().GetString("category")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1263,7 +1263,7 @@ func preferencesGetCmdF(c client.Client, cmd *cobra.Command, userArgs []string) 
 	preferenceName, _ := cmd.Flags().GetString("name")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1296,7 +1296,7 @@ func preferencesUpdateCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	value, _ := cmd.Flags().GetString("value")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)
@@ -1332,7 +1332,7 @@ func preferencesDeleteCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	preferenceName, _ := cmd.Flags().GetString("name")
 
 	var errs *multierror.Error
-	for i, user := range getUsersFromUserArgs(c, userArgs) {
+	for i, user := range getUsersFromUserArgs(cmd.Context(), c, userArgs) {
 		if user == nil {
 			err := fmt.Errorf("can't find user '%s'", userArgs[i])
 			errs = multierror.Append(errs, err)

@@ -99,7 +99,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 			return err
 		}
 	} else {
-		teams = getTeamsFromTeamArgs(c, args)
+		teams = getTeamsFromTeamArgs(command.Context(), c, args)
 	}
 
 	for i, team := range teams {
