@@ -1476,7 +1476,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 
-	handler := &testPushNotificationHandler{t: t}
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
 	pushServer := httptest.NewServer(
 		http.HandlerFunc(handler.handleReq),
 	)
