@@ -63,12 +63,12 @@ export type Actions = {
     updateTeam: (team: Team) => Promise<ActionResult>;
     checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
     getProfiles: (page: number, perPage: number, options: Record<string, any>) => Promise<ActionResult>;
-}
+};
 
 type Props = RouterProps & {
     background?: JSX.Element | string;
     actions: Actions;
-}
+};
 
 const PreparingWorkspace = ({
     actions,

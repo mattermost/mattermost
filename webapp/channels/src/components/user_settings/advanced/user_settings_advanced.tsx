@@ -46,7 +46,7 @@ export type OwnProps = {
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
-}
+};
 
 export type Props = OwnProps & PropsFromRedux;
 
@@ -55,7 +55,7 @@ type State = {
     isSaving: boolean;
     showDeactivateAccountModal: boolean;
     serverError: string;
-}
+};
 
 export default class AdvancedSettingsDisplay extends React.PureComponent<Props, State> {
     constructor(props: Props) {

@@ -21,7 +21,7 @@ type Props = {
     selectedTerm: string;
     results: SuggestionResults;
     focus: (pos: number) => void;
-}
+};
 
 const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, results, selectedTerm, focus}: Props) => {
     const filterSelectedCallback = useCallback((filter: string) => {

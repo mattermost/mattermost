@@ -20,7 +20,7 @@ export type OwnProps = {
     postId: string;
     action: PostAction;
     disabled?: boolean;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const actions = state.views.posts.menuActions[ownProps.postId];

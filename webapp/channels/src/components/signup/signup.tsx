@@ -60,7 +60,7 @@ const MOBILE_SCREEN_WIDTH = 1200;
 
 type SignupProps = {
     onCustomizeHeader?: CustomizeHeaderType;
-}
+};
 
 const Signup = ({onCustomizeHeader}: SignupProps) => {
     const intl = useIntl();

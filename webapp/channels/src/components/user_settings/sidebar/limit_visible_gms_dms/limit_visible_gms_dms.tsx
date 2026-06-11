@@ -29,13 +29,13 @@ type Props = OwnProps & {
     savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     dmGmLimit: number;
     updateSection: (section: string) => void;
-}
+};
 
 type State = {
     active: boolean;
     limit: Limit;
     isSaving: boolean;
-}
+};
 
 const limits: Limit[] = [
     {value: 10, label: '10'},

@@ -543,8 +543,8 @@ function checkRunLDAPSync() {
                 return cy.get('@firstRow').then((el) => {
                     return el.find('.status-icon-success').length > 0;
                 });
-            }
-            , {
+            },
+            {
                 timeout: TIMEOUTS.FIVE_MIN,
                 interval: TIMEOUTS.TWO_SEC,
                 errorMsg: 'AD/LDAP Sync Job did not finish',

@@ -29,7 +29,7 @@ import './invitation_modal.scss';
 // 'static' means backdrop clicks do not close
 // true means backdrop clicks do close
 // false means no backdrop
-type Backdrop = 'static' | boolean
+type Backdrop = 'static' | boolean;
 
 const messages = defineMessages({
     notValidChannel: {
@@ -84,7 +84,7 @@ export type Props = {
     initialValue?: string;
     inviteAsGuest?: boolean;
     focusOriginElement?: string;
-}
+};
 
 export const View = {
     INVITE: 'INVITE',

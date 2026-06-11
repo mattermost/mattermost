@@ -45,7 +45,7 @@ export function getAllPosts(state: GlobalState) {
 export type UserActivityPost = Post & {
     system_post_ids: string[];
     user_activity_posts: Post[];
-}
+};
 
 export function getPost(state: GlobalState, postId: Post['id']): Post {
     return getAllPosts(state)[postId];
@@ -125,7 +125,7 @@ export function makeGetPostIdsForThread(): (state: GlobalState, postId: Post['id
     );
 }
 
-export function makeGetPostsChunkAroundPost(): (state: GlobalState, postId: Post['id'], channelId: Channel['id']) => PostOrderBlock| null | undefined {
+export function makeGetPostsChunkAroundPost(): (state: GlobalState, postId: Post['id'], channelId: Channel['id']) => PostOrderBlock | null | undefined {
     return createIdsSelector(
         'makeGetPostsChunkAroundPost',
         (state: GlobalState, postId: string, channelId: string) => state.entities.posts.postsInChannel[channelId],
@@ -352,7 +352,7 @@ export function getSearchMatches(state: GlobalState): {
     return state.entities.search.matches;
 }
 
-export function makeGetMessageInHistoryItem(type: 'post'|'comment'): (state: GlobalState) => string {
+export function makeGetMessageInHistoryItem(type: 'post' | 'comment'): (state: GlobalState) => string {
     return createSelector(
         'makeGetMessageInHistoryItem',
         (state: GlobalState) => state.entities.posts.messagesHistory,

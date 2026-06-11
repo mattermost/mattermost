@@ -15,11 +15,11 @@ type Props = {
     title: string;
     helpText?: string;
     link: string;
-}
+};
 
 type State = {
     copiedLink: boolean;
-}
+};
 
 export default class GetLinkModal extends React.PureComponent<Props, State> {
     private textAreaRef = React.createRef<HTMLTextAreaElement>();

@@ -86,11 +86,11 @@ const ThreadsChannel: FakeChannel = {
 
 type FakeChannel = Pick<Channel, 'id' | 'name' | 'display_name' | 'update_at' | 'delete_at'> & {
     type: string;
-}
+};
 
 type FakeDirectChannel = FakeChannel & {
     userId: string;
-}
+};
 
 type ChannelItem = Channel | FakeChannel | FakeDirectChannel;
 
@@ -125,7 +125,7 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
-}
+};
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     id,

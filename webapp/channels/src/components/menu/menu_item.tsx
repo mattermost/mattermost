@@ -108,7 +108,7 @@ export interface Props extends MuiMenuItemProps {
  * </Menu.Container>
  */
 export type FirstMenuItemProps = Omit<
-Props,
+    Props,
 | 'onClick'
 | 'leadingElement'
 | 'labels'

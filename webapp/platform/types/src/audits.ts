@@ -9,4 +9,4 @@ export type Audit = {
     extra_info: string;
     ip_address: string;
     session_id: string;
-}
+};

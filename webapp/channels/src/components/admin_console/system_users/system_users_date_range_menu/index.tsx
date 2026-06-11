@@ -42,7 +42,7 @@ function getEndOfLastMonth(now: Date) {
 
 type Props = {
     dateRange: ReportDuration;
-}
+};
 
 export function SystemUsersDateRangeMenu(props: Props) {
     const {formatMessage, formatDate} = useIntl();
