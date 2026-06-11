@@ -1146,6 +1146,56 @@ func TestDisplaySettingsIsValidCustomURLSchemes(t *testing.T) {
 	}
 }
 
+func TestDisplaySettingsIsValidDefaultTimestampFormat(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		valid bool
+	}{
+		{
+			name:  "standard",
+			value: DateTimeDisplayFormatStandard,
+			valid: true,
+		},
+		{
+			name:  "relative",
+			value: DateTimeDisplayFormatRelative,
+			valid: true,
+		},
+		{
+			name:  "date and time",
+			value: DateTimeDisplayFormatDateAndTime,
+			valid: true,
+		},
+		{
+			name:  "invalid legacy value",
+			value: "iso_datetime",
+			valid: false,
+		},
+		{
+			name:  "invalid unknown value",
+			value: "compact",
+			valid: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ds := &DisplaySettings{}
+			ds.SetDefaults()
+			ds.DefaultTimestampFormat = new(test.value)
+
+			appErr := ds.isValid()
+			if test.valid {
+				require.Nil(t, appErr)
+			} else {
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.config.is_valid.display.timestamp_format.app_error", appErr.Id)
+			}
+		})
+	}
+}
+
 func TestListenAddressIsValidated(t *testing.T) {
 	testValues := map[string]bool{
 		":8065":                true,
