@@ -18,7 +18,6 @@ import {createPrivateChannel} from '../elasticsearch_autocomplete/helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Guest Account - Guest User Experience', () => {
     let guestUser: Cypress.UserProfile;
     let privateChannel: Cypress.Channel;

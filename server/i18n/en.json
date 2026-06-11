@@ -3251,6 +3251,10 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Session attributes require an Enterprise Advanced license."
+  },
+  {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "The specified property group was not found."
   },
@@ -5029,6 +5033,10 @@
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Failed to send verification email successfully"
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Session attributes are not enabled."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -8931,6 +8939,10 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Session attribute fields cannot be created or deleted, and only their enabled, ttl_seconds and grace_period_seconds may be changed."
+  },
+  {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status."
   },
@@ -11633,6 +11645,10 @@
   {
     "id": "model.config.is_valid.export_azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",

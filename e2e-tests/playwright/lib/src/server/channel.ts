@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
 
 type ChannelInput = {
     teamId: string;

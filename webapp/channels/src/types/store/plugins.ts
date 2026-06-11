@@ -125,7 +125,7 @@ export type Menu = {
     isHeader?: boolean;
 }
 
-type PluginComponent = {
+export type PluginComponent = {
     id: string;
     pluginId: string;
 };
@@ -367,6 +367,7 @@ export type SearchButtonsComponent = PluginComponent & {
 export type PostActionComponent = PluginComponent & {
     component: React.ComponentType<{
         post: Post;
+        handleDropdownOpened?: (open: boolean) => void;
     }>;
 };
 
