@@ -566,6 +566,7 @@ export type FileSettings = {
     Directory: string;
     EnablePublicLink: boolean;
     ExtractContent: boolean;
+    ExtractContentTimeout: number;
     ArchiveRecursion: boolean;
     PublicLinkSalt: string;
     InitialFont: string;
@@ -1039,6 +1040,8 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
+    TrustProxyDeviceIdentityHeader: boolean;
+    EnforceDeviceIDConsistency: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {

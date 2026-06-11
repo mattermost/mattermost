@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/shared",
-  "version": "11.8.0",
+  "version": "11.9.0",
   "description": "Shared components and utilities for use by the Mattermost web app and its plugins",
   "keywords": [
     "mattermost"
@@ -83,7 +83,7 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "@mattermost/types": "11.8.0",
+    "@mattermost/types": "11.9.0",
     "@testing-library/react": "^16",
     "react": ">=17",
     "react-intl": ">=7",
@@ -100,10 +100,10 @@
   "scripts": {
     "build": "parcel build --no-optimize",
     "check": "npm run check:eslint && npm run check:stylelint",
-    "check:eslint": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "check:eslint": "eslint ./src eslint.config.mjs --quiet",
     "check:stylelint": "stylelint \"**/*.{css,scss}\"",
     "check-types": "tsc -b",
-    "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix && stylelint \"**/*.{css,scss}\" --fix",
+    "fix": "eslint ./src eslint.config.mjs --quiet --fix && stylelint \"**/*.{css,scss}\" --fix",
     "run": "parcel watch --watch-dir .",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",

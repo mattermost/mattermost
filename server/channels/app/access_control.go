@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
@@ -2193,29 +2192,6 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		subject.Session = attrs
 	}
 	return subject, nil
-}
-
-// GetSessionAttributes returns the request-provided session attributes
-// (user_agent_*, ip_address — see model.SessionAttributesPropertyField*)
-// captured for the given session, or nil when none have been recorded.
-//
-// The session-attribute cache is populated by
-// RefreshRequestProvidedSessionAttributesIfNeeded on each authenticated
-// request (gated by FeatureFlags.SessionAttributes and the Enterprise
-// Advanced license). This getter is the shared entry point that both
-// the production PDP (BuildAccessControlSubjectForSession) and the
-// policy-simulator's active-session snapshot read from, so the snapshot
-// the simulator shows the admin matches what the live PDP would
-// evaluate against.
-func (a *App) GetSessionAttributes(sessionID string) (map[string]any, *model.AppError) {
-	attrs, err := a.Srv().Store().SessionAttribute().Get(sessionID)
-	if err != nil {
-		if errors.Is(err, cache.ErrKeyNotFound) {
-			return nil, nil
-		}
-		return nil, model.NewAppError("GetSessionAttributes", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return attrs, nil
 }
 
 // GetSubjectChannelRole returns the channel-scoped role identifier

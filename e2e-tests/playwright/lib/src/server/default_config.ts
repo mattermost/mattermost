@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-import {
+import type {
     AdminConfig,
     ClusterSettings,
-    CollapsedThreads,
-    TimestampFormat,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -15,6 +13,7 @@ import {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
+import {CollapsedThreads, TimestampFormat} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 
@@ -307,6 +306,7 @@ const defaultServerConfig: AdminConfig = {
         Directory: './data/',
         EnablePublicLink: false,
         ExtractContent: true,
+        ExtractContentTimeout: 10,
         ArchiveRecursion: false,
         PublicLinkSalt: '',
         InitialFont: 'nunito-bold.ttf',
@@ -823,6 +823,8 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: true,
         EnableUserManagedAttributes: true,
+        TrustProxyDeviceIdentityHeader: false,
+        EnforceDeviceIDConsistency: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: true,

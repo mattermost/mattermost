@@ -196,7 +196,10 @@ function ChannelSettingsInfoTab({
         dispatch(setShowPreviewOnChannelSettingsHeaderModal(!shouldShowPreviewHeader));
     }, [dispatch, shouldShowPreviewHeader]);
 
-    const handleChannelTypeChange = (type: ChannelType) => {
+    const handleChannelTypeChange = (selected: string) => {
+        // This consumer doesn't pass pluginOptions, so the selector only fires built-in channel
+        // type values (OPEN_CHANNEL / PRIVATE_CHANNEL).
+        const type = selected as ChannelType;
         if (channelTypeLockedByMembershipPolicy) {
             return;
         }

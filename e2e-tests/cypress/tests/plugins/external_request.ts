@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import axios, {AxiosError} from 'axios';
+import type {AxiosError} from 'axios';
+import axios from 'axios';
 
 import * as timeouts from '../fixtures/timeouts';
 

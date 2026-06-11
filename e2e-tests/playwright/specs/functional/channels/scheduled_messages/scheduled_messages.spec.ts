@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, ScheduledPostIndicator} from '@mattermost/playwright-lib';
-import type {ChannelsPage, ScheduledPostsPage} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+import type {ChannelsPage, ScheduledPostsPage, ScheduledPostIndicator} from '@mattermost/playwright-lib';
 
 test.beforeEach(async ({pw}) => {
     // Ensure license but skip test if no license which is required for "Scheduled Drafts"

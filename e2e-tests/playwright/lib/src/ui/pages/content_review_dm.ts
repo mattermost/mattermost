@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, Locator, expect} from '@playwright/test';
+import type {Page, Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {wait} from '@/util';
 
@@ -81,7 +82,9 @@ export default class ContentReviewPage {
 
     async getLastCard(): Promise<Locator> {
         const count = await this.cards.count();
-        if (count === 0) throw new Error('No content review cards found.');
+        if (count === 0) {
+            throw new Error('No content review cards found.');
+        }
         return this.cards.nth(count - 1);
     }
 
@@ -164,6 +167,18 @@ export default class ContentReviewPage {
     async verifyFlaggedPostMessage(expected: string) {
         this.ensureReportCardSet();
         await expect(this.reportCard!.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+    }
+
+    async verifyFlaggedPostMessageInRHS(expected: string) {
+        await expect(this.rhsCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+    }
+
+    async verifyFlaggedPostMessageInCenter(postID: string, expected: string) {
+        const centerCard = this.page
+            .getByTestId('channel_view')
+            .locator('div.DataSpillageReport')
+            .filter({has: this.page.locator(`#postMessageText_${postID}`)});
+        await expect(centerCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
     }
 
     async clickKeepMessage() {

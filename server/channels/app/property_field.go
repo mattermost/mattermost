@@ -144,6 +144,18 @@ func (a *App) SearchPropertyFields(rctx request.CTX, groupID string, opts model.
 	return fields, nil
 }
 
+// GetPropertyFieldsForGroup retrieves all active property fields for a group.
+func (a *App) GetPropertyFieldsForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, *model.AppError) {
+	fields, err := a.Srv().propertyService.GetPropertyFieldsForGroup(rctx, groupID)
+	if err != nil {
+		if appErr := mapPropertyServiceError("GetPropertyFieldsForGroup", err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("GetPropertyFieldsForGroup", "app.property_field.get_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return fields, nil
+}
+
 // CountPropertyFieldsForGroup counts property fields for a group.
 func (a *App) CountPropertyFieldsForGroup(rctx request.CTX, groupID string, includeDeleted bool) (int64, *model.AppError) {
 	var count int64

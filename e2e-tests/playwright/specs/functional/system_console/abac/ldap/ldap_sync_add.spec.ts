@@ -62,8 +62,8 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
     // Initial sync — user has non-qualifying attribute, should not be added.
     // Capture exact job ID so we poll the right job, not the most-recent row
     // (which may belong to a concurrent shard's sync job under PW_WORKERS >= 2).
-    const __syncJob5797a1 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5797a1);
+    const syncJob5797a1 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5797a1);
 
     // Poll: sync job marks itself success before channel_members write is committed.
     await expect
@@ -78,8 +78,8 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
     await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
     // Sync again — user now qualifies and should be auto-added.
-    const __syncJob5797a2 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5797a2);
+    const syncJob5797a2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5797a2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, channel.id), {
@@ -126,8 +126,8 @@ test('MM-T5797b LDAP sync - User auto-added with contains operator (auto-add tru
     await activatePolicy(adminClient, policyId);
 
     // Initial sync — user has non-qualifying attribute, should not be added.
-    const __syncJob5797b1 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5797b1);
+    const syncJob5797b1 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5797b1);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, channel.id), {
@@ -141,8 +141,8 @@ test('MM-T5797b LDAP sync - User auto-added with contains operator (auto-add tru
     await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
     // Sync again — user now qualifies and should be auto-added.
-    const __syncJob5797b2 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5797b2);
+    const syncJob5797b2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5797b2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, channel.id), {
