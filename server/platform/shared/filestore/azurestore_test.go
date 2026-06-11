@@ -178,9 +178,9 @@ func TestBuildAzureServiceURLManagedAccountNames(t *testing.T) {
 }
 
 func TestAzureCustomEndpointUsesFilteredTransport(t *testing.T) {
-	var hits int32
+	var hits atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&hits, 1)
+		hits.Add(1)
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer server.Close()
@@ -203,7 +203,7 @@ func TestAzureCustomEndpointUsesFilteredTransport(t *testing.T) {
 	if assert.Error(t, err) {
 		require.Contains(t, err.Error(), httpservice.ErrAddressForbidden.Error())
 	}
-	require.Zero(t, atomic.LoadInt32(&hits))
+	require.Zero(t, hits.Load())
 }
 
 func TestAzureFileBackendPrefix(t *testing.T) {

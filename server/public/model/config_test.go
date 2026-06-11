@@ -421,9 +421,9 @@ func TestFileSettingsAzureAuthMode(t *testing.T) {
 
 func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
 	cases := []struct {
-		name        string
-		configure   func(*Config)
-		accountName string
+		name       string
+		configure  func(*Config)
+		expectedID string
 	}{
 		{
 			name: "primary commercial",
@@ -434,7 +434,7 @@ func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
 				cfg.FileSettings.AzureAccessKey = NewPointer("somekey")
 				cfg.FileSettings.AzureContainer = NewPointer("files")
 			},
-			accountName: "AzureStorageAccount",
+			expectedID: "model.config.is_valid.azure_storage_account.app_error",
 		},
 		{
 			name: "primary government",
@@ -445,7 +445,7 @@ func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
 				cfg.FileSettings.AzureAccessKey = NewPointer("somekey")
 				cfg.FileSettings.AzureContainer = NewPointer("files")
 			},
-			accountName: "AzureStorageAccount",
+			expectedID: "model.config.is_valid.azure_storage_account.app_error",
 		},
 		{
 			name: "export commercial",
@@ -456,7 +456,7 @@ func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
 				cfg.FileSettings.ExportAzureAccessKey = NewPointer("somekey")
 				cfg.FileSettings.ExportAzureContainer = NewPointer("files")
 			},
-			accountName: "ExportAzureStorageAccount",
+			expectedID: "model.config.is_valid.azure_storage_account.app_error",
 		},
 		{
 			name: "export government",
@@ -467,7 +467,7 @@ func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
 				cfg.FileSettings.ExportAzureAccessKey = NewPointer("somekey")
 				cfg.FileSettings.ExportAzureContainer = NewPointer("files")
 			},
-			accountName: "ExportAzureStorageAccount",
+			expectedID: "model.config.is_valid.azure_storage_account.app_error",
 		},
 	}
 
@@ -478,7 +478,8 @@ func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
 			tc.configure(cfg)
 
 			err := cfg.FileSettings.isValid()
-			require.NotNil(t, err, "%s should be validated for managed Azure clouds", tc.accountName)
+			require.NotNil(t, err)
+			assert.Equal(t, tc.expectedID, err.Id)
 		})
 	}
 }
