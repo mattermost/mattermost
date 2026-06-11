@@ -257,6 +257,20 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         return endOfLocalDayPlusDays(PRESET_DAYS[expiryPreset]);
     };
 
+    // Whether the current expiry selection is missing a value that's required. The
+    // "Custom date…" preset always needs a date, and a configured maximum lifetime
+    // (maxLifetimeDays > 0) requires every token to expire. Used to keep the Save
+    // button disabled so the user isn't sent through the confirm dialog only to hit
+    // the "An expiry date is required." error afterwards.
+    isExpiryMissing = (): boolean => {
+        const {expiryPreset} = this.state;
+        const enforceExpiry = this.props.maxLifetimeDays > 0;
+        if (expiryPreset !== 'custom' && !enforceExpiry) {
+            return false;
+        }
+        return this.resolveExpiresAt() <= 0;
+    };
+
     focusEditButton(): void {
         this.minRef.current?.focus();
     }
@@ -937,7 +951,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                                 />
                             }
                             saving={this.state.saving}
-                            disabled={this.state.tokenDescription.trim() === ''}
+                            disabled={this.state.tokenDescription.trim() === '' || this.isExpiryMissing()}
                             onClick={this.confirmCreateToken}
                         />
                         <Button

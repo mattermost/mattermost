@@ -221,14 +221,30 @@ describe('UserAccessTokenSection component', () => {
             expect(screen.getByText('Save').closest('button')).toBeDisabled();
         });
 
-        test('requires a date when the custom preset is chosen but left empty', () => {
+        test('disables Save when the custom preset is chosen but left empty', () => {
             const {container} = renderSection();
             startCreating();
             change(container, '#newTokenDescription', 'my token');
             change(container, '#newTokenExpiry', 'custom');
             change(container, '#newTokenExpiryCustom', '');
-            clickSave();
-            expect(screen.getByText('An expiry date is required.')).toBeInTheDocument();
+            expect(screen.getByText('Save').closest('button')).toBeDisabled();
+
+            // Re-enabling happens as soon as a valid date is entered.
+            change(container, '#newTokenExpiryCustom', '2026-06-20');
+            expect(screen.getByText('Save').closest('button')).toBeEnabled();
+        });
+
+        test('disables Save when expiry is enforced but the custom date is cleared', () => {
+            const {container} = renderSection({maxLifetimeDays: 30});
+            startCreating();
+            change(container, '#newTokenDescription', 'my token');
+
+            // A bounded preset is the default when expiry is enforced, so Save starts enabled.
+            expect(screen.getByText('Save').closest('button')).toBeEnabled();
+
+            change(container, '#newTokenExpiry', 'custom');
+            change(container, '#newTokenExpiryCustom', '');
+            expect(screen.getByText('Save').closest('button')).toBeDisabled();
         });
 
         test('rejects a custom date in the past', () => {
