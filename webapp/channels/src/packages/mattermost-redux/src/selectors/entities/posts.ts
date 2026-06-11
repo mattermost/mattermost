@@ -382,6 +382,19 @@ export function makeGetPostsForIds(): (state: GlobalState, postIds: Array<Post['
     );
 }
 
+function getMostRecentNonSystemPostId(posts: Record<string, Post>, postIdsInChannel: Array<Post['id']>): Post['id'] | undefined {
+    for (let i = 0; i < postIdsInChannel.length; i++) {
+        const p = posts[postIdsInChannel[i]];
+        if (!p) {
+            continue;
+        }
+        if (!p.type || !p.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX)) {
+            return p.id;
+        }
+    }
+    return undefined;
+}
+
 export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Channel['id']) => Post['id'] | undefined | null = createSelector(
     'getMostRecentPostIdInChannel',
     getAllPosts,
@@ -394,19 +407,24 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
 
         if (!allowSystemMessages) {
             // return the most recent non-system message in the channel
-            let postId;
-            for (let i = 0; i < postIdsInChannel.length; i++) {
-                const p = posts[postIdsInChannel[i]];
-                if (!p.type || !p.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX)) {
-                    postId = p.id;
-                    break;
-                }
-            }
-            return postId;
+            return getMostRecentNonSystemPostId(posts, postIdsInChannel);
         }
 
         // return the most recent message in the channel
         return postIdsInChannel[0];
+    },
+);
+
+export const getMostRecentNonSystemPostIdInChannel: (state: GlobalState, channelId: Channel['id']) => Post['id'] | undefined = createSelector(
+    'getMostRecentNonSystemPostIdInChannel',
+    getAllPosts,
+    (state: GlobalState, channelId: string) => getPostIdsInChannel(state, channelId),
+    (posts, postIdsInChannel) => {
+        if (!postIdsInChannel) {
+            return undefined;
+        }
+
+        return getMostRecentNonSystemPostId(posts, postIdsInChannel);
     },
 );
 
