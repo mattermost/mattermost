@@ -272,10 +272,16 @@ func (a *App) AddSessionToCache(session *model.Session) {
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers(rctx request.CTX) *model.AppError {
-	// Sessions created between this fetch and the deletion below are revoked but won't receive a wipe signal.
-	sessionsWithActiveDevices, err := a.Srv().Store().Session().GetAllSessionsWithActiveDeviceIds()
-	if err != nil {
-		return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// When Mobile Ephemeral Mode is enabled, fetch sessions with active device ids
+	// before revoking them, so we can send wipe signals to the correct devices.
+	var sessionsWithActiveDevices []*model.Session
+	if model.SafeDereference(a.Config().MobileEphemeralModeSettings.Enable) {
+		var err error
+		// Sessions created between this fetch and the deletion below are revoked but won't receive a wipe signal.
+		sessionsWithActiveDevices, err = a.Srv().Store().Session().GetAllSessionsWithActiveDeviceIds()
+		if err != nil {
+			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	if err := a.ch.srv.platform.RevokeSessionsFromAllUsers(); err != nil {

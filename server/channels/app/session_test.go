@@ -646,6 +646,32 @@ func TestRevokeSessionsFromAllUsersSendsWipeSignal(t *testing.T) {
 	require.Eventually(t, func() bool { return handler.numReqs() == 3 }, 5*time.Second, 100*time.Millisecond)
 }
 
+func TestRevokeSessionsFromAllUsersNoWipeWhenMobileEphemeralModeDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	t.Cleanup(pushServer.Close)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SendPushNotifications = true
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		*cfg.MobileEphemeralModeSettings.Enable = false
+	})
+
+	_, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "apple:device1",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, appErr)
+
+	appErr = th.App.RevokeSessionsFromAllUsers(th.Context)
+	require.Nil(t, appErr)
+
+	require.Never(t, func() bool { return handler.numReqs() > 0 }, time.Second, 100*time.Millisecond)
+}
+
 func TestRevokeSessionSendsWipeSignal(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
