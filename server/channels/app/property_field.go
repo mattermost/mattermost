@@ -365,18 +365,12 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Broadcast websocket events for both requested and propagated fields
-	for _, field := range updated {
-		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
-	}
-	for _, field := range propagated {
-		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, "")
-	}
-
 	// Notify the access control service so any per-field metadata it
 	// caches (e.g. the rank-by-name lookup used by the live evaluator)
 	// and any compiled-policy cache entries that depend on this field
-	// are dropped.
+	// are dropped. This runs before the websocket broadcast so a client
+	// reacting to the event never re-reads stale cached metadata (mirrors
+	// the ordering in DeletePropertyField).
 	if acs := a.Srv().ch.AccessControl; acs != nil {
 		for _, field := range updated {
 			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
@@ -384,6 +378,14 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		for _, field := range propagated {
 			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
 		}
+	}
+
+	// Broadcast websocket events for both requested and propagated fields
+	for _, field := range updated {
+		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
+	}
+	for _, field := range propagated {
+		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, "")
 	}
 
 	// For each field whose dependent values were cleared as a side effect of
