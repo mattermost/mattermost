@@ -6,6 +6,7 @@ import type {KeyboardEvent} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {components} from 'react-select';
+import {css} from 'styled-components';
 
 import {CheckIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
@@ -20,6 +21,14 @@ import RankBadge from './rank_badge';
 import {moveOptionByAscIndex, nextRank, sortOptionsByRankAsc} from './rank_utils';
 
 import './user_properties_rank_values.scss';
+
+// Tighten the shared MenuItemInput's bottom padding (10px → 4px) so the label
+// input sits closer to the Rank submenu item below it; its top/side padding is
+// left at the shared 10px. The popover list's own 8px padding is dropped
+// separately (see the .MuiList-root rule in the scss) so the spacing reads right.
+const labelInputCustomStyles = css`
+    padding-bottom: 4px;
+`;
 
 type Props = {
     field: UserPropertyField;
@@ -233,6 +242,7 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, on
                 }}
                 menu={{
                     id: `${chipId}-popover`,
+                    className: 'user-property-rank-values__popover-list',
                     'aria-label': formatMessage({
                         id: 'admin.system_properties.user_properties.rank_popover.aria_label',
                         defaultMessage: 'Edit option',
@@ -243,6 +253,7 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, on
                     key='label'
                     id={`${chipId}-label`}
                     type='text'
+                    customStyles={labelInputCustomStyles}
                     value={label}
                     maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                     customMessage={labelError}

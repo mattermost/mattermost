@@ -102,3 +102,12 @@
         color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 }
+
+// The per-option popover (label input + Rank submenu) is portalled to <body>,
+// so this rule lives outside .user-property-rank-values. Drop MUI's default 8px
+// MuiList top/bottom padding; the label input's own 10px top padding then sets
+// the spacing from the popover's top edge.
+.user-property-rank-values__popover-list.MuiList-root {
+    padding-top: 0;
+    padding-bottom: 0;
+}
