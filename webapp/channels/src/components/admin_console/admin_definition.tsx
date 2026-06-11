@@ -3905,9 +3905,37 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Previews',
-                            title: defineMessage({id: 'admin.posts.sections.previews.title', defaultMessage: 'Content & Previews'}),
-                            description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews and how advanced formatting renders.'}),
+                            title: defineMessage({id: 'admin.posts.sections.previews.title', defaultMessage: 'Content & Message Display'}),
+                            description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews, message formatting, and how timestamps appear on posts.'}),
                             settings: [
+                                {
+                                    type: 'dropdown',
+                                    key: 'DisplaySettings.DefaultTimestampFormat',
+                                    label: defineMessage({id: 'admin.posts.defaultTimestampFormat.title', defaultMessage: 'Default timestamp format:'}),
+                                    help_text: defineMessage({id: 'admin.posts.defaultTimestampFormat.desc', defaultMessage: 'Sets the default format for message timestamps. Users can override this in Account Settings > Display.'}),
+                                    options: [
+                                        {
+                                            value: 'standard',
+                                            display_name: defineMessage({id: 'timestamp_format.standard', defaultMessage: 'Standard (example: 4:32 PM)'}),
+                                        },
+                                        {
+                                            value: 'relative',
+                                            display_name: defineMessage({id: 'timestamp_format.relative', defaultMessage: 'Relative (example: 3 hours ago · Yesterday at 4:32 PM)'}),
+                                        },
+                                        {
+                                            value: 'date_and_time',
+                                            display_name: defineMessage({id: 'timestamp_format.date_and_time', defaultMessage: 'Date and Time (example: Jun 1, 4:32 PM)'}),
+                                        },
+                                    ],
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'DisplaySettings.ShowTimestampSeconds',
+                                    label: defineMessage({id: 'admin.posts.showTimestampSeconds.title', defaultMessage: 'Show seconds in timestamps:'}),
+                                    help_text: defineMessage({id: 'admin.posts.showTimestampSeconds.desc', defaultMessage: 'Sets the default for showing seconds in message timestamps. Users can override this in Account Settings > Display.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
                                 {
                                     type: 'bool',
                                     key: 'ServiceSettings.EnableLinkPreviews',

@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {TimestampFormat} from '@mattermost/types/config';
 import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -721,6 +722,133 @@ describe('PostComponent', () => {
             renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+    });
+
+    describe('post timestamp visibility', () => {
+        const dateAndTimeState: DeepPartial<GlobalState> = {
+            entities: {
+                general: {
+                    config: {
+                        DefaultTimestampFormat: TimestampFormat.DATE_AND_TIME,
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        };
+
+        test('should hide consecutive post timestamp until hover', async () => {
+            const user = userEvent.setup();
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isConsecutivePost: true,
+                hasReplies: false,
+                previousPostIsComment: false,
+                location: Locations.CENTER,
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
+
+            expect(container.querySelector('.post__time')).not.toBeInTheDocument();
+
+            await user.hover(container.querySelector('.post')!);
+
+            expect(container.querySelector('.post__time')).toBeInTheDocument();
+        });
+
+        test('should show timestamp on non-consecutive posts', () => {
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isConsecutivePost: false,
+                location: Locations.CENTER,
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
+
+            expect(container.querySelector('.post__time')).toBeInTheDocument();
+        });
+
+        test('should show date context for compact posts in RHS thread', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isConsecutivePost: false,
+                location: Locations.RHS_COMMENT,
+                post: TestHelper.getPostMock({
+                    channel_id: channel.id,
+                    create_at: new Date('2020-06-01T16:32:00.000Z').getTime(),
+                    root_id: 'root_post_id',
+                }),
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
+
+            expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
+            expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
+            expect(container.querySelector('.post__header-timestamp')).toBeInTheDocument();
+
+            jest.useRealTimers();
+        });
+
+        test('should show date context for consecutive compact posts in RHS thread', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+            const props = {
+                ...baseProps,
+                compactDisplay: true,
+                isConsecutivePost: true,
+                location: Locations.RHS_COMMENT,
+                post: TestHelper.getPostMock({
+                    channel_id: channel.id,
+                    create_at: new Date('2020-06-01T16:32:00.000Z').getTime(),
+                    root_id: 'root_post_id',
+                }),
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
+
+            expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
+            expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
+
+            jest.useRealTimers();
+        });
+
+        test('should not stack timestamp for standard format', () => {
+            const standardState: DeepPartial<GlobalState> = {
+                entities: {
+                    general: {
+                        config: {
+                            DefaultTimestampFormat: TimestampFormat.STANDARD,
+                        },
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                },
+            };
+
+            const props = {
+                ...baseProps,
+                compactDisplay: false,
+                isConsecutivePost: false,
+                location: Locations.CENTER,
+                post: TestHelper.getPostMock({
+                    channel_id: channel.id,
+                    create_at: new Date('2020-06-01T16:32:00.000Z').getTime(),
+                }),
+            };
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, standardState);
+
+            expect(container.querySelector('.post__header--wrap-time')).not.toBeInTheDocument();
         });
     });
 });

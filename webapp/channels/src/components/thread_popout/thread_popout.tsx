@@ -162,7 +162,6 @@ export default function ThreadPopout() {
             >
                 <ThreadViewer
                     rootPostId={postId}
-                    useRelativeTimestamp={true}
                     isThreadView={true}
                 />
             </ThreadPane>

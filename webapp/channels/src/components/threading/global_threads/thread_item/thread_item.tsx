@@ -21,11 +21,11 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import EventTimestamp from 'components/event_timestamp';
 import Markdown from 'components/markdown';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
-import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 
@@ -36,7 +36,6 @@ import type {GlobalState} from 'types/store';
 
 import Attachment from './attachments';
 
-import {THREADING_TIME} from '../../common/options';
 import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
@@ -259,10 +258,11 @@ function ThreadItem({
                             />
                         )}
                     </div>
-                    <Timestamp
-                        {...THREADING_TIME}
+                    <EventTimestamp
                         className='alt-hidden'
                         value={lastReplyAt}
+                        displayContext='thread_list'
+                        showTooltip={false}
                     />
                 </div>
                 <div className='menu-anchor alt-visible'>
@@ -328,9 +328,10 @@ function ThreadItem({
                         id='threading.threadItem.timestamp'
                         defaultMessage='Last reply '
                     />
-                    <Timestamp
-                        {...THREADING_TIME}
+                    <EventTimestamp
                         value={lastReplyAt}
+                        displayContext='thread_list'
+                        showTooltip={false}
                     />
                 </span>
             </div>

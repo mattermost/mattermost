@@ -1,33 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import EventTimestamp from 'components/event_timestamp';
+import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 
 import './panel_header.scss';
-import {isToday} from 'utils/datetime';
 
-const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
+const DRAFT_TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',
     useSemanticOutput: false,
     useTime: false,
     units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year'],
 };
-
-export const SCHEDULED_POST_TIME_RANGES = [
-    RelativeRanges.TODAY_TITLE_CASE,
-    RelativeRanges.YESTERDAY_TITLE_CASE,
-    RelativeRanges.TOMORROW_TITLE_CASE,
-];
-
-export const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute}) => ({hour, minute});
 
 type Props = {
     kind: 'draft' | 'scheduledPost';
@@ -46,8 +38,6 @@ function PanelHeader({
     title,
     error,
 }: Props) {
-    const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
-
     return (
         <div className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
@@ -75,7 +65,7 @@ function PanelHeader({
                             Boolean(timestamp) && kind === 'draft' && (
                                 <Timestamp
                                     value={new Date(timestamp)}
-                                    {...TIMESTAMP_PROPS}
+                                    {...DRAFT_TIMESTAMP_PROPS}
                                 />
                             )
                         }
@@ -84,17 +74,15 @@ function PanelHeader({
                             Boolean(timestamp) && kind === 'scheduledPost' && (
                                 <FormattedMessage
                                     id='scheduled_post.panel.header.time'
-                                    defaultMessage='Send {isTodayOrTomorrow, select, true {} other {on}} {scheduledDateTime}'
+                                    defaultMessage='Send on {scheduledDateTime}'
                                     values={{
                                         scheduledDateTime: (
-                                            <Timestamp
+                                            <EventTimestamp
                                                 value={timestamp}
-                                                ranges={SCHEDULED_POST_TIME_RANGES}
-                                                useSemanticOutput={false}
-                                                useTime={scheduledPostTimeFormat}
+                                                displayContext='scheduled_post'
+                                                showTooltip={false}
                                             />
                                         ),
-                                        isTodayOrTomorrow: isToday(timestampDateObject),
                                     }}
                                 />
                             )

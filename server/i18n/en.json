@@ -11555,6 +11555,10 @@
     "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
   },
   {
+    "id": "model.config.is_valid.display.datetime_display_format.app_error",
+    "translation": "Invalid date and time display format."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Search AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
