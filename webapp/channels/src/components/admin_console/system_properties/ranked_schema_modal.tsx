@@ -129,6 +129,8 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
             id='rankedSchemaModal'
             className='ranked-schema-modal'
             compassDesign={true}
+            bodyDivider={true}
+            footerDivider={true}
             modalHeaderText={(
                 <>
                     <span className='ranked-schema-modal__title-name'>{field.name}</span>
