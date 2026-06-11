@@ -14,6 +14,10 @@ import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, Updat
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
+    ChannelJoinRequest,
+    ChannelJoinRequestApprovalResponse,
+    ChannelJoinRequestList,
+    ChannelJoinRequestPatch,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelModeration,
@@ -24,6 +28,7 @@ import type {
     ChannelViewResponse,
     ChannelWithTeamData,
     ChannelSearchOpts,
+    GetChannelJoinRequestsOptions,
     ServerChannel,
 } from '@mattermost/types/channels';
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
@@ -336,6 +341,12 @@ export default class Client4 {
     }
     getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
         return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
+    }
+    getChannelJoinRequestRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_request`;
+    }
+    getChannelJoinRequestsRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_requests`;
     }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
@@ -1930,6 +1941,85 @@ export default class Client4 {
         return this.doFetch<ChannelMembership[]>(
             `${this.getChannelMembersRoute(channelId)}/ids`,
             {method: 'post', body: JSON.stringify(userIds)},
+        );
+    };
+
+    // ------------------------------------------------------------------
+    // Discoverable Private Channels — join request endpoints (FF gated)
+    // ------------------------------------------------------------------
+
+    // POST /channels/{id}/join_request
+    // Server returns either {status: 'approved'} (immediate add via the ABAC
+    // fast path) or the full ChannelJoinRequest row (pending admin review).
+    // The two shapes are discriminated by the `status` field; callers branch
+    // on whether `id` is present.
+    requestJoinChannel = (channelId: string, message = '') => {
+        return this.doFetch<ChannelJoinRequest | ChannelJoinRequestApprovalResponse>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify({message})},
+        );
+    };
+
+    // GET /channels/{id}/join_request — current user's pending request for
+    // this channel. The server returns 404 with no body when none exists;
+    // callers should treat 404 as "no pending request" rather than an error.
+    getMyChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'get'},
+        );
+    };
+
+    // DELETE /channels/{id}/join_request — withdraw the current user's
+    // pending request. Returns the updated row.
+    withdrawMyChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'delete'},
+        );
+    };
+
+    // GET /channels/{id}/join_requests — admin queue listing.
+    getChannelJoinRequests = (channelId: string, opts: GetChannelJoinRequestsOptions = {}) => {
+        const query = buildQueryString({
+            status: opts.status,
+            page: opts.page,
+            per_page: opts.per_page,
+        });
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getChannelJoinRequestsRoute(channelId)}${query}`,
+            {method: 'get'},
+        );
+    };
+
+    // GET /channels/{id}/join_requests/count — pending count for the channel
+    // header / LHS / RHS indicator triad.
+    countPendingChannelJoinRequests = (channelId: string) => {
+        return this.doFetch<{count: number}>(
+            `${this.getChannelJoinRequestsRoute(channelId)}/count`,
+            {method: 'get'},
+        );
+    };
+
+    // PATCH /channels/{id}/join_requests/{request_id} — approve or deny.
+    patchChannelJoinRequest = (channelId: string, requestId: string, patch: ChannelJoinRequestPatch) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestsRoute(channelId)}/${requestId}`,
+            {method: 'patch', body: JSON.stringify(patch)},
+        );
+    };
+
+    // GET /users/me/channel_join_requests — the current user's requests
+    // across channels, used by the My Pending Requests tab.
+    getMyChannelJoinRequests = (opts: GetChannelJoinRequestsOptions = {}) => {
+        const query = buildQueryString({
+            status: opts.status,
+            page: opts.page,
+            per_page: opts.per_page,
+        });
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getUserRoute('me')}/channel_join_requests${query}`,
+            {method: 'get'},
         );
     };
 

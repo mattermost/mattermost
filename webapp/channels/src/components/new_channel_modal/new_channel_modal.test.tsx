@@ -475,6 +475,103 @@ describe('components/new_channel_modal', () => {
             update_at: 0,
         }, '');
     });
+
+    // ---------------------------------------------------------------
+    // Discoverable Private Channels — toggle in Create modal
+    // ---------------------------------------------------------------
+
+    describe('Discoverable toggle', () => {
+        const stateWithDiscoverable: DeepPartial<GlobalState> = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState.entities!.general,
+                    config: {
+                        ...initialState.entities!.general!.config,
+                        FeatureFlagDiscoverableChannels: 'true',
+                    },
+                },
+                roles: {
+                    roles: {
+                        ...initialState.entities!.roles!.roles,
+                        team_user: {
+                            permissions: [
+                                Permissions.CREATE_PRIVATE_CHANNEL,
+                                Permissions.MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY,
+                            ],
+                        },
+                    },
+                },
+            },
+        };
+
+        test('does not render when channel type is public', async () => {
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            // Default state on this fixture is Public — the toggle should be absent.
+            expect(screen.queryByTestId('new-channel-discoverable-section')).not.toBeInTheDocument();
+        });
+
+        test('does not render when feature flag is off', async () => {
+            renderWithContext(<NewChannelModal/>, initialState);
+
+            await userEvent.click(screen.getByText('Private Channel'));
+            expect(screen.queryByTestId('new-channel-discoverable-section')).not.toBeInTheDocument();
+        });
+
+        test('renders once Private is selected and FF is on', async () => {
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            await userEvent.click(screen.getByText('Private Channel'));
+            expect(screen.getByTestId('new-channel-discoverable-section')).toBeInTheDocument();
+            expect(screen.getByText(/Discoverable \(Users can request to join\)/)).toBeInTheDocument();
+            expect(screen.getByText(/Browse Channels, the channel switcher, and shared permalinks/)).toBeInTheDocument();
+        });
+
+        test('checked toggle sends discoverable: true to createChannel', async () => {
+            (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: {id: 'new_channel_id'}}));
+
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My channel');
+            await userEvent.click(screen.getByText('Private Channel'));
+
+            // Toggle the discoverable switch on
+            await userEvent.click(screen.getByTestId('newChannelDiscoverableToggle'));
+
+            await userEvent.click(screen.getByText('Create channel'));
+
+            await waitFor(() => {
+                expect(createChannel).toHaveBeenCalledWith(
+                    expect.objectContaining({type: 'P', discoverable: true}),
+                    '',
+                );
+            });
+        });
+
+        test('unchecked toggle omits discoverable from payload', async () => {
+            (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: {id: 'new_channel_id'}}));
+
+            renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My channel');
+            await userEvent.click(screen.getByText('Private Channel'));
+
+            // Don't touch the toggle
+            await userEvent.click(screen.getByText('Create channel'));
+
+            await waitFor(() => {
+                expect(createChannel).toHaveBeenCalledWith(
+                    expect.objectContaining({type: 'P'}),
+                    '',
+                );
+            });
+            const calls = (createChannel as jest.Mock).mock.calls;
+            const payload = calls[calls.length - 1][0];
+            expect(payload).not.toHaveProperty('discoverable');
+        });
+    });
 });
 
 describe('components/new_channel_modal - plugin channel-type options', () => {
