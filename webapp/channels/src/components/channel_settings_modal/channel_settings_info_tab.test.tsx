@@ -685,13 +685,21 @@ describe('ChannelSettingsInfoTab', () => {
         });
 
         it('does not render when the feature flag is off, even on a private channel', () => {
-            renderWithContext(<ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>);
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
             expect(screen.queryByTestId('channel-settings-discoverable-toggle')).not.toBeInTheDocument();
         });
 
         it('renders on a private channel when the feature flag is on', () => {
             renderWithContext(
-                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
                 stateWithDiscoverableFlag,
             );
             expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeInTheDocument();
@@ -701,7 +709,10 @@ describe('ChannelSettingsInfoTab', () => {
         it('reflects the channel\'s existing discoverable value on mount', () => {
             const alreadyDiscoverable = {...privateChannel, discoverable: true};
             renderWithContext(
-                <ChannelSettingsInfoTab channel={alreadyDiscoverable} setAreThereUnsavedChanges={jest.fn()}/>,
+                <ChannelSettingsInfoTab
+                    channel={alreadyDiscoverable}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
                 stateWithDiscoverableFlag,
             );
             expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'true');
@@ -710,7 +721,10 @@ describe('ChannelSettingsInfoTab', () => {
         it('disables the toggle when the user lacks manage_private_channel_discoverability', () => {
             mockDiscoverabilityPermission = false;
             renderWithContext(
-                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
                 stateWithDiscoverableFlag,
             );
             expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeDisabled();
@@ -722,7 +736,10 @@ describe('ChannelSettingsInfoTab', () => {
             patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {discoverable: true}});
 
             renderWithContext(
-                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
                 stateWithDiscoverableFlag,
             );
 
@@ -743,7 +760,10 @@ describe('ChannelSettingsInfoTab', () => {
             patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
             renderWithContext(
-                <ChannelSettingsInfoTab channel={privateChannel} setAreThereUnsavedChanges={jest.fn()}/>,
+                <ChannelSettingsInfoTab
+                    channel={privateChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
                 stateWithDiscoverableFlag,
             );
 
@@ -764,6 +784,5 @@ describe('ChannelSettingsInfoTab', () => {
             const lastPatch = calls[calls.length - 1][1];
             expect(lastPatch).not.toHaveProperty('discoverable');
         });
-
     });
 });
