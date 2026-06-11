@@ -181,8 +181,14 @@ func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptio
 func buildAzureServiceURL(cloud, scheme, account, endpoint string) (string, error) {
 	switch cloud {
 	case model.AzureCloudCommercial, "":
+		if !model.IsValidAzureStorageAccountName(account) {
+			return "", fmt.Errorf("invalid azure storage account name %q", account)
+		}
 		return fmt.Sprintf("%s://%s.blob.core.windows.net/", scheme, account), nil
 	case model.AzureCloudGovernment:
+		if !model.IsValidAzureStorageAccountName(account) {
+			return "", fmt.Errorf("invalid azure storage account name %q", account)
+		}
 		return fmt.Sprintf("%s://%s.blob.core.usgovcloudapi.net/", scheme, account), nil
 	case model.AzureCloudCustom:
 		if endpoint == "" {
