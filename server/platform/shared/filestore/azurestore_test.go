@@ -251,14 +251,16 @@ func azuriteSettings(t *testing.T) FileBackendSettings {
 		port = "10000"
 	}
 	return FileBackendSettings{
-		DriverName:                      driverAzure,
-		AzureStorageAccount:             azuriteWellKnownAccount,
-		AzureAuthMode:                   model.AzureAuthModeSharedKey,
-		AzureAccessKey:                  azuriteWellKnownKey,
-		AzureContainer:                  "mattermost-test",
-		AzureCloud:                      model.AzureCloudCustom,
-		AzureEndpoint:                   "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
-		AzureRequestTimeoutMilliseconds: 30000,
+		DriverName:          driverAzure,
+		AzureStorageAccount: azuriteWellKnownAccount,
+		AzureAuthMode:       model.AzureAuthModeSharedKey,
+		AzureAccessKey:      azuriteWellKnownKey,
+		AzureContainer:      "mattermost-test",
+		AzureCloud:          model.AzureCloudCustom,
+		AzureEndpoint:       "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
+		// The emulator runs on an internal address, so its host must be allowed.
+		AllowedUntrustedInternalConnections: host,
+		AzureRequestTimeoutMilliseconds:     30000,
 	}
 }
 

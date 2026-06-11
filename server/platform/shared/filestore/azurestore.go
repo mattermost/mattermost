@@ -29,6 +29,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
 	"github.com/google/uuid"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -75,23 +76,7 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		return nil, err
 	}
 
-	var clientOptions *azblob.ClientOptions
-	if settings.SkipVerify {
-		// Mirror the S3 backend: when the admin opts into skipping TLS
-		// verification, plumb a custom transport into the SDK so the toggle
-		// actually takes effect for Azure too.
-		clientOptions = &azblob.ClientOptions{
-			ClientOptions: azcore.ClientOptions{
-				Transport: &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-					},
-				},
-			},
-		}
-	}
-
-	client, sharedKey, err := newAzureClient(settings, serviceURL, clientOptions)
+	client, sharedKey, err := newAzureClient(settings, serviceURL, buildAzureClientOptions(settings))
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +145,38 @@ func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptio
 	default:
 		return nil, nil, fmt.Errorf("unknown azure auth mode %q", settings.AzureAuthMode)
 	}
+}
+
+// buildAzureClientOptions selects the HTTP transport for the Azure SDK. The
+// custom cloud routes requests through httpservice's transport, honoring
+// AllowedUntrustedInternalConnections. The commercial and government clouds use
+// a fixed Azure host (which may resolve to a private address under Private
+// Link), so they keep the SDK default transport and only override it to honor
+// SkipVerify, mirroring the S3 backend.
+func buildAzureClientOptions(settings FileBackendSettings) *azblob.ClientOptions {
+	if settings.AzureCloud == model.AzureCloudCustom {
+		return &azblob.ClientOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: &http.Client{
+					Transport: httpservice.NewTransportForInternalConnections(settings.SkipVerify, settings.AllowedUntrustedInternalConnections),
+				},
+			},
+		}
+	}
+
+	if settings.SkipVerify {
+		return &azblob.ClientOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+					},
+				},
+			},
+		}
+	}
+
+	return nil
 }
 
 // buildAzureServiceURL renders the Blob service URL that the SDK signs
