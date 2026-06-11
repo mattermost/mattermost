@@ -76,7 +76,7 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		return nil, err
 	}
 
-	clientOptions := newAzureClientOptions(settings.SkipVerify)
+	clientOptions := newAzureClientOptions(settings.SkipVerify, settings.AzureCloud, settings.AzureEndpoint)
 
 	client, sharedKey, err := newAzureClient(settings, serviceURL, clientOptions)
 	if err != nil {
@@ -149,13 +149,36 @@ func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptio
 	}
 }
 
-func newAzureClientOptions(skipVerify bool) *azblob.ClientOptions {
+func newAzureClientOptions(skipVerify bool, cloud, endpoint string) *azblob.ClientOptions {
 	return &azblob.ClientOptions{
 		ClientOptions: azcore.ClientOptions{
 			Transport: &http.Client{
-				Transport: httpservice.NewTransport(skipVerify, nil, azureAllowIP),
+				Transport: httpservice.NewTransport(skipVerify, azureAllowHost(cloud, endpoint), azureAllowIP),
 			},
 		},
+	}
+}
+
+// azureAllowHost returns a host allowlist for custom endpoints configured with a
+// DNS name. IP literals still go through azureAllowIP so loopback-style SSRF
+// targets cannot bypass filtering via a custom endpoint URL.
+func azureAllowHost(cloud, endpoint string) func(host string) bool {
+	if cloud != model.AzureCloudCustom || endpoint == "" {
+		return nil
+	}
+
+	parsed, err := url.Parse(endpoint)
+	if err != nil {
+		return nil
+	}
+
+	endpointHost := parsed.Hostname()
+	if endpointHost == "" || net.ParseIP(endpointHost) != nil {
+		return nil
+	}
+
+	return func(host string) bool {
+		return host == endpointHost
 	}
 }
 
