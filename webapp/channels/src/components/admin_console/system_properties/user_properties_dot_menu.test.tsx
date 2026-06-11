@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import ModalController from 'components/modal_controller';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import DotMenu from './user_properties_dot_menu';
 import {useUserPropertyFields} from './user_properties_utils';
@@ -216,6 +216,70 @@ describe('UserPropertyDotMenu', () => {
                 managed: '',
             },
         });
+    });
+
+    it('keeps the "Editable by users" toggle enabled for an admin-managed field that is not synced', async () => {
+        const adminManagedField: UserPropertyField = {
+            ...baseField,
+            id: 'admin-managed-unsynced',
+            attrs: {
+                ...baseField.attrs,
+                managed: 'admin',
+            },
+        };
+
+        renderComponent(adminManagedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${adminManagedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeEnabled();
+        expect(screen.queryByText('Synced attributes are managed by AD/LDAP or SAML')).not.toBeInTheDocument();
+    });
+
+    it('disables the "Editable by users" toggle and reports it off when the field is synced via LDAP', async () => {
+        const ldapSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'ldap-synced-field',
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(ldapSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${ldapSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        // A synced field's value comes from the IdP, so it is never user-editable:
+        // the toggle reads as off and is disabled, with explanatory helper text.
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
+    });
+
+    it('disables the "Editable by users" toggle when the field is synced via SAML', async () => {
+        const samlSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'saml-synced-field',
+            attrs: {
+                ...baseField.attrs,
+                saml: 'position',
+            },
+        };
+
+        renderComponent(samlSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${samlSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeDisabled();
     });
 
     it('handles field duplication', async () => {

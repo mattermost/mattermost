@@ -292,14 +292,18 @@ const DotMenu = ({
                 leadingElement={<PencilOutlineIcon size={18}/>}
                 labels={isSynced ? (
                     <>
-                        <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
-                            defaultMessage='Editable by users'
-                        />
-                        <FormattedMessage
-                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
-                            defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
-                        />
+                        <span>
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
+                                defaultMessage='Editable by users'
+                            />
+                        </span>
+                        <span>
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
+                                defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
+                            />
+                        </span>
                     </>
                 ) : (
                     <FormattedMessage
