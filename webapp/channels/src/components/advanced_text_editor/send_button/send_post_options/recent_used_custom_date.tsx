@@ -11,6 +11,12 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
+import {
+    getNextMonday9amTimestamp,
+    getToday9amTimestamp,
+    getTomorrow9amTimestamp,
+    shouldShowToday9amPreset,
+} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import * as Menu from 'components/menu';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 
@@ -19,14 +25,21 @@ import {scheduledPosts} from 'utils/constants';
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     userCurrentTimezone: string;
-    tomorrow9amTime: number;
-    nextMonday: number;
+    channelId: string;
+    isDmRedesign?: boolean;
+    recipientTimezoneString?: string;
+    useRecipientTimezone?: boolean;
+    recipientDisplayName?: string;
 }
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
     RelativeRanges.TOMORROW_TITLE_CASE,
 ];
+
+const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
+const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
+const USE_DATE_MONTH_DAY = {month: 'long', day: 'numeric'} as const;
 
 interface RecentlyUsedCustomDate {
     update_at?: number;
@@ -48,21 +61,15 @@ function shouldShowRecentlyUsedCustomTime(
     nowMillis: number,
     recentlyUsedCustomDateVal: RecentlyUsedCustomDate,
     userCurrentTimezone: string,
-    tomorrow9amTime: number,
-    nextMonday: number,
+    excludedTimestamps: number[],
 ) {
     return recentlyUsedCustomDateVal &&
     typeof recentlyUsedCustomDateVal.update_at === 'number' &&
     typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
-    recentlyUsedCustomDateVal.timestamp > nowMillis && // is in the future
-    recentlyUsedCustomDateVal.timestamp !== tomorrow9amTime && // is not the existing option tomorrow 9a.m
-    recentlyUsedCustomDateVal.timestamp !== nextMonday && // is not the existing option tomorrow 9a.m
+    recentlyUsedCustomDateVal.timestamp > nowMillis &&
+    !excludedTimestamps.includes(recentlyUsedCustomDateVal.timestamp) &&
     isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone);
 }
-
-const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
-const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
-const USE_DATE_MONTH_DAY = {month: 'long', day: 'numeric'} as const;
 
 function getDateOption(now: DateTime, timestamp: number | undefined, userCurrentTimezone: string | Zone | undefined) {
     if (!now || !timestamp || !userCurrentTimezone) {
@@ -73,7 +80,14 @@ function getDateOption(now: DateTime, timestamp: number | undefined, userCurrent
     return isInCurrentWeek ? USE_DATE_WEEKDAY_LONG : USE_DATE_MONTH_DAY;
 }
 
-function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, tomorrow9amTime}: Props) {
+function RecentUsedCustomDate({
+    handleOnSelect,
+    userCurrentTimezone,
+    isDmRedesign,
+    recipientTimezoneString,
+    useRecipientTimezone = true,
+    recipientDisplayName = '',
+}: Props) {
     const now = DateTime.now().setZone(userCurrentTimezone);
     const recentlyUsedCustomDate = useSelector((state: GlobalState) => getPreference(state, scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME));
     const recentlyUsedCustomDateVal: RecentlyUsedCustomDate = useMemo(() => {
@@ -86,15 +100,126 @@ function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, 
         }
         return {};
     }, [recentlyUsedCustomDate]);
-    const handleRecentlyUsedCustomTime = useCallback((e: React.UIEvent) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
+
+    const activeTimezone = isDmRedesign && recipientTimezoneString && useRecipientTimezone ?
+        recipientTimezoneString :
+        userCurrentTimezone;
+
+    const conversionTimezone = useMemo(() => {
+        if (!isDmRedesign || !recipientTimezoneString || useRecipientTimezone) {
+            return userCurrentTimezone;
+        }
+
+        return recipientTimezoneString;
+    }, [isDmRedesign, recipientTimezoneString, useRecipientTimezone, userCurrentTimezone]);
+
+    const excludedTimestamps = useMemo(() => {
+        if (isDmRedesign && recipientTimezoneString) {
+            const timestamps = [
+                getTomorrow9amTimestamp(activeTimezone),
+                getNextMonday9amTimestamp(activeTimezone),
+            ];
+
+            if (shouldShowToday9amPreset(activeTimezone)) {
+                timestamps.unshift(getToday9amTimestamp(activeTimezone));
+            }
+
+            return timestamps;
+        }
+
+        return [
+            getTomorrow9amTimestamp(userCurrentTimezone),
+            getNextMonday9amTimestamp(userCurrentTimezone),
+        ];
+    }, [activeTimezone, isDmRedesign, recipientTimezoneString, userCurrentTimezone]);
+
+    const handleRecentlyUsedCustomTime = useCallback(
+        (e: React.UIEvent) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!),
+        [handleOnSelect, recentlyUsedCustomDateVal.timestamp],
+    );
 
     if (
-        !shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)
+        !shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, excludedTimestamps)
     ) {
         return null;
     }
 
-    const dateOption = getDateOption(now, recentlyUsedCustomDateVal.timestamp, userCurrentTimezone);
+    const dateOption = getDateOption(now, recentlyUsedCustomDateVal.timestamp, activeTimezone);
+
+    if (isDmRedesign) {
+        const timeOnly = (
+            <Timestamp
+                ranges={DATE_RANGES}
+                value={recentlyUsedCustomDateVal.timestamp}
+                timeZone={activeTimezone}
+                useDate={false}
+                useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
+            />
+        );
+
+        const dayLabel = (
+            <Timestamp
+                ranges={DATE_RANGES}
+                value={recentlyUsedCustomDateVal.timestamp}
+                timeZone={activeTimezone}
+                useDate={dateOption}
+                useTime={false}
+            />
+        );
+
+        const conversionTime = (
+            <Timestamp
+                value={recentlyUsedCustomDateVal.timestamp}
+                timeZone={conversionTimezone}
+                useDate={false}
+                useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
+            />
+        );
+
+        return (
+            <>
+                <Menu.Separator key='recent_custom_separator'/>
+                <Menu.Item
+                    key='recently_used_custom_time'
+                    data-testid='recently_used_custom_time'
+                    onClick={handleRecentlyUsedCustomTime}
+                    labels={
+                        <>
+                            <span>
+                                <FormattedMessage
+                                    id='create_post_button.option.schedule_message.options.recently_used_dm.primary'
+                                    defaultMessage='{day} at {time}'
+                                    values={{
+                                        day: dayLabel,
+                                        time: timeOnly,
+                                    }}
+                                />
+                            </span>
+                            <span className='secondary-label'>
+                                {useRecipientTimezone ? (
+                                    <FormattedMessage
+                                        id='create_post_button.option.schedule_message.options.conversion_your_time'
+                                        defaultMessage='{time} your time'
+                                        values={{time: conversionTime}}
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='create_post_button.option.schedule_message.options.conversion_recipient_time'
+                                        defaultMessage="{time} {recipientName}'s time"
+                                        values={{
+                                            time: conversionTime,
+                                            recipientName: recipientDisplayName,
+                                        }}
+                                    />
+                                )}
+                            </span>
+                        </>
+                    }
+                    className='core-menu-options dm-menu-options'
+                />
+            </>
+        );
+    }
 
     const timestamp = (
         <Timestamp

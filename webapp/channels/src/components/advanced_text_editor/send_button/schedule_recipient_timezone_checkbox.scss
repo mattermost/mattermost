@@ -1,0 +1,20 @@
+.ScheduleRecipientTimezoneCheckbox {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    gap: 8px;
+
+    &__input {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    &__label {
+        margin: 0;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+}

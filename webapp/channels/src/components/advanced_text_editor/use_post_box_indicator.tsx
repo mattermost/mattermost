@@ -16,6 +16,7 @@ import {
     getUser,
     makeGetDisplayName,
 } from 'mattermost-redux/selectors/entities/users';
+import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import Constants, {UserStatuses} from 'utils/constants';
 
@@ -103,19 +104,46 @@ function useTimePostBoxIndicator(channelId: string) {
     const isSelfDM = isDM && teammateId === currentUserId;
 
     const showRemoteUserHour = isDM && showIt && timestamp !== 0 && !isBot;
+    const recipientTimezoneString = getUserCurrentTimezone(teammateTimezone);
 
     return {
         showRemoteUserHour,
         isDM,
         currentUserTimesStamp: timestamp,
         teammateTimezone,
+        recipientTimezoneString,
         userCurrentTimezone,
         isScheduledPostEnabled: isScheduledPostEnabledValue,
         showDndWarning,
         teammateId,
+        teammate,
         teammateDisplayName,
+        teammateFirstName: teammate?.first_name || teammateDisplayName,
         isSelfDM,
         isBot,
+    };
+}
+
+export function useScheduleRecipientInfo(channelId: string) {
+    const getDisplayName = useMemo(makeGetDisplayName, []);
+
+    const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
+    const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
+    const userCurrentTimezone = useSelector(getCurrentTimezone);
+    const teammate = useSelector((state: GlobalState) => getUser(state, teammateId));
+    const teammateTimezone = useMemo(() => {
+        if (!teammate) {
+            return DEFAULT_TIMEZONE;
+        }
+
+        return getTimezoneForUserProfile(teammate);
+    }, [teammate]);
+    const recipientTimezoneString = getUserCurrentTimezone(teammateTimezone);
+
+    return {
+        userCurrentTimezone,
+        recipientTimezoneString,
+        teammateDisplayName,
     };
 }
 

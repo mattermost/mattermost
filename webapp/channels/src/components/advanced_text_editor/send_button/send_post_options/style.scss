@@ -7,10 +7,29 @@ ul#dropdown_send_post_options {
         }
     }
 
-    li.core-menu-options{
+    .dm-schedule-timezone-checkbox {
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .MuiDivider-root {
+        height: 1px;
+        border: none;
+        margin: 0;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    li.core-menu-options,
+    li.dm-menu-options {
         display: flex;
         flex-direction: column;
         align-items: baseline;
+
+        .secondary-label {
+            margin-top: 2px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 12px;
+            font-weight: 400;
+        }
 
         .trailing-elements {
             margin-top: 4px;
