@@ -381,8 +381,8 @@ channels/db/migrations/postgres/000191_create_wikis.down.sql
 channels/db/migrations/postgres/000191_create_wikis.up.sql
 channels/db/migrations/postgres/000192_create_wikis_team_id_index.down.sql
 channels/db/migrations/postgres/000192_create_wikis_team_id_index.up.sql
-channels/db/migrations/postgres/000193_create_wikis_channel_id_unique_index.down.sql
-channels/db/migrations/postgres/000193_create_wikis_channel_id_unique_index.up.sql
+channels/db/migrations/postgres/000193_add_property_groups_schema_version.down.sql
+channels/db/migrations/postgres/000193_add_property_groups_schema_version.up.sql
 channels/db/migrations/postgres/000194_add_channel_type_wiki_enum.down.sql
 channels/db/migrations/postgres/000194_add_channel_type_wiki_enum.up.sql
 channels/db/migrations/postgres/000195_create_wiki_links.down.sql
@@ -403,3 +403,9 @@ channels/db/migrations/postgres/000202_propertyvalues_targetid_index_drop_old.do
 channels/db/migrations/postgres/000202_propertyvalues_targetid_index_drop_old.up.sql
 channels/db/migrations/postgres/000203_add_page_comment_page_id_index.down.sql
 channels/db/migrations/postgres/000203_add_page_comment_page_id_index.up.sql
+channels/db/migrations/postgres/000204_create_wikis_channel_id_unique_index.down.sql
+channels/db/migrations/postgres/000204_create_wikis_channel_id_unique_index.up.sql
+channels/db/migrations/postgres/000205_channel_bookmarks_board_target_id.down.sql
+channels/db/migrations/postgres/000205_channel_bookmarks_board_target_id.up.sql
+channels/db/migrations/postgres/000206_channel_bookmarks_target_id_index.down.sql
+channels/db/migrations/postgres/000206_channel_bookmarks_target_id_index.up.sql

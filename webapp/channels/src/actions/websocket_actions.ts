@@ -872,6 +872,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.FileDownloadRejected:
         dispatch(handleFileDownloadRejected(msg));
         break;
+    case WebSocketEvents.FileUploadRejected:
+        dispatch(handleFileUploadRejected(msg));
+        break;
     case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
         break;
@@ -3064,6 +3067,33 @@ export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRe
                 position: 'bottom-center',
                 onExited: () => {
                     // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    };
+}
+
+export function handleFileUploadRejected(msg: WebSocketMessages.FileUploadRejected): ThunkActionFunc<void> {
+    return (dispatch) => {
+        const {rejection_reason: rejectionReason} = msg.data;
+
+        const intl = getIntl();
+        const displayMessage = intl.formatMessage(
+            {id: 'file_upload.rejected.file', defaultMessage: 'File upload blocked: {reason}'},
+            {reason: rejectionReason},
+        );
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
+                    message: displayMessage,
+                },
+                position: 'bottom-center',
+                onExited: () => {
                     dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
                 },
             },

@@ -4,6 +4,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -13,6 +14,7 @@ import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entitie
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import {fetchChannelBookmarks, reorderBookmark} from 'actions/channel_bookmarks';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
@@ -20,8 +22,33 @@ import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import Constants from 'utils/constants';
 import {trimmedEmojiName} from 'utils/emoji_utils';
 import {canUploadFiles, isPublicLinksEnabled} from 'utils/file_utils';
+import {shouldOpenInNewTab} from 'utils/url';
+import {copyToClipboard} from 'utils/utils';
 
 export const MAX_BOOKMARKS_PER_CHANNEL = 50;
+
+export function bookmarkHasLinkUrl(bookmark: ChannelBookmark): boolean {
+    return (bookmark.type === 'link' || bookmark.type === 'board') && Boolean(bookmark.link_url);
+}
+
+export function shouldOpenBookmarkInNewTab(bookmark: ChannelBookmark, siteURL?: string): boolean {
+    if (!bookmarkHasLinkUrl(bookmark)) {
+        return false;
+    }
+
+    return shouldOpenInNewTab(bookmark.link_url!, siteURL);
+}
+
+export function copyBookmarkLink(bookmark: ChannelBookmark): void {
+    if (bookmarkHasLinkUrl(bookmark)) {
+        copyToClipboard(bookmark.link_url!);
+        return;
+    }
+
+    if (bookmark.type === 'file' && bookmark.file_id) {
+        copyToClipboard(getFileDownloadUrl(bookmark.file_id));
+    }
+}
 
 const {OPEN_CHANNEL, PRIVATE_CHANNEL, GM_CHANNEL, DM_CHANNEL} = Constants as {OPEN_CHANNEL: 'O'; PRIVATE_CHANNEL: 'P'; GM_CHANNEL: 'G'; DM_CHANNEL: 'D'};
 

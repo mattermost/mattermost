@@ -111,7 +111,7 @@ func createCompliance(ss store.Store, userId string) *model.Compliance {
 func createEmoji(ss store.Store, userId string) *model.Emoji {
 	m := model.Emoji{}
 	m.CreatorId = userId
-	m.Name = "emoji"
+	m.Name = "emoji" + model.NewId()
 	emoji, _ := ss.Emoji().Save(&m)
 	return emoji
 }
@@ -792,8 +792,29 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	})
 }
 
+func orphanedRecordsWithChildIDs(records []model.OrphanedRecord, childIDs ...string) []model.OrphanedRecord {
+	childIDSet := make(map[string]struct{}, len(childIDs))
+	for _, childID := range childIDs {
+		childIDSet[childID] = struct{}{}
+	}
+
+	filtered := make([]model.OrphanedRecord, 0, len(childIDs))
+	for _, record := range records {
+		if record.ChildId == nil {
+			continue
+		}
+		if _, ok := childIDSet[*record.ChildId]; ok {
+			filtered = append(filtered, record)
+		}
+	}
+
+	return filtered
+}
+
 func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		ss.DropAllTables()
+
 		store := ss.(*SqlStore)
 		dbmap := store.GetMaster()
 
@@ -809,11 +830,12 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithChildIDs(data.Records, channel.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &channel.TeamId,
 				ChildId:  &channel.Id,
-			}, data.Records[0])
+			}, records[0])
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
 		})
 
@@ -827,11 +849,12 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithChildIDs(data.Records, channel.Id, direct.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &channel.TeamId,
 				ChildId:  &channel.Id,
-			}, data.Records[0])
+			}, records[0])
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userA.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userB.Id)
@@ -850,15 +873,17 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 			result := checkTeamsChannelsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 2)
-			require.Equal(t, model.OrphanedRecord{
-				ParentId: &channel.TeamId,
-				ChildId:  &channel.Id,
-			}, data.Records[0])
-			require.Equal(t, model.OrphanedRecord{
-				ParentId: new("test"),
-				ChildId:  &direct.Id,
-			}, data.Records[1])
+			records := orphanedRecordsWithChildIDs(data.Records, channel.Id, direct.Id)
+			require.ElementsMatch(t, []model.OrphanedRecord{
+				{
+					ParentId: &channel.TeamId,
+					ChildId:  &channel.Id,
+				},
+				{
+					ParentId: new("test"),
+					ChildId:  &direct.Id,
+				},
+			}, records)
 			dbmap.Exec(`DELETE FROM Channels WHERE Id=?`, channel.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userA.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, userB.Id)
@@ -1189,26 +1214,47 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 		dbmap := store.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
+			user := createUser(rctx, ss)
+			emoji := createEmoji(ss, user.Id)
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+				require.NoError(t, err)
+			})
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
+				require.NoError(t, err)
+			})
+
 			result := checkUsersEmojiIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Empty(t, data.Records)
+			records := orphanedRecordsWithChildIDs(data.Records, emoji.Id)
+			require.Empty(t, records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(rctx, ss)
 			userId := user.Id
 			emoji := createEmoji(ss, userId)
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+				require.NoError(t, err)
+			})
+			t.Cleanup(func() {
+				_, err := dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
+				require.NoError(t, err)
+			})
+
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersEmojiIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithChildIDs(data.Records, emoji.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &userId,
 				ChildId:  &emoji.Id,
-			}, data.Records[0])
-			dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+			}, records[0])
 		})
 	})
 }

@@ -13,17 +13,17 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 	f := &FeatureFlags{}
 	f.SetDefaults()
 
-	t.Run("ClassificationMarkings should default to false", func(t *testing.T) {
-		require.False(t, f.ClassificationMarkings)
+	t.Run("ClassificationMarkings should default to true", func(t *testing.T) {
+		require.True(t, f.ClassificationMarkings)
 	})
 
 	t.Run("ClassificationMarkings should serialize correctly", func(t *testing.T) {
 		m := f.ToMap()
-		require.Equal(t, "false", m["ClassificationMarkings"])
-
-		f.ClassificationMarkings = true
-		m = f.ToMap()
 		require.Equal(t, "true", m["ClassificationMarkings"])
+
+		f.ClassificationMarkings = false
+		m = f.ToMap()
+		require.Equal(t, "false", m["ClassificationMarkings"])
 	})
 }
 
