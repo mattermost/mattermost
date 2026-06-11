@@ -523,6 +523,12 @@ export type FileDownloadRejected = BaseWebSocketMessage<WebSocketEvents.FileDown
     download_type: string;
 }>;
 
+export type FileUploadRejected = BaseWebSocketMessage<WebSocketEvents.FileUploadRejected, {
+    file_name: string;
+    rejection_reason: string;
+    channel_id: string;
+}>;
+
 export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {
     message: string;
     position?: string;

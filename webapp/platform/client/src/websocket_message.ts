@@ -103,6 +103,7 @@ export type WebSocketMessage = (
     Messages.RecapUpdated |
 
     Messages.FileDownloadRejected |
+    Messages.FileUploadRejected |
     Messages.ShowToast |
 
     Messages.Plugin |
