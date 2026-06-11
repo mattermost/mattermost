@@ -2763,7 +2763,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'MobileEphemeralModeSettings.Enable',
                                     label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableTitle', defaultMessage: 'Enable Mobile Ephemeral Mode:'}),
-                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Disconnected devices will clean up cached data based on the configured timers.'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Devices automatically clean up cached data on schedule. Admins can trigger an immediate wipe by revoking a user\'s session.'}),
                                 },
                                 {
                                     type: 'number',
