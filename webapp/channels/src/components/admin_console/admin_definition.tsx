@@ -3668,7 +3668,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'ServiceSettings.PostPriority',
                                     label: defineMessage({id: 'admin.posts.postPriority.title', defaultMessage: 'Message Priority'}),
-                                    help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate messages that are important or urgent. Learn more about message priority in our <link>documentation</link>.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                                    help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate message labels such as important or urgent. Learn more about message priority in our <link>documentation</link>.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                                     help_text_values: {
                                         link: (msg: string) => (
                                             <ExternalLink
@@ -3681,6 +3681,14 @@ const AdminDefinition: AdminDefinitionType = {
                                     },
                                     help_text_markdown: false,
                                     isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'ServiceSettings.PostPriorityLabels',
+                                    label: defineMessage({id: 'admin.posts.postPriorityLabels.title', defaultMessage: 'Message Priority Labels'}),
+                                    help_text: defineMessage({id: 'admin.posts.postPriorityLabels.desc', defaultMessage: 'Configure the selectable message priority labels as a JSON array. Each label requires an id and name. The urgent label must keep id "urgent" to support persistent notifications.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
                                 },
                                 {
                                     type: 'bool',

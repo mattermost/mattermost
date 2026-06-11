@@ -4,12 +4,18 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+type postPriorityLabelConfig struct {
+	ID         string `json:"id"`
+	SystemName string `json:"system_name"`
+}
 
 func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
 	user, appErr := a.GetUser(userId)
@@ -20,9 +26,10 @@ func PostPriorityCheckWithApp(where string, a *App, userId string, priority *mod
 	isPostPriorityEnabled := a.IsPostPriorityEnabled()
 	IsPersistentNotificationsEnabled := a.IsPersistentNotificationsEnabled()
 	allowPersistentNotificationsForGuests := *a.Config().ServiceSettings.AllowPersistentNotificationsForGuests
+	postPriorityLabels := *a.Config().ServiceSettings.PostPriorityLabels
 	license := a.License()
 
-	appErr = postPriorityCheck(user, priority, rootId, isPostPriorityEnabled, IsPersistentNotificationsEnabled, allowPersistentNotificationsForGuests, license)
+	appErr = postPriorityCheck(user, priority, rootId, isPostPriorityEnabled, IsPersistentNotificationsEnabled, allowPersistentNotificationsForGuests, postPriorityLabels, license)
 	if appErr != nil {
 		appErr.Where = where
 		return appErr
@@ -38,6 +45,7 @@ func postPriorityCheck(
 	isPostPriorityEnabled,
 	isPersistentNotificationsEnabled,
 	allowPersistentNotificationsForGuests bool,
+	postPriorityLabels string,
 	license *model.License,
 ) *model.AppError {
 	if priority == nil {
@@ -54,6 +62,10 @@ func postPriorityCheck(
 		return model.NewAppError("", "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error", nil, "", http.StatusBadRequest)
 	}
 
+	if priority.Priority != nil && *priority.Priority != "" && !isAllowedPostPriority(*priority.Priority, postPriorityLabels) {
+		return model.NewAppError("", "model.draft.is_valid.priority.app_error", nil, fmt.Sprintf("priority=%s", *priority.Priority), http.StatusBadRequest)
+	}
+
 	if ack := priority.RequestedAck; ack != nil && *ack {
 		if !model.MinimumProfessionalLicense(license) {
 			return model.NewAppError("", "license_error.feature_unavailable", nil, "feature is not available for the current license", http.StatusNotImplemented)
@@ -68,6 +80,10 @@ func postPriorityCheck(
 			return priorityForbiddenErr
 		}
 
+		if priority.Priority == nil {
+			return model.NewAppError("", "api.post.post_priority.urgent_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
+		}
+
 		if *priority.Priority != model.PostPriorityUrgent {
 			return model.NewAppError("", "api.post.post_priority.urgent_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
 		}
@@ -80,6 +96,21 @@ func postPriorityCheck(
 	}
 
 	return nil
+}
+
+func isAllowedPostPriority(priority string, postPriorityLabels string) bool {
+	var labels []postPriorityLabelConfig
+	if err := json.Unmarshal([]byte(postPriorityLabels), &labels); err != nil {
+		return priority == model.PostPriorityUrgent || priority == "important"
+	}
+
+	for _, label := range labels {
+		if label.ID == priority {
+			return true
+		}
+	}
+
+	return false
 }
 
 func PostHardenedModeCheckWithApp(a *App, isIntegration bool, props model.StringInterface) *model.AppError {

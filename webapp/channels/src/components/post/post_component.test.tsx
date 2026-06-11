@@ -569,6 +569,55 @@ describe('PostComponent', () => {
             expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
         });
 
+        test('should not show priority label when configured label has been deleted', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: 'deleted-label',
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+
+        test('should show default icon for configured priority label without icon', () => {
+            const post = TestHelper.getPostMock({
+                metadata: {
+                    priority: {
+                        priority: 'custom-label',
+                    },
+                },
+            });
+            const props = {
+                ...baseProps,
+                post,
+                isPostPriorityEnabled: true,
+            };
+            const state: DeepPartial<GlobalState> = {
+                entities: {
+                    general: {
+                        config: {
+                            PostPriorityLabels: JSON.stringify([
+                                {id: 'custom-label', name: 'Custom label', variant: 'default'},
+                            ]),
+                        },
+                    },
+                },
+            };
+            renderWithContext(<PostComponent {...props}/>, state);
+
+            const label = screen.getByTestId('post-priority-label');
+            expect(label).toHaveTextContent('Custom label');
+            expect(label.querySelector('svg')).toBeInTheDocument();
+        });
+
         test('should not show priority label for deleted post with priority metadata', () => {
             const post = TestHelper.getPostMock({
                 state: Posts.POST_DELETED as 'DELETED',

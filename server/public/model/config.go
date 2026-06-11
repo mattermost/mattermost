@@ -460,6 +460,7 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool   `access:"site_posts"`
 	EnableInlineLatex                                 *bool   `access:"site_posts"`
 	PostPriority                                      *bool   `access:"site_posts"`
+	PostPriorityLabels                                *string `access:"site_posts"`
 	AllowPersistentNotifications                      *bool   `access:"site_posts"`
 	AllowPersistentNotificationsForGuests             *bool   `access:"site_posts"`
 	PersistentNotificationIntervalMinutes             *int    `access:"site_posts"`
@@ -988,6 +989,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.PostPriority == nil {
 		s.PostPriority = new(true)
+	}
+
+	if s.PostPriorityLabels == nil {
+		s.PostPriorityLabels = NewPointer(`[{"id":"important","name":"Important","variant":"info","icon":"alert-circle-outline"},{"id":"urgent","name":"Urgent","variant":"danger","icon":"alert-outline","system_name":"urgent"}]`)
 	}
 
 	if s.AllowPersistentNotifications == nil {

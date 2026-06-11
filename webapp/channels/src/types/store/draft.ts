@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FileInfo} from '@mattermost/types/files';
-import type {PostPriority, PostType} from '@mattermost/types/posts';
+import type {PostPriorityValue, PostType} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {PostTypes} from 'utils/constants';
@@ -28,7 +28,7 @@ export type PostDraft = {
     type?: PostType;
     metadata?: {
         priority?: {
-            priority: PostPriority|'';
+            priority: PostPriorityValue|'';
             requested_ack?: boolean;
             persistent_notifications?: boolean;
         };
