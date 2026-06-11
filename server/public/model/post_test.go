@@ -162,6 +162,10 @@ func TestPostSanitizeProps(t *testing.T) {
 			PropsAddChannelMember:      "no good",
 			PostPropsForceNotification: "no good",
 			PostPropsAttachments:       "good",
+			PostPropsFromWebhook:       "user-settable in v11",
+			PostPropsFromBot:           "user-settable in v11",
+			PostPropsFromOAuthApp:      "user-settable in v11",
+			PostPropsFromPlugin:        "user-settable in v11",
 		},
 	}
 
@@ -172,13 +176,26 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	require.NotNil(t, post3.GetProp(PostPropsAttachments))
 
-	// Federated post: integration markers were verified by the origin cluster
-	// and must survive sanitization on the receiving side. The non-integration
-	// system prop (PropsAddChannelMember) is still stripped — it's a synthesis
-	// marker for local "user added to channel" system posts and doesn't belong
-	// on federated posts regardless. RemoteId is server-set (SanitizeInput on
-	// the API4 path wipes any client-supplied value), so this branch can't be
-	// reached by forgery.
+	// The from_* identity markers are NOT stripped by default in v11 — they
+	// remain user-settable for backward compatibility with the user-PAT-
+	// impersonation idiom. Hardened mode rejects from_webhook and from_plugin
+	// via ContainsIntegrationsReservedProps; from_bot and from_oauth_app are
+	// not currently in that reserved set. v12 will move all four into the
+	// default strip list along with override_username/override_icon_url.
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromWebhook))
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromBot))
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromOAuthApp))
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromPlugin))
+
+	// Federated post: notification-policy markers (silent/force) were verified
+	// by the origin cluster and must survive sanitization on the receiving side.
+	// The non-integration system prop (PropsAddChannelMember) is still stripped
+	// — it's a synthesis marker for local "user added to channel" system posts
+	// and doesn't belong on federated posts regardless. RemoteId is server-set
+	// (SanitizeInput on the API4 path wipes any client-supplied value), so this
+	// branch can't be reached by forgery. The from_* identity markers also
+	// survive but that's not federation-specific — they aren't in the default
+	// strip list under hardened-OFF in v11 either way.
 	remoteId := "remote-cluster-1"
 	post4 := &Post{
 		Message:  "test",
@@ -205,19 +222,20 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.Equal(t, "true", post4.GetProp(PostPropsFromPlugin))
 
 	// Empty-string RemoteId must NOT be treated as federated — it's the zero
-	// value SanitizeInput sets when wiping a client-forged value.
+	// value SanitizeInput sets when wiping a client-forged value. silent_notification
+	// gets stripped just like for posts with no RemoteId field at all.
 	emptyRemoteId := ""
 	post5 := &Post{
 		Message:  "test",
 		RemoteId: &emptyRemoteId,
 		Props: StringInterface{
-			PostPropsFromWebhook: "true",
+			PostPropsSilentNotification: true,
 		},
 	}
 
 	post5.SanitizeProps()
 
-	require.Nil(t, post5.GetProp(PostPropsFromWebhook), "empty RemoteId must not be treated as federated")
+	require.Nil(t, post5.GetProp(PostPropsSilentNotification), "empty RemoteId must not be treated as federated")
 }
 
 func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {

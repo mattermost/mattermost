@@ -658,9 +658,13 @@ func TestPostActionProps(t *testing.T) {
 	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
 	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
-	// from_webhook is stripped by SanitizeProps for non-integration creators (the test post is created
-	// as a regular user); the action update is also blocked from setting it. Final value is therefore nil.
-	assert.Nil(t, newPost.GetProp(model.PostPropsFromWebhook))
+	// from_webhook is NOT in the default SanitizeProps strip list under hardened-OFF (v11) — it
+	// remains user-settable for backward compatibility with the user-PAT-impersonation idiom.
+	// The client-supplied value survives sanitization. PostActionRetainPropKeys includes
+	// from_webhook, so the post-action update preserves it. (v12 will move the from_* markers
+	// into the default strip list — see SanitizeProps doc in public/model/post.go — and this
+	// assertion should flip back to nil.)
+	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {

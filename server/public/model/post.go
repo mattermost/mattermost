@@ -582,22 +582,30 @@ func (o *Post) SanitizeProps() {
 		PropsAddChannelMember,
 	}
 
-	// Integration markers must be stripped on every locally-originated post-creation
-	// path so client-supplied values can't impersonate an integration. For posts that
+	// Notification-policy markers (silent_notification, force_notification) are
+	// authorization-load-bearing: they change notification delivery for everyone
+	// in the channel, so they must be stripped on every locally-originated post-
+	// creation path. The server re-injects them in app.CreatePost under verified
+	// authority: silent_notification via isIntegrationPostAuthor, force_notification
+	// via the server-set CreatePostFlags.ForceNotification flag. For posts that
 	// arrived through Shared Channels federation (RemoteId is set by the receiving
 	// cluster, never by an API caller — see SanitizeInput), the origin cluster has
-	// already enforced its own integration-prop authority, so we preserve the markers
-	// to keep webhook/bot/plugin/OAuth rendering and notification semantics
-	// consistent across federation.
+	// already enforced its own integration-prop authority, so we preserve them to
+	// keep notification semantics consistent across federation.
+	//
+	// The from_* identity markers (from_webhook, from_bot, from_oauth_app,
+	// from_plugin) are render hints and remain user-settable under hardened-OFF
+	// (the default) for backward compatibility with the user-PAT-impersonation
+	// idiom (forge + override_username + override_icon_url). Hardened mode rejects
+	// from_webhook and from_plugin via ContainsIntegrationsReservedProps;
+	// from_bot and from_oauth_app are not currently in that reserved set. The
+	// full impersonation surface — these plus override_username/override_icon_url
+	// — is scheduled to default-strip in v12.
 	isFederated := o.RemoteId != nil && *o.RemoteId != ""
 	if !isFederated {
 		membersToSanitize = append(membersToSanitize,
 			PostPropsForceNotification,
 			PostPropsSilentNotification,
-			PostPropsFromWebhook,
-			PostPropsFromBot,
-			PostPropsFromOAuthApp,
-			PostPropsFromPlugin,
 		)
 	}
 

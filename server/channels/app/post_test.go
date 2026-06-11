@@ -1717,7 +1717,14 @@ func TestCreatePost(t *testing.T) {
 		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromPlugin))
 	})
 
-	t.Run("should strip forged integration props from human payload", func(t *testing.T) {
+	t.Run("should strip forged notification-policy props from human payload", func(t *testing.T) {
+		// silent_notification and force_notification are authorization-load-bearing
+		// (they change notification delivery for everyone in the channel) and must
+		// be stripped from non-integration callers regardless of hardened-mode
+		// setting. The from_* identity markers are not stripped by default in v11
+		// — they remain user-settable for backward compatibility. Hardened mode
+		// rejects from_webhook and from_plugin via ContainsIntegrationsReservedProps;
+		// from_bot and from_oauth_app are not currently in that reserved set.
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -1728,15 +1735,13 @@ func TestCreatePost(t *testing.T) {
 			Message:   "forged integration props",
 			UserId:    th.BasicUser.Id,
 			Props: model.StringInterface{
-				model.PostPropsFromPlugin:  "true",
-				model.PostPropsFromWebhook: "true",
-				model.PostPropsFromBot:     "true",
+				model.PostPropsSilentNotification: true,
+				model.PostPropsForceNotification:  "forged-id",
 			},
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
-		require.Empty(t, createdPost.GetProp(model.PostPropsFromPlugin))
-		require.Empty(t, createdPost.GetProp(model.PostPropsFromWebhook))
-		require.Empty(t, createdPost.GetProp(model.PostPropsFromBot))
+		require.Empty(t, createdPost.GetProp(model.PostPropsSilentNotification))
+		require.Empty(t, createdPost.GetProp(model.PostPropsForceNotification))
 	})
 
 	t.Run("force notification wins over silent", func(t *testing.T) {
