@@ -842,7 +842,7 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 		}
 
 	default:
-		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select and multiselect field types, got: %s", fieldType)
+		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select, multiselect and rank field types, got: %s", fieldType)
 	}
 
 	return optionIDs, nil
