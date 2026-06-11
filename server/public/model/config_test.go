@@ -419,6 +419,70 @@ func TestFileSettingsAzureAuthMode(t *testing.T) {
 	})
 }
 
+func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
+	cases := []struct {
+		name        string
+		configure   func(*Config)
+		accountName string
+	}{
+		{
+			name: "primary commercial",
+			configure: func(cfg *Config) {
+				cfg.FileSettings.DriverName = NewPointer(ImageDriverAzure)
+				cfg.FileSettings.AzureCloud = NewPointer(AzureCloudCommercial)
+				cfg.FileSettings.AzureStorageAccount = NewPointer("AcmeMattermost")
+				cfg.FileSettings.AzureAccessKey = NewPointer("somekey")
+				cfg.FileSettings.AzureContainer = NewPointer("files")
+			},
+			accountName: "AzureStorageAccount",
+		},
+		{
+			name: "primary government",
+			configure: func(cfg *Config) {
+				cfg.FileSettings.DriverName = NewPointer(ImageDriverAzure)
+				cfg.FileSettings.AzureCloud = NewPointer(AzureCloudGovernment)
+				cfg.FileSettings.AzureStorageAccount = NewPointer("acme-mattermost")
+				cfg.FileSettings.AzureAccessKey = NewPointer("somekey")
+				cfg.FileSettings.AzureContainer = NewPointer("files")
+			},
+			accountName: "AzureStorageAccount",
+		},
+		{
+			name: "export commercial",
+			configure: func(cfg *Config) {
+				cfg.FileSettings.ExportDriverName = NewPointer(ImageDriverAzure)
+				cfg.FileSettings.ExportAzureCloud = NewPointer(AzureCloudCommercial)
+				cfg.FileSettings.ExportAzureStorageAccount = NewPointer("AcmeMattermost")
+				cfg.FileSettings.ExportAzureAccessKey = NewPointer("somekey")
+				cfg.FileSettings.ExportAzureContainer = NewPointer("files")
+			},
+			accountName: "ExportAzureStorageAccount",
+		},
+		{
+			name: "export government",
+			configure: func(cfg *Config) {
+				cfg.FileSettings.ExportDriverName = NewPointer(ImageDriverAzure)
+				cfg.FileSettings.ExportAzureCloud = NewPointer(AzureCloudGovernment)
+				cfg.FileSettings.ExportAzureStorageAccount = NewPointer("acme-mattermost")
+				cfg.FileSettings.ExportAzureAccessKey = NewPointer("somekey")
+				cfg.FileSettings.ExportAzureContainer = NewPointer("files")
+			},
+			accountName: "ExportAzureStorageAccount",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configure(cfg)
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err, "%s should be validated for managed Azure clouds", tc.accountName)
+		})
+	}
+}
+
 func TestFileSettingsAzureCloudValidation(t *testing.T) {
 	t.Run("unknown cloud values are rejected", func(t *testing.T) {
 		cases := []struct {
