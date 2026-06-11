@@ -10,12 +10,16 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -116,6 +120,90 @@ func TestBuildAzureServiceURL(t *testing.T) {
 			require.Equal(t, tt.expected, got)
 		})
 	}
+}
+
+func TestBuildAzureServiceURLManagedAccountNames(t *testing.T) {
+	for _, tt := range []struct {
+		name     string
+		cloud    string
+		scheme   string
+		account  string
+		expected string
+	}{
+		{
+			name:     "commercial accepts lowercase alphanumeric account",
+			cloud:    model.AzureCloudCommercial,
+			scheme:   "https",
+			account:  "acme123mattermost",
+			expected: "https://acme123mattermost.blob.core.windows.net/",
+		},
+		{
+			name:     "empty cloud accepts lowercase alphanumeric account",
+			cloud:    "",
+			scheme:   "https",
+			account:  "abc",
+			expected: "https://abc.blob.core.windows.net/",
+		},
+		{
+			name:     "government accepts lowercase alphanumeric account",
+			cloud:    model.AzureCloudGovernment,
+			scheme:   "http",
+			account:  "abcdefghijklmnopqrstuvwx",
+			expected: "http://abcdefghijklmnopqrstuvwx.blob.core.usgovcloudapi.net/",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := buildAzureServiceURL(tt.cloud, tt.scheme, tt.account, "")
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, got)
+		})
+	}
+
+	invalidAccounts := []string{
+		"ab",
+		"abcdefghijklmnopqrstuvwxy",
+		"AcmeMattermost",
+		"acme-mattermost",
+		"acme/mattermost",
+		"acme#mattermost",
+	}
+	for _, cloud := range []string{"", model.AzureCloudCommercial, model.AzureCloudGovernment} {
+		for _, account := range invalidAccounts {
+			t.Run("managed cloud rejects unsupported account name", func(t *testing.T) {
+				_, err := buildAzureServiceURL(cloud, "https", account, "")
+				require.Error(t, err)
+			})
+		}
+	}
+}
+
+func TestAzureCustomEndpointUsesFilteredTransport(t *testing.T) {
+	var hits int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&hits, 1)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	settings := FileBackendSettings{
+		DriverName:                      driverAzure,
+		AzureStorageAccount:             "anaccount",
+		AzureAuthMode:                   model.AzureAuthModeSharedKey,
+		AzureAccessKey:                  azuriteWellKnownKey,
+		AzureContainer:                  "acontainer",
+		AzureCloud:                      model.AzureCloudCustom,
+		AzureEndpoint:                   server.URL + "/anaccount/",
+		AzureRequestTimeoutMilliseconds: 30000,
+	}
+
+	be, err := NewAzureFileBackend(settings)
+	require.NoError(t, err)
+
+	err = be.TestConnection()
+	if assert.Error(t, err) {
+		require.Contains(t, err.Error(), httpservice.ErrAddressForbidden.Error())
+	}
+	require.Zero(t, atomic.LoadInt32(&hits))
 }
 
 func TestAzureFileBackendPrefix(t *testing.T) {
