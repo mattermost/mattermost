@@ -95,20 +95,39 @@
         }
     }
 
-    // Match the select/multiselect CreatableSelect's "Add values…" input exactly:
-    // react-select sets `fontSize: inherit` on its input (so it follows the cell
-    // size rather than the larger UA default a bare <input> would use). No left
-    // padding here — the chips container's 10px inset already aligns this with the
-    // react-select placeholder/value position.
+    // The "Add values…" input auto-grows with its content and wraps to a new row
+    // when it no longer fits, mirroring react-select's sizer-based input. The
+    // wrapper is an inline-grid whose hidden ::after carries a copy of the live
+    // text (via data-value); that pseudo-element sizes the grid column and the
+    // input fills it. Both use `font: inherit` so the measured and rendered text
+    // match exactly — the same technique react-select uses on the select cell.
+    .user-property-rank-values__add-sizer {
+        display: inline-grid;
+        flex: 0 1 auto;
+        grid-template-columns: 0 min-content;
+
+        &::after {
+            min-width: 2px;
+            padding: 0;
+            content: attr(data-value) ' ';
+            font: inherit;
+            grid-area: 1 / 2;
+            visibility: hidden;
+            white-space: pre;
+        }
+    }
+
     .user-property-rank-values__add-input {
-        min-width: 120px;
+        width: 100%;
+        min-width: 2px;
         height: 24px;
-        flex: 1;
         padding: 0;
         border: none;
+        margin: 0;
         background: transparent;
         color: var(--center-channel-color);
-        font-size: inherit;
+        font: inherit;
+        grid-area: 1 / 2;
 
         // react-select renders its placeholder as a plain <div> at full opacity in
         // theme.colors.neutral50; a native <input>'s ::placeholder is dimmed by the

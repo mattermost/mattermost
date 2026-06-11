@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {KeyboardEvent} from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {components} from 'react-select';
@@ -120,9 +120,32 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
         }
     }, [addValue, trimmedQuery, isDuplicate]);
 
+    const placeholderText = formatMessage({
+        id: 'admin.system_properties.user_properties.table.values.placeholder',
+        defaultMessage: 'Add values… (required)',
+    });
+
+    // Mirror react-select: the placeholder shows only in the empty state, not once
+    // values have been added.
+    const showPlaceholder = ascOptions.length === 0;
+
+    const focusInput = useCallback((event: MouseEvent<HTMLDivElement>) => {
+        // The auto-sized input only spans its text, so clicking the well's empty
+        // space focuses it — like react-select's control. Clicks on a chip, its
+        // popover trigger, or the remove button (children) keep their own behavior.
+        if (event.target === event.currentTarget) {
+            event.preventDefault();
+            addInputRef.current?.focus();
+        }
+    }, []);
+
     return (
         <div className='user-property-rank-values'>
-            <div className='user-property-rank-values__chips'>
+            {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- mousedown only forwards focus to the keyboard-accessible add input, mirroring react-select's control */}
+            <div
+                className='user-property-rank-values__chips'
+                onMouseDown={focusInput}
+            >
                 {ascOptions.map((option, ascIndex) => (
                     <RankChip
                         key={option.id || option.name}
@@ -137,23 +160,22 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
                     />
                 ))}
                 {!isDisabled && (
-                    <input
-                        ref={addInputRef}
-                        type='text'
-                        className='user-property-rank-values__add-input'
-                        value={query}
-                        maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-
-                        // Mirror react-select: the placeholder only shows in the
-                        // empty state, not once values have been added.
-                        placeholder={ascOptions.length === 0 ? formatMessage({
-                            id: 'admin.system_properties.user_properties.table.values.placeholder',
-                            defaultMessage: 'Add values… (required)',
-                        }) : undefined}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onKeyDown={handleQueryKeyDown}
-                        onBlur={addValue}
-                    />
+                    <span
+                        className='user-property-rank-values__add-sizer'
+                        data-value={query || (showPlaceholder ? placeholderText : '')}
+                    >
+                        <input
+                            ref={addInputRef}
+                            type='text'
+                            className='user-property-rank-values__add-input'
+                            value={query}
+                            maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                            placeholder={showPlaceholder ? placeholderText : undefined}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={handleQueryKeyDown}
+                            onBlur={addValue}
+                        />
+                    </span>
                 )}
             </div>
             {isDuplicate && (
