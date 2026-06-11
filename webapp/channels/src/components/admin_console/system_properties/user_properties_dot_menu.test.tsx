@@ -280,6 +280,31 @@ describe('UserPropertyDotMenu', () => {
         const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
         expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
+    });
+
+    it('disables the "Editable by users" toggle when the field is both admin-managed and synced', async () => {
+        // Admin-managed and synced now coexist; the synced state still wins and
+        // keeps the toggle disabled and off.
+        const adminManagedSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'admin-managed-synced-field',
+            attrs: {
+                ...baseField.attrs,
+                managed: 'admin',
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(adminManagedSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${adminManagedSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
     });
 
     it('handles field duplication', async () => {

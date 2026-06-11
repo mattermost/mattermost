@@ -1212,6 +1212,27 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 		assert.Equal(t, "employeeID", updated.Attrs[model.PropertyFieldAttrLDAP])
 	})
 
+	t.Run("linking an existing admin-managed field keeps the saml sync attr on update", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+		require.Empty(t, created.Attrs[model.PropertyFieldAttrSAML])
+
+		created.Attrs[model.PropertyFieldAttrSAML] = "position"
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "position", updated.Attrs[model.PropertyFieldAttrSAML])
+	})
+
 	t.Run("non-text field strips ldap and saml sync attrs", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    group.ID,
