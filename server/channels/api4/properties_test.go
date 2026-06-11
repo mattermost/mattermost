@@ -1128,10 +1128,11 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
+		newOptionID := model.NewId()
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{
 				"options": []map[string]any{
-					{"id": model.NewId(), "name": "New Option"},
+					{"id": newOptionID, "name": "New Option"},
 				},
 			},
 		}
@@ -1140,6 +1141,13 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedField)
+
+		// Verify the patched option was actually stored, not just that the request succeeded.
+		opts := updatedField.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, opts, 1)
+		option := opts[0].(map[string]any)
+		require.Equal(t, newOptionID, option["id"])
+		require.Equal(t, "New Option", option["name"])
 	})
 
 	t.Run("options-only update on multiselect field with member options permission should succeed", func(t *testing.T) {
@@ -1162,10 +1170,11 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
+		newOptionID := model.NewId()
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{
 				"options": []map[string]any{
-					{"id": model.NewId(), "name": "New Option"},
+					{"id": newOptionID, "name": "New Option"},
 				},
 			},
 		}
@@ -1174,6 +1183,13 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedField)
+
+		// Verify the patched option was actually stored, not just that the request succeeded.
+		opts := updatedField.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, opts, 1)
+		option := opts[0].(map[string]any)
+		require.Equal(t, newOptionID, option["id"])
+		require.Equal(t, "New Option", option["name"])
 	})
 
 	t.Run("options-only update on rank field with member options permission should succeed", func(t *testing.T) {
@@ -1198,10 +1214,11 @@ func TestPatchPropertyField(t *testing.T) {
 		// A member may re-rank options: options-only patches on rank fields
 		// use the narrower manage-options permission, same as select/multiselect.
 		th.LoginBasic(t)
+		newOptionID := model.NewId()
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{
 				"options": []map[string]any{
-					{"id": model.NewId(), "name": "New Option", "rank": 2},
+					{"id": newOptionID, "name": "New Option", "rank": 2},
 				},
 			},
 		}
@@ -1210,6 +1227,14 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedField)
+
+		// Verify the patched option (including its rank) was actually stored.
+		opts := updatedField.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, opts, 1)
+		option := opts[0].(map[string]any)
+		require.Equal(t, newOptionID, option["id"])
+		require.Equal(t, "New Option", option["name"])
+		require.EqualValues(t, 2, option["rank"])
 	})
 
 	t.Run("name and options update on rank field should check field permission not options", func(t *testing.T) {
