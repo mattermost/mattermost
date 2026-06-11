@@ -84,18 +84,20 @@ export default class EmoticonProvider extends Provider {
             }
         }
 
+        const isReactionMode = prefix === '+' || prefix === '-';
+
         if (store.getState().entities.general.config.EnableCustomEmoji === 'true') {
-            store.dispatch(autocompleteCustomEmojis(partialName)).then(() => this.findAndSuggestEmojis(text, partialName, resultsCallback));
+            store.dispatch(autocompleteCustomEmojis(partialName)).then(() => this.findAndSuggestEmojis(text, partialName, resultsCallback, isReactionMode));
         } else {
-            this.findAndSuggestEmojis(text, partialName, resultsCallback);
+            this.findAndSuggestEmojis(text, partialName, resultsCallback, isReactionMode);
         }
 
         return true;
     }
 
-    formatEmojis(emojis: EmojiItem[]) {
+    formatEmojis(emojis: EmojiItem[], isReactionMode = false) {
         return emojis.map((item) => {
-            if (isSystemEmoji(item.emoji)) {
+            if (!isReactionMode && isSystemEmoji(item.emoji)) {
                 return unifiedToUnicode((item.emoji as SystemEmoji).unified);
             }
             return ':' + item.name + ':';
@@ -112,7 +114,7 @@ export default class EmoticonProvider extends Provider {
     //
     // For now, this behaviour and difference is by design.
     // See https://mattermost.atlassian.net/browse/MM-17320.
-    findAndSuggestEmojis(text: string, partialName: string, resultsCallback: ResultsCallback<EmojiItem>) {
+    findAndSuggestEmojis(text: string, partialName: string, resultsCallback: ResultsCallback<EmojiItem>, isReactionMode = false) {
         const recentMatched: EmojiItem[] = [];
         const matched: EmojiItem[] = [];
         const state = store.getState();
@@ -161,8 +163,8 @@ export default class EmoticonProvider extends Provider {
         matched.sort(sortEmojisHelper);
 
         const terms = [
-            ...this.formatEmojis(recentMatched),
-            ...this.formatEmojis(matched),
+            ...this.formatEmojis(recentMatched, isReactionMode),
+            ...this.formatEmojis(matched, isReactionMode),
         ];
 
         const items = [

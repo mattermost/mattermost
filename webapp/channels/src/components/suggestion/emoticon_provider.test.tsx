@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CustomEmoji, Emoji} from '@mattermost/types/emojis';
+import type {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
 
 import EmojiMap from 'utils/emoji_map';
+import {unifiedToUnicode} from 'utils/emoji_utils';
 
 import EmoticonProvider, {
     MIN_EMOTICON_LENGTH,
@@ -220,5 +221,74 @@ describe('components/EmoticonProvider', () => {
             'thumbsdown',
             'thumbsdown-custom',
         ]);
+    });
+
+    describe('formatEmojis', () => {
+        const systemEmojiItem = {
+            name: '+1',
+            emoji: {
+                name: 'thumbsup',
+                short_name: '+1',
+                short_names: ['+1', 'thumbsup'],
+                unified: '1F44D',
+                category: 'people-body',
+            } as SystemEmoji,
+        };
+        const customEmojiItem = {
+            name: 'thumbsup-custom',
+            emoji: customEmojis.get('thumbsup-custom'),
+        };
+
+        it('returns unicode for system emojis in normal mode', () => {
+            const terms = emoticonProvider.formatEmojis([systemEmojiItem]);
+            expect(terms).toEqual([unifiedToUnicode('1F44D')]);
+        });
+
+        it('returns :name: format for system emojis in reaction mode', () => {
+            const terms = emoticonProvider.formatEmojis([systemEmojiItem], true);
+            expect(terms).toEqual([':+1:']);
+        });
+
+        it('returns :name: format for custom emojis regardless of reaction mode', () => {
+            expect(emoticonProvider.formatEmojis([customEmojiItem])).toEqual([':thumbsup-custom:']);
+            expect(emoticonProvider.formatEmojis([customEmojiItem], true)).toEqual([':thumbsup-custom:']);
+        });
+    });
+
+    describe('reaction mode autocomplete', () => {
+        it('should provide :name: terms when pretext uses + reaction prefix', () => {
+            mockedGetEmojiMap.mockReturnValue(emojiMap);
+            mockedGetRecentEmojisNames.mockReturnValue([]);
+
+            emoticonProvider.handlePretextChanged('+:+1', resultsCallback);
+            expect(resultsCallback).toHaveBeenCalled();
+            const args = resultsCallback.mock.calls[0][0];
+            const terms: string[] = args.groups[0].terms;
+            expect(terms.every((t: string) => t.startsWith(':') && t.endsWith(':'))).toBe(true);
+        });
+
+        it('should provide :name: terms when pretext uses - reaction prefix', () => {
+            mockedGetEmojiMap.mockReturnValue(emojiMap);
+            mockedGetRecentEmojisNames.mockReturnValue([]);
+
+            emoticonProvider.handlePretextChanged('-:+1', resultsCallback);
+            expect(resultsCallback).toHaveBeenCalled();
+            const args = resultsCallback.mock.calls[0][0];
+            const terms: string[] = args.groups[0].terms;
+            expect(terms.every((t: string) => t.startsWith(':') && t.endsWith(':'))).toBe(true);
+        });
+
+        it('should provide unicode terms when pretext does not use a reaction prefix', () => {
+            mockedGetEmojiMap.mockReturnValue(emojiMap);
+            mockedGetRecentEmojisNames.mockReturnValue([]);
+
+            emoticonProvider.handlePretextChanged(':+1', resultsCallback);
+            expect(resultsCallback).toHaveBeenCalled();
+            const args = resultsCallback.mock.calls[0][0];
+            const terms: string[] = args.groups[0].terms;
+            // System emoji +1 should produce unicode, not :name:
+            const plusOneTerm = terms.find((t: string) => !t.startsWith(':'));
+            expect(plusOneTerm).toBeDefined();
+        });
     });
 });
