@@ -12,11 +12,11 @@
  * Field names must be valid CEL identifiers (^[A-Za-z_][A-Za-z0-9_]*$).
  */
 
-import {Client4} from '@mattermost/client';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Client4} from '@mattermost/client';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
-import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended, SystemConsolePage} from '@mattermost/playwright-lib';
 
 import {deleteCustomProfileAttributes} from '../../channels/custom_profile_attributes/helpers';
 

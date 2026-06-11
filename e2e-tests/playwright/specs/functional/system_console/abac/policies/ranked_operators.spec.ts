@@ -9,9 +9,9 @@
  * (is exactly, is not, is at least, is greater than, is at most, is less than).
  */
 
-import {Client4} from '@mattermost/client';
-import {UserProfile} from '@mattermost/types/users';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Client4} from '@mattermost/client';
+import type {UserProfile} from '@mattermost/types/users';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 

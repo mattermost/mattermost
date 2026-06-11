@@ -9,9 +9,9 @@
  * currently selected value.
  */
 
-import {Client4} from '@mattermost/client';
-import {UserProfile} from '@mattermost/types/users';
-import {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {Client4} from '@mattermost/client';
+import type {UserProfile} from '@mattermost/types/users';
+import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
