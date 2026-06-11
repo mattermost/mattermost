@@ -50,3 +50,30 @@ func TestWrongPdfFile(t *testing.T) {
 	_, err = extractor.Extract("sample-doc.pdf", bytes.NewReader(content), 0)
 	require.Error(t, err)
 }
+
+func TestPdfMaxFileSize(t *testing.T) {
+	extractor := pdfExtractor{}
+	content, err := testutils.ReadTestFile("sample-doc.pdf")
+	require.NoError(t, err)
+	require.Greater(t, len(content), 16, "fixture must be larger than the tight limit under test")
+
+	t.Run("a zero limit means unlimited and extracts the content", func(t *testing.T) {
+		text, err := extractor.Extract("sample-doc.pdf", bytes.NewReader(content), 0)
+		require.NoError(t, err)
+		require.Contains(t, text, "simple")
+	})
+
+	t.Run("a generous limit extracts the content", func(t *testing.T) {
+		text, err := extractor.Extract("sample-doc.pdf", bytes.NewReader(content), 10*1024*1024)
+		require.NoError(t, err)
+		require.Contains(t, text, "simple")
+	})
+
+	t.Run("a tight limit prevents extraction", func(t *testing.T) {
+		// The reader errors once it reads past the limit, so io.Copy to the
+		// temp file fails and no text is extracted.
+		text, err := extractor.Extract("sample-doc.pdf", bytes.NewReader(content), 16)
+		require.Error(t, err)
+		require.Empty(t, text)
+	})
+}

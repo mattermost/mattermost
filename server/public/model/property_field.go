@@ -52,6 +52,7 @@ const (
 	PropertyFieldObjectTypeChannel  = "channel"
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
+	PropertyFieldObjectTypeSession  = "session"
 
 	PropertyFieldObjectTypeSystem = "system"
 )
@@ -77,6 +78,7 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeChannel,
 	PropertyFieldObjectTypeUser,
 	PropertyFieldObjectTypeTemplate,
+	PropertyFieldObjectTypeSession,
 	PropertyFieldObjectTypeSystem,
 }
 

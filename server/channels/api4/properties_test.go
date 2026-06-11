@@ -15,6 +15,80 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func TestSessionAttributesFieldEditing(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.SessionAttributes = true
+	}).InitBasic(t)
+
+	groupName := model.SessionAttributesPropertyGroupName
+	objectType := model.PropertyFieldObjectTypeSession
+
+	t.Run("requires an Enterprise Advanced license", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, objectType, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.session_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	fields, _, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, objectType, model.PropertyFieldSearch{
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		PerPage:    100,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, fields)
+
+	var field *model.PropertyField
+	for _, f := range fields {
+		if f.Name == model.SessionAttributesPropertyFieldVPNActive {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+	require.False(t, field.Protected, "seeded session attribute fields must not be protected")
+
+	t.Run("can enable and tune ttl/grace", func(t *testing.T) {
+		patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, objectType, field.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.SAAttrEnabled:            true,
+				model.SAAttrTTLSeconds:         30,
+				model.SAAttrGracePeriodSeconds: 30,
+			},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, true, patched.Attrs[model.SAAttrEnabled])
+	})
+
+	t.Run("cannot rename", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, objectType, field.ID, &model.PropertyFieldPatch{
+			Name: model.NewPointer("renamed_field"),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "app.session_attributes.field_immutable.app_error")
+	})
+
+	t.Run("cannot change non-tunable attrs", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, objectType, field.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.SAAttrDisplayName: "Hacked"},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("cannot be deleted", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), groupName, objectType, field.ID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 

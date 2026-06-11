@@ -238,9 +238,23 @@ func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
 	}
 }
 
-func (a *App) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError {
-	if err := a.ch.srv.platform.RevokeSessionsForDeviceId(rctx, userID, deviceID, currentSessionId); err != nil {
-		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+func (a *App) RevokeOtherSessionsForDeviceId(rctx request.CTX, userID string, deviceId string, currentSessionId string) *model.AppError {
+	if err := a.ch.srv.platform.RevokeOtherSessionsForDeviceId(rctx, userID, deviceId, currentSessionId); err != nil {
+		if errors.Is(err, platform.ErrEmptyDeviceId) {
+			return model.NewAppError("RevokeOtherSessionsForDeviceId", "app.session.revoke_other_sessions.empty_device_id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return model.NewAppError("RevokeOtherSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) RevokeOtherSessionsForVoIPDeviceId(rctx request.CTX, userID string, voIPDeviceId string, currentSessionId string) *model.AppError {
+	if err := a.ch.srv.platform.RevokeOtherSessionsForVoIPDeviceId(rctx, userID, voIPDeviceId, currentSessionId); err != nil {
+		if errors.Is(err, platform.ErrEmptyVoIPDeviceId) {
+			return model.NewAppError("RevokeOtherSessionsForVoIPDeviceId", "app.session.revoke_other_sessions.empty_voip_device_id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return model.NewAppError("RevokeOtherSessionsForVoIPDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -277,9 +291,8 @@ func (a *App) RevokeSession(rctx request.CTX, session *model.Session) *model.App
 	return nil
 }
 
-func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError {
-	_, err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
-	if err != nil {
+func (a *App) AttachDeviceId(sessionID string, deviceId string, voIPDeviceId string, expiresAt int64) *model.AppError {
+	if err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceId, voIPDeviceId, expiresAt); err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

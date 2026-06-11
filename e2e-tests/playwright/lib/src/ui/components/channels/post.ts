@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import BurnOnReadBadge from './burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder';
@@ -126,7 +127,7 @@ export default class ChannelsPost {
      * Check if the BoR post is concealed (not yet revealed)
      */
     async isConcealed(): Promise<boolean> {
-        return await this.concealedPlaceholder.container.isVisible();
+        return this.concealedPlaceholder.container.isVisible();
     }
 
     /**

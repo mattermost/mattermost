@@ -72,6 +72,7 @@ export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 export type UserPropertyFieldGroupID = 'custom_profile_attributes' | 'session_attributes';
 
 export const SESSION_ATTRIBUTES_GROUP_ID: UserPropertyFieldGroupID = 'session_attributes';
+export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
 
 export type UserPropertyValueType = 'phone' | 'url' | '';
 
