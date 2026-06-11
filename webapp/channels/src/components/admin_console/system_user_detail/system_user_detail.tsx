@@ -16,7 +16,7 @@ import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@matte
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from '@mattermost/types/properties';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -383,7 +383,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         const options = field.attrs?.options || [];
-        if (field.type === 'select' || field.type === 'multiselect' || field.type === 'rank') {
+        if (supportsOptions(field)) {
             if (!Array.isArray(value)) {
                 // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
