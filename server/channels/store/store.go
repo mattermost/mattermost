@@ -558,7 +558,7 @@ type SessionStore interface {
 	UpdateExpiresAt(sessionID string, timestamp int64) error
 	UpdateLastActivityAt(sessionID string, timestamp int64) error
 	UpdateRoles(userID string, roles string) (string, error)
-	UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error)
+	UpdateDeviceId(id string, deviceId string, voIPDeviceId string, expiresAt int64) error
 	UpdateProps(session *model.Session) error
 	AnalyticsSessionCount() (int64, error)
 	Cleanup(expiryTime int64, batchSize int64) error

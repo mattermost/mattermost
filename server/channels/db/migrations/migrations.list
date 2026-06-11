@@ -379,5 +379,7 @@ channels/db/migrations/postgres/000190_channel_bookmarks_board_target_id.down.sq
 channels/db/migrations/postgres/000190_channel_bookmarks_board_target_id.up.sql
 channels/db/migrations/postgres/000191_channel_bookmarks_target_id_index.down.sql
 channels/db/migrations/postgres/000191_channel_bookmarks_target_id_index.up.sql
+channels/db/migrations/postgres/000192_add_voip_device_id_to_sessions.down.sql
+channels/db/migrations/postgres/000192_add_voip_device_id_to_sessions.up.sql
 channels/db/migrations/postgres/000193_add_property_groups_schema_version.down.sql
 channels/db/migrations/postgres/000193_add_property_groups_schema_version.up.sql

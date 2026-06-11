@@ -10297,10 +10297,10 @@ func (s *TimerLayerSessionStore) Save(rctx request.CTX, session *model.Session) 
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error) {
+func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, voIPDeviceId string, expiresAt int64) error {
 	start := time.Now()
 
-	result, err := s.SessionStore.UpdateDeviceId(id, deviceID, expiresAt)
+	err := s.SessionStore.UpdateDeviceId(id, deviceId, voIPDeviceId, expiresAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10310,7 +10310,7 @@ func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceID string, expi
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.UpdateDeviceId", success, elapsed)
 	}
-	return result, err
+	return err
 }
 
 func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified bool) error {
