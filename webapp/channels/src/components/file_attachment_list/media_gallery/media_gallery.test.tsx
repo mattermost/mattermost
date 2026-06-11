@@ -73,8 +73,6 @@ describe('MediaGallery', () => {
         const tile = await screen.findByTestId('media-gallery-tile');
         await userEvent.click(tile);
 
-        // The PDF was skipped by the gallery but the modal should still open
-        // at the image's index in the original fileInfos array (1, not 0).
         expect(onClick).toHaveBeenCalledWith(1);
     });
 
@@ -89,5 +87,44 @@ describe('MediaGallery', () => {
             baseState,
         );
         expect(screen.getByTestId('media-gallery-tile')).toBeInTheDocument();
+    });
+
+    it('renders a collapse toggle header for multi-image galleries when a toggle handler is provided', async () => {
+        const onClick = jest.fn();
+        const onToggle = jest.fn();
+        renderWithContext(
+            <MediaGallery
+                fileInfos={[
+                    fileInfo({id: 'a', name: 'a.png'}),
+                    fileInfo({id: 'b', name: 'b.png'}),
+                ]}
+                postId='p1'
+                onItemClick={onClick}
+                onToggleCollapse={onToggle}
+            />,
+            baseState,
+        );
+
+        const toggle = screen.getByRole('button', {name: /toggle media gallery/i});
+        await userEvent.click(toggle);
+        expect(onToggle).toHaveBeenCalledWith('p1');
+    });
+
+    it('hides the tiles when isEmbedVisible is false', () => {
+        renderWithContext(
+            <MediaGallery
+                fileInfos={[
+                    fileInfo({id: 'a', name: 'a.png'}),
+                    fileInfo({id: 'b', name: 'b.png'}),
+                ]}
+                postId='p1'
+                isEmbedVisible={false}
+                onItemClick={jest.fn()}
+                onToggleCollapse={jest.fn()}
+            />,
+            baseState,
+        );
+
+        expect(screen.queryByTestId('media-gallery-tile')).not.toBeInTheDocument();
     });
 });

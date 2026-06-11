@@ -16,12 +16,13 @@ type Props = {
     fileInfo: FileInfo;
     index: number;
     total: number;
+    width: number;
+    height: number;
     enablePublicLink: boolean;
     onClick: (index: number) => void;
 };
 
 const POSTER_SEEK_SECONDS = 0.1;
-const DEFAULT_VIDEO_RATIO = 16 / 9;
 
 // Generate the poster client-side to avoid a server-side ffmpeg dependency.
 function useFirstFramePoster(src: string): {poster: string | null; failed: boolean} {
@@ -106,7 +107,7 @@ function formatDuration(seconds: number): string {
     return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) => {
+const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onClick}: Props) => {
     const {formatMessage} = useIntl();
     const fileUrl = getFileUrl(fileInfo.id);
     const {poster, failed} = useFirstFramePoster(fileUrl);
@@ -136,9 +137,17 @@ const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
         {current: index + 1, total, name: fileInfo.name || ''},
     );
 
-    const ratio = (fileInfo.width && fileInfo.height) ? fileInfo.width / fileInfo.height : DEFAULT_VIDEO_RATIO;
+    const tileStyle: CSSProperties = {
+        width: `${width}px`,
+        height: `${height}px`,
+        flex: `0 0 ${width}px`,
+    };
 
-    const tileStyle = {'--tile-ratio': ratio} as CSSProperties;
+    const mediaStyle: CSSProperties = {};
+    if (fileInfo.width && fileInfo.height) {
+        mediaStyle.maxWidth = `${fileInfo.width}px`;
+        mediaStyle.maxHeight = `${fileInfo.height}px`;
+    }
 
     return (
         <div
@@ -157,6 +166,7 @@ const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
                     src={poster}
                     alt=''
                     aria-hidden={true}
+                    style={mediaStyle}
                 />
             )}
             {!poster && failed && (
@@ -171,6 +181,7 @@ const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
                     preload='metadata'
                     muted={true}
                     playsInline={true}
+                    style={mediaStyle}
                     onLoadedMetadata={handleLoadedMetadata}
                 />
             )}
@@ -179,7 +190,7 @@ const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
                 className='MediaGallery__tile__play_indicator'
                 aria-hidden={true}
             >
-                <PlayIcon size={28}/>
+                <PlayIcon size={24}/>
             </span>
 
             {duration !== null && (

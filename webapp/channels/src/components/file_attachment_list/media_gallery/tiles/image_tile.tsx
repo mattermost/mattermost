@@ -17,13 +17,13 @@ type Props = {
     fileInfo: FileInfo;
     index: number;
     total: number;
+    width: number;
+    height: number;
     enablePublicLink: boolean;
     onClick: (index: number) => void;
 };
 
-const DEFAULT_RATIO = 1.5;
-
-const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) => {
+const ImageTile = ({fileInfo, index, total, width, height, enablePublicLink, onClick}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleActivate = useCallback(() => {
@@ -44,9 +44,17 @@ const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
         {current: index + 1, total, name: fileInfo.name || ''},
     );
 
-    const ratio = (fileInfo.width && fileInfo.height) ? fileInfo.width / fileInfo.height : DEFAULT_RATIO;
+    const tileStyle: CSSProperties = {
+        width: `${width}px`,
+        height: `${height}px`,
+        flex: `0 0 ${width}px`,
+    };
 
-    const tileStyle = {'--tile-ratio': ratio} as CSSProperties;
+    const imgStyle: CSSProperties = {};
+    if (fileInfo.width && fileInfo.height) {
+        imgStyle.maxWidth = `${fileInfo.width}px`;
+        imgStyle.maxHeight = `${fileInfo.height}px`;
+    }
 
     return (
         <div
@@ -64,6 +72,7 @@ const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
                 src={src}
                 alt={fileInfo.name || ''}
                 loading='lazy'
+                style={imgStyle}
             />
             <TileUtilityButtons
                 fileInfo={fileInfo}

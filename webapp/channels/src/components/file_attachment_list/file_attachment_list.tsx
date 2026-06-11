@@ -31,6 +31,10 @@ export default function FileAttachmentList(props: Props) {
         });
     }, [props.actions, props.post.id, props.fileInfos]);
 
+    const handleToggleCollapse = useCallback((postId: string) => {
+        props.actions.toggleEmbedVisibility(postId);
+    }, [props.actions]);
+
     const {
         compactDisplay,
         enableSVGs,
@@ -66,7 +70,9 @@ export default function FileAttachmentList(props: Props) {
                     fileInfos={sortedFileInfos}
                     postId={props.post.id}
                     compactDisplay={compactDisplay}
+                    isEmbedVisible={props.isEmbedVisible}
                     onItemClick={handleImageClick}
+                    onToggleCollapse={handleToggleCollapse}
                 />
             );
         }
