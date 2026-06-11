@@ -4241,6 +4241,7 @@
   "channel_modal.create_board.tooltip_description": "Use any of our templates to manage your tasks or start from scratch with your own!",
   "channel_modal.create_board.tooltip_title": "Manage your task with a board",
   "channel_modal.createNew": "Create channel",
+  "channel_modal.creating": "Creating...",
   "channel_modal.error.generic": "Something went wrong. Please try again.",
   "channel_modal.handleTooShort": "Channel URL must be 1 or more lowercase alphanumeric characters",
   "channel_modal.modalTitle": "Create a new channel",
