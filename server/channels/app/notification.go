@@ -756,7 +756,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		for uid := range profileMap {
 			recipientIDs = append(recipientIDs, uid)
 		}
-		
+
 		a.AuditRecordBulkMany(recipientIDs, post.Id, model.AuditMechWebsocketBroadcast)
 	}
 
