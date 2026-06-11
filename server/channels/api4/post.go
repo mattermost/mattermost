@@ -127,6 +127,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// LOL
 	rp, isMemberForPreviews, err := c.App.CreatePostAsUser(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, setOnlineBool)
 	if err != nil {
 		c.Err = err
