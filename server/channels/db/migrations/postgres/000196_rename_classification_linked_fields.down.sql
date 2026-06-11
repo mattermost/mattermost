@@ -1,4 +1,4 @@
--- Restore the previous names so the rows can be matched by 000191's down
+-- Restore the previous names so the rows can be matched by 000195's down
 -- migration. Identified by ObjectType since all three classification rows
 -- share the same Name='classification' at this point.
 UPDATE PropertyFields
