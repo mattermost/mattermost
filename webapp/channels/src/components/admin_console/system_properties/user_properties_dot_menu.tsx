@@ -120,6 +120,12 @@ const DotMenu = ({
 
     const isProtected = Boolean(field.attrs?.protected);
 
+    // Synced fields take their value from the IdP, so they are never editable
+    // by users. The editable toggle is disabled while linked; removing the
+    // link re-enables it.
+    const isSynced = Boolean(field.attrs.ldap || field.attrs.saml);
+    const isEditableByUsers = !isSynced && field.attrs.managed !== 'admin';
+
     const handleDuplicate = () => {
         const name = `${slugifyForCEL(field.name)}_copy`;
         createField({...field, attrs: {...field.attrs}, name});
@@ -139,6 +145,10 @@ const DotMenu = ({
     };
 
     const handleEditableByUsersToggle = () => {
+        if (isSynced) {
+            return;
+        }
+
         const newAttrs = {...field.attrs};
 
         if (field.attrs.managed === 'admin') {
@@ -276,10 +286,22 @@ const DotMenu = ({
             <Menu.Item
                 id={`${menuId}_editable-by-users`}
                 role='menuitemcheckbox'
-                aria-checked={field.attrs.managed !== 'admin'}
+                disabled={isSynced}
+                aria-checked={isEditableByUsers}
                 onClick={handleEditableByUsersToggle}
                 leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={(
+                labels={isSynced ? (
+                    <>
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
+                            defaultMessage='Editable by users'
+                        />
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
+                            defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
+                        />
+                    </>
+                ) : (
                     <FormattedMessage
                         id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
                         defaultMessage='Editable by users'
@@ -288,9 +310,9 @@ const DotMenu = ({
                 trailingElements={(
                     <Toggle
                         size='btn-sm'
-                        disabled={false}
+                        disabled={isSynced}
                         onToggle={handleEditableByUsersToggle}
-                        toggled={field.attrs.managed !== 'admin'}
+                        toggled={isEditableByUsers}
                         toggleClassName='btn-toggle-primary'
                         tabIndex={-1}
                     />
