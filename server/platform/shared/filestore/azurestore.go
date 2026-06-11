@@ -7,11 +7,11 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"path"
@@ -29,6 +29,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
 	"github.com/google/uuid"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -75,21 +76,7 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		return nil, err
 	}
 
-	var clientOptions *azblob.ClientOptions
-	if settings.SkipVerify {
-		// Mirror the S3 backend: when the admin opts into skipping TLS
-		// verification, plumb a custom transport into the SDK so the toggle
-		// actually takes effect for Azure too.
-		clientOptions = &azblob.ClientOptions{
-			ClientOptions: azcore.ClientOptions{
-				Transport: &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-					},
-				},
-			},
-		}
-	}
+	clientOptions := newAzureClientOptions(settings.SkipVerify)
 
 	client, sharedKey, err := newAzureClient(settings, serviceURL, clientOptions)
 	if err != nil {
@@ -162,6 +149,29 @@ func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptio
 	}
 }
 
+func newAzureClientOptions(skipVerify bool) *azblob.ClientOptions {
+	return &azblob.ClientOptions{
+		ClientOptions: azcore.ClientOptions{
+			Transport: &http.Client{
+				Transport: httpservice.NewTransport(skipVerify, nil, azureAllowIP),
+			},
+		},
+	}
+}
+
+func azureAllowIP(ip net.IP) error {
+	reservedIP := httpservice.IsReservedIP(ip)
+	ownIP, err := httpservice.IsOwnIP(ip)
+	if err != nil {
+		return fmt.Errorf("unable to validate IP %s: %w", ip, err)
+	}
+
+	if !reservedIP && !ownIP {
+		return nil
+	}
+	return fmt.Errorf("IP %s is not allowed", ip)
+}
+
 // buildAzureServiceURL renders the Blob service URL that the SDK signs
 // requests against. The cloud value selects the topology:
 //
@@ -181,8 +191,14 @@ func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptio
 func buildAzureServiceURL(cloud, scheme, account, endpoint string) (string, error) {
 	switch cloud {
 	case model.AzureCloudCommercial, "":
+		if err := validateAzureStorageAccount(account); err != nil {
+			return "", err
+		}
 		return fmt.Sprintf("%s://%s.blob.core.windows.net/", scheme, account), nil
 	case model.AzureCloudGovernment:
+		if err := validateAzureStorageAccount(account); err != nil {
+			return "", err
+		}
 		return fmt.Sprintf("%s://%s.blob.core.usgovcloudapi.net/", scheme, account), nil
 	case model.AzureCloudCustom:
 		if endpoint == "" {
@@ -207,6 +223,18 @@ func buildAzureServiceURL(cloud, scheme, account, endpoint string) (string, erro
 	default:
 		return "", fmt.Errorf("unknown AzureCloud value %q", cloud)
 	}
+}
+
+func validateAzureStorageAccount(account string) error {
+	if len(account) < 3 || len(account) > 24 {
+		return fmt.Errorf("AzureStorageAccount must be 3 to 24 characters, got %d", len(account))
+	}
+	for _, r := range account {
+		if (r < 'a' || r > 'z') && (r < '0' || r > '9') {
+			return errors.New("AzureStorageAccount must contain only lowercase letters and digits")
+		}
+	}
+	return nil
 }
 
 // prefix joins the configured pathPrefix and the caller-supplied path.
