@@ -428,6 +428,19 @@ type Role struct {
 	SchemeId      *string  `json:"scheme_id"`
 }
 
+func (r *Role) Clone() *Role {
+	rCopy := *r
+	if r.Permissions != nil {
+		rCopy.Permissions = make([]string, len(r.Permissions))
+		copy(rCopy.Permissions, r.Permissions)
+	}
+	if r.SchemeId != nil {
+		schemeId := *r.SchemeId
+		rCopy.SchemeId = &schemeId
+	}
+	return &rCopy
+}
+
 func (r *Role) Auditable() map[string]any {
 	return map[string]any{
 		"id":             r.Id,
@@ -799,6 +812,16 @@ func (r *Role) IsValidWithoutId() bool {
 		return false
 	}
 
+	if len(r.UnknownPermissions()) > 0 {
+		return false
+	}
+
+	return true
+}
+
+// UnknownPermissions returns the permissions on the role that are not present in
+// AllPermissions or DeprecatedPermissions (see MM-68830).
+func (r *Role) UnknownPermissions() []string {
 	check := func(perms []*Permission, permission string) bool {
 		for _, p := range perms {
 			if permission == p.Id {
@@ -807,14 +830,14 @@ func (r *Role) IsValidWithoutId() bool {
 		}
 		return false
 	}
+
+	var unknown []string
 	for _, permission := range r.Permissions {
-		permissionValidated := check(AllPermissions, permission) || check(DeprecatedPermissions, permission)
-		if !permissionValidated {
-			return false
+		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) {
+			unknown = append(unknown, permission)
 		}
 	}
-
-	return true
+	return unknown
 }
 
 func CleanRoleNames(roleNames []string) ([]string, bool) {
