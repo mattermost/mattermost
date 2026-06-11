@@ -37,12 +37,6 @@ const (
 	SessionPropIsGuest                    = "is_guest"
 	SessionActivityTimeout                = 1000 * 60 * 5  // 5 minutes
 	SessionUserAccessTokenExpiryHours     = 100 * 365 * 24 // 100 years
-
-	SessionAttributesPropertyFieldUserAgentPlatform       = "user_agent_platform"
-	SessionAttributesPropertyFieldUserAgentOS             = "user_agent_os"
-	SessionAttributesPropertyFieldUserAgentBrowserName    = "user_agent_browser_name"
-	SessionAttributesPropertyFieldUserAgentBrowserVersion = "user_agent_browser_version"
-	SessionAttributesPropertyFieldIPAddress               = "ip_address"
 )
 
 //msgp:tuple StringMap

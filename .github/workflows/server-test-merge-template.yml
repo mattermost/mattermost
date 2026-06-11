@@ -22,6 +22,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   merge:
     name: Merge

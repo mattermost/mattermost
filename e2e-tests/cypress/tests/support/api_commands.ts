@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getAdminAccount, User} from './env';
+import type {User} from './env';
+import {getAdminAccount} from './env';
 
-import {ChainableT, ResponseT} from '@/types';
-
+import type {ChainableT, ResponseT} from '@/types';
 
 // *****************************************************************************
 // Read more:

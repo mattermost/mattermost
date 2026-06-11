@@ -64,9 +64,19 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      # Only if enablecoverage is true
+      CODECOV_TOKEN:
+        required: false
+      # Only if fips-enabled is true
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   test:
@@ -75,6 +85,18 @@ jobs:
     continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
+      INPUT_DATASOURCE: ${{ inputs.datasource }}
+      INPUT_DRIVERNAME: ${{ inputs.drivername }}
+      INPUT_ENABLECOVERAGE: ${{ inputs.enablecoverage }}
+      INPUT_FIPS_ENABLED: ${{ inputs.fips-enabled }}
+      INPUT_FULLYPARALLEL: ${{ inputs.fullyparallel }}
+      INPUT_GO_VERSION: ${{ inputs.go-version }}
+      INPUT_LOGSARTIFACT: ${{ inputs.logsartifact }}
+      INPUT_NAME: ${{ inputs.name }}
+      INPUT_PR_NUMBER: ${{ github.event.pull_request.number }}
+      INPUT_RACE_ENABLED: ${{ inputs.race-enabled }}
+      INPUT_SHARD_TOTAL: ${{ inputs.shard-total }}
+      INPUT_TEST_TARGET: ${{ inputs.test-target }}
     steps:
       - name: buildenv/docker-login
         # Only FIPS requires login for private build container. (Forks won't have credentials.)
@@ -86,6 +108,8 @@ jobs:
 
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Restore test timing data
         if: inputs.shard-total > 1
@@ -110,18 +134,18 @@ jobs:
       - name: Setup BUILD_IMAGE
         id: build
         run: |
-          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
-            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
+          if [[ "$INPUT_FIPS_ENABLED" == 'true' ]]; then
+            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${INPUT_GO_VERSION}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
-            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
+            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${INPUT_GO_VERSION}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Store required variables for publishing results
         run: |
-          echo "${{ inputs.name }}" > server/test-name
-          echo "${{ github.event.pull_request.number }}" > server/pr-number
+          echo "$INPUT_NAME" > server/test-name
+          echo "$INPUT_PR_NUMBER" > server/pr-number
 
       - name: Run docker compose
         env:
@@ -203,18 +227,19 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ "${{ inputs.race-enabled }}" == "true" ]]; then
-            export RACE_MODE="-race"
+          RACE_MODE=""
+          if [[ "$INPUT_RACE_ENABLED" == "true" ]]; then
+            RACE_MODE="-race"
           fi
 
-          TEST_TARGET="${{ inputs.test-target }}${RACE_MODE}"
+          TEST_TARGET="${INPUT_TEST_TARGET}${RACE_MODE}"
           BUILD_NUMBER="${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
           DOCKER_CMD="make ${TEST_TARGET}"
 
           # When sharding is active, use the multi-run wrapper script.
           # run-shard-tests.sh detects heavy runs itself and falls back to
           # light-only mode when shard-heavy-runs.txt is absent or empty.
-          if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
+          if [[ "$INPUT_SHARD_TOTAL" -gt 1 && -f server/shard-te-packages.txt ]]; then
             cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
             chmod +x server/run-shard-tests.sh
             DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
@@ -223,12 +248,12 @@ jobs:
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
-            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
-            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
-            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
-            --env ENABLE_FULLY_PARALLEL_TESTS="${{ inputs.fullyparallel }}" \
-            --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
-            --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
+            --env MM_SQLSETTINGS_DRIVERNAME="$INPUT_DRIVERNAME" \
+            --env MM_SQLSETTINGS_DATASOURCE="$INPUT_DATASOURCE" \
+            --env TEST_DATABASE_POSTGRESQL_DSN="$INPUT_DATASOURCE" \
+            --env ENABLE_FULLY_PARALLEL_TESTS="$INPUT_FULLYPARALLEL" \
+            --env ENABLE_COVERAGE="$INPUT_ENABLECOVERAGE" \
+            --env FIPS_ENABLED="$INPUT_FIPS_ENABLED" \
             --env RACE_MODE \
             --env TEST_TARGET \
             --env BUILD_NUMBER \

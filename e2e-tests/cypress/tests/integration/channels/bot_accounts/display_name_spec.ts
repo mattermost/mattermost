@@ -9,8 +9,8 @@
 
 // Group: @channels @bot_accounts
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('Bot display name', () => {
     let offTopicChannel: Channel;

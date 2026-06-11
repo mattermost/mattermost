@@ -7,7 +7,7 @@
  * @reference MM-68538
  */
 
-import {Client4} from '@mattermost/client';
+import type {Client4} from '@mattermost/client';
 import type {Page} from '@playwright/test';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';

@@ -44,6 +44,14 @@ func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return s.RoleStore.Save(role)
 }
 
+func (s LocalCacheRoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
+	if role.Name != "" {
+		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name, nil)
+		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+	}
+	return s.RoleStore.SavePreservingUnknownPermissions(role)
+}
+
 func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var role *model.Role
 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
