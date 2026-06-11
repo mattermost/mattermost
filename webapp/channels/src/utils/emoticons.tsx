@@ -5,16 +5,16 @@ import {formatWithRenderer} from './markdown';
 import PlainRenderer from './markdown/plain_renderer';
 
 export const emoticonPatterns: { [key: string]: RegExp } = {
-    slightly_smiling_face: /(^|\B)(\\?:-?\))($|\B)/g, // :)
-    wink: /(^|\B)(\\?;-?\))($|\B)/g, // ;)
+    slightly_smiling_face: /(^|\B)(\\?:-?\))(?!\))($|\B)/g, // :)
+    wink: /(^|\B)(\\?;-?\))(?!\))($|\B)/g, // ;)
     open_mouth: /(^|\B)(\\?:o)($|\b)/gi, // :o
     scream: /(^|\B)(\\?:-o)($|\b)/gi, // :-o
-    smirk: /(^|\B)(\\?:-?])($|\B)/g, // :]
+    smirk: /(^|\B)(\\?:-?])(?!])($|\B)/g, // :]
     smile: /(^|\B)(\\?:-?d)($|\b)/gi, // :D
     stuck_out_tongue_closed_eyes: /(^|\b)(\\?x-d)($|\b)/gi, // x-d
     stuck_out_tongue: /(^|\B)(\\?:-?p)($|\b)/gi, // :p
     rage: /(^|\B)(\\?:-?[[@])($|\B)/g, // :@
-    slightly_frowning_face: /(^|\B)(\\?:-?\()($|\B)/g, // :(
+    slightly_frowning_face: /(^|\B)(\\?:-?\()(?!\()($|\B)/g, // :(
     cry: /(^|\B)(\\?:[`'’]-?\(|\\?:&#x27;\(|\\?:&#39;\()($|\B)/g, // :`(
     confused: /(^|\B)(\\?:-?\/)($|\B)/g, // :/
     confounded: /(^|\B)(\\?:-?s)($|\b)/gi, // :s
