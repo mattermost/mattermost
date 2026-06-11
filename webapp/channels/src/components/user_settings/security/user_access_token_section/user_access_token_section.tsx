@@ -257,6 +257,34 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         return endOfLocalDayPlusDays(PRESET_DAYS[expiryPreset]);
     };
 
+    // Validates the current expiry selection and returns a localized error message,
+    // or null when the selection is valid. Used both to disable the Save button and
+    // surface the error inline (so the user sees it without clicking through the
+    // create-confirmation flow) and as the guard in handleCreateToken.
+    getExpiryValidationError = (): React.ReactNode | null => {
+        const {maxLifetimeDays} = this.props;
+        const enforceExpiry = maxLifetimeDays > 0;
+        const {expiryPreset} = this.state;
+        const expiresAt = this.resolveExpiresAt();
+
+        if (expiryPreset === 'custom' && expiresAt <= 0) {
+            return mapServerErrorIdToMessage('expires_at_required');
+        }
+        if (enforceExpiry && expiresAt <= 0) {
+            return mapServerErrorIdToMessage('expires_at_required');
+        }
+        if (expiresAt > 0 && expiresAt <= Date.now()) {
+            return mapServerErrorIdToMessage('expires_at_in_past');
+        }
+        if (expiresAt > 0 && maxLifetimeDays > 0) {
+            const maxAllowed = endOfLocalDayPlusDays(maxLifetimeDays);
+            if (expiresAt > maxAllowed) {
+                return mapServerErrorIdToMessage('expires_at_too_far', maxLifetimeDays);
+            }
+        }
+        return null;
+    };
+
     focusEditButton(): void {
         this.minRef.current?.focus();
     }
@@ -308,38 +336,14 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             return;
         }
 
-        const {maxLifetimeDays} = this.props;
-        const enforceExpiry = maxLifetimeDays > 0;
-        const {expiryPreset} = this.state;
-        const expiresAt = this.resolveExpiresAt();
+        const expiryError = this.getExpiryValidationError();
+        if (expiryError) {
+            this.setState({tokenError: expiryError});
+            return;
+        }
 
-        if (expiryPreset === 'custom' && expiresAt <= 0) {
-            this.setState({
-                tokenError: mapServerErrorIdToMessage('expires_at_required'),
-            });
-            return;
-        }
-        if (enforceExpiry && expiresAt <= 0) {
-            this.setState({
-                tokenError: mapServerErrorIdToMessage('expires_at_required'),
-            });
-            return;
-        }
-        if (expiresAt > 0 && expiresAt <= Date.now()) {
-            this.setState({
-                tokenError: mapServerErrorIdToMessage('expires_at_in_past'),
-            });
-            return;
-        }
-        if (expiresAt > 0 && maxLifetimeDays > 0) {
-            const maxAllowed = endOfLocalDayPlusDays(maxLifetimeDays);
-            if (expiresAt > maxAllowed) {
-                this.setState({
-                    tokenError: mapServerErrorIdToMessage('expires_at_too_far', maxLifetimeDays),
-                });
-                return;
-            }
-        }
+        const {maxLifetimeDays} = this.props;
+        const expiresAt = this.resolveExpiresAt();
 
         this.setState({tokenError: '', saving: true});
         this.props.setRequireConfirm(true, this.confirmCopyToken);
@@ -802,6 +806,11 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             const {expiryPreset, customExpiryDate} = this.state;
             const maxCustomIso = maxLifetimeDays > 0 ? isoPlusDays(maxLifetimeDays) : undefined;
 
+            // Validate the expiry selection up front so the error surfaces inline and the
+            // Save button is disabled, instead of only failing inside the confirm flow.
+            const expiryError = this.getExpiryValidationError();
+            const descriptionEmpty = this.state.tokenDescription.trim() === '';
+
             const expirySection = (
                 <div className='row pt-3'>
                     <label
@@ -926,7 +935,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                                 id='clientError'
                                 className='has-error mt-2 mb-2'
                             >
-                                {this.state.tokenError}
+                                {this.state.tokenError || expiryError}
                             </label>
                         </div>
                         <SaveButton
@@ -937,7 +946,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                                 />
                             }
                             saving={this.state.saving}
-                            disabled={this.state.tokenDescription.trim() === ''}
+                            disabled={descriptionEmpty || Boolean(expiryError)}
                             onClick={this.confirmCreateToken}
                         />
                         <Button

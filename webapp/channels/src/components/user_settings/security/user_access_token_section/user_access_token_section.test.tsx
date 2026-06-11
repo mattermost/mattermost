@@ -257,6 +257,32 @@ describe('UserAccessTokenSection component', () => {
             clickSave();
             expect(props.actions.createUserAccessToken).not.toHaveBeenCalled();
         });
+
+        test('surfaces the expiry error inline and disables Save when a custom date is cleared, without clicking Save', () => {
+            const {container} = renderSection();
+            startCreating();
+            change(container, '#newTokenDescription', 'my token');
+            change(container, '#newTokenExpiry', 'custom');
+            change(container, '#newTokenExpiryCustom', '');
+
+            // The error appears and Save is disabled without the user having to click
+            // through Save and the create-confirmation modal first.
+            expect(screen.getByText('An expiry date is required.')).toBeInTheDocument();
+            expect(screen.getByText('Save').closest('button')).toBeDisabled();
+        });
+
+        test('re-enables Save and clears the inline error once a valid custom date is entered', () => {
+            const {container} = renderSection({maxLifetimeDays: 30});
+            startCreating();
+            change(container, '#newTokenDescription', 'my token');
+            change(container, '#newTokenExpiry', 'custom');
+            change(container, '#newTokenExpiryCustom', '');
+            expect(screen.getByText('Save').closest('button')).toBeDisabled();
+
+            change(container, '#newTokenExpiryCustom', '2026-06-20');
+            expect(screen.queryByText('An expiry date is required.')).not.toBeInTheDocument();
+            expect(screen.getByText('Save').closest('button')).toBeEnabled();
+        });
     });
 
     describe('expiry enforcement (implied by maxLifetimeDays > 0)', () => {
