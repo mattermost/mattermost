@@ -95,7 +95,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	// Type-based attr clearing: select-shaped fields keep options, only text
 	// supports external sync, and admin-managed fields can never be synced
 	// (mutual exclusivity).
-	isSelect := field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank
+	isSelect := field.Type.SupportsOptions()
 	isText := field.Type == model.PropertyFieldTypeText
 	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
 

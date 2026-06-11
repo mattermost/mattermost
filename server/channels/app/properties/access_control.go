@@ -1213,7 +1213,7 @@ func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyFie
 
 	// Source-only or unknown: return with empty options (secure default)
 	filteredField := h.copyPropertyField(field)
-	if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank {
+	if field.Type.SupportsOptions() {
 		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
 	}
 	return filteredField
