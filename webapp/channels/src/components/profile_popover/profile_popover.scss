@@ -10,13 +10,17 @@ $profilePopoverBorderWidth: 1px;
 
 .user-profile-popover {
     width: $profilePopoverWidth;
-    max-height: calc(100vh - $profilePopoverWidth);
-    border: $profilePopoverBorderWidth solid rgba(var(--center-channel-color-rgb), 0.16);
+    max-height: calc(100vh - 100px);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
     overflow-x: hidden;
     overflow-y: auto;
+
+    @media screen and (min-height: 768px) {
+        max-height: 600px;
+    }
 
     .user-profile-popover_container {
         display: flex;
@@ -66,6 +70,11 @@ $profilePopoverBorderWidth: 1px;
     }
 
     .user-profile-popover-content {
+
+        > div:last-child {
+            padding-bottom: 0 !important;
+        }
+
         .user-popover-image {
             position: relative;
             width: 128px;
@@ -161,9 +170,18 @@ $profilePopoverBorderWidth: 1px;
         .user-profile-popover__email {
             display: flex;
             width: calc($profilePopoverWidth - (2 * $profilePopoverBorderWidth));
-            align-items: center;
+            flex-direction: column;
             padding: 0 16px 10px 16px;
+            gap: 4px;
             justify-self: start;
+
+            strong {
+                font-size: 11px;
+            }
+
+            p {
+                margin-bottom: 0;
+            }
 
             i.icon-email-outline {
                 margin-inline-end: 8px;
