@@ -107,11 +107,18 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
     }, [trimmedQuery, isDuplicate, options, setOptions]);
 
     const handleQueryKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
+        // Commit the pending value on Enter, and on Tab when there's a valid value
+        // to add — keeping focus in the input for the next value, mirroring the
+        // select/multiselect values cell. A blank or duplicate input lets Tab move
+        // focus away normally.
         if (event.key === 'Enter') {
             event.preventDefault();
             addValue();
+        } else if (event.key === 'Tab' && trimmedQuery && !isDuplicate) {
+            event.preventDefault();
+            addValue();
         }
-    }, [addValue]);
+    }, [addValue, trimmedQuery, isDuplicate]);
 
     return (
         <div className='user-property-rank-values'>
@@ -136,10 +143,13 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
                         className='user-property-rank-values__add-input'
                         value={query}
                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
-                        placeholder={formatMessage({
-                            id: 'admin.system_properties.user_properties.rank_values.add_placeholder',
-                            defaultMessage: 'Add value…',
-                        })}
+
+                        // Mirror react-select: the placeholder only shows in the
+                        // empty state, not once values have been added.
+                        placeholder={ascOptions.length === 0 ? formatMessage({
+                            id: 'admin.system_properties.user_properties.table.values.placeholder',
+                            defaultMessage: 'Add values… (required)',
+                        }) : undefined}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleQueryKeyDown}
                         onBlur={addValue}
