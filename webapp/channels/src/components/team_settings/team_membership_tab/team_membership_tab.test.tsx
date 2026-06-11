@@ -16,7 +16,7 @@ import TeamMembershipTab from './team_membership_tab';
 jest.mock('hooks/useChannelAccessControlActions');
 jest.mock('mattermost-redux/actions/access_control', () => ({
     ...jest.requireActual('mattermost-redux/actions/access_control'),
-    getTeamAccessControlPolicy: jest.fn(() => () => Promise.resolve({data: null})),
+    getTeamAccessControlPolicy: jest.fn(() => () => Promise.resolve({data: {policy: null, enforced: false}})),
     createAccessControlTeamSyncJob: jest.fn(() => () => Promise.resolve({data: {}})),
 }));
 jest.mock('mattermost-redux/actions/teams', () => ({
@@ -141,10 +141,13 @@ describe('components/team_settings/TeamMembershipTab', () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
             data: {
-                id: 'team_id',
-                active: true,
-                rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
-                imports: [],
+                policy: {
+                    id: 'team_id',
+                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
             },
         }));
 
@@ -172,10 +175,13 @@ describe('components/team_settings/TeamMembershipTab', () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
             data: {
-                id: 'team_id',
-                active: false,
-                rules: [],
-                imports: ['parent_policy_id'],
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [],
+                    imports: ['parent_policy_id'],
+                },
+                enforced: true,
             },
         }));
         mockActions.getChannelPolicy.mockResolvedValue({data: parentPolicy});
@@ -220,10 +226,13 @@ describe('components/team_settings/TeamMembershipTab', () => {
         const {getTeamAccessControlPolicy, createAccessControlTeamSyncJob} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
             data: {
-                id: 'team_id',
-                active: false,
-                rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
-                imports: [],
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
             },
         }));
 
@@ -253,10 +262,13 @@ describe('components/team_settings/TeamMembershipTab', () => {
         const {getTeamAccessControlPolicy, createAccessControlTeamSyncJob} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
             data: {
-                id: 'team_id',
-                active: true,
-                rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
-                imports: [],
+                policy: {
+                    id: 'team_id',
+                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
             },
         }));
 
@@ -287,7 +299,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
     it('blocks save and shows error when self-exclusion detected', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
-            data: {id: 'team_id', active: false, rules: [], imports: []},
+            data: {policy: {id: 'team_id', active: false, rules: [], imports: []}, enforced: false},
         }));
         mockActions.validateExpressionAgainstRequester.mockResolvedValue({
             data: {requester_matches: false},
@@ -360,10 +372,13 @@ describe('components/team_settings/TeamMembershipTab', () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
             data: {
-                id: 'team_id',
-                active: false,
-                rules: [{actions: ['membership'], expression: maskedExpression}],
-                imports: [],
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [{actions: ['membership'], expression: maskedExpression}],
+                    imports: [],
+                },
+                enforced: false,
             },
         }));
 

@@ -102,11 +102,11 @@ function TeamMembershipTab({
         let cancelled = false;
         const loadTeamPolicy = async () => {
             try {
-                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: AccessControlPolicy | null; error?: unknown};
+                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: {policy: AccessControlPolicy | null; enforced: boolean} | null; error?: unknown};
                 if (cancelled) {
                     return;
                 }
-                const policy = result.data;
+                const policy = result.data?.policy ?? null;
                 if (policy) {
                     const existingExpression = getMembershipRule(policy.rules)?.expression || '';
                     const existingAutoAdd = policy.active || false;

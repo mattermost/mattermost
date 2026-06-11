@@ -109,6 +109,15 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         // wait until the qualifying user is visible to the evaluator before asserting.
         await waitForAttributeViewToInclude(adminClient, expression, [qualUser.id], 45_000);
 
+        // The child policy row is written to the master DB; the directory query
+        // reads from a read replica. Poll policy_enforced until the replica has
+        // caught up so the EXISTS subquery in GetAllPage widens correctly.
+        await expect.poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+            timeout: 60_000,
+            intervals: [1000, 2000, 5000, 5000, 5000],
+            message: 'team should show policy_enforced=true before asserting directory visibility',
+        }).toBe(true);
+
         // API layer: proves the server filters the listing, not just the DOM.
         const {client: qualClient} = await pw.makeClient({username: qualUser.username, password: qualUser.password});
         const {client: nonQualClient} = await pw.makeClient({
