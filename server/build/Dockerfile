@@ -35,6 +35,23 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
 RUN mkdir -p /mattermost/.postgresql \
   && chmod 700 /mattermost/.postgresql
 
+# Message-Based Encryption tech-preview: a dedicated SoftHSM2 builder on ubuntu:22.04 (glibc 2.35),
+# not the noble builder above (glibc 2.39), because the distroless base below ships glibc 2.36 —
+# noble-built softhsm binaries fail at load with a missing GLIBC_2.38. The token and AES-256 wrapping
+# KEK are initialized here at build time so the image is HSM-ready with no runtime init step
+# (Kubernetes has no docker-exec hook). Non-secret dev values; test image only.
+FROM ubuntu:22.04 AS hsmbuilder
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+  softhsm2 \
+  opensc \
+  && rm -rf /var/lib/apt/lists/*
+RUN export SOFTHSM2_CONF=/etc/softhsm/softhsm2.conf \
+  && mkdir -p /var/lib/softhsm/tokens \
+  && softhsm2-util --init-token --free --label pbe-dev --pin 1234 --so-pin 1234 \
+  && pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so --token-label pbe-dev --pin 1234 \
+       --keygen --key-type aes:32 --label pbe-kek-dev --usage-wrap --usage-decrypt --sensitive
+
 # Final stage using distroless for minimal attack surface
 FROM gcr.io/distroless/base-debian12
 
@@ -42,6 +59,13 @@ FROM gcr.io/distroless/base-debian12
 ENV PATH="/mattermost/bin:${PATH}"
 ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
 ENV MM_INSTALL_TYPE="docker"
+
+# Message-Based Encryption tech-preview: point the plugin at the bundled SoftHSM2 PKCS#11 provider,
+# tell SoftHSM2 where its config + baked token store live, and enable the read-side decrypt hook so
+# encrypted channels work out of the box. Test image only.
+ENV MBE_PKCS11_LIBRARY_PATH="/usr/lib/softhsm/libsofthsm2.so"
+ENV SOFTHSM2_CONF="/etc/softhsm/softhsm2.conf"
+ENV MM_FEATUREFLAGS_CONSUMEPOSTHOOK="true"
 
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc
@@ -64,6 +88,20 @@ COPY --from=builder /usr/lib/libpng.so* /usr/lib/
 COPY --from=builder /usr/lib/libwv.so* /usr/lib/
 COPY --from=builder /usr/lib/libtidy.so* /usr/lib/
 COPY --from=builder /usr/lib/libfontconfig.so* /usr/lib/
+
+# Message-Based Encryption tech-preview: SoftHSM2 PKCS#11 provider + the dev token/KEK baked in the
+# hsmbuilder stage, plus the C++/OpenSSL runtime libraries it needs (the distroless base ships glibc
+# and libcrypto, but not libstdc++/libgcc). /usr/lib/softhsm/libsofthsm2.so is a symlink into
+# x86_64-linux-gnu/softhsm, so both dirs are copied. The config + token store are chowned to the
+# runtime user (2000) so it can read the config and write SoftHSM2's lock files. Test image only.
+COPY --from=hsmbuilder /usr/lib/x86_64-linux-gnu/softhsm/ /usr/lib/x86_64-linux-gnu/softhsm/
+COPY --from=hsmbuilder /usr/lib/softhsm/ /usr/lib/softhsm/
+COPY --from=hsmbuilder /usr/bin/softhsm2-util /usr/bin/softhsm2-util
+COPY --from=hsmbuilder --chown=2000:2000 /etc/softhsm/ /etc/softhsm/
+COPY --from=hsmbuilder --chown=2000:2000 /var/lib/softhsm/ /var/lib/softhsm/
+COPY --from=hsmbuilder /usr/lib/x86_64-linux-gnu/libstdc++.so.6* /usr/lib/x86_64-linux-gnu/
+COPY --from=hsmbuilder /usr/lib/x86_64-linux-gnu/libgcc_s.so.1* /usr/lib/x86_64-linux-gnu/
+COPY --from=hsmbuilder /usr/lib/x86_64-linux-gnu/libcrypto.so.3* /usr/lib/x86_64-linux-gnu/
 
 # Copy mattermost from builder stage
 COPY --from=builder --chown=2000:2000 /mattermost /mattermost
