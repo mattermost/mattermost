@@ -92,6 +92,7 @@ type Params struct {
 	ExportName                         string
 	ImportName                         string
 	ExcludePolicyConstrained           bool
+	ForDirectory                       bool
 	GroupSource                        model.GroupSource
 	FilterHasMember                    string
 	IncludeChannelMemberCount          string
@@ -302,6 +303,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExportName = props["export_name"]
 	params.ImportName = props["import_name"]
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
+	params.ForDirectory, _ = strconv.ParseBool(query.Get("for_directory"))
 	params.AccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("access_control_policy_enforced"))
 	params.ExcludeAccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("exclude_access_control_policy_enforced"))
 	params.ContentReviewerId = props["content_reviewer_id"]

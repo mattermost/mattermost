@@ -48,6 +48,7 @@ export type WebSocketMessage = (
     Messages.ChannelBookmarkSorted |
 
     Messages.ChannelAccessControlUpdated |
+    Messages.TeamAccessControlUpdated |
 
     Messages.Team |
     Messages.UpdateTeamScheme |

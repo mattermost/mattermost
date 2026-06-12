@@ -268,6 +268,10 @@ export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.C
     channel: JsonEncodedValue<Channel>;
 }>;
 
+export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
+    team: JsonEncodedValue<TeamType>;
+}>;
+
 // Team and team member messages
 
 export type Team =

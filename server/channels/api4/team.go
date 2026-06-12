@@ -46,6 +46,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods(http.MethodPut)
 	api.BaseRoutes.Team.Handle("/stats", api.APISessionRequired(getTeamStats)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.APISessionRequired(regenerateTeamInviteId)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/access_control/policy", api.APISessionRequired(getTeamAccessControlPolicy)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequiredTrustRequester(getTeamIcon)).Methods(http.MethodGet)
 	api.BaseRoutes.Team.Handle("/image", api.APISessionRequired(setTeamIcon, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -174,6 +175,74 @@ func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
 	}
 
 	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
+}
+
+func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+	teamID := c.Params.TeamId
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) &&
+		!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+		c.SetPermissionError(model.PermissionManageTeamAccessRules)
+		return
+	}
+
+	if !c.App.TeamMembershipAccessControlEnabled() {
+		resp := struct {
+			Policy   *model.AccessControlPolicy `json:"policy"`
+			Enforced bool                       `json:"enforced"`
+		}{}
+		if js, err := json.Marshal(resp); err != nil {
+			c.Err = model.NewAppError("getTeamAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		} else if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	enforced, appErr := c.App.TeamAccessControlled(c.AppContext, teamID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// A team child policy shares the team's id. Absence (404) means no policy is
+	// assigned; NotImplemented means ABAC is unavailable on this server. Either way
+	// there's nothing to enforce, so report a nil policy rather than erroring.
+	var policy *model.AccessControlPolicy
+	p, appErr := c.App.GetAccessControlPolicy(c.AppContext, teamID)
+	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound && appErr.StatusCode != http.StatusNotImplemented {
+			c.Err = appErr
+			return
+		}
+	} else {
+		policy = p
+		if shouldRedactExpressions(c) {
+			c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+		}
+	}
+
+	resp := struct {
+		Policy   *model.AccessControlPolicy `json:"policy"`
+		Enforced bool                       `json:"enforced"`
+	}{
+		Policy:   policy,
+		Enforced: enforced,
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1322,6 +1391,12 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.AllowOpenInvite = new(false)
 	} else if listPublic {
 		opts.AllowOpenInvite = new(true)
+		if c.App.TeamMembershipAccessControlEnabled() {
+			// Governed teams the user might qualify for must enter the candidate
+			// list so the directory filter below can evaluate them; ungoverned
+			// private teams stay excluded by the open-invite filter.
+			opts.IncludePolicyEnforced = new(true)
+		}
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
 		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
@@ -1336,6 +1411,31 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// Hide policy-governed teams from non-qualifying users browsing the directory.
+	// System admins are normally exempt so the System Console team list stays
+	// complete; both surfaces share this endpoint, so the directory opts in via
+	// for_directory to be filtered like any other user (non-admins are filtered
+	// regardless). Hiding from admins here is discovery UX, not a boundary — the
+	// join gate still denies them.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) || c.Params.ForDirectory {
+		userID := c.AppContext.Session().UserId
+		if c.Params.IncludeTotalCount {
+			var dropped int
+			teamsWithCount.Teams, dropped, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teamsWithCount.Teams, userID)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			teamsWithCount.TotalCount -= int64(dropped)
+		} else {
+			teams, _, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teams, userID)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+		}
 	}
 
 	var (
@@ -1395,6 +1495,12 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
 			return
 		}
+		if c.App.TeamMembershipAccessControlEnabled() {
+			// Surface governed teams alongside public ones so the directory filter
+			// below can show the ones this user qualifies for; ungoverned private
+			// teams stay excluded.
+			props.IncludePolicyEnforced = new(true)
+		}
 		teams, appErr = c.App.SearchPublicTeams(&props)
 	} else {
 		teams = []*model.Team{}
@@ -1403,6 +1509,18 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// Hide policy-governed teams from non-qualifying users searching the directory.
+	// System admins are exempt so the System Console team search stays complete.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		var dropped int
+		teams, dropped, appErr = c.App.FilterNonQualifyingTeamsForUser(c.AppContext, teams, c.AppContext.Session().UserId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		totalCount -= int64(dropped)
 	}
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)

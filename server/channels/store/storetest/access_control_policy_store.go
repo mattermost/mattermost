@@ -22,6 +22,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
 	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
+	t.Run("SearchChildCounts", func(t *testing.T) { testAccessControlPolicyStoreSearchChildCounts(t, rctx, ss) })
 	t.Run("SearchByActions", func(t *testing.T) { testAccessControlPolicyStoreSearchByActions(t, rctx, ss) })
 	t.Run("GetPoliciesByFieldID", func(t *testing.T) { testAccessControlPolicyStoreGetPoliciesByFieldID(t, rctx, ss) })
 	t.Run("ScopeRoundtrip", func(t *testing.T) { testAccessControlPolicyStoreScopeRoundtrip(t, rctx, ss) })
@@ -576,8 +577,8 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 2)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
-		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}}, policies[0].Props)
-		require.Equal(t, map[string]any{"child_ids": []string{}}, policies[1].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}, "channel_count": 1, "team_count": 0}, policies[0].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{}, "channel_count": 0, "team_count": 0}, policies[1].Props)
 
 		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeChannel})
 		require.NoError(t, err)
@@ -646,6 +647,97 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
+}
+
+func testAccessControlPolicyStoreSearchChildCounts(t *testing.T, rctx request.CTX, ss store.Store) {
+	saveParent := func() string {
+		id := model.NewId()
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:       id,
+			Name:     "Parent " + id,
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "user.properties.program == \"engineering\"",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, id))
+		})
+		return id
+	}
+
+	saveChild := func(parentID, policyType string) {
+		id := model.NewId()
+		// team-type policies validate only from v0.3 onward.
+		version := model.AccessControlPolicyVersionV0_2
+		if policyType == model.AccessControlPolicyTypeTeam {
+			version = model.AccessControlPolicyVersionV0_3
+		}
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:       id,
+			Name:     id,
+			Type:     policyType,
+			Active:   true,
+			Revision: 1,
+			Version:  version,
+			Imports:  []string{parentID},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "policies." + parentID + " == true",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, id))
+		})
+	}
+
+	counts := func(parentID string) (int, int) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:             []string{parentID},
+			IncludeChildren: true,
+			Limit:           10,
+		})
+		require.NoError(t, err)
+		require.Len(t, policies, 1)
+		return policies[0].Props["channel_count"].(int), policies[0].Props["team_count"].(int)
+	}
+
+	t.Run("3 channel + 2 team children", func(t *testing.T) {
+		parentID := saveParent()
+		for range 3 {
+			saveChild(parentID, model.AccessControlPolicyTypeChannel)
+		}
+		for range 2 {
+			saveChild(parentID, model.AccessControlPolicyTypeTeam)
+		}
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 3, channelCount)
+		require.Equal(t, 2, teamCount)
+	})
+
+	t.Run("only channel children", func(t *testing.T) {
+		parentID := saveParent()
+		for range 4 {
+			saveChild(parentID, model.AccessControlPolicyTypeChannel)
+		}
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 4, channelCount)
+		require.Equal(t, 0, teamCount)
+	})
+
+	t.Run("no children", func(t *testing.T) {
+		parentID := saveParent()
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 0, channelCount)
+		require.Equal(t, 0, teamCount)
 	})
 }
 
