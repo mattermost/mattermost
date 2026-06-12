@@ -21,6 +21,11 @@ func (api *API) InitExperienceAPI() {
 }
 
 func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.EnableExperienceAPI {
+		http.NotFound(w, r)
+		return
+	}
+
 	activeTeamID := r.URL.Query().Get("team_id")
 	activeChannelID := r.URL.Query().Get("channel_id")
 
@@ -51,6 +56,11 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamLoad(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.EnableExperienceAPI {
+		http.NotFound(w, r)
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return

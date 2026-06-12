@@ -28,6 +28,17 @@ func TestGetInitialLoad(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 	})
 
+	t.Run("returns 404 when EnableExperienceAPI is off", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		resp, err := th.Client.DoAPIGet(context.Background(), "/users/me/initial_load", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
 	t.Run("invalid since param returns 400", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), "/users/me/initial_load?since=notanumber", "")
 		require.Error(t, err)
@@ -485,14 +496,16 @@ func TestGetInitialLoad(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// BasicUser views the channel → LastUpdateAt = greatest(LastViewedAt, LastPostAt) > since.
-		// Channel.UpdateAt is still unchanged.
+		// BasicUser views the channel → ChannelMember.LastUpdateAt is set to now (post-view),
+		// which is > since.  Channel.UpdateAt is still unchanged (a view doesn't touch it).
 		_, _, err = th.Client.ViewChannel(context.Background(), th.BasicUser.Id, &model.ChannelView{
 			ChannelId: th.BasicChannel.Id,
 		})
 		require.NoError(t, err)
 
-		url := fmt.Sprintf("/users/me/initial_load?since=%d", since)
+		// Pin the active team explicitly so this test isn't affected by prior subtests
+		// that change BasicUser's team set (e.g. "explicit team_id selects correct active team").
+		url := fmt.Sprintf("/users/me/initial_load?team_id=%s&since=%d", th.BasicTeam.Id, since)
 		resp, err2 := th.Client.DoAPIGet(context.Background(), url, "")
 		require.NoError(t, err2)
 		defer resp.Body.Close()
@@ -771,6 +784,17 @@ func TestGetTeamLoad(t *testing.T) {
 		resp, err := client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id), "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("returns 404 when EnableExperienceAPI is off", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 
 	t.Run("non-member gets 403", func(t *testing.T) {

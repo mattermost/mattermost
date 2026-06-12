@@ -153,6 +153,8 @@ type FeatureFlags struct {
 
 	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
+	// EnableExperienceAPI gates the DDIL experience surface area.
+	EnableExperienceAPI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -217,6 +219,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.DiscoverableChannels = false
 
 	f.MobileEphemeralMode = false
+
+	f.EnableExperienceAPI = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
