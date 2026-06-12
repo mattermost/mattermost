@@ -74,10 +74,20 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 }
 
 func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadSeeker) *model.AppError {
-	// First try verifying using the hard-coded public key.
-	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
-		logger.Debug("Plugin signature verified using hard-coded public key")
-		return nil
+	// First try verifying using the hard-coded public keys: the official Mattermost key, then the
+	// MBE tech-preview dev key that signs the prepackaged MBE plugin. Re-seek both readers before
+	// each attempt, as verifySignature consumes them.
+	for _, hardcodedKey := range [][]byte{mattermostPluginPublicKey, mbeDevPublicKey} {
+		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
+			break
+		}
+		if _, err := signature.Seek(0, io.SeekStart); err != nil {
+			break
+		}
+		if err := verifySignature(bytes.NewReader(hardcodedKey), plugin, signature); err == nil {
+			logger.Debug("Plugin signature verified using hard-coded public key")
+			return nil
+		}
 	}
 
 	// If that fails, try any of the admin-configured public keys.

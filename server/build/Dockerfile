@@ -10,6 +10,16 @@ ARG PGID=2000
 # e.g. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
 ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 
+# Message-Based Encryption tech-preview: public URL of the signed MBE plugin bundle + detached
+# signature, published to pr-builds.mattermost.com by the plugin repo's sign-plugin.yml workflow.
+# Defaults to the stable latest/ alias, which sign-plugin.yml overwrites on each run — so revving the
+# plugin needs no Dockerfile edit, just re-dispatch the workflow and rebuild the image. The enterprise
+# CI image build passes only MM_PACKAGE (no way to inject extra build-args), hence ARG defaults. Same
+# host the server package is fetched from, so no auth is needed at build. To PIN a specific build
+# instead of latest, override with the commit/<sha>/ URL the workflow prints. Test image only.
+ARG MBE_PLUGIN_URL="https://pr-builds.mattermost.com/mattermost-plugin-message-based-encryption/latest/message-based-encryption.tar.gz"
+ARG MBE_PLUGIN_SIG_URL="${MBE_PLUGIN_URL}.sig"
+
 # Install needed packages and indirect dependencies
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
@@ -34,6 +44,16 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
 # Create PostgreSQL client SSL directory structure for ssl_mode=require
 RUN mkdir -p /mattermost/.postgresql \
   && chmod 700 /mattermost/.postgresql
+
+# Message-Based Encryption tech-preview: fetch the signed MBE plugin bundle + .sig into the
+# prepackaged_plugins dir already populated by MM_PACKAGE. The server verifies the signature at boot
+# against the baked dev key (mbeDevPublicKey) and, with PLUGINSTATES enabling it, auto-installs it
+# (processPrepackagedPlugins runs after the startup filestore sync). -f makes the build fail loudly
+# if the bundle URL has not been published yet. Test image only.
+RUN mkdir -p /mattermost/prepackaged_plugins \
+  && curl -fL "$MBE_PLUGIN_URL" -o /mattermost/prepackaged_plugins/message-based-encryption.tar.gz \
+  && curl -fL "$MBE_PLUGIN_SIG_URL" -o /mattermost/prepackaged_plugins/message-based-encryption.tar.gz.sig \
+  && chown mattermost:mattermost /mattermost/prepackaged_plugins/message-based-encryption.tar.gz /mattermost/prepackaged_plugins/message-based-encryption.tar.gz.sig
 
 # Message-Based Encryption tech-preview: a dedicated SoftHSM2 builder on ubuntu:22.04 (glibc 2.35),
 # not the noble builder above (glibc 2.39), because the distroless base below ships glibc 2.36 —
@@ -66,6 +86,17 @@ ENV MM_INSTALL_TYPE="docker"
 ENV MBE_PKCS11_LIBRARY_PATH="/usr/lib/softhsm/libsofthsm2.so"
 ENV SOFTHSM2_CONF="/etc/softhsm/softhsm2.conf"
 ENV MM_FEATUREFLAGS_CONSUMEPOSTHOOK="true"
+
+# Message-Based Encryption tech-preview: make the prepackaged MBE plugin fully turnkey with no
+# per-instance config. The plugin reads these HSM settings directly from the environment (its
+# applyEnvFallbacks) when its plugin config is empty, so they need not be entered in the console;
+# they match the dev token/KEK baked into the hsmbuilder stage. PLUGINSTATES marks the plugin
+# enabled so processPrepackagedPlugins installs+activates it at startup (AutomaticPrepackagedPlugins
+# is already true on cloud). All non-secret dev values; test image only.
+ENV MBE_PKCS11_TOKEN_LABEL="pbe-dev"
+ENV MBE_PKCS11_PIN="1234"
+ENV MBE_KEK_LABEL="pbe-kek-dev"
+ENV MM_PLUGINSETTINGS_PLUGINSTATES="{\"message-based-encryption\":{\"Enable\":true}}"
 
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc
@@ -103,7 +134,8 @@ COPY --from=hsmbuilder /usr/lib/x86_64-linux-gnu/libstdc++.so.6* /usr/lib/x86_64
 COPY --from=hsmbuilder /usr/lib/x86_64-linux-gnu/libgcc_s.so.1* /usr/lib/x86_64-linux-gnu/
 COPY --from=hsmbuilder /usr/lib/x86_64-linux-gnu/libcrypto.so.3* /usr/lib/x86_64-linux-gnu/
 
-# Copy mattermost from builder stage
+# Copy mattermost from builder stage (includes the MBE plugin bundle + .sig fetched into
+# prepackaged_plugins above; prepackaged_plugins is deliberately NOT a VOLUME below, so it survives).
 COPY --from=builder --chown=2000:2000 /mattermost /mattermost
 
 # Copy passwd including mattermost user
