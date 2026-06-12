@@ -62,6 +62,42 @@ const (
 	ScopeSelfHosted DeploymentScope = "self_hosted"
 )
 
+// FindingState is the three-valued state of a finding, per DESIGN.md §Flapping.
+// "unknown ≠ resolved" is load-bearing: a temporarily unavailable section must
+// never produce a spurious resolution.
+type FindingState string
+
+const (
+	// FindingStateFiring — rule expression evaluated to true this cycle.
+	FindingStateFiring FindingState = "firing"
+	// FindingStateResolved — rule expression evaluated to false this cycle,
+	// and the finding had a prior firing row. Rules that never fired produce
+	// no row; this state only appears after at least one firing.
+	FindingStateResolved FindingState = "resolved"
+	// FindingStateUnknown — rule could not be evaluated this cycle (section
+	// unavailable, probe not collected, eval error). Neither firing nor
+	// resolved; the prior state is preserved in the store.
+	FindingStateUnknown FindingState = "unknown"
+)
+
+// EvalOutcome is the three-valued result of evaluating a single rule.
+// Every rule in the catalog produces one EvalOutcome per evaluation cycle;
+// [Engine.EvaluateAll] returns one per compiled rule. The reconciler (WS4)
+// consumes this to drive state-machine transitions.
+type EvalOutcome struct {
+	// RuleCode identifies the rule.
+	RuleCode string
+	// Fingerprint is the stable identity key for the findings store. For P1
+	// it is equal to RuleCode. Future rules with multiple simultaneous
+	// instances (e.g. per-plugin, per-DB-replica) will set a distinct
+	// fingerprint per instance.
+	Fingerprint string
+	// State is the outcome of this evaluation cycle.
+	State FindingState
+	// Finding is populated when State == FindingStateFiring.
+	Finding *Finding
+}
+
 // Finding is a single diagnostic result produced when a rule's condition is
 // true. The engine produces one [Finding] per fired rule code.
 //
