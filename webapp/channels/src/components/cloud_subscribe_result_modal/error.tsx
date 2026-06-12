@@ -5,8 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -28,7 +26,6 @@ type Props = {
 
 function ErrorModal(props: Props) {
     const dispatch = useDispatch();
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
 
     const [openContactSupport] = useOpenCloudZendeskSupportForm('Cloud Subscription', '');
 
