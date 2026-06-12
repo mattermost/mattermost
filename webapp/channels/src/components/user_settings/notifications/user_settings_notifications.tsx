@@ -40,7 +40,7 @@ const COMMA_REGEX = /,/g;
 type MultiInputValue = {
     label: string;
     value: string;
-}
+};
 
 export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
 
@@ -335,7 +335,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     setStateValue = (key: string, value: string | boolean): void => {
-        const data: {[key: string]: string | boolean } = {};
+        const data: {[key: string]: string | boolean} = {};
         data[key] = value;
         this.setState((prevState) => ({...prevState, ...data}));
     };
@@ -373,7 +373,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({isCustomKeysWithNotificationInputChecked: checked});
     };
 
-    handleChangeForCustomKeysWithNotificationInput = (values: OnChangeValue<{ value: string }, true>) => {
+    handleChangeForCustomKeysWithNotificationInput = (values: OnChangeValue<{value: string}, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             // Check the custom keys input checkbox when atleast a single key is entered
             if (this.state.isCustomKeysWithNotificationInputChecked === false) {
@@ -441,7 +441,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHighlightInput = (values: OnChangeValue<{ value: string }, true>) => {
+    handleChangeForCustomKeysWithHighlightInput = (values: OnChangeValue<{value: string}, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             const customKeysWithHighlight = values.
                 map((value: MultiInputValue) => {

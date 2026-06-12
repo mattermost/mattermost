@@ -387,6 +387,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 			require.NotNil(t, field.PermissionValues)
 			require.Equal(t, model.PermissionLevelSysadmin, *field.PermissionValues, "field %q permission_values", field.Name)
 			require.Equal(t, false, field.Attrs["enabled"], "field %q must seed disabled", field.Name)
+			require.NotEmpty(t, field.Attrs[model.SAAttrDisplayName], "field %q must seed a display name", field.Name)
 		}
 
 		ipField := fieldsByName[model.SessionAttributesPropertyFieldIPAddress]
@@ -401,6 +402,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		// The typed attrs must survive the DB round trip so the app reads back what it seeded.
 		saField, err := model.SAFieldFromPropertyField(networkField)
 		require.NoError(t, err)
+		require.Equal(t, model.SessionAttributesDisplayNameNetworkInterfaceType, saField.Attrs.DisplayName)
 		require.Equal(t, model.SessionAttributeDefaultTTLNetworkIdentity, saField.Attrs.TTLSeconds)
 		require.Equal(t, model.SessionAttributeDefaultGraceNetworkIdentity, saField.Attrs.GracePeriodSeconds)
 		require.ElementsMatch(t,

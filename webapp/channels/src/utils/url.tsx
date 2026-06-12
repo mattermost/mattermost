@@ -19,7 +19,7 @@ type WindowObject = {
         port: string;
     };
     basename?: string;
-}
+};
 
 export function cleanUpUrlable(input: string): string {
     let cleaned: string = latinise(input);
@@ -292,7 +292,7 @@ export function isStringContainingUrl(text: string): boolean {
 export type UrlValidationCheck = {
     url: string;
     error: typeof BadUrlReasons[keyof typeof BadUrlReasons] | false;
-}
+};
 
 export const BadUrlReasons = {
     Empty: 'Empty',

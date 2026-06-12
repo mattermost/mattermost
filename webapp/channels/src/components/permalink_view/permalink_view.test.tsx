@@ -92,7 +92,7 @@ jest.mock('utils/channel_utils', () => ({
 describe('components/PermalinkView', () => {
     const baseProps: ComponentProps<typeof PermalinkView> = {
         channelId: 'channel_id',
-        match: {params: {postid: 'post_id'}} as match<{ postid: string }>,
+        match: {params: {postid: 'post_id'}} as match<{postid: string}>,
         returnTo: 'return_to',
         teamName: 'team_name',
         actions: {

@@ -48,13 +48,13 @@ type Props = {
     sharedChannelsPluginsEnabled?: boolean;
     isChannelAutotranslated: boolean;
     userLanguage: string;
-}
+};
 
 type State = {
     collapse: boolean;
     hasOverflow: boolean;
     checkOverflow: number;
-}
+};
 
 export default class PostMessageView extends React.PureComponent<Props, State> {
     private imageProps: any;

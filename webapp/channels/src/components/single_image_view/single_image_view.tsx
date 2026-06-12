@@ -41,7 +41,7 @@ type State = {
     };
     thumbnailCheckComplete: boolean;
     thumbnailRejected: boolean;
-}
+};
 
 export default class SingleImageView extends React.PureComponent<Props, State> {
     private mounted = false;

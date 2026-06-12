@@ -18,7 +18,7 @@ type Props = {
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     channelId?: string;
     threadId?: string;
-}
+};
 
 const NewMessageSeparator = ({
     newMessagesSeparatorActions,

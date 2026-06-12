@@ -21,7 +21,7 @@ type Props = {
     userCurrentTimezone: string;
     tomorrow9amTime: number;
     nextMonday: number;
-}
+};
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

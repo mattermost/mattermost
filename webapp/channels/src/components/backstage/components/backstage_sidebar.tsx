@@ -24,7 +24,7 @@ type Props = {
     enableOutgoingOAuthConnections: boolean;
     canCreateOrDeleteCustomEmoji: boolean;
     canManageIntegrations: boolean;
-}
+};
 
 export default class BackstageSidebar extends React.PureComponent<Props> {
     renderCustomEmoji() {

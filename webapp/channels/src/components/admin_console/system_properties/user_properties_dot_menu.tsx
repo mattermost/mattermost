@@ -28,7 +28,7 @@ type Props = {
     createField: (field: UserPropertyField) => void;
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
-}
+};
 
 export const useAttributeLinkModal = (field: UserPropertyField, updateField: Props['updateField']) => {
     const dispatch = useDispatch();

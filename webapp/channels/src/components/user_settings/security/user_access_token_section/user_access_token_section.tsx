@@ -42,7 +42,7 @@ type Props = {
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         clearUserAccessTokens: () => void;
     };
-}
+};
 
 type State = {
     active?: boolean;
@@ -50,14 +50,14 @@ type State = {
     newToken?: UserAccessToken | null;
     tokenCreationState?: string;
     tokenError?: React.ReactNode;
-    serverError?: string|null;
+    serverError?: string | null;
     saving?: boolean;
     confirmTitle?: React.ReactNode;
-    confirmMessage?: ((state: State) => JSX.Element)|null;
+    confirmMessage?: ((state: State) => JSX.Element) | null;
     confirmButton?: React.ReactNode;
-    confirmComplete?: (() => void)|null;
+    confirmComplete?: (() => void) | null;
     confirmHideCancel?: boolean;
-}
+};
 
 export default class UserAccessTokenSection extends React.PureComponent<Props, State> {
     private minRef: React.RefObject<SettingItemMinComponent>;

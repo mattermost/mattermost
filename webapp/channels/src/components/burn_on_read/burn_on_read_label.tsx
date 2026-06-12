@@ -18,7 +18,7 @@ type Props = {
 
     // The configured duration in minutes for BoR messages
     durationMinutes: number;
-}
+};
 
 const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
     const {formatMessage} = useIntl();

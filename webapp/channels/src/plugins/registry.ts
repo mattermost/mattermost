@@ -880,7 +880,7 @@ export default class PluginRegistry {
      * Accepts a string event type.
      * Returns undefined.
      */
-    unregisterWebSocketEventHandler = reArg(['event'], ({event}: { event: string }) => {
+    unregisterWebSocketEventHandler = reArg(['event'], ({event}: {event: string}) => {
         unregisterPluginWebSocketEvent(this.id, event);
     });
 

@@ -27,7 +27,7 @@ export type Props = {
     selectedItemRef: React.RefObject<HTMLDivElement>;
     onMouseMove: (group: GroupValue) => void;
     addUserProfile: (profile: UserProfileValue) => void;
-}
+};
 
 const displayNameGetter = makeDisplayNameGetter();
 

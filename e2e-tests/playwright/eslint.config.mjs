@@ -26,24 +26,24 @@ export default [
             },
         },
         rules: {
+            '@stylistic/dot-location': 'off', // Covered by Prettier
+            '@stylistic/indent': 'off', // Covered by Prettier
+            '@stylistic/lines-around-comment': 'off', // Covered by Prettier
+            '@stylistic/multiline-ternary': 'off', // Covered by Prettier
+            '@stylistic/no-mixed-operators': 'off',
+            '@stylistic/operator-linebreak': 'off', // Covered by Prettier
+            '@stylistic/space-before-function-paren': 'off', // Covered by Prettier
+            '@stylistic/wrap-regex': 'off', // Covered by Prettier
             '@typescript-eslint/explicit-module-boundary-types': 'off',
-            '@typescript-eslint/indent': 'off', // Covered by Prettier
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-var-requires': 'off',
             'func-names': 'off',
-            'dot-location': 'off', // Covered by Prettier
-            'lines-around-comment': 'off', // Covered by Prettier
             'max-lines': ['warn', {max: 800, skipBlankLines: true, skipComments: true}],
-            'multiline-ternary': 'off', // Covered by Prettier
             'no-await-in-loop': 'off',
             'no-console': 'error',
             'no-loop-func': 0,
-            'no-mixed-operators': 'off',
             'no-process-env': 0,
             'no-process-exit': 0,
-            'operator-linebreak': 'off', // Covered by Prettier
-            'space-before-function-paren': 'off', // Covered by Prettier
-            'wrap-regex': 'off', // Covered by Prettier
             'headers/header-format': [
                 'error',
                 {

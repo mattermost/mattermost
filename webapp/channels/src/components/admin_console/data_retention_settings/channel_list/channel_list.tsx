@@ -38,12 +38,12 @@ type Props = {
         setChannelListSearch: (term: string) => void;
         setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
-}
+};
 const PAGE_SIZE = 10;
 export default class ChannelList extends React.PureComponent<Props, State> {
     private pageLoaded = 0;
