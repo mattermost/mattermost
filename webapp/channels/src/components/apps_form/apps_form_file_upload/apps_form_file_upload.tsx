@@ -45,7 +45,7 @@ export type Props = {
     fileType?: string;
     value?: string[]; // Array of uploaded file IDs
     allowMultiple?: boolean; // Allow multiple file selection (default: false)
-}
+};
 
 const AppsFormFileUpload: React.FC<Props> = ({
     id,
