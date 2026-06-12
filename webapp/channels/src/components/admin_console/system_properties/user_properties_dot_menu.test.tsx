@@ -186,6 +186,55 @@ describe('UserPropertyDotMenu', () => {
         expect(screen.getByText('Edit SAML link')).toBeInTheDocument();
     });
 
+    it('sets ldap from the modal without adding managed to an unmanaged field', async () => {
+        renderComponent();
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        await userEvent.click(menuButton);
+        await userEvent.click(screen.getByText('Link attribute to AD/LDAP'));
+
+        await userEvent.type(await screen.findByRole('textbox'), 'employeeID');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(updateField).toHaveBeenCalledWith({
+            ...baseField,
+            type: 'text',
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        });
+    });
+
+    it('sets ldap from the modal without changing managed on an admin-managed field', async () => {
+        const adminManagedField: UserPropertyField = {
+            ...baseField,
+            id: 'admin-managed-ldap-modal',
+            attrs: {
+                ...baseField.attrs,
+                managed: 'admin',
+            },
+        };
+
+        renderComponent(adminManagedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${adminManagedField.id}`);
+        await userEvent.click(menuButton);
+        await userEvent.click(screen.getByText('Link attribute to AD/LDAP'));
+
+        await userEvent.type(await screen.findByRole('textbox'), 'employeeID');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(updateField).toHaveBeenCalledWith({
+            ...adminManagedField,
+            type: 'text',
+            attrs: {
+                ...adminManagedField.attrs,
+                ldap: 'employeeID',
+            },
+        });
+    });
+
     it('clears admin-managed by setting managed to empty string, not by removing the key', async () => {
         const adminManagedField: UserPropertyField = {
             ...baseField,
@@ -254,12 +303,31 @@ describe('UserPropertyDotMenu', () => {
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${ldapSyncedField.id}`);
         await userEvent.click(menuButton);
 
-        // A synced field's value comes from the IdP, so it is never user-editable:
-        // the toggle reads as off and is disabled, with explanatory helper text.
         const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
         expect(within(editableItem).getByRole('button')).toBeDisabled();
         expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
+    });
+
+    it('does not update a synced field when clicking the "Editable by users" toggle', async () => {
+        const ldapSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'ldap-synced-toggle-click',
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(ldapSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${ldapSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        editableItem.click();
+
+        expect(updateField).not.toHaveBeenCalled();
     });
 
     it('disables the "Editable by users" toggle when the field is synced via SAML', async () => {
@@ -284,8 +352,6 @@ describe('UserPropertyDotMenu', () => {
     });
 
     it('disables the "Editable by users" toggle when the field is both admin-managed and synced', async () => {
-        // Admin-managed and synced now coexist; the synced state still wins and
-        // keeps the toggle disabled and off.
         const adminManagedSyncedField: UserPropertyField = {
             ...baseField,
             id: 'admin-managed-synced-field',

@@ -120,9 +120,6 @@ const DotMenu = ({
 
     const isProtected = Boolean(field.attrs?.protected);
 
-    // Synced fields take their value from the IdP, so they are never editable
-    // by users. The editable toggle is disabled while linked; removing the
-    // link re-enables it.
     const isSynced = Boolean(field.attrs.ldap || field.attrs.saml);
     const isEditableByUsers = !isSynced && field.attrs.managed !== 'admin';
 
