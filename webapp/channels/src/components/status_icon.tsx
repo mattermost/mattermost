@@ -13,7 +13,7 @@ type Props = {
     button?: boolean;
     status?: string;
     className?: string;
-}
+};
 
 const StatusIcon = ({
     id,

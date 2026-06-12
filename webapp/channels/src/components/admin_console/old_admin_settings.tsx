@@ -18,21 +18,21 @@ export type BaseProps = {
     setNavigationBlocked?: (blocked: boolean) => void;
     isDisabled?: boolean;
     patchConfig?: (config: DeepPartial<AdminConfig>) => {data: AdminConfig; error: ClientErrorPlaceholder};
-}
+};
 
 export type BaseState = {
     saveNeeded: boolean;
     saving: boolean;
-    serverError: string|null;
+    serverError: string | null;
     serverErrorId?: string;
-}
+};
 
 // Placeholder type until ClientError is exported from redux.
 // TODO: remove ClientErrorPlaceholder and change the return type of patchConfig
 type ClientErrorPlaceholder = {
     message: string;
     server_error_id: string;
-}
+};
 
 export default abstract class OLDAdminSettings <Props extends BaseProps, State extends BaseState> extends React.Component<Props, State> {
     public constructor(props: Props) {

@@ -24,7 +24,7 @@ const FilePreviewModal = makeAsyncComponent('FilePreviewModal', React.lazy<React
 type OwnProps = {
     post?: Post;
     postId?: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);

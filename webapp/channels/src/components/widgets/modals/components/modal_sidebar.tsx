@@ -8,13 +8,13 @@ export type Tab = {
     icon: JSX.Element;
     name: string;
     uiName: string;
-}
+};
 
 export type Props = {
     activeTab?: string;
     tabs: Tab[];
     updateTab: (name: string) => void;
-}
+};
 
 function ModalSidebar({tabs, activeTab, updateTab}: Props) {
     const handleClick = (tab: Tab, e: React.MouseEvent) => {

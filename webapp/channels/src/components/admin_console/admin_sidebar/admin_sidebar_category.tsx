@@ -14,7 +14,7 @@ type Props = {
     name?: string;
     parentLink?: string;
     sectionClass?: string;
-}
+};
 
 const AdminSidebarCategory = ({icon, title, action, children, definitionKey, name, parentLink = '', sectionClass}: Props) => {
     let link = parentLink;

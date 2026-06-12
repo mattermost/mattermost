@@ -13,7 +13,7 @@ import SuggestionList from './suggestion_list';
 type Props = React.ComponentProps<typeof SuggestionList> & {
     inputRef: React.RefObject<HTMLTextAreaElement>;
     open: boolean;
-}
+};
 
 export default function RhsSuggestionList(props: Props): JSX.Element {
     const [position, setPosition] = useState<Props['position']>('top');

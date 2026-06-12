@@ -67,8 +67,8 @@ describe('Elasticsearch system console', () => {
             return cy.get('@firstRow').then((el) => {
                 return el.find('.status-icon-success').length > 0;
             });
-        }
-        , {
+        },
+        {
             timeout: TIMEOUTS.FIVE_MIN,
             interval: TIMEOUTS.TWO_SEC,
             errorMsg: 'Reindex did not succeed in time',

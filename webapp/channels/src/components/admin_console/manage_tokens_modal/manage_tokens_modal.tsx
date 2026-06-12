@@ -42,7 +42,7 @@ export type Props = {
 type State = {
     show: boolean;
     error: string | null;
-}
+};
 
 export default class ManageTokensModal extends React.PureComponent<Props, State> {
     public constructor(props: Props) {

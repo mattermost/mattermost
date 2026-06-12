@@ -9,7 +9,7 @@ import {createSelectorCreator, defaultMemoize} from 'mattermost-redux/selectors/
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function memoizeResult<F extends Function>(func: F, measure: Function | undefined = undefined): F {
-    let lastArgs: IArguments|null = null;
+    let lastArgs: IArguments | null = null;
     let lastResult: any = null;
 
     // we reference arguments instead of spreading them for performance reasons
@@ -93,8 +93,7 @@ export function generateId(): string {
         if (c === 'x') {
             v = r;
         } else {
-            // eslint-disable-next-line no-mixed-operators
-            v = r & 0x3 | 0x8;
+            v = (r & 0x3) | 0x8;
         }
 
         return v.toString(16);

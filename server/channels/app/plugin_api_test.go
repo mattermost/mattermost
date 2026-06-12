@@ -1424,12 +1424,25 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
 	require.NoError(t, err)
 	require.NotNil(t, hooks)
-	_, ret := hooks.MessageWillBePosted(nil, nil)
-	if ret != "OK" {
-		return errors.New(ret)
+
+	runHook := func() error {
+		_, ret := hooks.MessageWillBePosted(nil, nil)
+		if ret != "OK" {
+			return errors.New(ret)
+		}
+		return nil
 	}
 
-	return nil
+	// SendMail + Inbucket delivery is async; under CI load the plugin's internal
+	// RetryInbucket window can expire before the message is visible.
+	if id == "test_send_mail_plugin" {
+		require.Eventually(t, func() bool {
+			return runHook() == nil
+		}, 90*time.Second, 2*time.Second)
+		return nil
+	}
+
+	return runHook()
 }
 
 // This is a meta-test function. It does the following:

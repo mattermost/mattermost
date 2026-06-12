@@ -13,7 +13,7 @@ import './billing_summary.scss';
 type BillingSummaryProps = {
     isFreeTrial: boolean;
     daysLeftOnTrial: number;
-}
+};
 
 export default function BillingSummary({isFreeTrial, daysLeftOnTrial}: BillingSummaryProps) {
     let body = noBillingHistory;

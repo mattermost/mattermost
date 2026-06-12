@@ -145,7 +145,7 @@ type OwnProps = {
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         clearUserAccessTokens: () => void;
     };
-}
+};
 
 type Props = OwnProps & WrappedComponentProps;
 
@@ -155,17 +155,17 @@ type State = {
     newToken?: UserAccessToken | null;
     tokenCreationState?: string;
     tokenError?: React.ReactNode;
-    serverError?: string|null;
+    serverError?: string | null;
     saving?: boolean;
     confirmTitle?: React.ReactNode;
-    confirmMessage?: ((state: State) => JSX.Element)|null;
+    confirmMessage?: ((state: State) => JSX.Element) | null;
     confirmButton?: React.ReactNode;
-    confirmComplete?: (() => void)|null;
+    confirmComplete?: (() => void) | null;
     confirmHideCancel?: boolean;
     expiryPreset: ExpiryPreset;
     customExpiryDate: string;
     tokenDescription: string;
-}
+};
 
 class UserAccessTokenSection extends React.PureComponent<Props, State> {
     private minRef: React.RefObject<SettingItemMinComponent>;

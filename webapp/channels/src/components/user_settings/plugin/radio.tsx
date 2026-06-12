@@ -19,7 +19,7 @@ type Props = {
     setting: PluginConfigurationRadioSetting;
     pluginId: string;
     informChange: (name: string, value: string) => void;
-}
+};
 
 const RadioInput = ({
     setting,
