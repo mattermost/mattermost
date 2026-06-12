@@ -2419,6 +2419,41 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 		defer r.Body.Close()
 		require.Equal(t, 403, r.StatusCode)
 	})
+
+	t.Run("team admin cannot unassign a channel outside their team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Admin owns a policy scoped to BasicTeam but passes a channel that
+		// belongs to another team. The channel-scope guard must reject it.
+		otherTeam := th.CreateTeam(t)
+		foreignCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, otherTeam.Id)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Maybe()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{foreignCh.Id},
+			"team_id":     th.BasicTeam.Id,
+		}
+		r, err := th.Client.DoAPIDeleteJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/unassign",
+			body,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 400, r.StatusCode)
+	})
 }
 
 func TestScopeReconciliationCrossTeam(t *testing.T) {

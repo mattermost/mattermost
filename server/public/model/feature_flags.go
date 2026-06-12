@@ -150,6 +150,9 @@ type FeatureFlags struct {
 
 	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
 	MobileEphemeralMode bool
+
+	// Requires AttributeBasedAccessControl to also be enabled.
+	TeamMembershipAccessControl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -180,6 +183,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = false
 	f.PermissionPolicies = false
+	f.TeamMembershipAccessControl = false
 	f.ChannelPermissionPolicies = false
 	f.PolicySimulation = false
 	f.ContentFlagging = true
