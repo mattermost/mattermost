@@ -675,8 +675,8 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(
             handlePropertyFieldCreatedOrUpdated(
                 msg as
-                    | WebSocketMessages.PropertyFieldCreated
-                    | WebSocketMessages.PropertyFieldUpdated,
+                    WebSocketMessages.PropertyFieldCreated |
+                    WebSocketMessages.PropertyFieldUpdated,
             ),
         );
         break;
@@ -1322,8 +1322,8 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
 
 function handlePropertyFieldCreatedOrUpdated(
     msg:
-    | WebSocketMessages.PropertyFieldCreated
-    | WebSocketMessages.PropertyFieldUpdated,
+    | WebSocketMessages.PropertyFieldCreated |
+    WebSocketMessages.PropertyFieldUpdated,
 ): ThunkActionFunc<void> {
     return (doDispatch) => {
         let field;

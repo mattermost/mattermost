@@ -1092,7 +1092,7 @@ export function createSelectorCreator<O1, O2, O3>(
     option1: O1,
     option2: O2,
     option3: O3,
-    ...rest: any[],
+    ...rest: any[]
 ): typeof createSelector;
 
 export function createStructuredSelector<S, T>(

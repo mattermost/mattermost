@@ -41,7 +41,7 @@
     "concurrently": "9.0.1",
     "cross-env": "7.0.3",
     "css-loader": "6.7.3",
-    "eslint": "8.57.0",
+    "eslint": "9.39.4",
     "mini-css-extract-plugin": "2.7.5",
     "patch-package": "8.0.1",
     "sass": "1.80.5",

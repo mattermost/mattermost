@@ -67,8 +67,8 @@ const pasteDelimiter = /[\n\r,;]+/;
 const spaceSeparatedPasteDelimiter = /\s+/;
 
 type PasteHandling =
-    | {mode: 'draft'}
-    | {mode: 'bulk'; delimiter: RegExp};
+    {mode: 'draft'} |
+    {mode: 'bulk'; delimiter: RegExp};
 
 const getPasteHandling = (value: string): PasteHandling => {
     const trimmedValue = value.trim();

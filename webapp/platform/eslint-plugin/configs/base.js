@@ -200,7 +200,7 @@ const base = {
         '@stylistic/object-property-newline': [
             2,
             {
-                allowMultiplePropertiesPerLine: true,
+                allowAllPropertiesOnSameLine: true,
             },
         ],
         '@stylistic/one-var-declaration-per-line': 0,

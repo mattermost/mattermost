@@ -86,7 +86,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
             let response;
             try {
                 response = await dispatch(TeamActions.sendEmailInvitesToTeamGracefully(teamId, emails));
-            } catch (e) {
+            } catch {
                 response = {
                     data: emails.map((email) => ({
                         email,

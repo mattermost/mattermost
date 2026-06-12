@@ -1526,9 +1526,9 @@ export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEve
     const {id} = e.target as HTMLElement;
 
     const isTypingInValidTextbox =
-    id === AdvancedTextEditorTextboxIds.InCenter ||
-    id === AdvancedTextEditorTextboxIds.InRHSComment ||
-    id === AdvancedTextEditorTextboxIds.InEditMode;
+        id === AdvancedTextEditorTextboxIds.InCenter ||
+        id === AdvancedTextEditorTextboxIds.InRHSComment ||
+        id === AdvancedTextEditorTextboxIds.InEditMode;
 
     if (isTypingInValidTextbox === false) {
         return false;

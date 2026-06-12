@@ -109,13 +109,13 @@ export interface Props extends MuiMenuItemProps {
  */
 export type FirstMenuItemProps = Omit<
     Props,
-| 'onClick'
-| 'leadingElement'
-| 'labels'
-| 'trailingElements'
-| 'isDestructive'
-| 'isLabelsRowLayout'
-| 'children'
+    'onClick' |
+    'leadingElement' |
+    'labels' |
+    'trailingElements' |
+    'isDestructive' |
+    'isLabelsRowLayout' |
+    'children'
 >;
 
 /**
