@@ -271,14 +271,19 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				c.SetPermissionError(model.PermissionManageTeamAccessRules)
 				return
 			}
-			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			if !owned {
-				c.SetPermissionError(model.PermissionManageTeamAccessRules)
-				return
+			// Team-type policies use the team's own ID as the policy ID.
+			// A team admin can delete their team's direct policy without the
+			// parent-ownership check (which only covers parent-type policies).
+			if policyID != teamID {
+				owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
+				if appErr != nil {
+					c.Err = appErr
+					return
+				}
+				if !owned {
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
+					return
+				}
 			}
 		}
 	}
@@ -876,14 +881,19 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 				// Try team-admin permission via team_id in request
 				if list.TeamID != "" && model.IsValidId(list.TeamID) &&
 					c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), list.TeamID, model.PermissionManageTeamAccessRules) {
-					owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID)
-					if appErr != nil {
-						c.Err = appErr
-						return
-					}
-					if !owned {
-						c.SetPermissionError(model.PermissionManageTeamAccessRules)
-						return
+					// Team-type policies use the team's own ID as the policy ID.
+					// Skip the parent-ownership check for a team admin toggling their
+					// own team policy's active flag.
+					if entry.ID != list.TeamID {
+						owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID)
+						if appErr != nil {
+							c.Err = appErr
+							return
+						}
+						if !owned {
+							c.SetPermissionError(model.PermissionManageTeamAccessRules)
+							return
+						}
 					}
 				} else {
 					c.SetPermissionError(model.PermissionManageChannelAccessRules)
@@ -1012,6 +1022,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1115,6 +1126,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {

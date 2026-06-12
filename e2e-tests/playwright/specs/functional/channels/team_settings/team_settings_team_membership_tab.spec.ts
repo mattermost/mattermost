@@ -7,6 +7,7 @@
  */
 
 import type {Page} from '@playwright/test';
+
 import {ChannelsPage, expect, newTestPassword, test} from '@mattermost/playwright-lib';
 
 import {
@@ -170,7 +171,6 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
             'user.attributes.Department == "Engineering"',
             [adminUser.id],
         );
-        const testStartTime = Date.now();
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -182,6 +182,13 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         // # Add attribute rule (auto-add stays OFF)
         await addAttributeRule(tab, page, 'Engineering');
         await expect(tab.locator('#autoAddMembersCheckbox')).toBeEnabled({timeout: 5000});
+
+        // # Snapshot job count right before saving — captures any pre-existing jobs from parallel workers
+        const jobsBefore: any[] = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+            {method: 'GET'},
+        );
+        const jobCountBefore = jobsBefore.length;
 
         // # Click Save → confirmation modal appears
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -204,13 +211,12 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         );
         expect(JSON.stringify(policyResult)).toContain('Engineering');
 
-        // * No sync job was created (auto-add was OFF)
-        const jobs: any[] = await (adminClient as any).doFetch(
+        // * No sync job was created (auto-add was OFF) — compare against the pre-save snapshot
+        const jobsAfter: any[] = await (adminClient as any).doFetch(
             `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
             {method: 'GET'},
         );
-        const recentJobs = jobs.filter((j: any) => j.create_at >= testStartTime);
-        expect(recentJobs.length).toBe(0);
+        expect(jobsAfter.length).toBe(jobCountBefore);
 
         await teamSettings.close();
     });
@@ -227,7 +233,6 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
             'user.attributes.Department == "Engineering"',
             [adminUser.id],
         );
-        const testStartTime = Date.now();
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -244,6 +249,16 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await tab.locator('#autoAddMembersCheckbox').click();
         await expect(tab.locator('#autoAddMembersCheckbox')).toBeChecked();
 
+        // # Snapshot the most-recent job id right before saving.
+        // Comparing IDs (not counts) is immune to the API page-size cap: once the
+        // total job count reaches the default page size (~60 in CI), both before/after
+        // snapshots return the same count even when a new job is created.
+        const jobsBefore: any[] = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+            {method: 'GET'},
+        );
+        const latestJobIdBefore = jobsBefore[0]?.id ?? null;
+
         // # Save → confirmation modal
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
 
@@ -255,13 +270,17 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await expect(confirmModal).not.toBeVisible({timeout: 10000});
         await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible({timeout: 10000});
 
-        // * A sync job was created (auto-add was turned ON)
-        const jobs: any[] = await (adminClient as any).doFetch(
-            `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
-            {method: 'GET'},
-        );
-        const recentJobs = jobs.filter((j: any) => j.create_at >= testStartTime);
-        expect(recentJobs.length).toBeGreaterThan(0);
+        // * A sync job was created — poll until a newer job appears at the top of the list
+        await expect.poll(
+            async () => {
+                const jobs: any[] = await (adminClient as any).doFetch(
+                    `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                    {method: 'GET'},
+                );
+                return jobs[0]?.id !== latestJobIdBefore;
+            },
+            {timeout: 15000, intervals: [500, 1000, 2000, 3000]},
+        ).toBe(true);
 
         await teamSettings.close();
     });
@@ -273,7 +292,6 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
         // # Create policy with auto-add=true via API
         await createTeamMembershipPolicy(adminClient, team.id, 'true', true);
-        const testStartTime = Date.now();
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -289,6 +307,13 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await tab.locator('#autoAddMembersCheckbox').click();
         await expect(tab.locator('#autoAddMembersCheckbox')).not.toBeChecked();
 
+        // # Snapshot job count right before saving
+        const jobsBefore: any[] = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+            {method: 'GET'},
+        );
+        const jobCountBefore = jobsBefore.length;
+
         // # Save → confirmation modal
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
 
@@ -300,12 +325,11 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible({timeout: 10000});
 
         // * No sync job was created (auto-add was turned OFF, not ON)
-        const jobs: any[] = await (adminClient as any).doFetch(
+        const jobsAfter: any[] = await (adminClient as any).doFetch(
             `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
             {method: 'GET'},
         );
-        const recentJobs = jobs.filter((j: any) => j.create_at >= testStartTime);
-        expect(recentJobs.length).toBe(0);
+        expect(jobsAfter.length).toBe(jobCountBefore);
 
         await teamSettings.close();
     });

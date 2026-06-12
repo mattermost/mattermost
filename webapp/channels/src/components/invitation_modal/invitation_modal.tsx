@@ -147,6 +147,16 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
     }
 
+    componentDidUpdate(prevProps: Props) {
+        // The team prop may arrive after mount (e.g. read-replica lag means
+        // policy_enforced=false at mount, then the Redux store catches up).
+        // Trigger a fresh candidate load whenever the team transitions from
+        // ungoverned/advisory to strictly filtered and the buffer is still empty.
+        if (!this.isStrictlyFilteredProp(prevProps) && this.isStrictlyFilteredTeam() && this.state.abacCandidates.length === 0) {
+            this.loadAbacCandidates();
+        }
+    }
+
     isTeamMembershipGoverned = (): boolean => {
         return Boolean(this.props.currentTeam?.policy_enforced);
     };
@@ -154,7 +164,11 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     // Public team (open invite) governance is advisory; everything else is
     // strict. Mirrors the server's privacy test (AllowOpenInvite && Type==open).
     isStrictlyFilteredTeam = (): boolean => {
-        const team = this.props.currentTeam;
+        return this.isStrictlyFilteredProp(this.props);
+    };
+
+    isStrictlyFilteredProp = (props: Props): boolean => {
+        const team = props.currentTeam;
         if (!team?.policy_enforced) {
             return false;
         }

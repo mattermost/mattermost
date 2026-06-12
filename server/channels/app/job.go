@@ -227,7 +227,17 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	case model.JobTypeAccessControlTeamSync:
-		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		// Team-type policies use the team ID as the policy ID.
+		// Allow a team admin to trigger a sync job for their own team's policy.
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
 	case model.JobTypeAccessControlSync:
 		// Allow system admins to create access control sync jobs
 		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)

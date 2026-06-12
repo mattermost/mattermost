@@ -4,7 +4,17 @@
 import type {Client4} from '@mattermost/client';
 import type {Locator, Page} from '@playwright/test';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, newTestPassword, test} from '@mattermost/playwright-lib';
+
+import {
+    addAttributeRule,
+    createPrivateTeam,
+    enableTeamMembershipABACConfig,
+    ensureDepartmentAttribute,
+    getTeamAccessControlPolicy,
+    setUserAttribute,
+    waitForAttributeViewToInclude,
+} from '../../../channels/team_settings/helpers';
 
 import {assignTeamsToPolicy, createTeamMembershipParentPolicy, enableTeamMembershipPolicies} from './helpers';
 
@@ -110,7 +120,17 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const {page} = systemConsolePage;
 
         // --- Assign ---------------------------------------------------------
+        // Set up before the navigation so the componentDidMount-fired
+        // fetchAccessControlPolicies response is captured. For a fresh team the
+        // server returns {policy: null, enforced: false}, which calls
+        // setState({policyEnforced: false}). If that response arrives AFTER
+        // setToggle it resets policyEnforced to false, hiding 'Link to a policy'.
+        const policyFetchDone = page.waitForResponse(
+            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
+            {timeout: 20000},
+        ).catch(() => {}); // .catch: also handles 404 (no policy yet) and timeouts
         await openTeamConfig(page, team.display_name);
+        await policyFetchDone; // ensure the fetch has settled before toggling on
         await setToggle(page, true);
 
         await page.locator('[data-testid="link-to-a-policy"]').click();
@@ -212,7 +232,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
 
+        const policyFetchDoneT5 = page.waitForResponse(
+            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
+            {timeout: 20000},
+        ).catch(() => {});
         await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT5;
         await setToggle(page, true);
 
         // Empty state + the link affordance are shown.
@@ -253,5 +278,208 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // Filter to our policy so the assertion is stable under parallel runs.
         const policyRow = await findPolicyRow(page, policyName);
         await expect(policyRow).toContainText('1 team');
+    });
+
+    /**
+     * @objective Custom-rules editor in the per-team page persists the rule and shows
+     * the affected-count confirmation modal before applying.
+     */
+    test('MM-68846-T9 - custom access rules save shows the affected-count confirmation and persists', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Private team with one non-matching member so the count in the modal is non-zero
+        const team = await createPrivateTeam(adminClient, suffix);
+        const nonMatchUser = await adminClient.createUser(
+            {
+                email: `nomatch${suffix}@sample.mattermost.com`,
+                username: `nomatch${suffix}`,
+                password: newTestPassword(),
+            } as any,
+            '',
+            '',
+        );
+        await adminClient.addToTeam(team.id, nonMatchUser.id);
+        await setUserAttribute(adminClient, nonMatchUser.id, 'Department', 'Marketing');
+        await waitForAttributeViewToInclude(
+            adminClient,
+            'user.attributes.Department == "Marketing"',
+            [nonMatchUser.id],
+        );
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT9 = page.waitForResponse(
+            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
+            {timeout: 20000},
+        ).catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT9;
+
+        // # Enable the enforce toggle
+        await setToggle(page, true);
+
+        // * Custom-rules panel appears
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        // # Add Engineering rule against the panel container
+        await addAttributeRule(rulesPanel, page, 'Engineering');
+
+        // # Save via page-level SaveChangesPanel
+        await page.getByRole('button', {name: 'Save'}).click();
+
+        // * Save-confirm modal appears with the affected-count text
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+        await expect(confirmModal.getByText(/\d+ members? do not currently meet the criteria/i)).toBeVisible();
+
+        // # Click Apply
+        await confirmModal.getByRole('button', {name: 'Apply'}).click();
+        await expect(confirmModal).not.toBeVisible({timeout: 10000});
+
+        // * Policy persisted with the Engineering rule
+        const policy: any = await getTeamAccessControlPolicy(adminClient, team.id);
+        expect(JSON.stringify(policy)).toContain('Engineering');
+
+        await adminClient.deleteTeam(team.id);
+    });
+
+    /**
+     * @objective Auto-add checkbox in the custom-rules panel is disabled until a rule
+     * exists, and enabling it triggers a team sync job.
+     */
+    test('MM-68846-T10 - auto-add checkbox is disabled until a rule exists and enabling it triggers a sync job', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const team = await createPrivateTeam(adminClient, suffix);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT10 = page.waitForResponse(
+            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
+            {timeout: 20000},
+        ).catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT10;
+
+        // # Enable enforce toggle
+        await setToggle(page, true);
+
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        const autoAddCheckbox = page.locator('[data-testid="team-auto-add-members-checkbox"]');
+
+        // * Auto-add is disabled while editor is empty
+        await expect(autoAddCheckbox).toBeDisabled({timeout: 5000});
+
+        // # Add a rule — checkbox should enable
+        await addAttributeRule(rulesPanel, page, 'Engineering');
+        await expect(autoAddCheckbox).toBeEnabled({timeout: 5000});
+
+        // # Enable auto-add and record time before save
+        await autoAddCheckbox.click();
+        await expect(autoAddCheckbox).toBeChecked();
+        const testStartTime = Date.now();
+
+        // # Save
+        await page.getByRole('button', {name: 'Save'}).click();
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+        await confirmModal.getByRole('button', {name: 'Apply'}).click();
+        await expect(confirmModal).not.toBeVisible({timeout: 10000});
+
+        // * A sync job was created (auto-add ON)
+        const jobs: any[] = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+            {method: 'GET'},
+        );
+        const recentJobs = jobs.filter((j: any) => j.create_at >= testStartTime);
+        expect(recentJobs.length).toBeGreaterThan(0);
+
+        await adminClient.deleteTeam(team.id);
+    });
+
+    /**
+     * @objective When no current member matches the rule, the save-confirm modal surfaces
+     * the empty-team warning text.
+     */
+    test('MM-68846-T11 - empty-team warning appears in the confirm modal when no member meets the criteria', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering)
+        const team = await createPrivateTeam(adminClient, suffix);
+        const mktUser = await adminClient.createUser(
+            {
+                email: `mkt${suffix}@sample.mattermost.com`,
+                username: `mkt${suffix}`,
+                password: newTestPassword(),
+            } as any,
+            '',
+            '',
+        );
+        await adminClient.addToTeam(team.id, mktUser.id);
+        await setUserAttribute(adminClient, mktUser.id, 'Department', 'Marketing');
+        await waitForAttributeViewToInclude(
+            adminClient,
+            'user.attributes.Department == "Marketing"',
+            [mktUser.id],
+        );
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT11 = page.waitForResponse(
+            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
+            {timeout: 20000},
+        ).catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT11;
+
+        // # Enable enforce toggle
+        await setToggle(page, true);
+
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        // # Add Engineering rule — no current member matches
+        await addAttributeRule(rulesPanel, page, 'Engineering');
+
+        await page.getByRole('button', {name: 'Save'}).click();
+
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+
+        // * Empty-team warning present
+        await expect(confirmModal.getByText(/No current members meet the criteria/i)).toBeVisible({timeout: 10000});
+
+        // # Cancel
+        await confirmModal.getByRole('button', {name: 'Cancel'}).click();
+        await expect(confirmModal).not.toBeVisible();
+
+        await adminClient.deleteTeam(team.id);
     });
 });

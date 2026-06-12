@@ -6,7 +6,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getAccessControlPolicy, getTeamAccessControlPolicy, assignTeamsToAccessControlPolicy, unassignTeamsFromAccessControlPolicy, searchAccessControlPolicies, updateAccessControlPoliciesActive, createAccessControlTeamSyncJob} from 'mattermost-redux/actions/access_control';
+import {getAccessControlPolicy, getTeamAccessControlPolicy, assignTeamsToAccessControlPolicy, unassignTeamsFromAccessControlPolicy, searchAccessControlPolicies, updateAccessControlPoliciesActive, createAccessControlTeamSyncJob, createAccessControlPolicy, getAccessControlFields, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {
     getGroupsAssociatedToTeam as fetchAssociatedGroups,
     linkGroupSyncable,
@@ -87,6 +87,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateAccessControlPoliciesActive,
             createAccessControlTeamSyncJob,
             getTeamStats,
+            saveTeamAccessPolicy: createAccessControlPolicy,
+            getAccessControlFields,
+            searchUsersForExpression,
         }, dispatch),
     };
 }

@@ -9,7 +9,6 @@ import {TeamAccessControl} from './team_access_control_policy';
 
 const baseActions = {
     searchPolicies: jest.fn().mockResolvedValue({data: {policies: [], total: 0}}),
-    onPolicyRemoveAll: jest.fn(),
     onPolicyRemove: jest.fn(),
 };
 
@@ -23,7 +22,7 @@ const parentPolicy = {
 };
 
 describe('TeamAccessControl', () => {
-    test('renders empty state with Link Policy button when no policies assigned', () => {
+    test('renders empty state with Add policy button when no policies assigned', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[]}
@@ -31,8 +30,19 @@ describe('TeamAccessControl', () => {
             />,
         );
 
-        expect(screen.getByText('Link to a policy')).toBeInTheDocument();
+        expect(screen.getByText('+ Add policy')).toBeInTheDocument();
         expect(screen.queryByLabelText('Remove policy')).not.toBeInTheDocument();
+    });
+
+    test('renders Membership policies title', () => {
+        renderWithContext(
+            <TeamAccessControl
+                parentPolicies={[]}
+                actions={baseActions}
+            />,
+        );
+
+        expect(screen.getByText('Membership policies')).toBeInTheDocument();
     });
 
     test('renders policy row when a policy is assigned', () => {
@@ -47,7 +57,18 @@ describe('TeamAccessControl', () => {
         expect(screen.getByLabelText('Remove policy')).toBeInTheDocument();
     });
 
-    test('trash-icon Remove policy uses Button component (has btn class)', () => {
+    test('renders Add policy button when policies are assigned', () => {
+        renderWithContext(
+            <TeamAccessControl
+                parentPolicies={[parentPolicy]}
+                actions={baseActions}
+            />,
+        );
+
+        expect(screen.getByText('+ Add policy')).toBeInTheDocument();
+    });
+
+    test('trash-icon Remove policy is a plain button', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
@@ -57,7 +78,6 @@ describe('TeamAccessControl', () => {
 
         const removeBtn = screen.getByLabelText('Remove policy');
         expect(removeBtn.tagName).toBe('BUTTON');
-        expect(removeBtn).toHaveClass('policy-remove-icon');
     });
 
     test('clicking Remove policy calls onPolicyRemove with the policy id', async () => {
@@ -73,7 +93,7 @@ describe('TeamAccessControl', () => {
         expect(onPolicyRemove).toHaveBeenCalledWith('policy1');
     });
 
-    test('does not render auto-add section when onAutoAddToggle is not provided', () => {
+    test('does not render auto-add checkbox in the policies panel', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
@@ -82,47 +102,86 @@ describe('TeamAccessControl', () => {
         );
 
         expect(screen.queryByTestId('auto-add-members-checkbox')).not.toBeInTheDocument();
+        expect(screen.queryByText('Auto-add members based on access rules')).not.toBeInTheDocument();
     });
 
-    test('renders auto-add checkbox when onAutoAddToggle is provided', () => {
+    test('does not render auto-add checkbox in empty state', () => {
         renderWithContext(
             <TeamAccessControl
-                parentPolicies={[parentPolicy]}
-                autoAddMembers={false}
-                onAutoAddToggle={jest.fn()}
+                parentPolicies={[]}
                 actions={baseActions}
             />,
         );
 
-        expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
-        expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeChecked();
+        expect(screen.queryByTestId('auto-add-members-checkbox')).not.toBeInTheDocument();
     });
 
-    test('auto-add checkbox reflects the autoAddMembers prop value', () => {
-        renderWithContext(
-            <TeamAccessControl
-                parentPolicies={[parentPolicy]}
-                autoAddMembers={true}
-                onAutoAddToggle={jest.fn()}
-                actions={baseActions}
-            />,
-        );
+    describe('pagination', () => {
+        function makePolicies(count: number) {
+            return Array.from({length: count}, (_, i) => ({
+                id: `policy${i + 1}`,
+                name: `Policy ${i + 1}`,
+                type: 'parent',
+                rules: [],
+                imports: [],
+                active: false,
+            }));
+        }
 
-        expect(screen.getByTestId('auto-add-members-checkbox')).toBeChecked();
-    });
+        test('shows first 10 policies with count "1 - 10 of 12" when 12 policies are assigned', () => {
+            renderWithContext(
+                <TeamAccessControl
+                    parentPolicies={makePolicies(12)}
+                    actions={baseActions}
+                />,
+            );
 
-    test('clicking auto-add checkbox calls onAutoAddToggle with the inverted value', async () => {
-        const onAutoAddToggle = jest.fn();
-        renderWithContext(
-            <TeamAccessControl
-                parentPolicies={[parentPolicy]}
-                autoAddMembers={false}
-                onAutoAddToggle={onAutoAddToggle}
-                actions={baseActions}
-            />,
-        );
+            expect(screen.getByText('1 - 10 of 12')).toBeInTheDocument();
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+            expect(screen.getByText('Policy 10')).toBeInTheDocument();
+            expect(screen.queryByText('Policy 11')).not.toBeInTheDocument();
+        });
 
-        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
-        expect(onAutoAddToggle).toHaveBeenCalledWith(true);
+        test('previous page button is disabled and next page enabled on first page', () => {
+            renderWithContext(
+                <TeamAccessControl
+                    parentPolicies={makePolicies(12)}
+                    actions={baseActions}
+                />,
+            );
+
+            expect(screen.getByLabelText('Previous page')).toBeDisabled();
+            expect(screen.getByLabelText('Next page')).not.toBeDisabled();
+        });
+
+        test('navigating to next page shows remaining policies with updated count', async () => {
+            renderWithContext(
+                <TeamAccessControl
+                    parentPolicies={makePolicies(12)}
+                    actions={baseActions}
+                />,
+            );
+
+            await userEvent.click(screen.getByLabelText('Next page'));
+
+            expect(screen.getByText('11 - 12 of 12')).toBeInTheDocument();
+            expect(screen.getByText('Policy 11')).toBeInTheDocument();
+            expect(screen.getByText('Policy 12')).toBeInTheDocument();
+            expect(screen.queryByText('Policy 1')).not.toBeInTheDocument();
+        });
+
+        test('next page button is disabled on last page', async () => {
+            renderWithContext(
+                <TeamAccessControl
+                    parentPolicies={makePolicies(12)}
+                    actions={baseActions}
+                />,
+            );
+
+            await userEvent.click(screen.getByLabelText('Next page'));
+
+            expect(screen.getByLabelText('Next page')).toBeDisabled();
+            expect(screen.getByLabelText('Previous page')).not.toBeDisabled();
+        });
     });
 });

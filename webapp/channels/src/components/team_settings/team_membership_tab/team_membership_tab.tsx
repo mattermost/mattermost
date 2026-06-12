@@ -228,12 +228,35 @@ function TeamMembershipTab({
         try {
             setIsProcessingSave(true);
 
+            const builtRules = buildRulesWithMembership(existingRules, expression);
+            const isEmptyPolicy = builtRules.length === 0 && existingImports.length === 0;
+
+            if (isEmptyPolicy) {
+                // Clearing all rules — delete the policy if one existed, otherwise nothing to do.
+                const hadExistingPolicy = originalExpression !== '' || existingRules.length > 0;
+                if (hadExistingPolicy) {
+                    const deleteResult = await actions.deleteChannelPolicy(team.id);
+                    if (deleteResult.error) {
+                        throw new Error((deleteResult.error as Error).message || 'Failed to delete policy');
+                    }
+                }
+                setOriginalExpression('');
+                setOriginalAutoAddMembers(false);
+                setAutoAddMembers(false);
+                setExistingRules([]);
+                setExistingImports([]);
+                setShowConfirmModal(false);
+                setAllowedCount(null);
+                setRestrictedCount(null);
+                return true;
+            }
+
             const policy: AccessControlPolicy = {
                 id: team.id,
                 name: team.display_name,
                 type: 'team',
                 active: false,
-                rules: buildRulesWithMembership(existingRules, expression),
+                rules: builtRules,
                 imports: existingImports,
             };
 

@@ -185,7 +185,7 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
     });
 
     test('MM-69100-T3 - renders the Recommended chip in the team-selection directory for a qualifying user', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(180000);
         await pw.skipIfNoLicense();
 
         const {adminClient} = await pw.initSetup();
@@ -219,25 +219,47 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
         createdPolicyIds.push(policy.id);
         await assignTeamsToPolicy(adminClient, policy.id, [publicGoverned.id]);
 
+        // Wait for the materialized attribute view to include the qualifying user
+        // before asserting policy propagation — the PDP reads from this view.
         await waitForAttributeViewToInclude(adminClient, expression, [qualUser.id], 45_000);
 
-        // Confirm the API tags it recommended before checking the UI so a render miss
-        // is not masked by propagation lag.
-        await expect.poll(async () => {
-            const {client: qualClient} = await pw.makeClient({username: qualUser.username, password: qualUser.password});
-            const teams = (await qualClient.getTeams(0, 200)) as Team[];
-            return teams.find((t) => t.id === publicGoverned.id)?.recommended === true;
-        }, {
+        // The child policy row is written to the master DB; the directory query
+        // reads from a read replica. Poll policy_enforced until the replica has
+        // caught up so the EXISTS subquery in GetAllPage widens correctly.
+        await expect.poll(async () => (await adminClient.getTeam(publicGoverned.id)).policy_enforced, {
             timeout: 60_000,
             intervals: [1000, 2000, 5000, 5000, 5000],
+            message: 'team should show policy_enforced=true before asserting recommended',
         }).toBe(true);
 
+        // UI: log in as the qualifying user and reload /select_team until the
+        // Recommended chip appears. Each reload fetches fresh team data so the
+        // chip surfaces as soon as the server-side annotation goes live. This
+        // exercises the full API → Redux → render chain without a separate client
+        // session.
         const {page} = await pw.testBrowser.login(qualUser);
         await page.goto('/select_team');
-        await page.waitForLoadState('networkidle');
 
-        // The team row carries the Recommended chip with its accessible label.
+        await expect
+            .poll(
+                async () => {
+                    await page.waitForLoadState('networkidle');
+                    const visible = await page
+                        .getByLabel('Recommended based on your attributes')
+                        .isVisible();
+                    if (!visible) {
+                        await page.reload();
+                    }
+                    return visible;
+                },
+                {
+                    timeout: 60_000,
+                    intervals: [3000, 5000, 10000, 15000, 15000],
+                    message: 'Recommended chip should appear in /select_team for the qualifying user',
+                },
+            )
+            .toBe(true);
+
         await expect(page.getByText(publicGoverned.display_name, {exact: false})).toBeVisible();
-        await expect(page.getByLabel('Recommended based on your attributes')).toBeVisible();
     });
 });

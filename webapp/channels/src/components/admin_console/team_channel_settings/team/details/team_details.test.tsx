@@ -16,6 +16,21 @@ jest.mock('./team_profile', () => ({
     TeamProfile: () => <div>{'TeamProfile'}</div>,
 }));
 
+jest.mock('./team_level_access_rules', () => {
+    return function MockTeamLevelAccessRules(props: any) {
+        return (
+            <div data-testid='team-level-access-rules'>
+                <input
+                    type='checkbox'
+                    data-testid='auto-add-members-checkbox'
+                    checked={props.initialAutoSync ?? false}
+                    onChange={(e) => props.onRulesChange(true, 'user.department == "Engineering"', e.target.checked)}
+                />
+            </div>
+        );
+    };
+});
+
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({push: jest.fn()}),
 }));
@@ -66,6 +81,8 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             updateAccessControlPoliciesActive: jest.fn().mockResolvedValue({data: {}}),
             createAccessControlTeamSyncJob: jest.fn().mockResolvedValue({data: {}}),
             getTeamStats: jest.fn().mockResolvedValue({data: {total_member_count: 5}}),
+            saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+            getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
         },
     };
 
@@ -165,6 +182,27 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
     });
 
+    test('renders two ABAC panels when policy is enforced', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Membership policies')).toBeInTheDocument();
+        });
+        expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument();
+    });
+
     test('removing the policy and disabling the toggle unassigns it on save', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
@@ -191,7 +229,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
         });
 
-        // Remove the parent policy, then disable ABAC (now allowed since the list is empty).
         await userEvent.click(screen.getByLabelText('Remove policy'));
         await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
@@ -209,8 +246,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
 
-        // The thunk resolves with {error} rather than throwing — the handler must
-        // inspect the result, render the error, and not navigate away as success.
         const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({error: {message: 'policy update failed'}});
         const props = {
             ...baseProps,
@@ -267,9 +302,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
         });
 
-        // Removing the only policy disables the toggle, which lets us save without
-        // re-touching the already-assigned parent1. The assign action must never
-        // fire for a policy that was already on the server when the page loaded.
         await userEvent.click(screen.getByLabelText('Remove policy'));
         await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
@@ -387,6 +419,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
         const updateAccessControlPoliciesActive = jest.fn().mockResolvedValue({data: {}});
         const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
+        const saveTeamAccessPolicy = jest.fn().mockResolvedValue({data: {}});
         const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 5}});
         const patchTeam = jest.fn().mockResolvedValue({data: {}});
         const props = {
@@ -399,6 +432,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 getAccessControlPolicy,
                 updateAccessControlPoliciesActive,
                 createAccessControlTeamSyncJob,
+                saveTeamAccessPolicy,
                 getTeamStats,
                 patchTeam,
             },

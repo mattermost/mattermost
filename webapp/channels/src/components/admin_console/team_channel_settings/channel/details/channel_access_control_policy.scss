@@ -86,17 +86,17 @@
     }
 }
 
-// Style for the Remove policy button
-#channel_access_control_with_policy,
-#team_access_control_with_policy {
+// Style for the Remove all button (channel only)
+#channel_access_control_with_policy {
     .btn.btn-primary {
         border-color: var(--dnd-indicator);
         background-color: var(--dnd-indicator);
         color: var(--button-color);
-        
+
         &:hover, &:active, &:focus {
             border-color: rgba(var(--dnd-indicator-rgb), 0.88);
             background-color: rgba(var(--dnd-indicator-rgb), 0.88);
         }
     }
 }
+

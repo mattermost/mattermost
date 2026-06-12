@@ -16,9 +16,9 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import AlertBanner from 'components/alert_banner';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
 import useCopyText from 'components/common/hooks/useCopyText';
+import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
-import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 
 import {Constants} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';

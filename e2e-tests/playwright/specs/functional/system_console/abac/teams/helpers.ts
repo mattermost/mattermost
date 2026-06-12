@@ -48,6 +48,39 @@ export async function createTeamMembershipParentPolicy(
 }
 
 /**
+ * Trigger an access_control_team_sync job and poll that specific job until it
+ * reaches `success`. Polling by ID (not list position) avoids a race where
+ * older jobs occupy jobs[0] and the newly created one is never checked.
+ */
+export async function triggerSyncJobAndPoll(
+    client: Client4,
+    timeoutMs = 90_000,
+    pollIntervalMs = 3_000,
+): Promise<void> {
+    const job: any = await (client as any).doFetch(`${client.getBaseRoute()}/jobs`, {
+        method: 'POST',
+        body: JSON.stringify({type: 'access_control_team_sync'}),
+    });
+    const jobId: string = job.id;
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+        const current: any = await (client as any).doFetch(
+            `${client.getBaseRoute()}/jobs/${jobId}`,
+            {method: 'GET'},
+        );
+        if (current.status === 'success') {
+            return;
+        }
+        if (current.status === 'error') {
+            throw new Error(`access_control_team_sync job failed: ${JSON.stringify(current)}`);
+        }
+    }
+    throw new Error('Timed out waiting for access_control_team_sync job to succeed');
+}
+
+/**
  * Assign a parent policy to teams via the REST API (the `team_ids` field).
  * Mirrors `assignChannelsToPolicy` from team_settings/helpers — same endpoint,
  * different resource list.

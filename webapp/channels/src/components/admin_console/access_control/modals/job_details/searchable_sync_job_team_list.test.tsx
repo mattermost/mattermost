@@ -56,10 +56,12 @@ describe('SearchableSyncJobTeamList', () => {
 
     test('calls onViewDetails with correct team id when row clicked', async () => {
         const onViewDetails = jest.fn();
-        renderWithContext(<SearchableSyncJobTeamList
-            {...baseProps}
-            onViewDetails={onViewDetails}
-        />);
+        renderWithContext(
+            <SearchableSyncJobTeamList
+                {...baseProps}
+                onViewDetails={onViewDetails}
+            />,
+        );
 
         await userEvent.click(screen.getByTestId('TeamRow-engineering'));
 
@@ -67,10 +69,12 @@ describe('SearchableSyncJobTeamList', () => {
     });
 
     test('shows empty state with search icon when no teams match', () => {
-        renderWithContext(<SearchableSyncJobTeamList
-            {...baseProps}
-            teams={[]}
-        />);
+        renderWithContext(
+            <SearchableSyncJobTeamList
+                {...baseProps}
+                teams={[]}
+            />,
+        );
 
         expect(screen.getByText('No results')).toBeInTheDocument();
     });
