@@ -6,6 +6,7 @@ import {fileURLToPath} from 'url';
 
 import {FlatCompat} from '@eslint/eslintrc';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import reactPlugin from 'eslint-plugin-react';
 
 import base from './base.js';
 
@@ -36,10 +37,6 @@ const react = {
         '@stylistic/jsx-first-prop-new-line': [
             2,
             'multiline',
-        ],
-        '@stylistic/jsx-indent': [
-            2,
-            4,
         ],
         '@stylistic/jsx-indent-props': [
             2,
@@ -183,7 +180,7 @@ const react = {
 export default [
     ...base,
     jsxA11yPlugin.flatConfigs.recommended,
-    ...compat.extends('plugin:react/recommended'),
+    reactPlugin.configs.flat.recommended,
     ...compat.extends('plugin:react-hooks/recommended'),
     react,
     {

@@ -219,7 +219,9 @@ const base = {
         '@stylistic/quotes': [
             2,
             'single',
-            'avoid-escape',
+            {
+                avoidEscape: true,
+            },
         ],
         '@stylistic/rest-spread-spacing': [
             2,
