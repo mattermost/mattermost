@@ -33,7 +33,11 @@ async function setupTest(pw: PlaywrightExtended): Promise<TestContext> {
 
     const {adminUser, adminClient} = await pw.initSetup();
 
-    await adminClient.patchConfig({FeatureFlags: {PropertyFieldRank: 'true'}} as any);
+    // The PropertyFieldRank feature flag is enabled at the server level — via the
+    // MM_FEATUREFLAGS_PROPERTYFIELDRANK env var in CI (e2e-tests/.ci/server.generate.sh)
+    // and the server config locally. It cannot be toggled here: without a SplitKey the
+    // config store marks FeatureFlags read-only, so a patchConfig of FeatureFlags is a
+    // no-op (and a string value would fail JSON decode with a 400).
 
     // # Start from a clean slate so chip/row indices are predictable
     try {
