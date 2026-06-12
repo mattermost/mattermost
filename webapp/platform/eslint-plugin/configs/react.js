@@ -1,21 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import path from 'path';
-import {fileURLToPath} from 'url';
-
-import {FlatCompat} from '@eslint/eslintrc';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 import base from './base.js';
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-
-const compat = new FlatCompat({
-    baseDirectory: dirname,
-});
 
 const react = {
     files: ['**/*.jsx', '**/*.tsx'],
@@ -181,8 +171,25 @@ export default [
     ...base,
     jsxA11yPlugin.flatConfigs.recommended,
     reactPlugin.configs.flat.recommended,
-    ...compat.extends('plugin:react-hooks/recommended'),
+    reactHooksPlugin.configs.flat.recommended,
     react,
+    {
+        // eslint-plugin-react-hooks v7's recommended config enables a set of React Compiler
+        // correctness rules as errors. The rules below currently flag existing code whose fixes
+        // would require functional changes, so they're downgraded to warnings to surface the
+        // issues without breaking the build. The remaining recommended rules (rules-of-hooks,
+        // set-state-in-render, globals, config, gating, ...) stay at their recommended severity.
+        rules: {
+            'react-hooks/error-boundaries': 'warn',
+            'react-hooks/immutability': 'warn',
+            'react-hooks/preserve-manual-memoization': 'warn',
+            'react-hooks/purity': 'warn',
+            'react-hooks/refs': 'warn',
+            'react-hooks/set-state-in-effect': 'warn',
+            'react-hooks/static-components': 'warn',
+            'react-hooks/use-memo': 'warn',
+        },
+    },
     {
         settings: {
             react: {
