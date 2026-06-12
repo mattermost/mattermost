@@ -441,7 +441,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(rctx, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform, model.PushTransportStandard)
 			a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 				mlog.String("sender_id", rpost.UserId),
 				mlog.String("post_id", post.RootId),
@@ -643,7 +643,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 			a.Log().LogM(mlog.MlvlNotificationError, "Missing team",
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -1030,7 +1030,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	// Serialize clean post once
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform, model.PushTransportStandard)
 		a.Log().LogM(mlog.MlvlNotificationError, "Error in marshalling post to JSON",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -1105,7 +1105,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	}
 
 	if !model.IsValidId(previewProp) {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform, model.PushTransportStandard)
 		a.Log().LogM(mlog.MlvlNotificationError, "Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -1120,7 +1120,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	previewedPost, appErr := a.GetSinglePost(rctx, previewProp, false)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 			a.Log().LogM(mlog.MlvlNotificationError, "permalink post not found",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
@@ -1138,7 +1138,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	permalinkPreviewedChannel, appErr := a.GetChannel(rctx, previewedPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 			a.Log().LogM(mlog.MlvlNotificationError, "Cannot get channel",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),

@@ -192,7 +192,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 
 	if rejectionReason != "" {
 		// Email notification rejected by plugin
-		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonRejectedByPlugin, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonRejectedByPlugin, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Email notification rejected by plugin",
 			mlog.String("type", model.NotificationTypeEmail),
 			mlog.String("status", model.NotificationStatusNotSent),

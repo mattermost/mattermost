@@ -543,7 +543,7 @@ func incrementWebsocketCounter(wc *platform.WebConn) {
 		return
 	}
 
-	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, model.NotificationNoPlatform)
+	wc.Platform.Metrics().IncrementNotificationCounter(model.NotificationTypeWebsocket, model.NotificationNoPlatform, model.PushTransportStandard)
 }
 
 // getPostFromMessage extracts and unmarshals the current post from the WebSocket message.
