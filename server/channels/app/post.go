@@ -2908,6 +2908,11 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 		return
 	}
 
+	env := a.GetPluginsEnvironment()
+	if env == nil || !env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) {
+		return
+	}
+
 	postsSlice := make([]*model.Post, 0, len(posts))
 
 	for _, post := range posts {
@@ -2933,6 +2938,11 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 
 func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
 	if !a.Config().FeatureFlags.ConsumePostHook || (*post).Type == model.PostTypeBurnOnRead {
+		return
+	}
+
+	env := a.GetPluginsEnvironment()
+	if env == nil || !env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) {
 		return
 	}
 
