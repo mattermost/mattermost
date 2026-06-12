@@ -1304,15 +1304,8 @@ type AuditStorageStore interface {
 	// MarkBulk records arbitrary mixed (user, entity, mechanism) triples in
 	// a single SQL statement. Used by the audit delivery target's batching
 	// worker pool to flush an accumulated batch in one round-trip.
-	MarkBulk(ctx context.Context, records []AuditDeliveryRecord) error
+	MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error
 	HasRead(ctx context.Context, userID, postID string) (bool, error)
-}
-
-// AuditDeliveryRecord is one row's worth of input to MarkBulk.
-type AuditDeliveryRecord struct {
-	UserID    string
-	EntityID  string
-	Mechanism int16
 }
 
 type TemporaryPostStore interface {

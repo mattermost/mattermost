@@ -21,16 +21,16 @@ import (
 // number of leading calls to exercise the discard-on-failure path.
 type fakeAuditStorage struct {
 	mu        sync.Mutex
-	rows      map[store.AuditDeliveryRecord]int // row -> times persisted
+	rows      map[model.AuditDeliveryRecord]int // row -> times persisted
 	calls     int
 	failFirst int // number of leading MarkBulk calls to fail
 }
 
 func newFakeAuditStorage() *fakeAuditStorage {
-	return &fakeAuditStorage{rows: make(map[store.AuditDeliveryRecord]int)}
+	return &fakeAuditStorage{rows: make(map[model.AuditDeliveryRecord]int)}
 }
 
-func (f *fakeAuditStorage) MarkBulk(_ context.Context, records []store.AuditDeliveryRecord) error {
+func (f *fakeAuditStorage) MarkBulk(_ context.Context, records []model.AuditDeliveryRecord) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.calls++
@@ -44,10 +44,10 @@ func (f *fakeAuditStorage) MarkBulk(_ context.Context, records []store.AuditDeli
 	return nil
 }
 
-func (f *fakeAuditStorage) snapshot() (map[store.AuditDeliveryRecord]int, int) {
+func (f *fakeAuditStorage) snapshot() (map[model.AuditDeliveryRecord]int, int) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	out := make(map[store.AuditDeliveryRecord]int, len(f.rows))
+	out := make(map[model.AuditDeliveryRecord]int, len(f.rows))
 	maps.Copy(out, f.rows)
 	return out, f.calls
 }
@@ -82,8 +82,8 @@ func routeMeta(tgt *ShardedDeliveryDBTarget, meta map[string]any) {
 	tgt.route(metaFields(meta))
 }
 
-func rec(userID, entityID string, mech int16) store.AuditDeliveryRecord {
-	return store.AuditDeliveryRecord{UserID: userID, EntityID: entityID, Mechanism: mech}
+func rec(userID, entityID string, mech int16) model.AuditDeliveryRecord {
+	return model.AuditDeliveryRecord{UserID: userID, EntityID: entityID, Mechanism: mech}
 }
 
 func TestShardedDeliveryDBTarget_WritesAndDedups(t *testing.T) {

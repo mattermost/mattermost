@@ -159,7 +159,7 @@ func (t *DeliveryDBTarget) logBlocked() {
 
 func (t *DeliveryDBTarget) workerLoop() {
 	defer t.wg.Done()
-	batch := make([]store.AuditDeliveryRecord, 0, t.batchSize)
+	batch := make([]model.AuditDeliveryRecord, 0, t.batchSize)
 	ticker := time.NewTicker(t.flushInterval)
 	defer ticker.Stop()
 
@@ -184,7 +184,7 @@ func (t *DeliveryDBTarget) workerLoop() {
 				flush()
 				return
 			}
-			batch = append(batch, store.AuditDeliveryRecord{
+			batch = append(batch, model.AuditDeliveryRecord{
 				UserID:    item.userID,
 				EntityID:  item.entityID,
 				Mechanism: item.mechanism,

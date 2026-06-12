@@ -8,3 +8,10 @@ type ReadReceipt struct {
 	UserID   string `json:"user_id"`
 	ExpireAt int64  `json:"expire_at"`
 }
+
+// AuditDeliveryRecord is one row's worth of input to MarkBulk.
+type AuditDeliveryRecord struct {
+	UserID    string
+	EntityID  string
+	Mechanism int16
+}

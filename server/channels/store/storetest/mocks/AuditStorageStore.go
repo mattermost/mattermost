@@ -7,7 +7,7 @@ package mocks
 import (
 	context "context"
 
-	store "github.com/mattermost/mattermost/server/v8/channels/store"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -63,7 +63,7 @@ func (_m *AuditStorageStore) Mark(ctx context.Context, userID string, postID str
 }
 
 // MarkBulk provides a mock function with given fields: ctx, records
-func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 	ret := _m.Called(ctx, records)
 
 	if len(ret) == 0 {
@@ -71,7 +71,7 @@ func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []store.Audit
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []store.AuditDeliveryRecord) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []model.AuditDeliveryRecord) error); ok {
 		r0 = rf(ctx, records)
 	} else {
 		r0 = ret.Error(0)

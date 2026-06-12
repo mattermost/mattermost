@@ -43,7 +43,7 @@ func (noopAuditStorage) MarkBulkSameUser(context.Context, string, []string, int1
 func (noopAuditStorage) MarkBulkSamePost(context.Context, []string, string, int16) error {
 	return nil
 }
-func (noopAuditStorage) MarkBulk(context.Context, []store.AuditDeliveryRecord) error { return nil }
+func (noopAuditStorage) MarkBulk(context.Context, []model.AuditDeliveryRecord) error { return nil }
 func (noopAuditStorage) HasRead(context.Context, string, string) (bool, error)       { return false, nil }
 
 func newSqlAuditStorage(s *SqlStore) store.AuditStorageStore {
@@ -111,7 +111,7 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 // single round-trip. Three parallel arrays are zipped server-side via
 // unnest — one row per index. Used by the audit delivery target's batching
 // worker pool to flush an accumulated batch.
-func (s *SqlAuditStorage) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+func (s *SqlAuditStorage) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 	if len(records) == 0 {
 		return nil
 	}

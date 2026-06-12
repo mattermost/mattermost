@@ -919,7 +919,7 @@ func (s *TimerLayerAuditStorageStore) Mark(ctx context.Context, userID string, p
 	return err
 }
 
-func (s *TimerLayerAuditStorageStore) MarkBulk(ctx context.Context, records []AuditDeliveryRecord) error {
+func (s *TimerLayerAuditStorageStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 	start := time.Now()
 
 	err := s.AuditStorageStore.MarkBulk(ctx, records)

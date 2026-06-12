@@ -243,9 +243,9 @@ func (t *ShardedDeliveryDBTarget) flush(pending map[auditDeliveryItem]struct{}) 
 	if len(pending) == 0 {
 		return
 	}
-	batch := make([]store.AuditDeliveryRecord, 0, len(pending))
+	batch := make([]model.AuditDeliveryRecord, 0, len(pending))
 	for it := range pending {
-		batch = append(batch, store.AuditDeliveryRecord{
+		batch = append(batch, model.AuditDeliveryRecord{
 			UserID:    it.userID,
 			EntityID:  it.entityID,
 			Mechanism: it.mechanism,

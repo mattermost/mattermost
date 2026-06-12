@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // Time-boxed soak test for ShardedDeliveryDBTarget against a real
@@ -258,7 +257,7 @@ type loadStore struct {
 	db *sql.DB
 }
 
-func (s *loadStore) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+func (s *loadStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 	if len(records) == 0 {
 		return nil
 	}
