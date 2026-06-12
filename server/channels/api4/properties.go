@@ -290,6 +290,14 @@ func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 // scope resolution + permission checks, opts validation, audit, search,
 // response encoding.
 func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.PropertyGroup, opts model.PropertyFieldSearchOpts, callerName string) {
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFields, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
+	model.AddEventParameterToAuditRec(auditRec, "object_types", opts.ObjectTypes)
+	model.AddEventParameterToAuditRec(auditRec, "since", opts.SinceUpdateAt)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", opts.ChannelID)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", opts.TeamID)
+
 	// System-object fields can only live at the system scope by
 	// invariant (enforced at create time). When the caller asks
 	// exclusively for system-object fields, any channel/team/target
@@ -297,7 +305,7 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 	// regardless of what was passed so legacy callers don't get a
 	// confusing scope_conflict on otherwise valid requests. The
 	// shortcut only applies when object_types is exactly [system]:
-	// mixing with other types would silently drop the non-system 3rows.
+	// mixing with other types would silently drop the non-system rows.
 	if len(opts.ObjectTypes) == 1 && opts.ObjectTypes[0] == model.PropertyFieldObjectTypeSystem {
 		opts.ChannelID = ""
 		opts.TeamID = ""
@@ -313,14 +321,6 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 		c.Err = model.NewAppError(callerName, "api.property_field.get.invalid_opts.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFields, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-	model.AddEventParameterToAuditRec(auditRec, "object_types", opts.ObjectTypes)
-	model.AddEventParameterToAuditRec(auditRec, "since", opts.SinceUpdateAt)
-	model.AddEventParameterToAuditRec(auditRec, "channel_id", opts.ChannelID)
-	model.AddEventParameterToAuditRec(auditRec, "team_id", opts.TeamID)
 
 	fields, err := c.App.SearchPropertyFields(c.AppContext, group.ID, opts)
 	if err != nil {
