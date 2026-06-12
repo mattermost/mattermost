@@ -33,6 +33,36 @@ func TestSAFieldFromPropertyField(t *testing.T) {
 	assert.Equal(t, "VPN Active", saField.Attrs.DisplayName)
 }
 
+func TestSessionAttributeSystemFieldsDisplayNames(t *testing.T) {
+	fields := SessionAttributeSystemFields("group-id")
+	require.NotEmpty(t, fields)
+
+	displayNamesByName := make(map[string]string, len(fields))
+	for _, field := range fields {
+		saField, err := SAFieldFromPropertyField(field)
+		require.NoError(t, err)
+		require.NotEmpty(t, saField.Attrs.DisplayName, "field %q must have a display name", field.Name)
+		displayNamesByName[field.Name] = saField.Attrs.DisplayName
+	}
+
+	expected := map[string]string{
+		SessionAttributesPropertyFieldClientIPAddress:      "Client IP address",
+		SessionAttributesPropertyFieldNetworkInterfaceType: "Network interface type",
+		SessionAttributesPropertyFieldVPNActive:            "VPN active",
+		SessionAttributesPropertyFieldSSID:                 "SSID",
+		SessionAttributesPropertyFieldClientDeviceID:       "Device ID",
+		SessionAttributesPropertyFieldHardwareID:           "Hardware ID",
+		SessionAttributesPropertyFieldMDMEnrolled:          "MDM enrolled",
+		SessionAttributesPropertyFieldClientVersion:        "Client version",
+		SessionAttributesPropertyFieldOSPlatform:           "OS platform",
+		SessionAttributesPropertyFieldOSVersion:            "OS version",
+		SessionAttributesPropertyFieldJailbreakDetected:    "Jailbreak detected",
+	}
+	for name, displayName := range expected {
+		assert.Equal(t, displayName, displayNamesByName[name], "display name for %q", name)
+	}
+}
+
 func TestSAFieldEnabledForPlatform(t *testing.T) {
 	field := &PropertyField{
 		Name: SessionAttributesPropertyFieldVPNActive,

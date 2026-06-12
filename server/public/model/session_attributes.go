@@ -184,8 +184,9 @@ func sessionAttributeFieldAttrs(platforms []string, ttl, grace int) StringInterf
 	}
 }
 
-func sessionAttributeField(groupID, name string, fieldType PropertyFieldType, platforms []string, ttl, grace int, extraAttrs StringInterface) *PropertyField {
+func sessionAttributeField(groupID, name, displayName string, fieldType PropertyFieldType, platforms []string, ttl, grace int, extraAttrs StringInterface) *PropertyField {
 	attrs := sessionAttributeFieldAttrs(platforms, ttl, grace)
+	attrs[SAAttrDisplayName] = displayName
 	maps.Copy(attrs, extraAttrs)
 	return &PropertyField{
 		GroupID:           groupID,
@@ -217,9 +218,9 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 	}
 
 	return []*PropertyField{
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldIPAddress, PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientIPAddress, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldNetworkInterfaceType, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, StringInterface{
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldIPAddress, "IP address", PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientIPAddress, "Client IP address", PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldNetworkInterfaceType, "Network interface type", PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, StringInterface{
 			PropertyFieldAttributeOptions: []map[string]string{
 				{"name": "wifi"},
 				{"name": "ethernet"},
@@ -229,23 +230,23 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 				{"name": "other"},
 			},
 		}),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldVPNActive, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, boolSelectOptions),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldSSID, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldVPNActive, "VPN active", PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, boolSelectOptions),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldSSID, "SSID", PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLNetworkIdentity, SessionAttributeDefaultGraceNetworkIdentity, nil),
 
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldMDMEnrolled, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldJailbreakDetected, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSPlatform, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSVersion, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientVersion, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldMDMEnrolled, "MDM enrolled", PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldJailbreakDetected, "Jailbreak detected", PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSPlatform, "OS platform", PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSVersion, "OS version", PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientVersion, "Client version", PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, nil),
 
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentPlatform, PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentOS, PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentBrowserName, PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentBrowserVersion, PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldTLSDDeviceID, PropertyFieldTypeText, desktopBrowser, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientDeviceID, PropertyFieldTypeText, mobileOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldHardwareID, PropertyFieldTypeText, desktopOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldServerFQDN, PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientFQDN, PropertyFieldTypeText, desktopOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentPlatform, "User agent platform", PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentOS, "User agent OS", PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentBrowserName, "User agent browser name", PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentBrowserVersion, "User agent browser version", PropertyFieldTypeText, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldTLSDDeviceID, "TLS device ID", PropertyFieldTypeText, desktopBrowser, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientDeviceID, "Device ID", PropertyFieldTypeText, mobileOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldHardwareID, "Hardware ID", PropertyFieldTypeText, desktopOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldServerFQDN, "Server FQDN", PropertyFieldTypeText, clientsOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldClientFQDN, "Client FQDN", PropertyFieldTypeText, desktopOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, nil),
 	}
 }
