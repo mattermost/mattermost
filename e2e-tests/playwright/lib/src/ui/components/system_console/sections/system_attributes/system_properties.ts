@@ -263,9 +263,14 @@ export default class SystemProperties {
         return this.container.locator('.user-property-rank-values').last();
     }
 
-    /** Add-value input inside the ranked-values cell (auto-assigns next rank). */
+    /**
+     * Add-value input inside the ranked-values cell (auto-assigns next rank).
+     * Located by class, not placeholder: the placeholder ('Add values… (required)')
+     * only renders in the empty state and disappears once a value is added, so
+     * placeholder-based lookups break when adding more than one value.
+     */
     rankAddInput(): Locator {
-        return this.lastRankValues().getByPlaceholder('Add value…');
+        return this.lastRankValues().locator('.user-property-rank-values__add-input');
     }
 
     async addRankValueToLast(value: string) {
