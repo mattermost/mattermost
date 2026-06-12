@@ -49,4 +49,12 @@ type PolicyAdministrationPointInterface interface {
 	// persisted. Backs the picker-based "Simulate access" UX in the
 	// System Console and Channel Settings.
 	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
+	// OnPropertyFieldOptionsChanged signals the access control service that
+	// a property field's options changed (e.g. an admin re-ranked or
+	// renamed options on a rank-typed field). The service invalidates any
+	// cached per-field metadata and clears compiled-policy cache entries
+	// for policies that reference the field so subsequent evaluations
+	// re-read the authoritative values. Safe to call for any field type;
+	// the service no-ops for fields it does not track.
+	OnPropertyFieldOptionsChanged(rctx request.CTX, fieldID string)
 }

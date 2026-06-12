@@ -19,6 +19,10 @@ export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
 export enum CELOperator {
     EQUALS = '==',
     NOT_EQUALS = '!=',
+    GREATER_THAN = '>',
+    GREATER_THAN_OR_EQUAL = '>=',
+    LESS_THAN = '<',
+    LESS_THAN_OR_EQUAL = '<=',
     STARTS_WITH = 'startsWith',
     ENDS_WITH = 'endsWith',
     CONTAINS = 'contains',
@@ -35,12 +39,28 @@ export enum OperatorLabel {
     IN = 'in',
     HAS_ANY_OF = 'has any of',
     HAS_ALL_OF = 'has all of',
+
+    // Ranked-attribute comparison operators. These are shown only for
+    // attributes of type 'rank' and replace the standard operator set there.
+    // IS_NOT (above) is reused for the ranked "is not" (≠) operator.
+    IS_EXACTLY = 'is exactly',
+    IS_AT_LEAST = 'is at least',
+    IS_GREATER_THAN = 'is greater than',
+    IS_AT_MOST = 'is at most',
+    IS_LESS_THAN = 'is less than',
 }
 
-// Map from visual AST operator to UI label
+// Map from visual AST operator to UI label. The comparison symbols (>=, >, <, <=)
+// are only ever produced by ranked attributes, so they map directly to the ranked
+// labels. EQUALS/NOT_EQUALS map to the generic IS/IS_NOT here; parseExpression
+// promotes EQUALS to IS_EXACTLY when the attribute is ranked.
 export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.EQUALS]: OperatorLabel.IS,
     [CELOperator.NOT_EQUALS]: OperatorLabel.IS_NOT,
+    [CELOperator.GREATER_THAN_OR_EQUAL]: OperatorLabel.IS_AT_LEAST,
+    [CELOperator.GREATER_THAN]: OperatorLabel.IS_GREATER_THAN,
+    [CELOperator.LESS_THAN_OR_EQUAL]: OperatorLabel.IS_AT_MOST,
+    [CELOperator.LESS_THAN]: OperatorLabel.IS_LESS_THAN,
     [CELOperator.STARTS_WITH]: OperatorLabel.STARTS_WITH,
     [CELOperator.ENDS_WITH]: OperatorLabel.ENDS_WITH,
     [CELOperator.CONTAINS]: OperatorLabel.CONTAINS,
@@ -61,6 +81,13 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.IN]: {type: 'list', celOp: CELOperator.IN},
     [OperatorLabel.HAS_ANY_OF]: {type: 'list', celOp: CELOperator.IN},
     [OperatorLabel.HAS_ALL_OF]: {type: 'list', celOp: CELOperator.IN},
+
+    // Ranked comparison operators emit `attr <op> "Option"`. The backend
+    [OperatorLabel.IS_EXACTLY]: {type: 'comparison', celOp: CELOperator.EQUALS},
+    [OperatorLabel.IS_AT_LEAST]: {type: 'comparison', celOp: CELOperator.GREATER_THAN_OR_EQUAL},
+    [OperatorLabel.IS_GREATER_THAN]: {type: 'comparison', celOp: CELOperator.GREATER_THAN},
+    [OperatorLabel.IS_AT_MOST]: {type: 'comparison', celOp: CELOperator.LESS_THAN_OR_EQUAL},
+    [OperatorLabel.IS_LESS_THAN]: {type: 'comparison', celOp: CELOperator.LESS_THAN},
 };
 
 export function isMultiValueOperator(op: string): boolean {
@@ -71,10 +98,25 @@ export function isMultiselectOperator(op: string): boolean {
     return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
 }
 
+// Ordinal comparison operators exclusive to ranked attributes. IS_NOT is
+// intentionally excluded — it is shared with the standard operator set — so it
+// is not filtered out of non-ranked attribute menus.
+export function isRankOperator(op: string): boolean {
+    return op === OperatorLabel.IS_EXACTLY ||
+        op === OperatorLabel.IS_AT_LEAST ||
+        op === OperatorLabel.IS_GREATER_THAN ||
+        op === OperatorLabel.IS_AT_MOST ||
+        op === OperatorLabel.IS_LESS_THAN;
+}
+
 export function isSimpleCondition(s: string): boolean {
     const trimmed = s.trim();
+
+    // The first pattern accepts ==, != and the ranked ordinal operators
+    // (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
+    // alternation so the two-char forms match before the one-char ones.
     return Boolean(
-        trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
+        trimmed.match(/^user\.attributes\.\w+\s*(==|!=|>=|<=|>|<)\s*['"][^'"]*['"]$/) ||
         trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
         trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
         trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||

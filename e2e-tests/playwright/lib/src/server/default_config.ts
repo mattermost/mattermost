@@ -787,6 +787,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
         ClassificationMarkings: true,
+        PropertyFieldRank: true,
         IntegratedBoards: false,
         CJKSearch: false,
         ManagedChannelCategories: false,

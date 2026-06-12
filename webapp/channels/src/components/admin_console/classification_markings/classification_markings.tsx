@@ -370,7 +370,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
             }
 
-            // Ensure the channel_classification linked field exists as part of the set.
+            // Ensure the channel-scoped classification linked field exists as part of the set.
             // Push saved fields into Redux eagerly so the banner updates
             // atomically rather than waiting for out-of-order WS events.
             const existingChannelField = await fetchChannelClassificationField();
