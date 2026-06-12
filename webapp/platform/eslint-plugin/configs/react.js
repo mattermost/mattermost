@@ -180,7 +180,6 @@ export default [
         // issues without breaking the build. The remaining recommended rules (rules-of-hooks,
         // set-state-in-render, globals, config, gating, ...) stay at their recommended severity.
         rules: {
-            'react-hooks/error-boundaries': 'warn',
             'react-hooks/immutability': 'warn',
             'react-hooks/preserve-manual-memoization': 'warn',
             'react-hooks/purity': 'warn',
