@@ -33,6 +33,8 @@ async function setupTest(pw: PlaywrightExtended): Promise<TestContext> {
 
     const {adminUser, adminClient} = await pw.initSetup();
 
+    await adminClient.patchConfig({FeatureFlags: {PropertyFieldRank: 'true'}} as any);
+
     // # Start from a clean slate so chip/row indices are predictable
     try {
         const existing = await adminClient.getCustomProfileAttributeFields();
