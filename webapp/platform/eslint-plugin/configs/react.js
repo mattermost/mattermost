@@ -185,6 +185,10 @@ export default [
             'react-hooks/purity': 'warn',
             'react-hooks/refs': 'warn',
             'react-hooks/set-state-in-effect': 'warn',
+
+            // This rule can be enabled once https://github.com/mattermost/mattermost/pull/36575 is merged because it
+            // should be done by converting getChannelIconComponent and getArchiveIconComponent to proper components
+            // instead of functions that return component constructors.
             'react-hooks/static-components': 'warn',
             'react-hooks/use-memo': 'warn',
         },
