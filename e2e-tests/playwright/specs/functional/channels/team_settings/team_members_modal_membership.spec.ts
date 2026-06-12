@@ -19,6 +19,19 @@ import {
 } from './helpers';
 
 test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '@team_membership']}, () => {
+    let createdTeamIds: string[] = [];
+    let createdUserIds: string[] = [];
+
+    test.afterEach(async ({pw}) => {
+        const {adminClient} = await pw.getAdminClient();
+        for (const id of createdTeamIds.splice(0)) {
+            await adminClient.deleteTeam(id).catch(() => {});
+        }
+        for (const id of createdUserIds.splice(0)) {
+            await adminClient.updateUserActive(id, false).catch(() => {});
+        }
+    });
+
     test('MM-69100_34 governed team shows the policy banner in the Team Members modal', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
@@ -26,6 +39,7 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
         await ensureDepartmentAttribute(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
@@ -57,6 +71,7 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
 
         // # Create team admin who is an attribute holder (Engineering)
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
         await waitForAttributeViewToInclude(
             adminClient,
@@ -95,6 +110,7 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
 
         // # Public team with Engineering policy
         const team = await createPublicTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
 
         // # Regular user (non-admin) — verifies the banner appears for ordinary members too
         const regularUser = await adminClient.createUser(
@@ -106,6 +122,7 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
             '',
             '',
         );
+        createdUserIds.push(regularUser.id);
         regularUser.password = newTestPassword();
         await adminClient.savePreferences(regularUser.id, [
             {user_id: regularUser.id, category: 'tutorial_step', name: regularUser.id, value: '999'},
@@ -140,6 +157,7 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
         await enableTeamMembershipABACConfig(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);

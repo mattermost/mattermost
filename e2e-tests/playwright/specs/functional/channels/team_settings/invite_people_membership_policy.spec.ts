@@ -20,6 +20,19 @@ import {
 } from './helpers';
 
 test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_membership']}, () => {
+    let createdTeamIds: string[] = [];
+    let createdUserIds: string[] = [];
+
+    test.afterEach(async ({pw}) => {
+        const {adminClient} = await pw.getAdminClient();
+        for (const id of createdTeamIds.splice(0)) {
+            await adminClient.deleteTeam(id).catch(() => {});
+        }
+        for (const id of createdUserIds.splice(0)) {
+            await adminClient.updateUserActive(id, false).catch(() => {});
+        }
+    });
+
     test('MM-69100_30 governed team shows the policy banner, attribute chips, and invite-link warning', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
@@ -27,6 +40,7 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         await ensureDepartmentAttribute(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         // # Create policy (advisory/public team)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
@@ -68,7 +82,9 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
 
         // # Create a private team
         const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
         // # eng1 and mkt1 share userPrefix so one search term finds both — usernames are @{userPrefix}eng and @{userPrefix}mkt
@@ -86,6 +102,7 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
 
         const eng1 = await createUser('Engineering', 'eng');
         const mkt1 = await createUser('Marketing', 'mkt');
+        createdUserIds.push(eng1.id, mkt1.id);
 
         // # Policy applied — strict mode (private team)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
@@ -154,7 +171,9 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
 
         // # Create a public team
         const team = await createPublicTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
         // # eng1 and mkt1 share userPrefix so one search surfaces both — advisory mode must show both
@@ -173,6 +192,7 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
 
         const eng1 = await createUser('Engineering', 'eng');
         const mkt1 = await createUser('Marketing', 'mkt');
+        createdUserIds.push(eng1.id, mkt1.id);
 
         await waitForAttributeViewToInclude(
             adminClient,
@@ -215,6 +235,7 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         await enableTeamMembershipABACConfig(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);

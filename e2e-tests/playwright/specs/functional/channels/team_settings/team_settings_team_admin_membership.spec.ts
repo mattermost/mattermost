@@ -32,6 +32,19 @@ async function openTeamMembershipTab(page: Page, channelsPage: ChannelsPage) {
 }
 
 test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@abac', '@team_membership']}, () => {
+    let createdTeamIds: string[] = [];
+    let createdUserIds: string[] = [];
+
+    test.afterEach(async ({pw}) => {
+        const {adminClient} = await pw.getAdminClient();
+        for (const id of createdTeamIds.splice(0)) {
+            await adminClient.deleteTeam(id).catch(() => {});
+        }
+        for (const id of createdUserIds.splice(0)) {
+            await adminClient.updateUserActive(id, false).catch(() => {});
+        }
+    });
+
     test('MM-69100_24 team admin can save team membership rules and the policy persists', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
@@ -39,6 +52,7 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         await ensureDepartmentAttribute(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         // # Set teamAdmin Engineering so the rule does not self-exclude them
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
@@ -78,6 +92,7 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         await ensureDepartmentAttribute(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         // # Set teamAdmin Engineering to avoid self-exclusion
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
@@ -125,6 +140,7 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
 
         // # teamAdmin has NO Department — they do not match the Engineering rule
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
         await waitForAttributeViewToExclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
@@ -170,7 +186,9 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
 
         // # Fully public team (allow_open_invite=true so team admin can navigate to it)
         const team = await createPublicTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         // # Create user1 (Engineering) and user2 (Marketing) and add them to the team
         const createMember = async (dept: string, idx: number) => {
@@ -189,10 +207,11 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
             return user;
         };
 
-        const [user1] = await Promise.all([
+        const [user1, user2] = await Promise.all([
             createMember('Engineering', 1),
             createMember('Marketing', 2),
         ]);
+        createdUserIds.push(user1.id, user2.id);
 
         // # Set teamAdmin Engineering; remove adminUser so counts are predictable
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
@@ -240,7 +259,9 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
 
         // # Create a fully public team
         const team = await createPublicTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         // # Set teamAdmin Engineering so the flip does not remove them from the team
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
@@ -309,6 +330,7 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         // # Create teamAdmin before the policy so addToTeam isn't gated by the
         // Engineering rule (teamAdmin has no Department attribute).
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         // # Pre-create policy with auto-add=true via API
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);

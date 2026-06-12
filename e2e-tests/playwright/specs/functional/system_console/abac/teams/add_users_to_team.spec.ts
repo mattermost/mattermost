@@ -24,6 +24,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
     test.setTimeout(120000);
 
     let createdTeamIds: string[] = [];
+    let createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
@@ -35,6 +36,14 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
             }
         }
         createdTeamIds = [];
+        for (const id of createdUserIds) {
+            try {
+                await adminClient.updateUserActive(id, false);
+            } catch {
+                // ignore
+            }
+        }
+        createdUserIds = [];
     });
 
     test('MM-68846-T7 PRIVATE governed team blocks non-qualifying candidates inline', async ({pw}) => {
@@ -69,6 +78,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
 
         const eng1 = await createUser('Engineering', `eng1${suffix}`);
         const mkt1 = await createUser('Marketing', `mkt1${suffix}`);
+        createdUserIds.push(eng1.id, mkt1.id);
 
         await waitForAttributeViewToInclude(
             adminClient,
@@ -146,6 +156,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
 
         const eng1 = await createUser('Engineering', `eng1${suffix}`);
         const mkt1 = await createUser('Marketing', `mkt1${suffix}`);
+        createdUserIds.push(eng1.id, mkt1.id);
 
         await waitForAttributeViewToInclude(
             adminClient,

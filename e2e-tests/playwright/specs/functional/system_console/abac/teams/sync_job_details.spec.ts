@@ -23,6 +23,7 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
     test.setTimeout(120000);
 
     let createdTeamIds: string[] = [];
+    let createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
@@ -34,6 +35,14 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
             }
         }
         createdTeamIds = [];
+        for (const id of createdUserIds) {
+            try {
+                await adminClient.updateUserActive(id, false);
+            } catch {
+                // ignore
+            }
+        }
+        createdUserIds = [];
     });
 
     test('MM-69100-T4 sync job details shows per-team member counts and section title', async ({pw}) => {
@@ -68,7 +77,8 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         };
 
         const eng1 = await createUser('Engineering', `eng1${suffix}`, true);
-        await createUser('Marketing', `mkt1${suffix}`, true);
+        const mkt1 = await createUser('Marketing', `mkt1${suffix}`, true);
+        createdUserIds.push(eng1.id, mkt1.id);
 
         await waitForAttributeViewToInclude(
             adminClient,
@@ -141,9 +151,10 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         };
 
         const eng1 = await createAndAdd('Engineering', `eng${suffix}`);
-        await createAndAdd('Marketing', `mkt1${suffix}`);
-        await createAndAdd('Marketing', `mkt2${suffix}`);
-        await createAndAdd('Marketing', `mkt3${suffix}`);
+        const mkt1 = await createAndAdd('Marketing', `mkt1${suffix}`);
+        const mkt2 = await createAndAdd('Marketing', `mkt2${suffix}`);
+        const mkt3 = await createAndAdd('Marketing', `mkt3${suffix}`);
+        createdUserIds.push(eng1.id, mkt1.id, mkt2.id, mkt3.id);
 
         await waitForAttributeViewToInclude(
             adminClient,

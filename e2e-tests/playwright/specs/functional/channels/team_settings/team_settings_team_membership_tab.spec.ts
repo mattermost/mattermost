@@ -33,6 +33,25 @@ async function openTeamMembershipTab(page: Page, channelsPage: ChannelsPage) {
 }
 
 test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@team_membership']}, () => {
+    let createdPolicyIds: string[] = [];
+    let createdTeamIds: string[] = [];
+    let createdUserIds: string[] = [];
+
+    test.afterEach(async ({pw}) => {
+        const {adminClient} = await pw.getAdminClient();
+        const base = adminClient.getBaseRoute();
+        const headers = {Authorization: `Bearer ${adminClient.getToken()}`};
+        for (const id of createdPolicyIds.splice(0)) {
+            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
+        }
+        for (const id of createdTeamIds.splice(0)) {
+            await adminClient.deleteTeam(id).catch(() => {});
+        }
+        for (const id of createdUserIds.splice(0)) {
+            await adminClient.updateUserActive(id, false).catch(() => {});
+        }
+    });
+
     test('MM-69100_8 Team Membership tab visible for system admin with ABAC + FF enabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
@@ -65,6 +84,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await enableTeamMembershipABACConfig(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -119,6 +139,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         // # Create a parent policy and assign the team to it
         const policyName = `Global Team Policy ${pw.random.id()}`;
         const policy = await createParentPolicy(adminClient, policyName);
+        createdPolicyIds.push(policy.id);
         await assignTeamToParentPolicy(adminClient, policy.id, team.id);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -414,10 +435,11 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         };
 
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
-        const [user1] = await Promise.all([
+        const [user1, user2] = await Promise.all([
             createMember('Engineering', 1),
             createMember('Marketing', 2),
         ]);
+        createdUserIds.push(user1.id, user2.id);
 
         await waitForAttributeViewToInclude(
             adminClient,
@@ -462,6 +484,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
         // # Create a private team with adminUser as creator (automatically a member)
         const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
 
         // # Set adminUser's Department to Marketing so the rule doesn't self-exclude them
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Marketing');
@@ -477,6 +500,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
             '',
             '',
         );
+        createdUserIds.push(engUser.id);
         await adminClient.addToTeam(team.id, engUser.id);
         await setUserAttribute(adminClient, engUser.id, 'Department', 'Engineering');
 

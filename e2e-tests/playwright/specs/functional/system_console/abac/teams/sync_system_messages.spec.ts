@@ -27,6 +27,7 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
     test.setTimeout(120000);
 
     let createdTeamIds: string[] = [];
+    let createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
@@ -38,6 +39,14 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
             }
         }
         createdTeamIds = [];
+        for (const id of createdUserIds) {
+            try {
+                await adminClient.updateUserActive(id, false);
+            } catch {
+                // ignore
+            }
+        }
+        createdUserIds = [];
     });
 
     test('MM-69100-T6 qualifying non-member receives an addition DM after a sync job', async ({pw}) => {
@@ -64,6 +73,7 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
             '',
             '',
         );
+        createdUserIds.push(joiner.id);
         await setUserAttribute(adminClient, joiner.id, 'Department', 'Engineering');
         await waitForAttributeViewToInclude(
             adminClient,
@@ -134,6 +144,7 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
                 '',
                 '',
             );
+            createdUserIds.push(mkt1.id);
             await adminClient.addToTeam(team.id, mkt1.id);
             await setUserAttribute(adminClient, mkt1.id, 'Department', 'Marketing');
             await waitForAttributeViewToInclude(

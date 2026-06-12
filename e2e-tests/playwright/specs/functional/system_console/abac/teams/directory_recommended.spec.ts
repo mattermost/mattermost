@@ -201,11 +201,15 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
         ]);
         createdUserIds.push(qualUser.id);
 
+        // Prefix with "!!" so the team sorts before all alphabetic names and
+        // always lands on page 0 of the /select_team directory (30-team pages,
+        // InfiniteScroll loads more only when the user scrolls).
+        const teamId = pw.random.id();
         const publicGoverned = await adminClient.createTeam({
-            name: `team-${pw.random.id()}`,
-            display_name: `Recommended UI ${pw.random.id()}`,
+            name: `team-${teamId}`,
+            display_name: `!!Recommended${teamId}`,
             type: 'O',
-            email: `${pw.random.id()}@example.com`,
+            email: `${teamId}@example.com`,
         } as any);
         createdTeamIds.push(publicGoverned.id);
         await adminClient.patchTeam({id: publicGoverned.id, allow_open_invite: true} as any);
@@ -240,14 +244,23 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
         const {page} = await pw.testBrowser.login(qualUser);
         await page.goto('/select_team');
 
+        // Scope chip lookup to this test's team row.
+        const teamRow = page
+            .locator('.signup-team-dir')
+            .filter({hasText: publicGoverned.display_name});
+
         await expect
             .poll(
                 async () => {
                     await page.waitForLoadState('networkidle');
-                    const visible = await page
+                    const visible = await teamRow
                         .getByLabel('Recommended based on your attributes')
                         .isVisible();
                     if (!visible) {
+                        // Scroll to the bottom to trigger InfiniteScroll in case
+                        // the team is below the initial viewport, then reload so
+                        // the next iteration sees freshly-fetched team data.
+                        await page.keyboard.press('End');
                         await page.reload();
                     }
                     return visible;
@@ -260,6 +273,6 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
             )
             .toBe(true);
 
-        await expect(page.getByText(publicGoverned.display_name, {exact: false})).toBeVisible();
+        await expect(teamRow).toBeVisible();
     });
 });

@@ -31,15 +31,19 @@ import {assignTeamsToPolicy, createTeamMembershipParentPolicy, enableTeamMembers
  * (team.policy_enforced) only.
  */
 test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membership']}, () => {
-    // Each test cleans up the policies it creates, even on failure. initSetup's
-    // team/users are owned by the framework and left alone.
+    // Each test cleans up the policies, teams, and users it creates, even on
+    // failure. initSetup's team/users are owned by the framework and left alone.
     let cleanupClient: Client4 | undefined;
     const createdPolicyIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async () => {
         const client = cleanupClient;
         cleanupClient = undefined;
         const policyIds = createdPolicyIds.splice(0);
+        const teamIds = createdTeamIds.splice(0);
+        const userIds = createdUserIds.splice(0);
         if (!client) {
             return;
         }
@@ -47,6 +51,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const headers = {Authorization: `Bearer ${client.getToken()}`};
         for (const id of policyIds) {
             await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
+        }
+        for (const id of teamIds) {
+            await client.deleteTeam(id).catch(() => {});
+        }
+        for (const id of userIds) {
+            await client.updateUserActive(id, false).catch(() => {});
         }
     });
 
@@ -297,6 +307,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // # Private team with one non-matching member so the count in the modal is non-zero
         const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
         const nonMatchUser = await adminClient.createUser(
             {
                 email: `nomatch${suffix}@sample.mattermost.com`,
@@ -306,6 +317,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             '',
             '',
         );
+        createdUserIds.push(nonMatchUser.id);
         await adminClient.addToTeam(team.id, nonMatchUser.id);
         await setUserAttribute(adminClient, nonMatchUser.id, 'Department', 'Marketing');
         await waitForAttributeViewToInclude(
@@ -348,8 +360,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // * Policy persisted with the Engineering rule
         const policy: any = await getTeamAccessControlPolicy(adminClient, team.id);
         expect(JSON.stringify(policy)).toContain('Engineering');
-
-        await adminClient.deleteTeam(team.id);
     });
 
     /**
@@ -368,6 +378,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await ensureDepartmentAttribute(adminClient);
 
         const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
@@ -412,8 +423,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         );
         const recentJobs = jobs.filter((j: any) => j.create_at >= testStartTime);
         expect(recentJobs.length).toBeGreaterThan(0);
-
-        await adminClient.deleteTeam(team.id);
     });
 
     /**
@@ -433,6 +442,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // # Private team; admin is NOT a member, only a Marketing user (doesn't match Engineering)
         const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
         const mktUser = await adminClient.createUser(
             {
                 email: `mkt${suffix}@sample.mattermost.com`,
@@ -442,6 +452,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             '',
             '',
         );
+        createdUserIds.push(mktUser.id);
         await adminClient.addToTeam(team.id, mktUser.id);
         await setUserAttribute(adminClient, mktUser.id, 'Department', 'Marketing');
         await waitForAttributeViewToInclude(
@@ -479,7 +490,5 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // # Cancel
         await confirmModal.getByRole('button', {name: 'Cancel'}).click();
         await expect(confirmModal).not.toBeVisible();
-
-        await adminClient.deleteTeam(team.id);
     });
 });
