@@ -174,22 +174,19 @@ export default [
     reactHooksPlugin.configs.flat.recommended,
     react,
     {
-        // eslint-plugin-react-hooks v7's recommended config enables a set of React Compiler
-        // correctness rules as errors. The rules below currently flag existing code whose fixes
-        // would require functional changes, so they're downgraded to warnings to surface the
-        // issues without breaking the build. The remaining recommended rules (rules-of-hooks,
-        // set-state-in-render, globals, config, gating, ...) stay at their recommended severity.
+
+        // Disable new rules that are primarily needed to enable React Compiler because we're not using that yet
         rules: {
-            'react-hooks/immutability': 'warn',
-            'react-hooks/preserve-manual-memoization': 'warn',
-            'react-hooks/purity': 'warn',
-            'react-hooks/refs': 'warn',
-            'react-hooks/set-state-in-effect': 'warn',
+            'react-hooks/immutability': 0,
+            'react-hooks/preserve-manual-memoization': 0,
+            'react-hooks/purity': 0,
+            'react-hooks/refs': 0,
+            'react-hooks/set-state-in-effect': 0,
 
             // This rule can be enabled once https://github.com/mattermost/mattermost/pull/36575 is merged because it
             // should be done by converting getChannelIconComponent and getArchiveIconComponent to proper components
             // instead of functions that return component constructors.
-            'react-hooks/static-components': 'warn',
+            'react-hooks/static-components': 0,
         },
     },
     {
