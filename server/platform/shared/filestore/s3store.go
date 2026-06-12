@@ -364,26 +364,39 @@ func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
 // with a server-side multipart copy (UploadPartCopy).
 const maxS3SingleCopySize = 5 * 1024 * 1024 * 1024
 
+// s3CopyClient is the subset of the S3 client used to route a server-side copy.
+// It exists so copyObjectWithClient can be unit tested with a mock client.
+type s3CopyClient interface {
+	StatObject(ctx context.Context, bucketName, objectName string, opts s3.StatObjectOptions) (s3.ObjectInfo, error)
+	CopyObject(ctx context.Context, dst s3.CopyDestOptions, src s3.CopySrcOptions) (s3.UploadInfo, error)
+	ComposeObject(ctx context.Context, dst s3.CopyDestOptions, srcs ...s3.CopySrcOptions) (s3.UploadInfo, error)
+}
+
 // copyObject performs a server-side copy of a single object from srcOpts to
-// dstOpts. It uses CopyObject for sources up to 5GiB, and falls back to
+// dstOpts, using the backend's request timeout.
+func (b *S3FileBackend) copyObject(srcOpts s3.CopySrcOptions, dstOpts s3.CopyDestOptions) error {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+
+	return copyObjectWithClient(ctx, b.client, srcOpts, dstOpts)
+}
+
+// copyObjectWithClient uses CopyObject for sources up to 5GiB, and falls back to
 // ComposeObject — which performs a server-side multipart copy — for larger
 // sources, which S3's single-operation CopyObject rejects. The size is checked
 // explicitly rather than relying on ComposeObject's own single-copy fast path,
 // which is only taken when the source range Start is -1 (a value its input
 // validation rejects, so it is unreachable here).
-func (b *S3FileBackend) copyObject(srcOpts s3.CopySrcOptions, dstOpts s3.CopyDestOptions) error {
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel()
-
-	stat, err := b.client.StatObject(ctx, srcOpts.Bucket, srcOpts.Object, s3.StatObjectOptions{})
+func copyObjectWithClient(ctx context.Context, client s3CopyClient, srcOpts s3.CopySrcOptions, dstOpts s3.CopyDestOptions) error {
+	stat, err := client.StatObject(ctx, srcOpts.Bucket, srcOpts.Object, s3.StatObjectOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "unable to stat source file %s", srcOpts.Object)
 	}
 
 	if stat.Size > maxS3SingleCopySize {
-		_, err = b.client.ComposeObject(ctx, dstOpts, srcOpts)
+		_, err = client.ComposeObject(ctx, dstOpts, srcOpts)
 	} else {
-		_, err = b.client.CopyObject(ctx, dstOpts, srcOpts)
+		_, err = client.CopyObject(ctx, dstOpts, srcOpts)
 	}
 	return err
 }
