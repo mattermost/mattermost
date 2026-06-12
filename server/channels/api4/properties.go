@@ -691,6 +691,21 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 			c.SetPermissionError(perm)
 			return false
 		}
+	case model.PropertyFieldObjectTypePage:
+		page, appErr := c.App.GetPage(c.AppContext, targetID)
+		if appErr != nil {
+			c.Err = appErr
+			return false
+		}
+		perm := model.PermissionReadChannel
+		if write {
+			perm = model.PermissionCreatePost
+		}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), page.ChannelId, perm)
+		if !hasPermission {
+			c.SetPermissionError(perm)
+			return false
+		}
 	case model.PropertyFieldObjectTypeUser:
 		// Self-access and unrestricted sessions (local mode) always pass.
 		if targetID == c.AppContext.Session().UserId || c.AppContext.Session().IsUnrestricted() {

@@ -7,6 +7,8 @@
         Create a reaction.
         ##### Permissions
         Must have `read_channel` permission for the channel the post is in.
+
+        Note: providing a `post_id` that belongs to a wiki post type (`page`, `page_comment`, or `page_mention`) returns 400.
       operationId: SaveReaction
       requestBody:
         content:

@@ -20,6 +20,7 @@ type Container struct {
 	Image     string   `yaml:"image,omitempty"`
 	Network   []string `yaml:"networks,omitempty"`
 	DependsOn []string `yaml:"depends_on,omitempty"`
+	Platform  string   `yaml:"platform,omitempty"`
 }
 
 func main() {
@@ -52,6 +53,7 @@ func main() {
 	dockerCompose.Services = map[string]*Container{}
 	dockerCompose.Services["start_dependencies"] = &Container{
 		Image:     "mattermost/mattermost-wait-for-dep:latest",
+		Platform:  "linux/amd64",
 		Network:   []string{"mm-test"},
 		DependsOn: os.Args[1:],
 		Command:   strings.Join(command, " "),

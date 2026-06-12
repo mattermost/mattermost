@@ -23,9 +23,7 @@ interface ChannelProfileProps {
 export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
     const {team, channel, isArchived, isDisabled} = props;
 
-    const archiveBtn = isArchived ?
-        defineMessage({id: 'admin.channel_settings.channel_details.unarchiveChannel', defaultMessage: 'Unarchive Channel'}) :
-        defineMessage({id: 'admin.channel_settings.channel_details.archiveChannel', defaultMessage: 'Archive Channel'});
+    const archiveBtn = isArchived ? defineMessage({id: 'admin.channel_settings.channel_details.unarchiveChannel', defaultMessage: 'Unarchive Channel'}) : defineMessage({id: 'admin.channel_settings.channel_details.archiveChannel', defaultMessage: 'Archive Channel'});
 
     let sharedBlock;
     if (channel.shared && channel.type) {

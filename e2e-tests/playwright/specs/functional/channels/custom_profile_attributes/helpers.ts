@@ -326,9 +326,8 @@ export async function updateCustomProfileAttributeVisibility(
 
         // Update the fieldsMap with the updated field
         fieldsMap[updatedField.id] = updatedField;
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
+    } catch {
+        // Failed to update visibility
     }
 }
 
@@ -384,10 +383,8 @@ export async function setupCustomProfileAttributeFields(
         for (const field of existingFields) {
             existingByName[field.name] = field;
         }
-    } catch (error) {
+    } catch {
         // If request fails, continue to create new fields
-        // eslint-disable-next-line no-console
-        console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
     // Create fields sequentially, reusing any that already exist by name AND type.
@@ -488,9 +485,8 @@ export async function setupCustomProfileAttributeValues(
     if (Object.keys(valuesByFieldId).length > 0) {
         try {
             await userClient.updateCustomProfileAttributeValues(valuesByFieldId);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Failed to set attribute values:', error);
+        } catch {
+            // Failed to set attribute values
         }
     }
 }
@@ -533,9 +529,8 @@ export async function setupCustomProfileAttributeValuesForUser(
         try {
             // Use the admin client method for updating other user's values
             await adminClient.updateUserCustomProfileAttributesValues(targetUserId, valuesByFieldId);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Failed to set attribute values for user:', error);
+        } catch {
+            // Failed to set attribute values for user
         }
     }
 }
@@ -556,9 +551,8 @@ export async function deleteCustomProfileAttributes(
     for (const id of ownedIds) {
         try {
             await adminClient.deleteCustomProfileAttributeField(id);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to delete field ${id}:`, error);
+        } catch {
+            // Failed to delete field
         }
     }
 

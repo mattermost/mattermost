@@ -1,0 +1,223 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {copyPageAsMarkdown, DEFAULT_PAGE_TITLE, getActiveTabFromRoute, isHiddenFeedPost} from './page_utils';
+import {tiptapToMarkdown} from './tiptap_to_markdown';
+
+jest.mock('./tiptap_to_markdown', () => ({
+    tiptapToMarkdown: jest.fn((doc, options) => ({
+        markdown: `# ${options.title}\n\nContent from ${JSON.stringify(doc)}`,
+    })),
+}));
+
+describe('copyPageAsMarkdown', () => {
+    let mockWriteText: jest.Mock;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockWriteText = jest.fn(() => Promise.resolve());
+        Object.assign(navigator, {
+            clipboard: {
+                writeText: mockWriteText,
+            },
+        });
+    });
+
+    describe('input validation', () => {
+        it('returns false for undefined content', async () => {
+            const result = await copyPageAsMarkdown(undefined, 'Title');
+            expect(result).toBe(false);
+            expect(tiptapToMarkdown).not.toHaveBeenCalled();
+            expect(mockWriteText).not.toHaveBeenCalled();
+        });
+
+        it('returns false for empty string content', async () => {
+            const result = await copyPageAsMarkdown('', 'Title');
+            expect(result).toBe(false);
+            expect(tiptapToMarkdown).not.toHaveBeenCalled();
+            expect(mockWriteText).not.toHaveBeenCalled();
+        });
+
+        it('returns false for whitespace-only content', async () => {
+            const result = await copyPageAsMarkdown('   ', 'Title');
+            expect(result).toBe(false);
+            expect(tiptapToMarkdown).not.toHaveBeenCalled();
+            expect(mockWriteText).not.toHaveBeenCalled();
+        });
+
+        it('returns false for non-string content', async () => {
+            const result = await copyPageAsMarkdown(123 as unknown as string, 'Title');
+            expect(result).toBe(false);
+            expect(tiptapToMarkdown).not.toHaveBeenCalled();
+            expect(mockWriteText).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('title handling', () => {
+        const validContent = JSON.stringify({type: 'doc', content: []});
+
+        it('uses provided title when valid', async () => {
+            await copyPageAsMarkdown(validContent, 'My Page Title');
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({title: 'My Page Title'}),
+            );
+        });
+
+        it('trims whitespace from title', async () => {
+            await copyPageAsMarkdown(validContent, '  Padded Title  ');
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({title: 'Padded Title'}),
+            );
+        });
+
+        it('uses DEFAULT_PAGE_TITLE when title is undefined', async () => {
+            await copyPageAsMarkdown(validContent, undefined);
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({title: DEFAULT_PAGE_TITLE}),
+            );
+        });
+
+        it('uses DEFAULT_PAGE_TITLE when title is empty string', async () => {
+            await copyPageAsMarkdown(validContent, '');
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({title: DEFAULT_PAGE_TITLE}),
+            );
+        });
+
+        it('uses DEFAULT_PAGE_TITLE when title is whitespace-only', async () => {
+            await copyPageAsMarkdown(validContent, '   ');
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({title: DEFAULT_PAGE_TITLE}),
+            );
+        });
+    });
+
+    describe('successful copy', () => {
+        const validContent = JSON.stringify({type: 'doc', content: [{type: 'paragraph'}]});
+
+        it('parses JSON content and calls tiptapToMarkdown', async () => {
+            await copyPageAsMarkdown(validContent, 'Test Page');
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                {type: 'doc', content: [{type: 'paragraph'}]},
+                expect.objectContaining({
+                    title: 'Test Page',
+                    includeTitle: true,
+                    preserveFileUrls: true,
+                }),
+            );
+        });
+
+        it('copies the markdown result to clipboard', async () => {
+            await copyPageAsMarkdown(validContent, 'Test Page');
+            expect(mockWriteText).toHaveBeenCalledWith(expect.stringContaining('# Test Page'));
+        });
+
+        it('returns true when copy succeeds', async () => {
+            const result = await copyPageAsMarkdown(validContent, 'Test Page');
+            expect(result).toBe(true);
+        });
+
+        it('returns false when clipboard.writeText rejects', async () => {
+            mockWriteText.mockRejectedValueOnce(new Error('Permission denied'));
+            const result = await copyPageAsMarkdown(validContent, 'Test Page');
+            expect(result).toBe(false);
+        });
+
+        it('sets includeTitle option to true', async () => {
+            await copyPageAsMarkdown(validContent, 'Test');
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({includeTitle: true}),
+            );
+        });
+
+        it('sets preserveFileUrls option to true', async () => {
+            await copyPageAsMarkdown(validContent, 'Test');
+            expect(tiptapToMarkdown).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({preserveFileUrls: true}),
+            );
+        });
+    });
+
+    describe('error handling', () => {
+        it('handles invalid JSON gracefully and returns false', async () => {
+            const result = await copyPageAsMarkdown('{invalid json}', 'Title');
+            expect(result).toBe(false);
+            expect(mockWriteText).not.toHaveBeenCalled();
+        });
+
+        it('handles tiptapToMarkdown errors gracefully and returns false', async () => {
+            (tiptapToMarkdown as jest.Mock).mockImplementationOnce(() => {
+                throw new Error('Conversion failed');
+            });
+
+            const result = await copyPageAsMarkdown(JSON.stringify({type: 'doc'}), 'Title');
+            expect(result).toBe(false);
+            expect(mockWriteText).not.toHaveBeenCalled();
+        });
+    });
+});
+
+describe('getActiveTabFromRoute', () => {
+    test('returns "messages" for regular channel route', () => {
+        const match = {path: '/team/channel/:channelId', params: {}};
+        expect(getActiveTabFromRoute(match)).toBe('messages');
+    });
+
+    test('returns "messages" for route without wiki pattern', () => {
+        const match = {path: '/team/channel/:channelId/files', params: {}};
+        expect(getActiveTabFromRoute(match)).toBe('messages');
+    });
+
+    test('returns wiki tab id for wiki route with wikiId', () => {
+        const match = {
+            path: '/wiki/:wikiId([a-z0-9]{26})',
+            params: {wikiId: 'abc123def456ghi789jkl012'},
+        };
+        expect(getActiveTabFromRoute(match)).toBe('wiki-abc123def456ghi789jkl012');
+    });
+
+    test('returns "messages" for wiki route without wikiId param', () => {
+        const match = {
+            path: '/wiki/:wikiId([a-z0-9]{26})',
+            params: {},
+        };
+        expect(getActiveTabFromRoute(match)).toBe('messages');
+    });
+});
+
+describe('isHiddenFeedPost', () => {
+    it('returns true for page post type', () => {
+        expect(isHiddenFeedPost({type: 'page'} as Parameters<typeof isHiddenFeedPost>[0])).toBe(true);
+    });
+
+    it('returns true for page_mention post type', () => {
+        expect(isHiddenFeedPost({type: 'page_mention'} as Parameters<typeof isHiddenFeedPost>[0])).toBe(true);
+    });
+
+    it('returns false for page_comment post type (visible in chat feed)', () => {
+        expect(isHiddenFeedPost({type: 'page_comment'} as Parameters<typeof isHiddenFeedPost>[0])).toBe(false);
+    });
+
+    it('returns false for empty string type (regular message)', () => {
+        expect(isHiddenFeedPost({type: ''} as Parameters<typeof isHiddenFeedPost>[0])).toBe(false);
+    });
+
+    it('returns false for custom post type', () => {
+        expect(isHiddenFeedPost({type: 'custom'} as unknown as Parameters<typeof isHiddenFeedPost>[0])).toBe(false);
+    });
+
+    it('returns false for null', () => {
+        expect(isHiddenFeedPost(null)).toBe(false);
+    });
+
+    it('returns false for undefined', () => {
+        expect(isHiddenFeedPost(undefined)).toBe(false);
+    });
+});

@@ -1,0 +1,123 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.tiptap-mention-popup {
+    position: absolute;
+    z-index: 1000;
+
+    // Suggestion list item styles
+    .suggestion-list__item {
+        position: relative;
+        z-index: 101;
+        display: flex;
+        width: 100%;
+        min-height: 4rem;
+        align-items: center;
+        padding: 8px 2.4rem;
+        border: none;
+        margin: 0;
+        background: transparent;
+        color: var(--center-channel-color) !important;
+        cursor: pointer;
+        font-size: 14px !important;
+        line-height: 20px !important;
+        text-align: left;
+
+        &.suggestion--selected,
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+        }
+
+        * {
+            color: inherit !important;
+        }
+    }
+
+    .suggestion-list__icon {
+        display: inline-flex;
+        width: 2.4rem;
+        height: 2.4rem;
+        flex: 0 0 2.4rem;
+        align-items: center;
+        justify-content: center;
+        margin: 0 12px 0 0;
+        fill: var(--center-channel-color);
+        font-size: 2rem;
+        opacity: 0.73;
+    }
+
+    .status-wrapper {
+        overflow: visible;
+        height: 24px;
+        margin-right: 12px;
+
+        .Avatar.Avatar-sm {
+            margin: 0;
+        }
+
+        .status {
+            right: -4px;
+            bottom: -4px;
+
+            svg {
+                left: 2px;
+                max-width: 11px;
+            }
+        }
+    }
+
+    .suggestion-list__ellipsis {
+        display: flex !important;
+        overflow: hidden;
+        max-width: 89%;
+        color: rgba(var(--center-channel-color-rgb), 0.75) !important;
+        gap: 8px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        .suggestion-list__main {
+            display: flex !important;
+            color: var(--center-channel-color) !important;
+            font-weight: 600 !important;
+            white-space: nowrap;
+        }
+
+        > span:nth-child(2) {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        span {
+            color: inherit !important;
+        }
+    }
+}
+
+.tiptap-mention-suggestions {
+    position: relative;
+    width: 496px;
+    max-width: 100%;
+    max-height: 292px;
+    padding: 0;
+    padding-bottom: 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    margin: 0;
+    background-color: var(--center-channel-bg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    list-style: none;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar-track {
+        width: 0;
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border: 1px solid var(--center-channel-bg);
+        border-radius: 4px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
+    }
+}

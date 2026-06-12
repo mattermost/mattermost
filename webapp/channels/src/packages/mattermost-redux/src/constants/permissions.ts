@@ -284,6 +284,20 @@ const values = {
     EDIT_BOOKMARK_PRIVATE_CHANNEL: 'edit_bookmark_private_channel',
     DELETE_BOOKMARK_PRIVATE_CHANNEL: 'delete_bookmark_private_channel',
     ORDER_BOOKMARK_PRIVATE_CHANNEL: 'order_bookmark_private_channel',
+
+    CREATE_PAGE: 'create_page',
+    READ_PAGE: 'read_page',
+    EDIT_PAGE: 'edit_page',
+    EDIT_OWN_PAGE: 'edit_own_page',
+    DELETE_OWN_PAGE: 'delete_own_page',
+    DELETE_PAGE: 'delete_page',
+    COMMENT_PAGE: 'comment_page',
+
+    CREATE_WIKI: 'create_wiki',
+    READ_WIKI: 'read_wiki',
+    MANAGE_WIKI: 'manage_wiki',
+    DELETE_WIKI: 'delete_wiki',
+    ADMIN_WIKI: 'admin_wiki',
 };
 
 values.SYSCONSOLE_READ_PERMISSIONS = [

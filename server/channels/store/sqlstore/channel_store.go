@@ -85,6 +85,7 @@ func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
 		"SchemeUser":              sql.NullBool{Valid: true, Bool: cm.SchemeUser},
 		"SchemeAdmin":             sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
 		"AutoTranslationDisabled": cm.AutoTranslationDisabled,
+		"SourceId":                cm.SourceId,
 	}
 }
 
@@ -110,6 +111,7 @@ type channelMemberWithSchemeRoles struct {
 	ChannelSchemeDefaultAdminRole sql.NullString
 	MsgCountRoot                  int64
 	AutoTranslationDisabled       bool
+	SourceId                      sql.NullString
 }
 
 type channelMemberWithTeamWithSchemeRoles struct {
@@ -122,7 +124,7 @@ type channelMemberWithTeamWithSchemeRoles struct {
 type channelMemberWithTeamWithSchemeRolesList []channelMemberWithTeamWithSchemeRoles
 
 func channelMemberSliceColumns() []string {
-	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "UrgentMentionCount", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest", "AutoTranslationDisabled"}
+	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "UrgentMentionCount", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest", "AutoTranslationDisabled", "SourceId"}
 }
 
 // channelSliceColumns returns fields of the channel as a string slice.
@@ -218,6 +220,7 @@ func channelMemberToSlice(member *model.ChannelMember) []any {
 	resultSlice = append(resultSlice, member.SchemeAdmin)
 	resultSlice = append(resultSlice, member.SchemeGuest)
 	resultSlice = append(resultSlice, member.AutoTranslationDisabled)
+	resultSlice = append(resultSlice, member.SourceId)
 	return resultSlice
 }
 
@@ -349,6 +352,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		SchemeGuest:             rolesResult.schemeGuest,
 		ExplicitRoles:           strings.Join(rolesResult.explicitRoles, " "),
 		AutoTranslationDisabled: db.AutoTranslationDisabled,
+		SourceId:                db.SourceId.String,
 	}
 }
 
@@ -414,6 +418,7 @@ func (db channelMemberWithTeamWithSchemeRoles) ToModel() *model.ChannelMemberWit
 			SchemeGuest:             rolesResult.schemeGuest,
 			ExplicitRoles:           strings.Join(rolesResult.explicitRoles, " "),
 			AutoTranslationDisabled: db.AutoTranslationDisabled,
+			SourceId:                db.SourceId.String,
 		},
 		TeamName:        db.TeamName,
 		TeamDisplayName: db.TeamDisplayName,
@@ -556,6 +561,7 @@ func (s *SqlChannelStore) initializeQueries() {
 			"ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole",
 			"ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole",
 			"ChannelMembers.AutoTranslationDisabled",
+			"ChannelMembers.SourceId",
 		).
 		From("ChannelMembers").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
@@ -774,7 +780,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		return nil, err // we just pass through the error as-is for now.
 	}
 
-	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && maxChannelsPerTeam >= 0 {
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeWiki && maxChannelsPerTeam >= 0 {
 		var count int64
 		if err := transaction.Get(&count, "SELECT COUNT(0) FROM Channels WHERE TeamId = ? AND DeleteAt = 0 AND (Type = ? OR Type = ?)", channel.TeamId, model.ChannelTypeOpen, model.ChannelTypePrivate); err != nil {
 			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
@@ -977,6 +983,27 @@ func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, er
 	return &ch, nil
 }
 
+// GetWikiBackingChannel fetches a channel of type W by ID.
+// Use this in wiki-layer code that legitimately needs the backing channel object.
+// All generic channel endpoints should use Get(), which excludes wiki channels.
+func (s SqlChannelStore) GetWikiBackingChannel(id string) (*model.Channel, error) {
+	ch := model.Channel{}
+	query := s.tableSelectQuery.Where(sq.And{
+		sq.Eq{"Id": id},
+		sq.Eq{"Type": model.ChannelTypeWiki},
+	})
+
+	err := s.GetReplica().GetBuilder(&ch, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Channel", id)
+		}
+		return nil, errors.Wrapf(err, "failed to find wiki backing channel with id = %s", id)
+	}
+
+	return &ch, nil
+}
+
 func (s SqlChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
 	ch := model.Channel{}
 	query := s.tableSelectQuery.Where(sq.And{
@@ -1007,6 +1034,32 @@ func (s SqlChannelStore) GetMany(ids []string, allowFromCache bool) (model.Chann
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "getmany_tosql")
+	}
+
+	channels := model.ChannelList{}
+	err = s.GetReplica().Select(&channels, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get channels with ids %v", ids)
+	}
+
+	if len(channels) == 0 {
+		return nil, store.NewErrNotFound("Channel", fmt.Sprintf("ids=%v", ids))
+	}
+
+	return channels, nil
+}
+
+// GetManyIncludingWiki fetches channels by ID without excluding wiki backing channels.
+// Use this in permission-check paths that must resolve the channel for a post regardless
+// of type. Most callers should use GetMany, which hides wiki channels.
+func (s SqlChannelStore) GetManyIncludingWiki(ids []string, allowFromCache bool) (model.ChannelList, error) {
+	query := s.getQueryBuilder().
+		Select(channelSliceColumns(true)...).
+		From("Channels").
+		Where(sq.Eq{"Id": ids})
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getmanyincludingwiki_tosql")
 	}
 
 	channels := model.ChannelList{}
@@ -2451,6 +2504,12 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
 		Where(sq.Eq{"ChannelMembers.UserId": userId})
+	query = query.
+		Where(sq.NotEq{"Channels.Type": model.ChannelTypeWiki}).
+		Where(sq.Or{
+			sq.Eq{"ChannelMembers.SourceId": ""},
+			sq.Eq{"ChannelMembers.SourceId": nil},
+		})
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"Channels.DeleteAt": 0})
 	}
@@ -2487,6 +2546,7 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 		Where(sq.And{
 			sq.Eq{"ChannelMembers.ChannelId": channelIDs},
 			sq.Eq{"Users.DeleteAt": 0},
+			sq.Or{sq.Eq{"ChannelMembers.SourceId": nil}, sq.Eq{"ChannelMembers.SourceId": ""}},
 		}).
 		GroupBy("ChannelMembers.ChannelId")
 
@@ -2583,7 +2643,8 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 		WHERE
 			ChannelMembers.UserId = Users.Id
 			AND ChannelMembers.ChannelId = ?
-			AND Users.DeleteAt = 0`, channelId)
+			AND Users.DeleteAt = 0
+			AND (ChannelMembers.SourceId IS NULL OR ChannelMembers.SourceId = '')`, channelId)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count ChannelMembers with channelId=%s", channelId)
 	}
@@ -2851,6 +2912,7 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, excl
 			sq.NotEq{"Type": joinLeavePostTypes},
 			sq.Eq{"DeleteAt": 0},
 		})
+	query = AddRegularPostsFilter(query, "Posts")
 
 	if excludedUserID != "" {
 		query = query.Where(sq.NotEq{"UserId": excludedUserID})
@@ -3140,6 +3202,7 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 		Select("Type, COUNT(*) AS Count").
 		From("Channels").
 		GroupBy("Type")
+	query = query.Where(sq.NotEq{"Type": model.ChannelTypeWiki})
 
 	if teamId != "" {
 		query = query.Where(sq.Eq{"TeamId": teamId})
@@ -3175,6 +3238,8 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 				sq.Eq{"Teams.Id": ""},
 				sq.Eq{"Teams.Id": nil},
 			},
+			sq.NotEq{"Channels.Type": model.ChannelTypeWiki},
+			sq.Or{sq.Eq{"ChannelMembers.SourceId": ""}, sq.Eq{"ChannelMembers.SourceId": nil}},
 		}).ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "GetMembersForUser_ToSql teamID=%s userID=%s", teamID, userID)
@@ -3192,7 +3257,7 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, perPage int) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
 	offset := page * perPage
-	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? ORDER BY ChannelId ASC Limit ? Offset ?", userId, perPage, offset)
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND Channels.Type != ? AND (ChannelMembers.SourceId IS NULL OR ChannelMembers.SourceId = '') ORDER BY ChannelId ASC Limit ? Offset ?", userId, string(model.ChannelTypeWiki), perPage, offset)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
 	}
@@ -3202,7 +3267,7 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, pe
 
 func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChannelID string) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
-	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? ORDER BY ChannelId ASC Limit ?", userId, fromChannelID, perPage)
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? AND Channels.Type != ? AND (ChannelMembers.SourceId IS NULL OR ChannelMembers.SourceId = '') ORDER BY ChannelId ASC Limit ?", userId, fromChannelID, string(model.ChannelTypeWiki), perPage)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
 	}
@@ -3254,6 +3319,8 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
+
+	query = query.Where(sq.NotEq{"c.Type": model.ChannelTypeWiki})
 
 	if isGuest {
 		query = query.Where(sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
@@ -3334,7 +3401,10 @@ func (s SqlChannelStore) buildAutocompleteInTeamQuery(teamID, userID, term strin
 		})
 	}
 
-	if searchClause := s.searchClause(term); searchClause != nil {
+	query = query.Where(sq.NotEq{"c.Type": model.ChannelTypeWiki})
+
+	searchClause := s.searchClause(term)
+	if searchClause != nil {
 		query = query.Where(searchClause)
 	}
 
@@ -3381,9 +3451,10 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 		})
 
 	if !includeDeleted {
-		// include the DeleteAt = 0 condition
-		query.Where(sq.Eq{"DeleteAt": 0})
+		query = query.Where(sq.Eq{"C.DeleteAt": 0})
 	}
+
+	query = query.Where(sq.NotEq{"C.Type": model.ChannelTypeWiki})
 
 	var (
 		channels = model.ChannelList{}
@@ -3971,7 +4042,7 @@ func (s SqlChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[st
 
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {
 	channels := model.ChannelList{}
-	query := s.tableSelectQuery.Where(sq.Eq{"SchemeId": schemeId}).OrderBy("DisplayName").Limit(uint64(limit)).Offset(uint64(offset))
+	query := s.tableSelectQuery.Where(sq.Eq{"SchemeId": schemeId}).Where(sq.NotEq{"Type": model.ChannelTypeWiki}).OrderBy("DisplayName").Limit(uint64(limit)).Offset(uint64(offset))
 
 	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with schemeId=%s", schemeId)
@@ -4243,11 +4314,14 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 		Channels ON ChannelMembers.ChannelId = Channels.Id
 	WHERE
 		ChannelMembers.UserId = ?
-		AND Channels.TeamId = ?`
+		AND Channels.TeamId = ?
+		AND Channels.Type != ?
+		AND (ChannelMembers.SourceId IS NULL OR ChannelMembers.SourceId = '')`
+	args := []any{userId, teamId, string(model.ChannelTypeWiki)}
 	if !includeArchivedChannel {
 		q += " AND Channels.DeleteAt = 0"
 	}
-	err := s.GetReplica().Select(&members, q, userId, teamId)
+	err := s.GetReplica().Select(&members, q, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels for export")
 	}
@@ -4328,6 +4402,7 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChann
 		}).
 		Where(sq.Eq{"Type": messageChannelTypes}).
 		OrderBy("CreateAt ASC", "Id ASC").
+		Where(sq.NotEq{"Type": model.ChannelTypeWiki}).
 		Limit(uint64(limit))
 
 	channels := []*model.Channel{}
@@ -4501,4 +4576,350 @@ func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) 
 	}
 	permissionList := strings.Split(permissions, " ")
 	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
+}
+
+// Note: Uses raw SQL with Postgres-specific $N params. The INSERT...SELECT with
+// correlated subquery is too complex for squirrel query builder.
+//
+// Locking: acquires WikiLinks WHERE DestinationId FOR UPDATE (destination-first).
+// This is different from SaveMemberAndPropagateLinked which acquires WikiLinks WHERE
+// SourceId FOR UPDATE (source-first). Do NOT call this inside a transaction that also
+// calls SaveMemberAndPropagateLinked for the same wiki — the different acquisition
+// order can deadlock. This function is only safe as a standalone operation or within
+// its own independent transaction.
+func (s SqlChannelStore) SaveSyntheticMembers(rctx request.CTX, sourceChannelId, destinationChannelId string) (err error) {
+	if !model.IsValidId(sourceChannelId) || !model.IsValidId(destinationChannelId) {
+		return store.NewErrInvalidInput("ChannelMembers", "channelId", sourceChannelId+"/"+destinationChannelId)
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Lock CML rows for the destination channel to prevent concurrent synthetic member writes.
+	// Raw SQL: squirrel does not support FOR UPDATE.
+	cmlLockQuery := `SELECT SourceId FROM WikiLinks WHERE DestinationId = $1 FOR UPDATE`
+	if _, err = transaction.Exec(cmlLockQuery, destinationChannelId); err != nil {
+		return errors.Wrap(err, "failed to lock channel member links for destination")
+	}
+
+	now := model.GetMillis()
+
+	// Use ON CONFLICT DO NOTHING to atomically avoid duplicate inserts.
+	insertQuery := `
+		INSERT INTO ChannelMembers (ChannelId, UserId, Roles, LastViewedAt, MsgCount, MentionCount,
+			MentionCountRoot, MsgCountRoot, NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, SchemeGuest,
+			UrgentMentionCount, AutoTranslationDisabled, SourceId)
+		SELECT $1::varchar, cm.UserId, 'channel_user', 0, 0, 0, 0, 0, cm.NotifyProps,
+			$2::bigint, CASE WHEN cm.SchemeGuest THEN false ELSE true END, false, cm.SchemeGuest, 0, cm.AutoTranslationDisabled, $3::varchar
+		FROM ChannelMembers cm
+		WHERE cm.ChannelId = $3::varchar
+		AND (cm.SourceId IS NULL OR cm.SourceId = '')
+		ON CONFLICT (ChannelId, UserId) DO NOTHING
+	`
+
+	if _, err = transaction.Exec(insertQuery, destinationChannelId, now, sourceChannelId); err != nil {
+		return errors.Wrap(err, "failed to save synthetic members")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) SaveMemberAndPropagateLinked(rctx request.CTX, member *model.ChannelMember) (_ *model.ChannelMember, linkedDestinations []string, err error) {
+	member.PreSave()
+	if vErr := member.IsValid(); vErr != nil {
+		return nil, nil, store.NewErrInvalidInput("ChannelMember", "member", vErr.Error())
+	}
+
+	// Resolve roles before the transaction (read-only queries)
+	channelRolesQuery := s.getQueryBuilder().
+		Select(
+			"Channels.Id as Id",
+			"ChannelScheme.DefaultChannelGuestRole as Guest",
+			"ChannelScheme.DefaultChannelUserRole as User",
+			"ChannelScheme.DefaultChannelAdminRole as Admin",
+		).
+		From("Channels").
+		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
+		Where(sq.Eq{"Channels.Id": member.ChannelId})
+
+	var defaultChannelRoles struct {
+		Id    string
+		Guest sql.NullString
+		User  sql.NullString
+		Admin sql.NullString
+	}
+	channelRolesSql, channelRolesArgs, qErr := channelRolesQuery.ToSql()
+	if qErr != nil {
+		return nil, nil, errors.Wrap(qErr, "channel_roles_tosql")
+	}
+	if err = s.GetMaster().Get(&defaultChannelRoles, channelRolesSql, channelRolesArgs...); err != nil && err != sql.ErrNoRows {
+		return nil, nil, errors.Wrap(err, "default_channel_roles_select")
+	}
+
+	teamRolesQuery := s.getQueryBuilder().
+		Select(
+			"Channels.Id as Id",
+			"TeamScheme.DefaultChannelGuestRole as Guest",
+			"TeamScheme.DefaultChannelUserRole as User",
+			"TeamScheme.DefaultChannelAdminRole as Admin",
+		).
+		From("Channels").
+		LeftJoin("Teams ON Teams.Id = Channels.TeamId").
+		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
+		Where(sq.Eq{"Channels.Id": member.ChannelId})
+
+	var defaultTeamRoles struct {
+		Id    string
+		Guest sql.NullString
+		User  sql.NullString
+		Admin sql.NullString
+	}
+	teamRolesSql, teamRolesArgs, qErr := teamRolesQuery.ToSql()
+	if qErr != nil {
+		return nil, nil, errors.Wrap(qErr, "team_roles_tosql")
+	}
+	if err = s.GetMaster().Get(&defaultTeamRoles, teamRolesSql, teamRolesArgs...); err != nil && err != sql.ErrNoRows {
+		return nil, nil, errors.Wrap(err, "default_team_roles_select")
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Step 0: Lock all CML rows where this channel is the source, ordered by DestinationId.
+	// This prevents intra-SMPL deadlock when two concurrent SaveMemberAndPropagateLinked calls
+	// join channels that share overlapping destination wikis: consistent ORDER BY ensures
+	// neither blocks the other waiting for a row it already holds. Deadlock safety vs
+	// SaveAndPropagateMembers/DeleteAndCleanupMembers: both lock the same physical CML row
+	// (SourceId=X, DestinationId=D) — this function acquires it via SourceId predicate, the
+	// others via DestinationId predicate. They serialize on the same row and cannot deadlock.
+	//
+	// IMPORTANT: Do NOT add a DestinationId lock here. This function intentionally omits it
+	// because adding it would change the lock ordering (DestinationId-first) and create a
+	// deadlock cycle with SaveAndPropagateMembers which locks DestinationId then SourceId.
+	// Raw SQL: squirrel does not support FOR UPDATE with ORDER BY on a locking query.
+	// Capture DestinationIds while we have them — the caller needs them to invalidate
+	// caches and would otherwise have to re-query WikiLinks.
+	cmlLockQuery := `SELECT DestinationId FROM WikiLinks WHERE SourceId = $1 ORDER BY DestinationId FOR UPDATE`
+	if err = transaction.Select(&linkedDestinations, cmlLockQuery, member.ChannelId); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to lock channel member links for source")
+	}
+
+	// Step 1: INSERT the direct member
+	insertQuery := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...).Values(channelMemberToSlice(member)...)
+	insertSQL, insertArgs, qErr := insertQuery.ToSql()
+	if qErr != nil {
+		return nil, nil, errors.Wrap(qErr, "channel_members_tosql")
+	}
+	if _, err = transaction.Exec(insertSQL, insertArgs...); err != nil {
+		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
+			return nil, nil, store.NewErrConflict("ChannelMembers", err, "")
+		}
+		return nil, nil, errors.Wrap(err, "channel_members_save")
+	}
+
+	// Step 2: Propagate to linked channels within the same transaction.
+	// Synthetic members propagated to linked wiki channels are never admins.
+	// Admin privileges on the source channel do NOT transitively grant admin
+	// on linked wiki channels — that would be a privilege escalation path.
+	now := model.GetMillis()
+	propagateQuery := `
+		INSERT INTO ChannelMembers (ChannelId, UserId, Roles, LastViewedAt, MsgCount, MentionCount,
+			MentionCountRoot, MsgCountRoot, NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, SchemeGuest,
+			UrgentMentionCount, AutoTranslationDisabled, SourceId)
+		SELECT cml.DestinationId, $1::varchar, 'channel_user', 0, 0, 0, 0, 0, $4::jsonb,
+			$2::bigint, $5::boolean, false, $6::boolean, 0, false, $3::varchar
+		FROM WikiLinks cml
+		WHERE cml.SourceId = $3::varchar
+		ON CONFLICT (ChannelId, UserId) DO NOTHING
+	`
+	notifyProps := model.MapToJSON(member.NotifyProps)
+	schemeUser := !member.SchemeGuest
+	if _, err = transaction.Exec(propagateQuery, member.UserId, now, member.ChannelId, notifyProps, schemeUser, member.SchemeGuest); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to propagate synthetic memberships")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	// Resolve final roles for the returned member
+	rolesResult := getChannelRoles(
+		member.SchemeGuest, member.SchemeUser, member.SchemeAdmin,
+		defaultTeamRoles.Guest.String, defaultTeamRoles.User.String, defaultTeamRoles.Admin.String,
+		defaultChannelRoles.Guest.String, defaultChannelRoles.User.String, defaultChannelRoles.Admin.String,
+		strings.Fields(member.ExplicitRoles),
+	)
+	member.SchemeGuest = rolesResult.schemeGuest
+	member.SchemeUser = rolesResult.schemeUser
+	member.SchemeAdmin = rolesResult.schemeAdmin
+	member.Roles = strings.Join(rolesResult.roles, " ")
+	member.ExplicitRoles = strings.Join(rolesResult.explicitRoles, " ")
+
+	return member, linkedDestinations, nil
+}
+
+// Note: Uses raw SQL with Postgres-specific $N params. The INSERT...SELECT with
+// correlated subquery is too complex for squirrel query builder.
+func (s SqlChannelStore) RemoveSyntheticMembersForSource(rctx request.CTX, sourceChannelId, destinationChannelId string) error {
+	if !model.IsValidId(sourceChannelId) || !model.IsValidId(destinationChannelId) {
+		return store.NewErrInvalidInput("ChannelMembers", "channelId", sourceChannelId+"/"+destinationChannelId)
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Lock CML rows for the destination first — must match order in
+	// wiki_link_store.go (SaveAndPropagateMembers, DeleteAndCleanupMembers)
+	// to prevent deadlock.
+	cmlLockQuery := `SELECT SourceId FROM WikiLinks WHERE DestinationId = $1 FOR UPDATE`
+	if _, err = transaction.Exec(cmlLockQuery, destinationChannelId); err != nil {
+		return errors.Wrap(err, "failed to lock channel member links for destination")
+	}
+
+	// Lock the affected rows to prevent concurrent modifications by other
+	// RemoveSyntheticMembersForSource or SaveMemberAndPropagateLinked calls.
+	lockQuery := `SELECT ChannelId FROM ChannelMembers WHERE ChannelId = $1 AND SourceId = $2 FOR UPDATE`
+	if _, err = transaction.Exec(lockQuery, destinationChannelId, sourceChannelId); err != nil {
+		return errors.Wrap(err, "failed to lock synthetic members for update")
+	}
+
+	// Step 1: Update synthetic members that have an alternative source
+	updateQuery := `
+		UPDATE ChannelMembers SET SourceId = COALESCE(
+			(SELECT cml.SourceId FROM WikiLinks cml
+			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = ChannelMembers.UserId
+			WHERE cml.DestinationId = $1
+			AND cml.SourceId != $2
+			AND (cm2.SourceId IS NULL OR cm2.SourceId = '')
+			ORDER BY cml.CreateAt ASC
+			LIMIT 1),
+			SourceId
+		)
+		WHERE ChannelId = $1 AND SourceId = $2
+		AND EXISTS (
+			SELECT 1 FROM WikiLinks cml
+			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = ChannelMembers.UserId
+			WHERE cml.DestinationId = $1 AND cml.SourceId != $2
+			AND (cm2.SourceId IS NULL OR cm2.SourceId = '')
+		)
+	`
+
+	if _, err = transaction.Exec(updateQuery, destinationChannelId, sourceChannelId); err != nil {
+		return errors.Wrap(err, "failed to update synthetic members with alternative source")
+	}
+
+	// Step 2: Delete remaining synthetic members with no other source
+	deleteQuery := `
+		DELETE FROM ChannelMembers
+		WHERE ChannelId = $1 AND SourceId = $2
+	`
+
+	if _, err = transaction.Exec(deleteQuery, destinationChannelId, sourceChannelId); err != nil {
+		return errors.Wrap(err, "failed to delete synthetic members")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
+// Note: Uses raw SQL with Postgres-specific $N params. The INSERT...SELECT with
+// correlated subquery is too complex for squirrel query builder.
+func (s SqlChannelStore) RemoveSyntheticMemberForUser(rctx request.CTX, userId, sourceChannelId, destinationChannelId string) (deleted bool, err error) {
+	if !model.IsValidId(userId) || !model.IsValidId(sourceChannelId) || !model.IsValidId(destinationChannelId) {
+		return false, store.NewErrInvalidInput("ChannelMembers", "ids", userId+"/"+sourceChannelId+"/"+destinationChannelId)
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return false, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Lock CML rows for the destination first — must match order in
+	// wiki_link_store.go (SaveAndPropagateMembers, DeleteAndCleanupMembers)
+	// to prevent deadlock.
+	cmlLockQuery := `SELECT SourceId FROM WikiLinks WHERE DestinationId = $1 FOR UPDATE`
+	if _, err = transaction.Exec(cmlLockQuery, destinationChannelId); err != nil {
+		return false, errors.Wrap(err, "failed to lock channel member links for destination")
+	}
+
+	// Lock the row to prevent TOCTOU race with concurrent DeleteAndCleanupMembers.
+	if _, err = transaction.Exec(`SELECT ChannelId FROM ChannelMembers WHERE ChannelId = $1 AND UserId = $2 AND SourceId = $3 FOR UPDATE`, destinationChannelId, userId, sourceChannelId); err != nil {
+		return false, errors.Wrap(err, "failed to lock synthetic member row")
+	}
+
+	// Step 1: Check if another link grants access; if yes, update SourceId
+	updateQuery := `
+		UPDATE ChannelMembers SET SourceId = (
+			SELECT cml.SourceId FROM WikiLinks cml
+			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = $1
+			WHERE cml.DestinationId = $2
+			AND cml.SourceId != $3
+			AND (cm2.SourceId IS NULL OR cm2.SourceId = '')
+			ORDER BY cml.CreateAt ASC
+			LIMIT 1
+		)
+		WHERE ChannelId = $2 AND UserId = $1 AND SourceId = $3
+		AND EXISTS (
+			SELECT 1 FROM WikiLinks cml
+			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = $1
+			WHERE cml.DestinationId = $2 AND cml.SourceId != $3
+			AND (cm2.SourceId IS NULL OR cm2.SourceId = '')
+		)
+	`
+
+	result, err := transaction.Exec(updateQuery, userId, destinationChannelId, sourceChannelId)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to update synthetic member with alternative source")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if rowsAffected > 0 {
+		if err = transaction.Commit(); err != nil {
+			return false, errors.Wrap(err, "commit_transaction")
+		}
+		return false, nil
+	}
+
+	// Step 2: Delete the synthetic membership if no alternative source
+	deleteQuery := `
+		DELETE FROM ChannelMembers
+		WHERE ChannelId = $1 AND UserId = $2 AND SourceId = $3
+	`
+
+	result, err = transaction.Exec(deleteQuery, destinationChannelId, userId, sourceChannelId)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to delete synthetic member")
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return false, errors.Wrap(err, "commit_transaction")
+	}
+
+	return rowsAffected > 0, nil
 }

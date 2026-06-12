@@ -1,0 +1,69 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.InlineCommentModal {
+    &__content {
+        display: flex;
+        min-width: 500px;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    &__selected-text {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        label {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        blockquote {
+            padding: 12px 16px;
+            border-radius: 4px;
+            border-left: 3px solid var(--button-bg);
+            margin: 0;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            font-style: italic;
+            line-height: 1.5;
+        }
+    }
+
+    &__input {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        label {
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background: var(--center-channel-bg);
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+
+            &:focus {
+                border-color: var(--button-bg);
+                box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.1);
+                outline: none;
+            }
+
+            &::placeholder {
+                color: rgba(var(--center-channel-color-rgb), 0.48);
+            }
+        }
+    }
+}

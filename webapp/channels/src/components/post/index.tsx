@@ -39,6 +39,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
+import {isPageInlineComment} from 'utils/page_utils';
 import {isPopoutWindow} from 'utils/popouts/popout_windows';
 import {areConsecutivePostsBySameUser, canDeletePost, getPostTranslation, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
@@ -65,6 +66,11 @@ function isFirstReply(post: Post, previousPost?: Post | null): boolean {
         }
 
         // The previous post is not a real post
+        return true;
+    }
+
+    // Inline comments don't have root_id but should still show "Commented on" context
+    if (isPageInlineComment(post)) {
         return true;
     }
 
@@ -155,7 +161,7 @@ function makeMapStateToProps() {
 
         const currentTeam = getCurrentTeam(state);
         const team = getTeam(state, channel.team_id);
-        let teamName = currentTeam?.name;
+        let teamName = team?.name || currentTeam?.name;
         let teamDisplayName;
 
         const memberships = getTeamMemberships(state);

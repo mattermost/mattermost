@@ -1,0 +1,58 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.channel-tab-panel {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.channel-tab-panel-content {
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+
+    &--messages {
+        // Messages tab content takes full space
+        height: 100%;
+    }
+
+    &--files {
+        // Files tab has padding and scrollable content
+        padding: 24px;
+        overflow-y: auto;
+    }
+
+    &--wiki {
+        // Wiki tab takes full space with no padding
+        height: 100%;
+    }
+
+    &__placeholder {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 32px 64px 32px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        text-align: center;
+
+        h3 {
+            margin: 0 0 8px 0;
+            color: rgba(var(--center-channel-color-rgb), 0.88);
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 20px;
+        }
+    }
+}

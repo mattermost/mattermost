@@ -2458,6 +2458,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 			HigherScopedGuestPermissions: []string{},
 			ShouldError:                  false,
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+				},
+			},
 		},
 		{
 			Name: "Channel should have no scheme when all moderated permissions are equivalent to higher scoped role",

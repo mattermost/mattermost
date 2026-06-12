@@ -105,6 +105,9 @@ type Store interface {
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	Wiki() WikiStore
+	Page() PageStore
+	WikiLink() WikiLinkStore
 	ChannelJoinRequest() ChannelJoinRequestStore
 }
 
@@ -205,8 +208,10 @@ type ChannelStore interface {
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
+	GetWikiBackingChannel(id string) (*model.Channel, error)
 	GetBoardChannel(id string) (*model.Channel, error)
 	GetMany(ids []string, allowFromCache bool) (model.ChannelList, error)
+	GetManyIncludingWiki(ids []string, allowFromCache bool) (model.ChannelList, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamID, name string)
 	Delete(channelID string, timestamp int64) error
@@ -332,6 +337,23 @@ type ChannelStore interface {
 	GetTeamForChannel(channelID string) (*model.Team, error)
 	IsReadOnlyChannel(channelID string) (bool, error)
 	IsChannelReadOnlyScheme(schemeID string) (bool, error)
+
+	// SaveSyntheticMembers bulk-creates synthetic memberships for all source channel members
+	// in the destination channel.
+	SaveSyntheticMembers(rctx request.CTX, sourceChannelId, destinationChannelId string) error
+	// SaveMemberAndPropagateLinked inserts the direct member and propagates synthetic
+	// memberships to all linked destination channels in one transaction. Returns the
+	// list of linked destination channel IDs so the caller can invalidate caches
+	// without a second WikiLinks query.
+	SaveMemberAndPropagateLinked(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, []string, error)
+
+	// RemoveSyntheticMembersForSource removes synthetic memberships from the destination
+	// channel that originated from the specified source channel.
+	RemoveSyntheticMembersForSource(rctx request.CTX, sourceChannelId, destinationChannelId string) error
+
+	// RemoveSyntheticMemberForUser removes a synthetic membership for one user, checking if
+	// other links still grant access before removing.
+	RemoveSyntheticMemberForUser(rctx request.CTX, userId, sourceChannelId, destinationChannelId string) (removed bool, err error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -378,6 +400,7 @@ type ThreadStore interface {
 	SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	UpdateTeamIdForChannelThreads(channelId, teamId string) error
+	CreateThreadForPageComment(thread *model.Thread) error
 }
 
 type PostStore interface {
@@ -438,6 +461,12 @@ type PostStore interface {
 	RefreshPostStats() error
 	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
 	PermanentDeleteAssociatedData(postIds []string) error
+
+	// Import idempotency methods
+	GetPostsByTypeAndProps(channelId, postType, propKey, propValue string) ([]*model.Post, error)
+	GetPostsByTypeAndPropsGlobal(postType, propKey, propValue string) ([]*model.Post, error)
+	GetPostRepliesByTypeAndProps(rootId, postType, propKey, propValue string) ([]*model.Post, error)
+	GetPageCommentsByPageIdPropAndImportSourceId(pageId, importSourceId string) ([]*model.Post, error)
 }
 
 type UserStore interface {
@@ -1100,8 +1129,11 @@ type ChannelGuardStore interface {
 }
 
 type DraftStore interface {
+	// Draft metadata methods (Drafts table)
 	Upsert(d *model.Draft) (*model.Draft, error)
+	UpsertPageDraft(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
+	GetManyByRootIds(userID, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	DeleteDraftsAssociatedWithPost(channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
@@ -1109,6 +1141,19 @@ type DraftStore interface {
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
+	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
+	UpdateDraftParent(userId, wikiId, draftId, newParentId string) error
+	BatchUpdateDraftParentId(userId, wikiId, oldParentId, newParentId string) ([]*model.Draft, error)
+
+	// Page draft content methods (stored in Drafts.Message as TipTap JSON)
+	UpsertPageDraftContent(pageId, userId, wikiId, content string, lastUpdateAt int64) (*model.Draft, error)
+	GetPageDraft(pageId, userId, wikiId string) (*model.Draft, error)
+	DeletePageDraft(pageId, userId, wikiId string) error
+	GetPageDraftsForUser(userId, wikiId string, offset, limit int) ([]*model.Draft, error)
+	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.Draft, error)
+
+	// Publish operations
+	PublishPageDraft(pageId, userId, wikiId string) (*model.Draft, error)
 }
 
 type PostAcknowledgementStore interface {
@@ -1293,6 +1338,164 @@ type TemporaryPostStore interface {
 	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
+}
+
+type WikiStore interface {
+	Save(wiki *model.Wiki) (*model.Wiki, error)
+	// Create atomically inserts pre-validated wiki, backing channel, creator membership,
+	// join history entry, and (if defaultDraft != nil) a default page draft. Construction
+	// and validation of the inputs are the caller's responsibility (see app.CreateWiki).
+	Create(rctx request.CTX, wiki *model.Wiki, backingChannel *model.Channel, creatorMember *model.ChannelMember, defaultDraft *model.Draft) (*model.Wiki, error)
+	Get(id string) (*model.Wiki, error)
+	GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error)
+	GetForChannels(channelIds []string, includeDeleted bool) ([]*model.Wiki, error)
+	GetLinkedToChannel(channelId string) ([]*model.Wiki, error)
+	GetByChannelId(channelId string) (*model.Wiki, error)
+	GetForTeam(teamId string, page, perPage int) ([]*model.Wiki, error)
+	GetForUser(userId, teamId string, page, perPage int) ([]*model.Wiki, error)
+	Update(wiki *model.Wiki) (*model.Wiki, error)
+	Delete(id string, hard bool) error
+	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
+	GetPageByTitleInWiki(wikiId, title string) (*model.Post, error)
+	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
+	DeleteAllPagesForWiki(wikiId string) error
+	MovePageToWiki(pageId, targetWikiId, targetChannelId string, parentPageId *string) error
+	SetWikiIdInPostProps(pageId, wikiId string) error
+	// ResolveNamesToIDs converts wiki names/IDs to wiki IDs.
+	// Supports both direct wiki IDs and case-insensitive name matching.
+	// Team scoping is applied when teamId is provided.
+	ResolveNamesToIDs(names []string, teamId string) ([]string, error)
+
+	// GetWikisForExport returns wikis in a channel with team/channel names for export
+	GetWikisForExport(channelId string) ([]*model.WikiForExport, error)
+
+	// GetPagesForExport returns pages for a wiki with content and user info for export.
+	// Uses cursor-based pagination - pass empty afterId for first page.
+	GetPagesForExport(wikiId string, limit int, afterId string) ([]*model.PageForExport, error)
+
+	// GetPageCommentsForExport returns comments for a page with user info for export
+	GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error)
+}
+
+type WikiLinkStore interface {
+	Save(link *model.WikiLink) (*model.WikiLink, error)
+	SaveAndPropagateMembers(rctx request.CTX, link *model.WikiLink, sourceChannelId string, propagateAdmin bool) (*model.WikiLink, error)
+	Get(sourceId, destinationId string) (*model.WikiLink, error)
+	GetBySource(sourceId string) ([]*model.WikiLink, error)
+	GetBySourceMaster(sourceId string) ([]*model.WikiLink, error)
+	GetBySources(sourceIds []string) ([]*model.WikiLink, error)
+	GetByDestination(destinationId string) ([]*model.WikiLink, error)
+	GetByWiki(wikiId string) ([]*model.WikiLink, error)
+	Delete(sourceId, destinationId string) error
+	DeleteAndCleanupMembers(rctx request.CTX, sourceId, destinationId string) error
+	DeleteByDestination(destinationId string) error
+}
+
+// PageStore manages page hierarchy operations.
+// Pages are stored as Posts with Type="page", but hierarchy-specific
+// operations are isolated in this store for better separation of concerns.
+type PageStore interface {
+	// CreatePage creates a page and its content in a single transaction
+	CreatePage(rctx request.CTX, post *model.Post, content string) (*model.Post, error)
+
+	// GetPage fetches a page by ID.
+	// Uses DBXFromContext to respect master flag for read-after-write consistency.
+	GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error)
+
+	// GetPagesByIDs fetches multiple pages by their IDs in a single query.
+	// Missing IDs are silently omitted from the result.
+	GetPagesByIDs(rctx request.CTX, pageIDs []string) ([]*model.Post, error)
+
+	// DeletePage soft-deletes a page and all its associated data (comments and drafts).
+	// It also atomically reparents any child pages to newParentID (or makes them root pages if empty).
+	DeletePage(pageID string, deleteByID string, newParentID string) error
+
+	// RestorePage restores a soft-deleted page post
+	RestorePage(pageID string) error
+
+	// GetPageChildren fetches direct children of a page
+	GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error)
+
+	// GetPageDescendants fetches all descendants of a page (entire subtree)
+	GetPageDescendants(postID string) (*model.PostList, error)
+
+	// GetPageAncestors fetches all ancestors of a page up to the root
+	GetPageAncestors(postID string) (*model.PostList, error)
+
+	// GetChannelPages fetches a paginated page of full-content pages in a channel, ordered by
+	// CreateAt DESC. Use offset=0, limit=0 to load all pages (import paths only).
+	GetChannelPages(channelID string, offset, limit int) (*model.PostList, error)
+
+	// GetChannelPagesMeta fetches all pages in a channel without the Message (TipTap content)
+	// field. Used for cross-wiki merged list views where content is not needed and loading all
+	// pages into memory must be cheap.
+	GetChannelPagesMeta(channelID string) (*model.PostList, error)
+
+	// GetSiblingPages fetches all sibling pages (pages with the same parent) for a given parent.
+	// If parentID is empty, returns root-level pages in the channel.
+	// Results are sorted by page_sort_order, then CreateAt, then Id.
+	GetSiblingPages(parentID, channelID string) ([]*model.Post, error)
+
+	// UpdatePageSortOrder reorders a page among its siblings.
+	// Moves the page to newIndex position (0-indexed) and recalculates sort orders for all siblings.
+	// Uses SELECT FOR UPDATE to prevent concurrent modification issues.
+	// Returns the updated list of siblings with their new sort orders.
+	UpdatePageSortOrder(pageID, parentID, channelID string, newIndex int64) ([]*model.Post, error)
+
+	// ChangePageParent updates the parent of a page.
+	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+	// Returns ErrNotFound if no rows affected (page not found or concurrent modification).
+	ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error
+
+	// MovePage atomically moves a page within the hierarchy.
+	// Combines parent change and sibling reordering in a single transaction.
+	// - newParentID: if non-nil, changes the page's parent (nil = keep current, empty string = root)
+	// - newIndex: if non-nil, reorders the page to this position among siblings
+	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+	// Returns ErrNotFound if page not found or concurrent modification detected.
+	// Returns ErrInvalidInput if the move would create a cycle.
+	MovePage(pageID, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error)
+
+	// UpdatePageWithContent updates a page's title and/or content and creates edit history
+	UpdatePageWithContent(rctx request.CTX, pageID, title, content string) (*model.Post, error)
+
+	// Update updates a page (following MM pattern - no business logic, just UPDATE)
+	// Returns ErrNotFound if page doesn't exist or was deleted
+	Update(rctx request.CTX, page *model.Post) (*model.Post, error)
+
+	// GetPageVersionHistory fetches the version history for a page with pagination
+	GetPageVersionHistory(pageID string, offset, limit int) ([]*model.Post, error)
+
+	// GetCommentsForPage fetches comments and replies for a page with pagination
+	GetCommentsForPage(pageID string, includeDeleted bool, offset, limit int) (*model.PostList, error)
+
+	// GetSinglePageComment fetches a single page_comment post by ID.
+	GetSinglePageComment(commentID string, includeDeleted bool) (*model.Post, error)
+
+	// AtomicUpdatePageNotification atomically finds and updates an existing page update
+	// notification post within a transaction using SELECT FOR UPDATE to prevent lost updates
+	// from concurrent modifications. Returns the updated post, or nil if no matching
+	// notification was found (caller should create a new one).
+	AtomicUpdatePageNotification(channelID, pageID, userID, username, pageTitle string, sinceTime int64) (*model.Post, error)
+
+	// UpdateCommentProps sets the Props column on a page comment and bumps UpdateAt.
+	// Used for metadata-only changes such as resolve/unresolve that intentionally
+	// bypass post edit history. No permission checks or pipeline side-effects —
+	// callers are responsible for WebSocket events.
+	UpdateCommentProps(commentID string, props model.StringInterface) (*model.Post, error)
+
+	// UpdatePageFileIds sets the FileIds column on a page post and bumps UpdateAt.
+	// It also reparents FileInfo rows from fromPostID to pageID so file references survive
+	// snapshot pruning by data retention. Callers are responsible for WebSocket events.
+	UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Post, error)
+
+	// PermanentDeletePage hard-deletes the page post and all its comments, threads, and file info.
+	PermanentDeletePage(pageID string) error
+
+	// BatchSetPageParent updates PageParentId for multiple pages in a single query.
+	// Intended for bulk import repair — skips cycle detection (caller is responsible).
+	// updates maps pageID -> newParentID (empty string = root).
+	BatchSetPageParent(updates map[string]string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

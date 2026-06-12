@@ -27,12 +27,14 @@ jest.mock('components/search_shortcut/search_shortcut', () => ({
 
 describe('components/threading/global_threads/thread_list/virtualized_thread_list_row', () => {
     let props: ComponentProps<typeof Row>;
+    const mockSetRowHeight = jest.fn();
 
     beforeEach(() => {
         props = {
             data: {
                 ids: ['1', '2', '3'],
                 selectedThreadId: undefined,
+                setRowHeight: mockSetRowHeight,
             },
             index: 1,
             style: {},
@@ -48,7 +50,7 @@ describe('components/threading/global_threads/thread_list/virtualized_thread_lis
         const {baseElement} = renderWithContext(
             <Row
                 {...props}
-                data={{ids: [...props.data.ids, Constants.THREADS_LOADING_INDICATOR_ITEM_ID], selectedThreadId: undefined}}
+                data={{ids: [...props.data.ids, Constants.THREADS_LOADING_INDICATOR_ITEM_ID], selectedThreadId: undefined, setRowHeight: mockSetRowHeight}}
                 index={3}
             />,
         );
@@ -59,7 +61,7 @@ describe('components/threading/global_threads/thread_list/virtualized_thread_lis
         const {baseElement} = renderWithContext(
             <Row
                 {...props}
-                data={{ids: [...props.data.ids, Constants.THREADS_NO_RESULTS_ITEM_ID], selectedThreadId: undefined}}
+                data={{ids: [...props.data.ids, Constants.THREADS_NO_RESULTS_ITEM_ID], selectedThreadId: undefined, setRowHeight: mockSetRowHeight}}
                 index={3}
             />,
         );

@@ -17,6 +17,7 @@ import marketplace from './marketplace';
 import modals from './modals';
 import notice from './notice';
 import onboardingTasks from './onboarding_tasks';
+import pagesHierarchy from './pages_hierarchy';
 import posts from './posts';
 import productMenu from './product_menu';
 import readout from './readout';
@@ -27,6 +28,7 @@ import settings from './settings';
 import system from './system';
 import textbox from './textbox';
 import threads from './threads';
+import wikiRhs from './wiki_rhs';
 
 export default combineReducers({
     admin,
@@ -49,8 +51,10 @@ export default combineReducers({
     textbox,
     channelSidebar,
     onboardingTasks,
+    pagesHierarchy,
     threads,
     productMenu,
     drafts,
     readout,
+    wikiRhs,
 });

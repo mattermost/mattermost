@@ -20,6 +20,7 @@ const (
 	PropertyValueTargetTypeUser    = "user"
 	PropertyValueTargetTypeChannel = "channel"
 	PropertyValueTargetTypeSystem  = "system"
+	PropertyValueTargetTypePage    = "page"
 
 	// PropertyValueSystemTargetID is the canonical TargetID sentinel for
 	// values whose TargetType is "system". System-object values attach to
@@ -136,6 +137,7 @@ type PropertyValueSearchOpts struct {
 	Cursor         PropertyValueSearchCursor
 	PerPage        int
 	Value          json.RawMessage
+	UseMaster      bool // When true, read from master DB for read-after-write consistency
 }
 
 // PropertyValueSearch captures the parameters provided by a client for

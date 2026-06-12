@@ -9,8 +9,18 @@ export {getBlobFromAsset, getFileFromAsset} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {duration, getRandomId, wait, newTestPassword} from './util';
 export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
-
-export {getAdminClient, mergeWithOnPremServerConfig, getOnPremServerConfig} from './server';
+export {
+    configureAIPlugin,
+    installAIPlugin,
+    shouldSkipAITests,
+    createPageViaDraft,
+    getAdminClient,
+    createRandomTeam,
+    createRandomUser,
+    getOnPremServerConfig,
+    makeClient,
+    mergeWithOnPremServerConfig,
+} from './server';
 
 export {
     ChannelsPage,

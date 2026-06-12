@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -57,6 +58,13 @@ const (
 	PostTypeGMConvertedToChannel  = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels   = "add_bot_teams_channels"
 	PostTypeMe                    = "me"
+	PostTypePage                  = "page"
+	PostTypePageComment           = "page_comment"
+	PostTypePageMention           = "page_mention"
+	PostTypeWikiAdded             = "system_wiki_added"
+	PostTypeWikiDeleted           = "system_wiki_deleted"
+	PostTypePageAdded             = "system_page_added"
+	PostTypePageUpdated           = "system_page_updated"
 	PostCustomTypePrefix          = "custom_"
 	PostTypeReminder              = "reminder"
 	PostTypeBurnOnRead            = "burn_on_read"
@@ -71,6 +79,18 @@ const (
 	PostMessageMaxRunesV1 = 4000
 	PostMessageMaxBytesV2 = 65535
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
+	PostPropsMaxRunes     = 800000
+	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
+
+	PostPageMaxDepth     = 10  // Maximum depth for page hierarchies
+	MaxPageTitleLength   = 255 // Maximum length for page titles
+	DefaultPageTitle     = "Untitled page"
+	PostEditHistoryLimit = 10 // Maximum number of edit history versions to store
+
+	// PageSortOrderGap is the gap between page sort order values for sibling pages.
+	// Currently all siblings are recalculated on every reorder.
+	// The gap is reserved for potential future optimization (insert without full recalculation).
+	PageSortOrderGap = int64(1000)
 
 	// Reporting API constants
 	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
@@ -78,8 +98,6 @@ const (
 	ReportingTimeFieldUpdateAt = "update_at"
 	ReportingSortDirectionAsc  = "asc"
 	ReportingSortDirectionDesc = "desc"
-	PostPropsMaxRunes          = 800000
-	PostPropsMaxUserRunes      = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
 	PropsAddChannelMember = "add_channel_member"
 
@@ -104,8 +122,6 @@ const (
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
-	PostPropsExpireAt                 = "expire_at"
-	PostPropsReadDurationSeconds      = "read_duration"
 	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
 	PostPropsSharedChannelState         = "shared_channel_state"
 	PostPropsSharedChannelWorkspaceName = "workspace_name"
@@ -114,6 +130,17 @@ const (
 
 	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
 	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
+
+	PostPropsCommentType         = "comment_type"
+	PostPropsImportSourceId      = "import_source_id"
+	PostPropsImportFileMappings  = "import_file_mappings"
+	PostPropsExpireAt            = "expire_at"
+	PostPropsReadDurationSeconds = "read_duration"
+
+	// Page translation props — writable only via the wiki-scoped props endpoint.
+	PostPropsPageTranslatedFrom      = "translated_from"
+	PostPropsPageTranslationLanguage = "translation_language"
+	PostPropsPageTranslations        = "translations"
 
 	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
@@ -124,17 +151,39 @@ const (
 	SharedChannelStatePostValueUnshared = "unshared"
 )
 
+// WikiPostTypes is the strict set of post types whose content lives in the wiki domain.
+// These types must NEVER be served by /api/v4/posts by-ID lookups.
+var WikiPostTypes = []string{PostTypePage, PostTypePageComment, PostTypePageMention}
+
+// WikiPostTypesHiddenInFeed is the channel-feed exclusion set. Only page (raw page content)
+// is excluded from channel feeds. page_mention notifications are intentionally visible so
+// mention activity appears in the channel when ShowMentionsInChannelFeed is enabled.
+// page_comment is also visible (inline comment activity appears in the chat timeline).
+var WikiPostTypesHiddenInFeed = []string{PostTypePage}
+
+// WikiPostTypesHiddenInThreads is the set of wiki post types that must not appear in the
+// global Threads view. PostTypePageComment is intentionally excluded from this set: page
+// comments are discussion threads and must surface in global threads with wiki-specific
+// rendering (see thread_item.tsx). Only the raw page post and mention posts are suppressed.
+var WikiPostTypesHiddenInThreads = []string{PostTypePage, PostTypePageMention}
+
+// IsWikiPostType returns true if the given post type is a wiki-domain post.
+func IsWikiPostType(postType string) bool {
+	return slices.Contains(WikiPostTypes, postType)
+}
+
 type Post struct {
-	Id         string `json:"id" xml:"Id"`
-	CreateAt   int64  `json:"create_at" xml:"CreateAt"`
-	UpdateAt   int64  `json:"update_at" xml:"UpdateAt"`
-	EditAt     int64  `json:"edit_at" xml:"EditAt"`
-	DeleteAt   int64  `json:"delete_at" xml:"DeleteAt"`
-	IsPinned   bool   `json:"is_pinned" xml:"IsPinned"`
-	UserId     string `json:"user_id" xml:"UserId"`
-	ChannelId  string `json:"channel_id" xml:"ChannelId"`
-	RootId     string `json:"root_id" xml:"RootId"`
-	OriginalId string `json:"original_id" xml:"OriginalId"`
+	Id           string `json:"id" xml:"Id"`
+	CreateAt     int64  `json:"create_at" xml:"CreateAt"`
+	UpdateAt     int64  `json:"update_at" xml:"UpdateAt"`
+	EditAt       int64  `json:"edit_at" xml:"EditAt"`
+	DeleteAt     int64  `json:"delete_at" xml:"DeleteAt"`
+	IsPinned     bool   `json:"is_pinned" xml:"IsPinned"`
+	UserId       string `json:"user_id" xml:"UserId"`
+	ChannelId    string `json:"channel_id" xml:"ChannelId"`
+	RootId       string `json:"root_id" xml:"RootId"`
+	OriginalId   string `json:"original_id" xml:"OriginalId"`
+	PageParentId string `json:"page_parent_id" xml:"PageParentId"`
 
 	Message string `json:"message" xml:"Message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
@@ -146,6 +195,7 @@ type Post struct {
 	propsMu       sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
 	Props         StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags" xml:"Hashtags"`
+	ContentText   string          `json:"content_text,omitempty" xml:"ContentText"`
 	Filenames     StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids" xml:"FileIds>Id"`
 	PendingPostId string          `json:"pending_post_id" xml:"PendingPostId"`
@@ -177,6 +227,7 @@ func (o *Post) Auditable() map[string]any {
 		"channel_id":      o.ChannelId,
 		"root_id":         o.RootId,
 		"original_id":     o.OriginalId,
+		"page_parent_id":  o.PageParentId,
 		"type":            o.Type,
 		"props":           o.GetProps(),
 		"file_ids":        o.FileIds,
@@ -204,10 +255,11 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+	PageParentId *string          `json:"page_parent_id"`
 }
 
 func (o *PostPatch) IsEmpty() bool {
-	return o.IsPinned == nil && o.Message == nil && o.Props == nil && o.FileIds == nil && o.HasReactions == nil
+	return o.IsPinned == nil && o.Message == nil && o.Props == nil && o.FileIds == nil && o.HasReactions == nil && o.PageParentId == nil
 }
 
 type PostReminder struct {
@@ -362,11 +414,13 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.ChannelId = o.ChannelId
 	dst.RootId = o.RootId
 	dst.OriginalId = o.OriginalId
+	dst.PageParentId = o.PageParentId
 	dst.Message = o.Message
 	dst.MessageSource = o.MessageSource
 	dst.Type = o.Type
 	dst.Props = o.Props
 	dst.Hashtags = o.Hashtags
+	dst.ContentText = o.ContentText
 	dst.Filenames = o.Filenames
 	dst.FileIds = o.FileIds
 	dst.PendingPostId = o.PendingPostId
@@ -505,7 +559,21 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.Message) > maxPostSize {
+	if o.Type == PostTypePage {
+		if !(IsValidId(o.PageParentId) || o.PageParentId == "") {
+			return NewAppError("Post.IsValid", "model.post.is_valid.page_parent_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+		if o.PageParentId == o.Id {
+			return NewAppError("Post.IsValid", "model.post.is_valid.page_parent_id_self.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+	}
+
+	if o.Type == PostTypePage {
+		if len(o.Message) > PageContentMaxSize {
+			return NewAppError("Post.IsValid", "model.post.is_valid.page_message_too_large.app_error",
+				map[string]any{"Size": len(o.Message), "MaxSize": PageContentMaxSize}, "id="+o.Id, http.StatusBadRequest)
+		}
+	} else if utf8.RuneCountInString(o.Message) > maxPostSize {
 		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
 			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
 	}
@@ -543,6 +611,13 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeReminder,
 		PostTypeMe,
+		PostTypePage,
+		PostTypePageComment,
+		PostTypePageMention,
+		PostTypeWikiAdded,
+		PostTypeWikiDeleted,
+		PostTypePageAdded,
+		PostTypePageUpdated,
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
@@ -593,6 +668,7 @@ func (o *Post) SanitizeProps() {
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
 	o.RemoteId = new("")
+	o.ContentText = ""
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil
@@ -910,6 +986,12 @@ func (o *Post) Patch(patch *PostPatch) {
 
 	if patch.HasReactions != nil {
 		o.HasReactions = *patch.HasReactions
+	}
+
+	// PageParentId only applies to pages; ignore patches for other post types so
+	// a `PATCH /posts/{id}` cannot set this field on a regular post.
+	if patch.PageParentId != nil && o.Type == PostTypePage {
+		o.PageParentId = *patch.PageParentId
 	}
 }
 

@@ -85,9 +85,7 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
                         className={enforceImmediately ? 'btn-apply' : 'btn-save'}
                         onClick={() => onConfirm(enforceImmediately)}
                     >
-                        {enforceImmediately ?
-                            formatMessage({id: 'admin.access_control.edit_policy.apply_policy', defaultMessage: 'Apply policy'}) :
-                            formatMessage({id: 'admin.access_control.edit_policy.save_policy', defaultMessage: 'Save policy'})
+                        {enforceImmediately ? formatMessage({id: 'admin.access_control.edit_policy.apply_policy', defaultMessage: 'Apply policy'}) : formatMessage({id: 'admin.access_control.edit_policy.save_policy', defaultMessage: 'Save policy'})
                         }
                     </button>
                 </div>

@@ -25,6 +25,12 @@ import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
+// Non-post types excluded from the posts object store (entities.posts.posts)
+// and from the channel-feed order arrays (postsInChannel). Pages live in
+// entities.pages.byId instead. Extend this set when introducing new post-like
+// types (e.g. Boards cards) that must not leak into the post feed.
+const NON_POST_TYPES = new Set<string>([PostTypeConstants.PAGE]);
+
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
         return post;
@@ -207,11 +213,16 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
+        if (NON_POST_TYPES.has(action.data?.type)) {
+            return state;
+        }
         return handlePostReceived({...state}, action.data);
     }
 
     case PostTypes.RECEIVED_POSTS: {
-        const posts = Object.values(action.data.posts) as Post[];
+        const posts = (Object.values(action.data.posts) as Post[]).filter(
+            (p) => !NON_POST_TYPES.has(p.type),
+        );
 
         if (posts.length === 0) {
             return state;
@@ -634,6 +645,11 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         const post = action.data as Post;
 
         if (action.features?.crtEnabled && post.root_id) {
+            return state;
+        }
+
+        // Pages (and future boards cards) are not shown in the channel feed.
+        if (NON_POST_TYPES.has(post.type)) {
             return state;
         }
 
@@ -1215,7 +1231,6 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
 
         for (const post of newPosts) {
             if (post.root_id !== action.rootId) {
-                // Only store comments
                 continue;
             }
 

@@ -235,6 +235,24 @@ const state: GlobalState = {
             byChannelOrThreadId: {},
         },
         contentFlagging: {},
+        pages: {
+            byId: {},
+            byWiki: {},
+            lastPagesInvalidated: {},
+            lastDraftsInvalidated: {},
+            publishedDraftTimestamps: {},
+            deletedDraftTimestamps: {},
+            commentsById: {},
+            commentsByPageId: {},
+        },
+        wikis: {
+            byId: {},
+            byTeam: {},
+            linksByChannel: {},
+        },
+        activeEditors: {
+            byPageId: {},
+        },
         properties: {
             fields: {byObjectType: {}, byId: {}},
             values: {byTargetId: {}, byFieldId: {}},
@@ -334,6 +352,10 @@ const state: GlobalState = {
                 status: 'not_started',
                 error: null,
             },
+        },
+        wiki: {
+            loading: {},
+            error: {},
         },
     },
     websocket: {

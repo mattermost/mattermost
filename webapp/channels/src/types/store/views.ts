@@ -8,6 +8,9 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {PagesHierarchyViewState} from 'reducers/views/pages_hierarchy';
+import type {WikiRhsState} from 'reducers/views/wiki_rhs';
+
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
 import type {RhsViewState} from './rhs';
@@ -224,4 +227,8 @@ export type ViewsState = {
         shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
         shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };
+
+    pagesHierarchy: PagesHierarchyViewState;
+
+    wikiRhs: WikiRhsState;
 };

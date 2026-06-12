@@ -530,6 +530,36 @@ func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, err
 	return r0, r1
 }
 
+// GetWikiBackingChannel provides a mock function with given fields: id
+func (_m *ChannelStore) GetWikiBackingChannel(id string) (*model.Channel, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWikiBackingChannel")
+	}
+
+	var r0 *model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Channel, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAll provides a mock function with given fields: teamID
 func (_m *ChannelStore) GetAll(teamID string) ([]*model.Channel, error) {
 	ret := _m.Called(teamID)
@@ -1466,6 +1496,36 @@ func (_m *ChannelStore) GetMany(ids []string, allowFromCache bool) (model.Channe
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMany")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, bool) (model.ChannelList, error)); ok {
+		return rf(ids, allowFromCache)
+	}
+	if rf, ok := ret.Get(0).(func([]string, bool) model.ChannelList); ok {
+		r0 = rf(ids, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, bool) error); ok {
+		r1 = rf(ids, allowFromCache)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetManyIncludingWiki provides a mock function with given fields: ids, allowFromCache
+func (_m *ChannelStore) GetManyIncludingWiki(ids []string, allowFromCache bool) (model.ChannelList, error) {
+	ret := _m.Called(ids, allowFromCache)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetManyIncludingWiki")
 	}
 
 	var r0 model.ChannelList
@@ -2623,6 +2683,52 @@ func (_m *ChannelStore) RemoveMembers(rctx request.CTX, channelID string, userId
 	return r0
 }
 
+// RemoveSyntheticMemberForUser provides a mock function with given fields: rctx, userId, sourceChannelId, destinationChannelId
+func (_m *ChannelStore) RemoveSyntheticMemberForUser(rctx request.CTX, userId string, sourceChannelId string, destinationChannelId string) (bool, error) {
+	ret := _m.Called(rctx, userId, sourceChannelId, destinationChannelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveSyntheticMemberForUser")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) (bool, error)); ok {
+		return rf(rctx, userId, sourceChannelId, destinationChannelId)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) bool); ok {
+		r0 = rf(rctx, userId, sourceChannelId, destinationChannelId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string) error); ok {
+		r1 = rf(rctx, userId, sourceChannelId, destinationChannelId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RemoveSyntheticMembersForSource provides a mock function with given fields: rctx, sourceChannelId, destinationChannelId
+func (_m *ChannelStore) RemoveSyntheticMembersForSource(rctx request.CTX, sourceChannelId string, destinationChannelId string) error {
+	ret := _m.Called(rctx, sourceChannelId, destinationChannelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveSyntheticMembersForSource")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+		r0 = rf(rctx, sourceChannelId, destinationChannelId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ResetAllChannelSchemes provides a mock function with no fields
 func (_m *ChannelStore) ResetAllChannelSchemes() error {
 	ret := _m.Called()
@@ -2823,6 +2929,63 @@ func (_m *ChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*
 	}
 
 	return r0, r1
+}
+
+// SaveMemberAndPropagateLinked provides a mock function with given fields: rctx, member
+func (_m *ChannelStore) SaveMemberAndPropagateLinked(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, []string, error) {
+	ret := _m.Called(rctx, member)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveMemberAndPropagateLinked")
+	}
+
+	var r0 *model.ChannelMember
+	var r1 []string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) (*model.ChannelMember, []string, error)); ok {
+		return rf(rctx, member)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) *model.ChannelMember); ok {
+		r0 = rf(rctx, member)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.ChannelMember) []string); ok {
+		r1 = rf(rctx, member)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, *model.ChannelMember) error); ok {
+		r2 = rf(rctx, member)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// SaveSyntheticMembers provides a mock function with given fields: rctx, sourceChannelId, destinationChannelId
+func (_m *ChannelStore) SaveSyntheticMembers(rctx request.CTX, sourceChannelId string, destinationChannelId string) error {
+	ret := _m.Called(rctx, sourceChannelId, destinationChannelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveSyntheticMembers")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+		r0 = rf(rctx, sourceChannelId, destinationChannelId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // SearchAllChannels provides a mock function with given fields: term, opts

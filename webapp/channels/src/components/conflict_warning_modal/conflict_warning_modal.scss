@@ -1,0 +1,176 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.conflict-warning-modal {
+    .modal-content {
+        max-width: 560px;
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        padding: 20px 24px;
+        border-bottom: none;
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+        }
+    }
+
+    .modal-body {
+        padding: 0 24px 24px;
+    }
+
+    .modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 16px 24px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        gap: 12px;
+    }
+
+    .conflict-warning-content {
+        .conflict-warning-description {
+            margin: 0 0 20px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .conflict-warning-info {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+
+            .conflict-warning-info-row {
+                display: flex;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 14px;
+                gap: 8px;
+                line-height: 20px;
+
+                &:not(:last-child) {
+                    margin-bottom: 4px;
+                }
+
+                .conflict-warning-info-value {
+                    color: var(--center-channel-color);
+                    font-weight: 600;
+                }
+            }
+        }
+
+        .conflict-warning-question {
+            margin: 0 0 12px;
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .conflict-warning-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .conflict-option {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background: transparent;
+            cursor: pointer;
+            gap: 12px;
+            text-align: left;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+
+            &:hover {
+                border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+
+            &.selected {
+                border-color: var(--button-bg);
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+            }
+
+            &.danger {
+                .conflict-option-icon i {
+                    color: var(--error-text);
+                }
+
+                &.selected {
+                    border-color: var(--error-text);
+                    background-color: rgba(var(--error-text-color-rgb), 0.08);
+
+                    .conflict-option-check {
+                        background-color: var(--error-text);
+                    }
+                }
+            }
+
+            .conflict-option-icon {
+                display: flex;
+                width: 32px;
+                height: 32px;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+                i {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 18px;
+                }
+            }
+
+            &.selected .conflict-option-icon {
+                background-color: rgba(var(--button-bg-rgb), 0.16);
+
+                i {
+                    color: var(--button-bg);
+                }
+            }
+
+            .conflict-option-content {
+                display: flex;
+                min-width: 0;
+                flex: 1;
+                flex-direction: column;
+
+                .conflict-option-title {
+                    color: var(--center-channel-color);
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 20px;
+                }
+
+                .conflict-option-description {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 12px;
+                    line-height: 16px;
+                }
+            }
+
+            .conflict-option-check {
+                display: flex;
+                width: 20px;
+                height: 20px;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background-color: var(--button-bg);
+
+                i {
+                    color: var(--button-color);
+                    font-size: 14px;
+                }
+            }
+        }
+    }
+}

@@ -11,6 +11,7 @@ import {
     ArrowRightBoldOutlineIcon,
     BookmarkIcon,
     BookmarkOutlineIcon,
+    CheckCircleOutlineIcon,
     ContentCopyIcon,
     DotsHorizontalIcon,
     EmoticonPlusOutlineIcon,
@@ -105,6 +106,10 @@ type Props = {
     canCopyText: boolean;
     canCopyLink: boolean;
     canFlagContent?: boolean;
+    isPageComment?: boolean;
+    isCommentResolved?: boolean;
+    wikiId?: string | null;
+    pageId?: string | null;
 
     actions: {
 
@@ -163,6 +168,15 @@ type Props = {
          */
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
 
+        /**
+         * Function to resolve a page comment
+         */
+        resolvePageComment?: (wikiId: string, pageId: string, commentId: string) => void;
+
+        /**
+         * Function to unresolve a page comment
+         */
+        unresolvePageComment?: (wikiId: string, pageId: string, commentId: string) => void;
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -266,6 +280,18 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.actions.unpinPost(this.props.post.id);
         } else {
             this.props.actions.pinPost(this.props.post.id);
+        }
+    };
+
+    handleResolveCommentMenuItemActivated = (): void => {
+        if (!this.props.wikiId || !this.props.pageId) {
+            return;
+        }
+
+        if (this.props.isCommentResolved) {
+            this.props.actions.unresolvePageComment?.(this.props.wikiId, this.props.pageId, this.props.post.id);
+        } else {
+            this.props.actions.resolvePageComment?.(this.props.wikiId, this.props.pageId, this.props.post.id);
         }
     };
 
@@ -419,7 +445,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
             // follow thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && !isShiftKeyPressed:
-            if (this.props.canFollowThread) {
+            if (this.props.canFollowThread && !this.props.isPageComment) {
                 forceCloseMenu();
                 this.handleSetThreadFollow();
             }
@@ -465,7 +491,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
             // pin / unpin
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.P):
-            if (this.props.canPin && !this.props.isReadOnly) {
+            if (this.props.canPin && !this.props.isReadOnly && !this.props.isPageComment) {
                 forceCloseMenu();
                 this.handlePinMenuItemActivated();
             }
@@ -473,8 +499,10 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
             // save / unsave
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.S):
-            forceCloseMenu();
-            this.handleFlagMenuItemActivated();
+            if (!this.props.isPageComment) {
+                forceCloseMenu();
+                this.handleFlagMenuItemActivated();
+            }
             break;
 
             // mark as unread
@@ -588,11 +616,11 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showReply = !isSystemMessage && !isBurnOnReadPost && this.props.location === Locations.CENTER;
         const showForward = this.props.canForward;
         const showReactions = Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker);
-        const showFollowPost = this.props.canFollowThread;
-        const showMarkAsUnread = Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH);
-        const showSave = !isSystemMessage && !this.props.isUnrevealedBurnOnReadPost;
-        const showRemind = !isSystemMessage;
-        const showPin = Boolean(!isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost);
+        const showFollowPost = this.props.canFollowThread && !this.props.isPageComment;
+        const showMarkAsUnread = Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH && !this.props.isPageComment);
+        const showSave = !isSystemMessage && !this.props.isUnrevealedBurnOnReadPost && !this.props.isPageComment;
+        const showRemind = !isSystemMessage && !this.props.isPageComment;
+        const showPin = Boolean(!isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost && !this.props.isPageComment);
         const showMove = Boolean(!isSystemMessage && this.props.canMove);
         const showShowTranslation = !isSystemMessage && showTranslation;
         const showCopyText = !isSystemMessage && !isBurnOnReadPost;
@@ -735,6 +763,27 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={this.props.post.is_pinned ? <PinIcon size={18}/> : <PinOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='P'/>}
                         onClick={this.handlePinMenuItemActivated}
+                    />
+                }
+                {Boolean(this.props.isPageComment && !this.props.isReadOnly && this.props.wikiId && this.props.pageId) &&
+                    <Menu.Item
+                        id={`${this.props.isCommentResolved ? 'unresolve' : 'resolve'}_comment_${this.props.post.id}`}
+                        data-testid={`resolve_comment_${this.props.post.id}`}
+                        labels={
+                            this.props.isCommentResolved ? (
+                                <FormattedMessage
+                                    id='post_info.unresolve_comment'
+                                    defaultMessage='Unresolve'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='post_info.resolve_comment'
+                                    defaultMessage='Resolve'
+                                />
+                            )
+                        }
+                        leadingElement={<CheckCircleOutlineIcon size={18}/>}
+                        onClick={this.handleResolveCommentMenuItemActivated}
                     />
                 }
                 {showMove &&

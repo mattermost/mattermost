@@ -1,0 +1,269 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.WikiPageThreadViewer {
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+
+    &__thread-header {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-left: 4px solid rgba(var(--center-channel-color-rgb), 0.32);
+        margin: 0 16px;
+        gap: 12px;
+    }
+
+    &__thread-title {
+        overflow: hidden;
+        flex: 1;
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__posts {
+        min-height: 0;
+        flex: 1;
+        padding: 8px 16px;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.24);
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+        }
+
+        // Remove grey vertical bars from replies
+        .post,
+        .Post,
+        .ReplyPost,
+        .post__content,
+        .post__body,
+        .post__header,
+        [class*="Post"],
+        [class*="Reply"],
+        [class*="post"] {
+            &::before,
+            &::after {
+                display: none !important;
+            }
+            padding-left: 0 !important;
+
+            border-left: none !important;
+            margin-left: 0 !important;
+        }
+
+        // Target any element with border-left
+        * {
+            &[style*="border-left"] {
+                border-left: none !important;
+            }
+        }
+
+        // Additional specificity for post content
+        .a11y__section .post__content {
+            border-left: none !important;
+
+            &::before {
+                display: none !important;
+            }
+        }
+
+        // Fix post-menu positioning to align with top-right corner
+        .post {
+            .post-menu {
+                top: 0;
+            }
+        }
+    }
+
+    &__filter-bar {
+        display: flex;
+        padding: 12px 20px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        gap: 8px;
+    }
+
+    &__filter-btn {
+        padding: 6px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.15s ease;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &.active {
+            border-color: var(--button-bg);
+            background: var(--button-bg);
+            color: var(--button-color);
+        }
+    }
+
+    &__empty {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+        text-align: center;
+
+        i {
+            margin-bottom: 12px;
+            font-size: 48px;
+            opacity: 0.5;
+        }
+
+        p {
+            margin: 0;
+        }
+    }
+
+    &__thread-list {
+        display: flex;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
+        padding: 16px 20px;
+        gap: 8px;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.24);
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+        }
+    }
+
+    &__thread-item {
+        display: flex;
+        width: 100%;
+        align-items: flex-start;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        gap: 12px;
+        text-align: left;
+        transition: all 0.15s ease;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &:active {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &.resolved {
+            border-color: rgba(var(--center-channel-color-rgb), 0.04);
+            background: rgba(var(--center-channel-color-rgb), 0.02);
+            opacity: 0.7;
+
+            .WikiPageThreadViewer__thread-item-icon i {
+                opacity: 0.5;
+            }
+        }
+    }
+
+    &__thread-item-icon {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        padding-top: 2px;
+
+        i {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 16px;
+        }
+    }
+
+    &__thread-item-content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__thread-item-text {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 500;
+        gap: 8px;
+        line-height: 1.4;
+    }
+
+    &__resolved-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: rgba(var(--online-indicator-rgb), 0.12);
+        color: var(--online-indicator);
+        font-size: 11px;
+        font-weight: 600;
+        gap: 4px;
+        white-space: nowrap;
+
+        i {
+            font-size: 12px;
+        }
+    }
+
+    &__thread-item-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__thread-item-preview {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        line-height: 1.4;
+    }
+}

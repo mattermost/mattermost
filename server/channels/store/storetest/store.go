@@ -77,7 +77,10 @@ type Store struct {
 	RecapStore                      mocks.RecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
+	WikiStore                       mocks.WikiStore
+	PageStore                       mocks.PageStore
 	ViewStore                       mocks.ViewStore
+	WikiLinkStore                   mocks.WikiLinkStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
 }
 
@@ -179,14 +182,23 @@ func (s *Store) AutoTranslation() store.AutoTranslationStore {
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
+
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
 }
+
 func (s *Store) ReadReceipt() store.ReadReceiptStore {
 	return &s.ReadReceiptStore
 }
 func (s *Store) TemporaryPost() store.TemporaryPostStore {
 	return &s.TemporaryPostStore
+}
+
+func (s *Store) Wiki() store.WikiStore {
+	return &s.WikiStore
+}
+func (s *Store) Page() store.PageStore {
+	return &s.PageStore
 }
 func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return &s.ChannelJoinRequestStore
@@ -194,6 +206,10 @@ func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }
+func (s *Store) WikiLink() store.WikiLinkStore {
+	return &s.WikiLinkStore
+}
+
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
@@ -255,7 +271,10 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.RecapStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
+		&s.WikiStore,
+		&s.PageStore,
 		&s.ViewStore,
+		&s.WikiLinkStore,
 		&s.ChannelJoinRequestStore,
 	)
 }

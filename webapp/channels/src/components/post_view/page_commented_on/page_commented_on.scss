@@ -1,0 +1,32 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageCommentedOn {
+    .PageCommentedOn__header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .PageCommentedOn__userInfo {
+        display: flex;
+        align-items: center;
+        margin-left: 12px;
+        gap: 8px;
+    }
+
+    .PageCommentedOn__pageLink {
+        cursor: pointer;
+    }
+
+    .PageCommentedOn__anchorContext {
+        margin-top: 8px;
+    }
+
+    .PageCommentedOn__message {
+        margin-top: 8px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+}

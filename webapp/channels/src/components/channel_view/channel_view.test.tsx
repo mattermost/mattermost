@@ -47,6 +47,7 @@ describe('components/channel_view', () => {
         location: {} as Props['location'],
         match: {
             url: '/team/channel/channelId',
+            path: '/team/channel/:channelId',
             params: {},
         } as Props['match'],
         enableOnboardingFlow: true,

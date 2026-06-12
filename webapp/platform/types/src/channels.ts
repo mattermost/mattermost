@@ -8,7 +8,7 @@ import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '.
 // **O**pen channel,
 // **P**rivate channel,
 // **D**irect message to one other,
-// **G**roup direct message to 2+ others
+// **G**roup direct message to 2+ others.
 export type ChannelType = 'O' | 'P' | 'D' | 'G' | 'threads';
 
 export type ChannelStats = {
@@ -185,6 +185,12 @@ export type ChannelMembership = {
     scheme_admin: boolean;
     post_root_id?: string;
     autotranslation_disabled?: boolean;
+
+    /**
+     * Source channel ID when this membership was synthesized from a wiki link.
+     * Empty/undefined on regular (direct) memberships.
+     */
+    source_id?: string;
 };
 
 export type ChannelUnread = {

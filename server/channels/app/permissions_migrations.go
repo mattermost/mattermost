@@ -204,7 +204,8 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 
 	roleName := role.Name
 	for _, transformation := range migrationMap {
-		if transformation.On(role, roleMap) {
+		matched := transformation.On(role, roleMap)
+		if matched {
 			for _, permission := range transformation.Add {
 				roleMap[roleName][permission] = true
 			}
@@ -1407,6 +1408,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
+		{Key: model.MigrationKeyAddWikiPagePermissions, Migration: a.getAddWikiPagePermissionsMigration},
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
 	}
 

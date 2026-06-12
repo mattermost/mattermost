@@ -127,10 +127,12 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		Select("COUNT(ThreadMemberships.PostId)").
 		From("ThreadMemberships").
 		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
-		})
+		}).
+		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads})
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -297,7 +299,8 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
-		Where(sq.Eq{"ThreadMemberships.Following": true})
+		Where(sq.Eq{"ThreadMemberships.Following": true}).
+		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads})
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -1147,5 +1150,17 @@ func (s *SqlThreadStore) UpdateTeamIdForChannelThreads(channelId, teamId string)
 		return errors.Wrapf(err, "failed to update threads team id for channel id=%s", channelId)
 	}
 
+	return nil
+}
+
+func (s *SqlThreadStore) CreateThreadForPageComment(thread *model.Thread) error {
+	query := s.getQueryBuilder().
+		Insert("Threads").
+		Columns("PostId", "ChannelId", "ReplyCount", "LastReplyAt", "Participants", "ThreadTeamId").
+		Values(thread.PostId, thread.ChannelId, thread.ReplyCount, thread.LastReplyAt, thread.Participants, thread.TeamId).
+		Suffix("ON CONFLICT (PostId) DO NOTHING")
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to insert thread entry for page comment")
+	}
 	return nil
 }

@@ -371,6 +371,7 @@ describe('SidebarList', () => {
             },
             draggableId: baseProps.categories[0].id,
             mode: 'SNAP' as MovementMode,
+            combine: null,
         };
 
         instance.onDragEnd(categoryResult);
@@ -389,6 +390,7 @@ describe('SidebarList', () => {
             },
             draggableId: baseProps.categories[0].id,
             mode: 'SNAP' as MovementMode,
+            combine: null,
         };
 
         instance.onDragEnd(channelResult);

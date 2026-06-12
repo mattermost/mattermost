@@ -39,7 +39,7 @@ export interface DynamicVirtualizedChildProps {
 
 export interface DynamicVirtualizedListProps {
     canLoadMorePosts: (id: 'BEFORE_ID' | 'AFTER_ID' | undefined) => Promise<void>;
-    children: (childProps: DynamicVirtualizedChildProps) => JSX.Element;
+    children: (childProps: DynamicVirtualizedChildProps) => JSX.Element | null;
     height: number;
     initRangeToRender: number[];
     initScrollToIndex: () => InitialScrollIndex;

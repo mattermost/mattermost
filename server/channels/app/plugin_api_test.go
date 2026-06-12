@@ -1167,7 +1167,7 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 	require.NoError(t, err)
 
 	_, appErr := api.InstallPlugin(bytes.NewReader(tarData), true)
-	assert.NotNil(t, appErr, "should not allow upload if upload disabled")
+	require.NotNil(t, appErr, "should not allow upload if upload disabled")
 	assert.Equal(t, appErr.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled.")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

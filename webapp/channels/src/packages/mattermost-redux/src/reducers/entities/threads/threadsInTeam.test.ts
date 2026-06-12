@@ -5,10 +5,10 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToMany} from '@mattermost/types/utilities';
 
-import {ThreadTypes} from 'mattermost-redux/action_types';
+import {PostTypes, ThreadTypes} from 'mattermost-redux/action_types';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {handleFollowChanged, unreadThreadsInTeamReducer} from './threadsInTeam';
+import {handleFollowChanged, threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
 import type {ExtraData} from './types';
 
 describe('handleFollowChanged', () => {
@@ -96,5 +96,53 @@ describe('unreadThreadsInTeam', () => {
 
         expect(nextState).not.toBe(state);
         expect(nextState.a).toEqual(['t1', 't2']);
+    });
+});
+
+describe('page deletion thread cleanup', () => {
+    // deletePage dispatches POST_REMOVED alongside DELETED_PAGE so that the
+    // threads reducers stay isolated from wiki action types.
+    const extra = {threads: {}} as ExtraData;
+    const postRemovedForPage = (pageId: string) => ({
+        type: PostTypes.POST_REMOVED,
+        data: {id: pageId, root_id: ''},
+    });
+
+    test('threadsInTeamReducer removes a page thread when the page is deleted', () => {
+        const state: RelationOneToMany<Team, UserThread> = deepFreeze({
+            team_a: ['pageId', 'otherThread'],
+        });
+
+        const nextState: RelationOneToMany<Team, UserThread> = threadsInTeamReducer(
+            state, postRemovedForPage('pageId'), extra,
+        );
+
+        expect(nextState).not.toBe(state);
+        expect(nextState.team_a).toEqual(['otherThread']);
+    });
+
+    test('threadsInTeamReducer is a no-op when pageId is not in any team', () => {
+        const state: RelationOneToMany<Team, UserThread> = deepFreeze({
+            team_a: ['otherThread'],
+        });
+
+        const nextState = threadsInTeamReducer(
+            state, postRemovedForPage('pageId'), extra,
+        );
+
+        expect(nextState).toBe(state);
+    });
+
+    test('unreadThreadsInTeamReducer removes a page from unread lists', () => {
+        const state: RelationOneToMany<Team, UserThread> = deepFreeze({
+            team_a: ['pageId', 'otherThread'],
+        });
+
+        const nextState: RelationOneToMany<Team, UserThread> = unreadThreadsInTeamReducer(
+            state, postRemovedForPage('pageId'), extra,
+        );
+
+        expect(nextState).not.toBe(state);
+        expect(nextState.team_a).toEqual(['otherThread']);
     });
 });

@@ -220,6 +220,26 @@ func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return r0
 }
 
+// WikiLink provides a mock function with no fields
+func (_m *Store) WikiLink() store.WikiLinkStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WikiLink")
+	}
+
+	var r0 store.WikiLinkStore
+	if rf, ok := ret.Get(0).(func() store.WikiLinkStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.WikiLinkStore)
+		}
+	}
+
+	return r0
+}
+
 // CheckIntegrity provides a mock function with no fields
 func (_m *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	ret := _m.Called()
@@ -808,6 +828,26 @@ func (_m *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.OutgoingOAuthConnectionStore)
+		}
+	}
+
+	return r0
+}
+
+// Page provides a mock function with no fields
+func (_m *Store) Page() store.PageStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Page")
+	}
+
+	var r0 store.PageStore
+	if rf, ok := ret.Get(0).(func() store.PageStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PageStore)
 		}
 	}
 
@@ -1588,6 +1628,26 @@ func (_m *Store) Webhook() store.WebhookStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.WebhookStore)
+		}
+	}
+
+	return r0
+}
+
+// Wiki provides a mock function with no fields
+func (_m *Store) Wiki() store.WikiStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Wiki")
+	}
+
+	var r0 store.WikiStore
+	if rf, ok := ret.Get(0).(func() store.WikiStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.WikiStore)
 		}
 	}
 

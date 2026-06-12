@@ -1,0 +1,40 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageTreeView__empty {
+    padding: 16px;
+    color: rgba(var(--center-channel-text-rgb), 0.56);
+    font-size: 14px;
+    text-align: center;
+}
+
+.PageTreeView__outline {
+    border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    margin-left: 28px;
+}
+
+.PageTreeView__outline-empty {
+    padding-left: 18px;
+    color: rgba(var(--center-channel-text-rgb), 0.56);
+    font-size: 13px;
+    font-style: italic;
+}
+
+// Drag-and-drop styles
+.PageTreeView--dragging-over {
+    background-color: rgba(var(--button-bg-rgb), 0.04);
+}
+
+.PageTreeView__node--dragging {
+    border-radius: 4px;
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0.5;
+}
+
+.PageTreeView__node--combine-target {
+    border: 2px dashed rgba(var(--button-bg-rgb), 0.4);
+    border-radius: 4px;
+    background-color: rgba(var(--button-bg-rgb), 0.12);
+    transition: all 0.2s ease;
+}

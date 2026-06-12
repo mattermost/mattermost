@@ -304,7 +304,13 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 		rootPost := parentPostList.Posts[post.RootId]
 		if rootPost.RootId != "" {
-			return nil, false, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			if shouldTransformReply(rootPost) {
+				if !a.TransformPageCommentReply(rctx, post, rootPost) {
+					return nil, false, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+				}
+			} else {
+				return nil, false, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 
 		if rootPost.Type == model.PostTypeBurnOnRead {
@@ -312,6 +318,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// ParseHashtags errors are non-critical - hashtag parsing failures don't prevent post creation
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if err = a.FillInPostProps(rctx, post, channel); err != nil {
@@ -333,7 +340,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	pluginContext := pluginContext(rctx)
 
-	if post.Type != model.PostTypeBurnOnRead {
+	if post.Type != model.PostTypeBurnOnRead && !model.IsWikiPostType(post.Type) {
 		newPost, guardErr := a.runGuardedMessageWillBePosted(rctx, post)
 		if guardErr != nil {
 			return nil, false, guardErr
@@ -395,8 +402,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	// We make a copy of the post for the plugin hook to avoid a race condition,
 	// and to remove the non-GOB-encodable Metadata from it.
-	// Skip plugin hooks for burn-on-read posts
-	if rpost.Type != model.PostTypeBurnOnRead {
+	// Skip plugin hooks for burn-on-read posts and wiki post types
+	if rpost.Type != model.PostTypeBurnOnRead && !model.IsWikiPostType(rpost.Type) {
 		pluginPost := rpost.ForPlugin()
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -464,8 +471,14 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	if err := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
-		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
+	if shouldCallAfterCreateHook(rpost) {
+		if threadErr := a.handlePageCommentThreadCreation(rctx, rpost, user, channel); threadErr != nil {
+			rctx.Logger().Warn("Failed to handle page comment thread creation", mlog.Err(threadErr))
+		}
+	}
+
+	if eventsErr := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); eventsErr != nil {
+		rctx.Logger().Warn("Failed to handle post events", mlog.Err(eventsErr))
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
@@ -664,7 +677,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 	}
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
+	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline, nil); err != nil {
 		return err
 	}
 
@@ -677,7 +690,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 		})
 	}
 
-	if triggerWebhooks && post.Type != model.PostTypeBurnOnRead {
+	if triggerWebhooks && post.Type != model.PostTypeBurnOnRead && !model.IsWikiPostType(post.Type) {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(rctx, post, team, channel, user); err != nil {
 				rctx.Logger().Error("Failed to handle webhook event", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
@@ -831,12 +844,26 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, false, model.NewAppError("UpdatePost", "api.post.update_post.burn_on_read.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Pages and page comments have dedicated update paths in the wiki API.
+	// Allow Props-only patches through the post API (used by webapp's
+	// Client4.patchPost for translation metadata and similar side channels),
+	// but reject content mutations (Message / FileIds) to keep the wiki as
+	// the sole author-of-truth for page content.
+	// Exception: RestorePost is an internal wiki operation that needs to update FileIds.
+	if model.IsWikiPostType(oldPost.Type) {
+		if !updatePostOptions.IsRestorePost {
+			if receivedUpdatedPost.Message != oldPost.Message || !slices.Equal(receivedUpdatedPost.FileIds, oldPost.FileIds) {
+				return nil, false, model.NewAppError("UpdatePost", "api.post.update_post.page_type.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	if oldPost.IsSystemMessage() {
 		appErr = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
 		return nil, false, appErr
 	}
 
-	channel, appErr := a.GetChannel(rctx, oldPost.ChannelId)
+	channel, appErr := a.GetChannelIncludingWiki(rctx, oldPost.ChannelId)
 	if appErr != nil {
 		return nil, false, appErr
 	}
@@ -866,6 +893,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if !updatePostOptions.SafeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
+		newPost.PageParentId = receivedUpdatedPost.PageParentId
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
 		// mm_blocks_actions can only be modified by trusted paths that have
@@ -904,7 +932,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		oldPost.RemoteId = new(*receivedUpdatedPost.RemoteId)
 	}
 
-	if newPost.Type != model.PostTypeBurnOnRead {
+	if newPost.Type != model.PostTypeBurnOnRead && !model.IsWikiPostType(newPost.Type) {
 		var appErr2 *model.AppError
 		newPost, appErr2 = a.runGuardedMessageWillBeUpdated(rctx, newPost, oldPost)
 		if appErr2 != nil {
@@ -936,7 +964,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	pCtx := pluginContext(rctx)
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
-	if newPost.Type != model.PostTypeBurnOnRead {
+	if !model.IsWikiPostType(newPost.Type) {
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 				hooks.MessageHasBeenUpdated(pCtx, pluginNewPost, pluginOldPost)
@@ -1009,6 +1037,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	if shouldSkipWebSocketPublish(post) {
+		return nil
+	}
+
 	if post.Type == model.PostTypeBurnOnRead {
 		post.Message = ""
 		post.FileIds = []string{}
@@ -1214,7 +1246,7 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_burn_on_read_post.error", nil, "", http.StatusBadRequest)
 	}
 
-	channel, err := a.GetChannel(rctx, post.ChannelId)
+	channel, err := a.GetChannelIncludingWiki(rctx, post.ChannelId)
 	if err != nil {
 		return nil, false, err
 	}
@@ -1446,6 +1478,10 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		default:
 			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	if model.IsWikiPostType(post.Type) {
+		return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusNotFound)
 	}
 
 	post, appErr := a.revealSingleBurnOnReadPost(rctx, post, rctx.Session().UserId)
@@ -1889,7 +1925,7 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	channel, appErr := a.GetChannel(rctx, post.ChannelId)
+	channel, appErr := a.GetChannelIncludingWiki(rctx, post.ChannelId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1937,6 +1973,15 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	if shouldSendCommentDeletedEvent(post) {
+		if pageId, ok := post.Props[model.PagePropsPageID].(string); ok && pageId != "" {
+			page, pageErr := a.GetPage(rctx, pageId)
+			if pageErr == nil {
+				a.SendCommentDeletedEvent(rctx, post, page)
+			}
+		}
 	}
 
 	return post, nil
@@ -2157,6 +2202,18 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
+func hasPagePost(postList *model.PostList) bool {
+	if postList == nil || len(postList.Posts) == 0 {
+		return false
+	}
+	for _, post := range postList.Posts {
+		if model.IsWikiPostType(post.Type) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, bool, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
@@ -2216,6 +2273,10 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return nil, false, appErr
 	}
 
+	if hasPagePost(postSearchResults.PostList) {
+		a.EnrichPagesWithProperties(rctx, postSearchResults.PostList)
+	}
+
 	return postSearchResults, allPostHaveMembership, nil
 }
 
@@ -2233,7 +2294,9 @@ func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.
 
 	if len(channels) > 0 {
 		channelIDs := slices.Collect(maps.Keys(channels))
-		channelList, err := a.GetChannels(rctx, channelIDs)
+		// Use the wiki-inclusive variant so wiki backing channels are resolved here
+		// and HasPermissionToReadChannel can route them through hasPermissionToReadWikiBackingChannel.
+		channelList, err := a.GetChannelsIncludingWiki(rctx, channelIDs)
 		if err != nil && err.StatusCode != http.StatusNotFound {
 			return false, err
 		}
@@ -3238,7 +3301,7 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 }
 
 func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, deleteByID string) *model.AppError {
-	channel, appErr := a.GetChannel(rctx, post.ChannelId)
+	channel, appErr := a.GetChannelIncludingWiki(rctx, post.ChannelId)
 	if appErr != nil {
 		return appErr
 	}
@@ -3265,12 +3328,14 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 
 	pluginPost := post.ForPlugin()
 	pluginContext := pluginContext(rctx)
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenDeletedID)
-	})
+	if !model.IsWikiPostType(post.Type) {
+		a.Srv().Go(func() {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+				return true
+			}, plugin.MessageHasBeenDeletedID)
+		})
+	}
 
 	a.Srv().Go(func() {
 		if err = a.RemoveNotifications(rctx, post, channel); err != nil {
@@ -3333,6 +3398,45 @@ func (a *App) RewriteMessage(
 	customPrompt string,
 	rootID string,
 ) (*model.RewriteResponse, *model.AppError) {
+	// Get agent and service details to log model information
+	var serviceID string
+	var serviceType string
+	var serviceName string
+
+	agents, agentsErr := a.GetAgents(rctx, rctx.Session().UserId)
+	if agentsErr == nil {
+		for _, agent := range agents {
+			if agent.ID == agentID {
+				serviceID = agent.ServiceID
+				serviceType = agent.ServiceType
+				break
+			}
+		}
+	}
+
+	// Get service details to find the model name
+	if serviceID != "" {
+		services, servicesErr := a.GetLLMServices(rctx, rctx.Session().UserId)
+		if servicesErr == nil {
+			for _, service := range services {
+				if service.ID == serviceID {
+					serviceName = service.Name
+					break
+				}
+			}
+		}
+	}
+
+	rctx.Logger().Info("AI Rewrite request received",
+		mlog.String("agent_id", agentID),
+		mlog.String("service_id", serviceID),
+		mlog.String("service_type", serviceType),
+		mlog.String("service_name", serviceName),
+		mlog.String("action", string(action)),
+		mlog.Int("message_length", len(message)),
+		mlog.Bool("has_custom_prompt", customPrompt != ""),
+	)
+
 	// Build thread context if rootID is provided
 	var threadContext string
 	if rootID != "" {
@@ -3381,9 +3485,19 @@ func (a *App) RewriteMessage(
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}
 
+	rctx.Logger().Info("AI agent call succeeded",
+		mlog.String("agent_id", agentID),
+		mlog.Int("response_length", len(completion)),
+	)
+
 	var response model.RewriteResponse
 	if err := json.Unmarshal([]byte(completion), &response); err != nil {
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.parse_response_failed", nil, err.Error(), 500)
+		// JSON parsing failed - use raw response as rewritten text (graceful fallback)
+		rctx.Logger().Warn("AI response was not valid JSON, using raw response as text",
+			mlog.String("agent_id", agentID),
+			mlog.Err(err),
+		)
+		response.RewrittenText = strings.TrimSpace(completion)
 	}
 
 	if response.RewrittenText == "" {

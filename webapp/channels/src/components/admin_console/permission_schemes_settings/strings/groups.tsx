@@ -355,4 +355,124 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Add, edit, delete and sort bookmarks',
         },
     }),
+    pages: defineMessages({
+        name: {
+            id: 'admin.permissions.group.pages.name',
+            defaultMessage: 'Manage Pages',
+        },
+        description: {
+            id: 'admin.permissions.group.pages.description',
+            defaultMessage: 'Create, view, edit and delete pages.',
+        },
+    }),
+    create_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_page.name',
+            defaultMessage: 'Create Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_page.description',
+            defaultMessage: 'Allow users to create pages.',
+        },
+    }),
+    read_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.read_page.name',
+            defaultMessage: 'View Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.read_page.description',
+            defaultMessage: 'Allow users to view pages.',
+        },
+    }),
+    edit_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.edit_page.name',
+            defaultMessage: 'Edit Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.edit_page.description',
+            defaultMessage: 'Allow users to edit pages.',
+        },
+    }),
+    delete_own_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.delete_own_page.name',
+            defaultMessage: 'Delete Own Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.delete_own_page.description',
+            defaultMessage: 'Allow users to delete their own pages.',
+        },
+    }),
+    delete_page: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.delete_page.name',
+            defaultMessage: 'Delete Others\' Pages',
+        },
+        description: {
+            id: 'admin.permissions.permission.delete_page.description',
+            defaultMessage: 'Allow users to delete any page.',
+        },
+    }),
+    wikis: defineMessages({
+        name: {
+            id: 'admin.permissions.group.wikis.name',
+            defaultMessage: 'Manage Wikis',
+        },
+        description: {
+            id: 'admin.permissions.group.wikis.description',
+            defaultMessage: 'Create, view, manage and delete wikis.',
+        },
+    }),
+    create_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_wiki.name',
+            defaultMessage: 'Create Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_wiki.description',
+            defaultMessage: 'Allow users to create wikis.',
+        },
+    }),
+    read_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.read_wiki.name',
+            defaultMessage: 'View Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.read_wiki.description',
+            defaultMessage: 'Allow users to view wikis.',
+        },
+    }),
+    manage_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_wiki.name',
+            defaultMessage: 'Manage Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_wiki.description',
+            defaultMessage: 'Allow users to update wiki settings.',
+        },
+    }),
+    delete_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.delete_wiki.name',
+            defaultMessage: 'Delete Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.delete_wiki.description',
+            defaultMessage: 'Allow users to delete wikis.',
+        },
+    }),
+    admin_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.admin_wiki.name',
+            defaultMessage: 'Administer Wiki Access',
+        },
+        description: {
+            id: 'admin.permissions.permission.admin_wiki.description',
+            defaultMessage: 'Allow users to manage wiki access lists and override per-page restrictions.',
+        },
+    }),
 };

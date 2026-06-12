@@ -245,8 +245,14 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
         'makeGetPostsForThread',
         getAllPosts,
         getCurrentUser,
-        (state: GlobalState, rootId: string) => state.entities.posts.postsInThread[rootId],
-        (state: GlobalState, rootId: string) => state.entities.posts.posts[rootId],
+        (state: GlobalState, rootId: string) => {
+            const postsForThread = state.entities.posts.postsInThread[rootId];
+            return postsForThread;
+        },
+        (state: GlobalState, rootId: string) => {
+            const rootPost = state.entities.posts.posts[rootId];
+            return rootPost;
+        },
         shouldShowJoinLeaveMessages,
         (posts, currentUser, postsForThread, rootPost, showJoinLeave) => {
             const thread: Post[] = [];
@@ -333,13 +339,14 @@ export const getSearchResults: (state: GlobalState) => Post[] = createSelector(
     'getSearchResults',
     getAllPosts,
     (state: GlobalState) => state.entities.search.results,
-    (posts, postIds) => {
+    (state: GlobalState) => state.entities.pages.byId,
+    (posts, postIds, pagesById) => {
         if (!postIds) {
             return [];
         }
 
-        // Filter out posts that may no longer exist
-        return postIds.map((id) => posts[id]).filter((post) => post);
+        // Filter out posts that may no longer exist; pages live in entities.pages.byId
+        return postIds.map((id) => posts[id] || pagesById[id]).filter(Boolean);
     },
 );
 

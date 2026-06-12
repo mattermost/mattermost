@@ -1429,6 +1429,51 @@ func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *m
 	return user
 }
 
+func (th *TestHelper) enableSchemesPrereqs(tb testing.TB) {
+	tb.Helper()
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	require.NoError(tb, th.App.SetPhase2PermissionsMigrationStatus(true))
+}
+
+// SetupChannelSchemeWithPermissions creates a channel-scoped scheme, assigns it
+// to the given channel, and grants the listed permissions to both the user and
+// admin roles in the scheme. It also enables the license and Phase-2 migration
+// that schemes require. Returns the scheme so callers can Remove/Add individual
+// permissions in subtests without touching global roles.
+func (th *TestHelper) SetupChannelSchemeWithPermissions(tb testing.TB, channel *model.Channel, permissions ...*model.Permission) *model.Scheme {
+	tb.Helper()
+	th.enableSchemesPrereqs(tb)
+
+	scheme := th.SetupChannelScheme(tb)
+	channel.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateChannelScheme(th.Context, channel)
+	require.Nil(tb, appErr)
+
+	for _, p := range permissions {
+		th.AddPermissionToRole(tb, p.Id, scheme.DefaultChannelUserRole)
+		th.AddPermissionToRole(tb, p.Id, scheme.DefaultChannelAdminRole)
+	}
+	return scheme
+}
+
+// SetupTeamSchemeWithPermissions creates a team-scoped scheme, assigns it to
+// the given team, and grants the listed permissions to the user role. Returns
+// the scheme so callers can Remove/Add permissions without touching global roles.
+func (th *TestHelper) SetupTeamSchemeWithPermissions(tb testing.TB, team *model.Team, permissions ...*model.Permission) *model.Scheme {
+	tb.Helper()
+	th.enableSchemesPrereqs(tb)
+
+	scheme := th.SetupTeamScheme(tb)
+	team.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateTeamScheme(team)
+	require.Nil(tb, appErr)
+
+	for _, p := range permissions {
+		th.AddPermissionToRole(tb, p.Id, scheme.DefaultTeamUserRole)
+	}
+	return scheme
+}
+
 func (th *TestHelper) Parallel(t *testing.T) {
 	mainHelper.Parallel(t)
 }

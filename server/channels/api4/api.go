@@ -56,6 +56,12 @@ type Routes struct {
 	ChannelView              *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/views/{view_id:[A-Za-z0-9]+}'
 	ChannelViewPosts         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/views/{view_id:[A-Za-z0-9]+}/posts'
 
+	Wikis     *mux.Router // 'api/v4/wikis'
+	Wiki      *mux.Router // 'api/v4/wikis/{wiki_id:[A-Za-z0-9]+}'
+	WikiLinks *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/wikilinks'
+	WikiLink  *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/wikilinks/{wiki_id:[A-Za-z0-9]+}'
+	TeamWikis *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/wikis'
+
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
 	PostsForChannel *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts'
@@ -334,6 +340,12 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
+	api.BaseRoutes.Wikis = api.BaseRoutes.APIRoot.PathPrefix("/wikis").Subrouter()
+	api.BaseRoutes.Wiki = api.BaseRoutes.Wikis.PathPrefix("/{wiki_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.WikiLinks = api.BaseRoutes.Channel.PathPrefix("/wikilinks").Subrouter()
+	api.BaseRoutes.WikiLink = api.BaseRoutes.WikiLinks.PathPrefix("/{wiki_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.TeamWikis = api.BaseRoutes.Team.PathPrefix("/wikis").Subrouter()
+
 	api.BaseRoutes.Boards = api.BaseRoutes.APIRoot.PathPrefix("/boards").Subrouter()
 
 	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
@@ -386,9 +398,12 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitUsage()
 	api.InitHostedCustomer()
 	api.InitDrafts()
+	api.InitPageDrafts()
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
+	api.InitWiki()
 	api.InitView()
+	api.InitWikiLinks()
 	api.InitBoard()
 	api.InitReports()
 	api.InitLimits()

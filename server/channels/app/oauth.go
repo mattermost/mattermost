@@ -775,22 +775,33 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	rctx.Logger().Info("[oauth-debug] LoginByOAuth: raw userinfo body", mlog.String("body", buf.String()))
 	authUser, err := provider.GetUserFromJSON(rctx, bytes.NewReader(buf.Bytes()), tokenUser, settings)
 	if err != nil {
+		rctx.Logger().Error("[oauth-debug] GetUserFromJSON failed", mlog.Err(err))
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err)
 	}
+	rctx.Logger().Info("[oauth-debug] GetUserFromJSON OK", mlog.String("auth_data", *authUser.AuthData), mlog.String("email", authUser.Email), mlog.String("username", authUser.Username))
 
 	if *authUser.AuthData == "" {
+		rctx.Logger().Error("[oauth-debug] auth_data is empty after GetUserFromJSON")
 		return nil, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
 	user, appErr := a.GetUserByAuth(new(*authUser.AuthData), service)
 	if appErr != nil {
+		rctx.Logger().Info("[oauth-debug] GetUserByAuth miss, trying CreateOAuthUser", mlog.String("err_id", appErr.Id))
 		if appErr.Id == MissingAuthAccountError {
 			user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
+			if appErr != nil {
+				rctx.Logger().Error("[oauth-debug] CreateOAuthUser failed", mlog.Err(appErr))
+			} else {
+				rctx.Logger().Info("[oauth-debug] CreateOAuthUser OK", mlog.String("user_id", user.Id))
+			}
 		} else {
+			rctx.Logger().Error("[oauth-debug] GetUserByAuth error", mlog.Err(appErr))
 			return nil, appErr
 		}
 	} else {

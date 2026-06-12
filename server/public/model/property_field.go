@@ -54,6 +54,10 @@ const (
 	PropertyFieldObjectTypeSession  = "session"
 
 	PropertyFieldObjectTypeSystem = "system"
+	PropertyFieldObjectTypePage   = "page"
+
+	// NOTE: Temporarily using this until CPA is migrated to v2
+	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
@@ -79,6 +83,7 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeTemplate,
 	PropertyFieldObjectTypeSession,
 	PropertyFieldObjectTypeSystem,
+	PropertyFieldObjectTypePage,
 }
 
 type PropertyField struct {

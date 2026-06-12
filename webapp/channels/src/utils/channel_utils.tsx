@@ -227,3 +227,4 @@ export function makeNewEmptyChannel(displayName: string, teamId: string): Channe
         update_at: 0,
     };
 }
+

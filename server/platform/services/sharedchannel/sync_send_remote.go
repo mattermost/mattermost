@@ -302,7 +302,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		IncludeDeleted:                    true,
 		SinceCreateAt:                     true,
 		ExcludeChannelMetadataSystemPosts: true,
-		ExcludedPostTypes:                 []string{model.PostTypeCard},
+		ExcludedPostTypes:                 []string{model.PostTypeCard, model.PostTypePage, model.PostTypePageComment, model.PostTypePageMention},
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
