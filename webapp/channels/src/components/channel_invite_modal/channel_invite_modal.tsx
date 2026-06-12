@@ -935,7 +935,7 @@ const InviteModalLink = ({
                 channelToInvite: channel,
                 initialValue: term,
                 inviteAsGuest,
-                focusOriginElement: 'customNoOptionsMessageLink',
+                focusOriginElement: id,
                 canInviteGuests: Boolean(!abacChannelPolicyEnforced),
             }}
             onClick={closeMembersInviteModal}

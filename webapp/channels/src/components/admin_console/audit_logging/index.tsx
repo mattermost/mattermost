@@ -63,7 +63,7 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
         uploadAuditCertificate(file, successCallback, errorCallback);
     };
 
-    const renderTooltip = disabled || installationStatus === 'stable';
+    const disableTooltip = disabled || installationStatus === 'stable';
     const tooltipText = formatMessage({id: 'admin.audit_logging_experimental.certificate.tooltip', defaultMessage: 'A previous update is still in progress. Please wait.'});
 
     if (fileValue) {
@@ -84,7 +84,7 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
         };
         return (
             <WithConditionalTooltip
-                renderTooltip={renderTooltip}
+                disableTooltip={disableTooltip}
                 tooltipText={tooltipText}
             >
                 <RemoveFileSetting
@@ -122,7 +122,7 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
 
     return (
         <WithConditionalTooltip
-            renderTooltip={renderTooltip}
+            disableTooltip={disableTooltip}
             tooltipText={tooltipText}
         >
             <FileUploadSetting
@@ -141,12 +141,12 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
 
 interface WithConditionalTooltipProps {
     children: React.ReactNode;
-    renderTooltip: boolean;
+    disableTooltip: boolean;
     tooltipText: string;
 }
 
-function WithConditionalTooltip({children, renderTooltip, tooltipText}: WithConditionalTooltipProps) {
-    if (!renderTooltip) {
+function WithConditionalTooltip({children, disableTooltip, tooltipText}: WithConditionalTooltipProps) {
+    if (!disableTooltip) {
         return children;
     }
 
