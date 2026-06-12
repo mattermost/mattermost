@@ -202,7 +202,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
-	f.CJKSearch = false
+	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
 
