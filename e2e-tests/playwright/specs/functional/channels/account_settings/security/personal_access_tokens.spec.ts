@@ -100,11 +100,9 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         await modal.locator('#newTokenExpiry').selectOption('custom');
         await modal.locator('#newTokenExpiryCustom').fill('');
 
-        // # Attempt to save
-        await modal.getByRole('button', {name: 'Save'}).click();
-
-        // * An inline validation error is shown and no token is created
+        // * The inline validation error surfaces and Save is disabled, so no token can be created
         await expect(modal.getByText('An expiry date is required.')).toBeVisible();
+        await expect(modal.getByRole('button', {name: 'Save'})).toBeDisabled();
         await expect(modal.getByText('Access Token:')).toBeHidden();
     });
 
@@ -141,14 +139,14 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
             modal.getByText('Your administrator requires all personal access tokens to have an expiry date.'),
         ).toBeVisible();
 
-        // # Choose a custom date beyond the configured maximum and attempt to save
+        // # Choose a custom date beyond the configured maximum
         await modal.locator('#newTokenDescription').fill('My token');
         await expirySelect.selectOption('custom');
         await modal.locator('#newTokenExpiryCustom').fill(isoPlusDays(60));
-        await modal.getByRole('button', {name: 'Save'}).click();
 
-        // * The over-the-limit error is shown
+        // * The over-the-limit error surfaces inline and Save is disabled
         await expect(modal.getByText('Expiry can be at most 30 days from now.')).toBeVisible();
+        await expect(modal.getByRole('button', {name: 'Save'})).toBeDisabled();
     });
 
     test('creates a token with the default preset under a maximum lifetime', async ({pw}) => {
