@@ -568,9 +568,8 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		// This includes public channels and private channels where creator is a member
 		// Prevents information disclosure while supporting private channel mentions for members
 		for _, mentioned := range mentionedChannels {
-			// Check if post creator has permission to read this channel
-			// HasPermissionToReadChannel returns (hasPermission, isMember) for audit logging
-			if hasPermission, _ := a.HasPermissionToReadChannel(rctx, post.UserId, mentioned); hasPermission {
+			// Resolve the channel mention if the post creator may see the channel's name/link.
+			if a.HasPermissionToResolveChannelMention(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))

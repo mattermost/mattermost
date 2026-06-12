@@ -40,7 +40,7 @@ export type Props = {
         archiveGroup: (groupId: string) => Promise<ActionResult>;
         restoreGroup: (groupId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupModalHeader = ({
     groupId,

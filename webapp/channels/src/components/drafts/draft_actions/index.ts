@@ -21,7 +21,7 @@ type OwnProps = {
     channelType: Channel['type'];
     channelName: Channel['name'];
     userId: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const {channelDisplayName, userId, channelName, channelType} = ownProps;

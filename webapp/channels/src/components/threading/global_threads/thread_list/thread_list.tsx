@@ -34,7 +34,7 @@ import './thread_list.scss';
 
 export enum ThreadFilter {
     none = '',
-    unread = 'unread'
+    unread = 'unread',
 }
 
 export const FILTER_STORAGE_KEY = 'globalThreads_filter';

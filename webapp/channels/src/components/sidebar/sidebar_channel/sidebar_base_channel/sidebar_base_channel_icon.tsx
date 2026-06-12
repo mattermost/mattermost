@@ -9,7 +9,7 @@ import Constants from 'utils/constants';
 
 type Props = {
     channelType: ChannelType;
-}
+};
 
 const SidebarBaseChannelIcon = ({
     channelType,

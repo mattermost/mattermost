@@ -3,7 +3,7 @@
 
 import {type AxiosResponse} from 'axios';
 
-import {ChainableT} from '../types';
+import type {ChainableT} from '../types';
 
 /**
 * postMessageAs is a task which is wrapped as command with post-verification
@@ -204,14 +204,10 @@ function urlHealthCheck({name, url, helperMessage, method, httpStatus}: {name: s
     return cy.task('urlHealthCheck', {url, method}).then(({data, errorCode, status, success}: any) => {
         const urlService = `__${name}__ at ${url}`;
 
-        const successMessage = success ?
-            `${urlService}: reachable` :
-            `${errorCode}: The test you're running requires ${urlService} to be reachable. \n${helperMessage}`;
+        const successMessage = success ? `${urlService}: reachable` : `${errorCode}: The test you're running requires ${urlService} to be reachable. \n${helperMessage}`;
         expect(success, successMessage).to.equal(true);
 
-        const statusMessage = status === httpStatus ?
-            `${urlService}: responded with ${status} HTTP status` :
-            `${urlService}: expected to respond with ${httpStatus} but got ${status} HTTP status`;
+        const statusMessage = status === httpStatus ? `${urlService}: responded with ${status} HTTP status` : `${urlService}: expected to respond with ${httpStatus} but got ${status} HTTP status`;
         expect(status, statusMessage).to.equal(httpStatus);
 
         return cy.wrap({data, status});

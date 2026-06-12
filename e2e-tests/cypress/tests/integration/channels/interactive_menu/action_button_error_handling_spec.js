@@ -82,8 +82,8 @@ describe('Interactive Menu - Action Button Error Handling', () => {
         cy.uiWaitUntilMessagePostedIncludes('a < a | b > a');
 
         // * Find the specific attachment container for this test and verify its error is cleared
-        cy.contains('.attachment', 'Action Button Error Clear Test - Error and Success')
-            .find('.has-error').should('not.exist');
+        cy.contains('.attachment', 'Action Button Error Clear Test - Error and Success').
+            find('.has-error').should('not.exist');
     });
 
     it('MM-65023 should display tooltip on action button hover', () => {

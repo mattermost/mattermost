@@ -41,7 +41,7 @@ export type Props = {
         setModalSearchTerm: (term: string) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupModal: React.FC<Props> = ({
     onExited,

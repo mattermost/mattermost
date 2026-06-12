@@ -174,7 +174,7 @@ type PluginStatus = {
         footer: string;
         settings?: unknown[];
     };
-}
+};
 
 type PluginItemProps = {
     pluginStatus: PluginStatus;
@@ -485,7 +485,7 @@ type State = BaseState & {
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
-    resolveRemoveModal: string| null;
+    resolveRemoveModal: string | null;
     enable: boolean;
     enableUploads: boolean;
     allowInsecureDownloadUrl: boolean;
@@ -495,7 +495,7 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
-}
+};
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
@@ -826,7 +826,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
     renderOverwritePluginModal = (
         {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
+        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void}) => {
         const title = (
             <FormattedMessage
                 id='admin.plugin.upload.overwrite_modal.title'

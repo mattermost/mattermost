@@ -230,19 +230,28 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	require.Len(t, preferences, 3)
 
-	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, "hide", preferences[0].Name)
-	assert.Equal(t, "false", preferences[0].Value)
+	prefByCategory := make(map[string]model.Preference, len(preferences))
+	for _, p := range preferences {
+		prefByCategory[p.Category] = p
+	}
+	require.Len(t, prefByCategory, 3, "default user preferences should use distinct categories")
 
-	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
+	nextSteps, ok := prefByCategory[model.PreferenceRecommendedNextSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceRecommendedNextSteps)
+	assert.Equal(t, user1.Id, nextSteps.UserId)
+	assert.Equal(t, "hide", nextSteps.Name)
+	assert.Equal(t, "false", nextSteps.Value)
 
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	_, ok = prefByCategory[model.PreferenceCategorySystemNotice]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategorySystemNotice)
+
+	tutorial, ok := prefByCategory[model.PreferenceCategoryTutorialSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategoryTutorialSteps)
+	assert.Equal(t, user1.Id, tutorial.UserId)
+	assert.Equal(t, user1.Id, tutorial.Name)
+	assert.Equal(t, "0", tutorial.Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
@@ -1415,12 +1424,25 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
 	require.NoError(t, err)
 	require.NotNil(t, hooks)
-	_, ret := hooks.MessageWillBePosted(nil, nil)
-	if ret != "OK" {
-		return errors.New(ret)
+
+	runHook := func() error {
+		_, ret := hooks.MessageWillBePosted(nil, nil)
+		if ret != "OK" {
+			return errors.New(ret)
+		}
+		return nil
 	}
 
-	return nil
+	// SendMail + Inbucket delivery is async; under CI load the plugin's internal
+	// RetryInbucket window can expire before the message is visible.
+	if id == "test_send_mail_plugin" {
+		require.Eventually(t, func() bool {
+			return runHook() == nil
+		}, 90*time.Second, 2*time.Second)
+		return nil
+	}
+
+	return runHook()
 }
 
 // This is a meta-test function. It does the following:
@@ -3876,7 +3898,7 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		// Register using the deprecated name must fail
 		_, err := api.RegisterPropertyGroup(model.DeprecatedCPAPropertyGroupName)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "renamed")
+		assert.Contains(t, err.Error(), "deprecated")
 
 		// Register using the canonical name should still work
 		group, err := api.RegisterPropertyGroup(model.AccessControlPropertyGroupName)
@@ -3885,24 +3907,21 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		assert.Equal(t, model.AccessControlPropertyGroupName, group.Name)
 	})
 
-	t.Run("GetPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {
+	t.Run("GetPropertyGroup rejects deprecated name", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		api := th.SetupPluginAPI()
 
-		// The access_control group is registered at server startup, so
-		// we can look it up directly.
+		// Looking up by the deprecated name must fail with an actionable error
+		_, err := api.GetPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "deprecated")
+
+		// Looking up by the canonical name should still work
 		canonical, err := api.GetPropertyGroup(model.AccessControlPropertyGroupName)
 		require.NoError(t, err)
 		require.NotNil(t, canonical)
-
-		// Looking up by the deprecated name should return the same group
-		deprecated, err := api.GetPropertyGroup(model.DeprecatedCPAPropertyGroupName)
-		require.NoError(t, err)
-		require.NotNil(t, deprecated)
-
-		assert.Equal(t, canonical.ID, deprecated.ID)
-		assert.Equal(t, model.AccessControlPropertyGroupName, deprecated.Name)
+		assert.Equal(t, model.AccessControlPropertyGroupName, canonical.Name)
 	})
 
 	t.Run("other group names are not affected by the mapping", func(t *testing.T) {

@@ -135,6 +135,7 @@ export type ClientConfig = {
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
     FeatureFlagManagedChannelCategories: string;
+    FeatureFlagSessionAttributes: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -254,11 +255,12 @@ export type License = {
     id: string;
     issued_at: number;
     starts_at: number;
-    expires_at: string;
-    customer: LicenseCustomer;
+    expires_at: number;
+    customer?: LicenseCustomer;
     features: LicenseFeatures;
     sku_name: string;
-    short_sku_name: string;
+    sku_short_name: string;
+    is_gov_sku?: boolean;
 };
 
 export type LicenseCustomer = {
@@ -307,7 +309,7 @@ export type RequestLicenseBody = {
     company_name: string;
     company_size: string;
     company_country: string;
-}
+};
 
 export type DataRetentionPolicy = {
     message_deletion_enabled: boolean;
@@ -549,7 +551,7 @@ export type ConnectedWorkspacesSettings = {
     GlobalUserSyncBatchSize: number;
     MaxPostsPerSync: number;
     MemberSyncBatchSize: number;
-}
+};
 
 export type FileSettings = {
     EnableFileAttachments: boolean;
@@ -562,6 +564,7 @@ export type FileSettings = {
     Directory: string;
     EnablePublicLink: boolean;
     ExtractContent: boolean;
+    ExtractContentTimeout: number;
     ArchiveRecursion: boolean;
     PublicLinkSalt: string;
     InitialFont: string;
@@ -979,7 +982,7 @@ export type PluginSettings = {
     Directory: string;
     ClientDirectory: string;
     Plugins: Record<string, any>;
-    PluginStates: Record<string, { Enable: boolean }>;
+    PluginStates: Record<string, {Enable: boolean}>;
     EnableMarketplace: boolean;
     EnableRemoteMarketplace: boolean;
     AutomaticPrepackagedPlugins: boolean;
@@ -1033,16 +1036,18 @@ export type ExportSettings = {
 export type AccessControlSettings = {
     EnableAttributeBasedAccessControl: boolean;
     EnableUserManagedAttributes: boolean;
+    TrustProxyDeviceIdentityHeader: boolean;
+    EnforceDeviceIDConsistency: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {
     EventTargetMapping: Record<ContentFlaggingEvent, NotificationTarget[]>;
-}
+};
 
 export type TeamReviewerSetting = {
     Enabled: boolean;
     ReviewerIds: string[];
-}
+};
 
 export type ContentFlaggingReviewerSetting = {
     CommonReviewers: boolean;
@@ -1050,21 +1055,21 @@ export type ContentFlaggingReviewerSetting = {
     TeamReviewersSetting: Record<string, TeamReviewerSetting>;
     SystemAdminsAsReviewers: boolean;
     TeamAdminsAsReviewers: boolean;
-}
+};
 
 export type ContentFlaggingAdditionalSettings = {
     Reasons: string[];
     ReporterCommentRequired: boolean;
     ReviewerCommentRequired: boolean;
     HideFlaggedContent: boolean;
-}
+};
 
 export type ContentFlaggingSettings = {
     EnableContentFlagging: boolean;
     NotificationSettings: ContentFlaggingNotificationSettings;
     ReviewerSettings: ContentFlaggingReviewerSetting;
     AdditionalSettings: ContentFlaggingAdditionalSettings;
-}
+};
 
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
@@ -1120,15 +1125,15 @@ export type ReplicaLagSetting = {
     DataSource: string;
     QueryAbsoluteLag: string;
     QueryTimeLag: string;
-}
+};
 
 export type EnvironmentConfigSettings<T> = {
     [P in keyof T]: boolean;
-}
+};
 
 export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
-}
+};
 
 export enum CollapsedThreads {
     DISABLED = 'disabled',
@@ -1148,10 +1153,10 @@ export type AllowedIPRange = {
     description: string;
     enabled: boolean;
     owner_id: string;
-}
+};
 
 export type AllowedIPRanges = AllowedIPRange[];
 
 export type FetchIPResponse = {
     ip: string;
-}
+};

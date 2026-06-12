@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SimpleUser} from '@/integration/channels/autocomplete/helpers';
-import {ChainableT} from '@/types';
+import type {SimpleUser} from '@/integration/channels/autocomplete/helpers';
+import type {ChainableT} from '@/types';
 
 /**
  * Verify user's at-mention in the suggestion list

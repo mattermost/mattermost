@@ -10,6 +10,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
 
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
@@ -166,5 +167,17 @@ describe('components/post_view/PostAttachment', () => {
 
         // Should not cause additional re-render since height is 0
         expect(PostMarkdown.mock.calls.length).toEqual(callCountAfterFirst);
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        renderWithContext(
+            <PostMessageView
+                {...baseProps}
+                post={{...post, type: 'custom_plugin_type' as PostType}}
+                pluginPostTypes={{
+                    custom_plugin_type: pluginComponent as any,
+                }}
+            />,
+        );
     });
 });

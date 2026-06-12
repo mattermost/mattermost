@@ -24,7 +24,7 @@ type Props = {
     siteName?: string;
     brandImageUrl?: string;
     enableCustomBrand: boolean;
-}
+};
 
 type State = {
     rememberChecked: boolean;
@@ -33,7 +33,7 @@ type State = {
     nativeLocation: string;
     brandImageError: boolean;
     navigating: boolean;
-}
+};
 
 function safeRedirect(path: string) {
     const url = new URL(path);

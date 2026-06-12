@@ -10,11 +10,11 @@ export type SchedulingInfo = {
     scheduled_at: number;
     processed_at?: number;
     error_code?: ScheduledPostErrorCode;
-}
+};
 
 export type ScheduledPost = Omit<Draft, 'delete_at'> & SchedulingInfo & {
     id: string;
-}
+};
 
 export type ScheduledPostsState = {
     byId: {
@@ -29,7 +29,7 @@ export type ScheduledPostsState = {
     byChannelOrThreadId: {
         [channelId: string]: string[];
     };
-}
+};
 
 export function scheduledPostFromPost(post: Post, schedulingInfo: SchedulingInfo): ScheduledPost {
     return {

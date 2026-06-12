@@ -17,7 +17,7 @@ import SidebarGroupChannel from './sidebar_group_channel';
 
 type OwnProps = {
     channel: Channel;
-}
+};
 
 function makeMapStateToProps() {
     const getMemberCount = makeGetGmChannelMemberCount();

@@ -222,6 +222,7 @@ const initialComponents: PluginsState['components'] = {
     Global: [],
     SidebarChannelLinkLabel: [],
     SidebarBrowseOrAddChannelMenu: [],
+    ChannelTypeOption: [],
     MessageWillBePosted: [],
     MessageWillBeUpdated: [],
     SlashCommandWillBePosted: [],

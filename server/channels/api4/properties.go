@@ -20,7 +20,10 @@ import (
 const maxPropertyValuePatchItems = 50
 
 func (api *API) InitProperties() {
-	if api.srv.Config().FeatureFlags.IntegratedBoards || api.srv.Config().FeatureFlags.ManagedChannelCategories || api.srv.Config().FeatureFlags.ClassificationMarkings {
+	if api.srv.Config().FeatureFlags.IntegratedBoards ||
+		api.srv.Config().FeatureFlags.ManagedChannelCategories ||
+		api.srv.Config().FeatureFlags.ClassificationMarkings ||
+		api.srv.Config().FeatureFlags.SessionAttributes {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyFieldsSearch.Handle("", api.APISessionRequired(searchPropertyFields)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
@@ -45,6 +48,11 @@ func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 	}
 	if !group.IsPSAv2() {
 		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
+		return nil
+	}
+	// Session attribute schema management requires Enterprise Advanced.
+	if group.Name == model.SessionAttributesPropertyGroupName && !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError(callerName, "api.property.session_attributes.license.app_error", nil, "", http.StatusNotImplemented)
 		return nil
 	}
 	return group

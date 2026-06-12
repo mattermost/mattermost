@@ -34,7 +34,7 @@ export type Props = {
     group: Group;
     hide: () => void;
     returnFocus: () => void;
-}
+};
 
 const UserGroupPopover = ({
     group,

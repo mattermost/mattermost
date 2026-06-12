@@ -41,7 +41,9 @@ export async function createPost(adminClient: any, userClient: any, team: any, u
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((ch: any) => ch.name === 'town-square');
 
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     const post = await userClient.createPost({
         channel_id: townSquare.id,

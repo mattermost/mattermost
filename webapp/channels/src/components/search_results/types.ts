@@ -31,7 +31,7 @@ export type OwnProps = {
 
 export type StateProps = {
     currentTeamName: string;
-    results: Array<Post|string>;
+    results: Array<Post | string>;
     fileResults: FileInfo[];
     matches: Record<string, string[]>;
     searchPage: number;

@@ -35,7 +35,7 @@ type Props = PreparingWorkspacePageProps & {
     createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null | undefined}>;
     updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
-}
+};
 
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
