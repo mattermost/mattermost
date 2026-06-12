@@ -102,7 +102,7 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 		defer tk.Stop()
 		runStart := time.Now()
 		prevT := runStart
-		var prevEnq, prevBlk int64
+		var prevEnq, prevDrop int64
 		for {
 			select {
 			case <-samplerDone:
@@ -112,7 +112,7 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 				for i := range counters {
 					enq += counters[i].n.Load()
 				}
-				blk := tgt.blockedCount.Load()
+				drop := tgt.droppedCount.Load()
 				g := runtime.NumGoroutine()
 				if g > maxGoroutines {
 					maxGoroutines = g
@@ -120,10 +120,10 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 				var ms runtime.MemStats
 				runtime.ReadMemStats(&ms)
 				dt := now.Sub(prevT).Seconds()
-				t.Logf("[t=%4.0fs] ingested=%-11d (+%-9d %8.0f/s)  blocks=%-9d (+%-8d)  goroutines=%-3d  heap=%6.1f MiB",
+				t.Logf("[t=%4.0fs] ingested=%-11d (+%-9d %8.0f/s)  drops=%-9d (+%-8d)  goroutines=%-3d  heap=%6.1f MiB",
 					now.Sub(runStart).Seconds(), enq, enq-prevEnq, float64(enq-prevEnq)/dt,
-					blk, blk-prevBlk, g, float64(ms.HeapAlloc)/1024/1024)
-				prevEnq, prevBlk, prevT = enq, blk, now
+					drop, drop-prevDrop, g, float64(ms.HeapAlloc)/1024/1024)
+				prevEnq, prevDrop, prevT = enq, drop, now
 			}
 		}
 	}()
@@ -146,7 +146,6 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 		go func(p int) {
 			defer wg.Done()
 			r := rand.New(rand.NewPCG(uint64(p)+1, 0x9E3779B97F4A7C15))
-			buf := make([]auditDeliveryItem, 1)
 			var n int64
 			for !stop.Load() {
 				postID := postSeq.Add(1) - 1
@@ -158,12 +157,11 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 					if u >= numUsers {
 						u -= numUsers // single wrap; fanout <= numUsers keeps users distinct
 					}
-					buf[0] = auditDeliveryItem{
+					tgt.tryEnqueue(auditDeliveryItem{
 						userID:    fmt.Sprintf("user%022d", u),
 						entityID:  entityID,
 						mechanism: mech,
-					}
-					tgt.enqueue(buf)
+					})
 					n++
 					if n&8191 == 0 {
 						counters[p].n.Store(n) // publish for the sampler
@@ -192,7 +190,8 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 
 	var count int64
 	require.NoError(t, db.QueryRow(`SELECT count(*) FROM audit_storage`).Scan(&count))
-	require.Equal(t, ingested, count, "every delivery must persist exactly once (unique user/post pairs, no loss)")
+	dropped := tgt.droppedCount.Load()
+	require.LessOrEqual(t, count, ingested, "persisted rows cannot exceed ingested (lossy under overload, never duplicated)")
 
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
@@ -208,10 +207,11 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 	t.Logf("posts    : %d new posts delivered, avg fan-out %.0f users/post", totalPosts, avgFanout)
 	t.Logf("ingested : %d deliveries in %s = %.0f/s",
 		ingested, ingestElapsed.Round(time.Millisecond), float64(ingested)/ingestElapsed.Seconds())
-	t.Logf("durable  : %d rows persisted == ingested (no loss)", count)
+	t.Logf("durable  : %d rows persisted (%.2f%% of ingested)", count, 100*float64(count)/float64(max(ingested, 1)))
 	t.Logf("through. : %.0f rows/s sustained inserts over %s",
 		float64(count)/drainElapsed.Seconds(), drainElapsed.Round(time.Millisecond))
-	t.Logf("backpres.: %d Write blocks total (lossless back-pressure events)", tgt.blockedCount.Load())
+	t.Logf("loss     : %d shard-full drops, %d failed flushes (lossy under overload, OOM-safe)",
+		dropped, tgt.failedCount.Load())
 	t.Logf("resources: peak goroutines=%d final heap=%.1f MiB",
 		maxGoroutines, float64(ms.HeapAlloc)/1024/1024)
 }
