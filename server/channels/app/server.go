@@ -51,6 +51,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/healthcheckjob"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
@@ -1628,6 +1629,15 @@ func (s *Server) initJobs() {
 		product_notices.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		product_notices.MakeScheduler(s.Jobs),
 	)
+
+	{
+		hcApp := New(ServerConnector(s.Channels()))
+		s.Jobs.RegisterJobType(
+			model.JobTypeHealthCheck,
+			healthcheckjob.MakeWorker(s.Jobs, hcApp, hcApp.HealthCheckFindingStore()),
+			healthcheckjob.MakeScheduler(s.Jobs),
+		)
+	}
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeImportProcess,
