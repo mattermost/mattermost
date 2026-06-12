@@ -146,7 +146,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                     <span className='MediaGallery__header_label'>
                         <FormattedMessage
                             id='media_gallery.count_label'
-                            defaultMessage='{count, plural, one {# image} other {# images}}'
+                            defaultMessage='{count, plural, one {# item} other {# items}}'
                             values={{count: tiles.length}}
                         />
                     </span>

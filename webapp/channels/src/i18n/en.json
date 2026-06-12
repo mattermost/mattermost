@@ -5688,7 +5688,7 @@
   "marketplace_modal.title": "App Marketplace",
   "marketplace_modal.web_marketplace_link.desc": "Connect the tools you use most to Mattermost",
   "marketplace_modal.web_marketplace_link.title": "Discover community integrations",
-  "media_gallery.count_label": "{count, plural, one {# image} other {# images}}",
+  "media_gallery.count_label": "{count, plural, one {# item} other {# items}}",
   "media_gallery.image_label": "Image {current} of {total}: {name}",
   "media_gallery.list_label": "Media gallery with {count} items",
   "media_gallery.toggle_label": "Toggle media gallery with {count} items",

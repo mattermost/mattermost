@@ -27,7 +27,7 @@ export type PackedRow = {
 const DEFAULT_ASPECT_RATIO = 1.5;
 
 function ratioOf(file: FileInfo): number {
-    if (file.width && file.height) {
+    if (file.width && file.height && file.width > 0 && file.height > 0) {
         return file.width / file.height;
     }
     return DEFAULT_ASPECT_RATIO;
@@ -45,9 +45,10 @@ function tileSize(tile: ClassifiedFile, opts: PackOptions): {width: number; heig
         }
     }
 
-    if (width > opts.maxTileWidth) {
-        height *= opts.maxTileWidth / width;
-        width = opts.maxTileWidth;
+    const upperBound = Math.min(opts.maxTileWidth, opts.containerWidth);
+    if (width > upperBound) {
+        height *= upperBound / width;
+        width = upperBound;
     }
     if (width < opts.minTileWidth) {
         height *= opts.minTileWidth / width;
