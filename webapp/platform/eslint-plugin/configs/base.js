@@ -6,6 +6,7 @@ import {fileURLToPath} from 'url';
 
 import {FlatCompat} from '@eslint/eslintrc';
 import js from '@eslint/js';
+import stylisticPlugin from '@stylistic/eslint-plugin';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import headersPlugin from 'eslint-plugin-headers';
@@ -44,26 +45,235 @@ const base = {
         '@mattermost': {
             rules,
         },
+        '@stylistic': stylisticPlugin,
         typescript: typescriptPlugin,
         headers: headersPlugin,
         import: importPlugin,
     },
     rules: {
-
-        // '@mattermost/no-dispatch-getstate': 2,
-        // '@mattermost/use-external-link': 2,
-        '@typescript-eslint/array-type': [2, {default: 'array-simple'}],
-        '@typescript-eslint/consistent-type-imports': ['error', {disallowTypeAnnotations: false}],
-        '@typescript-eslint/explicit-function-return-type': 0,
-        '@typescript-eslint/explicit-module-boundary-types': 0,
-        '@typescript-eslint/indent': [
+        '@mattermost/no-dispatch-getstate': 2,
+        '@mattermost/use-external-link': 2,
+        '@stylistic/array-bracket-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/arrow-parens': [
+            2,
+            'always',
+        ],
+        '@stylistic/arrow-spacing': [
+            2,
+            {
+                before: true,
+                after: true,
+            },
+        ],
+        '@stylistic/brace-style': [
+            2,
+            '1tbs',
+            {
+                allowSingleLine: false,
+            },
+        ],
+        '@stylistic/comma-dangle': [
+            2,
+            'always-multiline',
+        ],
+        '@stylistic/comma-spacing': [
+            2,
+            {
+                before: false,
+                after: true,
+            },
+        ],
+        '@stylistic/comma-style': [
+            2,
+            'last',
+        ],
+        '@stylistic/computed-property-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/dot-location': [
+            2,
+            'object',
+        ],
+        '@stylistic/eol-last': ['error', 'always'],
+        '@stylistic/function-call-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/generator-star-spacing': [
+            2,
+            {
+                before: false,
+                after: true,
+            },
+        ],
+        '@stylistic/indent': [
             2,
             4,
             {
                 SwitchCase: 0,
             },
         ],
-        '@typescript-eslint/member-delimiter-style': 2,
+        '@stylistic/jsx-quotes': [
+            2,
+            'prefer-single',
+        ],
+        '@stylistic/key-spacing': [
+            2,
+            {
+                beforeColon: false,
+                afterColon: true,
+                mode: 'strict',
+            },
+        ],
+        '@stylistic/keyword-spacing': [
+            2,
+            {
+                before: true,
+                after: true,
+                overrides: {},
+            },
+        ],
+        '@stylistic/linebreak-style': 2,
+        '@stylistic/lines-around-comment': [
+            2,
+            {
+                beforeBlockComment: true,
+                beforeLineComment: true,
+                allowBlockStart: true,
+                allowBlockEnd: true,
+            },
+        ],
+        '@stylistic/max-statements-per-line': [
+            2,
+            {
+                max: 1,
+            },
+        ],
+        '@stylistic/member-delimiter-style': 2,
+        '@stylistic/multiline-ternary': [
+            1,
+            'never',
+        ],
+        '@stylistic/new-parens': 2,
+        '@stylistic/no-confusing-arrow': 2,
+        '@stylistic/no-extra-parens': 0,
+        '@stylistic/no-extra-semi': 2,
+        '@stylistic/no-floating-decimal': 2,
+        '@stylistic/no-mixed-operators': [
+            2,
+            {
+                allowSamePrecedence: false,
+            },
+        ],
+        '@stylistic/no-mixed-spaces-and-tabs': 2,
+        '@stylistic/no-multi-spaces': [
+            2,
+            {
+                exceptions: {
+                    Property: false,
+                },
+            },
+        ],
+        '@stylistic/no-multiple-empty-lines': [
+            2,
+            {
+                max: 1,
+            },
+        ],
+        '@stylistic/no-tabs': 0,
+        '@stylistic/no-trailing-spaces': [
+            2,
+            {
+                skipBlankLines: false,
+            },
+        ],
+        '@stylistic/no-whitespace-before-property': 2,
+        '@stylistic/object-curly-newline': 0,
+        '@stylistic/object-curly-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/object-property-newline': [
+            2,
+            {
+                allowMultiplePropertiesPerLine: true,
+            },
+        ],
+        '@stylistic/one-var-declaration-per-line': 0,
+        '@stylistic/operator-linebreak': [
+            2,
+            'after',
+        ],
+        '@stylistic/padded-blocks': [
+            2,
+            'never',
+        ],
+        '@stylistic/quote-props': [
+            2,
+            'as-needed',
+        ],
+        '@stylistic/quotes': [
+            2,
+            'single',
+            'avoid-escape',
+        ],
+        '@stylistic/rest-spread-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/semi': [
+            2,
+            'always',
+        ],
+        '@stylistic/semi-spacing': [
+            2,
+            {
+                before: false,
+                after: true,
+            },
+        ],
+        '@stylistic/space-before-blocks': [
+            2,
+            'always',
+        ],
+        '@stylistic/space-before-function-paren': [
+            2,
+            {
+                anonymous: 'never',
+                named: 'never',
+                asyncArrow: 'always',
+            },
+        ],
+        '@stylistic/space-in-parens': [
+            2,
+            'never',
+        ],
+        '@stylistic/space-infix-ops': 2,
+        '@stylistic/space-unary-ops': [
+            2,
+            {
+                words: true,
+                nonwords: false,
+            },
+        ],
+        '@stylistic/template-curly-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/type-annotation-spacing': 2,
+        '@stylistic/wrap-iife': [
+            2,
+            'outside',
+        ],
+        '@stylistic/wrap-regex': 2,
+        '@typescript-eslint/array-type': [2, {default: 'array-simple'}],
+        '@typescript-eslint/consistent-type-imports': ['error', {disallowTypeAnnotations: false}],
+        '@typescript-eslint/explicit-function-return-type': 0,
+        '@typescript-eslint/explicit-module-boundary-types': 0,
         '@typescript-eslint/naming-convention': [
             2,
             {
@@ -103,57 +313,14 @@ const base = {
             },
         ],
         '@typescript-eslint/no-var-requires': 0,
-        '@typescript-eslint/type-annotation-spacing': 2,
-        'array-bracket-spacing': [
-            2,
-            'never',
-        ],
         'array-callback-return': 2,
         'arrow-body-style': 0,
-        'arrow-parens': [
-            2,
-            'always',
-        ],
-        'arrow-spacing': [
-            2,
-            {
-                before: true,
-                after: true,
-            },
-        ],
         'block-scoped-var': 2,
-        'brace-style': [
-            2,
-            '1tbs',
-            {
-                allowSingleLine: false,
-            },
-        ],
-        camelcase: 0, // Handled by @typescript-eslint/naming-convention
         'capitalized-comments': 0,
         'class-methods-use-this': 0,
-        'comma-dangle': [
-            2,
-            'always-multiline',
-        ],
-        'comma-spacing': [
-            2,
-            {
-                before: false,
-                after: true,
-            },
-        ],
-        'comma-style': [
-            2,
-            'last',
-        ],
         complexity: [
             0,
             10,
-        ],
-        'computed-property-spacing': [
-            2,
-            'never',
         ],
         'consistent-return': 2,
         'consistent-this': [
@@ -165,19 +332,10 @@ const base = {
             2,
             'all',
         ],
-        'dot-location': [
-            2,
-            'object',
-        ],
         'dot-notation': 2,
-        'eol-last': ['error', 'always'],
         eqeqeq: [
             2,
             'smart',
-        ],
-        'func-call-spacing': [
-            2,
-            'never',
         ],
         'func-name-matching': 0,
         'func-names': 2,
@@ -186,13 +344,6 @@ const base = {
             'declaration',
             {
                 allowArrowFunctions: true,
-            },
-        ],
-        'generator-star-spacing': [
-            2,
-            {
-                before: false,
-                after: true,
             },
         ],
         'global-require': 2,
@@ -256,38 +407,7 @@ const base = {
                 pathGroupsExcludedImportTypes: ['builtin'],
             },
         ],
-        indent: 0, // Handled by @typescript-eslint/indent
-        'jsx-quotes': [
-            2,
-            'prefer-single',
-        ],
-        'key-spacing': [
-            2,
-            {
-                beforeColon: false,
-                afterColon: true,
-                mode: 'strict',
-            },
-        ],
-        'keyword-spacing': [
-            2,
-            {
-                before: true,
-                after: true,
-                overrides: {},
-            },
-        ],
         'line-comment-position': 0,
-        'linebreak-style': 2,
-        'lines-around-comment': [
-            2,
-            {
-                beforeBlockComment: true,
-                beforeLineComment: true,
-                allowBlockStart: true,
-                allowBlockEnd: true,
-            },
-        ],
         'max-lines': [
             'warn',
             {
@@ -297,18 +417,7 @@ const base = {
             },
         ],
         'max-nested-callbacks': ['error', 10],
-        'max-statements-per-line': [
-            2,
-            {
-                max: 1,
-            },
-        ],
-        'multiline-ternary': [
-            1,
-            'never',
-        ],
         'new-cap': 2,
-        'new-parens': 2,
         'newline-before-return': 0,
         'newline-per-chained-call': 0,
         'no-alert': 2,
@@ -322,7 +431,6 @@ const base = {
             2,
             'except-parens',
         ],
-        'no-confusing-arrow': 2,
         'no-console': 2,
         'no-const-assign': 2,
         'no-constant-binary-expression': 2,
@@ -343,10 +451,7 @@ const base = {
         'no-extend-native': 2,
         'no-extra-bind': 2,
         'no-extra-label': 2,
-        'no-extra-parens': 0,
-        'no-extra-semi': 2,
         'no-fallthrough': 2,
-        'no-floating-decimal': 2,
         'no-func-assign': 2,
         'no-global-assign': 2,
         'no-implicit-coercion': 2,
@@ -361,29 +466,8 @@ const base = {
         'no-lonely-if': 2,
         'no-loop-func': 2,
         'no-magic-numbers': 0,
-        'no-mixed-operators': [
-            2,
-            {
-                allowSamePrecedence: false,
-            },
-        ],
-        'no-mixed-spaces-and-tabs': 2,
         'no-multi-assign': 2,
-        'no-multi-spaces': [
-            2,
-            {
-                exceptions: {
-                    Property: false,
-                },
-            },
-        ],
         'no-multi-str': 0,
-        'no-multiple-empty-lines': [
-            2,
-            {
-                max: 1,
-            },
-        ],
         'no-native-reassign': 2,
         'no-negated-condition': 2,
         'no-nested-ternary': 2,
@@ -430,18 +514,10 @@ const base = {
         'no-sequences': 2,
         'no-shadow': 0, // This isn't currently enabled, but it probably should be
         'no-shadow-restricted-names': 2,
-        'no-spaced-func': 2,
-        'no-tabs': 0,
         'no-template-curly-in-string': 2,
         'no-ternary': 0,
         'no-this-before-super': 2,
         'no-throw-literal': 2,
-        'no-trailing-spaces': [
-            2,
-            {
-                skipBlankLines: false,
-            },
-        ],
         'no-undef-init': 2,
         'no-undefined': 0,
         'no-underscore-dangle': 2,
@@ -468,19 +544,7 @@ const base = {
         'no-var': 0,
         'no-void': 2,
         'no-warning-comments': 1,
-        'no-whitespace-before-property': 2,
         'no-with': 2,
-        'object-curly-newline': 0,
-        'object-curly-spacing': [
-            2,
-            'never',
-        ],
-        'object-property-newline': [
-            2,
-            {
-                allowMultiplePropertiesPerLine: true,
-            },
-        ],
         'object-shorthand': [
             2,
             'always',
@@ -489,18 +553,9 @@ const base = {
             2,
             'never',
         ],
-        'one-var-declaration-per-line': 0,
         'operator-assignment': [
             2,
             'always',
-        ],
-        'operator-linebreak': [
-            2,
-            'after',
-        ],
-        'padded-blocks': [
-            2,
-            'never',
         ],
         'prefer-arrow-callback': 2,
         'prefer-const': 2,
@@ -510,63 +565,11 @@ const base = {
         'prefer-rest-params': 2,
         'prefer-spread': 2,
         'prefer-template': 0,
-        'quote-props': [
-            2,
-            'as-needed',
-        ],
-        quotes: [
-            2,
-            'single',
-            'avoid-escape',
-        ],
         radix: 2,
         'require-yield': 2,
-        'rest-spread-spacing': [
-            2,
-            'never',
-        ],
-        semi: [
-            2,
-            'always',
-        ],
-        'semi-spacing': [
-            2,
-            {
-                before: false,
-                after: true,
-            },
-        ],
         'sort-imports': 0,
         'sort-keys': 0,
-        'space-before-blocks': [
-            2,
-            'always',
-        ],
-        'space-before-function-paren': [
-            2,
-            {
-                anonymous: 'never',
-                named: 'never',
-                asyncArrow: 'always',
-            },
-        ],
-        'space-in-parens': [
-            2,
-            'never',
-        ],
-        'space-infix-ops': 2,
-        'space-unary-ops': [
-            2,
-            {
-                words: true,
-                nonwords: false,
-            },
-        ],
         'symbol-description': 2,
-        'template-curly-spacing': [
-            2,
-            'never',
-        ],
         'valid-typeof': [
             2,
             {
@@ -574,11 +577,6 @@ const base = {
             },
         ],
         'vars-on-top': 0,
-        'wrap-iife': [
-            2,
-            'outside',
-        ],
-        'wrap-regex': 2,
         yoda: [
             2,
             'never',
@@ -622,6 +620,7 @@ const testOverrides = {
 export default [
     js.configs.recommended,
     ...compat.extends('plugin:@typescript-eslint/recommended'),
+    stylisticPlugin.configs['disable-legacy'],
     base,
     testOverrides,
 ];

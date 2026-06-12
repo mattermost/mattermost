@@ -50,11 +50,11 @@ export type Props = {
             channelId: string
         ) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 export default class MemberListChannel extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;

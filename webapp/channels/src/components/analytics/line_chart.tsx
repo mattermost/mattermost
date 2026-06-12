@@ -14,7 +14,7 @@ type Props = {
     data?: any;
     id: string;
     options?: ChartOptions;
-}
+};
 
 export default class LineChart extends React.PureComponent<Props> {
     private canvasRef = React.createRef<HTMLCanvasElement>();

@@ -21,7 +21,7 @@ export type Props = {
     pluggableId: string;
     title: React.ReactNode;
     pluginId?: string;
-}
+};
 
 const RhsPlugin = ({showPluggable, pluggableId, title, pluginId}: Props) => {
     const intl = useIntl();

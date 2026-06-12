@@ -10,14 +10,13 @@
 // Stage: @prod
 // Group: @channels @channel
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
-
 
 const channelType = {
     all: 'Channel Type: All',

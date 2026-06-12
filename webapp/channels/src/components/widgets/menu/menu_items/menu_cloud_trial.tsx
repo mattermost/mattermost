@@ -24,7 +24,7 @@ import './menu_item.scss';
 
 type Props = {
     id: string;
-}
+};
 const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const subscription = useSelector(getCloudSubscription);
     const subscriptionProduct = useSelector(getSubscriptionProduct);

@@ -25,7 +25,7 @@ import {forceLogoutIfNecessary} from './helpers';
 import {getPostThread} from './posts';
 import {getMyTeamUnreads} from './teams';
 
-type ExtendedPost = Post & { system_post_ids?: string[] };
+type ExtendedPost = Post & {system_post_ids?: string[]};
 
 export function fetchThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, totalsOnly = false, threadsOnly = false, extended = false, since = 0} = {}): ActionFuncAsync<UserThreadList> {
     return async (dispatch, getState) => {

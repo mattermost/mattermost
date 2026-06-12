@@ -26,7 +26,7 @@ type Props = {
     imageUrl?: string;
     fileInfo?: FileInfo | FilePreviewInfo;
     size?: 16 | 24;
-}
+};
 
 const BookmarkIcon = ({
     type,

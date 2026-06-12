@@ -17,12 +17,12 @@ import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 export type ContentFlaggingChannelRequestIdentifier = {
     channelId?: string;
     flaggedPostId?: string;
-}
+};
 
 export type ContentFlaggingTeamRequestIdentifier = {
     teamId?: string;
     flaggedPostId?: string;
-}
+};
 
 function channelComparator(a: ContentFlaggingChannelRequestIdentifier, b: ContentFlaggingChannelRequestIdentifier) {
     return a.channelId === b.channelId;
