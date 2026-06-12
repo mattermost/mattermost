@@ -61,9 +61,6 @@ function ErrorModal(props: Props) {
                         <FormattedMessage
                             defaultMessage={'We were unable to change your plan'}
                             id={'error_modal.title'}
-                            values={{
-                                selectedProductName: subscriptionProduct?.name,
-                            }}
                         />
                     }
                     formattedSubtitle={
@@ -72,7 +69,6 @@ function ErrorModal(props: Props) {
                             defaultMessage={
                                 'An error occurred while changing your plan. Please go back and try again, or contact the support team.'
                             }
-                            values={{plan: subscriptionProduct?.name}}
                         />
                     }
                     error={true}

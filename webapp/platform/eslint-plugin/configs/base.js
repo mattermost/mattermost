@@ -296,6 +296,12 @@ const base = {
         ],
         '@typescript-eslint/no-dupe-class-members': 2,
         '@typescript-eslint/no-empty-function': 0,
+        '@typescript-eslint/no-empty-object-type': [
+            2,
+            {
+                allowInterfaces: 'with-single-extends',
+            },
+        ],
         '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/no-unused-vars': [
             2,

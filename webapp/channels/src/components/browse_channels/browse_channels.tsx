@@ -257,7 +257,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     } else {
                         this.setState({searchedChannels: [], searching: false});
                     }
-                } catch (ignoredErr) {
+                } catch {
                     this.setState({searchedChannels: [], searching: false});
                 }
             },

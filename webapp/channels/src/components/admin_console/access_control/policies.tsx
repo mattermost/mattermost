@@ -98,7 +98,7 @@ export default function PolicyList(props: Props): JSX.Element {
             }
             props.onPoliciesLoaded?.(newTotal);
             return true;
-        } catch (error) {
+        } catch {
             setLoading(false);
             setSearchErrored(true);
             return false;

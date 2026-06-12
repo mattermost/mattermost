@@ -240,7 +240,7 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
                 return FileTypes.IMAGE;
             }
         }
-    } catch (e) {
+    } catch {
         // Not a valid URL, just check if the string itself has an extension
         if (extin.includes('.')) {
             const extension = extin.split('.').pop()?.toLowerCase();
@@ -1246,7 +1246,7 @@ export function clearFileInput(elm: HTMLInputElement) {
             elm.type = 'text';
             elm.type = 'file';
         }
-    } catch (e) {
+    } catch {
         // Do nothing
     }
 }

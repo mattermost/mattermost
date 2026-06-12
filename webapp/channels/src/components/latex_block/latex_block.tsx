@@ -53,7 +53,7 @@ const LatexBlock = ({
                 data-testid='latex-enabled'
             />
         );
-    } catch (e) {
+    } catch {
         // This is never run because throwOnError is false
         return (
             <div

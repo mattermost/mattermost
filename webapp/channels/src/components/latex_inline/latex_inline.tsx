@@ -50,7 +50,7 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
                 dangerouslySetInnerHTML={{__html: html}}
             />
         );
-    } catch (e) {
+    } catch {
         return (
             <span
                 className='post-body--code inline-tex'
