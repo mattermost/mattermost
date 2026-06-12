@@ -53,7 +53,7 @@ type State = {
     nextDisabled: boolean;
     channelSearchValue: string;
     isSearch?: boolean;
-}
+};
 
 export class SearchableChannelList extends React.PureComponent<Props, State> {
     private nextTimeoutId: number | NodeJS.Timeout;

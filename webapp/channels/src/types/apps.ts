@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 export type DoAppCallResult<Res=unknown> = {
     data?: AppCallResponse<Res>;
     error?: AppCallResponse<Res>;
-}
+};
 
 export interface HandleBindingClick<Res=unknown> {
     (binding: AppBinding, context: AppContext, intl: IntlShape): Promise<DoAppCallResult<Res>>;

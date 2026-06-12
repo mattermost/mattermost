@@ -22,7 +22,7 @@ import ProfilePopoverUrl from './profile_popover_url';
 type Props = {
     userID: string;
     hideStatus?: boolean;
-}
+};
 const ProfilePopoverCustomAttributes = ({
     userID,
     hideStatus = false,

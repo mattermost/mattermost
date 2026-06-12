@@ -41,7 +41,7 @@ type Props = {
     excludeRemote?: boolean;
     customNoOptionsMessage?: React.ReactNode;
     isStacked?: boolean;
-}
+};
 
 type State = {
     values: ChannelWithTeamDataValue[];
@@ -49,7 +49,7 @@ type State = {
     search: boolean;
     loadingChannels: boolean;
     channels: ChannelWithTeamData[];
-}
+};
 
 const CHANNELS_PER_PAGE = 50;
 

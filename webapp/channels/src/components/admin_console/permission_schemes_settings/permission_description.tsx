@@ -16,7 +16,7 @@ type Props = {
     selectRow: (id: string) => void;
     additionalValues?: Record<string, unknown>;
     description: string | JSX.Element;
-}
+};
 
 const PermissionDescription = ({
     id,

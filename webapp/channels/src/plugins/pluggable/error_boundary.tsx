@@ -8,11 +8,11 @@ import styled from 'styled-components';
 type Props = {
     children: React.ReactNode;
     pluginId: string;
-}
+};
 
 type State = {
     hasError: boolean;
-}
+};
 
 const WrapperDiv = styled.div`
     align-items: center;

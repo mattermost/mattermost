@@ -33,7 +33,7 @@ export interface Props extends PropsFromRedux {
 type State = {
     sections: string[] | null;
     filter: string;
-}
+};
 
 class AdminSidebar extends React.PureComponent<Props, State> {
     searchRef: React.RefObject<HTMLInputElement>;

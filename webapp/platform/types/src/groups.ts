@@ -6,7 +6,7 @@ import type {RelationOneToOne} from './utilities';
 
 export enum SyncableType {
     Team = 'team',
-    Channel = 'channel'
+    Channel = 'channel',
 }
 
 export type SyncablePatch = {
@@ -56,7 +56,7 @@ export enum GroupSource {
  * Used for identifying plugin-created groups by checking if source starts with this prefix
  */
 export enum PluginGroupSourcePrefix {
-    Plugin = 'plugin_'
+    Plugin = 'plugin_',
 }
 
 export type GroupTeam = {
@@ -145,7 +145,7 @@ export type GroupsWithCount = {
     // These fields are added by the client after the groups are returned by the server
     channelID?: string;
     teamID?: string;
-}
+};
 
 export type UsersWithGroupsAndCount = {
     users: UserWithGroup[];
@@ -159,7 +159,7 @@ export type GroupCreateWithUserIds = {
     source: string;
     user_ids: string[];
     description?: string;
-}
+};
 
 export type GetGroupsParams = {
     filter_allow_reference?: boolean;
@@ -169,33 +169,33 @@ export type GetGroupsParams = {
     include_archived?: boolean;
     filter_archived?: boolean;
     include_member_ids?: boolean;
-}
+};
 
 export type GetGroupsForUserParams = GetGroupsParams & {
     filter_has_member: string;
-}
+};
 
 export type GroupSearchParams = GetGroupsParams & {
     q: string;
     filter_has_member?: string;
     include_timezones?: string;
     include_channel_member_count?: string;
-}
+};
 
 export type GroupMember = {
     group_id: string;
     user_id: string;
     create_at: number;
     deleted_at: number;
-}
+};
 
 export type GroupMembership = {
     user_id: string;
     roles: string;
-}
+};
 
 export type GroupPermissions = {
     can_delete: boolean;
     can_manage_members: boolean;
     can_restore: boolean;
-}
+};

@@ -40,13 +40,13 @@ export type Options = Partial<{
      * users automatically for all posts.
      */
     fetchMissingUsers: boolean;
-}>
+}>;
 
 type ProcessingInstruction = {
     replaceChildren: boolean;
     shouldProcessNode: (node: any) => boolean;
     processNode: (node: any, children?: any, index?: number) => any;
-}
+};
 
 /*
  * Converts HTML to React components using html-to-react.

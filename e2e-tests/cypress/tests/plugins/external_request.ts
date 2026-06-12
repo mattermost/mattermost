@@ -6,7 +6,7 @@ import axios from 'axios';
 
 import * as timeouts from '../fixtures/timeouts';
 
-export interface ExternalRequestUser{
+export interface ExternalRequestUser {
     username: string;
     password: string;
 }
@@ -17,7 +17,7 @@ interface ExternalRequestArg {
     path: string;
     data: any;
 }
-type ExternalRequestResult = { status: number; statusText: string; data: any; isError?: boolean } | { data: { id: string; isTimeout: boolean }; status?: undefined; statusText?: undefined; isError?: undefined };
+type ExternalRequestResult = {status: number; statusText: string; data: any; isError?: boolean} | {data: {id: string; isTimeout: boolean}; status?: undefined; statusText?: undefined; isError?: undefined};
 export default async function externalRequest(arg: ExternalRequestArg): Promise<ExternalRequestResult> {
     const {baseUrl, user, method = 'get', path, data = {}} = arg;
     const loginUrl = `${baseUrl}/api/v4/users/login`;

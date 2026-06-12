@@ -22,7 +22,7 @@ export type Params = {
     state: string | null;
     scope: string | null;
     resource: string | null;
-}
+};
 
 type Props = {
     location: {
@@ -32,12 +32,12 @@ type Props = {
         getOAuthAppInfo: (clientId: string | null) => Promise<ActionResult<OAuthApp>>;
         allowOAuth2: (params: Params) => Promise<ActionResult<{redirect: string}>>;
     };
-}
+};
 
 type State = {
     app?: OAuthApp;
     error?: string;
-}
+};
 
 export default class Authorize extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
