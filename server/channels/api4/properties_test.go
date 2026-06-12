@@ -535,6 +535,25 @@ func TestGetPropertyFields(t *testing.T) {
 	_ = mkField(t, model.PropertyFieldTargetLevelTeam, otherTeam.Id)   // team-B field
 	_ = mkField(t, model.PropertyFieldTargetLevelChannel, channelY.Id) // channel-Y field (BasicUser has no access)
 
+	// A dedicated group holding a single system-object-type field
+	// (ObjectType=system, TargetType=system). Used by the DWIM subtests
+	// to assert that requests with object_type=system collapse to the
+	// system scope regardless of any channel/team/target params passed.
+	systemObjGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_get_system_obj", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, err)
+	sysObjField := &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           systemObjGroup.ID,
+		ObjectType:        model.PropertyFieldObjectTypeSystem,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}
+	createdSysObjField, appErr := th.App.CreatePropertyField(th.Context, sysObjField, false, "")
+	require.Nil(t, appErr)
+
 	fieldIDs := func(fields []*model.PropertyField) []string {
 		ids := make([]string, len(fields))
 		for i, f := range fields {
@@ -671,6 +690,60 @@ func TestGetPropertyFields(t *testing.T) {
 		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("object_type=system without scope returns system-level rows", func(t *testing.T) {
+		// System-object-type fields can only live at the system scope, so
+		// the GET endpoint defaults to target_type=system when the caller
+		// omits the scope.
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), systemObjGroup.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{PerPage: 60})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.ElementsMatch(t, []string{createdSysObjField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("object_type=system collapses to system scope regardless of channel_id (DWIM)", func(t *testing.T) {
+		// System-object fields can only live at the system scope by
+		// invariant, so the channel_id filter is a semantic no-op. The
+		// endpoint accepts the request and returns the same rows as the
+		// unscoped call rather than 400-ing on scope_conflict.
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), systemObjGroup.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{
+			ChannelID: th.BasicChannel.Id,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.ElementsMatch(t, []string{createdSysObjField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("object_type=system collapses to system scope regardless of team_id (DWIM)", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), systemObjGroup.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{
+			TeamID: th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.ElementsMatch(t, []string{createdSysObjField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("object_type=system collapses to system scope regardless of target_type=channel (DWIM)", func(t *testing.T) {
+		// Even a confused single-target request like target_type=channel
+		// + target_id=<channel> is reduced to system scope when the
+		// object_type is system. The non-system filter values are
+		// dropped before the conflict check runs.
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), systemObjGroup.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   th.BasicChannel.Id,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.ElementsMatch(t, []string{createdSysObjField.ID}, fieldIDs(fields))
 	})
 
 	t.Run("channel_id combined with target_type returns 400 scope_conflict", func(t *testing.T) {
@@ -1215,6 +1288,7 @@ func TestSearchPropertyFields(t *testing.T) {
 	chanSysField := mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelSystem, "")
 	chanTeamAField := mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
 	userSysField := mkField(t, model.PropertyFieldObjectTypeUser, model.PropertyFieldTargetLevelSystem, "")
+	sysObjField := mkField(t, model.PropertyFieldObjectTypeSystem, model.PropertyFieldTargetLevelSystem, "")
 	// Out-of-scope rows that must NOT leak into hierarchical results.
 	_ = mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelTeam, otherTeam.Id) // team-B
 	_ = mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelTeam, otherTeam.Id)
@@ -1269,7 +1343,50 @@ func TestSearchPropertyFields(t *testing.T) {
 	t.Run("no scope (no target_type, channel_id or team_id) returns 400 scope_required", func(t *testing.T) {
 		th.LoginBasic(t)
 		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("object_types=[system] without scope returns system-object rows", func(t *testing.T) {
+		// System-object fields can only live at the system scope, so the
+		// endpoint defaults to target_type=system when object_types is
+		// exactly [system]. This mirrors the GET endpoint's shortcut.
+		th.LoginBasic(t)
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
 			ObjectTypes: []string{model.PropertyFieldObjectTypeSystem},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Contains(t, fieldIDs(fields), sysObjField.ID)
+	})
+
+	t.Run("object_types=[system] collapses to system scope regardless of channel_id (DWIM)", func(t *testing.T) {
+		// Any channel/team/target filter is a semantic no-op when
+		// object_types is exactly [system]. The endpoint must return
+		// the same rows as the unscoped call rather than 400-ing.
+		th.LoginBasic(t)
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypeSystem},
+			ChannelID:   th.BasicChannel.Id,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Contains(t, fieldIDs(fields), sysObjField.ID)
+	})
+
+	t.Run("object_types=[system, post] without scope returns 400 (shortcut requires exactly [system])", func(t *testing.T) {
+		// The system shortcut is only safe when every requested object
+		// type lives at the system scope. Mixing system with another
+		// object type without an explicit scope would silently drop the
+		// non-system rows under target_type=system, so we reject it.
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{
+				model.PropertyFieldObjectTypeSystem,
+				model.PropertyFieldObjectTypePost,
+			},
 		})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)

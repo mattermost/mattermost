@@ -290,6 +290,21 @@ func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 // scope resolution + permission checks, opts validation, audit, search,
 // response encoding.
 func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.PropertyGroup, opts model.PropertyFieldSearchOpts, callerName string) {
+	// System-object fields can only live at the system scope by
+	// invariant (enforced at create time). When the caller asks
+	// exclusively for system-object fields, any channel/team/target
+	// filter is a semantic no-op — we collapse to target_type=system
+	// regardless of what was passed so legacy callers don't get a
+	// confusing scope_conflict on otherwise valid requests. The
+	// shortcut only applies when object_types is exactly [system]:
+	// mixing with other types would silently drop the non-system 3rows.
+	if len(opts.ObjectTypes) == 1 && opts.ObjectTypes[0] == model.PropertyFieldObjectTypeSystem {
+		opts.ChannelID = ""
+		opts.TeamID = ""
+		opts.TargetIDs = nil
+		opts.TargetType = string(model.PropertyFieldTargetLevelSystem)
+	}
+
 	if !resolveScopeAndCheckPermissions(c, &opts, callerName) {
 		return
 	}

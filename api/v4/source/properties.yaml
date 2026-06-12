@@ -111,7 +111,10 @@
         - **Single-target scope** (`target_type` + `target_id`): returns fields scoped to exactly one resource. `target_type` must be `system`, `team`, or `channel`; `target_id` is required for `team` and `channel`.
 
 
-        Mixing the two modes (any of `channel_id`/`team_id` together with any of `target_type`/`target_id`) returns 400.
+        Mixing the two modes (any of `channel_id`/`team_id` together with any of `target_type`/`target_id`) returns 400. Omitting both modes also returns 400, except for the system case below.
+
+
+        **System-object:** when `object_type` is `system`, the endpoint always resolves to `target_type=system` and ignores any `channel_id`, `team_id`, `target_type`, or `target_id` the caller may have passed. System-object fields can only live at the system scope by invariant, so any other scope is a semantic no-op rather than an error.
 
 
         **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstoned rows (`delete_at > 0`).
@@ -236,8 +239,11 @@
         `object_types` field lists the object types to include.
 
         Scope, `since`, cursor, and permission semantics are identical to the
-        get property fields endpoint. Like the GET singular, an explicit scope
-        is always required.
+        get property fields endpoint, including the system-object collapse:
+        when `object_types` is exactly `["system"]`, any scope or target
+        params in the body are ignored and the endpoint resolves to
+        `target_type=system`. Any other combination without an explicit
+        scope returns 400.
 
         Requesting a single value in `object_types` is equivalent to calling
         the singular endpoint and is supported for client uniformity.
@@ -298,8 +304,9 @@
                   description: >
                     Single-target scope. Mutually exclusive with `channel_id`
                     and `team_id`. Required if no hierarchical scope is
-                    given (the endpoint does not infer a scope from the
-                    requested object types).
+                    given, except when `object_types` is exactly `["system"]`
+                    — in that case any scope or target params are ignored
+                    and the endpoint resolves to `target_type=system`.
                 target_id:
                   type: string
                   description: >
