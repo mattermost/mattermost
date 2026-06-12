@@ -87,16 +87,15 @@ ENV MBE_PKCS11_LIBRARY_PATH="/usr/lib/softhsm/libsofthsm2.so"
 ENV SOFTHSM2_CONF="/etc/softhsm/softhsm2.conf"
 ENV MM_FEATUREFLAGS_CONSUMEPOSTHOOK="true"
 
-# Message-Based Encryption tech-preview: make the prepackaged MBE plugin fully turnkey with no
-# per-instance config. The plugin reads these HSM settings directly from the environment (its
-# applyEnvFallbacks) when its plugin config is empty, so they need not be entered in the console;
-# they match the dev token/KEK baked into the hsmbuilder stage. PLUGINSTATES marks the plugin
-# enabled so processPrepackagedPlugins installs+activates it at startup (AutomaticPrepackagedPlugins
-# is already true on cloud). All non-secret dev values; test image only.
+# Message-Based Encryption tech-preview: the plugin reads these HSM settings directly from the
+# environment (its applyEnvFallbacks) when its plugin config is empty, so they need not be entered in
+# the console; they match the dev token/KEK baked into the hsmbuilder stage. Non-secret dev values;
+# test image only. (We do NOT bake MM_PLUGINSETTINGS_PLUGINSTATES: that env REPLACES the whole
+# PluginStates map, which wiped cloud's enabled plugins — calls/playbooks/boards/agents. MBE is left
+# as a normal signed prepackaged plugin, verified by the baked mbeDevPublicKey.)
 ENV MBE_PKCS11_TOKEN_LABEL="pbe-dev"
 ENV MBE_PKCS11_PIN="1234"
 ENV MBE_KEK_LABEL="pbe-kek-dev"
-ENV MM_PLUGINSETTINGS_PLUGINSTATES="{\"message-based-encryption\":{\"Enable\":true}}"
 
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc
