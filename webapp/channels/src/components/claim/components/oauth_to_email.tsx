@@ -23,7 +23,7 @@ type Props = {
     email: string;
     siteName?: string;
     passwordConfig?: PasswordConfig;
-}
+};
 
 const OAuthToEmail = (props: Props) => {
     const intl = useIntl();

@@ -29,7 +29,7 @@ type Props = {
     returnFocus?: () => void;
     currentUserTimezone?: string;
     haveOverrideProp: boolean;
-}
+};
 
 const emojiStyles: React.CSSProperties = {
     marginRight: 8,

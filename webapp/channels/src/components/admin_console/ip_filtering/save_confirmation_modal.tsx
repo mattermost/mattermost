@@ -19,7 +19,7 @@ type Props = {
     subtitle: JSX.Element | string;
     buttonText?: string;
     includeDisclaimer?: boolean;
-}
+};
 
 export default function SaveConfirmationModal({onExited, onConfirm, title, subtitle, includeDisclaimer, buttonText}: Props) {
     const {formatMessage} = useIntl();

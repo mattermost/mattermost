@@ -28,7 +28,7 @@ type Props = {
         searchUsers: (term: string, after: string, limit: number) => ActionFuncAsync<AccessControlTestResult>;
         openModal?: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 function TestResultsModal({
     onExited,

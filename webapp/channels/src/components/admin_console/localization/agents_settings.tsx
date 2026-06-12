@@ -17,7 +17,7 @@ import {type SystemConsoleCustomSettingsComponentProps} from '../schema_admin_se
 
 type AgentsSettingsState = {
     LLMServiceID: string;
-}
+};
 
 export default function AgentsSettings(props: SystemConsoleCustomSettingsComponentProps) {
     const values = props.value as AutoTranslationSettings;

@@ -19,6 +19,48 @@ const compat = new FlatCompat({
 const react = {
     files: ['**/*.jsx', '**/*.tsx'],
     rules: {
+        '@stylistic/jsx-closing-bracket-location': [
+            2,
+            {
+                location: 'tag-aligned',
+            },
+        ],
+        '@stylistic/jsx-curly-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/jsx-equals-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/jsx-first-prop-new-line': [
+            2,
+            'multiline',
+        ],
+        '@stylistic/jsx-indent': [
+            2,
+            4,
+        ],
+        '@stylistic/jsx-indent-props': [
+            2,
+            4,
+        ],
+        '@stylistic/jsx-max-props-per-line': [
+            2,
+            {
+                maximum: 1,
+            },
+        ],
+        '@stylistic/jsx-pascal-case': 2,
+        '@stylistic/jsx-tag-spacing': [
+            2,
+            {
+                closingSlash: 'never',
+                beforeSelfClosing: 'never',
+                afterOpening: 'never',
+            },
+        ],
+        '@stylistic/jsx-wrap-multilines': 2,
         'jsx-a11y/alt-text': 'warn',
         'jsx-a11y/anchor-has-content': 'error',
         'jsx-a11y/anchor-is-valid': 'warn',
@@ -70,20 +112,6 @@ const react = {
             2,
             'always',
         ],
-        'react/jsx-closing-bracket-location': [
-            2,
-            {
-                location: 'tag-aligned',
-            },
-        ],
-        'react/jsx-curly-spacing': [
-            2,
-            'never',
-        ],
-        'react/jsx-equals-spacing': [
-            2,
-            'never',
-        ],
         'react/jsx-filename-extension': [
             2,
             {
@@ -93,26 +121,8 @@ const react = {
                 ],
             },
         ],
-        'react/jsx-first-prop-new-line': [
-            2,
-            'multiline',
-        ],
         'react/jsx-handler-names': 0,
-        'react/jsx-indent': [
-            2,
-            4,
-        ],
-        'react/jsx-indent-props': [
-            2,
-            4,
-        ],
         'react/jsx-key': 2,
-        'react/jsx-max-props-per-line': [
-            2,
-            {
-                maximum: 1,
-            },
-        ],
         'react/jsx-no-bind': 0,
         'react/jsx-no-comment-textnodes': 2,
         'react/jsx-no-duplicate-props': [
@@ -124,18 +134,8 @@ const react = {
         'react/jsx-no-literals': 2,
         'react/jsx-no-target-blank': 2,
         'react/jsx-no-undef': 2,
-        'react/jsx-pascal-case': 2,
-        'react/jsx-tag-spacing': [
-            2,
-            {
-                closingSlash: 'never',
-                beforeSelfClosing: 'never',
-                afterOpening: 'never',
-            },
-        ],
         'react/jsx-uses-react': 2,
         'react/jsx-uses-vars': 2,
-        'react/jsx-wrap-multilines': 2,
         'react/no-array-index-key': 1,
         'react/no-children-prop': 2,
         'react/no-danger': 0,

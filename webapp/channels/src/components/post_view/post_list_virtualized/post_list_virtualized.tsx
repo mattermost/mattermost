@@ -122,7 +122,7 @@ type Props = {
 
         toggleShouldStartFromBottomWhenUnread: () => void;
     };
-}
+};
 
 type State = {
     isScrolling: boolean;
@@ -141,7 +141,7 @@ type State = {
     isNewMessageLineReached: boolean;
     showScrollToBottomToast: boolean;
     isScrollToBottomDismissed: boolean;
-}
+};
 
 export default class PostList extends React.PureComponent<Props, State> {
     listRef: React.RefObject<DynamicVirtualizedList>;

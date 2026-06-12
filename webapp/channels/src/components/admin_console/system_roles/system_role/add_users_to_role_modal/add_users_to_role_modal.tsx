@@ -32,8 +32,8 @@ type UserProfileValue = Value & UserProfile;
 export type Props = {
     role: Role;
     users: UserProfile[];
-    excludeUsers: { [userId: string]: UserProfile };
-    includeUsers: { [userId: string]: UserProfile };
+    excludeUsers: {[userId: string]: UserProfile};
+    includeUsers: {[userId: string]: UserProfile};
     intl: IntlShape;
     onAddCallback: (users: UserProfile[]) => void;
     onExited: () => void;
@@ -42,7 +42,7 @@ export type Props = {
         getProfiles: (page: number, perPage?: number, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
         searchProfiles: (term: string, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
     };
-}
+};
 
 type State = {
     searchResults: UserProfile[];
@@ -52,7 +52,7 @@ type State = {
     addError: null;
     loading: boolean;
     term: string;
-}
+};
 
 function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Record<string, UserProfile> {
     const profilesList: UserProfile[] = Object.keys(users).map((key) => users[key]);
@@ -150,7 +150,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
         );
     };
 
-    renderValue = (value: { data: UserProfileValue }): string => {
+    renderValue = (value: {data: UserProfileValue}): string => {
         return value.data?.username || '';
     };
 

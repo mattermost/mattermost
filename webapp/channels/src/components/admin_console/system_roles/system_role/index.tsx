@@ -22,7 +22,7 @@ type Props = {
             role_id: string;
         };
     };
-}
+};
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const role = getRolesById(state)[props.match.params.role_id];

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class BurnOnReadConfirmationModal {
     readonly container: Locator;
@@ -77,13 +78,13 @@ export default class BurnOnReadConfirmationModal {
      * Check if "don't show again" checkbox is present
      */
     async hasDontShowAgainOption(): Promise<boolean> {
-        return await this.dontShowAgainCheckbox.isVisible();
+        return this.dontShowAgainCheckbox.isVisible();
     }
 
     /**
      * Check if "don't show again" is already checked
      */
     async isDontShowAgainChecked(): Promise<boolean> {
-        return await this.dontShowAgainCheckbox.isChecked();
+        return this.dontShowAgainCheckbox.isChecked();
     }
 }

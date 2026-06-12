@@ -16,7 +16,7 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
-}
+};
 
 export default function NonVirtualizedScheduledPostList(props: Props) {
     const query = useQuery();

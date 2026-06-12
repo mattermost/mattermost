@@ -25,12 +25,12 @@ type Props = {
         getOAuthAppInfo: (clientId: string) => Promise<ActionResult<OAuthApp>>;
         allowOAuth2: (...params: Parameters<typeof allowOAuth2>) => Promise<ActionResult<{redirect: string}>>;
     };
-}
+};
 
 type State = {
     app?: OAuthApp;
     error?: string;
-}
+};
 
 export default class Authorize extends React.PureComponent<Props, State> {
     public constructor(props: Props) {

@@ -20,7 +20,7 @@ type Props = {
     email: string | null;
     siteName?: string;
     ldapLoginFieldName?: string;
-}
+};
 
 export type SubmitOptions = {
     loginId: string;
@@ -28,7 +28,7 @@ export type SubmitOptions = {
     token?: string;
     ldapIdParam?: string;
     ldapPasswordParam?: string;
-}
+};
 
 const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
     const {formatMessage} = useIntl();

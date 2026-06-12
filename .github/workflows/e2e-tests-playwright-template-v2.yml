@@ -192,12 +192,9 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
-            webapp/node_modules/@mattermost/client
-            webapp/node_modules/@mattermost/types
+            webapp/**/node_modules
             webapp/platform/client/lib
-            webapp/platform/client/node_modules
             webapp/platform/types/lib
-            webapp/platform/types/node_modules
           key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
       - name: ci/build-platform-pkgs
         # Full webapp install is needed for tsc + workspace linking; the
@@ -319,12 +316,9 @@ jobs:
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
-            webapp/node_modules/@mattermost/client
-            webapp/node_modules/@mattermost/types
+            webapp/**/node_modules
             webapp/platform/client/lib
-            webapp/platform/client/node_modules
             webapp/platform/types/lib
-            webapp/platform/types/node_modules
           key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
           fail-on-cache-miss: true
       - name: ci/restore-playwright-deps

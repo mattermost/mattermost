@@ -32,7 +32,7 @@ import './data_retention_settings.scss';
 type OptionType = {
     label: string | JSX.Element;
     value: string;
-}
+};
 
 type Props = {
     config: DeepPartial<AdminConfig>;
@@ -54,7 +54,7 @@ type State = {
     page: number;
     loading: boolean;
     showEditJobTime: boolean;
-}
+};
 const PAGE_SIZE = 10;
 
 const messages = defineMessages({

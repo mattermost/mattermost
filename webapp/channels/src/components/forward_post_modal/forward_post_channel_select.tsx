@@ -39,13 +39,13 @@ import {getBaseStyles} from './forward_post_channel_select_styles';
 
 type ChannelTypeFromProvider = Channel & {
     userId?: string;
-}
+};
 
 export type ChannelOption = {
     label: string;
     value: string;
     details: ChannelTypeFromProvider;
-}
+};
 
 export const makeSelectedChannelOption = (channel: Channel): ChannelOption => ({
     label: channel.display_name || channel.name,
@@ -223,7 +223,7 @@ type Props<O> = {
     currentBodyHeight: number;
     value?: O;
     validChannelTypes?: string[];
-}
+};
 
 function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChannelTypes = ['O', 'P', 'D', 'G']}: Props<ChannelOption>) {
     const {formatMessage} = useIntl();

@@ -11,7 +11,7 @@ import './invite_members_link.scss';
 type Props = {
     inviteURL: string;
     inputAndButtonStyle?: boolean;
-}
+};
 
 const InviteMembersLink = ({
     inviteURL,

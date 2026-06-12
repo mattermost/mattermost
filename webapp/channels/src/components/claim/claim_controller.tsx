@@ -26,7 +26,7 @@ export interface PasswordConfig {
 
 type Location = {
     search: string;
-}
+};
 
 export type Props = {
     location: Location;
@@ -39,7 +39,7 @@ export type Props = {
     actions: {
         switchLdapToEmail: (ldapPassword: string, email: string, emailPassword: string, mfaCode?: string) => Promise<ActionResult<AuthChangeResponse>>;
     };
-}
+};
 
 export default class ClaimController extends React.PureComponent<Props> {
     render(): JSX.Element {

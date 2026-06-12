@@ -48,7 +48,7 @@ export const MAX_LIST_HEIGHT = 800;
 export type GroupMember = {
     user: UserProfile;
     displayName: string;
-}
+};
 
 export type Props = {
 
@@ -79,7 +79,7 @@ export type Props = {
         openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
-}
+};
 
 const GroupMemberList = (props: Props) => {
     const {
