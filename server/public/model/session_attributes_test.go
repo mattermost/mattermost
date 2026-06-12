@@ -46,17 +46,17 @@ func TestSessionAttributeSystemFieldsDisplayNames(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		SessionAttributesPropertyFieldClientIPAddress:      "Client IP address",
-		SessionAttributesPropertyFieldNetworkInterfaceType: "Network interface type",
-		SessionAttributesPropertyFieldVPNActive:            "VPN active",
-		SessionAttributesPropertyFieldSSID:                 "SSID",
-		SessionAttributesPropertyFieldClientDeviceID:       "Device ID",
-		SessionAttributesPropertyFieldHardwareID:           "Hardware ID",
-		SessionAttributesPropertyFieldMDMEnrolled:          "MDM enrolled",
-		SessionAttributesPropertyFieldClientVersion:        "Client version",
-		SessionAttributesPropertyFieldOSPlatform:           "OS platform",
-		SessionAttributesPropertyFieldOSVersion:            "OS version",
-		SessionAttributesPropertyFieldJailbreakDetected:    "Jailbreak detected",
+		SessionAttributesPropertyFieldClientIPAddress:      SessionAttributesDisplayNameClientIPAddress,
+		SessionAttributesPropertyFieldNetworkInterfaceType: SessionAttributesDisplayNameNetworkInterfaceType,
+		SessionAttributesPropertyFieldVPNActive:            SessionAttributesDisplayNameVPNActive,
+		SessionAttributesPropertyFieldSSID:                 SessionAttributesDisplayNameSSID,
+		SessionAttributesPropertyFieldClientDeviceID:       SessionAttributesDisplayNameClientDeviceID,
+		SessionAttributesPropertyFieldHardwareID:           SessionAttributesDisplayNameHardwareID,
+		SessionAttributesPropertyFieldMDMEnrolled:          SessionAttributesDisplayNameMDMEnrolled,
+		SessionAttributesPropertyFieldClientVersion:        SessionAttributesDisplayNameClientVersion,
+		SessionAttributesPropertyFieldOSPlatform:           SessionAttributesDisplayNameOSPlatform,
+		SessionAttributesPropertyFieldOSVersion:            SessionAttributesDisplayNameOSVersion,
+		SessionAttributesPropertyFieldJailbreakDetected:    SessionAttributesDisplayNameJailbreakDetected,
 	}
 	for name, displayName := range expected {
 		assert.Equal(t, displayName, displayNamesByName[name], "display name for %q", name)

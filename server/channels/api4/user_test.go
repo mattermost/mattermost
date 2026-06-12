@@ -10732,7 +10732,7 @@ func TestGetSessionAttributesManifest(t *testing.T) {
 			}
 		}
 		require.NotNil(t, hardwareEntry)
-		require.Equal(t, "Hardware ID", hardwareEntry.DisplayName)
+		require.Equal(t, model.SessionAttributesDisplayNameHardwareID, hardwareEntry.DisplayName)
 	})
 }
 

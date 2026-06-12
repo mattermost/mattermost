@@ -402,7 +402,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		// The typed attrs must survive the DB round trip so the app reads back what it seeded.
 		saField, err := model.SAFieldFromPropertyField(networkField)
 		require.NoError(t, err)
-		require.Equal(t, "Network interface type", saField.Attrs.DisplayName)
+		require.Equal(t, model.SessionAttributesDisplayNameNetworkInterfaceType, saField.Attrs.DisplayName)
 		require.Equal(t, model.SessionAttributeDefaultTTLNetworkIdentity, saField.Attrs.TTLSeconds)
 		require.Equal(t, model.SessionAttributeDefaultGraceNetworkIdentity, saField.Attrs.GracePeriodSeconds)
 		require.ElementsMatch(t,
