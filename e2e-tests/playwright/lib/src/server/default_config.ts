@@ -765,7 +765,6 @@ const defaultServerConfig: AdminConfig = {
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
         OnboardingTourTips: true,
-        DeprecateCloudFree: false,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
