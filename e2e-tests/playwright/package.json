@@ -40,7 +40,7 @@
     "cross-env": "10.1.0",
     "dayjs": "1.11.20",
     "eslint": "9.39.2",
-    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "glob": "13.0.6",
     "luxon": "3.7.2",
     "prettier": "3.8.2",
