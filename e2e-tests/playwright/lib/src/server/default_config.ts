@@ -770,7 +770,6 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
         CloudIPFiltering: false,
-        ConsumePostHook: false,
         CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
         ChannelBookmarks: true,

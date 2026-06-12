@@ -1852,81 +1852,95 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 func TestHookMessagesWillBeConsumed(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	setupPlugin := func(t *testing.T, th *TestHelper) {
-		var mockAPI plugintest.API
-		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("LogDebug", "message").Return(nil)
+	th := Setup(t).InitBasic(t)
 
-		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
-			package main
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil)
 
-			import (
-				"github.com/mattermost/mattermost/server/public/plugin"
-				"github.com/mattermost/mattermost/server/public/model"
-			)
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
 
-			type MyPlugin struct {
-				plugin.MattermostPlugin
-			}
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
 
-			func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
-				for _, post := range posts {
-					post.Message = "mwbc_plugin:" + post.Message
-				}
-				return posts
-			}
-
-			func main() {
-				plugin.ClientMain(&MyPlugin{})
-			}
-		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
-		t.Cleanup(tearDown)
-	}
-
-	t.Run("feature flag disabled", func(t *testing.T) {
-		mainHelper.Parallel(t)
-
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.ConsumePostHook = false
-		}).InitBasic(t)
-
-		setupPlugin(t, th)
-
-		newPost := &model.Post{
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "message",
-			CreateAt:  model.GetMillis() - 10000,
+		type MyPlugin struct {
+			plugin.MattermostPlugin
 		}
-		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, err)
 
-		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
-		require.Nil(t, err)
-		assert.Equal(t, "message", post.Message)
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				post.Message = "mwbc_plugin:" + post.Message
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	newPost := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, err)
+
+	post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
+	require.Nil(t, err)
+	assert.Equal(t, "mwbc_plugin:message", post.Message)
+}
+
+func TestApplyPostWillBeConsumedHook(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				post.Message = "mwbc_plugin:" + post.Message
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	t.Run("regular post is passed to the hook", func(t *testing.T) {
+		post := &model.Post{Message: "message"}
+		th.App.applyPostWillBeConsumedHook(th.Context, &post)
+		assert.Equal(t, "mwbc_plugin:message", post.Message)
 	})
 
-	t.Run("feature flag enabled", func(t *testing.T) {
-		mainHelper.Parallel(t)
-
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.ConsumePostHook = true
-		}).InitBasic(t)
-
-		setupPlugin(t, th)
-
-		newPost := &model.Post{
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "message",
-			CreateAt:  model.GetMillis() - 10000,
-		}
-		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, err)
-
-		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
-		require.Nil(t, err)
-		assert.Equal(t, "mwbc_plugin:message", post.Message)
+	t.Run("burn-on-read post is not passed to the hook", func(t *testing.T) {
+		post := &model.Post{Message: "message", Type: model.PostTypeBurnOnRead}
+		th.App.applyPostWillBeConsumedHook(th.Context, &post)
+		assert.Equal(t, "message", post.Message)
 	})
 }
 
@@ -1970,35 +1984,10 @@ func TestHookMessagesWillBeConsumedWithContext(t *testing.T) {
 		t.Cleanup(tearDown)
 	}
 
-	t.Run("feature flag disabled", func(t *testing.T) {
+	t.Run("hook is applied", func(t *testing.T) {
 		mainHelper.Parallel(t)
 
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.ConsumePostHook = false
-		}).InitBasic(t)
-
-		setupPlugin(t, th)
-
-		newPost := &model.Post{
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "message",
-			CreateAt:  model.GetMillis() - 10000,
-		}
-		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, err)
-
-		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
-		require.Nil(t, err)
-		assert.Equal(t, "message", post.Message)
-	})
-
-	t.Run("feature flag enabled", func(t *testing.T) {
-		mainHelper.Parallel(t)
-
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.ConsumePostHook = true
-		}).InitBasic(t)
+		th := Setup(t).InitBasic(t)
 
 		setupPlugin(t, th)
 
@@ -2020,9 +2009,7 @@ func TestHookMessagesWillBeConsumedWithContext(t *testing.T) {
 func TestUpdatePostFiresConsumeHook(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.ConsumePostHook = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -2105,66 +2092,10 @@ drainLoop:
 	}
 }
 
-func TestUpdatePostNoConsumeHookWhenFlagDisabled(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.ConsumePostHook = false
-	}).InitBasic(t)
-
-	var mockAPI plugintest.API
-	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("LogDebug", mock.Anything).Return(nil)
-
-	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
-		package main
-
-		import (
-			"strings"
-
-			"github.com/mattermost/mattermost/server/public/plugin"
-			"github.com/mattermost/mattermost/server/public/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
-			for _, post := range posts {
-				post.Message = strings.ToUpper(post.Message)
-			}
-			return posts
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
-	t.Cleanup(tearDown)
-
-	basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: th.BasicChannel.Id,
-		Message:   "original body",
-	}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
-	require.Nil(t, err)
-
-	editedMessage := "edited body"
-	patchedPost, _, err := th.App.PatchPost(th.Context, basePost.Id, &model.PostPatch{
-		Message: &editedMessage,
-	}, nil)
-	require.Nil(t, err)
-
-	assert.Equal(t, "edited body", patchedPost.Message)
-}
-
 func TestUpdatePostNoOpWhenNoPlugin(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.ConsumePostHook = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
