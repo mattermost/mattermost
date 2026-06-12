@@ -214,6 +214,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			)
 			continue
 		}
+		tmpMessage.Signature = signature
 
 		notificationSent = true
 

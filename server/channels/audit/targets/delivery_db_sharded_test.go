@@ -147,7 +147,9 @@ func TestShardedDeliveryDBTarget_DropsWhenShardFull(t *testing.T) {
 	tgt.flushInterval = time.Hour
 
 	require.NoError(t, tgt.Init())
-	defer tgt.Shutdown()
+	defer func() {
+		_ = tgt.Shutdown()
+	}()
 
 	// All these rows hash to the same shard (same userID), so the second one
 	// will land in the channel slot and the third+ will be dropped.
