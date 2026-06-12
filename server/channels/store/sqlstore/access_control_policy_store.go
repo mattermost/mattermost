@@ -615,7 +615,9 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
 	type wrapper struct {
 		storeAccessControlPolicy
-		ChildIDs json.RawMessage
+		ChildIDs     json.RawMessage
+		ChannelCount int
+		TeamCount    int
 	}
 
 	p := []wrapper{}
@@ -626,7 +628,15 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
      FROM AccessControlPolicies c
 	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
-		columns = append(columns, childIDs)
+		channelCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'channel'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS ChannelCount`
+		teamCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'team'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS TeamCount`
+		columns = append(columns, childIDs, channelCount, teamCount)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
 	} else {
 		query = s.selectQueryBuilder
@@ -760,6 +770,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
 			}
 			m.Props["child_ids"] = childIDs
+			m.Props["channel_count"] = p[i].ChannelCount
+			m.Props["team_count"] = p[i].TeamCount
 		}
 		policies[i] = m
 	}
@@ -775,6 +787,116 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	return policies, total, nil
+}
+
+// actionsAggregationSQL is the per-policy action-union expression embedded in
+// both GetActionsForPolicy and GetActionsForPolicies. It produces a JSONB
+// object whose keys are the distinct action strings declared by the policy's
+// own rules and the rules of any policies it imports. The expression is
+// table-qualified with `p` so it can be reused as a correlated subquery
+// against either a single row or a set of rows.
+const actionsAggregationSQL = `COALESCE(
+    (
+        SELECT jsonb_object_agg(action, true)
+        FROM (
+            SELECT DISTINCT jsonb_array_elements_text(rule->'actions') AS action
+            FROM jsonb_array_elements(
+                CASE WHEN jsonb_typeof(p.Data->'rules') = 'array'
+                     THEN p.Data->'rules' ELSE '[]'::jsonb END
+            ) AS rule
+            UNION
+            SELECT DISTINCT jsonb_array_elements_text(rule->'actions') AS action
+            FROM AccessControlPolicies parent
+            JOIN jsonb_array_elements_text(
+                CASE WHEN jsonb_typeof(p.Data->'imports') = 'array'
+                     THEN p.Data->'imports' ELSE '[]'::jsonb END
+            ) AS imp(id) ON parent.ID = imp.id
+            CROSS JOIN LATERAL jsonb_array_elements(
+                CASE WHEN jsonb_typeof(parent.Data->'rules') = 'array'
+                     THEN parent.Data->'rules' ELSE '[]'::jsonb END
+            ) AS rule
+        ) AS unioned_actions
+    ),
+    '{}'::jsonb
+)`
+
+// GetActionsForPolicy returns the union of action keys declared by the policy's
+// own rules and the rules of any policies it imports. The result is always a
+// non-nil map (empty when the policy exists but declares no rules). Returns
+// store.ErrNotFound when no AccessControlPolicies row exists for policyID.
+func (s *SqlAccessControlPolicyStore) GetActionsForPolicy(_ request.CTX, policyID string) (map[string]bool, error) {
+	if !model.IsValidId(policyID) {
+		return nil, store.NewErrInvalidInput("AccessControlPolicy", "policyID", policyID)
+	}
+
+	var raw []byte
+	query := fmt.Sprintf(`SELECT %s AS actions FROM AccessControlPolicies p WHERE p.ID = $1`, actionsAggregationSQL)
+	err := s.GetReplica().Get(&raw, query, policyID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("AccessControlPolicy", policyID)
+		}
+		return nil, errors.Wrapf(err, "failed to load policy actions for id=%s", policyID)
+	}
+
+	actions := map[string]bool{}
+	if len(raw) > 0 {
+		if err := json.Unmarshal(raw, &actions); err != nil {
+			return nil, errors.Wrapf(err, "failed to decode policy actions for id=%s", policyID)
+		}
+	}
+	return actions, nil
+}
+
+// GetActionsForPolicies returns the per-policy action union for each ID in
+// policyIDs. Missing IDs are absent from the result map. An empty input slice
+// returns an empty map and fires no SQL.
+func (s *SqlAccessControlPolicyStore) GetActionsForPolicies(_ request.CTX, policyIDs []string) (map[string]map[string]bool, error) {
+	if len(policyIDs) == 0 {
+		return map[string]map[string]bool{}, nil
+	}
+
+	for _, id := range policyIDs {
+		if !model.IsValidId(id) {
+			return nil, store.NewErrInvalidInput("AccessControlPolicy", "policyID", id)
+		}
+	}
+
+	query, args, err := s.getQueryBuilder().
+		Select("p.ID", fmt.Sprintf("%s AS actions", actionsAggregationSQL)).
+		From("AccessControlPolicies p").
+		Where(sq.Eq{"p.ID": policyIDs}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build batched policy actions query")
+	}
+
+	rows, err := s.GetReplica().Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load policy actions batch")
+	}
+	defer rows.Close()
+
+	result := make(map[string]map[string]bool, len(policyIDs))
+	for rows.Next() {
+		var id string
+		var raw []byte
+		if err := rows.Scan(&id, &raw); err != nil {
+			return nil, errors.Wrap(err, "failed to scan policy actions row")
+		}
+		actions := map[string]bool{}
+		if len(raw) > 0 {
+			if err := json.Unmarshal(raw, &actions); err != nil {
+				return nil, errors.Wrapf(err, "failed to decode policy actions for id=%s", id)
+			}
+		}
+		result[id] = actions
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "policy actions row iteration failed")
+	}
+
+	return result, nil
 }
 
 // GetPoliciesByFieldID finds all policies whose CEL rule expressions reference the

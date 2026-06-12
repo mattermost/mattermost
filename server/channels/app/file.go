@@ -1585,7 +1585,7 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 		return nil
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles)
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),

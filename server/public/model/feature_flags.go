@@ -107,6 +107,9 @@ type FeatureFlags struct {
 
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
+
+	// Requires AttributeBasedAccessControl to also be enabled.
+	TeamMembershipAccessControl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -136,6 +139,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.PermissionPolicies = false
+	f.TeamMembershipAccessControl = false
 	f.ContentFlagging = true
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true

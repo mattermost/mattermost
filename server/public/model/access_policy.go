@@ -16,6 +16,7 @@ const (
 	AccessControlPolicyTypeParent     = "parent"
 	AccessControlPolicyTypeChannel    = "channel"
 	AccessControlPolicyTypePermission = "permission"
+	AccessControlPolicyTypeTeam       = "team"
 
 	MaxPolicyNameLength = 128
 
@@ -264,7 +265,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_2() *AppError {
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission, AccessControlPolicyTypeTeam}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
@@ -294,6 +295,10 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
 		}
 	case AccessControlPolicyTypeChannel:
+		if len(p.Rules) == 0 && len(p.Imports) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
+		}
+	case AccessControlPolicyTypeTeam:
 		if len(p.Rules) == 0 && len(p.Imports) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
 		}
@@ -354,6 +359,9 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 	case AccessControlPolicyVersionV0_3:
 		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.permission.app_error", nil, "", 400)
+		}
+		if parent.Type != AccessControlPolicyTypeParent {
+			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.parent_type.app_error", nil, "imports must target a parent-type policy", 400)
 		}
 		if parent.Version != AccessControlPolicyVersionV0_3 {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)

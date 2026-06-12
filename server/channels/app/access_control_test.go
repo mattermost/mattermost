@@ -158,13 +158,15 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
 
-		// publishChannelPolicyEnforcedForChannelPoliciesWithImport iterates
-		// over child channel policies; with no children there is no fan-out
-		// to channel cache invalidation.
+		// A parent save fans out to both its channel and team children;
+		// with no children of either kind, neither search yields a broadcast.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
 		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
@@ -270,6 +272,10 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
 		})).Return([]*model.AccessControlPolicy{{ID: childChannelID, Type: model.AccessControlPolicyTypeChannel}}, int64(1), nil).Once()
+		// teamPolicyIDsWithImport is also called for parent-type deletes; no team children here.
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl
@@ -1634,5 +1640,17 @@ func TestHasPermissionToFileAction(t *testing.T) {
 
 		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
+	})
+}
+
+// Verify that the team join path (channelID="") builds a subject for membership evaluation.
+func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("builds subject when channelID is empty", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		assert.Equal(t, th.BasicUser.Roles, subject.Role)
 	})
 }
