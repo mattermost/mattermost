@@ -661,14 +661,18 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	// are real files. Tokens that don't resolve to a file (e.g. user/channel select
 	// IDs, or ID-shaped free text) are ordinary values and ignored.
 	//
-	// The scan is bounded so a value packed with ID-shaped strings can't drive an
-	// unbounded query; legitimate dialogs reference far fewer real files.
+	// The scan is bounded in both breadth (number of IDs collected) and depth
+	// (recursion into nested arrays/objects) so a value packed with ID-shaped
+	// strings or a deeply nested structure can't drive an unbounded query or
+	// exhaust the stack; legitimate dialogs reference far fewer real files at
+	// shallow depth.
 	const maxSubmissionFileIDScan = 256
+	const maxSubmissionScanDepth = 100
 	candidateFileIDs := make([]string, 0)
 	seenCandidate := make(map[string]bool)
-	var collectIDs func(v any)
-	collectIDs = func(v any) {
-		if len(candidateFileIDs) >= maxSubmissionFileIDScan {
+	var collectIDs func(v any, depth int)
+	collectIDs = func(v any, depth int) {
+		if depth > maxSubmissionScanDepth || len(candidateFileIDs) >= maxSubmissionFileIDScan {
 			return
 		}
 		switch typed := v.(type) {
@@ -686,16 +690,16 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 			}
 		case []any:
 			for _, e := range typed {
-				collectIDs(e)
+				collectIDs(e, depth+1)
 			}
 		case map[string]any:
 			for _, e := range typed {
-				collectIDs(e)
+				collectIDs(e, depth+1)
 			}
 		}
 	}
 	for _, raw := range request.Submission {
-		collectIDs(raw)
+		collectIDs(raw, 0)
 	}
 
 	if len(candidateFileIDs) > 0 {

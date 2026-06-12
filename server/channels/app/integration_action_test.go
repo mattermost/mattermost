@@ -3182,4 +3182,22 @@ func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		assert.Contains(t, appErr.Id, "file_not_owned")
 	})
+
+	t.Run("deeply nested submission value is depth-bounded and does not exhaust the stack", func(t *testing.T) {
+		// Built in-memory (not via JSON), so this bypasses the json decoder's own depth
+		// limit and exercises our explicit recursion guard directly. Nesting far beyond
+		// the depth cap must be traversed only up to the cap and then ignored — no panic,
+		// no stack overflow — and the submission still succeeds.
+		var nested any = model.NewId()
+		for range 5000 {
+			nested = []any{nested}
+		}
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"deep": nested}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
 }
