@@ -3094,6 +3094,32 @@ func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
 		assert.Contains(t, appErr.Id, "file_not_owned")
 	})
 
+	t.Run("batch with a valid owned file and a missing file returns 400 invalid_file_id", func(t *testing.T) {
+		// The batched GetByIds returns only the existing file; the not-found ID must
+		// still be detected by diffing the found set against the requested IDs.
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id, model.NewId()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "invalid_file_id")
+	})
+
+	t.Run("batch with an owned file and another user's file returns 403 file_not_owned", func(t *testing.T) {
+		// Ownership must be enforced across every file in the batch, not just a single ID.
+		ownFile := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{ownFile.Id, otherFile.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
 	t.Run("unowned file ID smuggled via submission (empty FileIds) is rejected", func(t *testing.T) {
 		// A client puts another user's file ID in a submission value while sending no
 		// FileIds. Integrations read submission values, so this must still be blocked.

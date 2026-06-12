@@ -626,18 +626,28 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	declaredFileIDs := make(map[string]bool, len(request.FileIds))
 	for _, fileID := range request.FileIds {
 		declaredFileIDs[fileID] = true
-		fileInfo, appErr := a.GetFileInfo(rctx, fileID)
-		if appErr != nil {
-			// Only remap not-found errors as client validation failures. Forbidden
-			// (e.g. cloud-plan inaccessible file) and internal/store errors keep their
-			// original status so they are not misreported as a bad request.
-			if appErr.StatusCode == http.StatusNotFound {
-				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_file_id", map[string]any{"FileId": fileID}, "", http.StatusBadRequest).Wrap(appErr)
-			}
-			return nil, appErr
+	}
+
+	// Validate the declared file IDs with a single batched lookup (one DB roundtrip
+	// instead of one per file). This is the primary ownership check, so a store
+	// error fails closed.
+	if len(request.FileIds) > 0 {
+		declaredFiles, nErr := a.Srv().Store().FileInfo().GetByIds(request.FileIds, false, false, false)
+		if nErr != nil {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
-		if fileInfo.CreatorId != request.UserId {
-			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileID}, "", http.StatusForbidden)
+		foundFileIDs := make(map[string]bool, len(declaredFiles))
+		for _, fileInfo := range declaredFiles {
+			foundFileIDs[fileInfo.Id] = true
+			if fileInfo.CreatorId != request.UserId {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileInfo.Id}, "", http.StatusForbidden)
+			}
+		}
+		// Any declared ID not returned doesn't exist (or was deleted) — reject it.
+		for _, fileID := range request.FileIds {
+			if !foundFileIDs[fileID] {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_file_id", map[string]any{"FileId": fileID}, "", http.StatusBadRequest)
+			}
 		}
 	}
 
@@ -727,7 +737,6 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("user_id", request.UserId),
 		mlog.String("channel_id", request.ChannelId),
 		mlog.String("team_id", request.TeamId),
-		mlog.String("state", request.State),
 		mlog.Bool("cancelled", request.Cancelled),
 	)
 
@@ -748,7 +757,6 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 
 	var response model.SubmitDialogResponse
 	if len(body) == 0 {
-		rctx.Logger().Info("SubmitDialogResponse empty body")
 		// Don't fail, an empty response is acceptable
 		return &response, nil
 	}

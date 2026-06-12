@@ -55,8 +55,7 @@ describe('Interactive Dialog - File Upload', () => {
         cy.reload();
     });
 
-    // TODO: assign MM-T id
-    it('MM-T<TODO> - Renders file upload dialog with correct labels and buttons', () => {
+    it('MM-T6070 - Renders file upload dialog with correct labels and buttons', () => {
         // # Post the slash command to open the dialog
         cy.postMessage(`/${createdCommand.trigger} `);
 
@@ -106,8 +105,7 @@ describe('Interactive Dialog - File Upload', () => {
         closeAppsFormModal();
     });
 
-    // TODO: assign MM-T id
-    it('MM-T<TODO> - Uploads files to both required fields and submits successfully', () => {
+    it('MM-T6071 - Uploads files to both required fields and submits successfully', () => {
         // # Post the slash command to open the dialog
         cy.postMessage(`/${createdCommand.trigger} `);
 
@@ -168,8 +166,7 @@ describe('Interactive Dialog - File Upload', () => {
         cy.getLastPost().should('contain', 'Dialog submitted successfully!');
     });
 
-    // TODO: assign MM-T id
-    it('MM-T<TODO> - allow_multiple appends files; single replaces on second selection', () => {
+    it('MM-T6072 - allow_multiple appends files; single replaces on second selection', () => {
         // # Post the slash command to open the dialog
         cy.postMessage(`/${createdCommand.trigger} `);
 
@@ -211,8 +208,7 @@ describe('Interactive Dialog - File Upload', () => {
         closeAppsFormModal();
     });
 
-    // TODO: assign MM-T id
-    it('MM-T<TODO> - Required validation fires when submitting with no files selected', () => {
+    it('MM-T6073 - Required validation fires when submitting with no files selected', () => {
         // # Post the slash command to open the dialog
         cy.postMessage(`/${createdCommand.trigger} `);
 
