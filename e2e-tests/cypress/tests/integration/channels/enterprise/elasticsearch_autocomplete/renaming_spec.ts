@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {
     enableElasticSearch,
@@ -20,7 +20,6 @@ import {
 } from './helpers';
 
 import {getRandomId} from '@/utils';
-
 
 describe('Autocomplete with Elasticsearch - Renaming', () => {
     let testUser: UserProfile;

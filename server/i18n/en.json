@@ -288,6 +288,10 @@
     "translation": "Board channels cannot be accessed via /channels endpoints. Use the /boards API instead."
   },
   {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Board bookmarks are managed by the boards feature and cannot be created, updated, or deleted through the bookmarks API."
+  },
+  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks."
   },
@@ -550,6 +554,10 @@
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "You are not allowed to set group_constrained on this channel type."
   },
   {
     "id": "api.channel.patch_update_channel.no_changes.app_error",
@@ -2665,6 +2673,10 @@
     "translation": "Failed to compute monthly active users."
   },
   {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Could not parse the license upload form."
+  },
+  {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Failed to send the disable license email successfully."
   },
@@ -3233,6 +3245,10 @@
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Unable to update sidebar to match updated preferences"
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Session attributes require an Enterprise Advanced license."
   },
   {
     "id": "api.property.v2_group_not_found.app_error",
@@ -4547,6 +4563,14 @@
     "translation": "not an ldap user"
   },
   {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Invalid device id."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Invalid VoIP device id."
+  },
+  {
     "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
     "translation": "Authentication Transfer is not available as email signup is disabled."
   },
@@ -5015,6 +5039,10 @@
     "translation": "Failed to send verification email successfully"
   },
   {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Session attributes are not enabled."
+  },
+  {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
   },
@@ -5231,6 +5259,14 @@
     "translation": "Either trigger_words or channel_id must be set."
   },
   {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "The webhook user must be a member of the target team or channel."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "You cannot assign a webhook to a user with higher privileges than your own."
+  },
+  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Unable to update webhook across teams."
   },
@@ -5259,12 +5295,12 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
-    "id": "app.access_control.build_subject_for_session.get_session_attributes.app_error",
-    "translation": "Failed to retrieve the session attributes."
-  },
-  {
     "id": "app.access_control.get_channel_role.app_error",
     "translation": "Unable to get channel role for the user. Please try again."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Failed to retrieve the session attributes."
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -7701,24 +7737,16 @@
     "translation": "Could not query for expression."
   },
   {
-    "id": "app.pap.save_policy.advanced_expression_blocked",
-    "translation": "This rule expression cannot be safely edited while restricted values are present."
-  },
-  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "You do not have permission to make this change to the policy."
+  },
+  {
     "id": "app.pap.save_policy.invalid_value",
     "translation": "Invalid value."
-  },
-  {
-    "id": "app.pap.save_policy.masked_condition_deleted",
-    "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
-  },
-  {
-    "id": "app.pap.save_policy.masked_rule_deleted",
-    "translation": "You cannot remove a rule that contains attribute values you do not have permission to view."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
@@ -7731,10 +7759,6 @@
   {
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "You do not satisfy one or more conditions in this policy."
-  },
-  {
-    "id": "app.pap.save_policy.user_session_unsupported.app_error",
-    "translation": "Session attributes are not supported for policy simulation."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -8357,6 +8381,10 @@
     "translation": "Unable to get property field by name."
   },
   {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "Unable to get property fields for group."
+  },
+  {
     "id": "app.property_field.get_many.app_error",
     "translation": "Unable to get property fields."
   },
@@ -8899,6 +8927,14 @@
     "translation": "Unable to remove all the sessions."
   },
   {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "Device id cannot be empty."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "VoIP device id cannot be empty."
+  },
+  {
     "id": "app.session.save.app_error",
     "translation": "Unable to save the session."
   },
@@ -8913,6 +8949,10 @@
   {
     "id": "app.session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Session attribute fields cannot be created or deleted, and only their enabled, ttl_seconds and grace_period_seconds may be changed."
   },
   {
     "id": "app.status.get.app_error",
@@ -9537,6 +9577,18 @@
   {
     "id": "app.user_access_token.expired",
     "translation": "The personal access token has expired."
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "The provided expires_at is in the past."
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "Personal access tokens must include an expiry date because the server enforces a maximum token lifetime."
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "The provided expires_at exceeds the configured maximum personal access token lifetime ({{.Days}} days)."
   },
   {
     "id": "app.user_access_token.get_all.app_error",
@@ -11027,6 +11079,10 @@
     "translation": "Invalid display name."
   },
   {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "Only public and private channels can be group constrained."
+  },
+  {
     "id": "model.channel.is_valid.header.app_error",
     "translation": "Invalid header."
   },
@@ -11061,6 +11117,22 @@
   {
     "id": "model.channel.is_valid_board.type.app_error",
     "translation": "Channel type must be BO (open board) or BP (private board)."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Board bookmarks cannot reference a file."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "Board bookmarks cannot set an image URL."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "Board bookmark link URL must be a site-relative path starting with /, must not contain ://, and must not exceed the maximum length."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Board bookmarks require a valid target id."
   },
   {
     "id": "model.channel_bookmark.is_valid.channel_id.app_error",
@@ -11105,6 +11177,10 @@
   {
     "id": "model.channel_bookmark.is_valid.parent_id.app_error",
     "translation": "Invalid parent id."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "Target id is only allowed for bookmark types that reference another entity."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",
@@ -11583,6 +11659,10 @@
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
@@ -11737,6 +11817,10 @@
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Invalid MaximumPersonalAccessTokenLifetimeDays. Must be between 0 (unlimited) and {{.Max}} days."
   },
   {
     "id": "model.config.is_valid.max_url_length.app_error",

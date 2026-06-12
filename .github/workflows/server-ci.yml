@@ -28,16 +28,24 @@ concurrency:
   group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions:
+  contents: read
+
 jobs:
   go:
     name: Compute Go Version
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Calculate version
         id: calculate
         working-directory: server/
@@ -59,12 +67,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the mocks using 'make mocks'"
+            git diff
+            exit 1
+          fi
   check-go-mod-tidy:
     name: Check go mod tidy
     needs: go
@@ -76,12 +92,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please tidy up the Go modules using make modules-tidy"
+            git diff
+            exit 1
+          fi
   check-go-fix:
     name: Check go fix
     needs: go
@@ -93,12 +117,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run go fix
         run: go fix ./...
       - name: Check go fix
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please run 'go fix ./...' and commit the changes"; git diff; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please run 'go fix ./...' and commit the changes"
+            git diff
+            exit 1
+          fi
   check-style:
     name: check-style
     needs: go
@@ -110,6 +142,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
@@ -125,12 +159,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the serialized files using 'make gen-serialized'"
+            git diff
+            exit 1
+          fi
   check-mattermost-vet-api:
     name: Vet API
     needs: go
@@ -142,6 +184,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run mattermost-vet-api
@@ -157,10 +201,18 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the migrations using make migrations-extract"
+            git diff
+            exit 1
+          fi
   check-email-templates:
     name: Generate email templates
     needs: go
@@ -172,12 +224,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Generate email templates
         run: |
           npm install -g mjml@4.9.0
           make build-templates
       - name: Check generated email templates
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the email templates using 'make build-templates'"
+            git diff
+            exit 1
+          fi
   check-store-layers:
     name: Check store layers
     needs: go
@@ -189,12 +249,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the store layers using make store-layers"
+            git diff
+            exit 1
+          fi
   check-default-roles-permissions:
     name: Check default roles permissions
     needs: go
@@ -219,6 +287,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Generate default roles permissions
@@ -226,7 +296,13 @@ jobs:
           IS_CI: "true"
         run: make default-roles-permissions
       - name: Check generated code
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the default roles permissions using make default-roles-permissions"; exit 1; fi
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the default roles permissions using make default-roles-permissions"
+            git diff
+            exit 1
+          fi
   check-mmctl-docs:
     name: Check mmctl docs
     needs: go
@@ -238,13 +314,20 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Check docs
         run: |
           echo "Making sure docs are updated"
           make mmctl-docs
-          if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Please update the mmctl docs using make mmctl-docs"
+            git diff
+            exit 1
+          fi
   # NOTE: Postgres with binary parameters has been moved to server-ci-weekly.yml
   # (runs Monday 1am EST / 5am UTC). Low regression risk doesn't justify
   # consuming 8-core runners on every push.
@@ -257,8 +340,12 @@ jobs:
       fail-fast: false # Let all shards complete so we get full test results
       matrix:
         shard: [0, 1, 2, 3]
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       name: "Postgres (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -275,6 +362,9 @@ jobs:
     name: Merge Postgres Test Results
     needs: test-postgres-normal
     if: always()
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-merge-template.yml
     with:
       artifact-pattern: postgres-server-test-logs-shard-*
@@ -285,8 +375,10 @@ jobs:
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: Elasticsearch v8 Compatibility
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -300,8 +392,10 @@ jobs:
   test-opensearch-v2:
     name: OpenSearch v2 Compatibility
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: OpenSearch v2 Compatibility
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -322,8 +416,13 @@ jobs:
       fail-fast: false
       matrix:
         shard: [0, 1, 2, 3]
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       name: "Postgres FIPS (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -337,6 +436,9 @@ jobs:
     name: Merge Postgres FIPS Test Results
     needs: test-postgres-normal-fips
     if: needs.test-postgres-normal-fips.result != 'skipped'
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-merge-template.yml
     with:
       artifact-pattern: postgres-server-fips-test-logs-shard-*
@@ -345,8 +447,12 @@ jobs:
   test-mmctl:
     name: Run mmctl tests
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
-    secrets: inherit
+    secrets:
+      MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -358,8 +464,14 @@ jobs:
     if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
     name: Run mmctl tests (FIPS)
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -371,6 +483,9 @@ jobs:
   build-mattermost-server:
     name: Build mattermost server app
     needs: go
+    permissions:
+      contents: read
+      actions: write
     runs-on: ubuntu-22.04
     container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
@@ -382,6 +497,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -396,6 +513,7 @@ jobs:
           make build-cmd
           make package
       - name: Persist dist artifacts
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: server-dist-artifact
@@ -410,3 +528,94 @@ jobs:
           name: server-build-artifact
           path: server/build/
           retention-days: 2
+
+  # ci-complete is used to determine if the Server CI is complete since
+  # fips steps are optional and can be skipped. When we build with fips,
+  # we want to ensure that the Server CI is complete before running the
+  # artifacts upload workflow.
+  ci-complete:
+    name: Server CI Complete
+    if: >-
+      always() &&
+      (needs.test-mmctl-fips.result == 'success' || needs.test-mmctl-fips.result == 'skipped' || needs.test-mmctl-fips.result == 'failure') &&
+      (needs.merge-postgres-fips-test-results.result == 'success' || needs.merge-postgres-fips-test-results.result == 'skipped' || needs.merge-postgres-fips-test-results.result == 'failure')
+    permissions: {}
+    runs-on: ubuntu-22.04
+    needs:
+      - merge-postgres-test-results
+      - test-elasticsearch-v8
+      - test-opensearch-v2
+      - test-mmctl
+      - test-mmctl-fips
+      - build-mattermost-server
+      - merge-postgres-fips-test-results
+    steps:
+      - name: Server CI Complete
+        run: echo "Server CI Complete"
+
+  ci-report:
+    name: Server CI Report
+    if: always()
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      pull-requests: write
+      issues: write
+    needs:
+      - ci-complete
+    uses: ./.github/workflows/server-ci-report.yml
+    secrets:
+      WEBHOOK_URL_FLAKY_TEST: ${{ secrets.WEBHOOK_URL_FLAKY_TEST }}
+      WEBHOOK_AUTH_TOKEN_FLAKY_TEST: ${{ secrets.WEBHOOK_AUTH_TOKEN_FLAKY_TEST }}
+      WEBHOOK_URL_FLAKY_TEST_MM: ${{ secrets.WEBHOOK_URL_FLAKY_TEST_MM }}
+    with:
+      source-run-id: ${{ github.run_id }}
+      source-event: ${{ github.event_name }}
+      head-commit-id: ${{ github.event.pull_request.head.sha || github.sha }}
+      head-repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+      workflow-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  ci-artifacts:
+    name: Server CI Artifacts
+    if: >-
+      success('ci-complete') &&
+      github.repository_owner == 'mattermost' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      actions: read
+      statuses: write
+    needs:
+      - ci-complete
+    uses: ./.github/workflows/server-ci-artifacts.yml
+    secrets:
+      PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID: ${{ secrets.PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID }}
+      PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY: ${{ secrets.PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY }}
+      DOCKERHUB_DEV_TOKEN: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+      WIZ_DEVOPS_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
+      WIZ_DEVOPS_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
+    with:
+      source-run-id: ${{ github.run_id }}
+      source-event: ${{ github.event_name }}
+      head-sha: ${{ github.event.pull_request.head.sha }}
+      head-repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+  ci-sentry:
+    name: Sentry Upload
+    # Only run Sentry upload for master branch as mentioned in old workflow title.
+    if: >-
+      always() &&
+      github.repository_owner == 'mattermost' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
+    needs:
+      - ci-complete
+    uses: ./.github/workflows/sentry.yaml
+    secrets:
+      SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}

@@ -24,7 +24,7 @@ type Props = {
     teammate?: UserProfile;
     teammateId?: string;
     type: 'channel' | 'thread';
-}
+};
 
 function DraftTitle({
     channel,

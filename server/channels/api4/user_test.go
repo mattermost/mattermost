@@ -2875,7 +2875,8 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = new("test@test.com")
+	samlAuthData := "test@test.com"
+	userAuth.AuthData = &samlAuthData
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -2883,6 +2884,40 @@ func TestUpdateUserAuth(t *testing.T) {
 	// AuthData and AuthService are set, password is set to empty
 	require.Equal(t, *userAuth.AuthData, *ruser.AuthData)
 	require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+
+	userAuth.AuthData = new("test@test.com")
+	userAuth.AuthService = "not-a-real-service"
+	_, resp, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	storedUser, appErr := th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
+	require.NotNil(t, storedUser.AuthData)
+	require.Equal(t, samlAuthData, *storedUser.AuthData)
+
+	userAuth.AuthData = new("test@test.com")
+	userAuth.AuthService = model.UserAuthServiceEmail
+	_, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	storedUser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
+	require.NotNil(t, storedUser.AuthData)
+	require.Equal(t, samlAuthData, *storedUser.AuthData)
+
+	userAuth.AuthData = nil
+	userAuth.AuthService = model.UserAuthServiceEmail
+	ruser, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Nil(t, ruser.AuthData)
+	require.Empty(t, ruser.AuthService)
+	storedUser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Nil(t, storedUser.AuthData)
+	require.Empty(t, storedUser.AuthService)
 
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
@@ -4660,7 +4695,7 @@ func TestAttachDeviceId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	deviceId := model.PushNotifyApple + ":1234567890"
+	deviceId := model.PushNotifyAppleReactNative + ":1234567890"
 
 	t.Run("success", func(t *testing.T) {
 		testCases := []struct {
@@ -4774,6 +4809,169 @@ func TestAttachDeviceId(t *testing.T) {
 		assert.Equal(t, "true", storeSession.Props[model.SessionPropDeviceNotificationDisabled])
 		assert.Equal(t, "2.19.0", updatedSession.Props[model.SessionPropMobileVersion])
 		assert.Equal(t, "2.19.0", storeSession.Props[model.SessionPropMobileVersion])
+	})
+
+	resetVoIP := func(session *model.Session) {
+		err := th.Server.Store().Session().UpdateDeviceId(session.Id, session.DeviceId, "", session.ExpiresAt)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	t.Run("Invalid voip_device_id is rejected", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "android_rn:abcd"})
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Empty(t, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("voip_device_id without platform separator is rejected", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "abcd"})
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Empty(t, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("Valid voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		voIPId := model.PushNotifyAppleReactNative + ":abcd1234"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("Beta voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		voIPId := model.PushNotifyAppleReactNative + "beta:abcd1234"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
+	})
+
+	resetBothTokens := func(session *model.Session) {
+		err := th.Server.Store().Session().UpdateDeviceId(session.Id, "", "", session.ExpiresAt)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	// The handler pre-fills the unset column from the current session so a
+	// one-token update doesn't wipe the other. Without that guard, a mobile
+	// client refreshing only one of its two tokens would silently lose the
+	// other from its session.
+	t.Run("Attaching voip_device_id alone preserves an existing device_id", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(session)
+
+		existingDeviceID := model.PushNotifyAppleReactNative + ":existing-standard"
+		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, existingDeviceID, "", session.ExpiresAt))
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		voIPId := model.PushNotifyAppleReactNative + ":new-voip"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, existingDeviceID, storeSession.DeviceId, "existing DeviceId must not be wiped")
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("Attaching device_id alone preserves an existing voip_device_id", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(session)
+
+		existingVoIPID := model.PushNotifyAppleReactNative + ":existing-voip"
+		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, "", existingVoIPID, session.ExpiresAt))
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		deviceId := model.PushNotifyAppleReactNative + ":new-standard"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"device_id": deviceId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, deviceId, storeSession.DeviceId)
+		assert.Equal(t, existingVoIPID, storeSession.VoIPDeviceId, "existing VoIPDeviceId must not be wiped")
+	})
+
+	t.Run("Dual-token attach revokes a prior session matched by either token, current session survives", func(t *testing.T) {
+		currentSession, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(currentSession)
+
+		deviceId := model.PushNotifyAppleReactNative + ":dual-standard"
+		voIPId := model.PushNotifyAppleReactNative + ":dual-voip"
+
+		priorSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:       currentSession.UserId,
+			DeviceId:     deviceId,
+			VoIPDeviceId: voIPId,
+			ExpiresAt:    currentSession.ExpiresAt,
+		})
+		require.Nil(t, appErr)
+
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{
+			"device_id":      deviceId,
+			"voip_device_id": voIPId,
+		})
+		require.NoError(t, err)
+
+		_, appErr = th.App.GetSessionById(th.Context, priorSession.Id)
+		require.NotNil(t, appErr, "prior session matching both tokens must be revoked")
+
+		fresh, appErr := th.App.GetSessionById(th.Context, currentSession.Id)
+		require.Nil(t, appErr, "current session must survive its own attach")
+		assert.Equal(t, deviceId, fresh.DeviceId)
+		assert.Equal(t, voIPId, fresh.VoIPDeviceId)
+	})
+
+	t.Run("VoIP-only attach revokes a prior VoIP-only session but spares a prior standard-only session", func(t *testing.T) {
+		currentSession, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(currentSession)
+
+		standardOnly := model.PushNotifyAppleReactNative + ":indep-standard"
+		voIPOnly := model.PushNotifyAppleReactNative + ":indep-voip"
+
+		priorStandardOnly, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:    currentSession.UserId,
+			DeviceId:  standardOnly,
+			ExpiresAt: currentSession.ExpiresAt,
+		})
+		require.Nil(t, appErr)
+
+		priorVoIPOnly, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:       currentSession.UserId,
+			VoIPDeviceId: voIPOnly,
+			ExpiresAt:    currentSession.ExpiresAt,
+		})
+		require.Nil(t, appErr)
+
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{
+			"voip_device_id": voIPOnly,
+		})
+		require.NoError(t, err)
+
+		_, appErr = th.App.GetSessionById(th.Context, priorVoIPOnly.Id)
+		require.NotNil(t, appErr, "prior VoIP-only session must be revoked")
+
+		_, appErr = th.App.GetSessionById(th.Context, priorStandardOnly.Id)
+		require.Nil(t, appErr, "prior standard-only session must not be touched")
 	})
 }
 
@@ -5030,6 +5228,91 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.Id, th.BasicUser.Id)
 		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
 		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
+	})
+}
+
+func TestLoginWithGuestMagicLinkTokenRejectsDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+		*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+	})
+
+	createGuestViaInvitation := func(t *testing.T) *model.User {
+		t.Helper()
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		invitationToken := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(invitationToken))
+
+		guestUser, appErr := th.App.AuthenticateUserForGuestMagicLink(th.Context, invitationToken.Token)
+		require.Nil(t, appErr)
+		require.True(t, guestUser.IsGuest())
+		return guestUser
+	}
+
+	createLoginToken := func(t *testing.T, email string) *model.Token {
+		t.Helper()
+		loginToken := model.NewToken(
+			model.TokenTypeGuestMagicLink,
+			model.MapToJSON(map[string]string{
+				"email": email,
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(loginToken))
+		return loginToken
+	}
+
+	loginWithMagicLinkToken := func(t *testing.T, token string) (*http.Response, error) {
+		t.Helper()
+		props := map[string]string{
+			"magic_link_token": token,
+		}
+		return th.Client.DoAPIPost(context.Background(), "/users/login", model.MapToJSON(props))
+	}
+
+	t.Run("rejects deactivated guest", func(t *testing.T) {
+		guestUser := createGuestViaInvitation(t)
+		loginToken := createLoginToken(t, guestUser.Email)
+
+		_, appErr := th.App.UpdateActive(th.Context, guestUser, false)
+		require.Nil(t, appErr)
+
+		resp, err := loginWithMagicLinkToken(t, loginToken.Token)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.inactive.app_error")
+		CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+		require.Empty(t, resp.Header.Get(model.HeaderToken))
+	})
+
+	t.Run("allows active guest", func(t *testing.T) {
+		guestUser := createGuestViaInvitation(t)
+		loginToken := createLoginToken(t, guestUser.Email)
+
+		resp, err := loginWithMagicLinkToken(t, loginToken.Token)
+		require.NoError(t, err)
+		defer closeBody(resp)
+
+		require.NotEmpty(t, resp.Header.Get(model.HeaderToken))
+
+		user, _, decodeErr := model.DecodeJSONFromResponse[*model.User](resp)
+		require.NoError(t, decodeErr)
+		assert.Equal(t, guestUser.Id, user.Id)
 	})
 }
 
@@ -5576,7 +5859,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -5588,7 +5871,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			rtoken, _, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+			rtoken, _, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 			require.NoError(t, err)
 
 			assert.Equal(t, th.BasicUser.Id, rtoken.UserId, "wrong user id")
@@ -5607,7 +5890,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, err := client.CreateUserAccessToken(context.Background(), "notarealuserid", "test token")
+			_, resp, err := client.CreateUserAccessToken(context.Background(), "notarealuserid", "test token", 0)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
@@ -5620,7 +5903,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "")
+			_, resp, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "", 0)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
@@ -5635,7 +5918,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+			_, resp, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 			require.Error(t, err)
 			CheckNotImplementedStatus(t, resp)
 		})
@@ -5649,7 +5932,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 
 		assert.Equal(t, th.BasicUser.Id, rtoken.UserId, "wrong user id")
@@ -5667,7 +5950,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token")
+		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -5681,7 +5964,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token")
+		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token", 0)
 		require.NoError(t, err)
 		assert.Equal(t, th.BasicUser2.Id, rtoken.UserId)
 
@@ -5700,7 +5983,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.SystemAdminUser.Id, "test token")
+		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.SystemAdminUser.Id, "test token", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -5711,7 +5994,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 		assert.Equal(t, th.BasicUser.Id, rtoken.UserId)
 
@@ -5736,7 +6019,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), remoteUser.Id, "test token")
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), remoteUser.Id, "test token", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp) // remote users are not allowed to have access tokens
 	})
@@ -5751,7 +6034,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		session.IsOAuth = true
 		th.App.AddSessionToCache(session)
 
-		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -5787,7 +6070,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		t.Run("without MANAGE_BOT permission", func(t *testing.T) {
 			th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
-			_, resp, err = th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+			_, resp, err = th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
 		})
@@ -5795,7 +6078,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		t.Run("with MANAGE_BOTS permission", func(t *testing.T) {
 			th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
-			token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+			token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 			require.NoError(t, err)
 			assert.Equal(t, createdBot.UserId, token.UserId)
 			assertToken(t, th, token, createdBot.UserId)
@@ -5832,7 +6115,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		}()
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
-			_, resp, err = th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+			_, resp, err = th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
 		})
@@ -5840,12 +6123,130 @@ func TestCreateUserAccessToken(t *testing.T) {
 		t.Run("with MANAGE_OTHERS_BOTS permission", func(t *testing.T) {
 			th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 
-			rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+			rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 			require.NoError(t, err)
 			assert.Equal(t, createdBot.UserId, rtoken.UserId)
 
 			assertToken(t, th, rtoken, createdBot.UserId)
 		})
+	})
+
+	t.Run("create token with a future expires_at", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		expiresAt := model.GetMillis() + 7*24*60*60*1000
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", expiresAt)
+		require.NoError(t, err)
+		assert.Equal(t, expiresAt, rtoken.ExpiresAt)
+		assert.True(t, rtoken.IsActive)
+		assertToken(t, th, rtoken, th.BasicUser.Id)
+	})
+
+	t.Run("create token with expires_at in the past is rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", model.GetMillis()-1000)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_in_past.app_error")
+	})
+
+	t.Run("create token without expires_at is allowed when no maximum lifetime is set", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		// MaximumPersonalAccessTokenLifetimeDays defaults to 0 (no policy), so a
+		// never-expiring token is accepted.
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), rtoken.ExpiresAt)
+		assert.True(t, rtoken.IsActive)
+	})
+
+	t.Run("create token without expires_at is rejected when a maximum lifetime is set", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+	})
+
+	t.Run("create token with expires_at within the maximum lifetime is allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		expiresAt := model.GetMillis() + 24*60*60*1000
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", expiresAt)
+		require.NoError(t, err)
+		assert.Equal(t, expiresAt, rtoken.ExpiresAt)
+	})
+
+	t.Run("create token beyond maximum lifetime is rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		// Request expiry 60 days out, well past the 30-day cap.
+		expiresAt := model.GetMillis() + 60*24*60*60*1000
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", expiresAt)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_too_far.app_error")
+	})
+
+	t.Run("bot tokens are exempt from expiry enforcement", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		createdBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
+			require.Nil(t, appErr)
+		}()
+
+		// Bot is allowed a non-expiring token even though a max lifetime is
+		// configured — bots are programmatic clients and bypass the PAT expiry
+		// policy, matching the existing EnableUserAccessTokens bypass.
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", 0)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), rtoken.ExpiresAt)
+		assert.True(t, rtoken.IsActive)
 	})
 }
 
@@ -5882,7 +6283,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 
 		rtoken, _, err := th.Client.GetUserAccessToken(context.Background(), token.Id)
@@ -5903,7 +6304,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 
 		rtoken, _, err := th.SystemAdminClient.GetUserAccessToken(context.Background(), token.Id)
@@ -5945,7 +6346,7 @@ func TestGetUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		t.Run("without MANAGE_BOTS permission", func(t *testing.T) {
@@ -5998,7 +6399,7 @@ func TestGetUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
@@ -6032,10 +6433,10 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 
-		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2")
+		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2", 0)
 		require.NoError(t, err)
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -6058,10 +6459,10 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 
-		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2")
+		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2", 0)
 		require.NoError(t, err)
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -6102,10 +6503,10 @@ func TestGetUserAccessTokens(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2")
+		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2", 0)
 		require.NoError(t, err)
 
-		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2")
+		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2", 0)
 		require.NoError(t, err)
 
 		rtokens, _, err := th.SystemAdminClient.GetUserAccessTokens(context.Background(), 1, 1)
@@ -6123,10 +6524,10 @@ func TestGetUserAccessTokens(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2")
+		_, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2", 0)
 		require.NoError(t, err)
 
-		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2")
+		_, _, err = th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token 2", 0)
 		require.NoError(t, err)
 
 		rtokens, _, err := th.SystemAdminClient.GetUserAccessTokens(context.Background(), 0, 2)
@@ -6147,7 +6548,7 @@ func TestSearchUserAccessToken(t *testing.T) {
 
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
-	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, testDescription)
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, testDescription, 0)
 	require.NoError(t, err)
 
 	_, resp, err := th.Client.SearchUserAccessTokens(context.Background(), &model.UserAccessTokenSearch{Term: token.Id})
@@ -6187,7 +6588,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			token, _, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+			token, _, err := client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 			require.NoError(t, err)
 			assertToken(t, th, token, th.BasicUser.Id)
 
@@ -6204,7 +6605,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token")
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token", 0)
 		require.NoError(t, err)
 
 		resp, err := th.Client.RevokeUserAccessToken(context.Background(), token.Id)
@@ -6242,7 +6643,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		t.Run("without MANAGE_BOTS permission", func(t *testing.T) {
@@ -6291,7 +6692,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
@@ -6320,7 +6721,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 		assertToken(t, th, token, th.BasicUser.Id)
 
@@ -6336,7 +6737,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token")
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token", 0)
 		require.NoError(t, err)
 
 		resp, err := th.Client.DisableUserAccessToken(context.Background(), token.Id)
@@ -6374,7 +6775,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		t.Run("without MANAGE_BOTS permission", func(t *testing.T) {
@@ -6422,7 +6823,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
@@ -6450,7 +6851,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.NoError(t, err)
 		assertToken(t, th, token, th.BasicUser.Id)
 
@@ -6471,7 +6872,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token")
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), th.BasicUser2.Id, "test token", 0)
 		require.NoError(t, err)
 
 		_, err = th.SystemAdminClient.DisableUserAccessToken(context.Background(), token.Id)
@@ -6512,7 +6913,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		_, err = th.Client.DisableUserAccessToken(context.Background(), token.Id)
@@ -6564,7 +6965,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token", 0)
 		require.NoError(t, err)
 
 		_, err = th.SystemAdminClient.DisableUserAccessToken(context.Background(), token.Id)
@@ -6596,7 +6997,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
-	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, testDescription)
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, testDescription, 0)
 	require.NoError(t, err)
 
 	th.Client.AuthToken = token.Token
@@ -6622,7 +7023,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
-	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, testDescription)
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, testDescription, 0)
 	require.NoError(t, err)
 
 	oldSessionToken := th.Client.AuthToken
@@ -6659,7 +7060,7 @@ func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "test token")
+	rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "test token", 0)
 	th.Client.AuthToken = rtoken.Token
 	require.NoError(t, err)
 
@@ -10267,4 +10668,139 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 		CheckErrorID(t, err, "api.context.mfa_required.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
+}
+
+func TestGetSessionAttributesManifest(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("disabled without feature flag", func(t *testing.T) {
+		_, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.session_attributes.disabled.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.SessionAttributes = true
+	})
+
+	t.Run("returns empty manifest when all fields disabled", func(t *testing.T) {
+		manifest, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, manifest)
+	})
+
+	t.Run("enabled field carries its seeded display name", func(t *testing.T) {
+		const desktopUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+
+		var hardwareField *model.PropertyField
+		for _, field := range fields {
+			if field.Name == model.SessionAttributesPropertyFieldHardwareID {
+				hardwareField = field
+				break
+			}
+		}
+		require.NotNil(t, hardwareField)
+		if hardwareField.Attrs == nil {
+			hardwareField.Attrs = model.StringInterface{}
+		}
+		hardwareField.Attrs["enabled"] = true
+		_, _, appErr = th.App.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{hardwareField}, true, "")
+		require.Nil(t, appErr)
+
+		th.Client.HTTPHeader = map[string]string{"User-Agent": desktopUserAgent}
+		defer func() { th.Client.HTTPHeader = nil }()
+
+		manifest, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var hardwareEntry *model.SessionAttributeManifestEntry
+		for _, entry := range manifest {
+			if entry.Name == model.SessionAttributesPropertyFieldHardwareID {
+				hardwareEntry = entry
+				break
+			}
+		}
+		require.NotNil(t, hardwareEntry)
+		require.Equal(t, model.SessionAttributesDisplayNameHardwareID, hardwareEntry.DisplayName)
+	})
+}
+
+// setSessionAttributeDeviceID configures the test client to send a desktop
+// User-Agent and a client session-attributes header carrying the given
+// hardware_id, so the next request reports that device ID.
+func setSessionAttributeDeviceID(t *testing.T, th *TestHelper, deviceID string) {
+	t.Helper()
+	const desktopUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"
+	attrs, err := json.Marshal(map[string]any{model.SessionAttributesPropertyFieldHardwareID: deviceID})
+	require.NoError(t, err)
+	th.Client.HTTPHeader = map[string]string{
+		"User-Agent": desktopUserAgent,
+		model.SessionAttributeHeaderClientAttributes: base64.StdEncoding.EncodeToString(attrs),
+	}
+}
+
+func TestSessionAttributesDeviceMismatchRejectsSubsequentRequest(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.SessionAttributes = true
+		cfg.AccessControlSettings.EnforceDeviceIDConsistency = model.NewPointer(true)
+	})
+
+	// Enable the desktop-only hardware_id device attribute so a changing value
+	// triggers the device-consistency revoke inside ProcessSessionAttributesRequest.
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+	fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{
+		ObjectType: model.PropertyFieldObjectTypeSession,
+		PerPage:    100,
+	})
+	require.Nil(t, appErr)
+
+	var hardwareField *model.PropertyField
+	for _, field := range fields {
+		if field.Name == model.SessionAttributesPropertyFieldHardwareID {
+			hardwareField = field
+			break
+		}
+	}
+	require.NotNil(t, hardwareField)
+	if hardwareField.Attrs == nil {
+		hardwareField.Attrs = model.StringInterface{}
+	}
+	hardwareField.Attrs["enabled"] = true
+	_, _, appErr = th.App.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{hardwareField}, true, "")
+	require.Nil(t, appErr)
+
+	// Establish the initial device ID for the session.
+	setSessionAttributeDeviceID(t, th, "device-a")
+	_, _, err := th.Client.GetMe(context.Background(), "")
+	require.NoError(t, err)
+
+	// A changed device ID revokes the session during processing. The request
+	// that triggers the revoke still succeeds because its in-memory session is
+	// already loaded.
+	setSessionAttributeDeviceID(t, th, "device-b")
+	_, _, err = th.Client.GetMe(context.Background(), "")
+	require.NoError(t, err)
+
+	// The next session-required request must be rejected now that the session
+	// has been revoked.
+	_, resp, err := th.Client.GetMe(context.Background(), "")
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 }

@@ -81,7 +81,7 @@ const Help = makeAsyncComponent('Help', lazy(() => import('components/help')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
-export type Props = PropsFromRedux & RouteComponentProps
+export type Props = PropsFromRedux & RouteComponentProps;
 
 interface State {
     shouldMountAppRoutes?: boolean;
@@ -230,6 +230,8 @@ export default class Root extends React.PureComponent<Props, State> {
 
     initiateMeRequests = async () => {
         const {isLoaded, isMeRequested} = await this.props.actions.loadConfigAndMe();
+
+        this.props.actions.logIfConcurrentReactEnabled();
 
         if (isLoaded) {
             const isUserAtRootRoute = this.props.location.pathname === '/';

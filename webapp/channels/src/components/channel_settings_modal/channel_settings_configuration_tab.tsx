@@ -60,7 +60,7 @@ type Props = {
     canManageChannelTranslation?: boolean;
     canManageBanner?: boolean;
     canManageSharedChannels?: boolean;
-}
+};
 
 function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBannerInfo: Channel['banner_info']): boolean {
     return (originalBannerInfo?.text?.trim() || '') !== (updatedBannerInfo?.text?.trim() || '') ||
@@ -111,27 +111,7 @@ function ChannelSettingsConfigurationTab({
     const canManageClassification = classification.available && canManageChannelRoles;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
-
     const bannerLockedByClassification = classificationEnabled && Boolean(selectedClassificationId);
-
-    useEffect(() => {
-        setClassificationEnabled(classificationBanner.hasClassification);
-        setSelectedClassificationId(classificationBanner.classificationId || '');
-
-        // Mirror the classification text/color into the local banner_info form
-        // state so the user can edit text while a classification is active —
-        // but never flip banner_info.enabled. The classification banner renders
-        // off the property value (see channel_banner.tsx); leaving banner_info
-        // disabled means deleting the property value makes the banner disappear
-        // without dragging stale text/color into the manual banner slot.
-        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
-            setUpdatedChannelBanner((prev) => ({
-                ...prev,
-                text: classificationBanner.classificationBanner?.text ?? prev.text,
-                background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
-            }));
-        }
-    }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.classificationBanner]);
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -164,7 +144,7 @@ function ChannelSettingsConfigurationTab({
     }), [classificationBanner.hasClassification, classificationBanner.classificationId]);
 
     const hasClassificationChanges = classificationEnabled !== initialClassificationState.enabled ||
-        selectedClassificationId !== initialClassificationState.classificationId;
+        (classificationEnabled && selectedClassificationId !== initialClassificationState.classificationId);
 
     const handleClassificationToggle = useCallback(() => {
         setClassificationEnabled((prev) => {
@@ -361,8 +341,39 @@ function ChannelSettingsConfigurationTab({
         (canManageSharedChannels && hasWorkspaceChanges);
 
     useEffect(() => {
+        if (hasUnsavedChanges) {
+            return;
+        }
+
+        setClassificationEnabled(classificationBanner.hasClassification);
+        setSelectedClassificationId(classificationBanner.classificationId || '');
+
+        // Mirror the classification text/color into the local banner_info form
+        // state so the user can edit text while a classification is active —
+        // but never flip banner_info.enabled. The classification banner renders
+        // off the property value (see channel_banner.tsx); leaving banner_info
+        // disabled means deleting the property value makes the banner disappear
+        // without dragging stale text/color into the manual banner slot.
+        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
+            setUpdatedChannelBanner((prev) => ({
+                ...prev,
+                text: classificationBanner.classificationBanner?.text ?? prev.text,
+                background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
+            }));
+        }
+    }, [
+        classificationBanner.hasClassification,
+        classificationBanner.classificationId,
+        classificationBanner.classificationBanner,
+        hasUnsavedChanges,
+    ]);
+
+    useEffect(() => {
         setRequireConfirm(hasUnsavedChanges);
         setAreThereUnsavedChanges?.(hasUnsavedChanges);
+        if (hasUnsavedChanges) {
+            setSaveChangesPanelState((current) => (current === 'saved' ? undefined : current));
+        }
     }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
     const handleServerError = useCallback((err: ServerError) => {

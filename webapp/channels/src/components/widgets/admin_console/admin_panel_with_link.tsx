@@ -20,7 +20,7 @@ type Props = {
     url: string;
     disabled?: boolean;
     linkText: MessageDescriptor;
-}
+};
 
 const AdminPanelWithLink = ({
     className = '',

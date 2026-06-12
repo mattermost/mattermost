@@ -7,6 +7,8 @@ import {useSelector} from 'react-redux';
 import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import type TextboxClass from 'components/textbox/textbox';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
@@ -49,12 +51,16 @@ const usePluginItems = (
 
             const Component = item.component as any;
             return (
-                <Component
+                <PluggableErrorBoundary
                     key={item.id}
-                    draft={draft}
-                    getSelectedText={getSelectedText}
-                    updateText={updateText}
-                />
+                    pluginId={item.pluginId}
+                >
+                    <Component
+                        draft={draft}
+                        getSelectedText={getSelectedText}
+                        updateText={updateText}
+                    />
+                </PluggableErrorBoundary>
             );
         });
     }, [postEditorActions, draft, getSelectedText, updateText, pluginItemsVisible]);

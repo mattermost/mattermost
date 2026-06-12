@@ -875,7 +875,7 @@ export default class Client4 {
             login_id: loginId,
         };
 
-        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean}>(
             `${this.getUsersRoute()}/login/type`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -3460,7 +3460,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase & { data?: any }) => {
+    createJob = (job: JobTypeBase & {data?: any}) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -3924,6 +3924,21 @@ export default class Client4 {
 
         return this.doFetch<License>(
             `${this.getBaseRoute()}/license`,
+            request,
+        );
+    };
+
+    previewLicense = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('license', fileData);
+
+        const request: any = {
+            method: 'post',
+            body: formData,
+        };
+
+        return this.doFetch<License>(
+            `${this.getBaseRoute()}/license/preview`,
             request,
         );
     };

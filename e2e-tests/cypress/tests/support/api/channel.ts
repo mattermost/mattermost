@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getRandomId} from '../../utils';
 
-import {ChainableT} from '@/types';
-
+import type {ChainableT} from '@/types';
 
 // *****************************************************************************
 // Channels

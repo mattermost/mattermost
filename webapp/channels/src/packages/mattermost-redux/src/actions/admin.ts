@@ -441,6 +441,15 @@ export function uploadLicense(fileData: File) {
     });
 }
 
+export function previewLicense(fileData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.previewLicense,
+        params: [
+            fileData,
+        ],
+    });
+}
+
 export function removeLicense(): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {

@@ -4563,15 +4563,21 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 		// Find the original category if the channel is already in a category
 		var originalCategory *model.SidebarCategoryWithChannels
 		for _, category := range categories.Categories {
-			if category.Type == model.SidebarCategoryCustom && category.Channels != nil && slices.Contains(category.Channels, channel.Id) {
+			if category.Type != model.SidebarCategoryDirectMessages && slices.Contains(category.Channels, channel.Id) {
 				originalCategory = category
 				break
 			}
 		}
 
+		// The channel is already in the target category, so there's nothing to move.
+		if originalCategory != nil && originalCategory == targetCategory {
+			return
+		}
+
 		var categoriesToUpdate []*model.SidebarCategoryWithChannels
 		if originalCategory != nil {
-			originalCategory.Channels = slices.Delete(originalCategory.Channels, slices.Index(originalCategory.Channels, channel.Id), 1)
+			idx := slices.Index(originalCategory.Channels, channel.Id)
+			originalCategory.Channels = slices.Delete(originalCategory.Channels, idx, idx+1)
 			categoriesToUpdate = append(categoriesToUpdate, originalCategory)
 		}
 

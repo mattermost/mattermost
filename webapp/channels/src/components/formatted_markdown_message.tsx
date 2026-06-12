@@ -44,7 +44,7 @@ type Props = {
     disableLinks?: boolean;
     id?: string;
     values?: Record<string, any>;
-}
+};
 
 /**
  *

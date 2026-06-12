@@ -76,7 +76,7 @@ function itemToName(item: Channel, currentUserId: string): {icon: React.ReactEle
 type Props = SuggestionProps<Channel> & {
     currentUserId: string;
     teammateIsBot: boolean;
-}
+};
 
 const SearchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     id,

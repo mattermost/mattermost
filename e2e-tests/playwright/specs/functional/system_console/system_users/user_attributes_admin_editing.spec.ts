@@ -13,15 +13,16 @@
  * For multi-language support, these assertions would need refactoring.
  */
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Client4} from '@mattermost/client';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Client4} from '@mattermost/client';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
-import {expect, getRandomId, test, SystemConsolePage} from '@mattermost/playwright-lib';
+import type {SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
 import {
-    CustomProfileAttribute,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValuesForUser,
     deleteCustomProfileAttributes,
@@ -193,7 +194,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
             throw new Error(
                 `CPA field creation failed for: [${missingFields.join(', ')}]. ` +
                     `Server currently has ${all.length} fields: [${all.map((f) => f.name).join(', ')}]. ` +
-                    `Possible 20-field limit breach — check for leaked fields from other test suites.`,
+                    'Possible 20-field limit breach — check for leaked fields from other test suites.',
             );
         }
 

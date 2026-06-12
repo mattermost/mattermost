@@ -39,7 +39,7 @@ describe('custom plugin sections and settings', () => {
         editRole: jest.fn(),
         isCurrentUserSystemAdmin: false,
         enterpriseReady: false,
-        match: {params: {plugin_id: 'testplugin'}} as match<{ plugin_id: string }>,
+        match: {params: {plugin_id: 'testplugin'}} as match<{plugin_id: string}>,
         config: {
             PluginSettings: {
                 Plugins: {
@@ -87,8 +87,8 @@ describe('custom plugin sections and settings', () => {
             <CustomPluginSettings
                 {...baseProps}
                 patchConfig={jest.fn()}
-            />
-            , {...baseState});
+            />,
+            {...baseState});
 
         expect(screen.getByText('testplugin')).toBeInTheDocument();
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
@@ -157,8 +157,8 @@ describe('custom plugin sections and settings', () => {
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
-            />
-            , {...state});
+            />,
+            {...state});
 
         expect(screen.getByText('testplugin')).toBeInTheDocument();
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
@@ -236,8 +236,8 @@ describe('custom plugin sections and settings', () => {
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
-            />
-            , {...state});
+            />,
+            {...state});
 
         expect(screen.getByText('testplugin')).toBeInTheDocument();
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
@@ -339,8 +339,8 @@ describe('custom plugin sections and settings', () => {
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
-            />
-            , {...state});
+            />,
+            {...state});
 
         expect(screen.getByText('testplugin')).toBeInTheDocument();
         expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();

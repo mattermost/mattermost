@@ -191,7 +191,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.AutoTranslation = true
 
-	f.ClassificationMarkings = false
+	f.ClassificationMarkings = true
 
 	f.BurnOnRead = true
 
@@ -202,7 +202,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
-	f.CJKSearch = false
+	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
 

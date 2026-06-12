@@ -34,7 +34,7 @@ type Props = {
     onExited: () => void;
     remoteId: string;
     onHide: () => void;
-}
+};
 
 const noop = () => {};
 
