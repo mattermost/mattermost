@@ -1374,24 +1374,26 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			expectedIDs: []string{value1.ID, value2.ID},
 		},
 		{
-			// Delta mode auto-includes tombstones so the post-value3 cutoff
-			// surfaces value4 even after it has been soft-deleted.
+			// Delta mode auto-includes tombstones so the at-or-after-value3
+			// cutoff surfaces value4 even after it has been soft-deleted.
+			// With `>=` semantics value3 itself is also included.
 			name: "filter by SinceUpdateAt timestamp - includes tombstones automatically",
 			opts: model.PropertyValueSearchOpts{
 				SinceUpdateAt: value3.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{value4.ID},
+			expectedIDs: []string{value3.ID, value4.ID},
 		},
 		{
 			// value4 (deleted) shares the groupID and has UpdateAt > value1.UpdateAt,
-			// so delta mode surfaces it alongside value2.
+			// so delta mode surfaces it alongside value2 and value3.
+			// With `>=` semantics value1 itself is also included.
 			name: "filter by SinceUpdateAt timestamp - get values after specific time",
 			opts: model.PropertyValueSearchOpts{
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{value2.ID, value3.ID, value4.ID},
+			expectedIDs: []string{value1.ID, value2.ID, value3.ID, value4.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
@@ -1400,7 +1402,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{value2.ID, value4.ID},
+			expectedIDs: []string{value1.ID, value2.ID, value4.ID},
 		},
 	}
 
@@ -1477,19 +1479,21 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		updatedValue2 := updatedValues[0]
 
 		t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
+			// `>=` semantics: value1 is included at the boundary,
+			// plus value3 and the post-update value2.
 			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       10,
 			})
 			require.NoError(t, err)
-			require.Len(t, results, 2)
+			require.Len(t, results, 3)
 
 			resultIDs := make([]string, len(results))
 			for i, result := range results {
 				resultIDs[i] = result.ID
 			}
-			require.ElementsMatch(t, []string{value2.ID, value3.ID}, resultIDs)
+			require.ElementsMatch(t, []string{value1.ID, value2.ID, value3.ID}, resultIDs)
 		})
 
 		t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
@@ -1510,14 +1514,17 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.ElementsMatch(t, []string{value2.ID, value3.ID}, resultIDs)
 		})
 
-		t.Run("SinceUpdateAt after all updates", func(t *testing.T) {
+		t.Run("SinceUpdateAt at the most recent update returns just that row", func(t *testing.T) {
+			// `>=` semantics: querying at the highest UpdateAt in the
+			// group returns the row at exactly that timestamp.
 			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: updatedValue2.UpdateAt,
 				PerPage:       10,
 			})
 			require.NoError(t, err)
-			require.Len(t, results, 0)
+			require.Len(t, results, 1)
+			require.Equal(t, updatedValue2.ID, results[0].ID)
 		})
 
 		t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
@@ -1528,6 +1535,66 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			})
 			require.NoError(t, err)
 			require.Len(t, results, 0)
+		})
+
+		t.Run("same-millisecond rows are paged correctly via (UpdateAt, Id) cursor", func(t *testing.T) {
+			// Three rows share an UpdateAt (Update assigns one
+			// GetMillis() to the whole batch) so the cursor must use
+			// (UpdateAt, Id) to disambiguate.
+			tieGroup := model.NewId()
+			tieValues := make([]*model.PropertyValue, 0, 3)
+			for i := range 3 {
+				v, cerr := ss.PropertyValue().Create(&model.PropertyValue{
+					GroupID:    tieGroup,
+					TargetID:   model.NewId(),
+					TargetType: "test_type",
+					FieldID:    model.NewId(),
+					Value:      json.RawMessage(`"v` + string(rune('0'+i)) + `"`),
+				})
+				require.NoError(t, cerr)
+				tieValues = append(tieValues, v)
+				time.Sleep(2 * time.Millisecond)
+			}
+
+			for _, v := range tieValues {
+				v.Value = json.RawMessage(`"bumped"`)
+			}
+			updated, err := ss.PropertyValue().Update("", tieValues)
+			require.NoError(t, err)
+			require.Len(t, updated, 3)
+			tieUpdateAt := updated[0].UpdateAt
+			require.Equal(t, tieUpdateAt, updated[1].UpdateAt)
+			require.Equal(t, tieUpdateAt, updated[2].UpdateAt)
+
+			page1, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				PerPage:       2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page1, 2, "boundary row + one more must come back on the first page")
+
+			last := page1[len(page1)-1]
+			page2, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				Cursor: model.PropertyValueSearchCursor{
+					PropertyValueID: last.ID,
+					UpdateAt:        last.UpdateAt,
+				},
+				PerPage: 2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page2, 1)
+
+			seen := map[string]bool{}
+			for _, r := range append(page1, page2...) {
+				seen[r.ID] = true
+			}
+			require.Len(t, seen, 3)
+			for _, v := range tieValues {
+				require.True(t, seen[v.ID], "all tied rows must be returned exactly once across pagination")
+			}
 		})
 	})
 
@@ -1588,8 +1655,10 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 				PerPage:       10,
 			})
 			require.NoError(t, err)
-			// value3 (UpdateAt=t3) precedes value2 (UpdateAt=t4, bumped by Update).
-			require.Equal(t, []string{value3.ID, value2.ID}, idsOf(results))
+			// `>=` semantics: value1 is included at the boundary, then
+			// value3 (UpdateAt=t3), then value2 (UpdateAt=t4, bumped
+			// by Update).
+			require.Equal(t, []string{value1.ID, value3.ID, value2.ID}, idsOf(results))
 		})
 
 		t.Run("auto-includes tombstones", func(t *testing.T) {
@@ -1601,10 +1670,11 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 				PerPage:       10,
 			})
 			require.NoError(t, err)
-			// value3 must remain visible after soft-delete — the client needs
-			// the tombstone to apply locally. Delete only sets DeleteAt, so
-			// its UpdateAt is unchanged and still precedes value2.
-			require.Equal(t, []string{value3.ID, value2.ID}, idsOf(results))
+			// value3 must remain visible after soft-delete — the client
+			// needs the tombstone to apply locally. Delete only sets
+			// DeleteAt, so its UpdateAt is unchanged and still
+			// precedes value2. `>=` adds value1 at the boundary.
+			require.Equal(t, []string{value1.ID, value3.ID, value2.ID}, idsOf(results))
 			for _, r := range results {
 				if r.ID == value3.ID {
 					require.NotZero(t, r.DeleteAt, "value3 should be returned with DeleteAt set")
@@ -1613,13 +1683,15 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("paginates with cursor UpdateAt", func(t *testing.T) {
+			// `>=` semantics: first page is value1 (the boundary row),
+			// cursored to value3, then value2.
 			first, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: value1.UpdateAt,
 				PerPage:       1,
 			})
 			require.NoError(t, err)
-			require.Equal(t, []string{value3.ID}, idsOf(first))
+			require.Equal(t, []string{value1.ID}, idsOf(first))
 
 			second, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 				GroupID:       groupID,
@@ -1631,7 +1703,19 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 				PerPage: 1,
 			})
 			require.NoError(t, err)
-			require.Equal(t, []string{value2.ID}, idsOf(second))
+			require.Equal(t, []string{value3.ID}, idsOf(second))
+
+			third, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				Cursor: model.PropertyValueSearchCursor{
+					PropertyValueID: second[0].ID,
+					UpdateAt:        second[0].UpdateAt,
+				},
+				PerPage: 1,
+			})
+			require.NoError(t, err)
+			require.Equal(t, []string{value2.ID}, idsOf(third))
 		})
 
 		t.Run("directory mode rejects cursor_update_at", func(t *testing.T) {

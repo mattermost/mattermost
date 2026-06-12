@@ -193,7 +193,10 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 	}
 
 	if deltaMode {
-		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
+		// Inclusive boundary so rows updated at exactly `since` are
+		// returned on the first page. The cursor clause above then
+		// disambiguates same-millisecond rows by Id across pages.
+		builder = builder.Where(sq.GtOrEq{"UpdateAt": opts.SinceUpdateAt})
 	}
 
 	if opts.Value != nil {

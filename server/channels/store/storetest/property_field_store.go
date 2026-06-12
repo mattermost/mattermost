@@ -1279,44 +1279,48 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			expectedIDs: []string{field1.ID, field2.ID},
 		},
 		{
-			name: "filter by SinceUpdateAt timestamp - no results before",
+			// SinceUpdateAt is inclusive (>=). With since=field5.UpdateAt
+			// the only row in groupID with UpdateAt >= field5.UpdateAt is
+			// field5 itself (delete does not touch UpdateAt, so field4
+			// stays behind in time order).
+			name: "filter by SinceUpdateAt timestamp - returns the boundary row",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
-				SinceUpdateAt: field5.UpdateAt, // After last active field in groupID
+				SinceUpdateAt: field5.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{},
+			expectedIDs: []string{field5.ID},
 		},
 		{
 			// Delta mode (SinceUpdateAt > 0) auto-includes tombstones, so
-			// field4 (soft-deleted, UpdateAt > since) is part of the expected
-			// set even without IncludeDeleted.
+			// field4 (soft-deleted) is part of the expected set even
+			// without IncludeDeleted. With `>=` field1 is also included.
 			name: "filter by SinceUpdateAt timestamp - get fields after specific time",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: field1.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{field2.ID, field4.ID, field5.ID},
+			expectedIDs: []string{field1.ID, field2.ID, field4.ID, field5.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID2,
-				SinceUpdateAt: field3.UpdateAt, // After field3, should get field6 from groupID2
+				SinceUpdateAt: field3.UpdateAt, // >= field3, should get field3 + field6 in groupID2
 				PerPage:       10,
 			},
-			expectedIDs: []string{field6.ID},
+			expectedIDs: []string{field3.ID, field6.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp including deleted",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:        groupID,
-				SinceUpdateAt:  field2.UpdateAt, // After field2, should get field4 (deleted) and field5
+				SinceUpdateAt:  field2.UpdateAt, // >= field2 in groupID: field2, field4 (deleted), field5
 				IncludeDeleted: true,
 				PerPage:        10,
 			},
-			expectedIDs: []string{field4.ID, field5.ID},
+			expectedIDs: []string{field2.ID, field4.ID, field5.ID},
 		},
 		{
 			name: "filter by ObjectType post",
@@ -1431,20 +1435,22 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		updatedField2 := updatedFields[0]
 
 		t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
-			// Get fields updated after field1 (should get field2 and field3)
+			// Get fields updated at-or-after field1: with `>=` semantics
+			// field1 itself is included, plus field3 and the
+			// post-update field2.
 			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: field1.UpdateAt,
 				PerPage:       10,
 			})
 			require.NoError(t, err)
-			require.Len(t, results, 2)
+			require.Len(t, results, 3)
 
 			resultIDs := make([]string, len(results))
 			for i, result := range results {
 				resultIDs[i] = result.ID
 			}
-			require.ElementsMatch(t, []string{field2.ID, field3.ID}, resultIDs)
+			require.ElementsMatch(t, []string{field1.ID, field2.ID, field3.ID}, resultIDs)
 		})
 
 		t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
@@ -1466,15 +1472,17 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.ElementsMatch(t, []string{field2.ID, field3.ID}, resultIDs)
 		})
 
-		t.Run("SinceUpdateAt after all updates", func(t *testing.T) {
-			// Get fields updated after the most recent update
+		t.Run("SinceUpdateAt at the most recent update returns just that row", func(t *testing.T) {
+			// `>=` semantics: querying at the highest UpdateAt in the
+			// group returns the row at exactly that timestamp.
 			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
-				SinceUpdateAt: updatedField2.UpdateAt, // After the update
+				SinceUpdateAt: updatedField2.UpdateAt,
 				PerPage:       10,
 			})
 			require.NoError(t, err)
-			require.Len(t, results, 0) // Should be empty
+			require.Len(t, results, 1)
+			require.Equal(t, updatedField2.ID, results[0].ID)
 		})
 
 		t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
@@ -1486,6 +1494,71 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			})
 			require.NoError(t, err)
 			require.Len(t, results, 0)
+		})
+
+		t.Run("same-millisecond rows are paged correctly via (UpdateAt, Id) cursor", func(t *testing.T) {
+			// Three rows must share the same UpdateAt to exercise the
+			// disambiguation clause. The Update store call pins UpdateAt
+			// to a single GetMillis() value across all rows in the batch.
+			tieGroup := model.NewId()
+			tieFields := make([]*model.PropertyField, 0, 3)
+			for range 3 {
+				f, cerr := ss.PropertyField().Create(&model.PropertyField{
+					GroupID:    tieGroup,
+					Name:       model.NewId(),
+					Type:       model.PropertyFieldTypeText,
+					TargetID:   model.NewId(),
+					TargetType: "test_type",
+				})
+				require.NoError(t, cerr)
+				tieFields = append(tieFields, f)
+				time.Sleep(2 * time.Millisecond)
+			}
+
+			// Bulk-update all three to give them the SAME UpdateAt.
+			for _, f := range tieFields {
+				f.Name = f.Name + "-bumped"
+			}
+			updated, err := ss.PropertyField().Update("", tieFields, nil)
+			require.NoError(t, err)
+			require.Len(t, updated, 3)
+			tieUpdateAt := updated[0].UpdateAt
+			require.Equal(t, tieUpdateAt, updated[1].UpdateAt)
+			require.Equal(t, tieUpdateAt, updated[2].UpdateAt)
+
+			// Page 1: include the boundary row at exactly tieUpdateAt.
+			page1, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				PerPage:       2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page1, 2, "boundary row + one more must come back on the first page")
+
+			// Page 2: cursor with the last row of page 1 must surface
+			// the third tied row — proving (UpdateAt, Id) disambiguates.
+			last := page1[len(page1)-1]
+			page2, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				Cursor: model.PropertyFieldSearchCursor{
+					PropertyFieldID: last.ID,
+					UpdateAt:        last.UpdateAt,
+				},
+				PerPage: 2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page2, 1)
+
+			// All three tied rows surfaced exactly once across both pages.
+			seen := map[string]bool{}
+			for _, r := range append(page1, page2...) {
+				seen[r.ID] = true
+			}
+			require.Len(t, seen, 3)
+			for _, f := range tieFields {
+				require.True(t, seen[f.ID], "all tied rows must be returned exactly once across pagination")
+			}
 		})
 	})
 

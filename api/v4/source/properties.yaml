@@ -117,7 +117,10 @@
         **System-object:** when `object_type` is `system`, the endpoint always resolves to `target_type=system` and ignores any `channel_id`, `team_id`, `target_type`, or `target_id` the caller may have passed. System-object fields can only live at the system scope by invariant, so any other scope is a semantic no-op rather than an error.
 
 
-        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstoned rows (`delete_at > 0`).
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns rows whose `update_at` is **greater than or equal to** the cutoff, *including* tombstoned rows (`delete_at > 0`). The inclusive boundary lets clients safely re-use the highest `update_at` seen on a previous page as the next `since` value without missing rows that happened to share that millisecond. Rows within a delta page are ordered by `(update_at, id)` and the cursor disambiguates same-millisecond rows across pages.
+
+
+        **Cursor source:** the client owns the cursor. The initial delta-sync request omits `since` (or sends `since=0`). For subsequent requests the client persists the `update_at` and `id` of the last row in the response and passes them back as `cursor_update_at` and `cursor_id` alongside the same `since` value. This mirrors the cursor convention used by the shared-channel post-sync API.
 
 
         **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`. Passing the wrong key for the active mode returns 400.
@@ -176,9 +179,9 @@
         - name: since
           in: query
           description: >
-            Unix timestamp in milliseconds. When greater than 0, returns only
-            fields with `update_at` strictly greater than this value, including
-            tombstones.
+            Unix timestamp in milliseconds. When greater than 0, returns
+            fields with `update_at` greater than or equal to this value,
+            including tombstones.
           schema:
             type: integer
             format: int64
@@ -318,8 +321,8 @@
                   format: int64
                   description: >
                     Unix timestamp in milliseconds. When greater than 0,
-                    returns only fields with `update_at` strictly greater
-                    than this value, and includes tombstones.
+                    returns fields with `update_at` greater than or equal
+                    to this value, including tombstones.
                 cursor_id:
                   type: string
                   description: The ID of the last property field from the previous page, for cursor-based pagination.
@@ -512,9 +515,9 @@
         - name: since
           in: query
           description: >
-            Unix timestamp in milliseconds. When greater than 0, returns only
-            values with `update_at` strictly greater than this value, including
-            tombstones.
+            Unix timestamp in milliseconds. When greater than 0, returns
+            values with `update_at` greater than or equal to this value,
+            including tombstones.
           schema:
             type: integer
             format: int64
@@ -650,9 +653,9 @@
         - name: since
           in: query
           description: >
-            Unix timestamp in milliseconds. When greater than 0, returns only
-            values with `update_at` strictly greater than this value, including
-            tombstones.
+            Unix timestamp in milliseconds. When greater than 0, returns
+            values with `update_at` greater than or equal to this value,
+            including tombstones.
           schema:
             type: integer
             format: int64

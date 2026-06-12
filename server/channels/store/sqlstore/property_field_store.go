@@ -288,7 +288,11 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	}
 
 	if deltaMode {
-		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
+		// Inclusive boundary so rows updated at exactly `since`
+		// are returned on the first page. The cursor clause above
+		// then disambiguates same-millisecond rows by Id across
+		// subsequent pages.
+		builder = builder.Where(sq.GtOrEq{"UpdateAt": opts.SinceUpdateAt})
 	}
 
 	fields := []*model.PropertyField{}
