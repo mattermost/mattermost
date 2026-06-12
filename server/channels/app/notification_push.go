@@ -87,16 +87,6 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 		return appErr
 	}
 
-	// Mechanism 6/7: BuildPushNotificationMessage may downgrade ID-loaded to
-	// generic/full when the license fails (notification_push.go:734-735), so
-	// derive the audit mechanism from the actual built payload rather than
-	// the requested config.
-	pushMech := model.AuditMechPushFull
-	if msg.IsIdLoaded {
-		pushMech = model.AuditMechPushIDOnly
-	}
-	a.AuditRecord(rctx.Context(), user.Id, post.Id, pushMech)
-
 	return a.sendPushNotificationToAllSessions(rctx, msg, user.Id, "")
 }
 
@@ -157,6 +147,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			http.StatusBadRequest,
 		)
 	}
+
+	notificationSent := false
 
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
@@ -222,7 +214,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			)
 			continue
 		}
-		tmpMessage.Signature = signature
+
+		notificationSent = true
 
 		err = a.sendToPushProxy(rctx, tmpMessage, session)
 		if err != nil {
@@ -265,6 +258,14 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				a.CountNotification(model.NotificationTypePush, tmpMessage.Platform)
 			}
 		}
+	}
+
+	// Only audit when the push carries the actual post content. ID-loaded
+	// pushes ship just the post id and do not constitute a content delivery,
+	// so they are not recorded. The plugin hook above may have replaced msg,
+	// so this check sees the final payload.
+	if notificationSent && !msg.IsIdLoaded {
+		a.AuditRecord(rctx.Context(), userID, msg.PostId, model.AuditMechPushFull)
 	}
 
 	return nil

@@ -1626,11 +1626,14 @@ func (s *AuditStorageSettings) SetDefaults() {
 		s.DataSource = new(AuditStorageSettingsDefaultDataSource)
 	}
 	if s.MaxIdleConns == nil {
-		s.MaxIdleConns = new(50)
+		s.MaxIdleConns = new(10)
 	}
 	if s.MaxOpenConns == nil {
-		// Higher than main pool: write-heavy workload, more concurrent inserts.
-		s.MaxOpenConns = new(200)
+		// Sized for the sharded delivery target (8 workers, one conn each at
+		// flush) plus headroom for ad-hoc reads. Kept well below Postgres'
+		// default max_connections=100 so a co-tenant cluster is not starved;
+		// operators with a dedicated audit DB can raise this.
+		s.MaxOpenConns = new(25)
 	}
 	if s.ConnMaxLifetimeMilliseconds == nil {
 		s.ConnMaxLifetimeMilliseconds = new(3600000)

@@ -748,17 +748,10 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 
 	// Mechanism 16: post broadcast over websocket to all channel members the
-	// notifier is aware of. Fan-out via async MarkBulk; one row per recipient.
-	// Gate the slice build on Enable so a disabled audit subsystem does not
-	// pay the allocation + map iteration cost on every post create.
-	if model.SafeDereference(a.Config().AuditStorageSettings.Enable) && len(profileMap) > 0 {
-		recipientIDs := make([]string, 0, len(profileMap))
-		for uid := range profileMap {
-			recipientIDs = append(recipientIDs, uid)
-		}
-
-		a.AuditRecordBulkMany(recipientIDs, post.Id, model.AuditMechWebsocketBroadcast)
-	}
+	// notifier is aware of. Hand the recipient map straight to the audit
+	// helper, which chunks while iterating — no intermediate []string + no
+	// compact pass on a 50k-member channel's per-post-create path.
+	a.AuditRecordBulkManyFromUserMap(profileMap, post.Id, model.AuditMechWebsocketBroadcast)
 
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {

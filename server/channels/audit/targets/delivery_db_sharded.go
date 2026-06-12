@@ -59,6 +59,7 @@ type ShardedDeliveryDBTarget struct {
 	batchSize     int           // flush when a shard accumulates this many unique rows
 	maxPending    int           // stop draining a shard above this backlog (back-pressure)
 	flushInterval time.Duration // also caps in-memory residency, and the retry cadence
+	maxBackoff    time.Duration // upper bound on per-shard retry backoff after repeated failures
 
 	shards  []chan auditDeliveryItem
 	done    chan struct{}
@@ -70,11 +71,17 @@ type ShardedDeliveryDBTarget struct {
 
 const (
 	shardedDeliveryShards        = 8
-	shardedDeliveryShardQueue    = 4096
-	shardedDeliveryBatchSize     = 1000
+	shardedDeliveryShardQueue    = 1000
+	shardedDeliveryBatchSize     = 500
 	shardedDeliveryMaxPending    = 4000
 	shardedDeliveryFlushInterval = 100 * time.Millisecond
+	shardedDeliveryMaxBackoff    = 30 * time.Second
 	shardedDeliveryShutdownTries = 3
+
+	// shardedDeliveryErrorLogEvery rate-limits the "flush failed" error so a
+	// persistent audit-DB outage produces a handful of logs (1st failure, then
+	// every Nth) instead of one per flushInterval per shard.
+	shardedDeliveryErrorLogEvery = 50
 )
 
 var _ logr.Target = (*ShardedDeliveryDBTarget)(nil)
@@ -92,6 +99,7 @@ func NewShardedDeliveryDBTarget(s store.AuditStorageStore, logger *mlog.Logger) 
 		batchSize:     shardedDeliveryBatchSize,
 		maxPending:    shardedDeliveryMaxPending,
 		flushInterval: shardedDeliveryFlushInterval,
+		maxBackoff:    shardedDeliveryMaxBackoff,
 	}
 }
 
@@ -233,12 +241,27 @@ func (t *ShardedDeliveryDBTarget) shardLoop(in chan auditDeliveryItem) {
 	ticker := time.NewTicker(t.flushInterval)
 	defer ticker.Stop()
 
-	// flush attempts one MarkBulk. On success it empties pending and returns
-	// true. On error it logs and KEEPS pending so the rows are retried on the
-	// next tick: a failed write never silently drops records.
-	flush := func() bool {
+	// failures counts consecutive failed flushes. It drives two things:
+	//   - exponential backoff: each new failure doubles the wait before the
+	//     next attempt, capped at maxBackoff, so a persistently unreachable
+	//     audit DB does not retry every flushInterval indefinitely.
+	//   - rate-limited error logging: the 1st failure and every
+	//     shardedDeliveryErrorLogEvery'th thereafter logs an Error; in
+	//     between we stay quiet so an outage does not amplify into log spam.
+	failures := 0
+	var nextAttempt time.Time
+
+	// flush attempts one MarkBulk. On success it empties pending, resets the
+	// backoff state, and returns true. On error it KEEPS pending so the rows
+	// are retried later (lossless), bumps the failure counter, and schedules
+	// the next attempt. When force is true the backoff window is bypassed —
+	// used by finalize so shutdown can still drain through a sleeping shard.
+	flush := func(force bool) bool {
 		if len(pending) == 0 {
 			return true
+		}
+		if !force && time.Now().Before(nextAttempt) {
+			return false
 		}
 		batch := make([]store.AuditDeliveryRecord, 0, len(pending))
 		for it := range pending {
@@ -249,15 +272,31 @@ func (t *ShardedDeliveryDBTarget) shardLoop(in chan auditDeliveryItem) {
 			})
 		}
 		if err := t.store.MarkBulk(context.Background(), batch); err != nil {
-			if t.logger != nil {
+			failures++
+			backoff := t.flushInterval << (failures - 1)
+			if backoff <= 0 || backoff > t.maxBackoff {
+				backoff = t.maxBackoff
+			}
+			nextAttempt = time.Now().Add(backoff)
+			if t.logger != nil && (failures == 1 || failures%shardedDeliveryErrorLogEvery == 0) {
 				t.logger.Error(
-					"audit_delivery_sharded: bulk flush failed, will retry",
+					"audit_delivery_sharded: bulk flush failed, will retry with backoff",
 					mlog.Int("batch_size", len(batch)),
+					mlog.Int("consecutive_failures", failures),
+					mlog.Duration("next_retry_in", backoff),
 					mlog.Err(err),
 				)
 			}
 			return false
 		}
+		if failures > 0 && t.logger != nil {
+			t.logger.Info(
+				"audit_delivery_sharded: bulk flush recovered",
+				mlog.Int("prior_consecutive_failures", failures),
+			)
+		}
+		failures = 0
+		nextAttempt = time.Time{}
 		clear(pending)
 		return true
 	}
@@ -267,7 +306,7 @@ func (t *ShardedDeliveryDBTarget) shardLoop(in chan auditDeliveryItem) {
 		// new items (a nil channel disables that select case). The shard
 		// channel then fills and back-pressure flows to Write, rather than
 		// pending growing unbounded toward OOM. The ticker still fires, so
-		// the backlog is retried every flushInterval.
+		// the backlog is retried (subject to backoff) every flushInterval.
 		inCh := in
 		if len(pending) >= t.maxPending {
 			inCh = nil
@@ -277,10 +316,10 @@ func (t *ShardedDeliveryDBTarget) shardLoop(in chan auditDeliveryItem) {
 		case item := <-inCh:
 			pending[item] = struct{}{}
 			if len(pending) >= t.batchSize {
-				flush()
+				flush(false)
 			}
 		case <-ticker.C:
-			flush()
+			flush(false)
 		case <-t.done:
 			t.finalize(in, pending, flush)
 			return
@@ -293,7 +332,7 @@ func (t *ShardedDeliveryDBTarget) shardLoop(in chan auditDeliveryItem) {
 // unreachable at shutdown the remaining rows are lost, which is the accepted
 // hard-failure bound; everything written within flushInterval of a graceful
 // shutdown is preserved.
-func (t *ShardedDeliveryDBTarget) finalize(in chan auditDeliveryItem, pending map[auditDeliveryItem]struct{}, flush func() bool) {
+func (t *ShardedDeliveryDBTarget) finalize(in chan auditDeliveryItem, pending map[auditDeliveryItem]struct{}, flush func(force bool) bool) {
 DrainLoop:
 	for {
 		select {
@@ -303,7 +342,10 @@ DrainLoop:
 			break DrainLoop
 		}
 	}
-	for attempt := 0; attempt < shardedDeliveryShutdownTries && !flush(); attempt++ {
+	// Bypass the per-shard backoff window: shutdown has a small fixed budget
+	// and skipping attempts because nextAttempt is in the future would just
+	// burn the budget without trying.
+	for attempt := 0; attempt < shardedDeliveryShutdownTries && !flush(true); attempt++ {
 		time.Sleep(t.flushInterval)
 	}
 }

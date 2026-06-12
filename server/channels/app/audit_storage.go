@@ -151,6 +151,36 @@ func (a *App) AuditRecordBulkMany(userIDs []string, postID string, mechanism int
 	}
 }
 
+// AuditRecordBulkManyFromUserMap is the map-keyed variant of
+// AuditRecordBulkMany. The broadcast call site already holds the recipient set
+// as map[string]*model.User; iterating it directly into chunks avoids the
+// intermediate []string allocation plus the compact pass that chunkDeliveryIDs
+// would otherwise do, which matters on a per-post-create hot path with a
+// 50k-member channel.
+func (a *App) AuditRecordBulkManyFromUserMap(userMap map[string]*model.User, postID string, mechanism int16) {
+	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
+		return
+	}
+	if postID == "" || len(userMap) == 0 {
+		return
+	}
+
+	chunk := make([]string, 0, min(len(userMap), auditDeliveryChunkSize))
+	for uid := range userMap {
+		if uid == "" {
+			continue
+		}
+		chunk = append(chunk, uid)
+		if len(chunk) == auditDeliveryChunkSize {
+			a.emitDeliveryAuditMultiUser(chunk, postID, mechanism)
+			chunk = make([]string, 0, auditDeliveryChunkSize)
+		}
+	}
+	if len(chunk) > 0 {
+		a.emitDeliveryAuditMultiUser(chunk, postID, mechanism)
+	}
+}
+
 // chunkDeliveryIDs compacts (drops empty ids) and splits a slice into chunks of
 // at most size. Returns nil when no non-empty ids remain. The returned chunks
 // are sub-slices of a single backing array, so chunking allocates once.
