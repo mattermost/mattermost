@@ -1361,11 +1361,12 @@ func TestPropertyFieldSearchOpts_IsValid(t *testing.T) {
 		assert.Contains(t, err.Error(), "channel_id/team_id")
 	})
 
-	t.Run("ChannelID without TeamID is invalid", func(t *testing.T) {
+	t.Run("ChannelID without TeamID is valid (DM/GM scope)", func(t *testing.T) {
+		// DM/GM channels have no parent team. IsValid must not reject
+		// them; the store layer handles the system → channel hierarchy
+		// when TeamID is empty.
 		opts := PropertyFieldSearchOpts{ChannelID: NewId()}
-		err := opts.IsValid()
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "team_id")
+		assert.NoError(t, opts.IsValid())
 	})
 
 	t.Run("TeamID alone is valid", func(t *testing.T) {

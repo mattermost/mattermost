@@ -237,8 +237,9 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"ObjectType": opts.ObjectType})
 	}
 
-	// Three mutually exclusive scopes (enforced by opts.IsValid()):
-	//   - Channel: OR{system, team=TeamID, channel=ChannelID}
+	// Four mutually exclusive scopes (enforced by opts.IsValid()):
+	//   - Channel + team: OR{system, team=TeamID, channel=ChannelID}
+	//   - Channel only (DM/GM, no team): OR{system, channel=ChannelID}
 	//   - Team-only: OR{system, team=TeamID}
 	//   - Single target: WHERE TargetType = ? and/or TargetID IN (?) — either
 	//     filter may be applied independently for backwards compatibility.
@@ -250,6 +251,16 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelTeam)},
 				sq.Eq{"TargetID": opts.TeamID},
 			},
+			sq.And{
+				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelChannel)},
+				sq.Eq{"TargetID": opts.ChannelID},
+			},
+		})
+	case opts.ChannelID != "":
+		// DM/GM channels have no parent team, so the hierarchy is just
+		// system → channel.
+		builder = builder.Where(sq.Or{
+			sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelSystem)},
 			sq.And{
 				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelChannel)},
 				sq.Eq{"TargetID": opts.ChannelID},

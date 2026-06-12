@@ -545,10 +545,6 @@ func (o PropertyFieldSearchOpts) IsValid() error {
 		return errors.New("channel_id/team_id cannot be combined with target_type/target_id")
 	}
 
-	if o.ChannelID != "" && o.TeamID == "" {
-		return errors.New("channel_id requires team_id")
-	}
-
 	if err := o.Cursor.IsValid(); err != nil {
 		return err
 	}

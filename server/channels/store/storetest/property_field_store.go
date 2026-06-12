@@ -1635,14 +1635,26 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.ElementsMatch(t, []string{systemField.ID}, ids)
 		})
 
-		t.Run("ChannelID without TeamID is rejected by IsValid", func(t *testing.T) {
-			_, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+		t.Run("ChannelID without TeamID returns system + channel rows (DM/GM scope)", func(t *testing.T) {
+			// DM/GM channels have no parent team, so the hierarchy
+			// collapses to system → channel. Team-scoped rows must not
+			// leak in even though channelX itself happens to be in
+			// teamA in this fixture.
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
 				GroupID:   groupID,
 				ChannelID: channelX,
 				PerPage:   50,
 			})
-			require.Error(t, err)
-			require.ErrorContains(t, err, "channel_id requires team_id")
+			require.NoError(t, err)
+
+			ids := make([]string, len(results))
+			for i, f := range results {
+				ids[i] = f.ID
+			}
+			require.ElementsMatch(t,
+				[]string{systemField.ID, channelXField1.ID, channelXField2.ID},
+				ids,
+			)
 		})
 
 		t.Run("scope conflict (TeamID + TargetType) is rejected by IsValid", func(t *testing.T) {

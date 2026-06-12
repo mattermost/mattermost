@@ -105,7 +105,7 @@
         **Scope modes (mutually exclusive):**
 
 
-        - **Hierarchical scope** (`channel_id` and/or `team_id`): returns fields scoped to the named resource *and every ancestor scope above it*. System-level rows are always included; team-level rows are included when `team_id` is set; channel-level rows are included only when `channel_id` is set. When `channel_id` is provided, the channel's team is resolved server-side, so passing `team_id` alongside is optional. Requires the caller to have `read_channel` for the channel and/or `view_team` for the team.
+        - **Hierarchical scope** (`channel_id` and/or `team_id`): returns fields scoped to the named resource *and every ancestor scope above it*. System-level rows are always included; team-level rows are included when `team_id` is set; channel-level rows are included only when `channel_id` is set. When `channel_id` is provided, the channel's team is resolved server-side, so passing `team_id` alongside is optional. For DM and GM channels there is no parent team, so the hierarchy collapses to `system → channel` and no team-scoped rows are returned. Requires the caller to have `read_channel` for the channel and/or `view_team` for the team.
 
 
         - **Single-target scope** (`target_type` + `target_id`): returns fields scoped to exactly one resource. `target_type` must be `system`, `team`, or `channel`; `target_id` is required for `team` and `channel`.

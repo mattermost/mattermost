@@ -844,6 +844,40 @@ func TestGetPropertyFields(t *testing.T) {
 		require.ElementsMatch(t, []string{sysField.ID, teamAField.ID, chanX1Field.ID, chanX2Field.ID}, fieldIDs(fields))
 	})
 
+	t.Run("DM channel returns system + channel rows (no team in the hierarchy)", func(t *testing.T) {
+		// DM channels have no parent team, so the hierarchy collapses
+		// to system → channel. teamAField must not leak in even though
+		// the BasicUser shares team-A with other channels.
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		dmField := mkField(t, model.PropertyFieldTargetLevelChannel, dmChannel.Id)
+
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID: dmChannel.Id,
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.ElementsMatch(t, []string{sysField.ID, dmField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("GM channel returns system + channel rows (no team in the hierarchy)", func(t *testing.T) {
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		gmField := mkField(t, model.PropertyFieldTargetLevelChannel, gmChannel.Id)
+
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID: gmChannel.Id,
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.ElementsMatch(t, []string{sysField.ID, gmField.ID}, fieldIDs(fields))
+	})
+
 	t.Run("a bad team_id is overwritten by the channel's team_id when channel_id is present and correctly returns system + team + channel rows", func(t *testing.T) {
 		th.LoginBasic(t)
 
@@ -1441,6 +1475,56 @@ func TestSearchPropertyFields(t *testing.T) {
 		}
 		require.Len(t, fields, len(expected))
 		require.ElementsMatch(t, expected, fieldIDs(fields))
+	})
+
+	t.Run("DM channel returns multi-OT system + channel rows (no team in the hierarchy)", func(t *testing.T) {
+		// DM channels have no parent team — the hierarchy collapses to
+		// system → channel across every requested object_type.
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		dmPostField := mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelChannel, dmChannel.Id)
+		dmChannelField := mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelChannel, dmChannel.Id)
+
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{
+				model.PropertyFieldObjectTypePost,
+				model.PropertyFieldObjectTypeChannel,
+				model.PropertyFieldObjectTypeUser,
+			},
+			ChannelID: dmChannel.Id,
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// system rows for every requested OT + the DM-scoped fields. No
+		// team rows (postTeamAField / chanTeamAField) since the DM has
+		// no parent team.
+		require.ElementsMatch(t, []string{
+			postSysField.ID, chanSysField.ID, userSysField.ID,
+			dmPostField.ID, dmChannelField.ID,
+		}, fieldIDs(fields))
+	})
+
+	t.Run("GM channel returns multi-OT system + channel rows (no team in the hierarchy)", func(t *testing.T) {
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		gmChannelField := mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelChannel, gmChannel.Id)
+
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser},
+			ChannelID:   gmChannel.Id,
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.ElementsMatch(t, []string{
+			chanSysField.ID, userSysField.ID, gmChannelField.ID,
+		}, fieldIDs(fields))
 	})
 
 	t.Run("a bad team_id is overwritten by the channel's team_id when channel_id is present and correctly returns multi-OT rows", func(t *testing.T) {
