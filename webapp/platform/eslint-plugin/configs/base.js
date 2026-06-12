@@ -620,6 +620,7 @@ const testOverrides = {
         'max-nested-callbacks': 0,
         'new-cap': 0,
         'prefer-arrow-callback': 0,
+        '@typescript-eslint/no-require-imports': 0,
     },
 };
 
