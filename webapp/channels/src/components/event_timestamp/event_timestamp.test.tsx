@@ -37,6 +37,20 @@ describe('EventTimestamp', () => {
         expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
     });
 
+    test('should render narrow relative time when space is constrained', () => {
+        renderWithContext(
+            <EventTimestamp
+                {...baseProps}
+                timestampFormat={TimestampFormat.RELATIVE}
+                showTooltip={false}
+                forceTimeOnly={true}
+            />,
+        );
+
+        expect(screen.getByText('2w ago')).toBeInTheDocument();
+        expect(screen.queryByText('4:32 PM')).not.toBeInTheDocument();
+    });
+
     test('should render time only when space is constrained', () => {
         renderWithContext(
             <EventTimestamp

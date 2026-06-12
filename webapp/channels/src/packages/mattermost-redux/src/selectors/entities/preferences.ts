@@ -162,6 +162,10 @@ export function isCompactDateTimeDisplayFormat(state: GlobalState): boolean {
 }
 
 export function getShowTimestampSeconds(state: GlobalState): boolean {
+    if (getTimestampFormat(state) === TimestampFormat.RELATIVE) {
+        return false;
+    }
+
     const userPreference = getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.SHOW_TIMESTAMP_SECONDS);
     if (userPreference?.value === 'true') {
         return true;

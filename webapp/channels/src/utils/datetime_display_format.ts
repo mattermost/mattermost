@@ -6,6 +6,8 @@ import type {IntlShape} from 'react-intl';
 
 import {TimestampFormat} from '@mattermost/types/config';
 
+import {getDiff, isWithin} from 'utils/datetime';
+
 export {TimestampFormat};
 
 export type TimestampDisplayContext = 'post' | 'thread_list' | 'thread_footer' | 'scheduled_post';
@@ -15,6 +17,7 @@ type FormatOptions = {
     timeZone?: string;
     useMilitaryTime?: boolean;
     showTimestampSeconds?: boolean;
+    relativeStyle?: 'long' | 'narrow';
 };
 
 type InlineFormatOptions = FormatOptions & {
@@ -49,6 +52,10 @@ export function isValidTimestampFormat(value: string): value is TimestampFormat 
 
 export function shouldShowDateSeparatorsInThreads(format: TimestampFormat): boolean {
     return format === TimestampFormat.STANDARD;
+}
+
+export function supportsTimestampSeconds(format: TimestampFormat): boolean {
+    return format === TimestampFormat.STANDARD || format === TimestampFormat.DATE_AND_TIME;
 }
 
 export function shouldWrapPostTimestamp(format: TimestampFormat, forceTimeOnly: boolean): boolean {
@@ -142,44 +149,57 @@ export function formatAbsoluteDateAndTime(
     return `${dt.toFormat('LLL d yyyy')}, ${time}`;
 }
 
-export function formatRelativeTimestamp(
+// Matches current RHS THREADING_TIME extended units in relative_ranges STANDARD_UNITS.
+const RELATIVE_TIMESTAMP_UNITS: Array<{unit: Intl.RelativeTimeFormatUnit; threshold: number}> = [
+    {unit: 'minute', threshold: -59},
+    {unit: 'hour', threshold: -23.75},
+    {unit: 'day', threshold: -6},
+    {unit: 'week', threshold: -3},
+    {unit: 'month', threshold: -11},
+    {unit: 'year', threshold: -1000},
+];
+
+function formatRelativeTimestampFallback(
     value: Date,
-    {timeZone, useMilitaryTime = false, showTimestampSeconds = false, intl}: FormatOptions & {intl: IntlShape},
+    intl: IntlShape,
+    timeZone?: string,
 ): string {
     const dt = getDateTime(value, timeZone);
     const now = getNow(timeZone);
-    const diffSeconds = Math.floor(now.diff(dt, 'seconds').seconds);
-
-    if (diffSeconds < 45) {
-        return intl.formatMessage({id: 'timestamp.justNow', defaultMessage: 'just now'});
-    }
-
-    if (diffSeconds < 3600) {
-        const minutes = Math.max(1, Math.floor(diffSeconds / 60));
-        return intl.formatRelativeTime(-minutes, 'minute');
-    }
-
-    if (diffSeconds < 86400) {
-        const hours = Math.max(1, Math.floor(diffSeconds / 3600));
-        return intl.formatRelativeTime(-hours, 'hour');
-    }
-
-    const time = formatStandardTime(value, {timeZone, useMilitaryTime, showTimestampSeconds});
-
-    if (dt.hasSame(now.minus({days: 1}), 'day')) {
-        return intl.formatMessage({id: 'timestamp.yesterdayAt', defaultMessage: 'Yesterday at {time}'}, {time});
-    }
-
-    if (dt >= now.minus({days: 6}).startOf('day')) {
-        const weekday = intl.formatDate(value, {weekday: 'long', timeZone});
-        return intl.formatMessage({id: 'timestamp.weekdayAt', defaultMessage: '{weekday} at {time}'}, {weekday, time});
-    }
 
     if (dt.hasSame(now, 'year')) {
         return intl.formatDate(value, {month: 'short', day: 'numeric', timeZone});
     }
 
     return intl.formatDate(value, {month: 'short', day: 'numeric', year: 'numeric', timeZone});
+}
+
+export function formatRelativeTimestamp(
+    value: Date,
+    {timeZone, intl, relativeStyle = 'long'}: FormatOptions & {intl: IntlShape},
+): string {
+    const resolvedTimeZone = timeZone || new Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const now = getNow(timeZone).toJSDate();
+    const relativeTimeOptions: Intl.RelativeTimeFormatOptions = relativeStyle === 'narrow' ?
+        {style: 'narrow', numeric: 'always'} :
+        {style: 'long', numeric: 'auto'};
+
+    if (isWithin(value, now, resolvedTimeZone, 'second', -45)) {
+        return intl.formatMessage({id: 'timestamp.justNow', defaultMessage: 'just now'});
+    }
+
+    for (const {unit, threshold} of RELATIVE_TIMESTAMP_UNITS) {
+        if (isWithin(value, now, resolvedTimeZone, unit, threshold)) {
+            let diff = getDiff(value, now, resolvedTimeZone, unit);
+            diff = Math.round(diff);
+            if (diff === 0) {
+                diff = value <= now ? -0 : +0;
+            }
+            return intl.formatRelativeTime(diff, unit, relativeTimeOptions);
+        }
+    }
+
+    return formatRelativeTimestampFallback(value, intl, timeZone);
 }
 
 export function formatInlineTimestamp(
@@ -197,6 +217,13 @@ export function formatInlineTimestamp(
     const formatOptions = options.forceTimeOnly ? {...options, showTimestampSeconds: false} : options;
 
     if (tier === 'time_only') {
+        if (format === TimestampFormat.RELATIVE && formatOptions.intl) {
+            return formatRelativeTimestamp(value, {
+                ...formatOptions,
+                intl: formatOptions.intl,
+                relativeStyle: 'narrow',
+            });
+        }
         return formatStandardTime(value, formatOptions);
     }
 
@@ -246,27 +273,64 @@ export function formatFullDateTimeForTooltip(
     });
 }
 
+export function getTimestampFormatTimeExample(
+    {useMilitaryTime = false, showTimestampSeconds = false}: FormatOptions = {},
+): string {
+    if (useMilitaryTime) {
+        return showTimestampSeconds ? '16:32:07' : '16:32';
+    }
+
+    return showTimestampSeconds ? '4:32:07 PM' : '4:32 PM';
+}
+
+type AdminDisplaySettingsConfig = {
+    DisplaySettings?: {
+        ShowTimestampSeconds?: boolean;
+    };
+};
+
+export function resolveAdminShowTimestampSeconds(
+    config: AdminDisplaySettingsConfig,
+    state: Record<string, unknown>,
+): boolean {
+    const stateValue = state['DisplaySettings.ShowTimestampSeconds'];
+    if (stateValue != null) {
+        return Boolean(stateValue);
+    }
+
+    return config.DisplaySettings?.ShowTimestampSeconds === true;
+}
+
+export function getTimestampFormatOptionDisplayNameValues(options: FormatOptions = {}) {
+    return {
+        timeExample: getTimestampFormatTimeExample(options),
+    };
+}
+
 export function getTimestampFormatLabel(
     format: TimestampFormat,
     intl: IntlShape,
+    options?: FormatOptions,
 ): string {
+    const timeExample = getTimestampFormatTimeExample(options);
+
     switch (format) {
     case TimestampFormat.RELATIVE:
         return intl.formatMessage({
             id: 'timestamp_format.relative',
-            defaultMessage: 'Relative (example: 3 hours ago · Yesterday at 4:32 PM)',
+            defaultMessage: 'Relative (example: 3 hours ago)',
         });
     case TimestampFormat.DATE_AND_TIME:
         return intl.formatMessage({
             id: 'timestamp_format.date_and_time',
-            defaultMessage: 'Date and Time (example: Jun 1, 4:32 PM)',
-        });
+            defaultMessage: 'Date and Time (example: Jun 1, {timeExample})',
+        }, {timeExample});
     case TimestampFormat.STANDARD:
     default:
         return intl.formatMessage({
             id: 'timestamp_format.standard',
-            defaultMessage: 'Standard (example: 4:32 PM)',
-        });
+            defaultMessage: 'Standard (example: {timeExample})',
+        }, {timeExample});
     }
 }
 

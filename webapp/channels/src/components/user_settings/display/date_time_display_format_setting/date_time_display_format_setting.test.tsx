@@ -53,6 +53,7 @@ describe('DateTimeDisplayFormatSetting', () => {
 
     test('handleSubmit saves format preference when selection differs from system default', async () => {
         const savePreferences = jest.spyOn(preferencesActions, 'savePreferences').mockReturnValue({type: 'MOCK_SAVE'} as never);
+        jest.spyOn(preferencesActions, 'deletePreferences').mockReturnValue({type: 'MOCK_DELETE'} as never);
         const updateSection = jest.fn();
 
         renderWithContext(
@@ -121,6 +122,24 @@ describe('DateTimeDisplayFormatSetting', () => {
         expect(updateSection).toHaveBeenCalledWith('');
     });
 
+    test('updates timestamp format examples for 24-hour clock selection', async () => {
+        const updateSection = jest.fn();
+
+        renderWithContext(
+            <DateTimeDisplayFormatSetting
+                {...baseProps}
+                updateSection={updateSection}
+            />,
+            baseState,
+        );
+
+        await userEvent.click(screen.getByLabelText(/24-hour clock \(example: 16:00\)/i));
+
+        expect(screen.getByLabelText(/Standard \(example: 16:32\)/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Date and Time \(example: Jun 1, 16:32\)/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Show seconds in timestamps \(example: 16:32\)/i)).toBeInTheDocument();
+    });
+
     test('handleUpdateSection without section resets unsaved clock and format selections', async () => {
         const updateSection = jest.fn();
 
@@ -133,8 +152,10 @@ describe('DateTimeDisplayFormatSetting', () => {
         );
 
         await userEvent.click(screen.getByLabelText(/24-hour clock \(example: 16:00\)/i));
-        await userEvent.click(screen.getByLabelText(/Relative \(example: 3 hours ago/i));
         await userEvent.click(screen.getByLabelText(/Show seconds in timestamps/i));
+        await userEvent.click(screen.getByLabelText(/Relative \(example: 3 hours ago/i));
+
+        expect(screen.queryByLabelText(/Show seconds in timestamps/i)).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByTestId('cancelButton'));
 
@@ -144,5 +165,20 @@ describe('DateTimeDisplayFormatSetting', () => {
         expect(screen.getByLabelText(/Relative \(example: 3 hours ago/i)).not.toBeChecked();
         expect(screen.getByLabelText(/Show seconds in timestamps/i)).not.toBeChecked();
         expect(updateSection).toHaveBeenCalledWith('');
+    });
+
+    test('hides show seconds setting when relative format is selected', async () => {
+        renderWithContext(
+            <DateTimeDisplayFormatSetting
+                {...baseProps}
+            />,
+            baseState,
+        );
+
+        expect(screen.getByLabelText(/Show seconds in timestamps/i)).toBeInTheDocument();
+
+        await userEvent.click(screen.getByLabelText(/Relative \(example: 3 hours ago/i));
+
+        expect(screen.queryByLabelText(/Show seconds in timestamps/i)).not.toBeInTheDocument();
     });
 });

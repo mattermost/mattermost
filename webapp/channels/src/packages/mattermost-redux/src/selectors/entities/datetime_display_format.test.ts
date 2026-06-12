@@ -90,4 +90,31 @@ describe('timestamp format selectors', () => {
 
         expect(getShowTimestampSeconds(state)).toBe(true);
     });
+
+    test('does not show seconds when relative format is selected', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    config: {
+                        DefaultTimestampFormat: TimestampFormat.RELATIVE,
+                        ShowTimestampSeconds: 'true',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        'display_settings--show_timestamp_seconds': {
+                            category: 'display_settings',
+                            name: 'show_timestamp_seconds',
+                            value: 'true',
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getTimestampFormat(state)).toBe(TimestampFormat.RELATIVE);
+        expect(getShowTimestampSeconds(state)).toBe(false);
+    });
 });

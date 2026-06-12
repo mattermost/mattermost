@@ -10,16 +10,23 @@ import {
     formatDateAndTimeInline,
     formatFullDateTimeForTooltip,
     formatInlineTimestamp,
+    formatRelativeTimestamp,
     formatStandardTime,
+    getTimestampFormatLabel,
+    getTimestampFormatOptionDisplayNameValues,
+    getTimestampFormatTimeExample,
     isCompactDateTimeDisplayFormat,
     isValidTimestampFormat,
     resolveTimestampDisplayTier,
+    resolveAdminShowTimestampSeconds,
     shouldWrapPostTimestamp,
+    supportsTimestampSeconds,
 } from './datetime_display_format';
 
 describe('datetime_display_format', () => {
     const value = new Date('2020-01-01T12:00:00.000Z');
     const timeZone = 'America/New_York';
+    const longRelativeTimeOptions = {style: 'long', numeric: 'auto'} as const;
 
     test('isValidTimestampFormat', () => {
         expect(isValidTimestampFormat('standard')).toBe(true);
@@ -115,6 +122,35 @@ describe('datetime_display_format', () => {
         jest.useRealTimers();
     });
 
+    test('resolveAdminShowTimestampSeconds uses admin console state when present', () => {
+        expect(resolveAdminShowTimestampSeconds(
+            {DisplaySettings: {ShowTimestampSeconds: false}},
+            {'DisplaySettings.ShowTimestampSeconds': true},
+        )).toBe(true);
+
+        expect(resolveAdminShowTimestampSeconds(
+            {DisplaySettings: {ShowTimestampSeconds: true}},
+            {'DisplaySettings.ShowTimestampSeconds': false},
+        )).toBe(false);
+
+        expect(resolveAdminShowTimestampSeconds(
+            {DisplaySettings: {ShowTimestampSeconds: true}},
+            {},
+        )).toBe(true);
+    });
+
+    test('getTimestampFormatOptionDisplayNameValues matches time example helper', () => {
+        expect(getTimestampFormatOptionDisplayNameValues({showTimestampSeconds: true})).toEqual({
+            timeExample: '4:32:07 PM',
+        });
+    });
+
+    test('supportsTimestampSeconds only for standard and date and time formats', () => {
+        expect(supportsTimestampSeconds(TimestampFormat.STANDARD)).toBe(true);
+        expect(supportsTimestampSeconds(TimestampFormat.DATE_AND_TIME)).toBe(true);
+        expect(supportsTimestampSeconds(TimestampFormat.RELATIVE)).toBe(false);
+    });
+
     test('resolveTimestampDisplayTier for compact or consecutive posts', () => {
         expect(resolveTimestampDisplayTier(TimestampFormat.DATE_AND_TIME, 'post', undefined, true)).toBe('time_only');
         expect(resolveTimestampDisplayTier(TimestampFormat.RELATIVE, 'post', undefined, true)).toBe('time_only');
@@ -122,14 +158,27 @@ describe('datetime_display_format', () => {
         expect(resolveTimestampDisplayTier(TimestampFormat.STANDARD, 'thread_list')).toBe('inline');
     });
 
-    test('formatInlineTimestamp uses time only when space is constrained', () => {
-        const formatted = formatInlineTimestamp(value, TimestampFormat.RELATIVE, {
+    test('formatInlineTimestamp uses narrow relative time when space is constrained', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+        const intl = {
+            formatMessage: jest.fn(({defaultMessage}) => defaultMessage),
+            formatRelativeTime: jest.fn((diff: number, unit: string, options?: Intl.RelativeTimeFormatOptions) => `${diff}${unit}`),
+            formatDate: jest.fn(),
+        };
+        const twoDaysAgo = new Date('2020-06-13T12:00:00.000Z');
+        const formatted = formatInlineTimestamp(twoDaysAgo, TimestampFormat.RELATIVE, {
             timeZone,
             useMilitaryTime: false,
             forceTimeOnly: true,
+            intl: intl as any,
         });
 
-        expect(formatted).toBe(formatStandardTime(value, {timeZone, useMilitaryTime: false}));
+        expect(intl.formatRelativeTime).toHaveBeenCalledWith(-2, 'day', {style: 'narrow', numeric: 'always'});
+        expect(formatted).toBe('-2day');
+
+        jest.useRealTimers();
     });
 
     test('formatInlineTimestamp omits seconds when space is constrained', () => {
@@ -147,6 +196,124 @@ describe('datetime_display_format', () => {
         expect(shouldWrapPostTimestamp(TimestampFormat.DATE_AND_TIME, false)).toBe(true);
         expect(shouldWrapPostTimestamp(TimestampFormat.DATE_AND_TIME, true)).toBe(false);
         expect(shouldWrapPostTimestamp(TimestampFormat.STANDARD, false)).toBe(false);
+    });
+
+    test('getTimestampFormatTimeExample reflects clock and seconds settings', () => {
+        expect(getTimestampFormatTimeExample()).toBe('4:32 PM');
+        expect(getTimestampFormatTimeExample({useMilitaryTime: true})).toBe('16:32');
+        expect(getTimestampFormatTimeExample({showTimestampSeconds: true})).toBe('4:32:07 PM');
+        expect(getTimestampFormatTimeExample({useMilitaryTime: true, showTimestampSeconds: true})).toBe('16:32:07');
+    });
+
+    test('getTimestampFormatLabel uses selected clock format in examples', () => {
+        const intl = {
+            formatMessage: jest.fn(({defaultMessage}, values) => defaultMessage.replace('{timeExample}', values.timeExample)),
+        };
+
+        expect(getTimestampFormatLabel(TimestampFormat.STANDARD, intl as any, {useMilitaryTime: true})).toBe('Standard (example: 16:32)');
+        expect(getTimestampFormatLabel(TimestampFormat.DATE_AND_TIME, intl as any, {useMilitaryTime: true})).toBe('Date and Time (example: Jun 1, 16:32)');
+    });
+
+    test('formatRelativeTimestamp supports narrow relative style', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+        const intl = {
+            formatMessage: jest.fn(({defaultMessage}) => defaultMessage),
+            formatRelativeTime: jest.fn((value: number, unit: string, options?: Intl.RelativeTimeFormatOptions) => `${value}${unit}`),
+            formatDate: jest.fn(),
+        };
+
+        const twoWeeksAgo = new Date('2020-06-01T12:00:00.000Z');
+        formatRelativeTimestamp(twoWeeksAgo, {timeZone, intl: intl as any, relativeStyle: 'narrow'});
+
+        expect(intl.formatRelativeTime).toHaveBeenCalledWith(-2, 'week', {style: 'narrow', numeric: 'always'});
+
+        jest.useRealTimers();
+    });
+
+    test('formatRelativeTimestamp uses master RHS relative thresholds', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+        const intl = {
+            formatMessage: jest.fn(({defaultMessage}) => defaultMessage),
+            formatRelativeTime: jest.fn((value: number, unit: string) => `${value} ${unit}`),
+            formatDate: jest.fn((date: Date, options: {month?: string; day?: string; year?: string}) => {
+                const dt = DateTime.fromJSDate(date, {zone: timeZone});
+                if (options.year) {
+                    return dt.toFormat('LLL d yyyy');
+                }
+                return dt.toFormat('LLL d');
+            }),
+        };
+
+        const threeHoursAgo = new Date('2020-06-15T09:00:00.000Z');
+        formatRelativeTimestamp(threeHoursAgo, {timeZone, intl: intl as any});
+        expect(intl.formatRelativeTime).toHaveBeenCalledWith(expect.any(Number), 'hour', longRelativeTimeOptions);
+
+        intl.formatRelativeTime.mockClear();
+
+        const twoDaysAgo = new Date('2020-06-13T12:00:00.000Z');
+        formatRelativeTimestamp(twoDaysAgo, {timeZone, intl: intl as any});
+        expect(intl.formatRelativeTime).toHaveBeenCalledWith(expect.any(Number), 'day', longRelativeTimeOptions);
+
+        intl.formatRelativeTime.mockClear();
+
+        const twoMonthsAgo = new Date('2020-04-15T12:00:00.000Z');
+        formatRelativeTimestamp(twoMonthsAgo, {timeZone, intl: intl as any});
+        expect(intl.formatRelativeTime).toHaveBeenCalledWith(expect.any(Number), 'month', longRelativeTimeOptions);
+
+        intl.formatRelativeTime.mockClear();
+
+        const twoYearsAgo = new Date('2018-06-15T12:00:00.000Z');
+        formatRelativeTimestamp(twoYearsAgo, {timeZone, intl: intl as any});
+        expect(intl.formatRelativeTime).toHaveBeenCalledWith(expect.any(Number), 'year', longRelativeTimeOptions);
+
+        jest.useRealTimers();
+    });
+
+    test('formatRelativeTimestamp rounds fractional relative diffs', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+        const intl = {
+            formatMessage: jest.fn(({defaultMessage}) => defaultMessage),
+            formatRelativeTime: jest.fn((value: number, unit: string) => `${value} ${unit}`),
+            formatDate: jest.fn(),
+        };
+
+        const twelveMinutesAgo = new Date('2020-06-15T11:47:18.120Z');
+        formatRelativeTimestamp(twelveMinutesAgo, {timeZone, intl: intl as any});
+
+        expect(intl.formatRelativeTime).toHaveBeenCalledWith(-13, 'minute', longRelativeTimeOptions);
+
+        jest.useRealTimers();
+    });
+
+    test('formatRelativeTimestamp falls back to absolute date after relative range', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2020-06-15T12:00:00.000Z'));
+
+        const intl = {
+            formatMessage: jest.fn(({defaultMessage}) => defaultMessage),
+            formatRelativeTime: jest.fn((value: number, unit: string) => `${value} ${unit}`),
+            formatDate: jest.fn((date: Date, options: {month?: string; day?: string; year?: string}) => {
+                const dt = DateTime.fromJSDate(date, {zone: timeZone});
+                if (options.year) {
+                    return dt.toFormat('LLL d yyyy');
+                }
+                return dt.toFormat('LLL d');
+            }),
+        };
+
+        const veryOld = new Date('1018-06-15T12:00:00.000Z');
+        const formatted = formatRelativeTimestamp(veryOld, {timeZone, intl: intl as any});
+
+        expect(intl.formatRelativeTime).not.toHaveBeenCalled();
+        expect(formatted).toBe('Jun 15 1018');
+
+        jest.useRealTimers();
     });
 
     test('formatFullDateTimeForTooltip includes seconds', () => {

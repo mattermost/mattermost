@@ -5,7 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {TimestampFormat} from '@mattermost/types/config';
+import {TimestampFormat} from '@mattermost/types/config';
 
 import Timestamp, {supportsHourCycle} from 'components/timestamp';
 import SemanticTime from 'components/timestamp/semantic_time';
@@ -52,7 +52,7 @@ function EventTimestamp({
 
     let inlineContent: React.ReactNode;
 
-    if (displayContext === 'post' && effectiveTier === 'time_only') {
+    if (displayContext === 'post' && effectiveTier === 'time_only' && timestampFormat !== TimestampFormat.RELATIVE) {
         inlineContent = (
             <Timestamp
                 value={dateValue}

@@ -22,7 +22,7 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Preferences} from 'utils/constants';
-import {getTimestampFormatLabel, getTimestampFormatShortLabel} from 'utils/datetime_display_format';
+import {getTimestampFormatLabel, getTimestampFormatShortLabel, getTimestampFormatTimeExample, supportsTimestampSeconds} from 'utils/datetime_display_format';
 
 import type {GlobalState} from 'types/store';
 
@@ -187,6 +187,12 @@ export default function DateTimeDisplayFormatSetting({
         }),
     });
 
+    const labelOptions = {
+        useMilitaryTime: clockSelection === 'true',
+        showTimestampSeconds: secondsSelection === 'true',
+    };
+    const showSecondsSetting = supportsTimestampSeconds(formatSelection);
+
     if (active) {
         return (
             <SettingItemMax
@@ -260,26 +266,31 @@ export default function DateTimeDisplayFormatSetting({
                                                 checked={formatSelection === format}
                                                 onChange={() => setFormatSelection(format)}
                                             />
-                                            {getTimestampFormatLabel(format, intl)}
+                                            {getTimestampFormatLabel(format, intl, labelOptions)}
                                         </label>
                                         <br/>
                                     </div>
                                 ))}
                             </div>
-                            <div className='checkbox'>
-                                <label>
-                                    <input
-                                        id='dateAndTimeShowSeconds'
-                                        type='checkbox'
-                                        checked={secondsSelection === 'true'}
-                                        onChange={() => setSecondsSelection(secondsSelection === 'true' ? 'false' : 'true')}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.display.showTimestampSeconds'
-                                        defaultMessage='Show seconds in timestamps (example: 4:00:07 PM)'
-                                    />
-                                </label>
-                            </div>
+                            {showSecondsSetting && (
+                                <div className='checkbox'>
+                                    <label>
+                                        <input
+                                            id='dateAndTimeShowSeconds'
+                                            type='checkbox'
+                                            checked={secondsSelection === 'true'}
+                                            onChange={() => setSecondsSelection(secondsSelection === 'true' ? 'false' : 'true')}
+                                        />
+                                        <FormattedMessage
+                                            id='user.settings.display.showTimestampSeconds'
+                                            defaultMessage='Show seconds in timestamps (example: {timeExample})'
+                                            values={{
+                                                timeExample: getTimestampFormatTimeExample(labelOptions),
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            )}
                         </fieldset>
                     </React.Fragment>,
                 ]}

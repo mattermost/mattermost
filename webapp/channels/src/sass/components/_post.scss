@@ -1330,14 +1330,29 @@
         }
     }
 
-    @container post-content (max-width: 480px) {
-        .post__header--wrap-time {
+    @container post-content (max-width: 320px) {
+        &:not(.post--compact) .post__header--wrap-time {
             .post__header-timestamp {
                 flex-basis: 100%;
                 order: 4;
                 margin-top: 2px;
                 margin-right: 0;
                 margin-bottom: 2px;
+            }
+        }
+    }
+
+    &.post--compact {
+        // Compact mode hides avatars (16px gutter vs 63px), so post__main is wider at the same viewport.
+        @container post-content (max-width: 280px) {
+            .post__header--wrap-time {
+                .post__header-timestamp {
+                    flex-basis: 100%;
+                    order: 4;
+                    margin-top: 2px;
+                    margin-right: 0;
+                    margin-bottom: 2px;
+                }
             }
         }
     }
