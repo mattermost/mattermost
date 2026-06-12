@@ -9567,6 +9567,10 @@
     "translation": "Unable to update verify email field."
   },
   {
+    "id": "app.user_access_token.count_non_compliant.app_error",
+    "translation": "Unable to count the personal access tokens that violate the maximum lifetime policy."
+  },
+  {
     "id": "app.user_access_token.delete.app_error",
     "translation": "Unable to delete the personal access token."
   },
@@ -9599,8 +9603,16 @@
     "translation": "Unable to get the personal access tokens by user."
   },
   {
+    "id": "app.user_access_token.get_non_compliant.app_error",
+    "translation": "Unable to retrieve the personal access tokens that violate the maximum lifetime policy."
+  },
+  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Invalid or missing token."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
+    "translation": "No maximum personal access token lifetime is configured, so there are no non-compliant tokens to revoke."
   },
   {
     "id": "app.user_access_token.save.app_error",

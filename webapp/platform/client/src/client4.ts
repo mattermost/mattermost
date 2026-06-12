@@ -1315,6 +1315,20 @@ export default class Client4 {
         );
     };
 
+    getNonCompliantUserAccessTokenCount = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/non_compliant/count`,
+            {method: 'get'},
+        );
+    };
+
+    revokeNonCompliantUserAccessTokens = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/revoke_non_compliant`,
+            {method: 'post'},
+        );
+    };
+
     disableUserAccessToken = (tokenId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/tokens/disable`,

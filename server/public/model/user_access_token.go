@@ -7,6 +7,13 @@ import (
 	"net/http"
 )
 
+// NonCompliantUserAccessTokenResult is the response payload for the endpoints
+// that count or revoke personal access tokens violating the maximum lifetime
+// policy. Count carries the number of tokens previewed or actually revoked.
+type NonCompliantUserAccessTokenResult struct {
+	Count int64 `json:"count"`
+}
+
 type UserAccessToken struct {
 	Id          string `json:"id"`
 	Token       string `json:"token,omitempty"`
