@@ -10,7 +10,7 @@ type Props = {
     selectedFilter: string;
     getGroups: (page: number, groupType: string) => void;
     onToggle: (isOpen: boolean) => void;
-}
+};
 
 const UserGroupsFilter = (props: Props) => {
     const {

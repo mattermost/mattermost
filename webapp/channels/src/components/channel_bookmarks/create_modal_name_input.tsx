@@ -31,7 +31,7 @@ type Props = {
     showEmojiPicker: boolean;
     setShowEmojiPicker: React.Dispatch<React.SetStateAction<boolean>>;
     onAddCustomEmojiClick?: () => void;
-}
+};
 const CreateModalNameInput = ({
     maxLength,
     type,

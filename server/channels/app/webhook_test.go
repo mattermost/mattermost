@@ -98,6 +98,36 @@ func TestHandleIncomingWebhookRootId(t *testing.T) {
 	})
 }
 
+func TestHandleIncomingWebhookDirectMessage(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: false})
+	require.Nil(t, appErr)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	t.Run("rejects DM to a user the owner shares no team with", func(t *testing.T) {
+		stranger := th.CreateUser(t)
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        "out of team dm",
+			ChannelName: "@" + stranger.Username,
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("allows DM to a user the owner shares a team with", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        "team dm",
+			ChannelName: "@" + th.BasicUser2.Username,
+		})
+		require.Nil(t, err)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

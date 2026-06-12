@@ -13,7 +13,7 @@ type LanguageObject = {
         extensions: string[];
         aliases?: string[];
     };
-}
+};
 
 const HighlightedLanguages: LanguageObject = Constants.HighlightedLanguages;
 

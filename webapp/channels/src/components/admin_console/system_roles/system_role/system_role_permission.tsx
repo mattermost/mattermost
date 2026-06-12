@@ -21,7 +21,7 @@ type Props = {
     visibleSections: Record<string, boolean>;
     permissionsToUpdate: PermissionsToUpdate;
     updatePermissions: (permissions: PermissionToUpdate[]) => void;
-}
+};
 
 export default class SystemRolePermission extends React.PureComponent<Props> {
     isSectionVisible = (section: SystemSection, visibleSections: Record<string, boolean>) => {

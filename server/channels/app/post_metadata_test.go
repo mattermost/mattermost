@@ -312,8 +312,6 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 
 		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"), true)
-		fileInfo.Content = "test"
-		fileInfo.ChannelId = th.BasicChannel.Id
 		require.Nil(t, err)
 
 		post, _, err := th.App.CreatePost(th.Context, &model.Post{
@@ -323,15 +321,29 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		fileInfo.PostId = post.Id
-
-		var clientPost *model.Post
-		assert.Eventually(t, func() bool {
-			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
-			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
+		// DoUploadFile kicks off async content extraction; wait for attach + extraction on
+		// master before PreparePostForClient so the file-info cache is not seeded early.
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			attached, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+			if !assert.NoError(c, storeErr) || attached == nil {
+				return
+			}
+			assert.Equal(c, post.Id, attached.PostId)
+			if *th.App.Config().FileSettings.ExtractContent {
+				assert.Equal(c, "test", attached.Content)
+			}
 		}, 10*time.Second, 25*time.Millisecond)
 
-		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
+		expectedFileInfo, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+		require.NoError(t, storeErr)
+
+		var clientPost *model.Post
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
+			assert.True(c, assert.ObjectsAreEqual([]*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files))
+		}, 10*time.Second, 25*time.Millisecond)
+
+		assert.Equal(t, []*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
 
 	t.Run("emojis without custom emojis enabled", func(t *testing.T) {
@@ -3613,6 +3625,97 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 		require.True(t, ok)
 		// Should have current display name from database, not stale data
 		require.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
+
+	t.Run("retains same-team public channel mention for non-channel-member under compliance", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+
+		// BasicUser2 is a member of BasicTeam (via InitBasic) but NOT of this fresh channel.
+		ch := th.CreateChannel(t, th.BasicTeam)
+
+		post := &model.Post{
+			Message: "Check ~" + ch.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			ch.Name: map[string]any{
+				"display_name": ch.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, ch.Name)
+	})
+
+	t.Run("strips cross-team public channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				team2 := th.CreateTeam(t)
+				ch := th.CreateChannel(t, team2)
+
+				post := &model.Post{
+					Message: "Check ~" + ch.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					ch.Name: map[string]any{
+						"display_name": ch.DisplayName,
+						"team_name":    team2.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
+
+	t.Run("strips private channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				priv := th.CreatePrivateChannel(t, th.BasicTeam)
+				_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, "", priv)
+
+				post := &model.Post{
+					Message: "Check ~" + priv.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					priv.Name: map[string]any{
+						"display_name": priv.DisplayName,
+						"team_name":    th.BasicTeam.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
 	})
 }
 

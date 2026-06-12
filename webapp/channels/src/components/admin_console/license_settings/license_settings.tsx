@@ -63,7 +63,7 @@ type Props = {
             error?: ServerError;
         }>;
     };
-}
+};
 
 const messages = defineMessages({
     title: {id: 'admin.license.title', defaultMessage: 'Edition and License'},

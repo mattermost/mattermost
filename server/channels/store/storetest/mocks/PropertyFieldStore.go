@@ -264,6 +264,36 @@ func (_m *PropertyFieldStore) GetFieldByName(ctx context.Context, groupID string
 	return r0, r1
 }
 
+// GetForGroup provides a mock function with given fields: ctx, groupID
+func (_m *PropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+	ret := _m.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForGroup")
+	}
+
+	var r0 []*model.PropertyField
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*model.PropertyField, error)); ok {
+		return rf(ctx, groupID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.PropertyField); ok {
+		r0 = rf(ctx, groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyField)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMany provides a mock function with given fields: ctx, groupID, ids
 func (_m *PropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 	ret := _m.Called(ctx, groupID, ids)

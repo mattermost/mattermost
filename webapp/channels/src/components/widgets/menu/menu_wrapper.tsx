@@ -28,11 +28,11 @@ type Props = {
     isDisabled?: boolean;
     stopPropagationOnToggle?: boolean;
     open?: boolean;
-}
+};
 
 type State = {
     open: boolean;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.

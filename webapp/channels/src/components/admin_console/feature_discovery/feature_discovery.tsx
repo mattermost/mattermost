@@ -52,13 +52,13 @@ type Props = {
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
     showSkuTag?: boolean;
-}
+};
 
 type State = {
     gettingTrial: boolean;
     gettingTrialError: string | null;
     gettingTrialResponseCode: number | null;
-}
+};
 
 export default class FeatureDiscovery extends React.PureComponent<Props, State> {
     constructor(props: Props) {

@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @not_cloud @extend_session
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {verifyExtendedSession, verifyNotExtendedSession} from './helpers';
 

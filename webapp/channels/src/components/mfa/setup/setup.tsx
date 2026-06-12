@@ -33,14 +33,14 @@ type Props = {
     history: {
         push(path: string): void;
     };
-}
+};
 
 type State = {
     secret: string;
     qrCode: string;
     error: React.ReactNode;
     serverError?: string;
-}
+};
 
 export default class Setup extends React.PureComponent<Props, State> {
     input: React.RefObject<HTMLInputElement>;

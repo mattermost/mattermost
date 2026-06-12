@@ -46,7 +46,7 @@ export type SystemEmojiVariation = {
     has_img_google: boolean;
     has_img_twitter: boolean;
     has_img_facebook: boolean;
-}
+};
 
 export type Emoji = SystemEmoji | CustomEmoji;
 

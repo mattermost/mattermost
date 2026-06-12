@@ -16,7 +16,7 @@ export const AppBindingPresentations = {
     MODAL: 'modal',
 };
 
-export const AppCallResponseTypes: { [name: string]: AppCallResponseType } = {
+export const AppCallResponseTypes: {[name: string]: AppCallResponseType} = {
     OK: 'ok',
     ERROR: 'error',
     FORM: 'form',
@@ -24,14 +24,14 @@ export const AppCallResponseTypes: { [name: string]: AppCallResponseType } = {
     NAVIGATE: 'navigate',
 };
 
-export const AppExpandLevels: { [name: string]: AppExpandLevel } = {
+export const AppExpandLevels: {[name: string]: AppExpandLevel} = {
     EXPAND_DEFAULT: '',
     EXPAND_NONE: 'none',
     EXPAND_ALL: 'all',
     EXPAND_SUMMARY: 'summary',
 };
 
-export const AppFieldTypes: { [name: string]: AppFieldType } = {
+export const AppFieldTypes: {[name: string]: AppFieldType} = {
     TEXT: 'text',
     STATIC_SELECT: 'static_select',
     DYNAMIC_SELECT: 'dynamic_select',
