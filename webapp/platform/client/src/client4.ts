@@ -905,7 +905,7 @@ export default class Client4 {
             login_id: loginId,
         };
 
-        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean}>(
             `${this.getUsersRoute()}/login/type`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -3810,7 +3810,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase & { data?: any }) => {
+    createJob = (job: JobTypeBase & {data?: any}) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},

@@ -33,11 +33,11 @@ type Props = {
     readOnly?: boolean;
     license?: ClientLicense;
     customGroupsEnabled: boolean;
-}
+};
 
 type State = {
     editTimeLimitModalIsVisible: boolean;
-}
+};
 
 export default class PermissionsTree extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {

@@ -127,7 +127,7 @@ function restoreProtectedUrlsAndAdjustMarks(
     originalText: string,
     marks: PreservedMark[],
     protectedUrls?: ProtectedUrl[],
-): { restoredText: string; adjustedMarks: PreservedMark[] } {
+): {restoredText: string; adjustedMarks: PreservedMark[]} {
     if (!protectedUrls?.length) {
         return {restoredText: aiText, adjustedMarks: marks};
     }

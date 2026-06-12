@@ -68,6 +68,7 @@ import type {
     PluggableText,
     SidebarBrowseOrAddChannelMenuAction,
     AIActionMenuItemComponent,
+    ChannelTypeOptionComponent,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -879,7 +880,7 @@ export default class PluginRegistry {
      * Accepts a string event type.
      * Returns undefined.
      */
-    unregisterWebSocketEventHandler = reArg(['event'], ({event}: { event: string }) => {
+    unregisterWebSocketEventHandler = reArg(['event'], ({event}: {event: string}) => {
         unregisterPluginWebSocketEvent(this.id, event);
     });
 
@@ -1296,6 +1297,58 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             icon: resolveReactElement(icon),
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a channel-type option in the "Create a new channel" modal.
+     *
+     * When the user selects this option, the modal calls `onCreate` with the current form state and
+     * awaits one of three outcomes:
+     *   - `{status: 'created', channel}` – plugin created the channel; modal closes with the new channel.
+     *   - `{status: 'deferred'}` – plugin will finish asynchronously; modal closes immediately.
+     *   - `{status: 'error', message}` – creation failed; modal surfaces the message.
+     *
+     * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
+     * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
+     *
+     * Returns a unique identifier for the registered option, which can be passed to
+     * `unregisterComponent`.
+     */
+    registerChannelTypeOption = reArg([
+        'label',
+        'description',
+        'icon',
+        'isAvailable',
+        'extraContent',
+        'onCreate',
+    ], ({
+        label,
+        description,
+        icon,
+        isAvailable,
+        extraContent,
+        onCreate,
+    }: {
+        label: ReactResolvable;
+        description: ReactResolvable;
+        icon: ReactResolvable;
+        isAvailable: ChannelTypeOptionComponent['isAvailable'];
+        extraContent?: ChannelTypeOptionComponent['extraContent'];
+        onCreate: ChannelTypeOptionComponent['onCreate'];
+    }) => {
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelTypeOption', {
+            id,
+            pluginId: this.id,
+            label: resolveReactElement(label),
+            description: resolveReactElement(description),
+            icon: resolveReactElement(icon),
+            isAvailable,
+            extraContent,
+            onCreate,
         });
 
         return id;

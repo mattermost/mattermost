@@ -24,7 +24,7 @@ import TeamDetails from './team_details';
 
 type Params = {
     team_id: string;
-}
+};
 
 export type OwnProps = RouteComponentProps<Params>;
 

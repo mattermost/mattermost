@@ -332,7 +332,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             rerender(<WikiPageEditor
                 {...baseProps}
                 title='New Title from Props'
-            />, /* eslint-disable-line react/jsx-closing-bracket-location */
+            />, /* eslint-disable-line @stylistic/jsx-closing-bracket-location */
             );
 
             expect(screen.getByDisplayValue('New Title from Props')).toBeInTheDocument();

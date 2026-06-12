@@ -20,7 +20,7 @@ type Props = {
     id?: Post['id'];
     isRootPost?: boolean;
     isChannelAutotranslated: boolean;
-}
+};
 
 function Reply({
     a11yIndex,

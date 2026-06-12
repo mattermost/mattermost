@@ -49,7 +49,7 @@ export type Props = {
         ) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const UserGroupsModal = (props: Props) => {
     const [searchTimeoutId, setSearchTimeoutId] = useState(0);

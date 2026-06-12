@@ -37,7 +37,7 @@ interface WrappedChannel {
     type: Channel['type'];
 }
 
-type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>
+type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>;
 
 const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<WrappedChannel>>((props, ref) => {
     const {formatMessage} = useIntl();

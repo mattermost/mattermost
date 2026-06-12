@@ -90,7 +90,7 @@ function ThreadItem({
     isChannelAutotranslated,
     rowIndex,
     setRowHeight,
-}: Props & OwnProps): React.ReactElement|null {
+}: Props & OwnProps): React.ReactElement | null {
     const dispatch = useDispatch();
     const {select, goToInChannel, currentTeamId, params} = useThreadRouting();
     const {formatMessage, locale} = useIntl();

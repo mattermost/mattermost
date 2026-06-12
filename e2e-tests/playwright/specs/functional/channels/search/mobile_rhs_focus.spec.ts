@@ -28,10 +28,10 @@ test.describe('Mobile view RHS auto-focus', () => {
 
             // # Set up a listener to track if the search box ever gets focus
             await page.evaluate(() => {
-                (window as any).__sbrSearchBoxFocusCount = 0;
+                (window as any).sbrSearchBoxFocusCount = 0;
                 document.addEventListener('focusin', (e) => {
                     if (e.target && 'id' in e.target && e.target.id === 'sbrSearchBox') {
-                        (window as any).__sbrSearchBoxFocusCount += 1;
+                        (window as any).sbrSearchBoxFocusCount += 1;
                     }
                 });
             });
@@ -47,7 +47,7 @@ test.describe('Mobile view RHS auto-focus', () => {
             }
 
             // * Verify the mobile RHS search input never received focus
-            const searchFocusCount = await page.evaluate(() => (window as any).__sbrSearchBoxFocusCount);
+            const searchFocusCount = await page.evaluate(() => (window as any).sbrSearchBoxFocusCount);
             expect(searchFocusCount).toBe(0);
         },
     );

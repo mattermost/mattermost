@@ -87,7 +87,7 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '1 person editing'});
 
     // * Verify User 2's avatar is displayed
-    const avatar = activeEditorsIndicator.locator(`[data-testid*="avatar"]`);
+    const avatar = activeEditorsIndicator.locator('[data-testid*="avatar"]');
     await expect(avatar).toBeVisible();
 
     await page2.close();

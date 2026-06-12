@@ -341,7 +341,7 @@ test('combined type:page wiki: modifiers', {tag: '@pages'}, async ({pw, sharedPa
     const wikiName = uniqueName('CombinedWiki');
     await createWikiThroughUI(page, wikiName);
     const uniqueKeyword = uniqueName('CombinedTest');
-    await createPageThroughUI(page, `Combined Test Page`, `Content ${uniqueKeyword}`);
+    await createPageThroughUI(page, 'Combined Test Page', `Content ${uniqueKeyword}`);
 
     // # Wait for indexing
     await page.waitForTimeout(EDITOR_LOAD_WAIT);

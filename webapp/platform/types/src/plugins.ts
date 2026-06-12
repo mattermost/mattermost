@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from './channels';
+
 // Equivalent to MessageDescriptor from react-intl
 type MessageDescriptor = {
     id: string;
     defaultMessage: string;
-}
+};
 
 export type PluginManifest = {
     id: string;
@@ -94,7 +96,7 @@ type PluginInstance = {
     cluster_id: string;
     version: string;
     state: number;
-}
+};
 
 export type PluginStatusRedux = {
     id: string;
@@ -105,7 +107,7 @@ export type PluginStatusRedux = {
     state: number;
     error?: string;
     instances: PluginInstance[];
-}
+};
 
 export type ClientPluginManifest = {
     id: string;
@@ -115,14 +117,14 @@ export type ClientPluginManifest = {
     webapp: {
         bundle_path: string;
     };
-}
+};
 
 export type MarketplaceLabel = { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
     name: string;
     description?: string;
     url?: string;
     color?: string;
-}
+};
 
 export enum HostingType { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
     OnPrem = 'on-prem',
@@ -153,4 +155,30 @@ export type MarketplacePlugin = { // TODO remove this in favour of the definitio
     enterprise: boolean;
     manifest: PluginManifest;
     installed_version?: string;
-}
+};
+
+/**
+ * Snapshot of the "Create a new channel" modal's form, passed to a plugin's channel-type option
+ * (both its `extraContent` component and its `onCreate` handler). `type` is the id of the selected
+ * channel-type option: 'O' or 'P' for the built-in public/private types, otherwise the registered
+ * option's id. All fields are read-only; the plugin does not write back into the modal.
+ */
+export type NewChannelFormState = {
+    teamId: string;
+    displayName: string;
+    url: string;
+    purpose: string;
+    type: string;
+    managedCategoryName?: string;
+};
+
+/**
+ * Discriminated union returned by a channel-type option's `onCreate` handler.
+ * - `created`: plugin created the channel successfully; the modal switches to `channel`.
+ * - `deferred`: plugin will finish creation asynchronously; the modal closes immediately.
+ * - `error`: plugin encountered an error; the modal displays `message`.
+ */
+export type NewChannelFormResult =
+    | {status: 'created'; channel: Channel}
+    | {status: 'deferred'}
+    | {status: 'error'; message: string};

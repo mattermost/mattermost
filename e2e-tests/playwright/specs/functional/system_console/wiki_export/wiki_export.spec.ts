@@ -3,8 +3,8 @@
 
 import {randomBytes} from 'crypto';
 
-import {Client4} from '@mattermost/client';
-import {Job} from '@mattermost/types/jobs';
+import type {Client4} from '@mattermost/client';
+import type {Job} from '@mattermost/types/jobs';
 
 import {expect, test, testConfig} from '@mattermost/playwright-lib';
 

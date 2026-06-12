@@ -27,7 +27,7 @@ type Props = {
     dmUser?: UserProfile;
     gmMembers?: UserProfile[];
     remoteNames?: string[];
-}
+};
 
 const ChannelHeaderTitle = ({
     dmUser,

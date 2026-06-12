@@ -119,11 +119,11 @@ export type BaseWebSocketMessage<Event, T = Record<string, never>> = {
     data: T;
     broadcast: WebSocketBroadcast;
     seq: number;
-}
+};
 
 export type WebSocketBroadcast = {
     omit_users: Record<string, boolean>;
     user_id: string;
     channel_id: string;
     team_id: string;
-}
+};

@@ -17,7 +17,7 @@ type Props = {
     onConfirm: () => void | Promise<void>;
     onCancel?: () => void;
     onExited: () => void;
-}
+};
 
 const renderStrong = (chunk: React.ReactNode) => <strong>{chunk}</strong>;
 

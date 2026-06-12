@@ -15,7 +15,7 @@ type Props = {
     channelsAffected: number;
     publicChannelsAffected?: number;
     privateChannelsAffected?: number;
-}
+};
 
 export default function PolicyConfirmationModal({active, onExited, onConfirm, channelsAffected, publicChannelsAffected = 0, privateChannelsAffected = 0}: Props) {
     const {formatMessage} = useIntl();

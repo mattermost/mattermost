@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
-import {Post} from '@mattermost/types/posts';
+import type {Client4} from '@mattermost/client';
+import type {Post} from '@mattermost/types/posts';
 
 type PageContent = {
     type: 'doc';

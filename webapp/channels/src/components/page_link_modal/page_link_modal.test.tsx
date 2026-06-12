@@ -382,7 +382,7 @@ describe('PageLinkModal', () => {
         renderWithContext(<PageLinkModal
             {...baseProps}
             pages={[]}
-        />, /* eslint-disable-line react/jsx-closing-bracket-location */
+        />, /* eslint-disable-line @stylistic/jsx-closing-bracket-location */
         );
 
         const insertButton = screen.getByText('Insert Link');

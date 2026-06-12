@@ -16,7 +16,7 @@ type Props = {
     onConfirm: () => void | Promise<void>;
     onCancel?: () => void;
     onExited: () => void;
-}
+};
 
 const noop = () => {};
 

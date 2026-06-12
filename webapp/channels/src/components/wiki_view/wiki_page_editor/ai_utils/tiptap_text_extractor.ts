@@ -101,7 +101,7 @@ export function extractTextChunks(doc: TipTapDoc): ExtractionResult {
 function protectLinkUrls(
     text: string,
     marks: PreservedMark[],
-): { protectedText: string; protectedUrls: ProtectedUrl[]; adjustedMarks: PreservedMark[] } {
+): {protectedText: string; protectedUrls: ProtectedUrl[]; adjustedMarks: PreservedMark[]} {
     // Find ALL link marks - protect all link text to preserve mark positions
     const urlMarks = marks.filter((m) => m.type === 'link');
 
@@ -113,7 +113,7 @@ function protectLinkUrls(
     const urlMarksSortedAsc = [...urlMarks].sort((a, b) => a.from - b.from);
 
     // Pre-assign placeholder numbers based on document order
-    const placeholderMap = new Map<PreservedMark, { placeholder: string; original: string }>();
+    const placeholderMap = new Map<PreservedMark, {placeholder: string; original: string}>();
     for (let i = 0; i < urlMarksSortedAsc.length; i++) {
         const mark = urlMarksSortedAsc[i];
         const original = text.slice(mark.from, mark.to);

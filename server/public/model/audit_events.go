@@ -453,7 +453,7 @@ const (
 
 // Users
 const (
-	AuditEventAttachDeviceId               = "attachDeviceId"               // attach device ID to user session for mobile app
+	AuditEventAttachDeviceId               = "attachDeviceId"               // attach device IDs (standard or VoIP) to user session for mobile app
 	AuditEventCreateUser                   = "createUser"                   // create user account
 	AuditEventCreateUserAccessToken        = "createUserAccessToken"        // create personal access token for user API access
 	AuditEventDeleteUser                   = "deleteUser"                   // delete user account

@@ -19,7 +19,6 @@ import {
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Upload Files - Video', () => {
     before(() => {
         // # Create new team and new user and visit test channel

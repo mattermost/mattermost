@@ -39,7 +39,7 @@ export type AutocompleteOptionType<T> = {
     label: string | ReactElement;
     value: string;
     raw?: T;
-}
+};
 
 const BASE_SELECT_COMPONENTS = {
     LoadingIndicator,
@@ -50,12 +50,12 @@ const BASE_SELECT_COMPONENTS = {
 type MultiSelectProps = {
     multiSelectOnChange?: (selectedUserIds: string[]) => void;
     multiSelectInitialValue?: string[];
-}
+};
 
 type SingleSelectProps = {
     singleSelectOnChange?: (selectedUserId: string) => void;
     singleSelectInitialValue?: string;
-}
+};
 
 type Props = MultiSelectProps & SingleSelectProps & {
     id: string;

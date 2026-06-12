@@ -59,7 +59,7 @@ export type Props = PropsFromRedux & {
     onVersionRestored?: () => void;
     customHandleUndo?: () => Promise<void>;
     isChannelAutotranslated: boolean;
-}
+};
 
 const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, onVersionRestored, customHandleUndo, isChannelAutotranslated}: Props) => {
     const {formatMessage, locale} = useIntl();

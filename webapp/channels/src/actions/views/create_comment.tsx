@@ -180,7 +180,7 @@ export type OnSubmitOptions = {
     afterSubmit?: (response: SubmitPostReturnType) => void;
     afterOptimisticSubmit?: () => void;
     keepDraft?: boolean;
-}
+};
 
 export function onSubmit(
     draft: PostDraft,

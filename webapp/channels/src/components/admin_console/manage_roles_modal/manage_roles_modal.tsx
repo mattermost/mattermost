@@ -32,7 +32,7 @@ export type Props = {
     actions: {
         updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     show: boolean;
@@ -42,7 +42,7 @@ type State = {
     hasPostAllPublicRole: boolean;
     hasUserAccessTokenRole: boolean;
     isSystemAdmin: boolean;
-}
+};
 
 function getStateFromProps(props: Props): State {
     const roles = props.user && props.user.roles ? props.user.roles : '';

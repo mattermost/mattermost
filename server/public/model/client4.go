@@ -1816,6 +1816,20 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 	return BuildResponse(r), nil
 }
 
+// GetSessionAttributesManifest returns the enabled session attribute schema for the caller's platform inferred from User-Agent.
+func (c *Client4) GetSessionAttributesManifest(ctx context.Context) ([]*SessionAttributeManifestEntry, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.usersRoute().Join("sessions", "attributes", "manifest"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	manifest, _, err := DecodeJSONFromResponse[[]*SessionAttributeManifestEntry](r)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	return manifest, BuildResponse(r), nil
+}
+
 // AttachDeviceProps attaches a mobile device ID to the current session and other props.
 func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]string) (*Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.usersRoute().Join("sessions", "device"), newProps)

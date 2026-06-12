@@ -529,7 +529,7 @@ test(
         if (showsDeletedContent) {
             throw new Error(
                 `Bug: Clicking link to deleted page "${pageTitle}" still shows the deleted page content. ` +
-                    `Expected: error message, redirect, or empty state. ` +
+                    'Expected: error message, redirect, or empty state. ' +
                     `URL: ${currentUrl}`,
             );
         }

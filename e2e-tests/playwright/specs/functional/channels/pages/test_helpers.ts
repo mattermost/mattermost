@@ -901,7 +901,7 @@ export async function waitForWikiViewLoad(page: Page, timeout = WIKI_VIEW_TIMEOU
 
     // Wait for the loading indicator to be detached/hidden
     // Use 'detached' state which covers both "hidden" and "not in DOM" cases
-    await loadingLocator.waitFor({state: 'detached', timeout: timeout}).catch(async () => {
+    await loadingLocator.waitFor({state: 'detached', timeout}).catch(async () => {
         // If still attached after timeout, check if it's at least hidden
         const isStillVisible = await loadingLocator.isVisible().catch(() => false);
         if (isStillVisible) {

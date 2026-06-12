@@ -15,7 +15,7 @@ import Reply from './reply';
 type OwnProps = {
     id: string;
     isRootPost?: boolean;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const previewCollapsed = get(

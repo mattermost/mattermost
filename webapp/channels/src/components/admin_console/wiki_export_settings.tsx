@@ -44,7 +44,7 @@ const messages = defineMessages({
 });
 
 export const searchableStrings: Array<
-string | MessageDescriptor | [MessageDescriptor, { [key: string]: any }]
+string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]
 > = [
     messages.title,
     messages.description,

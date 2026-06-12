@@ -287,13 +287,13 @@ test('expands and collapses page tree nodes efficiently', {tag: '@pages'}, async
 
         for (let child = 1; child <= 5; child++) {
             const childTitle = `Root ${root} Child ${child}`;
-            const childContent = createPageContent(`Child content`);
+            const childContent = createPageContent('Child content');
             const childPage = await createPageViaDraft(client, wiki.id, childTitle, childContent, rootPage.id);
             structure.push({id: childPage.id, title: childTitle, level: 2});
 
             for (let grandchild = 1; grandchild <= 3; grandchild++) {
                 const grandchildTitle = `R${root}C${child} Grandchild ${grandchild}`;
-                const grandchildContent = createPageContent(`Grandchild content`);
+                const grandchildContent = createPageContent('Grandchild content');
                 const grandchildPage = await createPageViaDraft(
                     client,
                     wiki.id,

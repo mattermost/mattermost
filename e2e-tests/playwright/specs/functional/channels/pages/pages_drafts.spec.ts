@@ -722,7 +722,7 @@ test(
 
         // * Verify parent draft appears in hierarchy
         const parentDraftNode = hierarchyPanel
-            .locator(`[data-testid="page-tree-node"][data-is-draft="true"]`)
+            .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
             .filter({hasText: 'Parent Draft'});
         await expect(parentDraftNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
@@ -751,7 +751,7 @@ test(
 
         // # Refind parent node after navigation (page reloaded)
         const parentDraftNodeAfterChildCreate = hierarchyPanel
-            .locator(`[data-testid="page-tree-node"][data-is-draft="true"]`)
+            .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
             .filter({hasText: 'Parent Draft'});
         await expect(parentDraftNodeAfterChildCreate).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
@@ -763,7 +763,7 @@ test(
 
         // * Verify child draft appears under parent draft in hierarchy
         const childDraftNode = hierarchyPanel
-            .locator(`[data-testid="page-tree-node"][data-is-draft="true"]`)
+            .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
             .filter({hasText: 'Child Draft'});
         await expect(childDraftNode).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
@@ -794,7 +794,7 @@ test(
 
         // * Verify parent is now published (no draft badge)
         const publishedParentNode = hierarchyPanel
-            .locator(`[data-testid="page-tree-node"][data-is-draft="false"]`)
+            .locator('[data-testid="page-tree-node"][data-is-draft="false"]')
             .filter({hasText: 'Parent Draft'});
         await expect(publishedParentNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
@@ -810,7 +810,7 @@ test(
         // * Verify child draft is STILL under published parent (NOT moved to root)
         // The child should still be visible and still be a draft
         const childDraftAfterPublish = hierarchyPanel
-            .locator(`[data-testid="page-tree-node"][data-is-draft="true"]`)
+            .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
             .filter({hasText: 'Child Draft'});
         await expect(childDraftAfterPublish).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 

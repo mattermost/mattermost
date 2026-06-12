@@ -26,7 +26,7 @@ export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
 export type EmojiItem = {
     emoji: Emoji;
     name: string;
-}
+};
 
 export const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<EmojiItem>>((props, ref) => {
     const displayName = ':' + props.item.name + ':';

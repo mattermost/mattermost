@@ -4,7 +4,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {Client4} from '@mattermost/client';
+import type {Client4} from '@mattermost/client';
 
 import {testConfig} from '@/test_config';
 
@@ -90,7 +90,7 @@ async function verifyPluginConfigurationOnce(adminClient: Client4): Promise<bool
     const bot = bots[0];
     const linkedService = services.find((s) => s.id === bot.serviceID);
 
-    return !!linkedService;
+    return Boolean(linkedService);
 }
 
 /**
@@ -361,9 +361,9 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
         const pluginEntry = latestConfig.PluginSettings?.Plugins?.[AI_PLUGIN_ID] as Record<string, unknown> | undefined;
         const pluginConfig = pluginEntry?.config as Record<string, unknown> | undefined;
         const services = (pluginConfig?.services as Array<{apiKey?: string}>) || [];
-        const bots = (pluginConfig?.bots as Array<unknown>) || [];
+        const bots = (pluginConfig?.bots as unknown[]) || [];
         const debugInfo = {
-            hasPluginConfig: !!pluginConfig,
+            hasPluginConfig: Boolean(pluginConfig),
             servicesCount: services.length,
             botsCount: bots.length,
             hasApiKey: services.some((s) => (s.apiKey?.length ?? 0) > 0),

@@ -66,7 +66,7 @@ export type PostListRowProps = {
           */
         emitShortcutReactToLastPostFrom: typeof emitShortcutReactToLastPostFrom;
     };
-}
+};
 
 export default class PostListRow extends React.PureComponent<PostListRowProps> {
     blockShortcutReactToLastPostForNonMessages(listId: string) {

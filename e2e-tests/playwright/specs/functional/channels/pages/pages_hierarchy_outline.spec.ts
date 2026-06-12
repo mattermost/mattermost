@@ -145,7 +145,7 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
 
     // # Click on the page to view it, then edit
     const hierarchyPanel = getHierarchyPanel(page);
-    const pageNode = hierarchyPanel.locator(`text="Page with Headings"`).first();
+    const pageNode = hierarchyPanel.locator('text="Page with Headings"').first();
     await pageNode.click();
     await page.waitForLoadState('networkidle');
 
@@ -262,7 +262,7 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
 
     // # Click on the page to view it, then edit
     const hierarchyPanel = getHierarchyPanel(page);
-    const pageNode = hierarchyPanel.locator(`text="Navigate to Headings"`).first();
+    const pageNode = hierarchyPanel.locator('text="Navigate to Headings"').first();
     await pageNode.click();
     await page.waitForLoadState('networkidle');
 

@@ -181,7 +181,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             rerender(<PagesHierarchyPanel
                 {...baseProps}
                 currentPageId={childPageId}
-            />, /* eslint-disable-line react/jsx-closing-bracket-location */
+            />, /* eslint-disable-line @stylistic/jsx-closing-bracket-location */
             );
 
             // Should expand ancestors to show path to current page

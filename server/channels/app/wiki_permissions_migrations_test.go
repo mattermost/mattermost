@@ -55,7 +55,7 @@ func TestAddWikiPagePermissionsMigration(t *testing.T) {
 		return system.Name == model.MigrationKeyAddWikiPagePermissions && system.Value == "true"
 	})).Return(nil).Once()
 
-	roleStore.On("Save", mock.AnythingOfType("*model.Role")).
+	roleStore.On("SavePreservingUnknownPermissions", mock.AnythingOfType("*model.Role")).
 		Return(func(role *model.Role) *model.Role { return role }, nil).Times(len(roles))
 
 	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyAddWikiPagePermissions, migrationMap, roles)
@@ -155,6 +155,6 @@ func TestAddWikiPagePermissionsMigration(t *testing.T) {
 		assert.Equal(t, systemAdminBefore, len(systemAdminRole.Permissions))
 	})
 
-	roleStore.AssertNumberOfCalls(t, "Save", len(roles))
+	roleStore.AssertNumberOfCalls(t, "SavePreservingUnknownPermissions", len(roles))
 	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
 }

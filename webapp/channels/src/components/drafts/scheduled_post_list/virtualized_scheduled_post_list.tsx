@@ -27,7 +27,7 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
-}
+};
 
 export default function ScheduledPostList(props: Props) {
     const query = useQuery();

@@ -15,14 +15,14 @@ import './admin_user_card.scss';
 
 type BulletProps = {
     user: UserProfile;
-}
+};
 
 export type Props = {
     user?: UserProfile;
     isLoading?: boolean;
     body?: React.ReactNode;
     footer?: React.ReactNode;
-}
+};
 
 const AdminUserCard = ({isLoading = false, ...props}: Props) => {
     if (!props.user || isLoading) {
