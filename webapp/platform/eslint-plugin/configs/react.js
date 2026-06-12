@@ -190,7 +190,6 @@ export default [
             // should be done by converting getChannelIconComponent and getArchiveIconComponent to proper components
             // instead of functions that return component constructors.
             'react-hooks/static-components': 'warn',
-            'react-hooks/use-memo': 'warn',
         },
     },
     {

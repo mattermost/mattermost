@@ -113,7 +113,7 @@ const PreparingWorkspace = ({
 
     const [[mostRecentStep, currentStep], setStepHistory] = useState<[WizardStep, WizardStep]>([stepOrder[0], stepOrder[0]]);
     const [submissionState, setSubmissionState] = useState<SubmissionState>(SubmissionStates.Presubmit);
-    const browserSiteUrl = useMemo(getSiteURL, []);
+    const browserSiteUrl = useMemo(() => getSiteURL(), []);
     const [form, setForm] = useState({
         ...emptyForm,
     });
