@@ -221,12 +221,14 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				reason = model.NotificationReasonPushProxyRemoveDevice
 			}
 			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform)
-			rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send to push proxy",
+			rctx.Logger().Debug("Failed to send to push proxy",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusNotSent),
 				mlog.String("reason", reason),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
+				mlog.String("transport", string(tmpMessage.Transport)),
+				mlog.String("sub_type", string(tmpMessage.SubType)),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
 				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
@@ -235,10 +237,12 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			continue
 		}
 
-		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Notification sent to push proxy",
+		rctx.Logger().Debug("Notification sent to push proxy",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
+			mlog.String("transport", string(tmpMessage.Transport)),
+			mlog.String("sub_type", string(tmpMessage.SubType)),
 			mlog.String("user_id", session.UserId),
 			mlog.String("session_id", session.Id),
 			mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
