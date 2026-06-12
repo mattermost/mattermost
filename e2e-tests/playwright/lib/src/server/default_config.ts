@@ -771,7 +771,6 @@ const defaultServerConfig: AdminConfig = {
         StreamlinedMarketplace: true,
         CloudIPFiltering: false,
         ConsumePostHook: false,
-        CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
         ChannelBookmarks: true,
         WebSocketEventScope: true,
