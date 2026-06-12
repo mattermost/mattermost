@@ -49,6 +49,7 @@ const (
 	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
+	JobTypeHealthCheck                   = "health_check"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -82,6 +83,7 @@ var AllJobTypes = [...]string{
 	JobTypeCleanupExpiredAccessTokens,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
+	JobTypeHealthCheck,
 }
 
 type Job struct {

@@ -613,6 +613,13 @@ func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
 	ps.sqlStore = s
 }
 
+// GetSqlStore returns the concrete *sqlstore.SqlStore. Used by subsystems
+// (e.g. healthcheckjob) that construct their own store wrapper without going
+// through the monolithic store.Store interface.
+func (ps *PlatformService) GetSqlStore() *sqlstore.SqlStore {
+	return ps.sqlStore
+}
+
 func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) {
 	ps.shareChannelServiceMux.Lock()
 	defer ps.shareChannelServiceMux.Unlock()
