@@ -72,17 +72,25 @@ func TestStartServerSuccess(t *testing.T) {
 
 func TestStartServerPortUnavailable(t *testing.T) {
 	mainHelper.Parallel(t)
-	// Listen on the next available port
-	listener, err := net.Listen("tcp", "localhost:0")
+	// Pin to IPv4 so the blocked port cannot be bypassed via [::1] on dual-stack hosts.
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer listener.Close()
+
+	_, port, err := net.SplitHostPort(listener.Addr().String())
 	require.NoError(t, err)
 
-	s, err := newServer(t)
-	require.NoError(t, err)
+	// Hold the same port on IPv6 when available; otherwise Start() can succeed on [::1].
+	if listener6, err6 := net.Listen("tcp", net.JoinHostPort("::1", port)); err6 == nil {
+		defer listener6.Close()
+	}
 
-	// Attempt to listen on the port used above.
-	s.platform.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
+	blockedAddr := net.JoinHostPort("127.0.0.1", port)
+
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = blockedAddr
 	})
+	require.NoError(t, err)
 
 	serverErr := s.Start()
 	s.Shutdown()
