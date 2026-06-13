@@ -1,0 +1,39 @@
+# Cloud Build — Mattermost Team Edition (patched)
+#
+# Триггер: push в ветки patched-*
+# Cloud Build работает нативно на linux/amd64 — QEMU не нужен.
+# npm run build занимает ~8-12 мин (vs 35+ мин под QEMU на macOS).
+#
+# Кеширование: BuildKit registry cache сохраняется в _IMAGE_REPO:buildcache.
+# При повторной сборке без изменений webapp/server переиспользуются
+# промежуточные слои и cache mounts из Dockerfile.
+
+steps:
+  # ── Сборка и push образа ───────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker buildx create --name cloudbuild --use || docker buildx use cloudbuild
+        docker buildx build \
+          --file=Dockerfile.team-patch \
+          --cache-from=type=registry,ref=$_IMAGE_REPO:buildcache \
+          --cache-to=type=registry,ref=$_IMAGE_REPO:buildcache,mode=max \
+          --tag=$_IMAGE_REPO:$BRANCH_NAME \
+          --tag=$_IMAGE_REPO:latest \
+          --push \
+          .
+    timeout: '3600s'
+
+timeout: '3600s'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _IMAGE_REPO: 'asia-southeast3-docker.pkg.dev/gcloud-production-1/mattermost/mattermost'

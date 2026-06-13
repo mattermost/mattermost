@@ -14,7 +14,12 @@ import (
 )
 
 func (ch *Channels) License() *model.License {
-	return ch.srv.License()
+	// Fall back to the builtin all-features license so upstream license checks
+	// become no-ops when no real license is loaded.
+	if lic := ch.srv.License(); lic != nil {
+		return lic
+	}
+	return model.NewBuiltinLicense()
 }
 
 func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
@@ -102,7 +107,12 @@ type JWTClaims struct {
 }
 
 func (s *Server) License() *model.License {
-	return s.platform.License()
+	// Callers that bypass (ch *Channels).License() via a.Srv().License() still
+	// get the builtin all-features license when none is loaded.
+	if lic := s.platform.License(); lic != nil {
+		return lic
+	}
+	return model.NewBuiltinLicense()
 }
 
 func (s *Server) LoadLicense() {

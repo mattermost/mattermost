@@ -508,3 +508,32 @@ func MinimumEnterpriseLicense(license *License) bool {
 func MinimumEnterpriseAdvancedLicense(license *License) bool {
 	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseAdvancedTier
 }
+
+// NewBuiltinLicense returns a synthetic all-features Enterprise Advanced license
+// used when no real license is loaded.  Every feature flag is enabled via
+// Features.SetDefaults() so that upstream license checks become no-ops without
+// modifying each individual check site.
+// To apply on a new upstream release: keep this function and the two License()
+// overrides in app/license.go — that is the entire license patch.
+func NewBuiltinLicense() *License {
+	f := &Features{}
+	f.SetDefaults()
+	// SetDefaults() leaves Users=0 which can trigger zero-limit guards elsewhere.
+	// Use a large enough number so no seat-count code path fires.
+	f.Users = NewPointer(999999)
+	return &License{
+		Id:           "builtin",
+		IssuedAt:     0,
+		StartsAt:     0,
+		ExpiresAt:    4102444800000, // 2100-01-01 UTC — effectively never expires
+		SkuName:      "Enterprise Advanced",
+		SkuShortName: LicenseShortSkuEnterpriseAdvanced,
+		Features:     f,
+		Customer: &Customer{
+			Id:      "builtin",
+			Name:    "Builtin",
+			Email:   "builtin@localhost",
+			Company: "Builtin",
+		},
+	}
+}

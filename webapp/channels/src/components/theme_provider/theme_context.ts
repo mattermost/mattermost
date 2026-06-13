@@ -3,9 +3,17 @@
 
 import React, {useContext, useEffect} from 'react';
 
-export const ThemeContext = React.createContext({
+import {Preferences} from 'mattermost-redux/constants';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+export const ThemeContext = React.createContext<{
+    startUsingUserTheme: () => void;
+    stopUsingUserTheme: () => void;
+    effectiveTheme: Theme;
+}>({
     startUsingUserTheme: () => {},
     stopUsingUserTheme: () => {},
+    effectiveTheme: Preferences.THEMES.quartz,
 });
 
 /**

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useContext} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {ThemeContext} from 'components/theme_provider/theme_context';
 
 import webSocketClient from 'client/web_websocket_client';
 
@@ -50,7 +50,9 @@ export default function Pluggable<Key extends keyof PluginsState['components'], 
     } = props;
 
     type PluggableType = PluginsState['components'][Key][number];
-    const theme = useSelector(getTheme);
+    // Use the effective OS-synced theme so plugins/products always get the
+    // correct theme (dark/light) rather than the raw saved preference value.
+    const {effectiveTheme: theme} = useContext(ThemeContext);
     const allPluginComponents = useSelector((state: GlobalState) => {
         const allComponents = state.plugins.components;
         if (Object.hasOwn(allComponents, pluggableName)) {

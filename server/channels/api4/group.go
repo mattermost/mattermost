@@ -360,7 +360,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", patch)
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -453,7 +453,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.getGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -497,7 +497,7 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -568,7 +568,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", patch)
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.ldap_groups.license_error", nil, "",
 			http.StatusForbidden)
 		return
@@ -650,7 +650,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "syncable_id", syncableID)
 	model.AddEventParameterToAuditRec(auditRec, "syncable_type", string(syncableType))
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -822,7 +822,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.getGroupStats", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -869,7 +869,7 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.getGroupsByUserId", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -980,7 +980,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
@@ -1019,7 +1019,7 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 }
 
 func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		return nil, model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
@@ -1078,7 +1078,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	if !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("Api4.getGroupsAssociatedToChannelsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 		return
 	}

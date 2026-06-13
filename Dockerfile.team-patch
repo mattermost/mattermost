@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1.6
+# Builds a patched Mattermost Team Edition image.
+# Context: repository root (where server/ and webapp/ live).
+# Usage:
+#   docker build -f Dockerfile.team-patch -t mattermost-team-patch:latest .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1 — webapp (JS/CSS assets)
+# ─────────────────────────────────────────────────────────────────────────────
+FROM node:24-bookworm-slim AS webapp-builder
+
+WORKDIR /src/webapp
+
+# Copy all sources first — postinstall needs workspace dirs (platform/*) to exist.
+COPY webapp/ .
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --include=dev
+# Outputs to channels/dist/
+RUN npm run build
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 2 — server binary (Go)
+# ─────────────────────────────────────────────────────────────────────────────
+FROM golang:1.26-alpine AS server-builder
+
+WORKDIR /src/server
+COPY server/ .
+
+# go.work wires the main module (.) to the embedded public sub-module (./public).
+# This mirrors what `make setup-go-work` does for Team Edition (no enterprise).
+RUN go work init && go work use . && go work use ./public
+
+RUN --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux \
+    go build \
+        -buildvcs=false \
+        -ldflags='-s -w' \
+        -o /out/mattermost \
+        ./cmd/mattermost
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 3 — final image
+# The official image already has the correct directory layout, plugins,
+# i18n files, etc.  We only replace the binary and the webapp assets.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM mattermost/mattermost-team-edition:11.7
+
+USER root
+
+# Replace the server binary (UID 2000 = mattermost user inside the image).
+COPY --from=server-builder --chown=2000:2000 \
+    /out/mattermost /mattermost/bin/mattermost
+
+# Replace the compiled webapp.
+# The official image serves static files from /mattermost/client/.
+COPY --from=webapp-builder --chown=2000:2000 \
+    /src/webapp/channels/dist/ /mattermost/client/
+
+USER 2000
