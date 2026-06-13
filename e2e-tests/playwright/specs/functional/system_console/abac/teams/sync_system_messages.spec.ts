@@ -75,11 +75,7 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
         );
         createdUserIds.push(joiner.id);
         await setUserAttribute(adminClient, joiner.id, 'Department', 'Engineering');
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [joiner.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [joiner.id]);
 
         // # Active policy — auto-add will add joiner on next sync
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
@@ -115,9 +111,9 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
             `You have been added to ${escapedName} because you now meet the membership requirements`,
             'i',
         );
-        await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible(
-            {timeout: 15000},
-        );
+        await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible({
+            timeout: 15000,
+        });
     });
 
     test('MM-69100-T7 removed member receives a removal DM after a sync job', async ({pw}) => {
@@ -131,6 +127,12 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
         // # Private team + active Engineering policy
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
+
+        // # A second, non-governed team that mkt1 keeps after being removed from the
+        // governed one. A user with zero teams lands on a "Team Not Found" page and
+        // can't reach the system-bot DM, so they need a team context to view it.
+        const homeTeam = await createPublicTeam(adminClient, `home${suffix}`);
+        createdTeamIds.push(homeTeam.id);
 
         // # mkt1 has Marketing — does not match Engineering rule; IS a current member
         const mkt1Uid = `mkt1${suffix}`;
@@ -146,17 +148,14 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
         );
         createdUserIds.push(mkt1.id);
         await adminClient.addToTeam(team.id, mkt1.id);
+        await adminClient.addToTeam(homeTeam.id, mkt1.id);
         await setUserAttribute(adminClient, mkt1.id, 'Department', 'Marketing');
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Marketing"',
-            [mkt1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Marketing"', [mkt1.id]);
 
         // # Active policy (strict) — mkt1 will be removed
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
 
-        await triggerSyncJobAndPoll(adminClient);
+        await triggerSyncJobAndPoll(adminClient, team.id);
 
         // * mkt1 is no longer a team member
         const members: any[] = await adminClient.getTeamMembers(team.id);
@@ -166,14 +165,14 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
         // # Ensure the DM channel between mkt1 and system-bot exists before logging in
         const botUsers: any[] = await adminClient.getProfilesByUsernames([SYSTEM_BOT_USERNAME]);
         const systemBot = botUsers[0];
-        await adminClient.createDirectChannel([mkt1.id, systemBot.id]);
+        const dmChannel = await adminClient.createDirectChannel([mkt1.id, systemBot.id]);
 
+        // # Log in as mkt1 and open the system-bot DM from the retained team's context
         const mkt1WithPassword = {...mkt1, password: mkt1Password};
         const {page} = await pw.testBrowser.login(mkt1WithPassword);
-        // mkt1 was removed from the only team they belonged to, so there is no team
-        // context to navigate through. Use the team-independent DM permalink instead.
-        await page.goto(`/messages/@${SYSTEM_BOT_USERNAME}`);
-        await page.waitForLoadState('networkidle');
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(homeTeam.name, dmChannel.name);
+        await channelsPage.toBeVisible();
 
         // * Removal system message rendered (scoped to this run's team name).
         const escapedName = team.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -181,8 +180,8 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
             `You have been removed from ${escapedName} because you no longer meet the membership requirements`,
             'i',
         );
-        await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible(
-            {timeout: 15000},
-        );
+        await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible({
+            timeout: 15000,
+        });
     });
 });

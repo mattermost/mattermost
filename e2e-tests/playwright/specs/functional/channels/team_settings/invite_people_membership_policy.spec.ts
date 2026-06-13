@@ -20,8 +20,8 @@ import {
 } from './helpers';
 
 test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_membership']}, () => {
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
@@ -33,7 +33,9 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         }
     });
 
-    test('MM-69100_30 governed team shows the policy banner, attribute chips, and invite-link warning', async ({pw}) => {
+    test('MM-69100_30 governed team shows the policy banner, attribute chips, and invite-link warning', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
@@ -72,7 +74,9 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         await expect(linkWarning).toHaveText(/People who use this link must meet the membership requirements to join/i);
     });
 
-    test('MM-69100_31 PRIVATE governed team filters the candidate list to qualifying users only (strict)', async ({pw}) => {
+    test('MM-69100_31 PRIVATE governed team filters the candidate list to qualifying users only (strict)', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminClient} = await pw.getAdminClient();
         const suffix = pw.random.id();
@@ -110,11 +114,13 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         // The child policy row is written to the master DB; reads may go to a
         // read replica. Poll until policy_enforced=true before opening the modal
         // so isStrictlyFilteredTeam() is correct at componentDidMount.
-        await expect.poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-            message: 'team should show policy_enforced=true before opening the invite modal',
-        }).toBe(true);
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+                message: 'team should show policy_enforced=true before opening the invite modal',
+            })
+            .toBe(true);
 
         // Confirm the attribute view is fresh AFTER policy_enforced is set. Placing this
         // wait here (not before createTeamMembershipPolicy) keeps the gap between the
@@ -123,11 +129,10 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         // policy creation left a 20–30s gap that reliably landed on the next refresh
         // boundary — causing the strict filter to read a mid-refresh (empty) view and
         // exclude eng1 from the results.
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [eng1.id, teamAdmin.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            eng1.id,
+            teamAdmin.id,
+        ]);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -194,11 +199,7 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         const mkt1 = await createUser('Marketing', 'mkt');
         createdUserIds.push(eng1.id, mkt1.id);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [eng1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [eng1.id]);
 
         // # Advisory policy (public team)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);

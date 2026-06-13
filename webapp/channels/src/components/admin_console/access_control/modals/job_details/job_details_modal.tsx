@@ -99,7 +99,8 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     // tab is sourced from there — directly when viewing a team job, or from the
     // linked parent when viewing the channel job it spawned.
     const parentTeamJobId = job.data?.parent_team_job_id;
-    const teamResultsJob = isTeamSyncJob ? job : (parentTeamJobId ? allJobs[parentTeamJobId] : undefined);
+    const linkedTeamJob = parentTeamJobId ? allJobs[parentTeamJobId] : undefined;
+    const teamResultsJob = isTeamSyncJob ? job : linkedTeamJob;
 
     // Parse channel sync results
     useEffect(() => {

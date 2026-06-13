@@ -32,8 +32,8 @@ async function openTeamMembershipTab(page: Page, channelsPage: ChannelsPage) {
 }
 
 test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@abac', '@team_membership']}, () => {
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
@@ -207,21 +207,17 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
             return user;
         };
 
-        const [user1, user2] = await Promise.all([
-            createMember('Engineering', 1),
-            createMember('Marketing', 2),
-        ]);
+        const [user1, user2] = await Promise.all([createMember('Engineering', 1), createMember('Marketing', 2)]);
         createdUserIds.push(user1.id, user2.id);
 
         // # Set teamAdmin Engineering; remove adminUser so counts are predictable
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
         await adminClient.removeFromTeam(team.id, adminUser.id);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [teamAdmin.id, user1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            teamAdmin.id,
+            user1.id,
+        ]);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -269,11 +265,7 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         // # Attach a policy so team is policy_enforced (advisory while public)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [teamAdmin.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
 
         const testStartTime = Date.now();
 
@@ -338,10 +330,12 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         // Wait until the server has fully processed the policy (policy_enforced=true).
         // The tab's loadTeamPolicy fetch may hit a read replica; without this the
         // policy arrives as null, autoAddMembers stays false, and the checkbox fails.
-        await expect.poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-        }).toBe(true);
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+            })
+            .toBe(true);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);

@@ -85,11 +85,7 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         const mkt1 = await createUser('Marketing', `mkt1${suffix}`, true);
         createdUserIds.push(eng1.id, mkt1.id);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [eng1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [eng1.id]);
 
         // # Active policy (strict mode removes non-qualifiers)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
@@ -168,11 +164,7 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         const mkt3 = await createAndAdd('Marketing', `mkt3${suffix}`);
         createdUserIds.push(eng1.id, mkt1.id, mkt2.id, mkt3.id);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [eng1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [eng1.id]);
 
         // # Active policy — 3 of 4 members removed (75%)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);

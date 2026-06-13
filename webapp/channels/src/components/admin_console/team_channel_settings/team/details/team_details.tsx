@@ -739,7 +739,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     );
                     const qualifying = (exprResult?.data as {total?: number} | null)?.total ?? null;
                     qualifyingCount = qualifying;
-                    affectedCount = qualifying !== null ? totalMembers - qualifying : totalMembers;
+                    affectedCount = qualifying === null ? totalMembers : totalMembers - qualifying;
                 } else {
                     affectedCount = totalMembers;
                 }

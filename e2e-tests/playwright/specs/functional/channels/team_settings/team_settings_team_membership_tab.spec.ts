@@ -33,9 +33,9 @@ async function openTeamMembershipTab(page: Page, channelsPage: ChannelsPage) {
 }
 
 test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@team_membership']}, () => {
-    let createdPolicyIds: string[] = [];
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdPolicyIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
@@ -187,11 +187,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await ensureDepartmentAttribute(adminClient);
 
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [adminUser.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [adminUser.id]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -249,11 +245,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await ensureDepartmentAttribute(adminClient);
 
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [adminUser.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [adminUser.id]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -292,16 +284,18 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible({timeout: 10000});
 
         // * A sync job was created — poll until a newer job appears at the top of the list
-        await expect.poll(
-            async () => {
-                const jobs: any[] = await (adminClient as any).doFetch(
-                    `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
-                    {method: 'GET'},
-                );
-                return jobs[0]?.id !== latestJobIdBefore;
-            },
-            {timeout: 15000, intervals: [500, 1000, 2000, 3000]},
-        ).toBe(true);
+        await expect
+            .poll(
+                async () => {
+                    const jobs: any[] = await (adminClient as any).doFetch(
+                        `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                        {method: 'GET'},
+                    );
+                    return jobs[0]?.id !== latestJobIdBefore;
+                },
+                {timeout: 15000, intervals: [500, 1000, 2000, 3000]},
+            )
+            .toBe(true);
 
         await teamSettings.close();
     });
@@ -435,17 +429,13 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         };
 
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
-        const [user1, user2] = await Promise.all([
-            createMember('Engineering', 1),
-            createMember('Marketing', 2),
-        ]);
+        const [user1, user2] = await Promise.all([createMember('Engineering', 1), createMember('Marketing', 2)]);
         createdUserIds.push(user1.id, user2.id);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [adminUser.id, user1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            adminUser.id,
+            user1.id,
+        ]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -475,7 +465,9 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
-    test('MM-69100_18 Confirmation modal shows restricted count when some team members do not match the rules', async ({pw}) => {
+    test('MM-69100_18 Confirmation modal shows restricted count when some team members do not match the rules', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -506,16 +498,8 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
         // Wait for BOTH users to appear in the attribute view so computeConfirmCounts
         // gets accurate counts (adminUser matches Marketing; engUser does not).
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Marketing"',
-            [adminUser.id],
-        );
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [engUser.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Marketing"', [adminUser.id]);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [engUser.id]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -551,12 +535,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await enableTeamMembershipABACConfig(adminClient);
 
         // # Pre-create policy with auto-add=true
-        await createTeamMembershipPolicy(
-            adminClient,
-            team.id,
-            'user.attributes.Department == "Engineering"',
-            true,
-        );
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -574,5 +553,4 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
         await teamSettings.close();
     });
-
 });

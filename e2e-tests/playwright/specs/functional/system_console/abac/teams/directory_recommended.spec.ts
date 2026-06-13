@@ -97,24 +97,34 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
 
         await waitForAttributeViewToInclude(adminClient, expression, [qualUser.id], 45_000);
 
-        await expect.poll(async () => (await adminClient.getTeam(publicGoverned.id)).policy_enforced, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-        }).toBe(true);
+        await expect
+            .poll(async () => (await adminClient.getTeam(publicGoverned.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+            })
+            .toBe(true);
 
         // API layer: the qualifying non-member's listing tags the team recommended;
         // the non-qualifying user's listing does not (fail-secure).
         const {client: qualClient} = await pw.makeClient({username: qualUser.username, password: qualUser.password});
-        const {client: nonQualClient} = await pw.makeClient({username: nonQualUser.username, password: nonQualUser.password});
+        const {client: nonQualClient} = await pw.makeClient({
+            username: nonQualUser.username,
+            password: nonQualUser.password,
+        });
 
-        await expect.poll(async () => {
-            const teams = (await qualClient.getTeams(0, 200)) as Team[];
-            return teams.find((t) => t.id === publicGoverned.id)?.recommended === true;
-        }, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-            message: 'public governed team should be recommended to the qualifying user',
-        }).toBe(true);
+        await expect
+            .poll(
+                async () => {
+                    const teams = (await qualClient.getTeams(0, 200)) as Team[];
+                    return teams.find((t) => t.id === publicGoverned.id)?.recommended === true;
+                },
+                {
+                    timeout: 60_000,
+                    intervals: [1000, 2000, 5000, 5000, 5000],
+                    message: 'public governed team should be recommended to the qualifying user',
+                },
+            )
+            .toBe(true);
 
         const nonQualTeams = (await nonQualClient.getTeams(0, 200)) as Team[];
         const nonQualRow = nonQualTeams.find((t) => t.id === publicGoverned.id);
@@ -161,30 +171,39 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
 
         await waitForAttributeViewToInclude(adminClient, expression, [qualUser.id], 45_000);
 
-        await expect.poll(async () => (await adminClient.getTeam(privateGoverned.id)).policy_enforced, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-        }).toBe(true);
+        await expect
+            .poll(async () => (await adminClient.getTeam(privateGoverned.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+            })
+            .toBe(true);
 
         const {client: qualClient} = await pw.makeClient({username: qualUser.username, password: qualUser.password});
 
         // The qualifying user can see the private governed team (strict widening), but it
         // is never recommended — recommendation is a public-team-only, advisory concept.
-        await expect.poll(async () => {
-            const teams = (await qualClient.getTeams(0, 200)) as Team[];
-            return teams.some((t) => t.id === privateGoverned.id);
-        }, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-            message: 'qualifying user should see the private governed team before asserting recommendation',
-        }).toBe(true);
+        await expect
+            .poll(
+                async () => {
+                    const teams = (await qualClient.getTeams(0, 200)) as Team[];
+                    return teams.some((t) => t.id === privateGoverned.id);
+                },
+                {
+                    timeout: 60_000,
+                    intervals: [1000, 2000, 5000, 5000, 5000],
+                    message: 'qualifying user should see the private governed team before asserting recommendation',
+                },
+            )
+            .toBe(true);
 
         const teams = (await qualClient.getTeams(0, 200)) as Team[];
         const row = teams.find((t) => t.id === privateGoverned.id);
         expect(Boolean(row?.recommended)).toBe(false);
     });
 
-    test('MM-69100-T3 - renders the Recommended chip in the team-selection directory for a qualifying user', async ({pw}) => {
+    test('MM-69100-T3 - renders the Recommended chip in the team-selection directory for a qualifying user', async ({
+        pw,
+    }) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -230,11 +249,13 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
         // The child policy row is written to the master DB; the directory query
         // reads from a read replica. Poll policy_enforced until the replica has
         // caught up so the EXISTS subquery in GetAllPage widens correctly.
-        await expect.poll(async () => (await adminClient.getTeam(publicGoverned.id)).policy_enforced, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-            message: 'team should show policy_enforced=true before asserting recommended',
-        }).toBe(true);
+        await expect
+            .poll(async () => (await adminClient.getTeam(publicGoverned.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+                message: 'team should show policy_enforced=true before asserting recommended',
+            })
+            .toBe(true);
 
         const {page} = await pw.testBrowser.login(qualUser);
         await page.goto('/select_team');

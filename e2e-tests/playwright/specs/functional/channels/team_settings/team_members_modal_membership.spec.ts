@@ -19,8 +19,8 @@ import {
 } from './helpers';
 
 test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '@team_membership']}, () => {
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
@@ -60,7 +60,9 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
         const banner = modal.locator('.teamMembersModal__policyBanner');
         await expect(banner).toBeVisible({timeout: 10000});
         await expect(banner.getByText('Team access is restricted by user attributes')).toBeVisible();
-        await expect(banner.getByText('Only people who meet the membership requirements can be members of this team.')).toBeVisible();
+        await expect(
+            banner.getByText('Only people who meet the membership requirements can be members of this team.'),
+        ).toBeVisible();
     });
 
     test('MM-69100_35 attribute holder sees attribute chips inside the policy banner', async ({pw}) => {
@@ -73,11 +75,7 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
         createdUserIds.push(teamAdmin.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [teamAdmin.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
 
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
@@ -127,8 +125,18 @@ test.describe('Team Members Modal - Membership Policy Banner', {tag: ['@abac', '
         await adminClient.savePreferences(regularUser.id, [
             {user_id: regularUser.id, category: 'tutorial_step', name: regularUser.id, value: '999'},
             {user_id: regularUser.id, category: 'onboarding', name: 'complete', value: 'true'},
-            {user_id: regularUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
-            {user_id: regularUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
+            {
+                user_id: regularUser.id,
+                category: 'onboarding_task_list',
+                name: 'onboarding_task_list_show',
+                value: 'false',
+            },
+            {
+                user_id: regularUser.id,
+                category: 'onboarding_task_list',
+                name: 'onboarding_task_list_open',
+                value: 'false',
+            },
         ]);
         await adminClient.addToTeam(team.id, regularUser.id);
 

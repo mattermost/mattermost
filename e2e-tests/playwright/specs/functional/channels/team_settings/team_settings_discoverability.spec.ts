@@ -58,18 +58,14 @@ async function setupModeFlipScenario(pw: any): Promise<ModeFlipScenario> {
     ]);
     await createUser('Marketing', 4);
 
-    await createTeamMembershipPolicy(
-        adminClient,
-        team.id,
-        'user.attributes.Department == "Engineering"',
-        false,
-    );
+    await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
-    await waitForAttributeViewToInclude(
-        adminClient,
-        'user.attributes.Department == "Engineering"',
-        [adminUser.id, eng1.id, eng2.id, eng3.id],
-    );
+    await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+        adminUser.id,
+        eng1.id,
+        eng2.id,
+        eng3.id,
+    ]);
 
     return {adminClient, adminUser, team};
 }
@@ -200,9 +196,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.openAccessTab();
 
         // * Policy notice is visible
-        await expect(
-            teamSettings.container.getByText(/This team's membership is managed by a policy/i),
-        ).toBeVisible();
+        await expect(teamSettings.container.getByText(/This team's membership is managed by a policy/i)).toBeVisible();
 
         // * Cards have the disabled CSS class (not HTML disabled — clicks are suppressed in JS)
         await expect(teamSettings.container.locator('#public-private-selector-button-O')).toHaveClass(/disabled/);
@@ -211,7 +205,9 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.close();
     });
 
-    test('MM-69100_5 Public→Private mode-flip with active policy shows confirm modal with member count', async ({pw}) => {
+    test('MM-69100_5 Public→Private mode-flip with active policy shows confirm modal with member count', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser, team} = await setupModeFlipScenario(pw);
 

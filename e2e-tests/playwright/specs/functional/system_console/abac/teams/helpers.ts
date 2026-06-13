@@ -81,10 +81,7 @@ export async function triggerSyncJobAndPoll(
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-        const current: any = await (client as any).doFetch(
-            `${client.getBaseRoute()}/jobs/${jobId}`,
-            {method: 'GET'},
-        );
+        const current: any = await (client as any).doFetch(`${client.getBaseRoute()}/jobs/${jobId}`, {method: 'GET'});
         if (current.status === 'success' || current.status === 'warning') {
             return current.status;
         }

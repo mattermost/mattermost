@@ -80,11 +80,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
         const mkt1 = await createUser('Marketing', `mkt1${suffix}`);
         createdUserIds.push(eng1.id, mkt1.id);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [eng1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [eng1.id]);
 
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
@@ -158,11 +154,7 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
         const mkt1 = await createUser('Marketing', `mkt1${suffix}`);
         createdUserIds.push(eng1.id, mkt1.id);
 
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [eng1.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [eng1.id]);
 
         // # Advisory policy (public team)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);

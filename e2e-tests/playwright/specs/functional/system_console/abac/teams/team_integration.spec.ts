@@ -135,10 +135,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // server returns {policy: null, enforced: false}, which calls
         // setState({policyEnforced: false}). If that response arrives AFTER
         // setToggle it resets policyEnforced to false, hiding 'Link to a policy'.
-        const policyFetchDone = page.waitForResponse(
-            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
-            {timeout: 20000},
-        ).catch(() => {}); // .catch: also handles 404 (no policy yet) and timeouts
+        const policyFetchDone = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {}); // .catch: also handles 404 (no policy yet) and timeouts
         await openTeamConfig(page, team.display_name);
         await policyFetchDone; // ensure the fetch has settled before toggling on
         await setToggle(page, true);
@@ -175,15 +174,16 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // --- Remove ---------------------------------------------------------
         // Set up the policy fetch waiter BEFORE navigating so we don't miss the
         // response that fires on componentDidMount — same pattern as the assign phase.
-        const policyFetchDoneRemove = page.waitForResponse(
-            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
-            {timeout: 20000},
-        ).catch(() => {});
+        const policyFetchDoneRemove = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneRemove;
 
         // Re-opened page hydrates the assigned policy from the server.
-        await expect(page.locator('#team_access_control_with_policy').locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
+        await expect(
+            page.locator('#team_access_control_with_policy').locator('.policy-name').filter({hasText: policyName}),
+        ).toBeVisible({timeout: 15000});
 
         await page.getByLabel('Remove policy').click();
 
@@ -251,10 +251,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
 
-        const policyFetchDoneT5 = page.waitForResponse(
-            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
-            {timeout: 20000},
-        ).catch(() => {});
+        const policyFetchDoneT5 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneT5;
         await setToggle(page, true);
@@ -343,23 +342,16 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         createdUserIds.push(nonMatchUser.id);
         await adminClient.addToTeam(team.id, nonMatchUser.id);
         await setUserAttribute(adminClient, nonMatchUser.id, 'Department', 'Marketing');
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Engineering"',
-            [matchUser.id],
-        );
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Marketing"',
-            [nonMatchUser.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [matchUser.id]);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Marketing"', [
+            nonMatchUser.id,
+        ]);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
-        const policyFetchDoneT9 = page.waitForResponse(
-            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
-            {timeout: 20000},
-        ).catch(() => {});
+        const policyFetchDoneT9 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneT9;
 
@@ -394,7 +386,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
      * @objective Auto-add checkbox in the custom-rules panel is disabled until a rule
      * exists, and enabling it triggers a team sync job.
      */
-    test('MM-68846-T10 - auto-add checkbox is disabled until a rule exists and enabling it triggers a sync job', async ({pw}) => {
+    test('MM-68846-T10 - auto-add checkbox is disabled until a rule exists and enabling it triggers a sync job', async ({
+        pw,
+    }) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -410,10 +404,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
-        const policyFetchDoneT10 = page.waitForResponse(
-            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
-            {timeout: 20000},
-        ).catch(() => {});
+        const policyFetchDoneT10 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneT10;
 
@@ -457,7 +450,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
      * @objective When no current member matches the rule, the save-confirm modal surfaces
      * the empty-team warning text.
      */
-    test('MM-68846-T11 - empty-team warning appears in the confirm modal when no member meets the criteria', async ({pw}) => {
+    test('MM-68846-T11 - empty-team warning appears in the confirm modal when no member meets the criteria', async ({
+        pw,
+    }) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -483,18 +478,13 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         createdUserIds.push(mktUser.id);
         await adminClient.addToTeam(team.id, mktUser.id);
         await setUserAttribute(adminClient, mktUser.id, 'Department', 'Marketing');
-        await waitForAttributeViewToInclude(
-            adminClient,
-            'user.attributes.Department == "Marketing"',
-            [mktUser.id],
-        );
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Marketing"', [mktUser.id]);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
-        const policyFetchDoneT11 = page.waitForResponse(
-            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
-            {timeout: 20000},
-        ).catch(() => {});
+        const policyFetchDoneT11 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDoneT11;
 

@@ -41,7 +41,9 @@ test.describe('Team Settings Modal - Tab Order', {tag: ['@abac', '@team_membersh
         await teamSettings.close();
     });
 
-    test('MM-69100_21 Channel Membership tab label is "Channel Membership", not "Membership Policies"', async ({pw}) => {
+    test('MM-69100_21 Channel Membership tab label is "Channel Membership", not "Membership Policies"', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
@@ -83,9 +85,7 @@ test.describe('Team Settings Modal - Tab Order', {tag: ['@abac', '@team_membersh
         await teamSettings.container.getByTestId('access_policies-tab-button').click();
 
         // * Channel Membership tab content is functional (shows empty state or policy list)
-        await expect(
-            teamSettings.container.getByText('No policies found'),
-        ).toBeVisible({timeout: 10000});
+        await expect(teamSettings.container.getByText('No policies found')).toBeVisible({timeout: 10000});
 
         await teamSettings.close();
     });

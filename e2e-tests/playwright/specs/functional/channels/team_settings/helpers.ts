@@ -317,12 +317,7 @@ export async function enableTeamMembershipABACConfig(client: Client4) {
     } as any);
 }
 
-export async function createTeamMembershipPolicy(
-    client: Client4,
-    teamId: string,
-    expression: string,
-    active = false,
-) {
+export async function createTeamMembershipPolicy(client: Client4, teamId: string, expression: string, active = false) {
     return (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies`, {
         method: 'put',
         body: JSON.stringify({
@@ -350,10 +345,7 @@ export async function assignTeamToParentPolicy(client: Client4, policyId: string
 }
 
 export async function getTeamAccessControlPolicy(client: Client4, teamId: string) {
-    return (client as any).doFetch(
-        `${client.getBaseRoute()}/teams/${teamId}/access_control/policy`,
-        {method: 'GET'},
-    );
+    return (client as any).doFetch(`${client.getBaseRoute()}/teams/${teamId}/access_control/policy`, {method: 'GET'});
 }
 
 export async function createPublicTeam(client: Client4, suffix: string) {

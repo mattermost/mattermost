@@ -112,11 +112,13 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         // The child policy row is written to the master DB; the directory query
         // reads from a read replica. Poll policy_enforced until the replica has
         // caught up so the EXISTS subquery in GetAllPage widens correctly.
-        await expect.poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
-            timeout: 60_000,
-            intervals: [1000, 2000, 5000, 5000, 5000],
-            message: 'team should show policy_enforced=true before asserting directory visibility',
-        }).toBe(true);
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+                message: 'team should show policy_enforced=true before asserting directory visibility',
+            })
+            .toBe(true);
 
         // API layer: proves the server filters the listing, not just the DOM.
         const {client: qualClient} = await pw.makeClient({username: qualUser.username, password: qualUser.password});
