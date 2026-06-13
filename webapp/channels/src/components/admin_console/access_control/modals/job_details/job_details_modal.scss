@@ -71,7 +71,36 @@
         font-size: 12px;
     }
 
+    .tabs {
+        display: flex;
+        padding: 0 32px;
+        border-bottom: 1px solid var(--center-channel-color-16);
+    }
+
+    .tab-button {
+        padding: 10px 15px;
+        border: none;
+        margin-bottom: -1px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        font-weight: 600;
+
+        &.active {
+            border-bottom: 2px solid var(--button-bg);
+            color: var(--button-bg);
+        }
+
+        &:hover:not(.active) {
+            color: var(--center-channel-color);
+        }
+    }
+
     .changes-cell {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
         text-align: center;
 
         .changes-summary {
@@ -83,6 +112,12 @@
                 color: var(--error-text);
                 font-weight: 600;
             }
+        }
+
+        .mass-removal-warning {
+            display: inline-flex;
+            align-items: center;
+            color: var(--error-text);
         }
     }
 

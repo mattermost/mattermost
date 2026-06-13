@@ -60,12 +60,21 @@ export async function createTeamMembershipParentPolicy(
  */
 export async function triggerSyncJobAndPoll(
     client: Client4,
+    policyId = '',
     timeoutMs = 90_000,
     pollIntervalMs = 3_000,
 ): Promise<string> {
+    // Scope the sync to the team's policy (team policies are keyed by team id),
+    // mirroring the product trigger createAccessControlTeamSyncJob({policy_id}).
+    // A scoped sync also chains a scoped channel sync, so the chained job is
+    // created deterministically rather than skipped by the unscoped dedupe.
+    const body: {type: string; data?: {policy_id: string}} = {type: 'access_control_team_sync'};
+    if (policyId) {
+        body.data = {policy_id: policyId};
+    }
     const job: any = await (client as any).doFetch(`${client.getBaseRoute()}/jobs`, {
         method: 'POST',
-        body: JSON.stringify({type: 'access_control_team_sync'}),
+        body: JSON.stringify(body),
     });
     const jobId: string = job.id;
 

@@ -12,7 +12,9 @@ import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as ChannelActions from 'mattermost-redux/actions/channels';
+import {getJob} from 'mattermost-redux/actions/jobs';
 import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
+import {getAllJobs} from 'mattermost-redux/selectors/entities/jobs';
 
 import AlertBanner from 'components/alert_banner';
 import CodeBlock from 'components/code_block/code_block';
@@ -81,13 +83,23 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const [teamSearchTerm, setTeamSearchTerm] = useState('');
     const [allTeamsForList, setAllTeamsForList] = useState<Team[]>([]);
 
+    const [activeTab, setActiveTab] = useState<'channels' | 'teams'>('channels');
+
     const pageSize = 10;
 
     const channelsMap = useSelector((state: GlobalState) => state.entities.channels.channels);
     const teamsMap = useSelector((state: GlobalState) => state.entities.teams.teams);
+    const allJobs = useSelector(getAllJobs);
 
     const isChannelSyncJob = job.type === 'access_control_sync';
     const isTeamSyncJob = job.type === 'access_control_team_sync';
+
+    // A channel sync chained from a team sync carries a back-reference to that
+    // team job. The team membership changes live on the team job, so the team
+    // tab is sourced from there — directly when viewing a team job, or from the
+    // linked parent when viewing the channel job it spawned.
+    const parentTeamJobId = job.data?.parent_team_job_id;
+    const teamResultsJob = isTeamSyncJob ? job : (parentTeamJobId ? allJobs[parentTeamJobId] : undefined);
 
     // Parse channel sync results
     useEffect(() => {
@@ -103,19 +115,25 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
         });
     }, [job?.data?.sync_results, isChannelSyncJob, dispatch]);
 
-    // Parse team sync results
+    // Load the linked parent team job so its results are available to parse below.
     useEffect(() => {
-        if (!isTeamSyncJob || !job?.data?.sync_results) {
+        if (parentTeamJobId) {
+            dispatch(getJob(parentTeamJobId) as any);
+        }
+    }, [parentTeamJobId, dispatch]);
+
+    // Parse team sync results from whichever job carries them.
+    useEffect(() => {
+        if (!teamResultsJob?.data?.sync_results) {
             return;
         }
-        const parsedResults: TeamSyncResults = JSON.parse(job.data.sync_results);
+        const parsedResults: TeamSyncResults = JSON.parse(teamResultsJob.data.sync_results);
         setTeamSyncResults(parsedResults);
 
-        const teamIds: string[] = Object.keys(parsedResults);
-        teamIds.forEach((id) => {
+        Object.keys(parsedResults).forEach((id) => {
             dispatch(fetchTeam(id) as any);
         });
-    }, [job?.data?.sync_results, isTeamSyncJob, dispatch]);
+    }, [teamResultsJob?.data?.sync_results, dispatch]);
 
     // Build channel lookup
     useEffect(() => {
@@ -214,6 +232,17 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const filteredChannels = getFilteredChannels();
     const filteredTeams = getFilteredTeams();
 
+    const isCanceled = job.status === 'canceled';
+    const isChannelCanceled = isCanceled && isChannelSyncJob;
+    const isTeamCanceled = isCanceled && isTeamSyncJob;
+
+    // Channel results may still be loading; the Channels view is relevant for
+    // any channel sync job, so don't gate it on results having arrived (the tab
+    // would otherwise flicker out and hide the tab strip mid-load).
+    const showChannelList = job.status !== 'error' && !isChannelCanceled && isChannelSyncJob;
+    const showTeamList = job.status !== 'error' && !isTeamCanceled && Boolean(teamSyncResults);
+    const showTabs = showChannelList && showTeamList;
+
     const noChannelResultsText = (
         <span className='no-results-message'>
             <FormattedMessage
@@ -231,10 +260,6 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
             />
         </span>
     );
-
-    const isCanceled = job.status === 'canceled';
-    const isChannelCanceled = isCanceled && isChannelSyncJob;
-    const isTeamCanceled = isCanceled && isTeamSyncJob;
 
     return (
         <GenericModal
@@ -328,7 +353,29 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     />
                 </div>
             )}
-            {job.status !== 'error' && !isChannelCanceled && isChannelSyncJob && syncResults && (
+            {showTabs && (
+                <div className='tabs'>
+                    <button
+                        className={`tab-button ${activeTab === 'channels' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('channels')}
+                    >
+                        <FormattedMessage
+                            id='admin.jobTable.syncResults.channelsTab'
+                            defaultMessage='Channels'
+                        />
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'teams' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('teams')}
+                    >
+                        <FormattedMessage
+                            id='admin.jobTable.syncResults.teamsTab'
+                            defaultMessage='Teams'
+                        />
+                    </button>
+                </div>
+            )}
+            {showChannelList && (!showTabs || activeTab === 'channels') && (
                 <SearchableSyncJobChannelList
                     channels={filteredChannels}
                     teams={teamLookup}
@@ -338,10 +385,10 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     search={setSearchTerm}
                     onViewDetails={handleViewChannelDetails}
                     noResultsText={noChannelResultsText}
-                    syncResults={syncResults}
+                    syncResults={syncResults ?? {}}
                 />
             )}
-            {job.status !== 'error' && !isTeamCanceled && isTeamSyncJob && teamSyncResults && (
+            {showTeamList && (!showTabs || activeTab === 'teams') && (
                 <SearchableSyncJobTeamList
                     teams={filteredTeams}
                     teamsPerPage={pageSize}
@@ -350,7 +397,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     search={setTeamSearchTerm}
                     onViewDetails={handleViewTeamDetails}
                     noResultsText={noTeamResultsText}
-                    syncResults={teamSyncResults}
+                    syncResults={teamSyncResults!}
                 />
             )}
             {selectedChannel && selectedChannelResults && (

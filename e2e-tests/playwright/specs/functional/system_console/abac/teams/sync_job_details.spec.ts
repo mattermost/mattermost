@@ -95,7 +95,7 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
 
         // # Trigger sync and wait for completion
-        await triggerSyncJobAndPoll(adminClient);
+        await triggerSyncJobAndPoll(adminClient, team.id);
 
         // # Log in and navigate to sync jobs page
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -106,13 +106,16 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         // * Section title is "Membership sync jobs" (capital S verified in en.json)
         await expect(page.getByText(/Membership sync jobs/i)).toBeVisible({timeout: 10000});
 
-        // # Open the most recent job's details
+        // # Open the most recent job's details (the channel sync chained from the team sync)
         const jobRow = page.locator('.job-table__access-control tr.clickable').first();
         await expect(jobRow).toBeVisible({timeout: 10000});
         await jobRow.click();
 
         const detailsModal = page.locator('#job-details-modal');
         await expect(detailsModal).toBeVisible({timeout: 15000});
+
+        // # Switch to the Teams tab where the team membership changes are surfaced
+        await detailsModal.getByRole('button', {name: 'Teams'}).click();
 
         // * Team row present for our team
         const teamRow = page.getByTestId(`TeamRow-${team.name}`);
@@ -175,7 +178,7 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
 
         // # Trigger sync and wait for completion
-        await triggerSyncJobAndPoll(adminClient);
+        await triggerSyncJobAndPoll(adminClient, team.id);
 
         // # Navigate to sync jobs page
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -183,13 +186,16 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         await page.goto('/admin_console/system_attributes/membership_policies');
         await page.waitForLoadState('networkidle');
 
-        // # Open the most recent job's details
+        // # Open the most recent job's details (the channel sync chained from the team sync)
         const jobRow = page.locator('.job-table__access-control tr.clickable').first();
         await expect(jobRow).toBeVisible({timeout: 10000});
         await jobRow.click();
 
         const detailsModal = page.locator('#job-details-modal');
         await expect(detailsModal).toBeVisible({timeout: 15000});
+
+        // # Switch to the Teams tab where the team membership changes are surfaced
+        await detailsModal.getByRole('button', {name: 'Teams'}).click();
 
         const teamRow = page.getByTestId(`TeamRow-${team.name}`);
         await expect(teamRow).toBeVisible({timeout: 10000});

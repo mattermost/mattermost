@@ -120,71 +120,69 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
         );
     });
 
-    test.fixme(
-        'MM-69100-T7 removed member receives a removal DM after a sync job (optional/flaky in CI)',
-        async ({pw}) => {
-            await pw.skipIfNoLicense();
-            const {adminClient} = await pw.getAdminClient();
-            const suffix = pw.random.id();
-            await enableTeamMembershipABACConfig(adminClient);
-            await enableTeamMembershipPolicies(adminClient);
-            await ensureDepartmentAttribute(adminClient);
+    test('MM-69100-T7 removed member receives a removal DM after a sync job', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
 
-            // # Private team + active Engineering policy
-            const team = await createPrivateTeam(adminClient, suffix);
-            createdTeamIds.push(team.id);
+        // # Private team + active Engineering policy
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
 
-            // # mkt1 has Marketing — does not match Engineering rule; IS a current member
-            const mkt1Uid = `mkt1${suffix}`;
-            const mkt1Password = newTestPassword();
-            const mkt1 = await adminClient.createUser(
-                {
-                    email: `${mkt1Uid}@sample.mattermost.com`,
-                    username: mkt1Uid,
-                    password: mkt1Password,
-                } as any,
-                '',
-                '',
-            );
-            createdUserIds.push(mkt1.id);
-            await adminClient.addToTeam(team.id, mkt1.id);
-            await setUserAttribute(adminClient, mkt1.id, 'Department', 'Marketing');
-            await waitForAttributeViewToInclude(
-                adminClient,
-                'user.attributes.Department == "Marketing"',
-                [mkt1.id],
-            );
+        // # mkt1 has Marketing — does not match Engineering rule; IS a current member
+        const mkt1Uid = `mkt1${suffix}`;
+        const mkt1Password = newTestPassword();
+        const mkt1 = await adminClient.createUser(
+            {
+                email: `${mkt1Uid}@sample.mattermost.com`,
+                username: mkt1Uid,
+                password: mkt1Password,
+            } as any,
+            '',
+            '',
+        );
+        createdUserIds.push(mkt1.id);
+        await adminClient.addToTeam(team.id, mkt1.id);
+        await setUserAttribute(adminClient, mkt1.id, 'Department', 'Marketing');
+        await waitForAttributeViewToInclude(
+            adminClient,
+            'user.attributes.Department == "Marketing"',
+            [mkt1.id],
+        );
 
-            // # Active policy (strict) — mkt1 will be removed
-            await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
+        // # Active policy (strict) — mkt1 will be removed
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
 
-            await triggerSyncJobAndPoll(adminClient);
+        await triggerSyncJobAndPoll(adminClient);
 
-            // * mkt1 is no longer a team member
-            const members: any[] = await adminClient.getTeamMembers(team.id);
-            const mkt1Member = members.find((m: any) => m.user_id === mkt1.id);
-            expect(mkt1Member).toBeUndefined();
+        // * mkt1 is no longer a team member
+        const members: any[] = await adminClient.getTeamMembers(team.id);
+        const mkt1Member = members.find((m: any) => m.user_id === mkt1.id);
+        expect(mkt1Member).toBeUndefined();
 
-            // # Open DM from system-bot
-            const botUsers: any[] = await adminClient.getProfilesByUsernames([SYSTEM_BOT_USERNAME]);
-            const systemBot = botUsers[0];
-            const dmChannel = await adminClient.createDirectChannel([mkt1.id, systemBot.id]);
+        // # Ensure the DM channel between mkt1 and system-bot exists before logging in
+        const botUsers: any[] = await adminClient.getProfilesByUsernames([SYSTEM_BOT_USERNAME]);
+        const systemBot = botUsers[0];
+        await adminClient.createDirectChannel([mkt1.id, systemBot.id]);
 
-            const mkt1WithPassword = {...mkt1, password: mkt1Password};
-            const {page} = await pw.testBrowser.login(mkt1WithPassword);
-            const channelsPage = new ChannelsPage(page);
-            await channelsPage.goto('', dmChannel.name);
-            await channelsPage.toBeVisible();
+        const mkt1WithPassword = {...mkt1, password: mkt1Password};
+        const {page} = await pw.testBrowser.login(mkt1WithPassword);
+        // mkt1 was removed from the only team they belonged to, so there is no team
+        // context to navigate through. Use the team-independent DM permalink instead.
+        await page.goto(`/messages/@${SYSTEM_BOT_USERNAME}`);
+        await page.waitForLoadState('networkidle');
 
-            // * Removal system message rendered (scoped to this run's team name).
-            const escapedName = team.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const expectedText = new RegExp(
-                `You have been removed from ${escapedName} because you no longer meet the membership requirements`,
-                'i',
-            );
-            await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible(
-                {timeout: 15000},
-            );
-        },
-    );
+        // * Removal system message rendered (scoped to this run's team name).
+        const escapedName = team.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const expectedText = new RegExp(
+            `You have been removed from ${escapedName} because you no longer meet the membership requirements`,
+            'i',
+        );
+        await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible(
+            {timeout: 15000},
+        );
+    });
 });

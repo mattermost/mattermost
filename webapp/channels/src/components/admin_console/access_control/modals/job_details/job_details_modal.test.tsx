@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Job} from '@mattermost/types/jobs';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import JobDetailsModal from './job_details_modal';
@@ -16,6 +16,10 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 
 jest.mock('mattermost-redux/actions/teams', () => ({
     getTeam: jest.fn(() => () => Promise.resolve({data: null})),
+}));
+
+jest.mock('mattermost-redux/actions/jobs', () => ({
+    getJob: jest.fn(() => () => Promise.resolve({data: null})),
 }));
 
 function makeChannelSyncJob(overrides?: Partial<Job>): Job {
@@ -151,6 +155,50 @@ describe('JobDetailsModal', () => {
         await waitFor(() => {
             expect(screen.queryByTitle('More than 50% of members were removed from this team.')).not.toBeInTheDocument();
         });
+    });
+
+    test('channel sync chained from a team sync shows Channels and Teams tabs sourced from the linked job', async () => {
+        // The channel job carries a back-reference; the team membership changes
+        // live on the linked team job, which is present in state.
+        const channelJob = makeChannelSyncJob({
+            id: 'channel-job',
+            data: {
+                sync_results: JSON.stringify({
+                    channel1: {MembersAdded: ['user1'], MembersRemoved: []},
+                }),
+                parent_team_job_id: 'team-job',
+            },
+        });
+        const teamJob = makeTeamSyncJob({id: 'team-job'});
+
+        const stateWithLinkedJob = {
+            entities: {
+                ...initialState.entities,
+                jobs: {
+                    jobs: {
+                        'team-job': teamJob,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <JobDetailsModal
+                job={channelJob}
+                onExited={onExited}
+            />,
+            stateWithLinkedJob,
+        );
+
+        // Both tabs render; Channels is active by default.
+        const teamsTab = await screen.findByRole('button', {name: 'Teams'});
+        expect(screen.getByRole('button', {name: 'Channels'})).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search channels')).toBeInTheDocument();
+
+        // Switching to the Teams tab surfaces the linked team's results.
+        await userEvent.click(teamsTab);
+        expect(screen.getByPlaceholderText('Search teams')).toBeInTheDocument();
+        expect(screen.getByText('Engineering')).toBeInTheDocument();
     });
 
     test('shows canceled banner for channel sync job when canceled', () => {
