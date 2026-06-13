@@ -146,7 +146,7 @@ interface WithConditionalTooltipProps {
 }
 
 function WithConditionalTooltip({children, disableTooltip, tooltipText}: WithConditionalTooltipProps) {
-    if (!disableTooltip) {
+    if (disableTooltip) {
         return children;
     }
 
