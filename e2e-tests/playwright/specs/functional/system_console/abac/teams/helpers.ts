@@ -49,14 +49,20 @@ export async function createTeamMembershipParentPolicy(
 
 /**
  * Trigger an access_control_team_sync job and poll that specific job until it
- * reaches `success`. Polling by ID (not list position) avoids a race where
- * older jobs occupy jobs[0] and the newly created one is never checked.
+ * finishes. Polling by ID (not list position) avoids a race where older jobs
+ * occupy jobs[0] and the newly created one is never checked.
+ *
+ * Both `success` and `warning` are terminal completions: the worker reports
+ * `warning` (not `success`) whenever the mass-removal guardrail trips — i.e. a
+ * sync that drops >50% of a team. The sync still ran to completion, so callers
+ * that exercise removals must accept it. The final status is returned so a
+ * caller can assert on it (e.g. expecting the warning state).
  */
 export async function triggerSyncJobAndPoll(
     client: Client4,
     timeoutMs = 90_000,
     pollIntervalMs = 3_000,
-): Promise<void> {
+): Promise<string> {
     const job: any = await (client as any).doFetch(`${client.getBaseRoute()}/jobs`, {
         method: 'POST',
         body: JSON.stringify({type: 'access_control_team_sync'}),
@@ -70,14 +76,14 @@ export async function triggerSyncJobAndPoll(
             `${client.getBaseRoute()}/jobs/${jobId}`,
             {method: 'GET'},
         );
-        if (current.status === 'success') {
-            return;
+        if (current.status === 'success' || current.status === 'warning') {
+            return current.status;
         }
         if (current.status === 'error') {
             throw new Error(`access_control_team_sync job failed: ${JSON.stringify(current)}`);
         }
     }
-    throw new Error('Timed out waiting for access_control_team_sync job to succeed');
+    throw new Error('Timed out waiting for access_control_team_sync job to finish');
 }
 
 /**

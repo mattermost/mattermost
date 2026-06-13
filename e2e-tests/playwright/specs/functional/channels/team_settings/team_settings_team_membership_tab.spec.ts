@@ -204,12 +204,16 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await addAttributeRule(tab, page, 'Engineering');
         await expect(tab.locator('#autoAddMembersCheckbox')).toBeEnabled({timeout: 5000});
 
-        // # Snapshot job count right before saving — captures any pre-existing jobs from parallel workers
-        const jobsBefore: any[] = await (adminClient as any).doFetch(
-            `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
-            {method: 'GET'},
-        );
-        const jobCountBefore = jobsBefore.length;
+        // # Snapshot jobs for THIS team before saving. Filter by policy_id so
+        // parallel workers and pre-existing jobs from other teams don't skew the count.
+        const fetchTeamJobs = async () => {
+            const all: any[] = await (adminClient as any).doFetch(
+                `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                {method: 'GET'},
+            );
+            return all.filter((j: any) => j.data?.policy_id === team.id);
+        };
+        const teamJobCountBefore = (await fetchTeamJobs()).length;
 
         // # Click Save → confirmation modal appears
         await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -232,12 +236,8 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         );
         expect(JSON.stringify(policyResult)).toContain('Engineering');
 
-        // * No sync job was created (auto-add was OFF) — compare against the pre-save snapshot
-        const jobsAfter: any[] = await (adminClient as any).doFetch(
-            `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
-            {method: 'GET'},
-        );
-        expect(jobsAfter.length).toBe(jobCountBefore);
+        // * No new sync job was created for this team (auto-add was OFF).
+        expect((await fetchTeamJobs()).length).toBe(teamJobCountBefore);
 
         await teamSettings.close();
     });

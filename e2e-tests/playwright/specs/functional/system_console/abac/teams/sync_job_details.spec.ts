@@ -57,6 +57,11 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
 
+        // # The creator is auto-added; drop them so the member set is exactly the
+        // # two users below — keeps the removal count deterministic and below the
+        // # >50% mass-removal guardrail.
+        await adminClient.removeFromTeam(team.id, adminUser.id);
+
         // # eng1 is a qualifying member; mkt1 is non-qualifying (will be removed by sync)
         const createUser = async (dept: string, label: string, addToTeam: boolean) => {
             const uid = `${suffix}${label}`;
@@ -132,6 +137,10 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         // # Private team + active Engineering policy
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
+
+        // # The creator is auto-added; drop them so the member set is exactly the
+        // # four users below (1 qualifying + 3 not), giving a clean 75% removal.
+        await adminClient.removeFromTeam(team.id, adminUser.id);
 
         // # Add 1 qualifying member and 3 non-qualifying members so >50% are removed
         const createAndAdd = async (dept: string, label: string) => {

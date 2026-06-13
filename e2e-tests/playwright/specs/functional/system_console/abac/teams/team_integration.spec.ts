@@ -149,8 +149,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const policyRow = await findPolicyRow(modal, policyName);
         await policyRow.click();
 
-        // The linked policy is listed before saving.
-        await expect(page.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 5000});
+        // The linked policy is listed before saving (scoped to the panel to avoid
+        // matching the still-mounted modal's own .policy-name rows).
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 5000});
 
         await page.getByRole('button', {name: 'Save'}).click();
 
@@ -171,10 +173,17 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             .toBe(true);
 
         // --- Remove ---------------------------------------------------------
+        // Set up the policy fetch waiter BEFORE navigating so we don't miss the
+        // response that fires on componentDidMount — same pattern as the assign phase.
+        const policyFetchDoneRemove = page.waitForResponse(
+            (resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`),
+            {timeout: 20000},
+        ).catch(() => {});
         await openTeamConfig(page, team.display_name);
+        await policyFetchDoneRemove;
 
         // Re-opened page hydrates the assigned policy from the server.
-        await expect(page.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
+        await expect(page.locator('#team_access_control_with_policy').locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
 
         await page.getByLabel('Remove policy').click();
 
@@ -305,9 +314,23 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await enableTeamMembershipPolicies(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
-        // # Private team with one non-matching member so the count in the modal is non-zero
+        // # Private team with one matching (Engineering) and one non-matching (Marketing) member
+        // # so the confirm modal shows a non-zero count instead of the empty-team warning
         const team = await createPrivateTeam(adminClient, suffix);
         createdTeamIds.push(team.id);
+        const matchUser = await adminClient.createUser(
+            {
+                email: `match${suffix}@sample.mattermost.com`,
+                username: `match${suffix}`,
+                password: newTestPassword(),
+            } as any,
+            '',
+            '',
+        );
+        createdUserIds.push(matchUser.id);
+        await adminClient.addToTeam(team.id, matchUser.id);
+        await setUserAttribute(adminClient, matchUser.id, 'Department', 'Engineering');
+
         const nonMatchUser = await adminClient.createUser(
             {
                 email: `nomatch${suffix}@sample.mattermost.com`,
@@ -320,6 +343,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         createdUserIds.push(nonMatchUser.id);
         await adminClient.addToTeam(team.id, nonMatchUser.id);
         await setUserAttribute(adminClient, nonMatchUser.id, 'Department', 'Marketing');
+        await waitForAttributeViewToInclude(
+            adminClient,
+            'user.attributes.Department == "Engineering"',
+            [matchUser.id],
+        );
         await waitForAttributeViewToInclude(
             adminClient,
             'user.attributes.Department == "Marketing"',
@@ -351,7 +379,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // * Save-confirm modal appears with the affected-count text
         const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
         await expect(confirmModal).toBeVisible({timeout: 15000});
-        await expect(confirmModal.getByText(/\d+ members? do not currently meet the criteria/i)).toBeVisible();
+        await expect(confirmModal.getByText(/\d+ members? do(?:es)? not currently meet the criteria/i)).toBeVisible();
 
         // # Click Apply
         await confirmModal.getByRole('button', {name: 'Apply'}).click();

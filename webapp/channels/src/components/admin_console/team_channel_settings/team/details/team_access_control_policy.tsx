@@ -110,7 +110,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                         key={policy.id}
                         className='team-policy-list__row'
                     >
-                        <span className='team-policy-list__col-name team-policy-list__policy-name'>
+                        <span className='team-policy-list__col-name team-policy-list__policy-name policy-name'>
                             {policy.name}
                         </span>
                         <span className='team-policy-list__col-actions'>

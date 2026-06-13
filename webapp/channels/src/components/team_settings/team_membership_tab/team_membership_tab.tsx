@@ -276,7 +276,7 @@ function TeamMembershipTab({
             const rulesChanged = expression !== originalExpression;
             const autoAddTurnedOn = autoAddMembers && !originalAutoAddMembers;
 
-            if (rulesChanged || autoAddTurnedOn) {
+            if (autoAddMembers && (rulesChanged || autoAddTurnedOn)) {
                 try {
                     await dispatch(createAccessControlTeamSyncJob({policy_id: team.id}));
                 } catch {

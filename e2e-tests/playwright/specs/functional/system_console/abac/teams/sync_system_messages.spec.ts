@@ -108,9 +108,11 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
         await channelsPage.goto(team.name, dmChannel.name);
         await channelsPage.toBeVisible();
 
-        // * Addition system message rendered in the DM
+        // * Addition system message rendered in the DM (scoped to this run's team name
+        // to avoid matching accumulated messages from prior test runs in the same DM).
+        const escapedName = team.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const expectedText = new RegExp(
-            `You have been added to .+ because you now meet the membership requirements`,
+            `You have been added to ${escapedName} because you now meet the membership requirements`,
             'i',
         );
         await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible(
@@ -174,9 +176,10 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
             await channelsPage.goto('', dmChannel.name);
             await channelsPage.toBeVisible();
 
-            // * Removal system message rendered
+            // * Removal system message rendered (scoped to this run's team name).
+            const escapedName = team.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const expectedText = new RegExp(
-                `You have been removed from .+ because you no longer meet the membership requirements`,
+                `You have been removed from ${escapedName} because you no longer meet the membership requirements`,
                 'i',
             );
             await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible(

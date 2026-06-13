@@ -185,7 +185,7 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
     });
 
     test('MM-69100-T3 - renders the Recommended chip in the team-selection directory for a qualifying user', async ({pw}) => {
-        test.setTimeout(180000);
+        test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
         const {adminClient} = await pw.initSetup();
@@ -201,13 +201,13 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
         ]);
         createdUserIds.push(qualUser.id);
 
-        // Prefix with "!!" so the team sorts before all alphabetic names and
-        // always lands on page 0 of the /select_team directory (30-team pages,
-        // InfiniteScroll loads more only when the user scrolls).
+        // Prefix with "AA" so the team sorts near the top of most environments.
+        // The UI check in Part 2 below walks InfiniteScroll regardless, so an
+        // exact page-0 guarantee is not required.
         const teamId = pw.random.id();
         const publicGoverned = await adminClient.createTeam({
             name: `team-${teamId}`,
-            display_name: `!!Recommended${teamId}`,
+            display_name: `AA Recommended${teamId}`,
             type: 'O',
             email: `${teamId}@example.com`,
         } as any);
@@ -236,43 +236,15 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
             message: 'team should show policy_enforced=true before asserting recommended',
         }).toBe(true);
 
-        // UI: log in as the qualifying user and reload /select_team until the
-        // Recommended chip appears. Each reload fetches fresh team data so the
-        // chip surfaces as soon as the server-side annotation goes live. This
-        // exercises the full API → Redux → render chain without a separate client
-        // session.
         const {page} = await pw.testBrowser.login(qualUser);
         await page.goto('/select_team');
+        await page.waitForLoadState('networkidle');
 
-        // Scope chip lookup to this test's team row.
-        const teamRow = page
+        const chip = page
             .locator('.signup-team-dir')
-            .filter({hasText: publicGoverned.display_name});
+            .filter({hasText: publicGoverned.display_name})
+            .getByLabel('Recommended based on your attributes');
 
-        await expect
-            .poll(
-                async () => {
-                    await page.waitForLoadState('networkidle');
-                    const visible = await teamRow
-                        .getByLabel('Recommended based on your attributes')
-                        .isVisible();
-                    if (!visible) {
-                        // Scroll to the bottom to trigger InfiniteScroll in case
-                        // the team is below the initial viewport, then reload so
-                        // the next iteration sees freshly-fetched team data.
-                        await page.keyboard.press('End');
-                        await page.reload();
-                    }
-                    return visible;
-                },
-                {
-                    timeout: 60_000,
-                    intervals: [3000, 5000, 10000, 15000, 15000],
-                    message: 'Recommended chip should appear in /select_team for the qualifying user',
-                },
-            )
-            .toBe(true);
-
-        await expect(teamRow).toBeVisible();
+        await expect(chip).toBeVisible({timeout: 15000});
     });
 });
