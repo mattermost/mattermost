@@ -32,10 +32,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-func newServer(t *testing.T) (*Server, error) {
-	return newServerWithConfig(t, func(_ *model.Config) {})
-}
-
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
 	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
