@@ -22,6 +22,7 @@ type TimerLayer struct {
 	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
+	AuditStorageStore               store.AuditStorageStore
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
@@ -91,6 +92,10 @@ func (s *TimerLayer) Attributes() store.AttributesStore {
 
 func (s *TimerLayer) Audit() store.AuditStore {
 	return s.AuditStore
+}
+
+func (s *TimerLayer) AuditStorage() store.AuditStorageStore {
+	return s.AuditStorageStore
 }
 
 func (s *TimerLayer) AutoTranslation() store.AutoTranslationStore {
@@ -333,6 +338,11 @@ type TimerLayerAttributesStore struct {
 
 type TimerLayerAuditStore struct {
 	store.AuditStore
+	Root *TimerLayer
+}
+
+type TimerLayerAuditStorageStore struct {
+	store.AuditStorageStore
 	Root *TimerLayer
 }
 
@@ -889,6 +899,86 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AuditStore.Save", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerAuditStorageStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.AuditStorageStore.HasRead(ctx, userID, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.HasRead", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
+	start := time.Now()
+
+	err := s.AuditStorageStore.Mark(ctx, userID, postID, mechanism)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.Mark", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerAuditStorageStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
+	start := time.Now()
+
+	err := s.AuditStorageStore.MarkBulk(ctx, records)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulk", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerAuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
+	start := time.Now()
+
+	err := s.AuditStorageStore.MarkBulkSamePost(ctx, userIDs, postID, mechanism)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulkSamePost", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerAuditStorageStore) MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error {
+	start := time.Now()
+
+	err := s.AuditStorageStore.MarkBulkSameUser(ctx, userID, postIDs, mechanism)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulkSameUser", success, elapsed)
 	}
 	return err
 }
@@ -15048,6 +15138,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.AccessControlPolicyStore = &TimerLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AttributesStore = &TimerLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &TimerLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
+	newStore.AuditStorageStore = &TimerLayerAuditStorageStore{AuditStorageStore: childStore.AuditStorage(), Root: &newStore}
 	newStore.AutoTranslationStore = &TimerLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}

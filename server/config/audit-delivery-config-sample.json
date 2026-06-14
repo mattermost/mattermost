@@ -1,0 +1,11 @@
+{
+    "audit_delivery_db": {
+        "type": "audit_delivery_db",
+        "format": "noop",
+        "levels": [
+            {"id": 104, "name": "audit-delivery"}
+        ],
+        "options": {},
+        "maxqueuesize": 10000
+    }
+}

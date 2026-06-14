@@ -64,6 +64,7 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		return nil, false, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
+	// LOL
 	rp, isMemberForPreviews, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
@@ -401,6 +402,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
+				//// Mechanism 12: every plugin that registers MessageHasBeenPosted
+				//// receives the post. Attribute to the post author (no per-plugin
+				//// user identity available at this hook).
+				//a.AuditRecord(context.Background(), rpost.UserId, rpost.Id, model.AuditMechPluginHook)
 				return true
 			}, plugin.MessageHasBeenPostedID)
 		})
@@ -464,6 +469,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// LOL
 	if err := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
 		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
@@ -664,6 +670,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 	}
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
+	// LOL
 	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
 	}
