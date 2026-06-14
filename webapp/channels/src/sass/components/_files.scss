@@ -257,7 +257,8 @@
                 overflow: hidden;
                 max-height: $max-image-height;
                 align-self: center;
-                border-radius: 4px;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 8px;
                 cursor: pointer;
                 transition: all 0.1s linear;
 
