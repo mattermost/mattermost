@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useRef} from 'react';
+import React, {memo, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
@@ -86,7 +86,10 @@ export const getIsLargeImage = (data: ImageMetadata | null) => {
 
 const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermalink, previewEnabled, ...rest}: Props) => {
     const {formatMessage} = useIntl();
-    const {current: bestImageData} = useRef<ImageMetadata>(getBestImage(openGraphData, post.metadata.images));
+    const bestImageData = useMemo(
+        () => getBestImage(openGraphData, post.metadata?.images),
+        [openGraphData, post.metadata?.images],
+    );
     const isPreviewRemoved = post?.props?.[PostTypes.REMOVE_LINK_PREVIEW] === 'true';
 
     // block of early return statements
@@ -230,14 +233,30 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
         </button>
     );
 
-    const image = (
+    const imageFigureOnly = (
+        <ExternalImage
+            src={src}
+            imageMetadata={imageMetadata}
+        >
+            {(source) => (
+                <figure>
+                    <img
+                        src={source}
+                        alt={title}
+                    />
+                </figure>
+            )}
+        </ExternalImage>
+    );
+
+    const imageLargeExpanded = (
         <ExternalImage
             src={src}
             imageMetadata={imageMetadata}
         >
             {(source) => (
                 <>
-                    {large && imageCollapseButton}
+                    {imageCollapseButton}
                     <figure>
                         <img
                             src={source}
@@ -249,15 +268,30 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
         </ExternalImage>
     );
 
+    let previewBody: React.ReactNode;
+    if (large) {
+        previewBody = (
+            <AutoHeightSwitcher
+                showSlot={isEmbedVisible ? 1 : 2}
+                slot1={imageLargeExpanded}
+                slot2={imageCollapseButton}
+            />
+        );
+    } else if (isEmbedVisible) {
+        previewBody = imageFigureOnly;
+    } else {
+        previewBody = (
+            <AutoHeightSwitcher
+                showSlot={2}
+                slot1={imageFigureOnly}
+                slot2={imageCollapseButton}
+            />
+        );
+    }
+
     return (
         <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
-            {large ? (
-                <AutoHeightSwitcher
-                    showSlot={isEmbedVisible ? 1 : 2}
-                    slot1={image}
-                    slot2={imageCollapseButton}
-                />
-            ) : image}
+            {previewBody}
         </div>
     );
 });
