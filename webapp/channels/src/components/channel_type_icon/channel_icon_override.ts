@@ -27,11 +27,10 @@ export function clearLoggedMatcherErrors(pluginId?: string): void {
 /**
  * Returns the IconGlyphTypes name of the first matching plugin override, or null.
  *
- * If `channel` is present, iterates `state.plugins.components.ChannelIconOverride` in array order
- * (sorted alphabetically by pluginId via the reducer). The first matcher returning true wins.
- * Matcher throws are caught, logged once per pluginId, and treated as no-match.
- *
- * Note: Do not use createSelector here — this is a per-row call over a short override list.
+ * Iterates the registered matchers on every call. The framework does not memoize across
+ * dispatches because the matcher contract takes full Redux state, so we cannot infer
+ * which slices it reads. If a plugin's matcher is expensive, the plugin should memoize
+ * inside its own predicate using `createSelector` keyed on the slices it consults.
  */
 export function getChannelIconOverrideForChannel(
     state: GlobalState,
@@ -43,8 +42,7 @@ export function getChannelIconOverrideForChannel(
     const overrides = state.plugins.components.ChannelIconOverride ?? [];
     for (const entry of overrides) {
         try {
-            const matched = entry.matcher(state, channel);
-            if (matched === true) {
+            if (entry.matcher(state, channel) === true) {
                 return entry.iconName;
             }
         } catch (err) {

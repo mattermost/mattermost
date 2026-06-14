@@ -334,3 +334,4 @@ describe('selectors/getChannelIconOverrideForChannel', () => {
         });
     });
 });
+
