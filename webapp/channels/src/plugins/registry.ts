@@ -79,6 +79,7 @@ import type {
     ChannelIntroRegistration,
     ComposerPlaceholderSuffixRegistration,
     PostDecoratorRegistration,
+    ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1492,6 +1493,44 @@ export default class PluginRegistry {
             text,
         });
         return id;
+    });
+
+    /**
+     * Register a clickable menu item in the product-switcher dropdown.
+     *
+     * Use this instead of `registerProduct` when your plugin only needs a menu entry point
+     * (e.g., opens a modal or navigates to a route) and does not need full product routing or
+     * header components.
+     *
+     * `isAvailable` receives the **full** Redux `GlobalState` — do not project or narrow the
+     * state type. This lets plugins read `state['plugins-<pluginId>']` to gate visibility on
+     * plugin-owned data. If `isAvailable` is omitted the item is always visible.
+     *
+     * `action` is called when the user clicks the item. It typically dispatches a route push or
+     * opens a modal. The menu will close automatically after `action` is invoked.
+     *
+     * Items from multiple plugins are sorted alphabetically by `pluginId` in the menu.
+     * All registered items are removed automatically when the plugin unregisters.
+     */
+    registerProductSwitcherMenuItem = reArg(['text', 'icon', 'action', 'isAvailable'], ({
+        text,
+        icon,
+        action,
+        isAvailable,
+    }: {
+        text: ProductSwitcherMenuItemRegistration['text'];
+        icon: ReactResolvable;
+        action: ProductSwitcherMenuItemRegistration['action'];
+        isAvailable?: ProductSwitcherMenuItemRegistration['isAvailable'];
+    }) => {
+        dispatchPluginComponentWithData('ProductSwitcherMenuItem', {
+            id: generateId(),
+            pluginId: this.id,
+            text,
+            icon: resolveReactElement(icon),
+            action,
+            isAvailable,
+        });
     });
 
     /**
