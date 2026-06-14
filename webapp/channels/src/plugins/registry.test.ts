@@ -252,88 +252,82 @@ describe('PluginRegistry — registerChannelIconOverride', () => {
     });
 });
 
-describe('PluginRegistry — registerChannelDecorator', () => {
+describe('PluginRegistry — registerChannelComposerBannerComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 
-    let store: ReturnType<typeof createStore<ReturnType<typeof pluginsReducer>, any, any, any>>;
-    let registry: PluginRegistry;
-
     beforeEach(() => {
-        store = createStore(pluginsReducer);
-        mockCurrentStore = store;
-        registry = new PluginRegistry(PLUGIN_ID);
+        mockCurrentStore = createStore(pluginsReducer);
     });
 
-    function getDecorators() {
-        return mockCurrentStore.getState().components.ChannelDecorator;
+    function getBanners() {
+        return mockCurrentStore.getState().components.ChannelComposerBanner;
     }
 
-    it('(a) valid registration adds entry to ChannelDecorator list', () => {
-        registry.registerChannelDecorator({
-            slot: 'after_channel_name',
-            matcher: () => true,
-            component: () => null,
-        });
+    it('adds an entry to ChannelComposerBanner with the plugin id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelComposerBannerComponent({component: () => null});
 
-        const decorators = getDecorators();
-        expect(decorators).toHaveLength(1);
-        expect(decorators[0].pluginId).toBe(PLUGIN_ID);
-        expect(decorators[0].slot).toBe('after_channel_name');
+        const entries = getBanners();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
     });
 
-    it('(b) invalid slot emits console.warn and does NOT add entry', () => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-        registry.registerChannelDecorator({
-            slot: 'bad_slot' as any,
-            matcher: () => true,
-            component: () => null,
-        });
-
-        expect(warnSpy).toHaveBeenCalledTimes(1);
-        expect(warnSpy.mock.calls[0][0]).toContain('bad_slot');
-        expect(getDecorators()).toHaveLength(0);
-        warnSpy.mockRestore();
-    });
-
-    it('(c) REMOVED_WEBAPP_PLUGIN sweeps all decorators for that plugin', () => {
+    it('REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
         const otherRegistry = new PluginRegistry('other_plugin');
 
-        registry.registerChannelDecorator({
-            slot: 'after_channel_name',
-            matcher: () => true,
-            component: () => null,
-        });
-        registry.registerChannelDecorator({
-            slot: 'intro',
-            matcher: () => true,
-            component: () => null,
-        });
-        otherRegistry.registerChannelDecorator({
-            slot: 'after_channel_name',
-            matcher: () => false,
-            component: () => null,
-        });
+        registry.registerChannelComposerBannerComponent({component: () => null});
+        otherRegistry.registerChannelComposerBannerComponent({component: () => null});
 
         mockCurrentStore.dispatch({
             type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
             data: {id: PLUGIN_ID},
         });
 
-        const decorators = getDecorators();
-        expect(decorators).toHaveLength(1);
-        expect(decorators[0].pluginId).toBe('other_plugin');
+        const entries = getBanners();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+});
+
+describe('PluginRegistry — registerChannelIntro', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
     });
 
-    it('(d) after_channel_name is accepted as a valid slot', () => {
-        registry.registerChannelDecorator({
-            slot: 'after_channel_name',
-            matcher: () => true,
-            component: () => null,
+    function getIntroRegs() {
+        return mockCurrentStore.getState().components.ChannelIntro;
+    }
+
+    it('adds an entry to ChannelIntro with the plugin id, matcher, and component', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const component = () => null;
+        registry.registerChannelIntro({matcher, component});
+
+        const entries = getIntroRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+        expect(entries[0].matcher).toBe(matcher);
+        expect(entries[0].component).toBe(component);
+    });
+
+    it('REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelIntro({matcher: () => true, component: () => null});
+        otherRegistry.registerChannelIntro({matcher: () => false, component: () => null});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
         });
 
-        const decorators = getDecorators();
-        expect(decorators).toHaveLength(1);
-        expect(decorators[0].slot).toBe('after_channel_name');
+        const entries = getIntroRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
     });
 });

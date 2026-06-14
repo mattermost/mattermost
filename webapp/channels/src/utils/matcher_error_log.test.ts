@@ -85,7 +85,7 @@ describe('utils/createMatcherErrorLog', () => {
             const {logOnce} = createMatcherErrorLog('TestLabel');
 
             logOnce('plugin-a', new Error('boom'), 'intro');
-            logOnce('plugin-a', new Error('boom'), 'above_composer');
+            logOnce('plugin-a', new Error('boom'), 'other-slot');
 
             expect(consoleSpy).toHaveBeenCalledTimes(2);
         });
@@ -93,10 +93,10 @@ describe('utils/createMatcherErrorLog', () => {
         it('slot is included in the error message text', () => {
             const {logOnce} = createMatcherErrorLog('TestLabel');
 
-            logOnce('plugin-a', new Error('boom'), 'after_channel_name');
+            logOnce('plugin-a', new Error('boom'), 'some-slot');
 
             const msg: string = consoleSpy.mock.calls[0][0];
-            expect(msg).toContain("at slot 'after_channel_name'");
+            expect(msg).toContain("at slot 'some-slot'");
         });
     });
 

@@ -140,7 +140,7 @@ describe('components/threading/CreateComment', () => {
         expect(screen.getByTestId('advanced-create-comment')).toBeInTheDocument();
     });
 
-    it('renders above_composer decorator above the thread composer for matched channel', () => {
+    it('renders ChannelComposerBanner component above the thread composer', () => {
         const channel = TestHelper.getChannelMock({
             id: 'ch-1',
             type: 'O',
@@ -152,12 +152,10 @@ describe('components/threading/CreateComment', () => {
             plugins: {
                 components: {
                     ChannelIconOverride: [],
-                    ChannelDecorator: [{
-                        id: 'above-1',
+                    ChannelComposerBanner: [{
+                        id: 'banner-1',
                         pluginId: 'test-plugin',
-                        slot: 'above_composer' as const,
-                        matcher: () => true,
-                        component: () => <div data-testid='decorator-content-above-composer'/>,
+                        component: () => <div data-testid='composer-banner-content'/>,
                     }],
                 },
             },
@@ -168,6 +166,6 @@ describe('components/threading/CreateComment', () => {
             state,
         );
 
-        expect(screen.getByTestId('decorator-content-above-composer')).toBeInTheDocument();
+        expect(screen.getByTestId('composer-banner-content')).toBeInTheDocument();
     });
 });

@@ -6,16 +6,15 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import type {ChannelDecoratorRegistration} from 'types/store/plugins';
+import type {ChannelIntroRegistration} from 'types/store/plugins';
 
-import ChannelDecoratorRenderer from './channel_decorator_renderer';
+import ChannelIntroRenderer from './channel_intro_renderer';
 
 const mockChannel = TestHelper.getChannelMock({id: 'channel-1'});
 
-const makeRegistration = (component: React.ComponentType<any>): ChannelDecoratorRegistration => ({
+const makeRegistration = (component: React.ComponentType<any>): ChannelIntroRegistration => ({
     id: 'reg-1',
     pluginId: 'test-plugin',
-    slot: 'after_channel_name',
     matcher: () => true,
     component,
 });
@@ -28,13 +27,13 @@ const minimalState = {
     },
 } as any;
 
-describe('components/channel_decorator_renderer/ChannelDecoratorRenderer', () => {
-    it('(a) renders the plugin component with channel prop', () => {
+describe('components/channel_intro_renderer/ChannelIntroRenderer', () => {
+    it('renders the plugin component with channel prop', () => {
         const PluginComponent = () => <div data-testid='plugin-component'/>;
         const reg = makeRegistration(PluginComponent);
 
         renderWithContext(
-            <ChannelDecoratorRenderer
+            <ChannelIntroRenderer
                 registration={reg}
                 channel={mockChannel}
             />,
@@ -44,7 +43,7 @@ describe('components/channel_decorator_renderer/ChannelDecoratorRenderer', () =>
         expect(screen.getByTestId('plugin-component')).toBeInTheDocument();
     });
 
-    it('(c) error boundary catches a crashing component', () => {
+    it('error boundary catches a crashing component and host area stays mounted', () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         const Crasher = (): null => {
@@ -53,14 +52,13 @@ describe('components/channel_decorator_renderer/ChannelDecoratorRenderer', () =>
         const reg = makeRegistration(Crasher);
 
         const {container} = renderWithContext(
-            <ChannelDecoratorRenderer
+            <ChannelIntroRenderer
                 registration={reg}
                 channel={mockChannel}
             />,
             minimalState,
         );
 
-        // Error boundary fallback renders a message and a refresh link
         expect(screen.getByText(/An error occurred/i)).toBeInTheDocument();
         expect(screen.getByText(/Refresh/i)).toBeInTheDocument();
 

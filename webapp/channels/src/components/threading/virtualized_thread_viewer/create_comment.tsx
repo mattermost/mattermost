@@ -12,7 +12,7 @@ import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/post
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
 import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
-import {ChannelDecoratorAboveComposer} from 'components/channel_view/channel_decorator_above_composer';
+import {ChannelComposerBanner} from 'components/channel_view/channel_composer_banner';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
 import {getArchiveIconComponent} from 'utils/channel_utils';
@@ -105,7 +105,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
             ref={ref}
             data-testid='comment-create'
         >
-            <ChannelDecoratorAboveComposer channelId={channel.id}/>
+            <ChannelComposerBanner channelId={channel.id}/>
             <AdvancedCreateComment
                 placeholder={placeholder}
                 channelId={channel.id}

@@ -72,7 +72,8 @@ export type PluginsState = {
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
-        ChannelDecorator: ChannelDecoratorRegistration[];
+        ChannelComposerBanner: ChannelComposerBannerComponent[];
+        ChannelIntro: ChannelIntroRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -428,11 +429,12 @@ export type ChannelIconOverrideRegistration = PluginComponent & {
     iconName: IconGlyphTypes;
 };
 
-export type ChannelDecoratorSlot = 'after_channel_name' | 'intro' | 'above_composer';
+export type ChannelComposerBannerComponent = PluginComponent & {
+    component: React.ComponentType<{channel: Channel}>;
+};
 
-export type ChannelDecoratorRegistration = PluginComponent & {
-    slot: ChannelDecoratorSlot;
-    matcher: (channel: Channel, state: GlobalState) => boolean;
+export type ChannelIntroRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<{channel: Channel}>;
 };
 

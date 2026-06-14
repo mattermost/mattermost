@@ -27,7 +27,7 @@ import {
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
-import {clearLoggedDecoratorErrors} from 'selectors/channel_decorator';
+import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
 import store from 'stores/redux_store';
 
 import {compassIconForName} from 'components/channel_type_icon';
@@ -74,12 +74,10 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
-    ChannelDecoratorRegistration,
+    ChannelIntroRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
-
-const VALID_CHANNEL_DECORATOR_SLOTS = new Set<string>(['after_channel_name', 'intro', 'above_composer']);
 
 type DPluginComponentProp = {component: React.ComponentType<unknown>};
 function dispatchPluginComponentAction(name: keyof PluginsState['components'], pluginId: string, component: React.ComponentType<any>, id = generateId()) {
@@ -1402,42 +1400,30 @@ export default class PluginRegistry {
     });
 
     /**
-     * Register a React component to render at a specific slot on channels matched by the
-     * provided predicate. The matcher receives the full Redux state so predicates can read
-     * plugin-owned slices (e.g., state['plugins-<pluginId>']).
-     *
-     * Slots:
-     *   'after_channel_name' — adornment rendered at the start of the channel-header icon group
-     *     (which sits immediately after the channel name), before the mute/members/files icons,
-     *     so it inherits that group's spacing. Multiple registrations render side-by-side.
-     *   'intro' — replaces the entire built-in channel intro area (SVG, title, welcome text).
-     *     First-matching registration wins; other registrations for the same channel are ignored.
-     *   'above_composer' — rendered above the message input in both the center-channel
-     *     composer and the thread/RHS composer. Multiple registrations stack vertically.
-     *
-     * Registrations are cleaned up automatically when the plugin is removed.
-     *
-     * @returns Auto-generated unique id for this registration.
+     * Register a component rendered above the message input in both the center-channel composer
+     * and the thread/RHS composer. Receives {channel}; return null when nothing should show.
+     * Multiple registrations stack. Cleaned up automatically when the plugin is removed.
      */
-    registerChannelDecorator = reArg(['slot', 'matcher', 'component'], ({slot, matcher, component}: {
-        slot: ChannelDecoratorRegistration['slot'];
-        matcher: ChannelDecoratorRegistration['matcher'];
-        component: ChannelDecoratorRegistration['component'];
+    registerChannelComposerBannerComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('ChannelComposerBanner', this.id, component);
+    });
+
+    /**
+     * Register a component that replaces the descriptive body (icon, title, creation info, and
+     * description) of a standard public/private channel's intro for channels the matcher selects.
+     * The channel's action buttons (favorite, add members, set header, notification preferences,
+     * and plugin intro buttons) remain rendered by the server. The matcher receives the full Redux
+     * state so it can read plugin-owned slices (e.g. state['plugins-<id>']). First registration
+     * whose matcher returns true wins (alphabetical pluginId, then insertion order); the rest are
+     * ignored for that channel. Cleaned up automatically when the plugin is removed.
+     */
+    registerChannelIntro = reArg(['matcher', 'component'], ({matcher, component}: {
+        matcher: ChannelIntroRegistration['matcher'];
+        component: ChannelIntroRegistration['component'];
     }) => {
-        if (!VALID_CHANNEL_DECORATOR_SLOTS.has(slot)) {
-            // eslint-disable-next-line no-console
-            console.warn(`registerChannelDecorator: plugin '${this.id}' supplied unknown slot '${slot}' — registration ignored.`);
-            return generateId();
-        }
-        clearLoggedDecoratorErrors(this.id);
+        clearLoggedChannelIntroErrors(this.id);
         const id = generateId();
-        dispatchPluginComponentWithData('ChannelDecorator', {
-            id,
-            pluginId: this.id,
-            slot,
-            matcher,
-            component,
-        });
+        dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
         return id;
     });
 

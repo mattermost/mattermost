@@ -3,8 +3,8 @@
 
 // Plugin-registered matchers run on the render path. A throwing matcher is treated as a no-match,
 // but the first occurrence per key is logged so a broken plugin is diagnosable without spamming the
-// console on every render. Channel-icon overrides key by pluginId; channel decorators key by
-// pluginId+slot — the optional `slot` selects the keying scheme.
+// console on every render. Callers key by pluginId alone, or by pluginId+slot when one label hosts
+// several matcher slots — the optional `slot` selects the keying scheme.
 export function createMatcherErrorLog(label: string) {
     const logged = new Set<string>();
 
@@ -23,9 +23,9 @@ export function createMatcherErrorLog(label: string) {
         );
     };
 
-    // Clears all entries, or just those for one plugin: the exact-pluginId key (icon scheme) plus
-    // any `${pluginId}:`-prefixed keys (decorator scheme). The colon guards against prefix
-    // collisions between plugin ids (e.g. 'foo' vs 'foobar').
+    // Clears all entries, or just those for one plugin: the exact-pluginId key plus any
+    // `${pluginId}:`-prefixed (slot-keyed) entries. The colon guards against prefix collisions
+    // between plugin ids (e.g. 'foo' vs 'foobar').
     const clear = (pluginId?: string): void => {
         if (pluginId === undefined) {
             logged.clear();
