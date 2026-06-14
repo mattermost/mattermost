@@ -11,7 +11,7 @@ import Constants from 'utils/constants';
 
 type Props = {
     channel: Channel;
-}
+};
 
 const SidebarBaseChannelIcon = ({channel}: Props) => {
     if (channel.type !== Constants.OPEN_CHANNEL && channel.type !== Constants.PRIVATE_CHANNEL) {
