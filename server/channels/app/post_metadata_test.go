@@ -15,6 +15,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -36,6 +37,22 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 )
+
+// linkCacheTestMutex serializes access to the package-global link metadata cache in
+// tests that call PurgeLinkCache or assert on specific cache contents.
+var linkCacheTestMutex sync.Mutex
+
+func acquireLinkCacheTestLock(t *testing.T) {
+	t.Helper()
+	linkCacheTestMutex.Lock()
+	t.Cleanup(linkCacheTestMutex.Unlock)
+}
+
+func purgeLinkCacheForTest(t *testing.T) {
+	t.Helper()
+	err := platform.PurgeLinkCache()
+	require.NoError(t, err)
+}
 
 func TestPreparePostListForClient(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -2212,14 +2229,15 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 
 func TestGetLinkMetadata(t *testing.T) {
 	setup := func(t *testing.T) *TestHelper {
+		acquireLinkCacheTestLock(t)
+
 		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
-		err := platform.PurgeLinkCache()
-		require.NoError(t, err)
+		purgeLinkCacheForTest(t)
 
 		return th
 	}
@@ -2369,8 +2387,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
 
 		t.Run("should use database if saved entry exists", func(t *testing.T) {
-			err := platform.PurgeLinkCache()
-			require.NoError(t, err)
+			purgeLinkCacheForTest(t)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2387,8 +2404,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should use database if saved entry exists near time", func(t *testing.T) {
-			err := platform.PurgeLinkCache()
-			require.NoError(t, err)
+			purgeLinkCacheForTest(t)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2405,8 +2421,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if URL is different", func(t *testing.T) {
-			err := platform.PurgeLinkCache()
-			require.NoError(t, err)
+			purgeLinkCacheForTest(t)
 
 			differentURL := requestURL + "/other"
 
@@ -2424,8 +2439,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if timestamp is different", func(t *testing.T) {
-			err := platform.PurgeLinkCache()
-			require.NoError(t, err)
+			purgeLinkCacheForTest(t)
 
 			differentTimestamp := timestamp + 60*60*1000
 
@@ -2626,8 +2640,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
 
-		err = platform.PurgeLinkCache()
-		require.NoError(t, err)
+		purgeLinkCacheForTest(t)
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
@@ -3366,8 +3379,8 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
 
 	setup := func(t *testing.T) {
-		err := platform.PurgeLinkCache()
-		require.NoError(t, err)
+		acquireLinkCacheTestLock(t)
+		purgeLinkCacheForTest(t)
 	}
 
 	assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
