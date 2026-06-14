@@ -122,6 +122,12 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 		conditions = append(conditions, "o.DeleteAt != 0")
 	}
 
+	// Exclude the system bot if requested
+	if options.ExcludeSystemBot {
+		conditions = append(conditions, "u.Username != ?")
+		args = append(args, model.BotSystemBotUsername)
+	}
+
 	if len(conditions) > 0 {
 		conditionsSql = "WHERE " + strings.Join(conditions, " AND ")
 	}
