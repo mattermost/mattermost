@@ -48,6 +48,9 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
     test('MM-69100-T4 sync job details shows per-team member counts and section title', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
         await enableTeamMembershipPolicies(adminClient);
@@ -128,6 +131,9 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
     test('MM-69100-T5 sync job details shows mass-removal warning when >50% of members are removed', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
         await enableTeamMembershipPolicies(adminClient);

@@ -307,6 +307,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         cleanupClient = adminClient;
         await enableTeamMembershipABACConfig(adminClient);
@@ -393,6 +396,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         cleanupClient = adminClient;
         await enableTeamMembershipABACConfig(adminClient);
@@ -457,6 +463,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         cleanupClient = adminClient;
         await enableTeamMembershipABACConfig(adminClient);

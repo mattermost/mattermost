@@ -83,6 +83,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             getTeamStats: jest.fn().mockResolvedValue({data: {total_member_count: 5}}),
             saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
             getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
+            searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
         },
     };
 

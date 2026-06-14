@@ -357,7 +357,13 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 // once per team rather than once per user, since GetSystemBot is not free); pass
 // nil to have it resolved here.
 func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
-	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamRemoval, "api.team.access_control.removed.system_message")
+	locale := ""
+	if user, err := a.GetUser(userID); err == nil {
+		locale = user.Locale
+	}
+	T := i18n.GetUserTranslations(locale)
+	message := T("api.team.access_control.removed.system_message", map[string]any{"TeamName": team.DisplayName})
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamRemoval, message)
 }
 
 // SendTeamAccessControlAdditionNotification audits the auto-add and DMs the
@@ -370,10 +376,16 @@ func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, system
 	model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
 	a.LogAuditRec(rctx, rec, nil)
 
-	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamAddition, "api.team.access_control.added.system_message")
+	locale := ""
+	if user, err := a.GetUser(userID); err == nil {
+		locale = user.Locale
+	}
+	T := i18n.GetUserTranslations(locale)
+	message := T("api.team.access_control.added.system_message", map[string]any{"TeamName": team.DisplayName})
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamAddition, message)
 }
 
-func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team, postType, messageKey string) *model.AppError {
+func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team, postType, message string) *model.AppError {
 	if systemBot == nil {
 		var appErr *model.AppError
 		if systemBot, appErr = a.GetSystemBot(rctx); appErr != nil {
@@ -386,15 +398,9 @@ func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, systemBot *mod
 		return appErr
 	}
 
-	locale := ""
-	if user, err := a.GetUser(userID); err == nil {
-		locale = user.Locale
-	}
-	T := i18n.GetUserTranslations(locale)
-
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   T(messageKey, map[string]any{"TeamName": team.DisplayName}),
+		Message:   message,
 		Type:      postType,
 		UserId:    systemBot.UserId,
 		Props:     model.StringInterface{"team_name": team.DisplayName},

@@ -98,6 +98,9 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
     test('MM-69100_2 Public Team card saves type=O and allow_open_invite=true', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
 
@@ -137,6 +140,9 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
     test('MM-69100_3 Private Team card saves type=I and allow_open_invite=false', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
 
@@ -297,6 +303,9 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
     test('MM-69100_7 Private→Public flip saves directly, no modal, no sync job', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
 

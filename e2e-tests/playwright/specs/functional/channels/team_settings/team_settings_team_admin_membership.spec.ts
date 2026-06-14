@@ -180,6 +180,9 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
     test('MM-69100_27 team admin save-confirmation shows correct allowed and restricted counts', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);

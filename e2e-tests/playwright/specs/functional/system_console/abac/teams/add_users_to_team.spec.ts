@@ -49,6 +49,9 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
     test('MM-68846-T7 PRIVATE governed team blocks non-qualifying candidates inline', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
         await enableTeamMembershipPolicies(adminClient);
@@ -123,6 +126,9 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
     test('MM-68846-T8 PUBLIC governed team does NOT block candidates (advisory)', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
         await enableTeamMembershipPolicies(adminClient);
