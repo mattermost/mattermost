@@ -101,7 +101,7 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 		defer tk.Stop()
 		runStart := time.Now()
 		prevT := runStart
-		var prevEnq, prevDrop int64
+		var prevEnq, prevBlocked int64
 		for {
 			select {
 			case <-samplerDone:
@@ -111,7 +111,7 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 				for i := range counters {
 					enq += counters[i].n.Load()
 				}
-				drop := tgt.droppedCount.Load()
+				blocked := tgt.blockedCount.Load()
 				g := runtime.NumGoroutine()
 				if g > maxGoroutines {
 					maxGoroutines = g
@@ -119,10 +119,10 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 				var ms runtime.MemStats
 				runtime.ReadMemStats(&ms)
 				dt := now.Sub(prevT).Seconds()
-				t.Logf("[t=%4.0fs] ingested=%-11d (+%-9d %8.0f/s)  drops=%-9d (+%-8d)  goroutines=%-3d  heap=%6.1f MiB",
+				t.Logf("[t=%4.0fs] ingested=%-11d (+%-9d %8.0f/s)  blocked=%-9d (+%-8d)  goroutines=%-3d  heap=%6.1f MiB",
 					now.Sub(runStart).Seconds(), enq, enq-prevEnq, float64(enq-prevEnq)/dt,
-					drop, drop-prevDrop, g, float64(ms.HeapAlloc)/1024/1024)
-				prevEnq, prevDrop, prevT = enq, drop, now
+					blocked, blocked-prevBlocked, g, float64(ms.HeapAlloc)/1024/1024)
+				prevEnq, prevBlocked, prevT = enq, blocked, now
 			}
 		}
 	}()
@@ -156,7 +156,7 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 					if u >= numUsers {
 						u -= numUsers // single wrap; fanout <= numUsers keeps users distinct
 					}
-					tgt.tryEnqueue(auditDeliveryItem{
+					tgt.enqueue(auditDeliveryItem{
 						userID:    fmt.Sprintf("user%022d", u),
 						entityID:  entityID,
 						mechanism: mech,
@@ -189,8 +189,8 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 
 	var count int64
 	require.NoError(t, db.QueryRow(`SELECT count(*) FROM audit_storage`).Scan(&count))
-	dropped := tgt.droppedCount.Load()
-	require.LessOrEqual(t, count, ingested, "persisted rows cannot exceed ingested (lossy under overload, never duplicated)")
+	blocked := tgt.blockedCount.Load()
+	require.Equal(t, ingested, count, "lossless under overload: every emitted row must persist")
 
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
@@ -209,8 +209,7 @@ func TestShardedDeliveryDBTargetLoad(t *testing.T) {
 	t.Logf("durable  : %d rows persisted (%.2f%% of ingested)", count, 100*float64(count)/float64(max(ingested, 1)))
 	t.Logf("through. : %.0f rows/s sustained inserts over %s",
 		float64(count)/drainElapsed.Seconds(), drainElapsed.Round(time.Millisecond))
-	t.Logf("loss     : %d shard-full drops, %d failed flushes (lossy under overload, OOM-safe)",
-		dropped, tgt.failedCount.Load())
+	t.Logf("backpres.: %d Write stalls (lossless: shard-full enqueues blocked until drained)", blocked)
 	t.Logf("resources: peak goroutines=%d final heap=%.1f MiB",
 		maxGoroutines, float64(ms.HeapAlloc)/1024/1024)
 }

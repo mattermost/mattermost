@@ -24,40 +24,42 @@ import (
 // same (user, entity, mechanism) tuples and ON CONFLICT inserts never deadlock
 // against each other.
 //
-// Lossy under overload: this target sheds load instead of applying
-// back-pressure. When a shard channel is full, Write drops the row and
-// increments a counter; when a flush fails, the batch is discarded after a
-// rate-limited error log. Blocking would let producer goroutines accumulate
-// in memory while the audit DB is degraded, which is the OOM path this
-// target exists to avoid. Audit completeness is sacrificed for server
-// liveness; the dropped/failed counters make the loss observable.
+// Lossless under overload: this target applies back-pressure instead of
+// shedding load. A full shard channel makes Write block until room opens; a
+// failed MarkBulk retains the batch and retries on the next tick. Per-shard
+// memory is bounded by maxPending — once the retained batch reaches that
+// size the worker stops draining the channel, which pushes back through Write
+// to the logr drain goroutine and onward to producers. A persistently
+// unreachable audit DB therefore slows producers rather than losing records.
 type ShardedDeliveryDBTarget struct {
 	store  store.AuditStorageStore
 	logger *mlog.Logger
 
 	numShards     int
-	shardQueue    int           // per-shard channel capacity (memory bound)
+	shardQueue    int           // per-shard channel capacity
 	batchSize     int           // flush when a shard accumulates this many unique rows
-	flushInterval time.Duration // time-based flush cadence; caps in-memory residency
+	maxPending    int           // stop draining a shard above this backlog (back-pressure)
+	flushInterval time.Duration // time-based flush cadence; caps in-memory residency, and the retry cadence
 
 	shards  []chan auditDeliveryItem
 	done    chan struct{}
 	wg      sync.WaitGroup
 	stopped atomic.Bool
 
-	droppedCount atomic.Int64
-	failedCount  atomic.Int64
+	blockedCount atomic.Int64
 }
 
 const (
 	shardedDeliveryShards        = 8
 	shardedDeliveryShardQueue    = 8192
 	shardedDeliveryBatchSize     = 500
+	shardedDeliveryMaxPending    = 2000
 	shardedDeliveryFlushInterval = 100 * time.Millisecond
+	shardedDeliveryShutdownTries = 3
 
-	// shardedDeliveryLogEvery rate-limits both the drop and failure logs.
-	// A persistent overload then produces ~1 log per N events instead of
-	// one per event, so audit problems don't amplify into log storms.
+	// shardedDeliveryLogEvery rate-limits the back-pressure log. A sustained
+	// overload then produces ~1 log per N stalls instead of one per stall,
+	// so audit problems don't amplify into log storms.
 	shardedDeliveryLogEvery = 1000
 )
 
@@ -74,6 +76,7 @@ func NewShardedDeliveryDBTarget(s store.AuditStorageStore, logger *mlog.Logger) 
 		numShards:     shardedDeliveryShards,
 		shardQueue:    shardedDeliveryShardQueue,
 		batchSize:     shardedDeliveryBatchSize,
+		maxPending:    shardedDeliveryMaxPending,
 		flushInterval: shardedDeliveryFlushInterval,
 	}
 }
@@ -102,6 +105,9 @@ func (t *ShardedDeliveryDBTarget) Shutdown() error {
 	if t.stopped.Swap(true) {
 		return nil
 	}
+	// logr has already drained its queue (no more Write calls will arrive)
+	// before Shutdown is invoked, so signalling done lets each worker drain
+	// its buffered items and make a best-effort final flush.
 	close(t.done)
 	t.wg.Wait()
 	return nil
@@ -145,7 +151,7 @@ func (t *ShardedDeliveryDBTarget) route(fields []mlog.Field) {
 				if userID == "" {
 					continue
 				}
-				t.tryEnqueue(auditDeliveryItem{userID: userID, entityID: entityID, mechanism: mech})
+				t.enqueue(auditDeliveryItem{userID: userID, entityID: entityID, mechanism: mech})
 			}
 			return
 		}
@@ -159,7 +165,7 @@ func (t *ShardedDeliveryDBTarget) route(fields []mlog.Field) {
 				if entityID == "" {
 					continue
 				}
-				t.tryEnqueue(auditDeliveryItem{userID: userID, entityID: entityID, mechanism: mech})
+				t.enqueue(auditDeliveryItem{userID: userID, entityID: entityID, mechanism: mech})
 			}
 			return
 		}
@@ -169,36 +175,37 @@ func (t *ShardedDeliveryDBTarget) route(fields []mlog.Field) {
 		if userID == "" || entityID == "" {
 			return
 		}
-		t.tryEnqueue(auditDeliveryItem{userID: userID, entityID: entityID, mechanism: mech})
+		t.enqueue(auditDeliveryItem{userID: userID, entityID: entityID, mechanism: mech})
 		return
 	}
 }
 
-// tryEnqueue is a non-blocking send. A full shard channel means the audit DB
-// cannot drain as fast as the producer is emitting; the row is counted and
-// dropped rather than blocking the logr drain goroutine. That blocking is
-// what causes the OOM cascade this target exists to prevent.
-func (t *ShardedDeliveryDBTarget) tryEnqueue(item auditDeliveryItem) {
+// enqueue sends to the owning shard, blocking when the shard channel is full.
+// Blocking is the lossless alternative to discarding under load: back-pressure
+// flows back through logr to the producer goroutines so a slow audit DB slows
+// the server instead of silently losing audit rows.
+func (t *ShardedDeliveryDBTarget) enqueue(item auditDeliveryItem) {
 	ch := t.shards[shardFor(item.userID, t.numShards)]
 	select {
 	case ch <- item:
 	default:
-		n := t.droppedCount.Add(1)
+		n := t.blockedCount.Add(1)
 		if t.logger != nil && (n == 1 || n%shardedDeliveryLogEvery == 0) {
 			t.logger.Warn(
-				"audit_delivery_sharded: shard full, record dropped",
-				mlog.Int("dropped_total", n),
+				"audit_delivery_sharded: shard full, Write blocked (back-pressure, no records dropped)",
+				mlog.Int("blocked_total", n),
 				mlog.Int("shard_queue_size", t.shardQueue),
+				mlog.Int("shard_queue_len", len(ch)),
 			)
 		}
+		ch <- item
 	}
 }
 
-// shardLoop owns one shard. It drains the channel into a dedup map and flushes
-// on size or on the tick. On flush failure the batch is discarded after a
-// rate-limited error log — retrying would just enlarge the in-memory footprint
-// while the audit DB stays sick, which is the failure mode that lights up
-// OOM in production.
+// shardLoop owns one shard: it accumulates unique rows and flushes them in a
+// single MarkBulk round-trip on size or on the flush timer. It is the only
+// goroutine that touches its shard's entity_ids, which is what keeps
+// concurrent flushes conflict-free at the DB.
 func (t *ShardedDeliveryDBTarget) shardLoop(in chan auditDeliveryItem) {
 	defer t.wg.Done()
 
@@ -208,61 +215,78 @@ func (t *ShardedDeliveryDBTarget) shardLoop(in chan auditDeliveryItem) {
 	ticker := time.NewTicker(t.flushInterval)
 	defer ticker.Stop()
 
+	// flush attempts one MarkBulk. On success it empties pending and returns
+	// true. On error it logs and KEEPS pending so the rows are retried on the
+	// next tick: a failed write never silently drops records.
+	flush := func() bool {
+		if len(pending) == 0 {
+			return true
+		}
+		batch := make([]model.AuditDeliveryRecord, 0, len(pending))
+		for it := range pending {
+			batch = append(batch, model.AuditDeliveryRecord{
+				UserID:    it.userID,
+				EntityID:  it.entityID,
+				Mechanism: it.mechanism,
+			})
+		}
+		if err := t.store.MarkBulk(context.Background(), batch); err != nil {
+			if t.logger != nil {
+				t.logger.Error(
+					"audit_delivery_sharded: bulk flush failed, will retry",
+					mlog.Int("batch_size", len(batch)),
+					mlog.Err(err),
+				)
+			}
+			return false
+		}
+		clear(pending)
+		return true
+	}
+
 	for {
+		// While a failed-flush backlog sits above maxPending, stop draining
+		// new items (a nil channel disables that select case). The shard
+		// channel then fills and back-pressure flows to Write, rather than
+		// pending growing unbounded toward OOM. The ticker still fires, so
+		// the backlog is retried every flushInterval.
+		inCh := in
+		if len(pending) >= t.maxPending {
+			inCh = nil
+		}
+
 		select {
-		case item := <-in:
+		case item := <-inCh:
 			pending[item] = struct{}{}
 			if len(pending) >= t.batchSize {
-				t.flush(pending)
+				flush()
 			}
 		case <-ticker.C:
-			t.flush(pending)
+			flush()
 		case <-t.done:
-			// Best-effort drain of any buffered items, then a single final
-			// flush. No retry loop on shutdown: holding rows for a sick DB
-			// is exactly the OOM-inducing behavior we are removing.
-		drain:
-			for {
-				select {
-				case item := <-in:
-					pending[item] = struct{}{}
-				default:
-					break drain
-				}
-			}
-			t.flush(pending)
+			t.finalize(in, pending, flush)
 			return
 		}
 	}
 }
 
-// flush attempts one MarkBulk, then unconditionally clears pending. Whether
-// the call succeeded or not, the worker moves on; the per-shard footprint is
-// thereby bounded by batchSize between flushes.
-func (t *ShardedDeliveryDBTarget) flush(pending map[auditDeliveryItem]struct{}) {
-	if len(pending) == 0 {
-		return
-	}
-	batch := make([]model.AuditDeliveryRecord, 0, len(pending))
-	for it := range pending {
-		batch = append(batch, model.AuditDeliveryRecord{
-			UserID:    it.userID,
-			EntityID:  it.entityID,
-			Mechanism: it.mechanism,
-		})
-	}
-	clear(pending)
-
-	if err := t.store.MarkBulk(context.Background(), batch); err != nil {
-		n := t.failedCount.Add(1)
-		if t.logger != nil && (n == 1 || n%shardedDeliveryLogEvery == 0) {
-			t.logger.Error(
-				"audit_delivery_sharded: bulk flush failed, batch discarded",
-				mlog.Int("batch_size", len(batch)),
-				mlog.Int("failed_total", n),
-				mlog.Err(err),
-			)
+// finalize drains any already-buffered items (no new ones can arrive once
+// done is closed) and makes a bounded best-effort flush. If the audit DB is
+// unreachable at shutdown the remaining rows are lost, which is the accepted
+// hard-failure bound; everything written within flushInterval of a graceful
+// shutdown is preserved.
+func (t *ShardedDeliveryDBTarget) finalize(in chan auditDeliveryItem, pending map[auditDeliveryItem]struct{}, flush func() bool) {
+DrainLoop:
+	for {
+		select {
+		case item := <-in:
+			pending[item] = struct{}{}
+		default:
+			break DrainLoop
 		}
+	}
+	for attempt := 0; attempt < shardedDeliveryShutdownTries && !flush(); attempt++ {
+		time.Sleep(t.flushInterval)
 	}
 }
 

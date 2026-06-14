@@ -123,40 +123,60 @@ func TestShardedDeliveryDBTarget_FanOutArray(t *testing.T) {
 	}
 }
 
-func TestShardedDeliveryDBTarget_DiscardsBatchOnFailure(t *testing.T) {
+func TestShardedDeliveryDBTarget_RetriesBatchOnFailure(t *testing.T) {
 	fake := newFakeAuditStorage()
-	fake.failFirst = 100 // every flush during the test fails; row must be discarded, not retried
+	fake.failFirst = 2 // first two flush attempts fail; the row must survive and persist on retry
 	tgt := newTestTarget(t, fake)
 
 	routeMeta(tgt, map[string]any{"user_id": "user1", "entity_id": "post1", "mechanism": model.AuditMechChannelView})
-	require.NoError(t, tgt.Shutdown())
 
-	rows, calls := fake.snapshot()
-	require.Empty(t, rows, "failed batch must be discarded, not persisted")
-	require.GreaterOrEqual(t, calls, 1, "at least one MarkBulk attempt should have been made")
-	require.GreaterOrEqual(t, tgt.failedCount.Load(), int64(1))
+	// The 10ms ticker plus the 3-attempt shutdown loop give the row several
+	// flush chances; once failFirst drains to 0, MarkBulk succeeds and the
+	// row is persisted. A failed flush must NOT silently drop records.
+	require.Eventually(t, func() bool {
+		rows, _ := fake.snapshot()
+		return len(rows) == 1 && rows[rec("user1", "post1", model.AuditMechChannelView)] == 1
+	}, time.Second, 5*time.Millisecond, "row should persist once transient flush failures clear")
+
+	require.NoError(t, tgt.Shutdown())
 }
 
-func TestShardedDeliveryDBTarget_DropsWhenShardFull(t *testing.T) {
-	// Build a tiny shard so the channel saturates immediately; the store
-	// flushes successfully but its work is gated behind the slow ticker so
-	// the second batch never makes it into the channel.
+func TestShardedDeliveryDBTarget_BlocksWhenShardFull(t *testing.T) {
+	// Build a 1-slot shard channel and skip Init so no worker drains it: the
+	// first enqueue fills the channel, the second must block (the lossless
+	// back-pressure contract) and bump blockedCount.
 	tgt := NewShardedDeliveryDBTarget(newFakeAuditStorage(), nil)
 	tgt.shardQueue = 1
-	tgt.batchSize = 1024 // never fill on size; force the channel to do the bounding
-	tgt.flushInterval = time.Hour
+	tgt.shards = make([]chan auditDeliveryItem, tgt.numShards)
+	for i := range tgt.shards {
+		tgt.shards[i] = make(chan auditDeliveryItem, tgt.shardQueue)
+	}
 
-	require.NoError(t, tgt.Init())
-	defer func() {
-		_ = tgt.Shutdown()
+	item1 := auditDeliveryItem{userID: "u", entityID: "e1", mechanism: 1}
+	item2 := auditDeliveryItem{userID: "u", entityID: "e2", mechanism: 1}
+	tgt.enqueue(item1) // fills the shard slot
+	require.Equal(t, int64(0), tgt.blockedCount.Load())
+
+	done := make(chan struct{})
+	go func() {
+		tgt.enqueue(item2) // must block until something drains the slot
+		close(done)
 	}()
 
-	// All these rows hash to the same shard (same userID), so the second one
-	// will land in the channel slot and the third+ will be dropped.
-	for range 100 {
-		tgt.tryEnqueue(auditDeliveryItem{userID: "u", entityID: "e", mechanism: 1})
+	select {
+	case <-done:
+		t.Fatal("enqueue returned even though the shard channel was full; expected back-pressure")
+	case <-time.After(50 * time.Millisecond):
 	}
-	require.Greater(t, tgt.droppedCount.Load(), int64(0), "expected some drops once the shard channel saturates")
+	require.Greater(t, tgt.blockedCount.Load(), int64(0), "blockedCount should record the stall")
+
+	// Drain the slot; the blocked enqueue now completes.
+	<-tgt.shards[shardFor("u", tgt.numShards)]
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("enqueue did not unblock after the shard slot was drained")
+	}
 }
 
 func TestShardedDeliveryDBTarget_RouteShapes(t *testing.T) {
