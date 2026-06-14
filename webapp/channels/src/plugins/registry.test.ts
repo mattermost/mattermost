@@ -251,3 +251,83 @@ describe('PluginRegistry — registerChannelIconOverride', () => {
         consoleSpy.mockRestore();
     });
 });
+
+describe('PluginRegistry — registerChannelComposerBannerComponent', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getBanners() {
+        return mockCurrentStore.getState().components.ChannelComposerBanner;
+    }
+
+    it('adds an entry to ChannelComposerBanner with the plugin id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelComposerBannerComponent({component: () => null});
+
+        const entries = getBanners();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+    });
+
+    it('REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelComposerBannerComponent({component: () => null});
+        otherRegistry.registerChannelComposerBannerComponent({component: () => null});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const entries = getBanners();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+});
+
+describe('PluginRegistry — registerChannelIntro', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getIntroRegs() {
+        return mockCurrentStore.getState().components.ChannelIntro;
+    }
+
+    it('adds an entry to ChannelIntro with the plugin id, matcher, and component', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const component = () => null;
+        registry.registerChannelIntro({matcher, component});
+
+        const entries = getIntroRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+        expect(entries[0].matcher).toBe(matcher);
+        expect(entries[0].component).toBe(component);
+    });
+
+    it('REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelIntro({matcher: () => true, component: () => null});
+        otherRegistry.registerChannelIntro({matcher: () => false, component: () => null});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const entries = getIntroRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+});
