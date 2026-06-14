@@ -331,3 +331,85 @@ describe('PluginRegistry — registerChannelIntro', () => {
         expect(entries[0].pluginId).toBe('other_plugin');
     });
 });
+
+describe('PluginRegistry — registerComposerPlaceholderSuffix', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getSuffixes() {
+        return mockCurrentStore.getState().components.ComposerPlaceholderSuffix;
+    }
+
+    it('(a) dispatches RECEIVED_PLUGIN_COMPONENT with name ComposerPlaceholderSuffix', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        registry.registerComposerPlaceholderSuffix({matcher, text: ' (encrypted)'});
+
+        const suffixes = getSuffixes();
+        expect(suffixes).toHaveLength(1);
+        expect(suffixes[0].pluginId).toBe(PLUGIN_ID);
+        expect(suffixes[0].matcher).toBe(matcher);
+        expect(suffixes[0].text).toBe(' (encrypted)');
+    });
+
+    it('(b) returns a non-empty string id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id = registry.registerComposerPlaceholderSuffix({matcher: () => false, text: ' (x)'});
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+    });
+
+    it('(c) REMOVED_WEBAPP_PLUGIN sweeps all suffix registrations for that plugin', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (a)'});
+        registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (b)'});
+        otherRegistry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (c)'});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const suffixes = getSuffixes();
+        expect(suffixes).toHaveLength(1);
+        expect(suffixes[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(e) two registrations from same plugin accumulate (no deduplication)', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id1 = registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (first)'});
+        const id2 = registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (second)'});
+
+        expect(id1).not.toBe(id2);
+        expect(getSuffixes()).toHaveLength(2);
+        expect(getSuffixes()[0].text).toBe(' (first)');
+        expect(getSuffixes()[1].text).toBe(' (second)');
+    });
+
+    it('(f) function text is stored as-is on the registration', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const textFn = () => ' (dynamic)';
+        registry.registerComposerPlaceholderSuffix({matcher: () => true, text: textFn});
+
+        const suffixes = getSuffixes();
+        expect(suffixes[0].text).toBe(textFn);
+    });
+
+    it('(g) two registrations from different plugins are sorted by pluginId', () => {
+        const registryZ = new PluginRegistry('zzz_plugin');
+        const registryA = new PluginRegistry('aaa_plugin');
+
+        registryZ.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (zzz)'});
+        registryA.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (aaa)'});
+
+        const suffixes = getSuffixes();
+        expect(suffixes).toHaveLength(2);
+        expect(suffixes[0].pluginId).toBe('aaa_plugin');
+        expect(suffixes[1].pluginId).toBe('zzz_plugin');
+    });
+});

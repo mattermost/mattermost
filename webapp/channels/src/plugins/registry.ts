@@ -28,6 +28,7 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
+import {clearLoggedSuffixErrors} from 'selectors/composer_placeholder_suffix';
 import store from 'stores/redux_store';
 
 import {compassIconForName} from 'components/channel_type_icon';
@@ -75,6 +76,7 @@ import type {
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
     ChannelIntroRegistration,
+    ComposerPlaceholderSuffixRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1424,6 +1426,32 @@ export default class PluginRegistry {
         clearLoggedChannelIntroErrors(this.id);
         const id = generateId();
         dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
+        return id;
+    });
+
+    /**
+     * Register a plain-string suffix appended to the composer placeholder for matching channels.
+     *
+     * `matcher` receives (channel, state) where state is the full Redux state; plugins can read
+     * state['plugins-<pluginId>'] slices. `text` may be a static string or a function called with
+     * (channel, state, intl) — use the function form to access i18n via intl.formatMessage().
+     * Across plugins, suffixes are appended in pluginId alphabetical order; within one plugin,
+     * registration order is preserved.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     */
+    registerComposerPlaceholderSuffix = reArg(['matcher', 'text'], ({matcher, text}: {
+        matcher: ComposerPlaceholderSuffixRegistration['matcher'];
+        text: ComposerPlaceholderSuffixRegistration['text'];
+    }) => {
+        clearLoggedSuffixErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ComposerPlaceholderSuffix', {
+            id,
+            pluginId: this.id,
+            matcher,
+            text,
+        });
         return id;
     });
 
