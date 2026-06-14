@@ -15,7 +15,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -37,22 +36,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 )
-
-// linkCacheTestMutex serializes access to the package-global link metadata cache in
-// tests that call PurgeLinkCache or assert on specific cache contents.
-var linkCacheTestMutex sync.Mutex
-
-func acquireLinkCacheTestLock(t *testing.T) {
-	t.Helper()
-	linkCacheTestMutex.Lock()
-	t.Cleanup(linkCacheTestMutex.Unlock)
-}
-
-func purgeLinkCacheForTest(t *testing.T) {
-	t.Helper()
-	err := platform.PurgeLinkCache()
-	require.NoError(t, err)
-}
 
 func TestPreparePostListForClient(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -2229,15 +2212,14 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 
 func TestGetLinkMetadata(t *testing.T) {
 	setup := func(t *testing.T) *TestHelper {
-		acquireLinkCacheTestLock(t)
-
 		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
-		purgeLinkCacheForTest(t)
+		err := platform.PurgeLinkCache()
+		require.NoError(t, err)
 
 		return th
 	}
@@ -2387,7 +2369,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
 
 		t.Run("should use database if saved entry exists", func(t *testing.T) {
-			purgeLinkCacheForTest(t)
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2404,7 +2387,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should use database if saved entry exists near time", func(t *testing.T) {
-			purgeLinkCacheForTest(t)
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2421,7 +2405,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if URL is different", func(t *testing.T) {
-			purgeLinkCacheForTest(t)
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			differentURL := requestURL + "/other"
 
@@ -2439,7 +2424,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if timestamp is different", func(t *testing.T) {
-			purgeLinkCacheForTest(t)
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			differentTimestamp := timestamp + 60*60*1000
 
@@ -2640,7 +2626,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
 
-		purgeLinkCacheForTest(t)
+		err = platform.PurgeLinkCache()
+		require.NoError(t, err)
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
@@ -2774,6 +2761,107 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		_, _, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
 		assert.Error(t, err)
+	})
+
+	t.Run("from cache", func(t *testing.T) {
+		testURL := "https://example.com/test"
+		testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
+
+		setup := func(t *testing.T) {
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
+		}
+
+		assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
+			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			assert.True(t, found)
+			assert.Equal(t, expectedOG, og)
+			assert.Equal(t, expectedImage, image)
+			assert.Equal(t, expectedPermalink, permalink)
+		}
+
+		assertNotCached := func(t *testing.T, url string) {
+			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			assert.False(t, found)
+			assert.Nil(t, og)
+			assert.Nil(t, image)
+			assert.Nil(t, permalink)
+		}
+
+		t.Run("should return false when cache is empty", func(t *testing.T) {
+			setup(t)
+			assertNotCached(t, testURL)
+		})
+
+		t.Run("should return cached data when URL matches", func(t *testing.T) {
+			setup(t)
+			expectedOG := &opengraph.OpenGraph{
+				Title: "Test Title",
+				URL:   testURL,
+			}
+			expectedImage := &model.PostImage{
+				Width:  100,
+				Height: 200,
+			}
+			expectedPermalink := &model.Permalink{
+				PreviewPost: &model.PreviewPost{
+					PostID: "test-post-id",
+				},
+			}
+
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
+
+			assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
+		})
+
+		t.Run("should return false when different url not cached", func(t *testing.T) {
+			setup(t)
+
+			cachedURL := "https://example.com/cached"
+			requestedURL := "https://example.com/different"
+
+			expectedOG := &opengraph.OpenGraph{
+				Title: "Cached Title",
+				URL:   cachedURL,
+			}
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
+
+			assertNotCached(t, requestedURL)
+		})
+
+		t.Run("should return false when different url not cached, even if hash collides with a cached url", func(t *testing.T) {
+			setup(t)
+
+			url1 := "http://test.com/w4xg6hpvomau9j5iz371"
+			url2 := "http://collision.comupio5zw28x1m36c"
+
+			hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
+			hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
+			assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
+
+			og1 := &opengraph.OpenGraph{
+				Title: "First URL Title",
+				URL:   url1,
+			}
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
+
+			assertCached(t, url1, og1, nil, nil)
+			assertNotCached(t, url2)
+		})
+
+		t.Run("should handle cached nil values correctly", func(t *testing.T) {
+			setup(t)
+
+			nilURL := "https://example.com/nil-test"
+
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
+
+			assertCached(t, nilURL, nil, nil, nil)
+		})
 	})
 }
 
@@ -3369,109 +3457,6 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
 		require.True(t, ok)
 		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
-	})
-}
-
-func TestGetLinkMetadataFromCache(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	testURL := "https://example.com/test"
-	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
-
-	setup := func(t *testing.T) {
-		acquireLinkCacheTestLock(t)
-		purgeLinkCacheForTest(t)
-	}
-
-	assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
-		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
-		assert.True(t, found)
-		assert.Equal(t, expectedOG, og)
-		assert.Equal(t, expectedImage, image)
-		assert.Equal(t, expectedPermalink, permalink)
-	}
-
-	assertNotCached := func(t *testing.T, url string) {
-		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
-		assert.False(t, found)
-		assert.Nil(t, og)
-		assert.Nil(t, image)
-		assert.Nil(t, permalink)
-	}
-
-	t.Run("should return false when cache is empty", func(t *testing.T) {
-		setup(t)
-		assertNotCached(t, testURL)
-	})
-
-	t.Run("should return cached data when URL matches", func(t *testing.T) {
-		setup(t)
-		expectedOG := &opengraph.OpenGraph{
-			Title: "Test Title",
-			URL:   testURL,
-		}
-		expectedImage := &model.PostImage{
-			Width:  100,
-			Height: 200,
-		}
-		expectedPermalink := &model.Permalink{
-			PreviewPost: &model.PreviewPost{
-				PostID: "test-post-id",
-			},
-		}
-
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
-
-		assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
-	})
-
-	t.Run("should return false when different url not cached", func(t *testing.T) {
-		setup(t)
-
-		cachedURL := "https://example.com/cached"
-		requestedURL := "https://example.com/different"
-
-		expectedOG := &opengraph.OpenGraph{
-			Title: "Cached Title",
-			URL:   cachedURL,
-		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
-
-		assertNotCached(t, requestedURL)
-	})
-
-	t.Run("should return false when different url not cached, even if hash collides with a cached url", func(t *testing.T) {
-		setup(t)
-
-		url1 := "http://test.com/w4xg6hpvomau9j5iz371"
-		url2 := "http://collision.comupio5zw28x1m36c"
-
-		hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
-		hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
-		assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
-
-		og1 := &opengraph.OpenGraph{
-			Title: "First URL Title",
-			URL:   url1,
-		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
-
-		assertCached(t, url1, og1, nil, nil)
-		assertNotCached(t, url2)
-	})
-
-	t.Run("should handle cached nil values correctly", func(t *testing.T) {
-		setup(t)
-
-		nilURL := "https://example.com/nil-test"
-
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
-
-		assertCached(t, nilURL, nil, nil, nil)
 	})
 }
 
