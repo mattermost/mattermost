@@ -807,6 +807,22 @@ func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, grou
 	return result, err
 }
 
+func (s *TimerLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetTeamMembersToRemove", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAttributesStore) RefreshAttributes() error {
 	start := time.Now()
 
