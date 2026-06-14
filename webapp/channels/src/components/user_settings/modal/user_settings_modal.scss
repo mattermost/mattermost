@@ -73,6 +73,42 @@
             flex-direction: column;
             border-radius: unset;
         }
+
+        .GenericModal__wrapper {
+            max-height: unset;
+            border: 0;
+            border-radius: 0;
+            background: var(--center-channel-bg);
+            box-shadow: none;
+
+            .modal-body {
+                padding: 0;
+                background: var(--center-channel-bg);
+                gap: 0;
+            }
+        }
+
+        .modal-header {
+            border-bottom: 0;
+            background: var(--sidebar-bg);
+            box-shadow: none;
+            color: var(--sidebar-text);
+
+            .close {
+                color: inherit;
+                opacity: 1;
+                text-shadow: none;
+            }
+        }
+
+        &__headerWrapper {
+            align-items: center;
+            color: inherit;
+
+            .modal-header__title {
+                color: inherit;
+            }
+        }
     }
 
     @media screen and (max-height: 900px) and (min-width: 768px) {
