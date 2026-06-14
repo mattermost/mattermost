@@ -29,6 +29,9 @@ import {
 } from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
+import {compassIconForName} from 'components/channel_type_icon';
+import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
+
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
@@ -69,6 +72,7 @@ import type {
     SidebarBrowseOrAddChannelMenuAction,
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
+    ChannelIconOverrideRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1351,6 +1355,45 @@ export default class PluginRegistry {
             onCreate,
         });
 
+        return id;
+    });
+
+    /**
+     * Register an icon override for matching channels.
+     *
+     * `matcher` receives the full GlobalState as the first argument and a Channel object as the
+     * second. It is called for every channel, including archived ones. Matcher throws are caught
+     * and treated as no-match. Collisions between plugins are resolved by reducer order
+     * (alphabetical by pluginId across plugins; insertion order within a plugin after stable sort).
+     * First match wins.
+     *
+     * `iconName` must be a Compass IconGlyphTypes value such as 'shield-outline'. Core renders the
+     * glyph as `icon-${iconName}` using the existing icon-font DOM family. Plugins must not supply
+     * React components, arbitrary class names, colors, wrappers, or SVGs.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerChannelIconOverride = reArg(['matcher', 'iconName'], ({matcher, iconName}: {
+        matcher: ChannelIconOverrideRegistration['matcher'];
+        iconName: ChannelIconOverrideRegistration['iconName'];
+    }) => {
+        if (compassIconForName(iconName) === null) {
+            // eslint-disable-next-line no-console
+            console.error(
+                `ChannelIconOverride: plugin '${this.id}' supplied unknown iconName '${iconName}' — registration ignored.`,
+            );
+            return generateId();
+        }
+        clearLoggedMatcherErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelIconOverride', {
+            id,
+            pluginId: this.id,
+            matcher,
+            iconName,
+        });
         return id;
     });
 
