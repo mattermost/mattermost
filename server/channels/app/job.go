@@ -310,8 +310,18 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionManageJobs
-	case model.JobTypeAccessControlSync, model.JobTypeAccessControlTeamSync:
+	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
 	}
 
 	if permission == nil {
@@ -348,8 +358,13 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
-	case model.JobTypeAccessControlSync, model.JobTypeAccessControlTeamSync:
+	case model.JobTypeAccessControlSync:
 		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		return a.SessionHasPermissionTo(session, model.PermissionManageTeamAccessRules), model.PermissionManageTeamAccessRules
 	}
 
 	return false, nil

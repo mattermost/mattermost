@@ -164,6 +164,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
     componentDidUpdate(prevProps: Props) {
         const {totalGroups, team} = this.props;
         const teamChanged = prevProps.team?.id !== team?.id;
+        const policyEnforcedChanged = team?.policy_enforced !== prevProps.team?.policy_enforced;
         if (teamChanged || totalGroups !== prevProps.totalGroups) {
             this.setState((prev) => ({
                 totalGroups,
@@ -182,6 +183,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 this.loadUserAttributes();
                 this.fetchAccessControlPolicies(team.id);
             }
+        } else if (policyEnforcedChanged) {
+            this.setState({policyEnforced: Boolean(team?.policy_enforced)});
         }
     }
 
@@ -258,14 +261,14 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 return;
             }
 
-            const policies: AccessControlPolicy[] = [];
             Promise.all(parentIds.map((policyId) =>
                 this.props.actions.getAccessControlPolicy(policyId).then((policyResult) => {
-                    if (policyResult.data) {
-                        policies.push(policyResult.data as AccessControlPolicy);
+                    if (policyResult.error) {
+                        throw new Error(policyResult.error.message || 'Failed to fetch policy');
                     }
+                    return policyResult.data as AccessControlPolicy;
                 }),
-            )).then(() => {
+            )).then((policies) => {
                 this.setState({
                     accessControlPolicies: policies,
                     policyEnforced: enforced,

@@ -252,16 +252,17 @@ export async function createPublicChannel(client: Client4, teamId: string) {
 
 export async function createTeamAdmin(adminClient: Client4, teamId: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+    const password = newTestPassword();
     const user = await adminClient.createUser(
         {
             email: `teamadmin-${id}@sample.mattermost.com`,
             username: `teamadmin${id}`,
-            password: newTestPassword(),
+            password,
         } as any,
         '',
         '',
     );
-    user.password = newTestPassword();
+    user.password = password;
 
     await adminClient.savePreferences(user.id, [
         {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
