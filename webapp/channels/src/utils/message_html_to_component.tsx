@@ -116,7 +116,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 // Use dummy base for relative URLs
                 const urlObj = new URL(url, 'http://mattermost.com');
                 return urlObj.searchParams.get('view') === 'citation';
-            } catch (e) {
+            } catch {
                 return false;
             }
         },

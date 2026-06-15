@@ -147,7 +147,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                 after: lastChannelId,
                 loading: false,
             });
-        } catch (error) {
+        } catch {
             this.setState({loading: false});
         }
     };
