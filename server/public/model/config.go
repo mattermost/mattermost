@@ -3952,10 +3952,10 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes       []string `access:"site_posts"`
-	MaxMarkdownNodes       *int     `access:"site_posts"`
+	CustomURLSchemes      []string `access:"site_posts"`
+	MaxMarkdownNodes      *int     `access:"site_posts"`
 	DateTimeDisplayFormat *string  `access:"site_posts"`
-	ShowTimestampSeconds   *bool    `access:"site_posts"`
+	ShowTimestampSeconds  *bool    `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
