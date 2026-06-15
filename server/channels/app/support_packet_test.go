@@ -88,7 +88,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet with logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -97,7 +98,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet without logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               false,
 		})
 
 		rFileNames := getFileNames(t, fileDatas)
@@ -111,7 +113,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		t.Cleanup(genMockLogFiles)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -158,7 +161,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		th.App.Srv().SetStore(&mockStore)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -199,7 +203,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -215,8 +220,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs:   false,
-			PluginPackets: []string{pluginID},
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               false,
+			PluginPackets:             []string{pluginID},
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -232,7 +238,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -255,7 +262,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               false,
 		})
 
 		found := false

@@ -1759,6 +1759,19 @@
           required: false
           schema:
             type: string
+        - name: cpu_profile_duration_seconds
+          in: query
+          description: |
+            Controls how long, in seconds, to sample the CPU profile included in the Support Packet.
+            Must be an integer in the range `[0, 300]`. When omitted, the server default (5 seconds) is used.
+            A value of `0` skips CPU profile generation entirely. Out-of-range or non-integer values return a 400 response.
+
+            __Minimum server version__: 11.8.0
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 300
       responses:
         "400":
           $ref: "#/components/responses/BadRequest"
