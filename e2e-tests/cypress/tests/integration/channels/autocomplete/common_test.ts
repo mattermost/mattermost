@@ -7,10 +7,12 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
+import type {
+    SimpleUser,
+} from './helpers';
 import {
     getPostTextboxInput,
     getQuickChannelSwitcherInput,
-    SimpleUser,
     startAtMention,
     verifySuggestionAtChannelSwitcher,
     verifySuggestionAtPostTextbox,
@@ -73,7 +75,7 @@ export function doTestDMChannelSidebar(testUsers: Record<string, SimpleUser>) {
     }).as('searchUsers');
 
     cy.wait('@searchUsers').then((interception) => {
-        expect(interception.response.body.length === 1);
+        expect(interception.response?.body).to.have.length(1);
     });
 
     // * There should only be one result

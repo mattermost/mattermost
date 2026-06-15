@@ -1003,23 +1003,25 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 	return token, nil
 }
 
-func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error {
+func (es *Service) SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.license_up_for_renewal_subject")
-
+	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
+	subject := T("api.templates.license_up_for_renewal_subject",
+		map[string]any{"SkuName": prefixedSkuName})
+	siteName := es.getConfigSiteName()
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
-	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]any{"UserName": name, "Days": daysToExpiration})
-	data.Props["SubTitleTwo"] = ctaTitle
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Button"] = ctaText
-	data.Props["ButtonURL"] = ctaLink
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["SupportEmail"] = "feedback@mattermost.com"
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
+	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
+	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
+	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
+	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.license_up_for_renewal_subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName, "Days": daysToExpiration})
+	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
-	body, err := es.templatesContainer.RenderToString("license_up_for_renewal", data)
+	body, err := es.templatesContainer.RenderToString("license_notification", data)
 	if err != nil {
 		return err
 	}
@@ -1031,20 +1033,25 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ct
 	return nil
 }
 
-// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
-// to renew the user license
-func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error {
+func (es *Service) SendRemoveExpiredLicenseEmail(email, locale string) error {
 	T := i18n.GetUserTranslations(locale)
+	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
 	subject := T("api.templates.remove_expired_license.subject",
-		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
-
+		map[string]any{"SkuName": prefixedSkuName})
+	siteName := es.getConfigSiteName()
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	data.Props["Link"] = ctaLink
-	data.Props["LinkButton"] = ctaText
+	data.Props["Title"] = T("api.templates.remove_expired_license.body.heading")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
+	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
+	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
+	data.Props["SubTitleTwo"] = T("api.templates.remove_expired_license.body.subtitle_two")
+	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.remove_expired_license.body.subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName})
+	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
-	body, err := es.templatesContainer.RenderToString("remove_expired_license", data)
+	body, err := es.templatesContainer.RenderToString("license_notification", data)
 	if err != nil {
 		return err
 	}

@@ -60,6 +60,14 @@ func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string,
 	return true, true
 }
 
+func (ms *mockSuite) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
+	return true
+}
+
+func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+	return true
+}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
 	return nil
 }
@@ -147,6 +155,13 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 
 	memoryConfig := configStore.Get()
 	memoryConfig.SqlSettings = *dbSettings
+	// Disable connection pool cleanup goroutines to prevent DATA RACE with
+	// testify mock argument diffing under the race detector. The sql.DB
+	// connectionCleaner goroutine writes to internal fields while testify's
+	// mock.Called() → Arguments.Diff() → fmt.Sprintf reads them via reflect.
+	// Setting lifetime/idle to 0 prevents the cleaner from starting.
+	memoryConfig.SqlSettings.ConnMaxLifetimeMilliseconds = new(0)
+	memoryConfig.SqlSettings.ConnMaxIdleTimeMilliseconds = new(0)
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -194,15 +209,6 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		*cfg.TeamSettings.EnableOpenServer = true
-	})
-
-	// Disable strict password requirements for test
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = 5
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
 	})
 
 	if enterprise {
@@ -261,7 +267,7 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 		Roles:         model.SystemUserRoleId,
 	}
@@ -279,7 +285,7 @@ func (th *TestHelper) CreateAdmin(tb testing.TB) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
@@ -294,7 +300,7 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewPointer(v)
+		channel.Shared = new(v)
 	}
 }
 

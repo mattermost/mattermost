@@ -1,20 +1,60 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseISO, isValid} from 'date-fns';
+import {parseISO, isValid, addDays, addWeeks, addMonths, addHours, addMinutes, addSeconds, startOfDay} from 'date-fns';
 import {defineMessage} from 'react-intl';
 
 import type {DialogElement} from '@mattermost/types/integrations';
 
 // Validation patterns for exact storage format matching
 const DATE_FORMAT_PATTERN = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
-const DATETIME_FORMAT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/; // YYYY-MM-DDTHH:mm:ssZ
+const DATETIME_FORMAT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$/; // YYYY-MM-DDTHH:mm:ssZ or with offset
+
+// Relative pattern: [+-]NNN[dwmHMS]
+const RELATIVE_PATTERN = /^([+-]\d{1,3})([dwmHMS])$/;
 
 type DialogError = {
     id: string;
     defaultMessage: string;
     values?: any;
 };
+
+/**
+ * Resolves a min_date/max_date bound string to a Date.
+ * Handles relative patterns (+2H, +30M, +7d, etc.) and ISO date/datetime strings.
+ * Returns null if the value cannot be resolved.
+ */
+function resolveBoundToDate(value: string): Date | null {
+    // Named relative words
+    if (value === 'today') {
+        return startOfDay(new Date());
+    }
+    if (value === 'tomorrow') {
+        return startOfDay(addDays(new Date(), 1));
+    }
+    if (value === 'yesterday') {
+        return startOfDay(addDays(new Date(), -1));
+    }
+
+    // Dynamic relative patterns: +2H, +30M, +7d, etc.
+    const match = value.match(RELATIVE_PATTERN);
+    if (match) {
+        const amount = parseInt(match[1], 10);
+        const unit = match[2];
+        const now = new Date();
+        switch (unit) {
+        case 'd': return startOfDay(addDays(now, amount));
+        case 'w': return startOfDay(addWeeks(now, amount));
+        case 'm': return startOfDay(addMonths(now, amount));
+        case 'H': return addHours(now, amount);
+        case 'M': return addMinutes(now, amount);
+        case 'S': return addSeconds(now, amount);
+        default: return null;
+        }
+    }
+    const parsed = parseISO(value);
+    return isValid(parsed) ? parsed : null;
+}
 
 /**
  * Validates date/datetime field values for format and range constraints
@@ -39,9 +79,32 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
     } else if (!DATETIME_FORMAT_PATTERN.test(value)) {
         return defineMessage({
             id: 'interactive_dialog.error.bad_datetime_format',
-            defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format',
+            defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss+HH:MM format',
         });
     }
+
+    // Range validation against min_date / max_date (datetime_config takes precedence over legacy fields)
+    const effectiveMinDate = elem.datetime_config?.min_date ?? elem.min_date;
+    const effectiveMaxDate = elem.datetime_config?.max_date ?? elem.max_date;
+    if (effectiveMinDate) {
+        const minDate = resolveBoundToDate(effectiveMinDate);
+        if (minDate && parsedDate < minDate) {
+            return defineMessage({
+                id: 'interactive_dialog.error.before_min_date',
+                defaultMessage: 'Selected time is before the minimum allowed date.',
+            });
+        }
+    }
+    if (effectiveMaxDate) {
+        const maxDate = resolveBoundToDate(effectiveMaxDate);
+        if (maxDate && parsedDate > maxDate) {
+            return defineMessage({
+                id: 'interactive_dialog.error.after_max_date',
+                defaultMessage: 'Selected time is after the maximum allowed date.',
+            });
+        }
+    }
+
     return null;
 }
 

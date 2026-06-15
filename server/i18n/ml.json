@@ -713,7 +713,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ഇതിനകം ചാനലിലുണ്ട്."
+    "translation": {
+      "one": "{{.User}} ഇതിനകം ചാനലിലുണ്ട്.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",

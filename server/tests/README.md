@@ -1,8 +1,8 @@
 # Testing Text Processing  
-The text processing tests located in the [doc/developer/tests folder](https://github.com/mattermost/platform/tree/master/doc/developer/tests) are designed for use with the `/test url` command. This command posts the raw contents of a specified .md file in the doc/developer/test folder into Mattermost.
+The text processing tests located in the [doc/developer/tests folder](https://github.com/mattermost/platform/tree/master/doc/developer/tests) are designed for use with the `/test url` command in isolated non-production test environments. This command posts the raw contents of a specified `.md` file in the `doc/developer/tests` folder into Mattermost.
 
 ## Turning on /test  
-Access the **System Console** from the Main Menu. Under *Service Settings* make sure that *Enable Testing* is set to `true`, then click **Save**. You may also change this setting from `config.json` by setting `”EnableTesting”: true`. Changing this setting requires a server restart to take effect.
+Access the **System Console** from the Main Menu. Under *Environment > Developer* make sure that *Enable Testing Commands* is set to `true`, then click **Save**. You may also change this setting from `config.json` by setting `"EnableTesting": true`. This setting is intended only for isolated non-production environments with test users and sample data, and must never be enabled in production. Changing this setting requires a server restart to take effect.
 
 ## Running the Tests  
 In the text input box in Mattermost, type: `/test url [file-name-in-testing-folder].md`. Some examples:
@@ -40,3 +40,16 @@ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-pref
 ```
 
 Finally, include the updates bundles and signatures in your commit.
+
+## Image fixtures
+
+The `api4` package tests compare server-generated image thumbnails and previews against fixture files (e.g. `orientation_test_1_expected_thumb.jpeg`). Comparisons are pixel-based with a small tolerance, so minor encoder drift across patch releases is handled automatically.
+
+However, Go's `image/jpeg` encoder has changed incompatibly across major versions (e.g. Go 1.25 → 1.26). When upgrading Go, regenerate the JPEG fixtures by running:
+
+```sh
+go test -run "TestUploadFiles/.*thumbnail" ./channels/api4/ -args -update-fixtures
+go test -run "TestGenerateMiniPreviewImage" ./channels/app/imaging/ -args -update-fixtures
+```
+
+Run both from `server/`. Commit the updated fixture files alongside the Go version bump.

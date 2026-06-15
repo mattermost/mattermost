@@ -14,7 +14,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Interactive Menu - Action Button Error Handling', () => {
     let incomingWebhook;
@@ -58,7 +58,7 @@ describe('Interactive Menu - Action Button Error Handling', () => {
     });
 
     it('MM-65023 should clear error message when successful action is triggered', () => {
-        const payload = getPayloadWithErrorAndSuccess(Cypress.env().webhookBaseUrl);
+        const payload = getPayloadWithErrorAndSuccess(Cypress.expose().webhookBaseUrl);
 
         // # Post an incoming webhook with error and success buttons
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
@@ -82,8 +82,8 @@ describe('Interactive Menu - Action Button Error Handling', () => {
         cy.uiWaitUntilMessagePostedIncludes('a < a | b > a');
 
         // * Find the specific attachment container for this test and verify its error is cleared
-        cy.contains('.attachment', 'Action Button Error Clear Test - Error and Success')
-            .find('.has-error').should('not.exist');
+        cy.contains('.attachment', 'Action Button Error Clear Test - Error and Success').
+            find('.has-error').should('not.exist');
     });
 
     it('MM-65023 should display tooltip on action button hover', () => {

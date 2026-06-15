@@ -2,15 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
 import {Permissions} from 'mattermost-redux/constants';
 
 import AddOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/add_outgoing_oauth_connection';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AddOutgoingOAuthConnection', () => {
@@ -50,15 +48,13 @@ describe('components/integrations/AddOutgoingOAuthConnection', () => {
         };
 
         const props = {...baseProps};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Router>
-                <Provider store={store}>
-                    <AddOutgoingOAuthConnection {...props}/>
-                </Provider>
+                <AddOutgoingOAuthConnection {...props}/>
             </Router>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

@@ -30,9 +30,9 @@ info:
 
       * [Authentication](#/#authentication-1)
 
-      * [Websocket Events](#/#websocket-events)
+      * [WebSocket Events](#/#websocket-events)
 
-      * [Websocket API](#/#websocket-api)
+      * [WebSocket API](#/#websocket-api)
 
     ### Drivers
 
@@ -110,7 +110,7 @@ info:
       ```bash
       curl -i -H 'Authorization: Bearer ckh3t4knu3fzujt76o57f5jo4w' http://localhost:8065/api/v4/users/me
       ```
-      Alternatively, include the `Token` as your `MMAUTHTOKEN` cookie value on you future API requests:
+      Alternatively, include the `Token` as your `MMAUTHTOKEN` cookie value on your future API requests:
 
       ```bash
       curl -i -H 'Cookie: MMAUTHTOKEN=ckh3t4knu3fzujt76o57f5jo4w' http://localhost:8065/api/v4/users/me
@@ -213,7 +213,7 @@ info:
 
       Once successfully authenticated, the server will pass a `hello` WebSocket event containing server version over the connection.
 
-    ### Websocket Events
+    ### WebSocket Events
 
       WebSocket events are primarily used to alert the client to changes in Mattermost, such as delivering new posts or alerting the client that another user is typing in a channel.
 
@@ -272,6 +272,7 @@ info:
       - reaction_removed
       - response
       - role_updated
+      - shared_channel_remote_updated
       - status_change
       - typing
       - update_team
@@ -283,8 +284,12 @@ info:
       - thread_updated
       - thread_follow_changed
       - thread_read_changed
+      - property_field_created
+      - property_field_updated
+      - property_field_deleted
+      - property_values_updated
 
-    ### Websocket API
+    ### WebSocket API
 
       Mattermost has some basic support for WebSocket APIs. A connected WebSocket can make requests by sending the following over the connection:
 
@@ -401,6 +406,10 @@ tags:
     description: Endpoints for creating and performing file uploads.
   - name: bookmarks
     description: Endpoints for creating, getting and interacting with channel bookmarks.
+  - name: views
+    description: Endpoints for creating, getting and interacting with channel views.
+  - name: boards
+    description: Endpoints for creating and managing board channels (kanban-backed channels with linked properties). Gated behind the `IntegratedBoards` feature flag.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
   - name: status
@@ -429,7 +438,7 @@ tags:
   - name: LDAP
     description: Endpoints for configuring and interacting with LDAP.
   - name: groups
-    description: Endpoints related to LDAP groups.
+    description: Endpoints related to groups, including LDAP-synced and custom groups.
   - name: compliance
     description: Endpoints for creating, getting and downloading compliance reports.
   - name: cluster

@@ -19,7 +19,7 @@ type Props = {
     setByEnv: boolean;
     showConfirm: boolean;
     config: AdminConfig;
-}
+};
 
 const messages = defineMessages({
     enableGuestMagicLinkTitle: {id: 'admin.guest_access.enableGuestMagicLinkTitle', defaultMessage: 'Enable passwordless authentication for guests using magic links via email: '},

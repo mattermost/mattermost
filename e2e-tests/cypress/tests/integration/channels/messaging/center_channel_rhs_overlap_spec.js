@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
-import {isMac, getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+import {isMac, getRandomId} from '@/utils';
 
 describe('Messaging', () => {
     let testTeam;

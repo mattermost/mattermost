@@ -11,7 +11,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"net/http"
-	"os"
+	"net/url"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -73,7 +73,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		dbUser := th.BasicUser
 
 		// mock oAuth Provider, return data
-		mockUser := &model.User{Id: "abcdef", AuthData: model.NewPointer("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
+		mockUser := &model.User{Id: "abcdef", AuthData: new("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
 		mockSSOSettings := &model.SSOSettings{}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(true)
@@ -82,7 +82,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
-		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewPointer("e711000764be43d898404a7e9c26b710"), "", false)
+		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, new("e711000764be43d898404a7e9c26b710"), "", false)
 		assert.NoError(t, er2)
 		assert.Equal(t, dbUser.Id, s)
 
@@ -350,7 +350,7 @@ func TestCreateUser(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      *group.Name,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -394,7 +394,7 @@ func TestCreateUser(t *testing.T) {
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd12345",
+			Password:    model.NewTestPassword(),
 			AuthService: "",
 		}
 		_, err := th.App.CreateUser(th.Context, user)
@@ -476,6 +476,73 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, true)
 	require.Nil(t, appErr)
+}
+
+func TestUserDeactivationRevokesOAuthAccessTokens(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "DeactivationCleanup_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	}
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
+
+	user := th.CreateUser(t)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, authRequest)
+	require.Nil(t, appErr)
+
+	uri, parseErr := url.Parse(redirectURL)
+	require.NoError(t, parseErr)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		oapp.Id,
+		model.AccessTokenGrantType,
+		oapp.CallbackUrls[0],
+		code,
+		oapp.ClientSecret,
+		"",
+		"",
+		"",
+	)
+	require.Nil(t, appErr)
+	require.NotEmpty(t, tokenResp.AccessToken)
+	require.NotEmpty(t, tokenResp.RefreshToken)
+
+	require.NoError(t, th.App.Srv().Store().Session().Remove(tokenResp.AccessToken))
+
+	preDeactivation, sErr := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+	require.NoError(t, sErr)
+	require.NotEmpty(t, preDeactivation)
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	postDeactivation, sErr := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+	require.NoError(t, sErr)
+	require.Empty(t, postDeactivation, "oauth access tokens for an inactive user must be removed")
+
+	_, sErr = th.App.Srv().Store().OAuth().GetAccessDataByRefreshToken(tokenResp.RefreshToken)
+	require.Error(t, sErr, "refresh token row for an inactive user must be removed")
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
@@ -828,7 +895,7 @@ func TestGetUsersByStatus(t *testing.T) {
 			Email:    "success+" + id + "@simulator.amazonses.com",
 			Username: "un_" + username + "_" + id,
 			Nickname: "nn_" + id,
-			Password: "Password1",
+			Password: model.NewTestPassword(),
 		})
 		require.Nil(t, err, "failed to create user: %v", err)
 
@@ -997,7 +1064,7 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 		mockAccessControl.On("QueryUsersForResource",
 			mock.Anything,
 			abacChannel.Id,
-			"*",
+			model.AccessControlPolicyActionMembership,
 			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
 				return opts.TeamID == th.BasicTeam.Id &&
 					opts.Limit == 50 &&
@@ -1028,7 +1095,7 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 		mockAccessControl.On("QueryUsersForResource",
 			mock.Anything,
 			abacChannel.Id,
-			"*",
+			model.AccessControlPolicyActionMembership,
 			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
 				return opts.TeamID == th.BasicTeam.Id &&
 					opts.Limit == 25 &&
@@ -1060,7 +1127,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 
 	t.Run("should create a user", func(t *testing.T) {
 		u, err := th.App.CreateUserWithInviteId(th.Context, &user, th.BasicTeam.InviteId, "")
@@ -1091,7 +1158,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 
 	t.Run("invalid token", func(t *testing.T) {
 		_, err := th.App.CreateUserWithToken(th.Context, &user, &model.Token{Token: "123"})
@@ -1155,7 +1222,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("valid regular user request", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
-		u := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		u := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		token := model.NewToken(
 			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
@@ -1182,7 +1249,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
-		guest := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 
@@ -1221,7 +1288,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			Email:       forbiddenInvitationEmail,
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewTestPassword(),
 			AuthService: "",
 		}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, forbiddenDomainToken)
@@ -1267,7 +1334,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			Email:       invitationEmail,
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewTestPassword(),
 			AuthService: "",
 		}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
@@ -1302,7 +1369,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err, "Should create guest user successfully")
 		require.True(t, newGuest.IsGuest())
@@ -1351,7 +1418,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err)
 
@@ -1385,7 +1452,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		regularUser := model.User{Email: invitationEmail, Nickname: "Regular User", Username: "regular" + model.NewId(), Password: "passwd1", AuthService: ""}
+		regularUser := model.User{Email: invitationEmail, Nickname: "Regular User", Username: "regular" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		newUser, err := th.App.CreateUserWithToken(th.Context, &regularUser, token)
 		require.Nil(t, err)
 		require.False(t, newUser.IsGuest())
@@ -1516,7 +1583,7 @@ func TestPasswordRecovery(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, tokenData.UserID)
 		assert.Equal(t, th.BasicUser.Email, tokenData.Email)
 
-		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, model.NewTestPassword())
 		assert.Nil(t, err)
 	})
 
@@ -1532,7 +1599,7 @@ func TestPasswordRecovery(t *testing.T) {
 		_, err = th.App.UpdateUser(th.Context, th.BasicUser, false)
 		assert.Nil(t, err)
 
-		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, model.NewTestPassword())
 		assert.NotNil(t, err)
 	})
 
@@ -1540,7 +1607,7 @@ func TestPasswordRecovery(t *testing.T) {
 		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
-		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillis())
+		err = th.App.resetPasswordFromToken(th.Context, token.Token, model.NewTestPassword(), model.GetMillis())
 		assert.Nil(t, err)
 	})
 
@@ -1548,7 +1615,7 @@ func TestPasswordRecovery(t *testing.T) {
 		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
-		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
+		err = th.App.resetPasswordFromToken(th.Context, token.Token, model.NewTestPassword(), model.GetMillisForTime(time.Now().Add(25*time.Hour)))
 		assert.NotNil(t, err)
 	})
 }
@@ -1615,7 +1682,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser2.Id
 		th.Context.Session().Id = session.Id
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1627,7 +1694,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.Nil(t, session2)
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 		th.Context.Session().UserId = ""
 		th.Context.Session().Id = ""
@@ -1653,7 +1720,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser2.Id
 		th.Context.Session().Id = session.Id
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1665,7 +1732,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.False(t, session2.IsExpired())
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 		th.Context.Session().UserId = ""
 		th.Context.Session().Id = ""
@@ -1688,7 +1755,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1700,7 +1767,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.Nil(t, session2)
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 	})
 
@@ -1721,7 +1788,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1733,7 +1800,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.False(t, session2.IsExpired())
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewTestPassword())
 		require.Nil(t, err)
 	})
 }
@@ -2012,6 +2079,18 @@ func TestPromoteGuestToUser(t *testing.T) {
 func TestDemoteUserToGuest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+
+	t.Run("Must reject bot user", func(t *testing.T) {
+		bot := th.CreateBot(t)
+		user, err := th.App.GetUser(bot.UserId)
+		require.Nil(t, err)
+		require.True(t, user.IsBot)
+
+		appErr := th.App.DemoteUserToGuest(th.Context, user)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.user.demote_user_to_guest.bot_not_allowed.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 
 	t.Run("Must invalidate channel stats cache when demoting a user", func(t *testing.T) {
 		user := th.CreateUser(t)
@@ -2308,7 +2387,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a username already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewPointer(th.BasicUser.Username),
+			Username: new(th.BasicUser.Username),
 		}, true)
 
 		require.NotNil(t, err)
@@ -2317,7 +2396,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a email already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Email: model.NewPointer(th.BasicUser.Email),
+			Email: new(th.BasicUser.Email),
 		}, true)
 
 		require.NotNil(t, err)
@@ -2326,7 +2405,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
 		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewPointer(model.NewUsername()),
+			Username: new(model.NewUsername()),
 		}, true)
 
 		require.Nil(t, err)
@@ -2575,9 +2654,11 @@ func TestGetUsersForReporting(t *testing.T) {
 
 // Helper functions for remote user testing
 func setupRemoteClusterTest(t *testing.T) (*TestHelper, store.Store) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
-	t.Cleanup(func() { os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS") })
 	th := setupSharedChannels(t).InitBasic(t)
+
+	// Enable SharedChannelsDMs feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsDMs = true })
+
 	return th, th.App.Srv().Store()
 }
 
@@ -2601,10 +2682,7 @@ func createTestRemoteCluster(t *testing.T, th *TestHelper, ss store.Store, name,
 
 func createRemoteUser(t *testing.T, th *TestHelper, remoteCluster *model.RemoteCluster) *model.User {
 	user := th.CreateUser(t)
-	user.RemoteId = &remoteCluster.RemoteId
-	updatedUser, appErr := th.App.UpdateUser(th.Context, user, false)
-	require.Nil(t, appErr)
-	return updatedUser
+	return th.SetUserRemoteID(t, user.Id, remoteCluster.RemoteId)
 }
 
 func ensureRemoteClusterConnected(t *testing.T, ss store.Store, cluster *model.RemoteCluster, connected bool) {

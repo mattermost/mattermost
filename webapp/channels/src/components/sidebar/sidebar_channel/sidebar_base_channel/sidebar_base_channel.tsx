@@ -32,21 +32,21 @@ const SidebarBaseChannel = ({
         callback();
     }, [channel.id, actions.leaveChannel]);
 
-    const handleLeavePrivateChannel = useCallback((callback: () => void) => {
+    const handleLeaveWithConfirmation = useCallback((callback: () => void) => {
         actions.openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}});
         callback();
     }, [channel, actions.openModal]);
 
     let channelLeaveHandler = null;
     if (channel.type === Constants.OPEN_CHANNEL && channel.name !== Constants.DEFAULT_CHANNEL) {
-        channelLeaveHandler = handleLeavePublicChannel;
+        channelLeaveHandler = channel.policy_enforced ? handleLeaveWithConfirmation : handleLeavePublicChannel;
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-        channelLeaveHandler = handleLeavePrivateChannel;
+        channelLeaveHandler = handleLeaveWithConfirmation;
     }
 
     const channelIcon = (
         <SidebarBaseChannelIcon
-            channelType={channel.type}
+            channel={channel}
         />
     );
 

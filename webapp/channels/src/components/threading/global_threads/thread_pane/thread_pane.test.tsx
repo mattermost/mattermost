@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -9,15 +8,15 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 
-import Button from 'components/threading/common/button';
-import FollowButton from 'components/threading/common/follow_button';
-import Header from 'components/widgets/header';
-
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ThreadPane from './thread_pane';
 
-jest.mock('mattermost-redux/actions/threads');
+jest.mock('mattermost-redux/actions/threads', () => ({
+    ...jest.requireActual('mattermost-redux/actions/threads'),
+    setThreadFollow: jest.fn(() => ({type: 'MOCK_SET_THREAD_FOLLOW'})),
+}));
 
 const mockRouting = {
     params: {
@@ -34,20 +33,28 @@ jest.mock('../../hooks', () => {
     };
 });
 
-const mockDispatch = jest.fn();
-let mockState: any;
+jest.mock('components/popout_button', () => ({
+    __esModule: true,
+    default: ({onClick}: {onClick: () => void}) => (
+        <button onClick={onClick}>{'Popout'}</button>
+    ),
+}));
 
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: () => mockDispatch,
+jest.mock('../thread_menu', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => (
+        <div data-testid='thread-menu'>{children}</div>
+    ),
 }));
 
 describe('components/threading/global_threads/thread_pane', () => {
     let props: ComponentProps<typeof ThreadPane>;
     let mockThread: typeof props['thread'];
+    let initialState: any;
 
     beforeEach(() => {
+        jest.clearAllMocks();
+
         mockThread = {
             id: '1y8hpek81byspd4enyk9mp1ncw',
             unread_replies: 0,
@@ -67,7 +74,7 @@ describe('components/threading/global_threads/thread_pane', () => {
         const profiles: Record<string, UserProfile> = {};
         profiles[user1.id] = user1;
 
-        mockState = {
+        initialState = {
             entities: {
                 general: {
                     config: {},
@@ -104,48 +111,53 @@ describe('components/threading/global_threads/thread_pane', () => {
     });
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ThreadPane {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should support follow', () => {
+    test('should support follow', async () => {
         props.thread.is_following = false;
-        const wrapper = shallow(
+        renderWithContext(
             <ThreadPane {...props}/>,
+            initialState,
         );
-        wrapper.find(Header).shallow().find(FollowButton).shallow().simulate('click');
+        await userEvent.click(screen.getByText('Follow'));
         expect(setThreadFollow).toHaveBeenCalledWith(mockRouting.currentUserId, mockRouting.currentTeamId, mockThread.id, true);
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
-    test('should support unfollow', () => {
+    test('should support unfollow', async () => {
         props.thread.is_following = true;
-        const wrapper = shallow(
+        renderWithContext(
             <ThreadPane {...props}/>,
+            initialState,
         );
 
-        wrapper.find(Header).shallow().find(FollowButton).shallow().simulate('click');
+        await userEvent.click(screen.getByText('Following'));
         expect(setThreadFollow).toHaveBeenCalledWith(mockRouting.currentUserId, mockRouting.currentTeamId, mockThread.id, false);
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
-    test('should support openInChannel', () => {
-        const wrapper = shallow(
+    test('should support openInChannel', async () => {
+        renderWithContext(
             <ThreadPane {...props}/>,
+            initialState,
         );
 
-        wrapper.find(Header).shallow().find('h3').find(Button).simulate('click');
+        await userEvent.click(screen.getByText('Team name'));
         expect(mockRouting.goToInChannel).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
     });
 
-    test('should support go back to list', () => {
-        const wrapper = shallow(
+    test('should support go back to list', async () => {
+        renderWithContext(
             <ThreadPane {...props}/>,
+            initialState,
         );
 
-        wrapper.find(Header).shallow().find(Button).find('.back').simulate('click');
+        const backButton = document.querySelector('.back') as HTMLElement;
+        expect(backButton).toBeInTheDocument();
+        await userEvent.click(backButton);
         expect(mockRouting.select).toHaveBeenCalledWith();
     });
 });

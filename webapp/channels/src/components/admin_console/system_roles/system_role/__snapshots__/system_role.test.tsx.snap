@@ -1,125 +1,127 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_role should match snapshot 1`] = `
-<div
-  className="wrapper--fixed"
->
-  <AdminHeader
-    withBackButton={true}
-  >
-    <div>
-      <Connect(Component)
-        className="fa fa-angle-left back"
-        to="/admin_console/user_management/system_roles"
-      />
-      role_name
-    </div>
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header with-back"
     >
-      <SystemRolePermissions
-        isLicensedForCloud={false}
-        permissionsToUpdate={Object {}}
-        readOnly={false}
-        role={
-          Object {
-            "built_in": false,
-            "create_at": 0,
-            "delete_at": 0,
-            "description": "role_description",
-            "display_name": "role_display_name",
-            "id": "role_id",
-            "name": "role_name",
-            "permissions": Array [],
-            "scheme_managed": false,
-            "update_at": 0,
-          }
-        }
-        updatePermissions={[Function]}
-      />
-      <Connect(SystemRoleUsers)
-        key="0"
-        onAddCallback={[Function]}
-        onRemoveCallback={[Function]}
-        readOnly={false}
-        roleName="role_name"
-        usersToAdd={Object {}}
-        usersToRemove={Object {}}
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/user_management/system_roles"
+        />
+        role_name
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          data-testid="mock-system-role-permissions"
+        >
+          Permissions for role_name
+        </div>
+        <div
+          data-testid="mock-system-role-users"
+        >
+          Users for role_name
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/user_management/system_roles"
+        id="cancelButtonSettings"
+      >
+        Cancel
+      </a>
+      <div
+        class="error-message"
       />
     </div>
   </div>
-  <SaveChangesPanel
-    cancelLink="/admin_console/user_management/system_roles"
-    isDisabled={false}
-    onClick={[Function]}
-    saveNeeded={false}
-    saving={false}
-  />
 </div>
 `;
 
 exports[`admin_console/system_role should match snapshot with isLicensedForCloud = true 1`] = `
-<div
-  className="wrapper--fixed"
->
-  <AdminHeader
-    withBackButton={true}
-  >
-    <div>
-      <Connect(Component)
-        className="fa fa-angle-left back"
-        to="/admin_console/user_management/system_roles"
-      />
-      role_name
-    </div>
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header with-back"
     >
-      <SystemRolePermissions
-        isLicensedForCloud={true}
-        permissionsToUpdate={Object {}}
-        readOnly={false}
-        role={
-          Object {
-            "built_in": false,
-            "create_at": 0,
-            "delete_at": 0,
-            "description": "role_description",
-            "display_name": "role_display_name",
-            "id": "role_id",
-            "name": "role_name",
-            "permissions": Array [],
-            "scheme_managed": false,
-            "update_at": 0,
-          }
-        }
-        updatePermissions={[Function]}
-      />
-      <Connect(SystemRoleUsers)
-        key="0"
-        onAddCallback={[Function]}
-        onRemoveCallback={[Function]}
-        readOnly={false}
-        roleName="role_name"
-        usersToAdd={Object {}}
-        usersToRemove={Object {}}
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/user_management/system_roles"
+        />
+        role_name
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          data-testid="mock-system-role-permissions"
+        >
+          Permissions for role_name
+        </div>
+        <div
+          data-testid="mock-system-role-users"
+        >
+          Users for role_name
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/user_management/system_roles"
+        id="cancelButtonSettings"
+      >
+        Cancel
+      </a>
+      <div
+        class="error-message"
       />
     </div>
   </div>
-  <SaveChangesPanel
-    cancelLink="/admin_console/user_management/system_roles"
-    isDisabled={false}
-    onClick={[Function]}
-    saveNeeded={false}
-    saving={false}
-  />
 </div>
 `;

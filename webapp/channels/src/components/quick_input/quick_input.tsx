@@ -2,19 +2,18 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactComponentLike} from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 export type Props = {
 
     /**
      * An optional React component that will be used instead of an HTML input when rendering
      */
-    inputComponent?: ReactComponentLike;
+    inputComponent?: React.ElementType;
 
     /**
      * The string value displayed in this input
@@ -76,7 +75,7 @@ export type Props = {
     tabIndex?: number;
     size?: 'md' | 'lg';
     role?: string;
-}
+};
 
 const defaultClearableTooltipText = (
     <FormattedMessage

@@ -59,10 +59,10 @@ const useSubmit = (
     postError: React.ReactNode,
     channelId: string,
     rootId: string,
-    serverError: (ServerError & { submittedMessage?: string }) | null,
+    serverError: (ServerError & {submittedMessage?: string}) | null,
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
-    setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     setShowPreview: (showPreview: boolean) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
@@ -76,7 +76,7 @@ const useSubmit = (
 
     const dispatch = useDispatch();
 
-    const getFilesIdsForPost = useMemo(makeGetFileIdsForPost, []);
+    const getFilesIdsForPost = useMemo(() => makeGetFileIdsForPost(), []);
     const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);
@@ -118,6 +118,8 @@ const useSubmit = (
         }
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
     });
+
+    const editingPostRefocusId = useSelector((state: GlobalState) => state.views.posts.editingPost.refocusId);
 
     const showPostDeletedModal = useCallback(() => {
         dispatch(openModal({
@@ -236,6 +238,11 @@ const useSubmit = (
         }
 
         if (isInEditMode) {
+            // Refocus the main textbox before unsetting edit mode
+            if (editingPostRefocusId) {
+                const element = document.getElementById(editingPostRefocusId);
+                element?.focus();
+            }
             dispatch(unsetEditingPost());
         }
 
@@ -258,6 +265,7 @@ const useSubmit = (
         channelId,
         isInEditMode,
         handleFileChange,
+        editingPostRefocusId,
     ]);
 
     const setUpdatedFileIds = useCallback((draft: PostDraft) => {

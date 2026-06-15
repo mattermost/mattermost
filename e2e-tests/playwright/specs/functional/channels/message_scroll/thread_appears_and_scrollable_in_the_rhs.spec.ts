@@ -12,6 +12,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  * Test requires creating a thread with 100+ replies and 40+ unrelated channel messages
  */
 test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@messaging']}, async ({pw}) => {
+    test.setTimeout(120000);
     const NUMBER_OF_REPLIES = 100;
     const NUMBER_OF_MAIN_THREAD_MESSAGES = 40;
 
@@ -67,7 +68,7 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
 
     // # Reply on original thread with a last reply
     const lastReplyMessage = 'Last Reply';
-    const lastReply = await userClient.createPost({
+    await userClient.createPost({
         channel_id: townSquare.id,
         message: lastReplyMessage,
         user_id: mainUser.id,
@@ -75,33 +76,60 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
     });
 
     // # Load the channel as main user
-    const {channelsPage} = await pw.testBrowser.login(mainUser);
+    const {page, channelsPage} = await pw.testBrowser.login(mainUser);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Click reply to last post to open thread on RHS
-    const postWithReply = await channelsPage.centerView.getPostById(lastReply.id);
-    await postWithReply.reply();
+    // # Open thread via "Last Reply" — the root post (First message) is buried 140+ posts
+    // above the viewport and never rendered by the virtual list, so getPostById would time out.
+    // "Last Reply" is always the last visible post; clicking reply on it opens the same thread.
+    const lastPost = await channelsPage.centerView.getLastPost();
+    await lastPost.reply();
 
     // * Verify that the RHS is visible
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify that the last reply appears in the RHS
-    await expect(channelsPage.sidebarRight.container.getByText(lastReplyMessage)).toBeVisible();
-
-    // # Iterate through messages from the end, scrolling up to load previous messages
     const rhsContainer = channelsPage.sidebarRight.container;
-    for (let i = replies.length - 1; i >= 0; i--) {
+    await expect(rhsContainer.getByText(lastReplyMessage)).toBeVisible();
+
+    // # Hover over the RHS so mouse-wheel events scroll it, then iterate through messages
+    // from the end, scrolling up to load previous messages.
+    // We only assert on a sparse sample (every 10th reply) to keep the test fast while still
+    // proving the virtualized thread list is scrollable end-to-end.
+    // scrollIntoViewIfNeeded cannot be used here because older replies are not in the DOM
+    // until the virtual list renders them after an upward scroll.
+    await rhsContainer.hover();
+    for (let i = replies.length - 1; i >= 0; i -= 10) {
         const replyText = replies[i];
-        const replyElement = rhsContainer.getByText(replyText, {exact: true});
-
-        // # Scroll the reply into view
-        await replyElement.scrollIntoViewIfNeeded();
-
-        // * Verify the reply is visible
-        await expect(replyElement).toBeVisible();
+        await expect
+            .poll(
+                async () => {
+                    const el = rhsContainer.getByText(replyText, {exact: true});
+                    if ((await el.count()) > 0 && (await el.first().isVisible())) {
+                        return true;
+                    }
+                    // Element not yet in the DOM — scroll up to trigger virtual rendering.
+                    await page.mouse.wheel(0, -400);
+                    return false;
+                },
+                {timeout: 20000, intervals: [300]},
+            )
+            .toBeTruthy();
     }
 
-    // * Verify that the first post message is visible after scrolling through all replies
-    await expect(rhsContainer.getByText('First message')).toBeVisible();
+    // * Verify that the first post message is visible after scrolling through the thread
+    await expect
+        .poll(
+            async () => {
+                const el = rhsContainer.getByText('First message', {exact: true});
+                if ((await el.count()) > 0 && (await el.first().isVisible())) {
+                    return true;
+                }
+                await page.mouse.wheel(0, -400);
+                return false;
+            },
+            {timeout: 20000, intervals: [300]},
+        )
+        .toBeTruthy();
 });

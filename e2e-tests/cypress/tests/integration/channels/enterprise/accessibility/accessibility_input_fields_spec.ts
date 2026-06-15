@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @enterprise @accessibility
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {
     let testTeam: Team;
@@ -276,7 +276,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     });
 });
 
-function verifySearchAutocomplete(index) {
+function verifySearchAutocomplete(index: number) {
     cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').
         and('have.class', 'suggestion--selected').
         invoke('attr', 'id').then((suggestionId) => {
@@ -284,7 +284,7 @@ function verifySearchAutocomplete(index) {
         });
 }
 
-function verifyMessageAutocomplete(index) {
+function verifyMessageAutocomplete(index: number) {
     cy.get('#suggestionList').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected');
     cy.get('#suggestionList').find('.suggestion-list__item').eq(index).invoke('attr', 'id').then((selectedId) => {
         cy.wrap(selectedId).should('not.equal', '');

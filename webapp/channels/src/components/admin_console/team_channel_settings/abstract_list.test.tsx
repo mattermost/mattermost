@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AbstractList from './abstract_list';
@@ -40,7 +40,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             </div>
         </div>);
 
-    test('should match snapshot, no headers', () => {
+    test('should match snapshot, no headers', async () => {
         const testChannels: Channel[] = [];
 
         const actions = {
@@ -49,7 +49,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AbstractList
                 onPageChangedCallback={jest.fn()}
                 total={0}
@@ -60,13 +60,17 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
                     defaultMessage: 'test',
                 }}
                 actions={actions}
-            />);
+            />,
+        );
 
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(actions.getData).toHaveBeenCalled();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with data', () => {
+    test('should match snapshot, with data', async () => {
         const testTeams: TeamWithMembership[] = [TestHelper.getTeamMock({
             id: '123',
             display_name: 'DN',
@@ -78,7 +82,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AbstractList
                 data={testTeams}
                 onPageChangedCallback={jest.fn()}
@@ -90,10 +94,14 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
                     defaultMessage: 'test',
                 }}
                 actions={actions}
-            />);
+            />,
+        );
 
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(actions.getData).toHaveBeenCalled();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
     const renderRow = jest.fn((item) => {

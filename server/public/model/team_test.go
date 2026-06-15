@@ -141,3 +141,59 @@ func TestTeamPatch(t *testing.T) {
 	require.Equal(t, *p.AllowOpenInvite, o.AllowOpenInvite, "AllowOpenInvite did not update")
 	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
 }
+
+func TestTeamHasPolicyAction(t *testing.T) {
+	t.Run("nil team returns false", func(t *testing.T) {
+		var team *Team
+		require.False(t, team.HasPolicyAction("membership"))
+		require.False(t, team.HasMembershipPolicyAction())
+	})
+
+	t.Run("nil PolicyActions map returns false", func(t *testing.T) {
+		team := &Team{}
+		require.False(t, team.HasPolicyAction("membership"))
+		require.False(t, team.HasMembershipPolicyAction())
+	})
+
+	t.Run("empty PolicyActions map returns false", func(t *testing.T) {
+		team := &Team{PolicyActions: map[string]bool{}}
+		require.False(t, team.HasPolicyAction("membership"))
+		require.False(t, team.HasMembershipPolicyAction())
+	})
+
+	t.Run("membership=true returns true", func(t *testing.T) {
+		team := &Team{PolicyActions: map[string]bool{"membership": true}}
+		require.True(t, team.HasPolicyAction("membership"))
+		require.True(t, team.HasMembershipPolicyAction())
+	})
+
+	t.Run("membership=false returns false", func(t *testing.T) {
+		team := &Team{PolicyActions: map[string]bool{"membership": false}}
+		require.False(t, team.HasPolicyAction("membership"))
+		require.False(t, team.HasMembershipPolicyAction())
+	})
+}
+
+func TestTeamSanitizePreservesPolicyEnforced(t *testing.T) {
+	t.Run("PolicyEnforced is preserved after Sanitize", func(t *testing.T) {
+		team := &Team{
+			Id:             NewId(),
+			Email:          "test@example.com",
+			InviteId:       NewId(),
+			PolicyEnforced: true,
+		}
+		team.Sanitize()
+		require.True(t, team.PolicyEnforced, "PolicyEnforced must survive Sanitize")
+	})
+
+	t.Run("Email and InviteId are stripped by Sanitize (regression)", func(t *testing.T) {
+		team := &Team{
+			Id:       NewId(),
+			Email:    "test@example.com",
+			InviteId: NewId(),
+		}
+		team.Sanitize()
+		require.Empty(t, team.Email, "Email must be cleared by Sanitize")
+		require.Empty(t, team.InviteId, "InviteId must be cleared by Sanitize")
+	})
+}

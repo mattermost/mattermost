@@ -16,16 +16,22 @@ on:
         required: true
         description: "Docker image tag (e.g., 'abc1234_def5678' or 'master')"
 
+permissions: {}
+
 jobs:
   generate-build-variables:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     outputs:
       report_type: "${{ steps.vars.outputs.report_type }}"
       ref_branch: "${{ steps.vars.outputs.ref_branch }}"
+      fips_supported: "${{ steps.vars.outputs.fips_supported }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.branch }}
           fetch-depth: 50
       - name: ci/generate-variables
@@ -37,11 +43,18 @@ jobs:
           # Strip refs/heads/ prefix if present
           BRANCH="${BRANCH#refs/heads/}"
 
-          # Validate branch is master or release-X.Y
+          # Validate branch is master or release-X.Y, and decide whether FIPS is supported.
+          # FIPS builds were introduced in release-11.0; skip FIPS tests for older branches.
           if [[ "$BRANCH" == "master" ]]; then
             echo "report_type=MASTER" >> $GITHUB_OUTPUT
-          elif [[ "$BRANCH" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+            echo "fips_supported=true" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH" =~ ^release-([0-9]+)\.[0-9]+$ ]]; then
             echo "report_type=RELEASE" >> $GITHUB_OUTPUT
+            if [[ "${BASH_REMATCH[1]}" -ge 11 ]]; then
+              echo "fips_supported=true" >> $GITHUB_OUTPUT
+            else
+              echo "fips_supported=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "::error::Branch ${BRANCH} must be 'master' or 'release-X.Y' format."
             exit 1
@@ -58,6 +71,11 @@ jobs:
   # Enterprise Edition
   e2e-cypress:
     needs: generate-build-variables
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -77,6 +95,11 @@ jobs:
 
   e2e-playwright:
     needs: generate-build-variables
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -92,8 +115,15 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
 
   # Enterprise FIPS Edition
+  # FIPS builds were introduced in release-11.0; skip for older branches.
   e2e-cypress-fips:
     needs: generate-build-variables
+    if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -114,6 +144,12 @@ jobs:
 
   e2e-playwright-fips:
     needs: generate-build-variables
+    if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}

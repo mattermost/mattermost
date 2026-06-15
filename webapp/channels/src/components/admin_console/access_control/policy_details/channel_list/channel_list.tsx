@@ -7,6 +7,7 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -15,9 +16,8 @@ import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Column, Row} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
-import WithTooltip from 'components/with_tooltip';
+import {ChannelIcon} from 'components/channel_type_icon';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
@@ -25,7 +25,7 @@ import './channel_list.scss';
 type PolicyActiveStatus = {
     id: string;
     active: boolean;
-}
+};
 
 type Props = WrappedComponentProps & {
     channels: ChannelWithTeamData[];
@@ -39,19 +39,20 @@ type Props = WrappedComponentProps & {
     policyActiveStatusChanges?: PolicyActiveStatus[];
     onPolicyActiveStatusChange?: (changes: PolicyActiveStatus[]) => void;
     saving?: boolean;
+    hideTeamColumn?: boolean;
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
         setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
     after: string;
     cursorHistory: string[];
-}
+};
 
 const PAGE_SIZE = 10;
 
@@ -146,7 +147,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                 after: lastChannelId,
                 loading: false,
             });
-        } catch (error) {
+        } catch {
             this.setState({loading: false});
         }
     };
@@ -328,7 +329,7 @@ class ChannelList extends React.PureComponent<Props, State> {
     };
 
     getColumns = (): Column[] => {
-        return [
+        const columns: Column[] = [
             {
                 name: (
                     <FormattedMessage
@@ -338,9 +339,12 @@ class ChannelList extends React.PureComponent<Props, State> {
                 ),
                 field: 'name',
                 fixed: true,
-                width: 7,
+                width: this.props.hideTeamColumn ? 10 : 7,
             },
-            {
+        ];
+
+        if (!this.props.hideTeamColumn) {
+            columns.push({
                 name: (
                     <FormattedMessage
                         id='admin.channel_settings.channel_list.teamHeader'
@@ -350,7 +354,10 @@ class ChannelList extends React.PureComponent<Props, State> {
                 field: 'team',
                 fixed: true,
                 width: 7,
-            },
+            });
+        }
+
+        columns.push(
             {
                 name: (
                     <div className='ChannelList__autoAddHeader'>
@@ -395,16 +402,18 @@ class ChannelList extends React.PureComponent<Props, State> {
                 field: 'autoAdd',
                 textAlign: 'center',
                 fixed: true,
-                width: 8,
+                width: this.props.hideTeamColumn ? 9 : 8,
             },
             {
                 name: '',
                 field: 'remove',
                 textAlign: 'right',
                 fixed: true,
-                width: 3,
+                width: this.props.hideTeamColumn ? 3 : 3,
             },
-        ];
+        );
+
+        return columns;
     };
 
     getRows = () => {
@@ -418,9 +427,9 @@ class ChannelList extends React.PureComponent<Props, State> {
         ].slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
-            const ChannelIconComponent = getChannelIconComponent(channel);
             const iconToDisplay = (
-                <ChannelIconComponent
+                <ChannelIcon
+                    channel={channel}
                     className='channel-icon'
                     data-testid={`${channel.name}-archive-icon`}
                 />
@@ -533,7 +542,7 @@ class ChannelList extends React.PureComponent<Props, State> {
             },
         };
 
-        const filterProps = {
+        const filterProps = this.props.hideTeamColumn ? undefined : {
             options: filterOptions,
             keys: ['teams'],
             onFilter: this.onFilter,

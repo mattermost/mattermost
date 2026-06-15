@@ -7,7 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import type IconProps from '@mattermost/compass-icons/components/props';
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -15,10 +14,10 @@ import type {ServerError} from '@mattermost/types/errors';
 import {searchAllChannels} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
+import {ChannelIcon} from 'components/channel_type_icon';
 import SectionNotice from 'components/section_notice';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -34,7 +33,7 @@ type Props = {
     onExited: () => void;
     remoteId: string;
     onHide: () => void;
-}
+};
 
 const noop = () => {};
 
@@ -267,17 +266,6 @@ const ChannelLabel = ({channel, bold}: {channel: Channel; bold?: boolean}) => {
     );
 };
 
-const ChannelIcon = ({channel, size = 16, ...otherProps}: {channel: Channel} & IconProps) => {
-    const Icon = getChannelIconComponent(channel);
-
-    return (
-        <Icon
-            size={size}
-            {...otherProps}
-        />
-    );
-};
-
 const SecondaryTextRight = styled.span`
     color: rgba(var(--center-channel-color-rgb), 0.64);
     padding-left: 5px;
@@ -331,5 +319,8 @@ export const useLatest = <TArgs extends unknown[], TResult>(func: (signal: Abort
                 func(currentRequest.controller.signal, ...args).then(resolve, reject);
             }, opts?.delay || TYPING_DELAY_MS);
         });
+
+        // These types are complicated and make it hard to memoize this correctly.
+        // eslint-disable-next-line react-hooks/use-memo
     }, [start, cancel, ...deps]);
 };

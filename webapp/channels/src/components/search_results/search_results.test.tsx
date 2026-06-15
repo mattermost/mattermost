@@ -4,14 +4,15 @@
 import {within} from '@testing-library/react';
 import React from 'react';
 
+import {DATE_LINE} from 'mattermost-redux/utils/post_list';
+
 import SearchResults, {arePropsEqual} from 'components/search_results/search_results';
+import type {Props} from 'components/search_results/search_results';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
-
-import type {Props} from './types';
 
 jest.mock('utils/popouts/popout_windows', () => ({
     popoutRhsSearch: jest.fn(),
@@ -115,6 +116,7 @@ describe('components/SearchResults', () => {
         setSearchFilterType: jest.fn(),
         updateSearchTeam: jest.fn(),
         updateSearchTerms: jest.fn(),
+        dispatch: jest.fn(),
     };
 
     beforeEach(() => {
@@ -165,6 +167,59 @@ describe('components/SearchResults', () => {
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'search', 'messages', undefined, team.id,
             );
+        });
+    });
+
+    describe('messagesCounter', () => {
+        // Render with the Files tab selected so the body of the panel does not
+        // try to render the message Post items (whose connected components
+        // require Redux state that is out of scope for these tests). The
+        // messagesCounter is rendered on the Messages tab regardless of the
+        // active tab, so this still exercises the count calculation.
+        test('should not count date separators in the messages counter', () => {
+            const post = TestHelper.getPostMock({id: 'post1', message: 'unique message'});
+            const dateLine = DATE_LINE + new Date('2026-03-12').getTime();
+
+            const {container} = renderSearchResults({
+                results: [dateLine, post],
+                searchType: 'files',
+                isSearchAtEnd: true,
+            });
+
+            const counter = container.querySelector('.messages-tab .counter');
+            expect(counter).not.toBeNull();
+            expect(counter?.textContent).toBe('1');
+        });
+
+        test('should count only posts when multiple date separators are present', () => {
+            const post1 = TestHelper.getPostMock({id: 'post1', message: 'unique message 1'});
+            const post2 = TestHelper.getPostMock({id: 'post2', message: 'unique message 2'});
+            const dateLine1 = DATE_LINE + new Date('2026-03-12').getTime();
+            const dateLine2 = DATE_LINE + new Date('2026-03-13').getTime();
+
+            const {container} = renderSearchResults({
+                results: [dateLine1, post1, dateLine2, post2],
+                searchType: 'files',
+                isSearchAtEnd: true,
+            });
+
+            const counter = container.querySelector('.messages-tab .counter');
+            expect(counter?.textContent).toBe('2');
+        });
+
+        test('should append "+" to the messages counter when more results may be available', () => {
+            const post = TestHelper.getPostMock({id: 'post1', message: 'unique message'});
+            const dateLine = DATE_LINE + new Date('2026-03-12').getTime();
+
+            const {container} = renderSearchResults({
+                results: [dateLine, post],
+                searchType: 'files',
+                isSearchAtEnd: false,
+                searchPage: 1,
+            });
+
+            const counter = container.querySelector('.messages-tab .counter');
+            expect(counter?.textContent).toBe('1+');
         });
     });
 

@@ -1,148 +1,127 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/MessageAttachment should call actions.doPostActionWithCookie on handleAction 1`] = `
-<div
-  className="attachment attachment--pretext"
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__thumb-pretext"
-  >
-    <Connect(Markdown)
-      message="pretext"
-      postId="post_id"
-    />
-  </div>
-  <div
-    className="attachment__content"
+    class="attachment attachment--pretext"
   >
     <div
-      className="clearfix attachment__container"
-      style={
-        Object {
-          "borderLeftColor": "#FFF",
-        }
-      }
+      class="attachment__thumb-pretext"
     >
-      <ForwardRef
-        href="author_link"
-        key="attachment__author-name"
-        location="message_attachment"
+      <div
+        data-testid="markdown-mock"
       >
-        <Connect(Component)
-          key="attachment__author-icon"
-          src="author_icon"
-        >
-          <Component />
-        </Connect(Component)>
-        <span
-          className="attachment__author-name"
-          key="attachment__author-name"
-        >
-          author_name
-        </span>
-      </ForwardRef>
-      <h1
-        className="attachment__title"
+        pretext
+      </div>
+    </div>
+    <div
+      class="attachment__content"
+    >
+      <div
+        class="clearfix attachment__container"
+        style="border-left-color: rgb(255, 255, 255);"
       >
-        <ForwardRef
-          className="attachment__title-link"
-          href="title_link"
+        <a
+          href="author_link"
           location="message_attachment"
+          rel="noopener noreferrer"
+          target="_blank"
         >
-          title
-        </ForwardRef>
-      </h1>
-      <div>
-        <div
-          className="attachment__body"
+          <img
+            alt="attachment author icon"
+            class="attachment__author-icon"
+            height="14"
+            src="author_icon"
+            width="14"
+          />
+          <span
+            class="attachment__author-name"
+          >
+            author_name
+          </span>
+        </a>
+        <h1
+          class="attachment__title"
         >
-          <Connect(ShowMore)
-            checkOverflow={0}
-            isAttachmentText={true}
-            maxHeight={200}
-            text="short text"
+          <a
+            class="attachment__title-link"
+            href="title_link"
+            location="message_attachment"
+            rel="noopener noreferrer"
+            target="_blank"
           >
-            <Connect(Markdown)
-              imageProps={
-                Object {
-                  "onImageHeightChanged": [Function],
-                  "onImageLoaded": [Function],
-                }
-              }
-              message="short text"
-              postId="post_id"
-            />
-          </Connect(ShowMore)>
+            title
+          </a>
+        </h1>
+        <div>
           <div
-            className="attachment__image-container"
+            class="attachment__body"
           >
-            <Connect(Component)
-              imageMetadata={
-                Object {
-                  "height": 200,
-                  "width": 200,
-                }
-              }
-              src="image_url"
-            >
-              <Component />
-            </Connect(Component)>
-          </div>
-          <div
-            className="attachment__footer-container"
-          >
-            <Connect(Component)
-              src="footer_icon"
-            >
-              <Component />
-            </Connect(Component)>
-            <Connect(Markdown)
-              message="footer"
-              postId="post_id"
-            />
-          </div>
-          <div>
             <div
-              className="attachment-actions"
+              class="post-message post-message--collapsed"
             >
-              <Connect(Component)
-                action={
-                  Object {
-                    "cookie": "cookie-contents",
-                    "id": "action_id_1",
-                    "name": "action_name_1",
-                  }
-                }
-                actionExecuting={false}
-                handleAction={[Function]}
-                key="action_id_1"
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <div
+                  data-testid="markdown-mock"
+                >
+                  short text
+                </div>
+              </div>
+            </div>
+            <div
+              class="attachment__image-container"
+            >
+              <img
+                class="attachment__image"
+                data-testid="size-aware-image-mock"
+                src="image_url"
               />
             </div>
+            <div
+              class="attachment__footer-container"
+            >
+              <img
+                alt="attachment footer icon"
+                class="attachment__footer-icon"
+                height="16"
+                src="footer_icon"
+                width="16"
+              />
+              <div
+                data-testid="markdown-mock"
+              >
+                footer
+              </div>
+            </div>
+            <div>
+              <div
+                class="attachment-actions"
+              >
+                <button
+                  data-action-cookie="cookie-contents"
+                  data-action-id="action_id_1"
+                  data-testid="action-button-mock"
+                >
+                  action_name_1
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-        <div
-          className="attachment__thumb-container"
-        >
-          <Connect(Component)
-            imageMetadata={
-              Object {
-                "height": 200,
-                "width": 200,
-              }
-            }
-            src="thumb_url"
+          <div
+            class="attachment__thumb-container"
           >
-            <Component />
-          </Connect(Component)>
+            <img
+              data-testid="size-aware-image-mock"
+              src="thumb_url"
+            />
+          </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>
@@ -150,130 +129,114 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
 `;
 
 exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
-<div
-  className="attachment attachment--pretext"
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__thumb-pretext"
-  >
-    <Connect(Markdown)
-      message="pretext"
-      postId="post_id"
-    />
-  </div>
-  <div
-    className="attachment__content"
+    class="attachment attachment--pretext"
   >
     <div
-      className="clearfix attachment__container"
-      style={
-        Object {
-          "borderLeftColor": "#FFF",
-        }
-      }
+      class="attachment__thumb-pretext"
     >
-      <ForwardRef
-        href="author_link"
-        key="attachment__author-name"
-        location="message_attachment"
+      <div
+        data-testid="markdown-mock"
       >
-        <Connect(Component)
-          key="attachment__author-icon"
-          src="author_icon"
-        >
-          <Component />
-        </Connect(Component)>
-        <span
-          className="attachment__author-name"
-          key="attachment__author-name"
-        >
-          author_name
-        </span>
-      </ForwardRef>
-      <h1
-        className="attachment__title"
+        pretext
+      </div>
+    </div>
+    <div
+      class="attachment__content"
+    >
+      <div
+        class="clearfix attachment__container"
+        style="border-left-color: rgb(255, 255, 255);"
       >
-        <ForwardRef
-          className="attachment__title-link"
-          href="title_link"
+        <a
+          href="author_link"
           location="message_attachment"
+          rel="noopener noreferrer"
+          target="_blank"
         >
-          title
-        </ForwardRef>
-      </h1>
-      <div>
-        <div
-          className="attachment__body"
-        >
-          <Connect(ShowMore)
-            checkOverflow={0}
-            isAttachmentText={true}
-            maxHeight={200}
-            text="short text"
+          <img
+            alt="attachment author icon"
+            class="attachment__author-icon"
+            height="14"
+            src="author_icon"
+            width="14"
+          />
+          <span
+            class="attachment__author-name"
           >
-            <Connect(Markdown)
-              imageProps={
-                Object {
-                  "onImageHeightChanged": [Function],
-                  "onImageLoaded": [Function],
-                }
-              }
-              message="short text"
-              postId="post_id"
-            />
-          </Connect(ShowMore)>
+            author_name
+          </span>
+        </a>
+        <h1
+          class="attachment__title"
+        >
+          <a
+            class="attachment__title-link"
+            href="title_link"
+            location="message_attachment"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            title
+          </a>
+        </h1>
+        <div>
           <div
-            className="attachment__image-container"
+            class="attachment__body"
           >
-            <Connect(Component)
-              imageMetadata={
-                Object {
-                  "height": 200,
-                  "width": 200,
-                }
-              }
-              src="image_url"
+            <div
+              class="post-message post-message--collapsed"
             >
-              <Component />
-            </Connect(Component)>
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <div
+                  data-testid="markdown-mock"
+                >
+                  short text
+                </div>
+              </div>
+            </div>
+            <div
+              class="attachment__image-container"
+            >
+              <img
+                class="attachment__image"
+                data-testid="size-aware-image-mock"
+                src="image_url"
+              />
+            </div>
+            <div
+              class="attachment__footer-container"
+            >
+              <img
+                alt="attachment footer icon"
+                class="attachment__footer-icon"
+                height="16"
+                src="footer_icon"
+                width="16"
+              />
+              <div
+                data-testid="markdown-mock"
+              >
+                footer
+              </div>
+            </div>
           </div>
           <div
-            className="attachment__footer-container"
+            class="attachment__thumb-container"
           >
-            <Connect(Component)
-              src="footer_icon"
-            >
-              <Component />
-            </Connect(Component)>
-            <Connect(Markdown)
-              message="footer"
-              postId="post_id"
+            <img
+              data-testid="size-aware-image-mock"
+              src="thumb_url"
             />
           </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          className="attachment__thumb-container"
-        >
-          <Connect(Component)
-            imageMetadata={
-              Object {
-                "height": 200,
-                "width": 200,
-              }
-            }
-            src="thumb_url"
-          >
-            <Component />
-          </Connect(Component)>
-        </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>
@@ -282,128 +245,109 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
 
 exports[`components/post_view/MessageAttachment should match snapshot and render a field with a number value 1`] = `
 <td
-  className="attachment-field"
-  key="attachment__field-0__1"
+  class="attachment-field"
 >
-  <Connect(Markdown)
-    message="1234"
-    postId="post_id"
-  />
+  <div
+    data-testid="markdown-mock"
+  >
+    1234
+  </div>
 </td>
 `;
 
 exports[`components/post_view/MessageAttachment should match snapshot when no footer is provided (even if footer_icon is provided) 1`] = `
-<div
-  className="attachment attachment--pretext"
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__thumb-pretext"
-  >
-    <Connect(Markdown)
-      message="pretext"
-      postId="post_id"
-    />
-  </div>
-  <div
-    className="attachment__content"
+    class="attachment attachment--pretext"
   >
     <div
-      className="clearfix attachment__container"
-      style={
-        Object {
-          "borderLeftColor": "#FFF",
-        }
-      }
+      class="attachment__thumb-pretext"
     >
-      <ForwardRef
-        href="author_link"
-        key="attachment__author-name"
-        location="message_attachment"
+      <div
+        data-testid="markdown-mock"
       >
-        <Connect(Component)
-          key="attachment__author-icon"
-          src="author_icon"
-        >
-          <Component />
-        </Connect(Component)>
-        <span
-          className="attachment__author-name"
-          key="attachment__author-name"
-        >
-          author_name
-        </span>
-      </ForwardRef>
-      <h1
-        className="attachment__title"
+        pretext
+      </div>
+    </div>
+    <div
+      class="attachment__content"
+    >
+      <div
+        class="clearfix attachment__container"
+        style="border-left-color: rgb(255, 255, 255);"
       >
-        <ForwardRef
-          className="attachment__title-link"
-          href="title_link"
+        <a
+          href="author_link"
           location="message_attachment"
+          rel="noopener noreferrer"
+          target="_blank"
         >
-          title
-        </ForwardRef>
-      </h1>
-      <div>
-        <div
-          className="attachment__body"
-        >
-          <Connect(ShowMore)
-            checkOverflow={0}
-            isAttachmentText={true}
-            maxHeight={200}
-            text="short text"
+          <img
+            alt="attachment author icon"
+            class="attachment__author-icon"
+            height="14"
+            src="author_icon"
+            width="14"
+          />
+          <span
+            class="attachment__author-name"
           >
-            <Connect(Markdown)
-              imageProps={
-                Object {
-                  "onImageHeightChanged": [Function],
-                  "onImageLoaded": [Function],
-                }
-              }
-              message="short text"
-              postId="post_id"
-            />
-          </Connect(ShowMore)>
+            author_name
+          </span>
+        </a>
+        <h1
+          class="attachment__title"
+        >
+          <a
+            class="attachment__title-link"
+            href="title_link"
+            location="message_attachment"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            title
+          </a>
+        </h1>
+        <div>
           <div
-            className="attachment__image-container"
+            class="attachment__body"
           >
-            <Connect(Component)
-              imageMetadata={
-                Object {
-                  "height": 200,
-                  "width": 200,
-                }
-              }
-              src="image_url"
+            <div
+              class="post-message post-message--collapsed"
             >
-              <Component />
-            </Connect(Component)>
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <div
+                  data-testid="markdown-mock"
+                >
+                  short text
+                </div>
+              </div>
+            </div>
+            <div
+              class="attachment__image-container"
+            >
+              <img
+                class="attachment__image"
+                data-testid="size-aware-image-mock"
+                src="image_url"
+              />
+            </div>
           </div>
-        </div>
-        <div
-          className="attachment__thumb-container"
-        >
-          <Connect(Component)
-            imageMetadata={
-              Object {
-                "height": 200,
-                "width": 200,
-              }
-            }
-            src="thumb_url"
+          <div
+            class="attachment__thumb-container"
           >
-            <Component />
-          </Connect(Component)>
+            <img
+              data-testid="size-aware-image-mock"
+              src="thumb_url"
+            />
+          </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>
@@ -411,44 +355,33 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
 `;
 
 exports[`components/post_view/MessageAttachment should match snapshot when the attachment has a link in the title 1`] = `
-<div
-  className="attachment "
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment "
   >
     <div
-      className="clearfix attachment__container attachment__container--undefined"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--undefined"
       >
-        <Connect(Markdown)
-          message="Do you like https://mattermost.com?"
-          options={
-            Object {
-              "atMentions": false,
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
-        />
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
+        <h1
+          class="attachment__title"
+        >
+          <div
+            data-testid="markdown-mock"
+          >
+            Do you like https://mattermost.com?
+          </div>
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          />
+          <div
+            style="clear: both;"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -456,44 +389,33 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
 `;
 
 exports[`components/post_view/MessageAttachment should match snapshot when the attachment has an emoji in the title 1`] = `
-<div
-  className="attachment "
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment "
   >
     <div
-      className="clearfix attachment__container attachment__container--undefined"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--undefined"
       >
-        <Connect(Markdown)
-          message="Do you like :pizza:?"
-          options={
-            Object {
-              "atMentions": false,
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
-        />
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
+        <h1
+          class="attachment__title"
+        >
+          <div
+            data-testid="markdown-mock"
+          >
+            Do you like :pizza:?
+          </div>
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          />
+          <div
+            style="clear: both;"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -501,44 +423,33 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
 `;
 
 exports[`components/post_view/MessageAttachment should match snapshot when the attachment hasn't any emojis in the title 1`] = `
-<div
-  className="attachment "
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment "
   >
     <div
-      className="clearfix attachment__container attachment__container--undefined"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--undefined"
       >
-        <Connect(Markdown)
-          message="Don't you like emojis?"
-          options={
-            Object {
-              "atMentions": false,
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
-        />
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
+        <h1
+          class="attachment__title"
+        >
+          <div
+            data-testid="markdown-mock"
+          >
+            Don't you like emojis?
+          </div>
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          />
+          <div
+            style="clear: both;"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -546,65 +457,53 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
 `;
 
 exports[`components/post_view/MessageAttachment should match snapshot when the footer is truncated 1`] = `
-<div
-  className="attachment "
-  onClick={[Function]}
->
+<div>
   <div
-    className="attachment__content"
+    class="attachment "
   >
     <div
-      className="clearfix attachment__container attachment__container--undefined"
+      class="attachment__content"
     >
-      <h1
-        className="attachment__title"
+      <div
+        class="clearfix attachment__container attachment__container--undefined"
       >
-        <Connect(Markdown)
-          message="footer"
-          options={
-            Object {
-              "atMentions": false,
-              "mentionHighlight": false,
-              "renderer": LinkOnlyRenderer {
-                "options": Object {},
-              },
-            }
-          }
-          postId="post_id"
-        />
-      </h1>
-      <div>
-        <div
-          className="attachment__body attachment__body--no_thumb"
+        <h1
+          class="attachment__title"
         >
           <div
-            className="attachment__footer-container"
+            data-testid="markdown-mock"
           >
-            <Connect(Markdown)
-              message="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…"
-              postId="post_id"
-            />
+            footer
           </div>
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          >
+            <div
+              class="attachment__footer-container"
+            >
+              <div
+                data-testid="markdown-mock"
+              >
+                aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
         </div>
-        <div
-          style={
-            Object {
-              "clear": "both",
-            }
-          }
-        />
       </div>
     </div>
   </div>
 </div>
 `;
 
-exports[`components/post_view/MessageAttachment should match value on getFieldsTable 1`] = `""`;
-
-exports[`components/post_view/MessageAttachment should match value on getFieldsTable 2`] = `
+exports[`components/post_view/MessageAttachment should match value on getFieldsTable 1`] = `
 <div>
   <table
-    className="attachment-fields"
+    class="attachment-fields"
   >
     <thead>
       <tr />
@@ -614,71 +513,61 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
     </tbody>
   </table>
   <table
-    className="attachment-fields"
+    class="attachment-fields"
   >
     <thead>
       <tr>
         <th
-          className="attachment-field__caption"
+          class="attachment-field__caption"
         >
-          <Memo(Connect(Markdown))
-            message="title_1"
-            options={
-              Object {
-                "atMentions": false,
-                "markdown": false,
-                "mentionHighlight": false,
-              }
-            }
-            postId="post_id"
-          />
+          <div
+            data-testid="markdown-mock"
+          >
+            title_1
+          </div>
         </th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td
-          className="attachment-field"
+          class="attachment-field"
         >
-          <Memo(Connect(Markdown))
-            message="value_1"
-            postId="post_id"
-          />
+          <div
+            data-testid="markdown-mock"
+          >
+            value_1
+          </div>
         </td>
       </tr>
     </tbody>
   </table>
   <table
-    className="attachment-fields"
+    class="attachment-fields"
   >
     <thead>
       <tr>
         <th
-          className="attachment-field__caption"
+          class="attachment-field__caption"
         >
-          <Memo(Connect(Markdown))
-            message="title_2"
-            options={
-              Object {
-                "atMentions": false,
-                "markdown": false,
-                "mentionHighlight": false,
-              }
-            }
-            postId="post_id"
-          />
+          <div
+            data-testid="markdown-mock"
+          >
+            title_2
+          </div>
         </th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td
-          className="attachment-field"
+          class="attachment-field"
         >
-          <Memo(Connect(Markdown))
-            message="value_2"
-            postId="post_id"
-          />
+          <div
+            data-testid="markdown-mock"
+          >
+            value_2
+          </div>
         </td>
       </tr>
     </tbody>
@@ -686,60 +575,42 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
 </div>
 `;
 
-exports[`components/post_view/MessageAttachment should match value on renderPostActions 1`] = `""`;
-
-exports[`components/post_view/MessageAttachment should match value on renderPostActions 2`] = `
-<div>
-  <div
-    className="attachment-actions"
+exports[`components/post_view/MessageAttachment should match value on renderPostActions 1`] = `
+<div
+  class="attachment-actions"
+>
+  <button
+    data-action-id="action_id_1"
+    data-testid="action-button-mock"
   >
-    <Memo(Connect(Component))
-      action={
-        Object {
-          "id": "action_id_1",
-          "name": "action_name_1",
-        }
-      }
-      actionExecuting={false}
-      handleAction={[Function]}
-    />
-    <Memo(Connect(Component))
-      action={
-        Object {
-          "id": "action_id_2",
-          "name": "action_name_2",
-        }
-      }
-      actionExecuting={false}
-      handleAction={[Function]}
-    />
-    <Memo(Connect(ActionMenu))
-      action={
-        Object {
-          "data_source": "users",
-          "id": "action_id_3",
-          "name": "action_name_3",
-          "type": "select",
-        }
-      }
-      postId="post_id"
-    />
+    action_name_1
+  </button>
+  <button
+    data-action-id="action_id_2"
+    data-testid="action-button-mock"
+  >
+    action_name_2
+  </button>
+  <div
+    data-testid="action-menu-mock"
+  >
+    action_name_3
   </div>
 </div>
 `;
 
 exports[`components/post_view/MessageAttachment should not render content box if there is no content 1`] = `
 <div
-  className="attachment attachment--pretext"
-  onClick={[Function]}
+  class="attachment attachment--pretext"
 >
   <div
-    className="attachment__thumb-pretext"
+    class="attachment__thumb-pretext"
   >
-    <Connect(Markdown)
-      message="This is a pretext."
-      postId="post_id"
-    />
+    <div
+      data-testid="markdown-mock"
+    >
+      This is a pretext.
+    </div>
   </div>
 </div>
 `;

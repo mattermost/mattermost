@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-import {
+import type {
     AdminConfig,
     ClusterSettings,
-    CollapsedThreads,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -14,6 +13,7 @@ import {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 
@@ -50,7 +50,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableDiagnostics: false,
         },
         PasswordSettings: {
-            MinimumLength: 5,
+            MinimumLength: 14,
             Lowercase: false,
             Number: false,
             Uppercase: false,
@@ -86,7 +86,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.4 server
+// Based on v11.7 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -175,6 +175,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIUserDeletion: false,
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
+        MinimumDesktopAppVersion: '',
         ExperimentalEnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
@@ -214,7 +215,6 @@ const defaultServerConfig: AdminConfig = {
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
         DeleteAccountLink: '',
-        MinimumDesktopAppVersion: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -239,6 +239,7 @@ const defaultServerConfig: AdminConfig = {
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
+        EnableChannelCategorySorting: true,
     },
     ClientRequirements: {
         AndroidLatestVersion: '',
@@ -259,6 +260,7 @@ const defaultServerConfig: AdminConfig = {
         Trace: false,
         AtRestEncryptKey: '',
         QueryTimeout: 30,
+        AnalyticsQueryTimeout: 300,
         DisableDatabaseSearch: false,
         MigrationsStatementTimeoutSeconds: 100000,
         ReplicaLagSettings: [],
@@ -286,7 +288,7 @@ const defaultServerConfig: AdminConfig = {
         Certificate: '',
     },
     PasswordSettings: {
-        MinimumLength: 8,
+        MinimumLength: 14,
         Lowercase: false,
         Number: false,
         Uppercase: false,
@@ -304,6 +306,7 @@ const defaultServerConfig: AdminConfig = {
         Directory: './data/',
         EnablePublicLink: false,
         ExtractContent: true,
+        ExtractContentTimeout: 10,
         ArchiveRecursion: false,
         PublicLinkSalt: '',
         InitialFont: 'nunito-bold.ttf',
@@ -345,7 +348,7 @@ const defaultServerConfig: AdminConfig = {
         SendEmailNotifications: true,
         UseChannelInEmailNotifications: false,
         RequireEmailVerification: false,
-        FeedbackName: '',
+        FeedbackName: 'Mattermost',
         FeedbackEmail: 'test@example.com',
         ReplyToAddress: 'test@example.com',
         FeedbackOrganization: '',
@@ -430,6 +433,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '',
+        UsePreferredUsername: false,
     },
     GoogleSettings: {
         Enable: false,
@@ -443,6 +447,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '',
+        UsePreferredUsername: false,
     },
     Office365Settings: {
         Enable: false,
@@ -454,6 +459,7 @@ const defaultServerConfig: AdminConfig = {
         UserAPIEndpoint: 'https://graph.microsoft.com/v1.0/me',
         DiscoveryEndpoint: '',
         DirectoryId: '',
+        UsePreferredUsername: false,
     },
     OpenIdSettings: {
         Enable: false,
@@ -466,6 +472,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '#145DBF',
+        UsePreferredUsername: false,
     },
     LdapSettings: {
         Enable: false,
@@ -613,7 +620,7 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
-        ExperimentalChannelCategorySorting: false,
+        EnableWatermark: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
@@ -771,14 +778,19 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
+        PermissionPolicies: true,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
-        MobileSSOCodeExchange: true,
-        AutoTranslation: false,
+        MobileSSOCodeExchange: false,
+        AutoTranslation: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
+        ClassificationMarkings: true,
+        IntegratedBoards: false,
+        CJKSearch: true,
+        ManagedChannelCategories: false,
+        MobileEphemeralMode: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -807,11 +819,13 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: false,
-        EnableUserManagedAttributes: false,
+        EnableAttributeBasedAccessControl: true,
+        EnableUserManagedAttributes: true,
+        TrustProxyDeviceIdentityHeader: false,
+        EnforceDeviceIDConsistency: false,
     },
     ContentFlaggingSettings: {
-        EnableContentFlagging: false,
+        EnableContentFlagging: true,
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -838,15 +852,16 @@ const defaultServerConfig: AdminConfig = {
             CommonReviewers: true,
             CommonReviewerIds: [],
             TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: false,
+            SystemAdminsAsReviewers: true,
             TeamAdminsAsReviewers: true,
         },
     },
     AutoTranslationSettings: {
         Enable: false,
+        RestrictDMAndGM: false,
         Provider: '',
         TargetLanguages: ['en'],
-        Workers: 4,
+        Workers: 6,
         TimeoutMs: 5000,
         LibreTranslate: {
             URL: '',
@@ -855,6 +870,11 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
-        RestrictDMAndGM: false,
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
 };

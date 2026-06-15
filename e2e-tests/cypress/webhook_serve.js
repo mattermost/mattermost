@@ -270,11 +270,9 @@ function onDynamicSelectSource(req, res) {
     ];
 
     // Filter options based on search text
-    const filteredOptions = searchText ?
-        allOptions.filter((option) =>
-            option.text.toLowerCase().includes(searchText) ||
-            option.value.toLowerCase().includes(searchText)) :
-        allOptions.slice(0, 6); // Limit to first 6 if no search
+    const filteredOptions = searchText ? allOptions.filter((option) =>
+        option.text.toLowerCase().includes(searchText) ||
+            option.value.toLowerCase().includes(searchText)) : allOptions.slice(0, 6); // Limit to first 6 if no search
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({

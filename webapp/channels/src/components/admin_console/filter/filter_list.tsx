@@ -12,7 +12,7 @@ type Props = {
     option: FilterOption;
     optionKey: string;
     updateValues: (values: FilterValues, optionKey: string) => void;
-}
+};
 
 const FilterList = ({
     option,
@@ -43,7 +43,7 @@ const FilterList = ({
                 <FilterItem
                     key={index}
                     name={optionKey}
-                    checked={value}
+                    checked={value as boolean}
                     label={name}
                     updateOption={updateOption}
                 />

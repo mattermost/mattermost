@@ -5,6 +5,7 @@ import React, {useEffect} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Bot} from '@mattermost/types/bots';
 import type {Command, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -26,7 +27,7 @@ type Props = {
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     bots: Record<string, Bot>;
     outgoingOAuthConnections: Record<string, OutgoingOAuthConnection>;
-}
+};
 
 const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks, outgoingHooks, bots, outgoingOAuthConnections}: Props): JSX.Element | null => {
     const history = useHistory();
@@ -493,7 +494,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 {tokenText}
                 <div className='backstage-form__footer'>
                     <Link
-                        className='btn btn-primary'
+                        className={buttonClassNames({emphasis: 'primary'})}
                         type='submit'
                         to={'/' + team.name + '/integrations/' + type}
                         id='doneButton'

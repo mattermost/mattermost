@@ -67,6 +67,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
+import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
@@ -79,9 +80,9 @@ import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
 import UnifiedLabelsWrapper from './unified_labels_wrapper';
 import useBurnOnRead from './use_burn_on_read';
+import {useComposerPlaceholder} from './use_composer_placeholder';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
-import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -116,7 +117,7 @@ export type Props = {
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
-}
+};
 
 const AdvancedTextEditor = ({
     location,
@@ -133,9 +134,9 @@ const AdvancedTextEditor = ({
 
     const dispatch = useDispatch();
 
-    const getChannelSelector = useMemo(makeGetChannel, []);
-    const getDraftSelector = useMemo(makeGetDraft, []);
-    const getDisplayName = useMemo(makeGetDisplayName, []);
+    const getChannelSelector = useMemo(() => makeGetChannel(), []);
+    const getDraftSelector = useMemo(() => makeGetDraft(), []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
 
     let textboxId: string;
     if (isInEditMode) {
@@ -181,6 +182,7 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
+    const aiActionMenuItems = useSelector((state: GlobalState) => state.plugins.components.AIActionMenuItem);
     const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
 
     const canPost = useSelector((state: GlobalState) => {
@@ -219,7 +221,7 @@ const AdvancedTextEditor = ({
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
-    const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
+    const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
     const [showPreview, setShowPreview] = useState(false);
     const [isMessageLong, setIsMessageLong] = useState(false);
@@ -294,7 +296,9 @@ const AdvancedTextEditor = ({
 
         setTimeout(() => {
             const textbox = textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+            if (textbox) {
+                Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+            }
         });
     }, [showPreview, handleDraftChange, draft]);
 
@@ -309,13 +313,13 @@ const AdvancedTextEditor = ({
         }]));
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
-    useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const {
-        additionalControl: aiRewriteAdditionalControl,
+        rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
+    const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
@@ -493,14 +497,14 @@ const AdvancedTextEditor = ({
      * down the current message value that came from the parents state was not optimal,
      * although still working as expected
      */
-    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox().value, [textboxRef]);
+    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox()?.value ?? '', [textboxRef]);
 
     const getCurrentSelection = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
 
         return {
-            start: input.selectionStart,
-            end: input.selectionEnd,
+            start: input?.selectionStart ?? 0,
+            end: input?.selectionEnd ?? 0,
         };
     }, [textboxRef]);
 
@@ -657,6 +661,10 @@ const AdvancedTextEditor = ({
         createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
 
+    // Let plugins append to or replace the composer placeholder for this channel (e.g. an encryption
+    // marker). Called here, after every branch has set the base placeholder.
+    createMessage = useComposerPlaceholder(channelId, createMessage);
+
     const messageValue = isDisabled && !rewriteIsProcessing ? '' : draft.message_source || draft.message;
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
@@ -686,10 +694,42 @@ const AdvancedTextEditor = ({
 
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
-        aiRewriteEnabled && aiRewriteAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
+
+    const getSelectedText = useCallback(() => {
+        const input = textboxRef.current?.getInputBox();
+        return {
+            start: input?.selectionStart ?? 0,
+            end: input?.selectionEnd ?? 0,
+        };
+    }, [textboxRef]);
+
+    const updateText = useCallback((message: string) => {
+        handleDraftChange({
+            ...draft,
+            message,
+        });
+    }, [handleDraftChange, draft]);
+
+    const aiActionsMenu = useMemo(() => {
+        if (!hasAIActionsMenu) {
+            return null;
+        }
+
+        return (
+            <AIActionsMenu
+                draft={draft}
+                getSelectedText={getSelectedText}
+                updateText={updateText}
+                channelId={channelId}
+                isRHS={location === Locations.RHS_COMMENT}
+                rewriteMenuProps={rewriteMenuProps}
+                aiRewriteEnabled={aiRewriteEnabled}
+            />
+        );
+    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -702,6 +742,7 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
+                    aiActionsMenu={aiActionsMenu}
                 />
             )}
             slot2={null}
@@ -801,7 +842,7 @@ const AdvancedTextEditor = ({
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onComposition={emitTypingEvent}
+                            onCompositionUpdate={emitTypingEvent}
                             onHeightChange={handleHeightChange}
                             handlePostError={handlePostError}
                             value={messageValue}

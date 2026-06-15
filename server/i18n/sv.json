@@ -2784,10 +2784,6 @@
     "translation": "{{.Backend}} är avaktiverat."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} är redan stoppad."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Det gick inte att tolka {{.Backend}}-serverns versionsnummer."
   },
@@ -3770,10 +3766,6 @@
   {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Kunde inte hämta kanalerna."
-  },
-  {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Kunde inte hämta antalet kanaler."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
@@ -5526,10 +5518,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost Enterprise-licensen har inaktiverats."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Din Enterpriselicens har upphört gälla och några funktioner kan ha stängts av. Vänligen förnya licensen nu."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -7709,14 +7697,6 @@
   {
     "id": "api.job.retrieve.nopermissions",
     "translation": "Jobbtyperna för ett jobb som du försöker hämta innehåller inga behörigheter"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Säkerställ att din Amazon S3 bucket är tillgänglig och kontrollera rättigheterna."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Kunde inte ansluta till S3. Kontrollera auktorisations och autentiseringsparametrar för Amazon S3."
   },
   {
     "id": "api.context.remote_id_missing.app_error",
@@ -10020,26 +10000,6 @@
     "translation": "Misslyckades med att tolka datat av mediatyp {{.media_type}} för inkommande webhook {{.hook_id}}."
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Det går inte att registrera en egenskapsgrupp för anpassade profilattribut"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Det går inte att skapa fältet för anpassade profilattribut"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Det går inte att hämta värden för anpassade profilattribut"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Det går inte att ta bort det anpassade profilattributfältet"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Det går inte att söka efter fälten för anpassade profilattribut"
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Misslyckades med att ta bort de begärda filerna från databasen"
   },
@@ -10088,36 +10048,16 @@
     "translation": "Ogiltigt egenskapsvärde: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Det går inte att hämta fälten för anpassade profilattribut"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Det går inte att uppdatera anpassade profilattribut-fältet"
-  },
-  {
     "id": "app.file_info.undelete_for_post_ids.app_error",
     "translation": "Misslyckades med att återställa bilagor till postfiler."
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Gränsen för fältet för anpassade profilattribut har nåtts"
   },
   {
     "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
     "translation": "Det angivna meddelande-ID:t för inläggshistorik motsvarar inte något historiskt meddelandet."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Anpassade profilattribut-fältet hittades inte"
-  },
-  {
     "id": "app.file_info.get_by_ids.app_error",
     "translation": "Det går inte att få filinformationen genom id för postredigeringshistorik."
-  },
-  {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Din licens tillåter inte anpassade profil-attribut."
   },
   {
     "id": "api.file.zip_file_reader.app_error",
@@ -10150,14 +10090,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Sessionen hittades inte."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Det går inte att räkna antalet fält i den anpassade attributprofilgruppen"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Det går inte att lägga till fält i den anpassade attributprofilen"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10228,10 +10160,6 @@
     "translation": "Det går inte att konvertera egenskapsfältet till ett attributfält för anpassad profil"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Ogiltiga attribut på egenskap : {{.AttributeName}} ({{.Reason}})."
-  },
-  {
     "id": "app.group.license_error",
     "translation": "LDAP-licens krävs."
   },
@@ -10278,14 +10206,6 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} ska vara ett prefix från IndexPrefix {{.IndexPrefix}}."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Kunde inte ta bort användarens värden på anpassade profilattribut"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Misslyckades att validera egenskapens värde"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
@@ -10374,10 +10294,6 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "Mejladress för att rapportera ett problem krävs."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Det går inte att uppdatera värdet i ett synkroniserat fält i en anpassad profil"
   },
   {
     "id": "api.channel.add_user.to.channel.rejected",
@@ -10672,10 +10588,6 @@
     "translation": "Kanalen är grupp-begränsad och kan inte omfattas av policy för åtkomstkontroll."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Policyer för åtkomstkontroll kan endast tillämpas på privata kanaler."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Delade kanaler kan inte omfattas av en policy för åtkomstkontroll."
   },
@@ -10694,10 +10606,6 @@
   {
     "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
     "translation": "Att dölja arkiverade kanaler stöds inte längre. Gör dessa kanaler privata och ta bort medlemmar istället."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Det går inte att uppdatera värdet i ett administratörshanterat attributfält för anpassad profil"
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",
@@ -10790,10 +10698,6 @@
   {
     "id": "app.channel.get_common_teams.app_error",
     "translation": "Fel på \"get common teams for channel\""
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Kan inte hämta befintliga jobb."
   },
   {
     "id": "app.post_priority.delete_for_post.app_error",
@@ -10994,5 +10898,101 @@
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "Du har inte tillstånd att bränna det här inlägget. Du måste vara medlem i kanalen."
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Hjälpfunktionen för brygg-testning är inaktiverad."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "Om"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Hjälp"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Villkor"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Integritetspolicy"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Uppdatering krävs"
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Behöver du hjälp?"
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Ogiltigt ID-format."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Ogiltigt objekt-id."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Ogiltig objekt-typ."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Ogiltig översättningsleverantör."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Ogiltig översättningstext."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Ogiltig översättningstyp."
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Meddelande krävs"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Hämta uppdaterad app"
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Ogiltig inmatning angavs."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "Visning krävs."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "Visning krävs."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "Visning krävs."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Ogiltigt ID för visningen."
   }
 ]

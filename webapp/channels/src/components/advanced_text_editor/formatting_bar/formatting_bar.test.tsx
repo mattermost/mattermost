@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 
 import FormattingBar from './formatting_bar';
@@ -97,5 +96,37 @@ describe('FormattingBar', () => {
         // Find the WithTooltip component and verify it has disabled prop
         const tooltipWrapper = container.querySelector('.tooltipContainer');
         expect(tooltipWrapper).toBeNull(); // Tooltip should not be visible when controls are shown
+    });
+
+    test('MM-67352 should prevent formatting buttons from stealing editor focus on mouse down', () => {
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Wide, ...splitFormattingBarControls('wide')});
+
+        renderWithContext(
+            <FormattingBar {...baseProps}/>,
+        );
+
+        expect(fireEvent.mouseDown(screen.getByLabelText('code'))).toBe(false);
+    });
+
+    test('should only render separator before bold when AI actions menu is present', () => {
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Wide, ...splitFormattingBarControls('wide')});
+
+        const {container, rerender} = renderWithContext(
+            <FormattingBar
+                {...baseProps}
+                aiActionsMenu={<button type='button'>{'AI Actions'}</button>}
+            />,
+        );
+
+        expect(container.querySelectorAll('[data-testid="formatting-bar-separator"]')).toHaveLength(2);
+
+        rerender(
+            <FormattingBar
+                {...baseProps}
+                aiActionsMenu={null}
+            />,
+        );
+
+        expect(container.querySelectorAll('[data-testid="formatting-bar-separator"]')).toHaveLength(1);
     });
 });

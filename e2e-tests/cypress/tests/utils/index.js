@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
-
 import {v4 as uuidv4} from 'uuid';
 
 import messageMenusData from '../fixtures/hooks/message_menus.json';
@@ -44,7 +42,7 @@ export function getMessageMenusPayload({dataSource, options, prefix = Date.now()
         }
     }
 
-    const callbackUrl = Cypress.env().webhookBaseUrl + '/message_menus';
+    const callbackUrl = Cypress.expose().webhookBaseUrl + '/message_menus';
     data.attachments[0].actions[0].integration.url = callbackUrl;
 
     return data;
@@ -61,6 +59,12 @@ export function hexToRgbArray(hex) {
 
 export function rgbArrayToString(rgbArr) {
     return `rgb(${rgbArr[0]}, ${rgbArr[1]}, ${rgbArr[2]})`;
+}
+
+// Returns a FIPS-compliant test password (>= 14 chars with complexity).
+// Static for now but could generate unique passwords if requirements change.
+export function newTestPassword() {
+    return 'Passwd4Testing!';
 }
 
 export const reUrl = /(https?:\/\/[^ ]*)/;

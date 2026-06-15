@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @mark_as_unread
 
-import {beRead, beUnread} from '../../../support/assertions';
-
 import {markAsUnreadFromPost, switchToChannel} from './helpers';
+
+import {beRead, beUnread} from '@/support/assertions';
 
 describe('Leaving channel', () => {
     let testUser;

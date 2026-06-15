@@ -207,26 +207,48 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func teamSliceColumns() []string {
-	return []string{
-		"Teams.Id",
-		"Teams.CreateAt",
-		"Teams.UpdateAt",
-		"Teams.DeleteAt",
-		"Teams.DisplayName",
-		"Teams.Name",
-		"Teams.Description",
-		"Teams.Email",
-		"Teams.Type",
-		"Teams.CompanyName",
-		"Teams.AllowedDomains",
-		"Teams.InviteId",
-		"Teams.AllowOpenInvite",
-		"Teams.LastTeamIconUpdate",
-		"Teams.SchemeId",
-		"Teams.GroupConstrained",
-		"Teams.CloudLimitsArchived",
+// teamSliceColumns returns fields of the team using the default "Teams" table alias.
+func teamSliceColumns(isSelect bool) []string {
+	return prefixedTeamSliceColumns(isSelect, "Teams")
+}
+
+// prefixedTeamSliceColumns returns fields of the team as a string slice using the given table alias.
+func prefixedTeamSliceColumns(isSelect bool, prefix string) []string {
+	columns := []string{
+		prefix + ".Id",
+		prefix + ".CreateAt",
+		prefix + ".UpdateAt",
+		prefix + ".DeleteAt",
+		prefix + ".DisplayName",
+		prefix + ".Name",
+		prefix + ".Description",
+		prefix + ".Email",
+		prefix + ".Type",
+		prefix + ".CompanyName",
+		prefix + ".AllowedDomains",
+		prefix + ".InviteId",
+		prefix + ".AllowOpenInvite",
+		prefix + ".LastTeamIconUpdate",
+		prefix + ".SchemeId",
+		prefix + ".GroupConstrained",
+		prefix + ".CloudLimitsArchived",
 	}
+
+	if isSelect {
+		// Type guard keeps team membership policies from colliding with channel/parent
+		// policies that happen to share an Id with a team.
+		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team') AS PolicyEnforced", prefix))
+		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", prefix))
+	}
+
+	return columns
+}
+
+// teamPolicyEnforcedExpr matches teams governed by an access control policy,
+// mirroring the PolicyEnforced column's EXISTS subquery. tableName is the Teams
+// table name or alias used by the surrounding query.
+func teamPolicyEnforcedExpr(tableName string) sq.Sqlizer {
+	return sq.Expr(fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team')", tableName))
 }
 
 func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
@@ -235,7 +257,7 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
-		Select(teamSliceColumns()...).
+		Select(teamSliceColumns(true)...).
 		From("Teams")
 
 	s.teamMembersQuery = s.getQueryBuilder().
@@ -438,18 +460,18 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, error) {
 }
 
 func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) sq.SelectBuilder {
-	var selectStr string
+	var columns []string
 	if countQuery {
-		selectStr = "count(*)"
+		columns = []string{"count(*)"}
 	} else {
-		selectStr = "t.*"
+		columns = prefixedTeamSliceColumns(true, "t")
 		if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesTeams.PolicyId as PolicyID"
+			columns = append(columns, "RetentionPoliciesTeams.PolicyId as PolicyID")
 		}
 	}
 
 	query := s.getQueryBuilder().
-		Select(selectStr).
+		Select(columns...).
 		From("Teams as t")
 
 	// Don't order or limit if getting count
@@ -528,6 +550,18 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 		teamFilters = sq.And{teamFilters, teamTypeFilter}
 	}
 
+	if opts.IncludePolicyEnforced != nil && *opts.IncludePolicyEnforced {
+		// Widen the (public or private) listing to also surface governed teams so
+		// the directory filter can evaluate them; ungoverned teams the caller
+		// couldn't otherwise list stay excluded.
+		governed := teamPolicyEnforcedExpr("t")
+		if teamFilters == nil {
+			teamFilters = governed
+		} else {
+			teamFilters = sq.Or{teamFilters, governed}
+		}
+	}
+
 	query = query.Where(teamFilters)
 
 	return query
@@ -579,16 +613,16 @@ func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int
 // SearchOpen returns from the database a list of public teams that match the Name or DisplayName
 // passed as the term search parameter.
 func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
-	opts.TeamType = model.NewPointer("O")
-	opts.AllowOpenInvite = model.NewPointer(true)
+	opts.TeamType = new("O")
+	opts.AllowOpenInvite = new(true)
 	return s.SearchAll(opts)
 }
 
 // SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
 // passed as the term search parameter.
 func (s SqlTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
-	opts.TeamType = model.NewPointer("O")
-	opts.AllowOpenInvite = model.NewPointer(false)
+	opts.TeamType = new("O")
+	opts.AllowOpenInvite = new(false)
 	return s.SearchAll(opts)
 }
 
@@ -612,13 +646,16 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	teams := []*model.Team{}
 
-	selectString := "Teams.*"
+	// Use the shared column list so PolicyEnforced/PolicyIsActive are hydrated
+	// from their EXISTS subqueries — the directory visibility filter relies on
+	// PolicyEnforced being set on teams returned by this listing path.
+	columns := teamSliceColumns(true)
 	if opts != nil && opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-		selectString += ", RetentionPoliciesTeams.PolicyId as PolicyID"
+		columns = append(columns, "RetentionPoliciesTeams.PolicyId as PolicyID")
 	}
 
 	builder := s.getQueryBuilder().
-		Select(selectString).
+		Select(columns...).
 		From("Teams").
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
@@ -633,7 +670,16 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) 
 			builder = builder.Where("RetentionPoliciesTeams.TeamId IS NULL")
 		}
 		if opts.AllowOpenInvite != nil {
-			builder = builder.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+			if opts.IncludePolicyEnforced != nil && *opts.IncludePolicyEnforced {
+				// Widen the listing to also surface governed teams so the directory
+				// filter can evaluate them; ungoverned private teams stay excluded.
+				builder = builder.Where(sq.Or{
+					sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite},
+					teamPolicyEnforcedExpr("Teams"),
+				})
+			} else {
+				builder = builder.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+			}
 		}
 	}
 
@@ -709,7 +755,15 @@ func (s SqlTeamStore) AnalyticsTeamCount(opts *model.TeamSearch) (int64, error) 
 		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 	if opts != nil && opts.AllowOpenInvite != nil {
-		query = query.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+		// Mirror GetAllPage's widening so the reported total matches the listing.
+		if opts.IncludePolicyEnforced != nil && *opts.IncludePolicyEnforced {
+			query = query.Where(sq.Or{
+				sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite},
+				teamPolicyEnforcedExpr("Teams"),
+			})
+		} else {
+			query = query.Where(sq.Eq{"AllowOpenInvite": *opts.AllowOpenInvite})
+		}
 	}
 
 	queryString, args, err := query.ToSql()
@@ -737,7 +791,7 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 	return query
 }
 
-func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error) {
+func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) (_ []*model.TeamMember, err error) {
 	newTeamMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -835,21 +889,28 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		}
 	}
 
-	query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
-	for _, member := range members {
-		query = query.Values(teamMemberToSlice(member)...)
-	}
-
-	sql, args, err := query.ToSql()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "insert_members_to_sql")
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	chunks := chunkSlice(members, len(teamMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(teamMemberToSlice(member)...)
+		}
+		if _, execErr := transaction.ExecBuilder(query); execErr != nil {
+			if IsUniqueConstraintError(execErr, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+				return nil, store.NewErrConflict("TeamMember", execErr, "")
+			}
+			return nil, errors.Wrap(execErr, "unable_to_save_team_member")
+		}
 	}
 
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("TeamMember", err, "")
-		}
-		return nil, errors.Wrap(err, "unable_to_save_team_member")
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	newMembers := []*model.TeamMember{}
@@ -1295,7 +1356,7 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (_ map[string]string, err error) {
 	var transaction *sqlxTxWrapper
 
-	if transaction, err = s.GetMaster().Beginx(); err != nil {
+	if transaction, err = s.GetMaster().Begin(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -1391,7 +1452,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() (err error) {
 		var transaction *sqlxTxWrapper
 		var err error
 
-		if transaction, err = s.GetMaster().Beginx(); err != nil {
+		if transaction, err = s.GetMaster().Begin(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransactionX(transaction, &err)
@@ -1463,7 +1524,9 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, er
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
 	data := []*model.TeamForExport{}
 	query, args, err := s.getQueryBuilder().
-		Select(teamSliceColumns()...).
+		// Export doesn't consume policy-enforcement state, so omit the per-row
+		// PolicyEnforced/PolicyIsActive subqueries that teamSliceColumns(true) adds.
+		Select(teamSliceColumns(false)...).
 		Column("Schemes.Name as SchemeName").
 		From("Teams").
 		LeftJoin("Schemes ON Teams.SchemeId = Schemes.Id").

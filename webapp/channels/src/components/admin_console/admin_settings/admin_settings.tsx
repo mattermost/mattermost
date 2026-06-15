@@ -6,10 +6,11 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     isDisabled?: boolean;
@@ -19,7 +20,7 @@ type Props = {
     saving: boolean;
     saveNeeded: boolean;
     serverError?: React.ReactNode;
-}
+};
 
 const AdminSettings = ({
     doSubmit,

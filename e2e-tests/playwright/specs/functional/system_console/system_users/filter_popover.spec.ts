@@ -204,7 +204,7 @@ test(
         }
 
         // # Create a channel
-        const channelName = `guest-ch-${await pw.random.id()}`;
+        const channelName = `guest-ch-${pw.random.id()}`;
         const channel = await adminClient.createChannel({
             team_id: team.id,
             name: channelName.toLowerCase().replace(/[^a-z0-9-]/g, ''),
@@ -260,7 +260,7 @@ test(
         }
 
         // # Create two channels
-        const ch1Name = `guest-multi-1-${await pw.random.id()}`;
+        const ch1Name = `guest-multi-1-${pw.random.id()}`;
         const channel1 = await adminClient.createChannel({
             team_id: team.id,
             name: ch1Name.toLowerCase().replace(/[^a-z0-9-]/g, ''),
@@ -268,7 +268,7 @@ test(
             type: 'O',
         });
 
-        const ch2Name = `guest-multi-2-${await pw.random.id()}`;
+        const ch2Name = `guest-multi-2-${pw.random.id()}`;
         const channel2 = await adminClient.createChannel({
             team_id: team.id,
             name: ch2Name.toLowerCase().replace(/[^a-z0-9-]/g, ''),

@@ -28,6 +28,7 @@ import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
 
 import {Constants} from 'utils/constants';
+import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,7 +48,7 @@ type Props = {
     archivedIcon?: JSX.Element;
     sharedIcon?: JSX.Element;
     isMobile?: boolean;
-}
+};
 
 export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archivedIcon, sharedIcon}: Props): JSX.Element | null {
     const intl = useIntl();
@@ -149,7 +150,9 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                 horizontal: 'left',
             }}
         >
-            <MenuItemOpenInNewWindow channel={channel}/>
+            {canPopout() && !isChannelPopoutWindow() && (
+                <MenuItemOpenInNewWindow channel={channel}/>
+            )}
             {isDirect && (
                 <ChannelDirectMenu
                     channel={channel}

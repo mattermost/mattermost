@@ -28,6 +28,15 @@ touch results/junit/empty.xml
 echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
 EOF
 
+  # Install dependencies
+  mme2e_log "Prepare Cypress: install dependencies"
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<EOF
+cd webapp/
+npm install --cache /tmp/empty-cache
+cd ../e2e-tests/cypress
+npm install --cache /tmp/empty-cache
+EOF
+
   # Run cypress with specific spec files and mochawesome reporter
   LOGFILE_SUFFIX="${CI_BASE_URL//\//_}_specs"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress npx cypress run \
@@ -74,7 +83,10 @@ EOF
 
   # Run playwright with specific spec files
   LOGFILE_SUFFIX="${CI_BASE_URL//\//_}_specs"
-  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS" | tee "../playwright/logs/${LOGFILE_SUFFIX}_playwright.log" || true
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" \
+    -e TEST_FILTER \
+    -e PW_SHARD \
+    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee "../playwright/logs/${LOGFILE_SUFFIX}_playwright.log" || true
 
   # Collect run results (if results.json exists)
   if [ -f ../playwright/results/reporter/results.json ]; then

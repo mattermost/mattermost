@@ -43,7 +43,7 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedCh
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -273,7 +273,7 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 // Returns true if shared channel found and deleted, false if not
 // found.
 func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteSharedChannel: begin_transaction")
 	}
@@ -679,7 +679,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	status := []*model.SharedChannelRemoteStatus{}
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted").
+		Select("scr.ChannelId, scr.RemoteId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.DeleteAt = 0").
@@ -759,12 +759,14 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 	return &scu, nil
 }
 
-// GetUsersForUser fetches all shared channel user records based on userID.
+// GetUsersForUser fetches all shared channel user records based on userID,
+// excluding rows whose remote cluster has been deleted or no longer exists.
 func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
-		Select(sharedChannelUserFields("")...).
-		From("SharedChannelUsers").
-		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
+		Select(sharedChannelUserFields("scu")...).
+		From("SharedChannelUsers AS scu").
+		Where(sq.Eq{"scu.UserId": userID}).
+		Where("EXISTS (SELECT 1 FROM RemoteClusters rc WHERE rc.RemoteId = scu.RemoteId AND rc.DeleteAt = 0)").
 		ToSql()
 
 	if err != nil {

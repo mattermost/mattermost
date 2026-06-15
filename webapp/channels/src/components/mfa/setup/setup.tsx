@@ -4,6 +4,7 @@
 import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
@@ -32,14 +33,14 @@ type Props = {
     history: {
         push(path: string): void;
     };
-}
+};
 
 type State = {
     secret: string;
     qrCode: string;
     error: React.ReactNode;
     serverError?: string;
-}
+};
 
 export default class Setup extends React.PureComponent<Props, State> {
     input: React.RefObject<HTMLInputElement>;
@@ -208,15 +209,15 @@ export default class Setup extends React.PureComponent<Props, State> {
                         />
                     </p>
                     {errorContent}
-                    <button
+                    <Button
                         type='submit'
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         <FormattedMessage
                             id='mfa.setup.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </form>
             </div>
         );

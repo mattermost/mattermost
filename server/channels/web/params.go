@@ -92,6 +92,7 @@ type Params struct {
 	ExportName                         string
 	ImportName                         string
 	ExcludePolicyConstrained           bool
+	ForDirectory                       bool
 	GroupSource                        model.GroupSource
 	FilterHasMember                    string
 	IncludeChannelMemberCount          string
@@ -116,11 +117,22 @@ type Params struct {
 	ChannelBookmarkId string
 	BookmarksSince    int64
 
+	// Views
+	ViewId string
+
 	// Cloud
 	InvoiceId string
 
 	// Custom Profile Attributes
 	FieldId string
+
+	// Properties
+	GroupName  string
+	ObjectType string
+	TargetId   string
+
+	// Channel join requests
+	RequestId string
 }
 
 var getChannelMembersForUserRegex = regexp.MustCompile("/api/v4/users/[A-Za-z0-9]{26}/channel_members")
@@ -192,7 +204,12 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
 	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
 	params.ChannelBookmarkId = props["bookmark_id"]
+	params.ViewId = props["view_id"]
 	params.FieldId = props["field_id"]
+	params.GroupName = props["group_name"]
+	params.ObjectType = props["object_type"]
+	params.TargetId = props["target_id"]
+	params.RequestId = props["request_id"]
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || (val < 0 && params.UserId == "" && !getChannelMembersForUserRegex.MatchString(r.URL.Path)) {
@@ -286,6 +303,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExportName = props["export_name"]
 	params.ImportName = props["import_name"]
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
+	params.ForDirectory, _ = strconv.ParseBool(query.Get("for_directory"))
 	params.AccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("access_control_policy_enforced"))
 	params.ExcludeAccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("exclude_access_control_policy_enforced"))
 	params.ContentReviewerId = props["content_reviewer_id"]

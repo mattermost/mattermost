@@ -22,7 +22,7 @@ type Props = {
     onExited: () => void;
     onSuccess: () => void;
     onError: (error: ServerError) => void;
-}
+};
 
 export default function DeactivateMemberModal({user, onExited, onSuccess, onError}: Props) {
     const dispatch = useDispatch();
@@ -142,7 +142,6 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
         </div>
     );
 
-    const confirmButtonClass = 'btn btn-danger';
     const deactivateMemberButton = (
         <FormattedMessage
             id='deactivate_member_modal.deactivate'
@@ -154,7 +153,7 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonClass={confirmButtonClass}
+            confirmButtonVariant='destructive'
             confirmButtonText={deactivateMemberButton}
             onConfirm={deactivateMember}
             onExited={onExited}

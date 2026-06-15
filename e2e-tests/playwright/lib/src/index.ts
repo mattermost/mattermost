@@ -6,13 +6,17 @@ export {testConfig} from './test_config';
 export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
-export {koreanTestPhrase, typeKoreanWithIme} from './ime';
-export {duration, wait} from './util';
+export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
+export {duration, getRandomId, wait, newTestPassword} from './util';
+export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
+
+export {getAdminClient, mergeWithOnPremServerConfig, getOnPremServerConfig} from './server';
 
 export {
     ChannelsPage,
     LandingLoginPage,
     LoginPage,
+    RecapsPage,
     ResetPasswordPage,
     SignupPage,
     ScheduledPostsPage,
@@ -61,6 +65,8 @@ export {
     ProfileModal,
 } from './ui/components';
 
+export {TextInputSetting} from './ui/components/system_console/base_components';
+
 export {TestArgs, ScreenshotOptions} from './types';
 
 export {
@@ -70,15 +76,24 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
-    hasAutotranslationLicense,
+    ensureAutotranslationPermissions,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
+export {
+    hasAutotranslationLicense,
+    hasSharedChannelsLicense,
+    hasCustomPermissionsSchemesLicense,
+    licenseTier,
+} from './license_helpers';
+
 // ABAC (Attribute-Based Access Control) helpers
 export {
     createUserWithAttributes,
     enableABAC,
     disableABAC,
     navigateToABACPage,
+    navigateToPermissionPoliciesPage,
+    navigateToAttributeBasedAccessPage,
     createBasicPolicy,
     createAdvancedPolicy,
     editPolicy,

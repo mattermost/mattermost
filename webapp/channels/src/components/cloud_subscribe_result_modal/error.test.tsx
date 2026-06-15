@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import * as redux from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import SuccessModal from './error';
 jest.mock('components/common/hooks/useOpenSalesLink', () => ({
@@ -14,12 +12,6 @@ jest.mock('components/common/hooks/useOpenSalesLink', () => ({
 }));
 
 describe('components/pricing_modal/downgrade_team_removal_modal', () => {
-    beforeEach(() => {
-        jest.spyOn(redux, 'useDispatch').mockImplementation(
-            jest.fn(() => jest.fn()),
-        );
-    });
-
     const state = {
         entities: {
             cloud: {
@@ -42,12 +34,10 @@ describe('components/pricing_modal/downgrade_team_removal_modal', () => {
     };
 
     test('matches snapshot', () => {
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <redux.Provider store={store}>
-                <SuccessModal/>
-            </redux.Provider>,
+        const {container} = renderWithContext(
+            <SuccessModal/>,
+            state,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

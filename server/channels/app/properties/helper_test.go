@@ -33,6 +33,7 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
+	logger := mlog.CreateConsoleTestLogger(tb)
 	service, err := New(ServiceConfig{
 		PropertyGroupStore: s.PropertyGroup(),
 		PropertyFieldStore: s.PropertyField(),
@@ -47,10 +48,6 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	})
 	require.NoError(tb, err)
 
-	// Create and wire the PropertyAccessService
-	pas := NewPropertyAccessService(service, nil)
-	service.SetPropertyAccessService(pas)
-
 	tb.Cleanup(func() {
 		s.Close()
 	})
@@ -58,7 +55,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	return &TestHelper{
 		service: service,
 		dbStore: s,
-		Context: request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
+		Context: request.EmptyContext(logger),
 	}
 }
 
@@ -68,13 +65,41 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 	return rctx.WithContext(ctx)
 }
 
+// setPluginCheckerForTests sets the plugin checker on the AccessControlHook for testing.
+func (ps *PropertyService) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	for _, hook := range ps.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			ach.setPluginCheckerForTests(pluginChecker)
+		}
+	}
+}
+
+func (h *AccessControlHook) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	h.pluginChecker = pluginChecker
+}
+
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// Register the CPA group so requiresAccessControl can always look it up
-	group, groupErr := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
 
+	// Create and register the access control hook now that the group ID is known
+	hook := NewAccessControlHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
 	return th
+}
+
+// RegisterPropertyGroup registers a new property group with the given version and a unique name.
+func (th *TestHelper) RegisterPropertyGroup(tb testing.TB, version int) *model.PropertyGroup {
+	tb.Helper()
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{
+		Name:    model.NewId(),
+		Version: version,
+	})
+	require.NoError(tb, err)
+	return group
 }
 
 // CreateTeam creates a team for testing hierarchy
@@ -104,6 +129,7 @@ func (th *TestHelper) CreateChannel(tb testing.TB, teamID string) *model.Channel
 
 // CreateDMChannel creates a DM channel (no team association)
 func (th *TestHelper) CreateDMChannel(tb testing.TB) *model.Channel {
+	// Create two users for the DM
 	user1 := th.CreateUser(tb)
 	user2 := th.CreateUser(tb)
 
@@ -119,7 +145,7 @@ func (th *TestHelper) CreateUser(tb testing.TB) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 	user, err := th.dbStore.User().Save(th.Context, user)
