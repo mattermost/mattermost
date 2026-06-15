@@ -79,6 +79,7 @@ type Store struct {
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
+	AuditStorageStore               mocks.AuditStorageStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -191,6 +192,9 @@ func (s *Store) TemporaryPost() store.TemporaryPostStore {
 func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return &s.ChannelJoinRequestStore
 }
+func (s *Store) AuditStorage() store.AuditStorageStore {
+	return &s.AuditStorageStore
+}
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }
@@ -257,5 +261,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.TemporaryPostStore,
 		&s.ViewStore,
 		&s.ChannelJoinRequestStore,
+		&s.AuditStorageStore,
 	)
 }
