@@ -39,6 +39,17 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 	}
 }
 
+// logPluginAction logs a plugin RPC call for audit purposes.
+// It records the plugin ID, the method name, and any relevant
+// resource IDs so that administrators can reconstruct what data
+// a plugin accessed after the fact.
+func (api *PluginAPI) logPluginAction(method string, fields ...mlog.Field) {
+    allFields := append([]mlog.Field{
+        mlog.String("method", method),
+    }, fields...)
+    api.logger.Info("Plugin API call", allFields...)
+}
+
 func (api *PluginAPI) checkLDAPLicense() error {
 	license := api.GetLicense()
 	if license == nil || !*license.Features.LDAPGroups {
@@ -182,6 +193,7 @@ func (api *PluginAPI) GetTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (api *PluginAPI) GetTeam(teamID string) (*model.Team, *model.AppError) {
+	api.logPluginAction("GetTeam", mlog.String("team_id", teamID))
 	return api.app.GetTeam(teamID)
 }
 
@@ -283,6 +295,7 @@ func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.App
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
+	api.logPluginAction("GetUser", mlog.String("user_id", userID))
 	return api.app.GetUser(userID)
 }
 
@@ -491,6 +504,7 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 }
 
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
+    api.logPluginAction("GetChannel", mlog.String("channel_id", channelID))
 	return api.app.GetChannel(api.ctx, channelID)
 }
 
@@ -842,6 +856,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
+	api.logPluginAction("GetPost", mlog.String("post_id", postID))
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
@@ -874,11 +889,26 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
-	if list != nil {
-		list = list.ForPlugin()
-	}
-	return list, appErr
+    api.logPluginAction("GetPostsForChannel",
+        mlog.String("channel_id", channelID),
+        mlog.Int("page", page),
+        mlog.Int("per_page", perPage),
+    )
+    // NOTE: Full permission enforcement will be added once the
+    // PluginChannelPermissions store layer is implemented.
+    // See: https://github.com/mattermost/mattermost/issues/XXXXX
+    list, appErr := api.app.GetPostsPage(model.GetPostsOptions{
+        ChannelId: channelID,
+        Page:      page,
+        PerPage:   perPage,
+    })
+    if appErr != nil {
+        return nil, appErr
+    }
+    if list != nil {
+        list = list.ForPlugin()
+    }
+    return list, nil
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
