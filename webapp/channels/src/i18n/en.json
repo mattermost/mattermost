@@ -788,6 +788,7 @@
   "admin.classification_markings.preset_switch.title": "Change classification preset?",
   "admin.classification_markings.preset.custom": "Custom classification levels",
   "admin.classification_markings.preset.description": "Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.",
+  "admin.classification_markings.preset.empty": "Select a preset…",
   "admin.classification_markings.preset.title": "Classification preset",
   "admin.classification_markings.saving": "Saving...",
   "admin.cluster.ClusterName": "Cluster Name:",
