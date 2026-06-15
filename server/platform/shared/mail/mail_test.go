@@ -11,6 +11,7 @@ import (
 	"net/mail"
 	"net/smtp"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -202,6 +203,51 @@ func TestSendMailPlainText(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConvertHTMLToText(t *testing.T) {
+	tests := []struct {
+		name             string
+		emailBodyHTML    string
+		expectedBodyText string
+	}{
+		{
+			name:             "Heading",
+			emailBodyHTML:    "<h1>This is a test from autobot</h1><h2>This is a subheading</h2>",
+			expectedBodyText: "***************************\nThis is a test from autobot\n***************************\n\n--------------------\nThis is a subheading\n--------------------",
+		},
+		{
+			name:             "List",
+			emailBodyHTML:    "<ul><li>Item 1</li><li>Item 2</li></ul>",
+			expectedBodyText: "* Item 1\n* Item 2",
+		},
+		{
+			name:             "Inline formatting",
+			emailBodyHTML:    "<p><strong>Strong</strong> and <a href='https://example.com'>link</a>",
+			expectedBodyText: "*Strong* and link ( https://example.com )",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			text, err := convertHTMLToText(test.emailBodyHTML)
+			require.NoError(t, err)
+			require.Equal(t, test.expectedBodyText, text)
+		})
+	}
+}
+
+func TestConvertHTMLToTextMessagesNotificationTemplate(t *testing.T) {
+	templatePath := filepath.Join("..", "..", "..", "templates", "messages_notification.html")
+	templateContents, err := os.ReadFile(templatePath)
+	require.NoError(t, err)
+
+	text, err := convertHTMLToText(string(templateContents))
+	require.NoError(t, err)
+	require.NotEmpty(t, text)
+	require.Contains(t, text, "{{.Props.Title}}")
+	require.Contains(t, text, "{{.Props.Button}}")
+	require.NotContains(t, text, "<table")
 }
 
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
