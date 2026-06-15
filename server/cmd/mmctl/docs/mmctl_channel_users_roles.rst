@@ -1,7 +1,7 @@
-.. _mmctl_channel_users:
+.. _mmctl_channel_users_roles:
 
-mmctl channel users
--------------------
+mmctl channel users roles
+-------------------------
 
 Management of channel users
 
@@ -16,7 +16,7 @@ Options
 
 ::
 
-  -h, --help   help for users
+  -h, --help   help for roles
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +36,6 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
-* `mmctl channel users add <mmctl_channel_users_add.rst>`_ 	 - Add users to channel
-* `mmctl channel users remove <mmctl_channel_users_remove.rst>`_ 	 - Remove users from channel
-* `mmctl channel users roles <mmctl_channel_users_roles.rst>`_ 	 - Management of channel users
+* `mmctl channel users <mmctl_channel_users.rst>`_ 	 - Management of channel users
+* `mmctl channel users roles add <mmctl_channel_users_roles_add.rst>`_ 	 - Give user(s) role(s) in a channel
 
