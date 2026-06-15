@@ -752,9 +752,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// helper, which chunks while iterating — no intermediate []string + no
 	// compact pass on a 50k-member channel's per-post-create path.
 
-	a.Srv().Go(func() {
-		a.AuditRecordBulkManyFromUserMap(profileMap, post.Id, model.AuditMechWebsocketBroadcast)
-	})
+	a.AuditRecordBulkManyFromUserMap(profileMap, post.Id, model.AuditMechWebsocketBroadcast)
+
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {
 		for uid := range followers {
