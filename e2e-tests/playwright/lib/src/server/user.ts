@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
-import {UserProfile, UserTimezone} from '@mattermost/types/users';
+import type {Client4} from '@mattermost/client';
+import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 import {DateTime} from 'luxon';
 
 import {getRandomId, newTestPassword} from '@/util';

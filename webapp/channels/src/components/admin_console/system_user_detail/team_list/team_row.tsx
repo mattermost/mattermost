@@ -21,7 +21,7 @@ type Props = {
     doMakeUserTeamAdmin: (teamId: string) => Promise<void>;
     doMakeUserTeamMember: (teamId: string) => Promise<void>;
     readOnly?: boolean;
-}
+};
 
 export default class TeamRow extends React.PureComponent<Props> {
     private renderTeamType = (team: Team) => {

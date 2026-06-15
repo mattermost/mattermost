@@ -21,7 +21,7 @@ type Props = {
     value: string;
     onChange: (id: string) => void;
     additionalValues: Record<string, any>;
-}
+};
 
 const PermissionRow = ({
     additionalValues,

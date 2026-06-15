@@ -10,6 +10,134 @@ import (
 )
 
 // DecodeMsg implements msgp.Decodable
+func (z *LoginTypeResponse) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "AuthService":
+			z.AuthService, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "AuthService")
+				return
+			}
+		case "IsDeactivated":
+			z.IsDeactivated, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "IsDeactivated")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z LoginTypeResponse) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 2
+	// write "AuthService"
+	err = en.Append(0x82, 0xab, 0x41, 0x75, 0x74, 0x68, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.AuthService)
+	if err != nil {
+		err = msgp.WrapError(err, "AuthService")
+		return
+	}
+	// write "IsDeactivated"
+	err = en.Append(0xad, 0x49, 0x73, 0x44, 0x65, 0x61, 0x63, 0x74, 0x69, 0x76, 0x61, 0x74, 0x65, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.IsDeactivated)
+	if err != nil {
+		err = msgp.WrapError(err, "IsDeactivated")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z LoginTypeResponse) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 2
+	// string "AuthService"
+	o = append(o, 0x82, 0xab, 0x41, 0x75, 0x74, 0x68, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65)
+	o = msgp.AppendString(o, z.AuthService)
+	// string "IsDeactivated"
+	o = append(o, 0xad, 0x49, 0x73, 0x44, 0x65, 0x61, 0x63, 0x74, 0x69, 0x76, 0x61, 0x74, 0x65, 0x64)
+	o = msgp.AppendBool(o, z.IsDeactivated)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *LoginTypeResponse) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "AuthService":
+			z.AuthService, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "AuthService")
+				return
+			}
+		case "IsDeactivated":
+			z.IsDeactivated, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "IsDeactivated")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z LoginTypeResponse) Msgsize() (s int) {
+	s = 1 + 12 + msgp.StringPrefixSize + len(z.AuthService) + 14 + msgp.BoolSize
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 	var zb0001 uint32
 	zb0001, err = dc.ReadArrayHeader()

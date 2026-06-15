@@ -16,7 +16,7 @@ import AddUsersToGroupModal from './add_users_to_group_modal';
 
 type OwnProps = {
     groupId: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
     const group = getGroup(state, props.groupId);

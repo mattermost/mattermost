@@ -27,7 +27,11 @@ import {
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
+import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
 import store from 'stores/redux_store';
+
+import {compassIconForName} from 'components/channel_type_icon';
+import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
@@ -69,6 +73,9 @@ import type {
     PluggableText,
     SidebarBrowseOrAddChannelMenuAction,
     AIActionMenuItemComponent,
+    ChannelTypeOptionComponent,
+    ChannelIconOverrideRegistration,
+    ChannelIntroRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -915,7 +922,7 @@ export default class PluginRegistry {
      * Accepts a string event type.
      * Returns undefined.
      */
-    unregisterWebSocketEventHandler = reArg(['event'], ({event}: { event: string }) => {
+    unregisterWebSocketEventHandler = reArg(['event'], ({event}: {event: string}) => {
         unregisterPluginWebSocketEvent(this.id, event);
     });
 
@@ -1334,6 +1341,125 @@ export default class PluginRegistry {
             icon: resolveReactElement(icon),
         });
 
+        return id;
+    });
+
+    /**
+     * Register a channel-type option in the "Create a new channel" modal.
+     *
+     * When the user selects this option, the modal calls `onCreate` with the current form state and
+     * awaits one of three outcomes:
+     *   - `{status: 'created', channel}` – plugin created the channel; modal closes with the new channel.
+     *   - `{status: 'deferred'}` – plugin will finish asynchronously; modal closes immediately.
+     *   - `{status: 'error', message}` – creation failed; modal surfaces the message.
+     *
+     * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
+     * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
+     *
+     * Returns a unique identifier for the registered option, which can be passed to
+     * `unregisterComponent`.
+     */
+    registerChannelTypeOption = reArg([
+        'label',
+        'description',
+        'icon',
+        'isAvailable',
+        'extraContent',
+        'onCreate',
+    ], ({
+        label,
+        description,
+        icon,
+        isAvailable,
+        extraContent,
+        onCreate,
+    }: {
+        label: ReactResolvable;
+        description: ReactResolvable;
+        icon: ReactResolvable;
+        isAvailable: ChannelTypeOptionComponent['isAvailable'];
+        extraContent?: ChannelTypeOptionComponent['extraContent'];
+        onCreate: ChannelTypeOptionComponent['onCreate'];
+    }) => {
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelTypeOption', {
+            id,
+            pluginId: this.id,
+            label: resolveReactElement(label),
+            description: resolveReactElement(description),
+            icon: resolveReactElement(icon),
+            isAvailable,
+            extraContent,
+            onCreate,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register an icon override for matching channels.
+     *
+     * `matcher` receives the full GlobalState as the first argument and a Channel object as the
+     * second. It is called for every channel, including archived ones. Matcher throws are caught
+     * and treated as no-match. Collisions between plugins are resolved by reducer order
+     * (alphabetical by pluginId across plugins; insertion order within a plugin after stable sort).
+     * First match wins.
+     *
+     * `iconName` must be a Compass IconGlyphTypes value such as 'shield-outline'. Core renders the
+     * glyph as `icon-${iconName}` using the existing icon-font DOM family. Plugins must not supply
+     * React components, arbitrary class names, colors, wrappers, or SVGs.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerChannelIconOverride = reArg(['matcher', 'iconName'], ({matcher, iconName}: {
+        matcher: ChannelIconOverrideRegistration['matcher'];
+        iconName: ChannelIconOverrideRegistration['iconName'];
+    }) => {
+        if (compassIconForName(iconName) === null) {
+            // eslint-disable-next-line no-console
+            console.error(
+                `ChannelIconOverride: plugin '${this.id}' supplied unknown iconName '${iconName}' — registration ignored.`,
+            );
+            return generateId();
+        }
+        clearLoggedMatcherErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelIconOverride', {
+            id,
+            pluginId: this.id,
+            matcher,
+            iconName,
+        });
+        return id;
+    });
+
+    /**
+     * Register a component rendered above the message input in both the center-channel composer
+     * and the thread/RHS composer. Receives {channel}; return null when nothing should show.
+     * Multiple registrations stack. Cleaned up automatically when the plugin is removed.
+     */
+    registerChannelComposerBannerComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('ChannelComposerBanner', this.id, component);
+    });
+
+    /**
+     * Register a component that replaces the descriptive body (icon, title, creation info, and
+     * description) of a standard public/private channel's intro for channels the matcher selects.
+     * The channel's action buttons (favorite, add members, set header, notification preferences,
+     * and plugin intro buttons) remain rendered by the server. The matcher receives the full Redux
+     * state so it can read plugin-owned slices (e.g. state['plugins-<id>']). First registration
+     * whose matcher returns true wins (alphabetical pluginId, then insertion order); the rest are
+     * ignored for that channel. Cleaned up automatically when the plugin is removed.
+     */
+    registerChannelIntro = reArg(['matcher', 'component'], ({matcher, component}: {
+        matcher: ChannelIntroRegistration['matcher'];
+        component: ChannelIntroRegistration['component'];
+    }) => {
+        clearLoggedChannelIntroErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
         return id;
     });
 

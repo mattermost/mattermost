@@ -16,7 +16,7 @@ export type Tab = {
     uiName: string;
     newGroup?: boolean;
     display?: boolean; // Controls whether the tab is displayed, defaults to true
-}
+};
 
 export type Props = {
     activeTab?: string;

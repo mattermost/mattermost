@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
-import {ChannelsPage} from '../pages';
+import type {ChannelsPage} from '../pages';
 
 export default class GlobalHeader {
     readonly channelsPage: ChannelsPage;

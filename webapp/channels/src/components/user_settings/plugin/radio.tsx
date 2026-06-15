@@ -16,7 +16,7 @@ type Props = {
     setting: PluginConfigurationRadioSetting;
     pluginId: string;
     informChange: (name: string, value: string) => void;
-}
+};
 
 // Binds the controlled shared Radio control to user preferences.
 const RadioInput = ({
