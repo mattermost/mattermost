@@ -441,7 +441,7 @@
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Unable to delete direct or group message channels"
+    "translation": "Unable to soft delete direct or group message channels"
   },
   {
     "id": "api.channel.discoverable_join_request.already_member.app_error",
