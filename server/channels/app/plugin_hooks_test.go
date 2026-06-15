@@ -2906,6 +2906,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin
 		setupPluginAPITest(t, getPluginCode(th.BasicUser.Id), pluginManifest, pluginID, th.App, th.Context)
+		assertPluginReadyForHooks(t, th, pluginID)
 
 		user1 := th.CreateUser(t)
 
@@ -2938,13 +2939,14 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics).InitBasic(t)
 
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+
 		pluginID, pluginManifest := newPluginFixture()
 
 		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(th.BasicUser.Id), pluginManifest, pluginID, th.App, th.Context)
-
-		user1 := th.CreateUser(t)
-		user2 := th.CreateUser(t)
+		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
+		assertPluginReadyForHooks(t, th, pluginID)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
@@ -2970,14 +2972,15 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics).InitBasic(t)
 
-		pluginID, pluginManifest := newPluginFixture()
-
-		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(th.BasicUser.Id), pluginManifest, pluginID, th.App, th.Context)
-
 		user1 := th.CreateUser(t)
 		user2 := th.CreateUser(t)
 		user3 := th.CreateUser(t)
+
+		pluginID, pluginManifest := newPluginFixture()
+
+		// Setup plugin
+		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
+		assertPluginReadyForHooks(t, th, pluginID)
 
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)
