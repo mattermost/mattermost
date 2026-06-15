@@ -120,6 +120,7 @@ type SqlStoreStores struct {
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
+	auditStorage               store.AuditStorageStore
 }
 
 type SqlStore struct {
@@ -135,13 +136,14 @@ type SqlStore struct {
 	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
 
 	replicaLagHandles []*sql.DB
-	stores            SqlStoreStores
-	settings          *model.SqlSettings
-	lockedToMaster    bool
-	license           *model.License
-	licenseMutex      sync.RWMutex
-	logger            mlog.LoggerIFace
-	metrics           einterfaces.MetricsInterface
+
+	stores         SqlStoreStores
+	settings       *model.SqlSettings
+	lockedToMaster bool
+	license        *model.License
+	licenseMutex   sync.RWMutex
+	logger         mlog.LoggerIFace
+	metrics        einterfaces.MetricsInterface
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
@@ -314,6 +316,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
+	store.stores.auditStorage = newSqlAuditStorage(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -382,6 +385,7 @@ func (ss *SqlStore) initConnection() error {
 			ss.replicaLagHandles = append(ss.replicaLagHandles, replicaLagHandle)
 		}
 	}
+
 	return nil
 }
 
@@ -972,6 +976,10 @@ func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 
 func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return ss.stores.channelJoinRequest
+}
+
+func (ss *SqlStore) AuditStorage() store.AuditStorageStore {
+	return ss.stores.auditStorage
 }
 
 func (ss *SqlStore) DropAllTables() {

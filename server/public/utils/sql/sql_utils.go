@@ -24,13 +24,20 @@ const (
 // SetupConnection sets up the connection to the database and pings it to make sure it's alive.
 // It also applies any database configuration settings that are required.
 func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string, settings *model.SqlSettings, attempts int) (*dbsql.DB, error) {
-	db, err := dbsql.Open(*settings.DriverName, dataSource)
+	return setupConnection(logger, connType, dataSource, *settings.DriverName,
+		*settings.MaxIdleConns, *settings.MaxOpenConns,
+		*settings.ConnMaxLifetimeMilliseconds, *settings.ConnMaxIdleTimeMilliseconds,
+		attempts)
+}
+
+func setupConnection(logger mlog.LoggerIFace, connType, dataSource, driverName string, maxIdle, maxOpen, lifetimeMs, idleMs, attempts int) (*dbsql.DB, error) {
+	db, err := dbsql.Open(driverName, dataSource)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to open SQL connection")
 	}
 
 	// At this point, we have passed sql.Open, so we deliberately ignore any errors.
-	sanitized, _ := model.SanitizeDataSource(*settings.DriverName, dataSource)
+	sanitized, _ := model.SanitizeDataSource(driverName, dataSource)
 
 	logger = logger.With(
 		mlog.String("database", connType),
@@ -66,11 +73,11 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 		db.SetMaxOpenConns(1)
 		db.SetMaxIdleConns(1)
 	} else {
-		db.SetMaxIdleConns(*settings.MaxIdleConns)
-		db.SetMaxOpenConns(*settings.MaxOpenConns)
+		db.SetMaxIdleConns(maxIdle)
+		db.SetMaxOpenConns(maxOpen)
 	}
-	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
-	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
+	db.SetConnMaxLifetime(time.Duration(lifetimeMs) * time.Millisecond)
+	db.SetConnMaxIdleTime(time.Duration(idleMs) * time.Millisecond)
 
 	return db, nil
 }
