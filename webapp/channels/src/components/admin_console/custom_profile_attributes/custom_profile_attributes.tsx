@@ -7,7 +7,7 @@
 
 import React, {useEffect, useState} from 'react';
 import './custom_profile_attributes.scss';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
@@ -20,10 +20,24 @@ import {getPluginDisplayName} from 'selectors/plugins';
 
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
+import type {SearchableStrings} from 'components/admin_console/types';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
+
+const searchableStringMessages = defineMessages({
+    title: {
+        id: 'admin.customProfileAttributes.title',
+        defaultMessage: 'User attributes sync',
+    },
+    legacyTitle: {
+        id: 'admin.customProfileAttributes.legacyTitle',
+        defaultMessage: 'Custom profile attributes sync',
+    },
+});
+
+export const searchableStrings: SearchableStrings = Object.values(searchableStringMessages);
 
 type AttributeHelpTextProps = {
     attributeKey: string;
@@ -141,10 +155,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
         <div className='custom-profile-attributes'>
             <SettingsGroup
                 id={props.id}
-                title={defineMessage({
-                    id: 'admin.customProfileAttributes.title',
-                    defaultMessage: 'User attributes sync',
-                })}
+                title={searchableStringMessages.title}
                 container={false}
                 subtitle={
                     <FormattedMessage

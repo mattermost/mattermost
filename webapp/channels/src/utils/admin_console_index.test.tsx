@@ -40,6 +40,10 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'site_config/customization',
             'authentication/password',
         ]);
+        expect(idx.search('custom profile attri').sort()).toEqual([
+            'authentication/ldap',
+            'authentication/saml',
+        ].sort());
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
     });
