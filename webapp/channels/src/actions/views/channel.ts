@@ -74,7 +74,9 @@ export function syncPostsOrReloadIfStale(channelId: string, since: number, prefe
     return async (dispatch, getState) => {
         if (isPermissionPoliciesEnabled(getState()) && isChannelPostsStaleForRedaction(getState(), channelId)) {
             const result = await dispatch(loadUnreads(channelId, prefetch));
-            dispatch(consumeChannelPostsStaleForRedaction(channelId));
+            if (!result.error) {
+                dispatch(consumeChannelPostsStaleForRedaction(channelId));
+            }
             return result;
         }
         return dispatch(syncPostsInChannel(channelId, since, prefetch));

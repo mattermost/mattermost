@@ -696,10 +696,11 @@ func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicies(rctx request.
 
 }
 
-func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
+func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
+
 	tries := 0
 	for {
-		result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx)
+		result, err := s.AccessControlPolicyStore.GetActionsForPolicy(rctx, policyID)
 		if err == nil {
 			return result, nil
 		}
@@ -713,13 +714,14 @@ func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (i
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
 }
 
-func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error) {
+func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.AccessControlPolicyStore.GetActionsForPolicy(rctx, policyID)
+		result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx)
 		if err == nil {
 			return result, nil
 		}
@@ -883,10 +885,11 @@ func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, grou
 
 }
 
-func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+
 	tries := 0
 	for {
-		result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
+		result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -903,11 +906,11 @@ func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX,
 
 }
 
-func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
+		result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
 		if err == nil {
 			return result, nil
 		}
