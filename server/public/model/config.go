@@ -1602,6 +1602,19 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
+// AuditStorageSettings is the runtime toggle for the audit_storage tracker.
+// The table lives in the main Mattermost DB; this is just an on/off switch
+// at the App-helper layer.
+type AuditStorageSettings struct {
+	Enable *bool `access:"environment_database,write_restrictable,cloud_restrictable"`
+}
+
+func (s *AuditStorageSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = new(false)
+	}
+}
+
 type LogSettings struct {
 	EnableConsole          *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	ConsoleLevel           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -4172,6 +4185,7 @@ type Config struct {
 	TeamSettings                TeamSettings
 	ClientRequirements          ClientRequirements
 	SqlSettings                 SqlSettings
+	AuditStorageSettings        AuditStorageSettings
 	LogSettings                 LogSettings
 	ExperimentalAuditSettings   ExperimentalAuditSettings
 	PasswordSettings            PasswordSettings
@@ -4288,6 +4302,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	o.SqlSettings.SetDefaults(isUpdate)
+	o.AuditStorageSettings.SetDefaults()
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()

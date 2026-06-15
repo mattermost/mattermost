@@ -23,6 +23,7 @@ type RetryLayer struct {
 	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
+	AuditStorageStore               store.AuditStorageStore
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
@@ -92,6 +93,10 @@ func (s *RetryLayer) Attributes() store.AttributesStore {
 
 func (s *RetryLayer) Audit() store.AuditStore {
 	return s.AuditStore
+}
+
+func (s *RetryLayer) AuditStorage() store.AuditStorageStore {
+	return s.AuditStorageStore
 }
 
 func (s *RetryLayer) AutoTranslation() store.AutoTranslationStore {
@@ -334,6 +339,11 @@ type RetryLayerAttributesStore struct {
 
 type RetryLayerAuditStore struct {
 	store.AuditStore
+	Root *RetryLayer
+}
+
+type RetryLayerAuditStorageStore struct {
+	store.AuditStorageStore
 	Root *RetryLayer
 }
 
@@ -974,6 +984,90 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 	tries := 0
 	for {
 		err := s.AuditStore.Save(audit)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAuditStorageStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.AuditStorageStore.HasRead(ctx, userID, postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
+
+	tries := 0
+	for {
+		err := s.AuditStorageStore.Mark(ctx, userID, postID, mechanism)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
+
+	tries := 0
+	for {
+		err := s.AuditStorageStore.MarkBulkSamePost(ctx, userIDs, postID, mechanism)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAuditStorageStore) MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error {
+
+	tries := 0
+	for {
+		err := s.AuditStorageStore.MarkBulkSameUser(ctx, userID, postIDs, mechanism)
 		if err == nil {
 			return nil
 		}
@@ -19039,6 +19133,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.AccessControlPolicyStore = &RetryLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AttributesStore = &RetryLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &RetryLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
+	newStore.AuditStorageStore = &RetryLayerAuditStorageStore{AuditStorageStore: childStore.AuditStorage(), Root: &newStore}
 	newStore.AutoTranslationStore = &RetryLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
