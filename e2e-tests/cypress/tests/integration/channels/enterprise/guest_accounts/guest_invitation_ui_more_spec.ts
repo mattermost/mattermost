@@ -118,7 +118,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         invitePeople(email, 1, email);
 
         // * Verify the content and message in next screen
-        const expectedError = `The following email addresses do not belong to an accepted domain: ${email}. Please contact your System Administrator for details.`;
+        const expectedError = `The email address you entered does not belong to an accepted domain: ${email}.`;
         verifyInvitationError(email, testTeam, expectedError);
 
         // # From System Console try to update email of guest user
