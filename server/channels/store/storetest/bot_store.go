@@ -259,6 +259,28 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 		require.Equal(t, []*model.Bot{}, bots)
 	})
 
+	t.Run("search filters before pagination", func(t *testing.T) {
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 1, Search: "b3"})
+		require.NoError(t, err)
+		require.Equal(t, []*model.Bot{
+			b3,
+		}, bots)
+	})
+
+	t.Run("search matches bot metadata and owner username", func(t *testing.T) {
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, Search: "fourth"})
+		require.NoError(t, err)
+		require.Equal(t, []*model.Bot{
+			b4,
+		}, bots)
+
+		bots, err = ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, Search: deletedUser.Username})
+		require.NoError(t, err)
+		require.Equal(t, []*model.Bot{
+			ob5,
+		}, bots)
+	})
+
 	t.Run("get offset=0, limit=2, include deleted", func(t *testing.T) {
 		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 2, IncludeDeleted: true})
 		require.NoError(t, err)

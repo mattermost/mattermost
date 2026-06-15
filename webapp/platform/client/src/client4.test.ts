@@ -111,6 +111,26 @@ describe('Client4', () => {
         });
     });
 
+    describe('bot routes', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('getBotsIncludeDeleted should include search when provided', async () => {
+            nock(client.getBaseRoute()).
+                get('/bots').
+                query({include_deleted: 'true', page: '0', per_page: '200', search: 'second bot'}).
+                reply(200, []);
+
+            const result = await client.getBotsIncludeDeleted(0, 200, 'second bot');
+
+            expect(result).toEqual([]);
+        });
+    });
+
     describe('content flagging routes', () => {
         let client: Client4;
 
@@ -405,4 +425,3 @@ describe('ClientError', () => {
         expect(error.cause).toEqual(cause);
     });
 });
-

@@ -1027,6 +1027,28 @@ func TestGetBots(t *testing.T) {
 		CheckEtag(t, bots, resp)
 	})
 
+	t.Run("search bots, include deleted", func(t *testing.T) {
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+
+		th.AddPermissionToRole(t, model.PermissionReadBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
+		assert.Nil(t, appErr)
+
+		expectedBotList := []*model.Bot{bot2}
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			bots, resp, err := client.GetBotsIncludeDeletedWithSearch(context.Background(), 0, 1, "second", "")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Equal(t, expectedBotList, bots)
+		})
+
+		botList := model.BotList(expectedBotList)
+		bots, resp, _ := th.Client.GetBotsIncludeDeletedWithSearch(context.Background(), 0, 1, "second", botList.Etag())
+		CheckEtag(t, bots, resp)
+	})
+
 	t.Run("get bots, page=0, perPage=10, only orphaned", func(t *testing.T) {
 		defaultPerms := th.SaveDefaultRolePermissions(t)
 		defer th.RestoreDefaultRolePermissions(t, defaultPerms)

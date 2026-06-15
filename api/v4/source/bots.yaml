@@ -75,6 +75,12 @@
             orphaned if its owner has been deactivated.
           schema:
             type: boolean
+        - name: search
+          in: query
+          description: A term to search for bots by username, display name, description,
+            or owner username.
+          schema:
+            type: string
       responses:
         "200":
           description: Bot page retrieval successful
