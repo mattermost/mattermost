@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Post} from '@mattermost/types/posts';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
+
 import * as EmojiActions from 'mattermost-redux/actions/emojis';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
@@ -16,8 +19,10 @@ import LocalStorageStore from 'stores/local_storage_store';
 import Constants, {ActionTypes, Preferences} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 
-export function loadRecentlyUsedCustomEmojis() {
-    return (dispatch, getState) => {
+import type {ActionFunc, ActionFuncAsync} from 'types/store';
+
+export function loadRecentlyUsedCustomEmojis(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
 
         if (!getCustomEmojisEnabled(state)) {
@@ -31,17 +36,13 @@ export function loadRecentlyUsedCustomEmojis() {
 }
 
 export function incrementEmojiPickerPage() {
-    return async (dispatch) => {
-        dispatch({
-            type: ActionTypes.INCREMENT_EMOJI_PICKER_PAGE,
-        });
-
-        return {data: true};
+    return {
+        type: ActionTypes.INCREMENT_EMOJI_PICKER_PAGE,
     };
 }
 
-export function setUserSkinTone(skin) {
-    return async (dispatch, getState) => {
+export function setUserSkinTone(skin: string): ActionFuncAsync {
+    return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const skinTonePreference = [{
@@ -50,17 +51,17 @@ export function setUserSkinTone(skin) {
             category: Preferences.CATEGORY_EMOJI,
             value: skin,
         }];
-        dispatch(savePreferences(currentUserId, skinTonePreference));
+        return dispatch(savePreferences(currentUserId, skinTonePreference));
     };
 }
 
-export function addRecentEmoji(alias) {
+export function addRecentEmoji(alias: string) {
     return addRecentEmojis([alias]);
 }
 
 export const MAXIMUM_RECENT_EMOJI = 27;
 
-export function addRecentEmojis(aliases) {
+export function addRecentEmojis(aliases: string[]): ActionFunc {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -107,9 +108,9 @@ export function addRecentEmojis(aliases) {
     };
 }
 
-export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
+export function loadCustomEmojisForCustomStatusesByUserIds(userIds: Set<string> | string[]): ActionFuncAsync {
     const getCustomStatus = makeGetCustomStatus();
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const customEmojiEnabled = isCustomEmojiEnabled(state);
         const customStatusEnabled = isCustomStatusEnabled(state);
@@ -117,7 +118,7 @@ export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
             return {data: false};
         }
 
-        const emojisToLoad = new Set();
+        const emojisToLoad = new Set<string>();
 
         userIds.forEach((userId) => {
             const customStatus = getCustomStatus(state, userId);
@@ -132,8 +133,8 @@ export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
     };
 }
 
-export function loadCustomEmojisForRecentCustomStatuses() {
-    return (dispatch, getState) => {
+export function loadCustomEmojisForRecentCustomStatuses(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const customEmojiEnabled = isCustomEmojiEnabled(state);
         const customStatusEnabled = isCustomStatusEnabled(state);
@@ -147,7 +148,7 @@ export function loadCustomEmojisForRecentCustomStatuses() {
         }
 
         const recentCustomStatuses = JSON.parse(recentCustomStatusesValue);
-        const emojisToLoad = new Set();
+        const emojisToLoad = new Set<string>();
 
         for (const customStatus of recentCustomStatuses) {
             if (!customStatus || !customStatus.emoji) {
@@ -161,8 +162,8 @@ export function loadCustomEmojisForRecentCustomStatuses() {
     };
 }
 
-export function loadCustomEmojisIfNeeded(emojis) {
-    return (dispatch, getState) => {
+export function loadCustomEmojisIfNeeded(emojis: string[]): ActionFuncAsync {
+    return async (dispatch, getState) => {
         if (!emojis || emojis.length === 0) {
             return {data: false};
         }
@@ -176,7 +177,7 @@ export function loadCustomEmojisIfNeeded(emojis) {
         const systemEmojis = EmojiIndicesByAlias;
         const customEmojisByName = selectCustomEmojisByName(state);
         const nonExistentCustomEmoji = state.entities.emojis.nonExistentEmoji;
-        const emojisToLoad = [];
+        const emojisToLoad: string[] = [];
 
         emojis.forEach((emoji) => {
             if (!emoji) {
@@ -205,13 +206,13 @@ export function loadCustomEmojisIfNeeded(emojis) {
     };
 }
 
-export function loadCustomStatusEmojisForPostList(posts) {
-    return (dispatch) => {
-        if (!posts || posts.length === 0) {
+export function loadCustomStatusEmojisForPostList(posts: IDMappedObjects<Post>): ActionFuncAsync {
+    return async (dispatch) => {
+        if (!posts || Object.keys(posts).length === 0) {
             return {data: false};
         }
 
-        const userIds = new Set();
+        const userIds = new Set<string>();
         Object.keys(posts).forEach((postId) => {
             const post = posts[postId];
             if (post.user_id) {
@@ -222,7 +223,7 @@ export function loadCustomStatusEmojisForPostList(posts) {
     };
 }
 
-export function migrateRecentEmojis() {
+export function migrateRecentEmojis(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -230,7 +231,7 @@ export function migrateRecentEmojis() {
         if (recentEmojisFromPreference.length === 0) {
             const recentEmojisFromLocalStorage = LocalStorageStore.getRecentEmojis(currentUserId);
             if (recentEmojisFromLocalStorage) {
-                const parsedRecentEmojisFromLocalStorage = JSON.parse(recentEmojisFromLocalStorage);
+                const parsedRecentEmojisFromLocalStorage = JSON.parse(recentEmojisFromLocalStorage) as string[];
                 const toSetRecentEmojiData = parsedRecentEmojisFromLocalStorage.map((emojiName) => ({name: emojiName, usageCount: 1}));
                 if (toSetRecentEmojiData.length > 0) {
                     dispatch(savePreferences(currentUserId, [{category: Constants.Preferences.RECENT_EMOJIS, name: currentUserId, user_id: currentUserId, value: JSON.stringify(toSetRecentEmojiData)}]));

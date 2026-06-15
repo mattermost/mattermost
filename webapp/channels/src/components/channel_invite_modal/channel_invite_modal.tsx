@@ -81,7 +81,7 @@ export type Props = {
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
         closeModal: (modalId: string) => void;
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearchParams) => Promise<ActionResult>;
+        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string, opts: GroupSearchParams) => Promise<ActionResult>;
         getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
     };
 };
@@ -229,9 +229,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         let users: UserProfileValue[];
         if (isPolicyEnforcedPrivate) {
             const sourceList =
-                term.trim().length > 0 ?
-                    (privateAbacSearchHits ?? []) :
-                    abacFilteredUsers;
+                term.trim().length > 0 ? (privateAbacSearchHits ?? []) : abacFilteredUsers;
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(sourceList, excludedAndNotInTeamUserIds);
         } else {
             // Non-ABAC or advisory (public policy): full team list.
@@ -422,16 +420,14 @@ const ChannelInviteModalComponent = (props: Props) => {
             // getOptions() reads from. Routing through Redux here would
             // populate profilesNotInCurrentChannel which getOptions ignores
             // on the strict-gate path, leaving subsequent pages invisible.
-            const fetchPage = isPolicyEnforcedPrivate ?
-                fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) :
-                props.actions.getProfilesNotInChannel(
-                    props.channel.team_id,
-                    props.channel.id,
-                    props.channel.group_constrained,
-                    page + 1,
-                    USERS_PER_PAGE,
-                    cursorId,
-                );
+            const fetchPage = isPolicyEnforcedPrivate ? fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) : props.actions.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                page + 1,
+                USERS_PER_PAGE,
+                cursorId,
+            );
 
             fetchPage.then((result) => {
                 // Store the cursor for the next page (ID of the last user)
