@@ -23,6 +23,15 @@ let requestedNotificationPermission = Boolean('Notification' in window && Notifi
 export interface ShowNotificationParams {
     title: string;
     body: string;
+
+    /**
+     * Opaque, non-content identifier used as the Web Notifications API tag so that
+     * subsequent notifications from the same conversation replace the prior one
+     * instead of stacking. Callers should pass a stable id (channelId, threadId,
+     * postId) where one is available. When omitted the title is used as a fallback,
+     * which still keeps the message body out of the tag (see #36297 / MM-68537).
+     */
+    tag?: string;
     requireInteraction: boolean;
     silent: boolean;
     onClick?: (this: Notification, e: Event) => any | null;
@@ -32,6 +41,7 @@ export function showNotification(
     {
         title,
         body,
+        tag,
         requireInteraction,
         silent,
         onClick,
@@ -71,7 +81,15 @@ export function showNotification(
 
         const notification = new Notification(title, {
             body,
-            tag: body,
+
+            // Use the explicit tag (a stable opaque id like channelId or threadId) when the
+            // caller provides one, otherwise fall back to title. The message body must never
+            // reach the tag field: Chromium-based browsers serialise tag into the notification
+            // activation command line via --notification-launch-id
+            // (https://notifications.spec.whatwg.org/#dom-notification-tag), where endpoint
+            // detection tools log it and ship it to customer SIEM pipelines that were never in
+            // scope to receive chat content. See #36297 / MM-68537.
+            tag: tag ?? title,
             icon: icon50,
             requireInteraction,
             silent,

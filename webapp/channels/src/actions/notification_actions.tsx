@@ -163,7 +163,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
             return {data: {status: 'not_sent', reason: 'desktop_notification_hook', data: String(hookResult)}};
         }
 
-        const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
+        const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url, post.id));
 
         //Don't add extra sounds on native desktop clients
         if (desktopSoundEnabled && !isDesktopApp() && !isMobile()) {
@@ -420,7 +420,7 @@ function shouldSkipNotification(
     return undefined;
 }
 
-export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string): ActionFuncAsync<NotificationResult> {
+export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string, postId: string): ActionFuncAsync<NotificationResult> {
     return async (dispatch) => {
         // handle notifications in desktop app
         if (isDesktopApp()) {
@@ -432,6 +432,8 @@ export function notifyMe(title: string, body: string, channelId: string, teamId:
             const result = await dispatch(showNotification({
                 title,
                 body,
+
+                tag: postId,
                 requireInteraction: false,
                 silent,
                 onClick: () => {
