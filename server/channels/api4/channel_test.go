@@ -3697,6 +3697,22 @@ func TestDeleteChannel(t *testing.T) {
 		_, err = client.DeleteChannel(context.Background(), publicChannel3.Id)
 		require.NoError(t, err)
 
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), user.Id, user2.Id)
+		require.NoError(t, err)
+		resp, err = client.DeleteChannel(context.Background(), dmChannel.Id)
+		require.Error(t, err)
+		if resp != nil {
+			CheckBadRequestStatus(t, resp)
+		}
+
+		groupChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{user.Id, user2.Id})
+		require.NoError(t, err)
+		resp, err = client.DeleteChannel(context.Background(), groupChannel.Id)
+		require.Error(t, err)
+		if resp != nil {
+			CheckBadRequestStatus(t, resp)
+		}
+
 		// default channel cannot be deleted.
 		defaultChannel, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
 		require.Nil(t, appErr)
@@ -3870,12 +3886,45 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
+
+	t.Run("Permanent deletion of DM/GM fails without PermissionDeleteDirectChannel/PermissionDeleteGroupChannel", func(t *testing.T) {
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+
+		groupChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id})
+		require.NoError(t, err)
+
+		// BasicUser doesn't have PermissionDeleteDirectChannel or PermissionDeleteGroupChannel by default
+		resp, err := th.Client.PermanentDeleteChannel(context.Background(), dmChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		resp, err = th.Client.PermanentDeleteChannel(context.Background(), groupChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		publicChannel := th.CreatePublicChannel(t)
 		_, err := c.PermanentDeleteChannel(context.Background(), publicChannel.Id)
 		require.NoError(t, err)
 
 		_, appErr := th.App.GetChannel(th.Context, publicChannel.Id)
+		assert.NotNil(t, appErr)
+
+		// Test permanent delete for DM channel
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		_, err = c.PermanentDeleteChannel(context.Background(), dmChannel.Id)
+		require.NoError(t, err)
+		_, appErr = th.App.GetChannel(th.Context, dmChannel.Id)
+		assert.NotNil(t, appErr)
+
+		// Test permanent delete for Group channel
+		groupChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id})
+		require.NoError(t, err)
+		_, err = c.PermanentDeleteChannel(context.Background(), groupChannel.Id)
+		require.NoError(t, err)
+		_, appErr = th.App.GetChannel(th.Context, groupChannel.Id)
 		assert.NotNil(t, appErr)
 
 		resp, err := c.PermanentDeleteChannel(context.Background(), "junk")
