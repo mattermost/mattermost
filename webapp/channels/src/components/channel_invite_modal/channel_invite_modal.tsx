@@ -568,6 +568,13 @@ const ChannelInviteModalComponent = (props: Props) => {
         return option.name;
     }, []);
 
+    const renderValueLabel = useCallback((option: UserProfileValue | GroupValue): React.ReactNode => {
+        if (isUser(option)) {
+            return displayUsername(option, props.teammateNameDisplaySetting);
+        }
+        return option.display_name || option.name;
+    }, [props.teammateNameDisplaySetting]);
+
     // Render option for multiselect
     const renderOption = useCallback((option: UserProfileValue | GroupValue, isSelected: boolean, onAdd: (option: UserProfileValue | GroupValue) => void, onMouseMove: (option: UserProfileValue | GroupValue) => void) => {
         let rowSelected = '';
@@ -833,6 +840,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             loading={loadingUsers}
             placeholderText={props.isGroupsEnabled ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
             valueWithImage={true}
+            valueLabelRenderer={renderValueLabel}
             backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
             backButtonClick={closeMembersInviteModal}
             customNoOptionsMessage={props.emailInvitationsEnabled ? customNoOptionsMessage : null}
