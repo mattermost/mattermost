@@ -97,12 +97,12 @@ type MetricsInterface interface {
 	SetReplicaLagAbsolute(node string, value float64)
 	SetReplicaLagTime(node string, value float64)
 
-	IncrementNotificationCounter(notificationType model.NotificationType, platform string)
-	IncrementNotificationAckCounter(notificationType model.NotificationType, platform string)
-	IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string)
-	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string)
-	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string)
-	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string)
+	IncrementNotificationCounter(notificationType model.NotificationType, platform string, transport model.PushTransport)
+	IncrementNotificationAckCounter(notificationType model.NotificationType, platform string, transport model.PushTransport)
+	IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string, transport model.PushTransport)
+	IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string, transport model.PushTransport)
+	IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string, transport model.PushTransport)
+	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string, transport model.PushTransport)
 
 	ObserveClientTimeToFirstByte(platform, agent, userID string, elapsed float64)
 	ObserveClientTimeToLastByte(platform, agent, userID string, elapsed float64)

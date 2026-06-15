@@ -25,7 +25,7 @@ func (a *App) NotifySessionsExpired() error {
 	// Get all mobile sessions that expired within the last hour.
 	sessions, err := a.ch.srv.Store().Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 		a.Log().LogM(mlog.MlvlNotificationError, "Cannot get sessions expired",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusError),
@@ -62,7 +62,7 @@ func (a *App) NotifySessionsExpired() error {
 			if errPush.Error() == notificationErrorRemoveDevice {
 				reason = model.NotificationReasonPushProxyRemoveDevice
 			}
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform, tmpMessage.Transport)
 			rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send to push proxy",
 				mlog.String("status", model.NotificationStatusNotSent),
 				mlog.String("reason", reason),

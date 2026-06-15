@@ -58,7 +58,7 @@ func (a *App) saveAcknowledgementForPostWithPost(rctx request.CTX, post *model.P
 	}
 
 	if appErr := a.ResolvePersistentNotification(rctx, post, userID); appErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform, model.PushTransportStandard)
 		a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 			mlog.String("sender_id", userID),
 			mlog.String("post_id", post.RootId),
@@ -210,7 +210,7 @@ func (a *App) SaveAcknowledgementsForPost(rctx request.CTX, postID string, userI
 	// Resolve persistent notifications for each user
 	for _, userID := range userIDs {
 		if appErr := a.ResolvePersistentNotification(rctx, post, userID); appErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform, model.PushTransportStandard)
 			a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 				mlog.String("sender_id", userID),
 				mlog.String("post_id", post.RootId),
@@ -281,7 +281,7 @@ func (a *App) SaveAcknowledgementForPostWithModel(rctx request.CTX, acknowledgem
 	}
 
 	if appErr := a.ResolvePersistentNotification(rctx, post, acknowledgement.UserId); appErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform, model.PushTransportStandard)
 		a.Log().LogM(mlog.MlvlNotificationError, "Error resolving persistent notification",
 			mlog.String("sender_id", acknowledgement.UserId),
 			mlog.String("post_id", post.RootId),

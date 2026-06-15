@@ -105,7 +105,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	pResult := <-pchan
 	if pResult.NErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching profiles",
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
@@ -119,7 +119,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	cmnResult := <-cmnchan
 	if cmnResult.NErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching notify props",
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
@@ -135,7 +135,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	if tchan != nil {
 		tResult := <-tchan
 		if tResult.NErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 			rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching thread followers",
 				mlog.String("sender_id", sender.Id),
 				mlog.String("post_id", post.Id),
@@ -154,7 +154,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	if gchan != nil {
 		gResult := <-gchan
 		if gResult.NErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 			rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching group mentions",
 				mlog.String("sender_id", sender.Id),
 				mlog.String("post_id", post.Id),
@@ -191,7 +191,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			group := groups[groupID]
 			anyUsersMentionedByGroup, err := a.insertGroupMentions(sender.Id, group, channel, profileMap, mentions)
 			if err != nil {
-				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 				rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to populate group mentions",
 					mlog.String("sender_id", sender.Id),
 					mlog.String("post_id", post.Id),
@@ -412,7 +412,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 		for _, id := range emailRecipients {
 			if profileMap[id] == nil {
-				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonMissingProfile, model.NotificationNoPlatform, model.PushTransportStandard)
 				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypeEmail),
 					mlog.String("post_id", post.Id),
@@ -426,7 +426,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 			// If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonEmailNotVerified, model.NotificationNoPlatform)
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonEmailNotVerified, model.NotificationNoPlatform, model.PushTransportStandard)
 				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Email not verified",
 					mlog.String("type", model.NotificationTypeEmail),
 					mlog.String("post_id", post.Id),
@@ -446,7 +446,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				}
 				a.Srv().Go(func() {
 					if _, err := a.sendNotificationEmail(rctx, notification, profileMap[id], team, senderProfileImage); err != nil {
-						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform)
+						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeEmail, model.NotificationReasonEmailSendError, model.NotificationNoPlatform, model.PushTransportStandard)
 						rctx.Logger().LogM(mlog.MlvlNotificationError, "Error sending email notification",
 							mlog.String("type", model.NotificationTypeEmail),
 							mlog.String("post_id", post.Id),
@@ -480,7 +480,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeAll, model.NotificationReasonTooManyUsersInChannel, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeAll, model.NotificationReasonTooManyUsersInChannel, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Too many users to notify - will send ephemeral message",
 			mlog.String("sender_id", sender.Id),
 			mlog.String("post_id", post.Id),
@@ -536,7 +536,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 		for _, id := range mentionedUsersList {
 			if profileMap[id] == nil {
-				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform, model.PushTransportStandard)
 				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
@@ -588,7 +588,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 		for _, id := range allActivityPushUserIds {
 			if profileMap[id] == nil {
-				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform, model.PushTransportStandard)
 				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
@@ -632,7 +632,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 		for _, id := range notificationsForCRT.Push {
 			if profileMap[id] == nil {
-				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+				a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonMissingProfile, model.NotificationNoPlatform, model.PushTransportStandard)
 				rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
@@ -659,7 +659,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					model.CommentsNotifyCRT,
 				)
 			} else {
-				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusReason, model.NotificationNoPlatform)
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusReason, model.NotificationNoPlatform, model.PushTransportStandard)
 				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Notification not sent - status",
 					mlog.String("type", model.NotificationTypePush),
 					mlog.String("post_id", post.Id),
@@ -735,7 +735,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	appErr := a.publishWebsocketEventForPost(rctx, post, message)
 	if appErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -756,7 +756,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				// This also sometimes happens when bots, which will never show up in the map, reply to threads
 				// Their own post goes through this and they get "notified", which we don't need to count as an error if they can't
 				if uid != post.UserId {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform, model.PushTransportStandard)
 					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
 						mlog.String("type", model.NotificationTypeWebsocket),
 						mlog.String("post_id", post.Id),
@@ -774,7 +774,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				if threadMembership == nil {
 					tm, err := a.Srv().Store().Thread().GetMembershipForUser(uid, post.RootId)
 					if err != nil {
-						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 						rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing thread membership",
 							mlog.String("type", model.NotificationTypeWebsocket),
 							mlog.String("post_id", post.Id),
@@ -787,7 +787,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
 					}
 					if tm == nil {
-						a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingThreadMembership, model.NotificationNoPlatform)
+						a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingThreadMembership, model.NotificationNoPlatform, model.PushTransportStandard)
 						rctx.Logger().LogM(mlog.MlvlNotificationWarn, "Missing thread membership",
 							mlog.String("type", model.NotificationTypeWebsocket),
 							mlog.String("post_id", post.Id),
@@ -802,7 +802,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				}
 				userThread, err := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, true, a.IsPostPriorityEnabled())
 				if err != nil {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing thread",
 						mlog.String("type", model.NotificationTypeWebsocket),
 						mlog.String("post_id", post.Id),
@@ -836,7 +836,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						// should set unread mentions, and unread replies to 0
 						_, err = a.Srv().Store().Thread().MaintainMembership(uid, post.RootId, opts)
 						if err != nil {
-							a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+							a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 							rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to update thread membership",
 								mlog.String("type", model.NotificationTypeWebsocket),
 								mlog.String("post_id", post.Id),
@@ -856,7 +856,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
-						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
+						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform, model.PushTransportStandard)
 						rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to sanitize metadata",
 							mlog.String("type", model.NotificationTypeWebsocket),
 							mlog.String("post_id", post.Id),
@@ -1796,20 +1796,20 @@ func shouldAckWebsocketNotification(channelType model.ChannelType, userNotificat
 	return false
 }
 
-func (a *App) CountNotification(notificationType model.NotificationType, platform string) {
+func (a *App) CountNotification(notificationType model.NotificationType, platform string, transport model.PushTransport) {
 	if a.notificationMetricsDisabled() {
 		return
 	}
 
-	a.Metrics().IncrementNotificationCounter(notificationType, platform)
+	a.Metrics().IncrementNotificationCounter(notificationType, platform, transport)
 }
 
-func (a *App) CountNotificationAck(notificationType model.NotificationType, platform string) {
+func (a *App) CountNotificationAck(notificationType model.NotificationType, platform string, transport model.PushTransport) {
 	if a.notificationMetricsDisabled() {
 		return
 	}
 
-	a.Metrics().IncrementNotificationAckCounter(notificationType, platform)
+	a.Metrics().IncrementNotificationAckCounter(notificationType, platform, transport)
 }
 
 func (a *App) CountNotificationReason(
@@ -1817,6 +1817,7 @@ func (a *App) CountNotificationReason(
 	notificationType model.NotificationType,
 	notificationReason model.NotificationReason,
 	platform string,
+	transport model.PushTransport,
 ) {
 	if a.notificationMetricsDisabled() {
 		return
@@ -1824,13 +1825,13 @@ func (a *App) CountNotificationReason(
 
 	switch notificationStatus {
 	case model.NotificationStatusSuccess:
-		a.Metrics().IncrementNotificationSuccessCounter(notificationType, platform)
+		a.Metrics().IncrementNotificationSuccessCounter(notificationType, platform, transport)
 	case model.NotificationStatusError:
-		a.Metrics().IncrementNotificationErrorCounter(notificationType, notificationReason, platform)
+		a.Metrics().IncrementNotificationErrorCounter(notificationType, notificationReason, platform, transport)
 	case model.NotificationStatusNotSent:
-		a.Metrics().IncrementNotificationNotSentCounter(notificationType, notificationReason, platform)
+		a.Metrics().IncrementNotificationNotSentCounter(notificationType, notificationReason, platform, transport)
 	case model.NotificationStatusUnsupported:
-		a.Metrics().IncrementNotificationUnsupportedCounter(notificationType, notificationReason, platform)
+		a.Metrics().IncrementNotificationUnsupportedCounter(notificationType, notificationReason, platform, transport)
 	}
 }
 

@@ -737,7 +737,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.App.ClearSessionCacheForUser(session.UserId)
 		}
 		if !ignoreNotificationACK {
-			c.App.CountNotificationAck(model.NotificationTypePush, ack.ClientPlatform)
+			c.App.CountNotificationAck(model.NotificationTypePush, ack.ClientPlatform, model.PushTransportStandard)
 		}
 	}
 
@@ -753,14 +753,14 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := c.App.SendAckToPushProxy(c.AppContext, &ack)
 	if ack.IsIdLoaded {
 		if err != nil {
-			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, ack.ClientPlatform)
+			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, ack.ClientPlatform, model.PushTransportStandard)
 			c.AppContext.Logger().LogM(mlog.MlvlNotificationError, "Notification ack not sent to push proxy",
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonPushProxySendError),
 				mlog.Err(err),
 			)
 		} else {
-			c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""), ack.ClientPlatform)
+			c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""), ack.ClientPlatform, model.PushTransportStandard)
 		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
@@ -802,7 +802,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""), ack.ClientPlatform)
+	c.App.CountNotificationReason(model.NotificationStatusSuccess, model.NotificationTypePush, model.NotificationReason(""), ack.ClientPlatform, model.PushTransportStandard)
 	ReturnStatusOK(w)
 }
 

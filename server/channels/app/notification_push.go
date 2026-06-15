@@ -120,7 +120,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 
 	sessions, appErr := a.getMobileAppSessions(userID)
 	if appErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send mobile app sessions",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusError),
@@ -132,7 +132,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 	}
 
 	if msg == nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to parse push notification",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("status", model.NotificationStatusError),
@@ -151,7 +151,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
-			a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonSessionExpired, model.NotificationNoPlatform)
+			a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonSessionExpired, model.NotificationNoPlatform, msg.Transport)
 			rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Session expired or skipped",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusNotSent),
@@ -220,13 +220,15 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			if err.Error() == notificationErrorRemoveDevice {
 				reason = model.NotificationReasonPushProxyRemoveDevice
 			}
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmpMessage.Platform, tmpMessage.Transport)
 			rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send to push proxy",
 				mlog.String("type", model.NotificationTypePush),
 				mlog.String("status", model.NotificationStatusNotSent),
 				mlog.String("reason", reason),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
+				mlog.String("transport", string(tmpMessage.Transport)),
+				mlog.String("sub_type", string(tmpMessage.SubType)),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
 				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
@@ -239,6 +241,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
+			mlog.String("transport", string(tmpMessage.Transport)),
+			mlog.String("sub_type", string(tmpMessage.SubType)),
 			mlog.String("user_id", session.UserId),
 			mlog.String("session_id", session.Id),
 			mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
@@ -252,7 +256,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		if msg.Type == model.PushTypeMessage {
 			// If we are ignoring the ack, we don't count the send
 			if session.Props[model.SessionPropDeviceNotificationDisabled] != "true" {
-				a.CountNotification(model.NotificationTypePush, tmpMessage.Platform)
+				a.CountNotification(model.NotificationTypePush, tmpMessage.Platform, tmpMessage.Transport)
 			}
 		}
 	}
@@ -646,7 +650,7 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 
 func (a *App) ShouldSendPushNotification(rctx request.CTX, user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
 	if user.IsBot {
-		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonRecipientIsBot, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonRecipientIsBot, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Notification not sent - recipient is bot",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("post_id", post.Id),
@@ -663,7 +667,7 @@ func (a *App) ShouldSendPushNotification(rctx request.CTX, user *model.User, cha
 	}
 
 	if notifyPropsAllowedReason := doesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
-		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, notifyPropsAllowedReason, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, notifyPropsAllowedReason, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Notification not sent - notify props",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("post_id", post.Id),
@@ -676,7 +680,7 @@ func (a *App) ShouldSendPushNotification(rctx request.CTX, user *model.User, cha
 	}
 
 	if statusAllowedReason := doesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId, false); statusAllowedReason != "" {
-		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusAllowedReason, model.NotificationNoPlatform)
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusAllowedReason, model.NotificationNoPlatform, model.PushTransportStandard)
 		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Notification not sent - status",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("post_id", post.Id),
@@ -804,7 +808,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceId string) string
 
 	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, msg.Platform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, msg.Platform, msg.Transport)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send test notification to push proxy",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("push_type", msg.Type),
@@ -820,7 +824,7 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceId string) string
 	case model.PushStatusRemove:
 		return "false"
 	case model.PushStatusFail:
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxyError, msg.Platform)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxyError, msg.Platform, msg.Transport)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Push proxy failed to send test notification",
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("push_type", msg.Type),

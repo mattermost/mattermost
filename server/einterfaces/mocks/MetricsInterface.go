@@ -187,34 +187,34 @@ func (_m *MetricsInterface) IncrementMemCacheMissCounterSession() {
 	_m.Called()
 }
 
-// IncrementNotificationAckCounter provides a mock function with given fields: notificationType, platform
-func (_m *MetricsInterface) IncrementNotificationAckCounter(notificationType model.NotificationType, platform string) {
-	_m.Called(notificationType, platform)
+// IncrementNotificationAckCounter provides a mock function with given fields: notificationType, platform, transport
+func (_m *MetricsInterface) IncrementNotificationAckCounter(notificationType model.NotificationType, platform string, transport model.PushTransport) {
+	_m.Called(notificationType, platform, transport)
 }
 
-// IncrementNotificationCounter provides a mock function with given fields: notificationType, platform
-func (_m *MetricsInterface) IncrementNotificationCounter(notificationType model.NotificationType, platform string) {
-	_m.Called(notificationType, platform)
+// IncrementNotificationCounter provides a mock function with given fields: notificationType, platform, transport
+func (_m *MetricsInterface) IncrementNotificationCounter(notificationType model.NotificationType, platform string, transport model.PushTransport) {
+	_m.Called(notificationType, platform, transport)
 }
 
-// IncrementNotificationErrorCounter provides a mock function with given fields: notificationType, errorReason, platform
-func (_m *MetricsInterface) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string) {
-	_m.Called(notificationType, errorReason, platform)
+// IncrementNotificationErrorCounter provides a mock function with given fields: notificationType, errorReason, platform, transport
+func (_m *MetricsInterface) IncrementNotificationErrorCounter(notificationType model.NotificationType, errorReason model.NotificationReason, platform string, transport model.PushTransport) {
+	_m.Called(notificationType, errorReason, platform, transport)
 }
 
-// IncrementNotificationNotSentCounter provides a mock function with given fields: notificationType, notSentReason, platform
-func (_m *MetricsInterface) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
-	_m.Called(notificationType, notSentReason, platform)
+// IncrementNotificationNotSentCounter provides a mock function with given fields: notificationType, notSentReason, platform, transport
+func (_m *MetricsInterface) IncrementNotificationNotSentCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string, transport model.PushTransport) {
+	_m.Called(notificationType, notSentReason, platform, transport)
 }
 
-// IncrementNotificationSuccessCounter provides a mock function with given fields: notificationType, platform
-func (_m *MetricsInterface) IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string) {
-	_m.Called(notificationType, platform)
+// IncrementNotificationSuccessCounter provides a mock function with given fields: notificationType, platform, transport
+func (_m *MetricsInterface) IncrementNotificationSuccessCounter(notificationType model.NotificationType, platform string, transport model.PushTransport) {
+	_m.Called(notificationType, platform, transport)
 }
 
-// IncrementNotificationUnsupportedCounter provides a mock function with given fields: notificationType, notSentReason, platform
-func (_m *MetricsInterface) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string) {
-	_m.Called(notificationType, notSentReason, platform)
+// IncrementNotificationUnsupportedCounter provides a mock function with given fields: notificationType, notSentReason, platform, transport
+func (_m *MetricsInterface) IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string, transport model.PushTransport) {
+	_m.Called(notificationType, notSentReason, platform, transport)
 }
 
 // IncrementPostBroadcast provides a mock function with no fields
