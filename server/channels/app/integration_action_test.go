@@ -658,6 +658,12 @@ func TestPostActionProps(t *testing.T) {
 	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
 	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
+	// from_webhook is NOT in the default SanitizeProps strip list under hardened-OFF (v11) — it
+	// remains user-settable for backward compatibility with the user-PAT-impersonation idiom.
+	// The client-supplied value survives sanitization. PostActionRetainPropKeys includes
+	// from_webhook, so the post-action update preserves it. (v12 will move the from_* markers
+	// into the default strip list — see SanitizeProps doc in public/model/post.go — and this
+	// assertion should flip back to nil.)
 	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
 }
 
@@ -2549,7 +2555,7 @@ func TestCreateWebhookPostStripsMmBlocksActions(t *testing.T) {
 		model.StringInterface{
 			model.PostPropsMmBlocksActions: inline,
 		},
-		"", "", nil)
+		"", "", nil, false)
 	require.Nil(t, appErr)
 
 	assert.Nil(t, post.GetProp(model.PostPropsMmBlocksActions),
@@ -2936,6 +2942,12 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
+	// from_bot and from_plugin are now server-set: from_bot via user.IsBot,
+	// from_plugin via the FromPlugin CreatePostFlag. Forged client-supplied
+	// values would be stripped by SanitizeProps.
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
 	// Plugin response deliberately omits from_bot / from_plugin from props.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `{"update": {"message": "updated", "props": {"A": "AA"}}}`)
@@ -2946,7 +2958,7 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 		Message:       "interactive",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId:        th.BasicUser.Id,
+		UserId:        botUser.Id,
 		Props: model.StringInterface{
 			model.PostPropsAttachments: []*model.MessageAttachment{{
 				Text: "hello",
@@ -2958,12 +2970,13 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 					},
 				}},
 			}},
-			model.PostPropsFromBot:    "true",
-			model.PostPropsFromPlugin: "true",
 		},
 	}
 
-	post, _, appErr := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	post, _, appErr := th.App.CreatePostAsUserWithFlags(intSeedCtx, &interactivePost, "", model.CreatePostFlags{
+		SetOnline:  true,
+		FromPlugin: true,
+	})
 	require.Nil(t, appErr)
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)

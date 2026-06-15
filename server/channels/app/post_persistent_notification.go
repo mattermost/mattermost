@@ -166,6 +166,11 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	var postsForPersistentNotificationCleanup []*model.Post
 
 	for _, post := range posts {
+		if post.IsNotificationSuppressed() {
+			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
+			continue
+		}
+
 		channel := channelsMap[post.ChannelId]
 		if channel == nil {
 			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)

@@ -2981,6 +2981,14 @@
     "translation": "Invalid RootId parameter."
   },
   {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Only bot, webhook, OAuth app, and plugin posts can be delivered silently."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Silent posts cannot use persistent notifications."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },

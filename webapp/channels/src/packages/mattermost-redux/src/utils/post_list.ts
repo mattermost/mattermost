@@ -15,7 +15,7 @@ import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
-import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, ensureString} from 'mattermost-redux/utils/post_utils';
+import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, isNotificationSuppressed, ensureString} from 'mattermost-redux/utils/post_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
@@ -96,6 +96,7 @@ export function makeFilterPostsAndAddSeparators() {
                     lastViewedAt &&
                     post.create_at > lastViewedAt &&
                     (post.user_id !== currentUser.id || isFromWebhook(post)) &&
+                    !isNotificationSuppressed(post) &&
                     !addedNewMessagesIndicator &&
                     indicateNewMessages
                 ) {
