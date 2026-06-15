@@ -13,7 +13,8 @@ jest.mock('redux-persist', () => {
 
         persistReducer: jest.fn().mockImplementation((config, reducers) => reducers),
         persistCombineReducers: (persistConfig: any, reducers: any) => combineReducers(reducers),
-        persistStore: () => {
+        persistStore: (store: unknown, persistorOptions: unknown, callback: () => void) => {
+            setTimeout(callback);
             return {
                 pause: () => {},
                 purge: () => Promise.resolve(),
