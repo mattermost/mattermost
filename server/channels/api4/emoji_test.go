@@ -163,8 +163,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, _, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestAnimatedGif(t, 100, 100, 10000), "image.gif")
+	_, resp, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestAnimatedGif(t, 100, 100, 10000), "image.gif")
 	require.Error(t, err, "should fail - emoji is too big")
+	CheckRequestEntityTooLargeStatus(t, resp)
+	CheckErrorID(t, err, "api.emoji.create.too_large.app_error")
 
 	// try to create an animated gif with too many frames
 	emoji = &model.Emoji{
