@@ -790,6 +790,8 @@
   "admin.classification_markings.preset.description": "Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.",
   "admin.classification_markings.preset.title": "Classification preset",
   "admin.classification_markings.saving": "Saving...",
+  "admin.classification_markings_feature_discovery.desc": "Set up global and channel-specific classification banners with built-in presets or custom levels, ensuring that users consistently view the appropriate classification level for their workspace.",
+  "admin.classification_markings_feature_discovery.title": "Apply classification markings with Mattermost Enterprise Advanced",
   "admin.cluster.ClusterName": "Cluster Name:",
   "admin.cluster.ClusterNameDesc": "The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.",
   "admin.cluster.ClusterNameEx": "E.g.: \"Production\" or \"Staging\"",
