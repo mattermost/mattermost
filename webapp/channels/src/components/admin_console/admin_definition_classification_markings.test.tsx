@@ -53,6 +53,11 @@ const enterpriseAdvancedLicense = {
     SkuShortName: LicenseSkus.EnterpriseAdvanced,
 } as ClientLicense;
 
+const entryLicense = {
+    IsLicensed: 'true',
+    SkuShortName: LicenseSkus.Entry,
+} as ClientLicense;
+
 const unlicensed = {
     IsLicensed: 'false',
 } as ClientLicense;
@@ -102,6 +107,21 @@ describe('AdminDefinition - Classification Markings discovery', () => {
     test('shows settings instead of discovery for Enterprise Advanced licenses', () => {
         expect(isHidden(settingsSubsection, classificationConfigEnabled, enterpriseAdvancedLicense)).toBe(false);
         expect(isHidden(discoverySubsection, classificationConfigEnabled, enterpriseAdvancedLicense)).toBe(true);
+    });
+
+    test('shows settings instead of discovery for Entry licenses', () => {
+        expect(isHidden(settingsSubsection, classificationConfigEnabled, entryLicense)).toBe(false);
+        expect(isHidden(discoverySubsection, classificationConfigEnabled, entryLicense)).toBe(true);
+    });
+
+    test('disables the settings page for non system admins', () => {
+        const settingsDisabledCheck = settingsSubsection.isDisabled as Extract<Check, (...args: any[]) => boolean>;
+
+        const asSystemAdmin = settingsDisabledCheck(classificationConfigEnabled, {}, enterpriseAdvancedLicense, true, consoleAccess, undefined, true);
+        const asNonSystemAdmin = settingsDisabledCheck(classificationConfigEnabled, {}, enterpriseAdvancedLicense, true, consoleAccess, undefined, false);
+
+        expect(asSystemAdmin).toBe(false);
+        expect(asNonSystemAdmin).toBe(true);
     });
 
     test('hides both settings and discovery when the Classification Markings feature flag is disabled', () => {
