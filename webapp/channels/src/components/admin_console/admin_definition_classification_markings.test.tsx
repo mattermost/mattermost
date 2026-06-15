@@ -127,6 +127,10 @@ describe('AdminDefinition - Classification Markings discovery', () => {
     test('hides both settings and discovery when the Classification Markings feature flag is disabled', () => {
         expect(isHidden(settingsSubsection, classificationConfigDisabled, professionalLicense)).toBe(true);
         expect(isHidden(discoverySubsection, classificationConfigDisabled, professionalLicense)).toBe(true);
+
+        // The disabled flag must override an otherwise-unlocking license.
+        expect(isHidden(settingsSubsection, classificationConfigDisabled, enterpriseLicense)).toBe(true);
+        expect(isHidden(discoverySubsection, classificationConfigDisabled, enterpriseLicense)).toBe(true);
     });
 
     test('renders the Classification Markings feature discovery component through a custom setting', () => {
