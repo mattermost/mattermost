@@ -18,7 +18,7 @@ export type Props = {
         showFlaggedPosts: () => void;
         showPinnedPosts: (channelId: string) => void;
     };
-}
+};
 
 export enum PostPinnedOrFlagged {
     Flagged,

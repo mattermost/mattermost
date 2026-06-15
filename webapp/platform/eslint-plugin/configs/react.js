@@ -1,24 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import path from 'path';
-import {fileURLToPath} from 'url';
-
-import {FlatCompat} from '@eslint/eslintrc';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 import base from './base.js';
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-
-const compat = new FlatCompat({
-    baseDirectory: dirname,
-});
 
 const react = {
     files: ['**/*.jsx', '**/*.tsx'],
     rules: {
+        '@stylistic/jsx-closing-bracket-location': [
+            2,
+            {
+                location: 'tag-aligned',
+            },
+        ],
+        '@stylistic/jsx-curly-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/jsx-equals-spacing': [
+            2,
+            'never',
+        ],
+        '@stylistic/jsx-first-prop-new-line': [
+            2,
+            'multiline',
+        ],
+        '@stylistic/jsx-indent-props': [
+            2,
+            4,
+        ],
+        '@stylistic/jsx-max-props-per-line': [
+            2,
+            {
+                maximum: 1,
+            },
+        ],
+        '@stylistic/jsx-pascal-case': 2,
+        '@stylistic/jsx-tag-spacing': [
+            2,
+            {
+                closingSlash: 'never',
+                beforeSelfClosing: 'never',
+                afterOpening: 'never',
+            },
+        ],
+        '@stylistic/jsx-wrap-multilines': 2,
         'jsx-a11y/alt-text': 'warn',
         'jsx-a11y/anchor-has-content': 'error',
         'jsx-a11y/anchor-is-valid': 'warn',
@@ -70,20 +99,6 @@ const react = {
             2,
             'always',
         ],
-        'react/jsx-closing-bracket-location': [
-            2,
-            {
-                location: 'tag-aligned',
-            },
-        ],
-        'react/jsx-curly-spacing': [
-            2,
-            'never',
-        ],
-        'react/jsx-equals-spacing': [
-            2,
-            'never',
-        ],
         'react/jsx-filename-extension': [
             2,
             {
@@ -93,26 +108,8 @@ const react = {
                 ],
             },
         ],
-        'react/jsx-first-prop-new-line': [
-            2,
-            'multiline',
-        ],
         'react/jsx-handler-names': 0,
-        'react/jsx-indent': [
-            2,
-            4,
-        ],
-        'react/jsx-indent-props': [
-            2,
-            4,
-        ],
         'react/jsx-key': 2,
-        'react/jsx-max-props-per-line': [
-            2,
-            {
-                maximum: 1,
-            },
-        ],
         'react/jsx-no-bind': 0,
         'react/jsx-no-comment-textnodes': 2,
         'react/jsx-no-duplicate-props': [
@@ -124,18 +121,8 @@ const react = {
         'react/jsx-no-literals': 2,
         'react/jsx-no-target-blank': 2,
         'react/jsx-no-undef': 2,
-        'react/jsx-pascal-case': 2,
-        'react/jsx-tag-spacing': [
-            2,
-            {
-                closingSlash: 'never',
-                beforeSelfClosing: 'never',
-                afterOpening: 'never',
-            },
-        ],
         'react/jsx-uses-react': 2,
         'react/jsx-uses-vars': 2,
-        'react/jsx-wrap-multilines': 2,
         'react/no-array-index-key': 1,
         'react/no-children-prop': 2,
         'react/no-danger': 0,
@@ -156,7 +143,12 @@ const react = {
         'react/no-set-state': 0,
         'react/no-string-refs': 2,
         'react/no-unescaped-entities': 2,
-        'react/no-unknown-property': 2,
+        'react/no-unknown-property': [
+            2,
+            {
+                ignore: ['mask-type'],
+            },
+        ],
         'react/no-unused-prop-types': [
             1,
             {
@@ -178,9 +170,25 @@ const react = {
 export default [
     ...base,
     jsxA11yPlugin.flatConfigs.recommended,
-    ...compat.extends('plugin:react/recommended'),
-    ...compat.extends('plugin:react-hooks/recommended'),
+    reactPlugin.configs.flat.recommended,
+    reactHooksPlugin.configs.flat.recommended,
     react,
+    {
+
+        // Disable new rules that are primarily needed to enable React Compiler because we're not using that yet
+        rules: {
+            'react-hooks/immutability': 0,
+            'react-hooks/preserve-manual-memoization': 0,
+            'react-hooks/purity': 0,
+            'react-hooks/refs': 0,
+            'react-hooks/set-state-in-effect': 0,
+
+            // This rule can be enabled once https://github.com/mattermost/mattermost/pull/36575 is merged because it
+            // should be done by converting getChannelIconComponent and getArchiveIconComponent to proper components
+            // instead of functions that return component constructors.
+            'react-hooks/static-components': 0,
+        },
+    },
     {
         settings: {
             react: {

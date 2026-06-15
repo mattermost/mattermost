@@ -167,6 +167,19 @@ func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID str
 	return count, nil
 }
 
+func (s *SqlPropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	fields := []*model.PropertyField{}
+	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_for_group_query")
+	}
+
+	return fields, nil
+}
+
 func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	if err := opts.Cursor.IsValid(); err != nil {
 		return nil, fmt.Errorf("cursor is invalid: %w", err)

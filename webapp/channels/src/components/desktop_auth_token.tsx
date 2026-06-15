@@ -33,7 +33,7 @@ enum DesktopAuthStatus {
 type Props = {
     href: string;
     onLogin: () => void;
-}
+};
 
 const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     const dispatch = useDispatch();

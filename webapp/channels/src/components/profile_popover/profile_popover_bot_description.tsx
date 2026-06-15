@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     botDescription: UserProfile['bot_description'];
-}
+};
 
 const ProfilePopoverBotDescription = ({
     botDescription,

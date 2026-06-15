@@ -19,6 +19,7 @@ import PostProfilePicture from 'components/post_profile_picture';
 import RhsCardHeader from 'components/rhs_card_header';
 import UserProfile from 'components/user_profile';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 
@@ -97,7 +98,11 @@ export default class RhsCard extends React.Component<Props, State> {
         let content: ReactNode = null;
         if (pluginPostCardTypes && Object.hasOwn(pluginPostCardTypes, postType)) {
             const PluginComponent = pluginPostCardTypes[postType].component;
-            content = <PluginComponent post={selected}/>;
+            content = (
+                <PluggableErrorBoundary pluginId={pluginPostCardTypes[postType].pluginId}>
+                    <PluginComponent post={selected}/>
+                </PluggableErrorBoundary>
+            );
         }
 
         if (!content) {

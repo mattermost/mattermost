@@ -40,13 +40,13 @@ export type Options = Partial<{
      * users automatically for all posts.
      */
     fetchMissingUsers: boolean;
-}>
+}>;
 
 type ProcessingInstruction = {
     replaceChildren: boolean;
     shouldProcessNode: (node: any) => boolean;
     processNode: (node: any, children?: any, index?: number) => any;
-}
+};
 
 /*
  * Converts HTML to React components using html-to-react.
@@ -116,7 +116,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 // Use dummy base for relative URLs
                 const urlObj = new URL(url, 'http://mattermost.com');
                 return urlObj.searchParams.get('view') === 'citation';
-            } catch (e) {
+            } catch {
                 return false;
             }
         },

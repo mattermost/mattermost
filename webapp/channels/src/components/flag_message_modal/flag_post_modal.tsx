@@ -30,12 +30,12 @@ const noop = () => {};
 type SelectedOption = {
     value: string;
     label: string;
-}
+};
 
 type Props = {
     postId: string;
     onExited: () => void;
-}
+};
 
 export default function FlagPostModal({postId, onExited}: Props) {
     const {formatMessage} = useIntl();

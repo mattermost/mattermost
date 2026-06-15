@@ -19,17 +19,18 @@ on:
 env:
   CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
 
-# Permissions required for chainguard-dev/setup-chainctl
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 jobs:
   build-image:
+    permissions:
+      contents: read
     runs-on: ubuntu-22.04
     steps:
       - name: buildenv/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: buildenv/docker-login
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
@@ -69,6 +70,9 @@ jobs:
           tags: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
 
   build-image-fips:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-22.04
     steps:
       - uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
@@ -76,6 +80,8 @@ jobs:
           identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: buildenv/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: buildenv/docker-login
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0

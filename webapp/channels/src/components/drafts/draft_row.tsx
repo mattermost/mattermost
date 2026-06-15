@@ -60,7 +60,7 @@ type Props = {
     isRemote?: boolean;
     scrollIntoView?: boolean;
     containerClassName?: string;
-}
+};
 
 const mockLastBlurAt = {current: 0};
 
@@ -81,7 +81,7 @@ function DraftRow({
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
     const channelId = ('channelId' in item) ? item.channelId : item.channel_id;
 
-    const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
+    const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
 
     const history = useHistory();
     const dispatch = useDispatch();

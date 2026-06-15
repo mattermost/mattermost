@@ -35,7 +35,7 @@ export type OwnProps = {
     disableActions?: boolean;
     usePostAsSource?: boolean;
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
-}
+};
 
 function makeMapStateToProps() {
     const selectFilesForPost = makeGetFilesForPost();

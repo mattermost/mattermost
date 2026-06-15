@@ -18,6 +18,7 @@ import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
@@ -35,7 +36,6 @@ import {
     UserTypes,
     RoleTypes,
     GeneralTypes,
-    AdminTypes,
     IntegrationTypes,
     PreferenceTypes,
     AppsTypes,
@@ -171,6 +171,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
@@ -367,6 +368,9 @@ export function reconnect() {
         dispatch(checkForModifiedUsers());
     }
 
+    // Manifest may have changed; tell the Desktop App to re-fetch it.
+    DesktopApp.invalidateSessionAttributeManifest();
+
     dispatch(resetWsErrorCount());
     dispatch(clearErrors());
 }
@@ -410,6 +414,9 @@ function handleFirstConnect() {
         },
         clearErrors(),
     ]));
+
+    // Tell the Desktop App to re-deliver its session attributes on the next request.
+    DesktopApp.resendSessionAttributes();
 }
 
 function handleClose(failCount: number) {
@@ -553,6 +560,10 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
+    case WebSocketEvents.TeamAccessControlUpdated:
+        dispatch(handleTeamAccessControlUpdatedEvent(msg));
+        break;
+
     case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
@@ -617,10 +628,6 @@ export function handleEvent(msg: WebSocketMessage) {
         handleLicenseChanged(msg);
         break;
 
-    case WebSocketEvents.PluginStatusesChanged:
-        handlePluginStatusesChangedEvent(msg);
-        break;
-
     case WebSocketEvents.OpenDialog:
         handleOpenDialogEvent(msg);
         break;
@@ -672,8 +679,8 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(
             handlePropertyFieldCreatedOrUpdated(
                 msg as
-                    | WebSocketMessages.PropertyFieldCreated
-                    | WebSocketMessages.PropertyFieldUpdated,
+                    WebSocketMessages.PropertyFieldCreated |
+                    WebSocketMessages.PropertyFieldUpdated,
             ),
         );
         break;
@@ -877,6 +884,20 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // consumers (e.g. the channel invite modal banner) refetch the
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+    };
+}
+
+export function handleTeamAccessControlUpdatedEvent(msg: WebSocketMessages.TeamAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.team) {
+            return;
+        }
+
+        const team = JSON.parse(msg.data.team) as Team;
+
+        // Refresh the team record so consumers see the latest policy_enforced
+        // flag (and any other access-control-derived fields).
+        doDispatch({type: TeamTypes.RECEIVED_TEAM, data: team});
     };
 }
 
@@ -1274,7 +1295,7 @@ function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
+export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1286,6 +1307,15 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
                 type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
+
+            // The membership relation alone is not enough to render the member in the
+            // participant list: the member list selectors drop users whose profile is
+            // not loaded. This happens for remote users synced into a shared channel,
+            // since the viewer has never loaded their profile. Fetch it if missing.
+            if (!getUser(state, msg.data.user_id)) {
+                doDispatch(loadUser(msg.data.user_id));
+            }
+
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
                 doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
@@ -1310,8 +1340,8 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
 
 function handlePropertyFieldCreatedOrUpdated(
     msg:
-    | WebSocketMessages.PropertyFieldCreated
-    | WebSocketMessages.PropertyFieldUpdated,
+    | WebSocketMessages.PropertyFieldCreated |
+    WebSocketMessages.PropertyFieldUpdated,
 ): ThunkActionFunc<void> {
     return (doDispatch) => {
         let field;
@@ -1325,6 +1355,11 @@ function handlePropertyFieldCreatedOrUpdated(
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
             data: {fields: [field]},
         });
+
+        // Session attribute schema changed; tell the Desktop App to re-fetch its manifest.
+        if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
+            DesktopApp.invalidateSessionAttributeManifest();
+        }
     };
 }
 
@@ -1711,10 +1746,6 @@ function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
-}
-
-function handlePluginStatusesChangedEvent(msg: WebSocketMessages.PluginStatusesChanged) {
-    store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
 function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {

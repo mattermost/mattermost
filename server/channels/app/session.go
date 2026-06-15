@@ -238,9 +238,23 @@ func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
 	}
 }
 
-func (a *App) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError {
-	if err := a.ch.srv.platform.RevokeSessionsForDeviceId(rctx, userID, deviceID, currentSessionId); err != nil {
-		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+func (a *App) RevokeOtherSessionsForDeviceId(rctx request.CTX, userID string, deviceId string, currentSessionId string) *model.AppError {
+	if err := a.ch.srv.platform.RevokeOtherSessionsForDeviceId(rctx, userID, deviceId, currentSessionId); err != nil {
+		if errors.Is(err, platform.ErrEmptyDeviceId) {
+			return model.NewAppError("RevokeOtherSessionsForDeviceId", "app.session.revoke_other_sessions.empty_device_id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return model.NewAppError("RevokeOtherSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) RevokeOtherSessionsForVoIPDeviceId(rctx request.CTX, userID string, voIPDeviceId string, currentSessionId string) *model.AppError {
+	if err := a.ch.srv.platform.RevokeOtherSessionsForVoIPDeviceId(rctx, userID, voIPDeviceId, currentSessionId); err != nil {
+		if errors.Is(err, platform.ErrEmptyVoIPDeviceId) {
+			return model.NewAppError("RevokeOtherSessionsForVoIPDeviceId", "app.session.revoke_other_sessions.empty_voip_device_id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return model.NewAppError("RevokeOtherSessionsForVoIPDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -277,9 +291,8 @@ func (a *App) RevokeSession(rctx request.CTX, session *model.Session) *model.App
 	return nil
 }
 
-func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError {
-	_, err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
-	if err != nil {
+func (a *App) AttachDeviceId(sessionID string, deviceId string, voIPDeviceId string, expiresAt int64) *model.AppError {
+	if err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceId, voIPDeviceId, expiresAt); err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -401,6 +414,49 @@ func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
 	a.ch.srv.platform.SetSessionExpireInHours(session, hours)
 }
 
+// validateUserAccessTokenExpiry checks a token's ExpiresAt against
+// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays. 0 means no policy:
+// never-expiring tokens are allowed. A value > 0 requires the token to expire
+// within that many days, so ExpiresAt == 0 or an expiry beyond the cap is
+// rejected. Only newly created tokens are checked; existing tokens are not
+// re-validated.
+func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model.AppError {
+	cfg := a.Config().ServiceSettings
+
+	maxDays := int64(0)
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil {
+		maxDays = int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	}
+
+	if token.ExpiresAt == 0 {
+		// A configured maximum lifetime implies tokens must expire; never-expiring
+		// tokens are only allowed when no maximum is set.
+		if maxDays > 0 {
+			return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_required.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil
+	}
+
+	if token.ExpiresAt <= model.GetMillis() {
+		return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_in_past.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if maxDays > 0 {
+		maxExpiry := model.GetMillis() + maxDays*24*60*60*1000
+		if token.ExpiresAt > maxExpiry {
+			return model.NewAppError(
+				"CreateUserAccessToken",
+				"app.user_access_token.expires_at_too_far.app_error",
+				map[string]any{"Days": maxDays},
+				"",
+				http.StatusBadRequest,
+			)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
 	if nErr != nil {
@@ -415,6 +471,16 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	// Bot accounts are exempt from the PAT expiry policy, matching the existing
+	// EnableUserAccessTokens bypass above: bots are programmatic clients that
+	// typically need long-lived credentials, and integrations that provision
+	// them would otherwise break the moment an admin enables enforcement.
+	if !user.IsBot {
+		if err := a.validateUserAccessTokenExpiry(token); err != nil {
+			return nil, err
+		}
 	}
 
 	token.Token = model.NewId()

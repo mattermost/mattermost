@@ -15,7 +15,6 @@ import {clickCategoryMenuItem} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getRandomId} from '@/utils';
 
-
 describe('Channel sidebar', () => {
     before(() => {
         // # Login as test user and visit town-square

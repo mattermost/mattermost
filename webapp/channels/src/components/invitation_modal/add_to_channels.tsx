@@ -21,7 +21,7 @@ import './add_to_channels.scss';
 export type CustomMessageProps = {
     message: string;
     open: boolean;
-}
+};
 
 export const defaultInviteChannels = deepFreeze({
     channels: [],
@@ -31,7 +31,7 @@ export const defaultInviteChannels = deepFreeze({
 export type InviteChannels = {
     channels: Channel[];
     search: string;
-}
+};
 
 export const defaultCustomMessage = deepFreeze({
     message: '',
@@ -54,7 +54,7 @@ export type Props = {
 
     // this prop is only sent when inviting members to channels
     channelToInvite?: Channel;
-}
+};
 
 const RENDER_TIMEOUT_GUESS = 100;
 

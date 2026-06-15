@@ -27,7 +27,7 @@ export type Props = {
     actions: {
         toggleReaction: (postId: string, emojiName: string) => void;
     };
-}
+};
 
 export default function PostReaction({
     channelId,

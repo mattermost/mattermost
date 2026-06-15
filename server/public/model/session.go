@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -27,6 +28,7 @@ const (
 	SessionPropOAuthAppID                 = "oauth_app_id"
 	SessionPropMattermostAppID            = "mattermost_app_id"
 	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
+	SessionPropLastRemovedVoIPDeviceId    = "last_removed_voip_device_id"
 	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
 	SessionPropMobileVersion              = "mobile_version"
 	SessionTypeUserAccessToken            = "UserAccessToken"
@@ -35,12 +37,6 @@ const (
 	SessionPropIsGuest                    = "is_guest"
 	SessionActivityTimeout                = 1000 * 60 * 5  // 5 minutes
 	SessionUserAccessTokenExpiryHours     = 100 * 365 * 24 // 100 years
-
-	SessionAttributesPropertyFieldUserAgentPlatform       = "user_agent_platform"
-	SessionAttributesPropertyFieldUserAgentOS             = "user_agent_os"
-	SessionAttributesPropertyFieldUserAgentBrowserName    = "user_agent_browser_name"
-	SessionAttributesPropertyFieldUserAgentBrowserVersion = "user_agent_browser_version"
-	SessionAttributesPropertyFieldIPAddress               = "ip_address"
 )
 
 //msgp:tuple StringMap
@@ -51,6 +47,17 @@ type MobileSessionMetadata struct {
 	Platform             string
 	Count                float64
 	NotificationDisabled string
+}
+
+// LoginOptions carries optional inputs to App.DoLogin. It's a struct rather
+// than a positional argument list so future additions don't keep changing
+// the DoLogin signature and rippling through every caller.
+type LoginOptions struct {
+	DeviceId     string
+	VoIPDeviceId string
+	IsMobile     bool
+	IsOAuthUser  bool
+	IsSaml       bool
 }
 
 // Session contains the user session details.
@@ -66,6 +73,7 @@ type Session struct {
 	LastActivityAt int64         `json:"last_activity_at"`
 	UserId         string        `json:"user_id"`
 	DeviceId       string        `json:"device_id"`
+	VoIPDeviceId   string        `json:"voip_device_id"`
 	Roles          string        `json:"roles"`
 	IsOAuth        bool          `json:"is_oauth"`
 	ExpiredNotify  bool          `json:"expired_notify"`
@@ -82,6 +90,7 @@ func (s *Session) Auditable() map[string]any {
 		"last_activity_at": s.LastActivityAt,
 		"user_id":          s.UserId,
 		"device_id":        s.DeviceId,
+		"voip_device_id":   s.VoIPDeviceId,
 		"roles":            s.Roles,
 		"is_oauth":         s.IsOAuth,
 		"expired_notify":   s.ExpiredNotify,
@@ -296,4 +305,58 @@ func (s *Session) ExpiresAt_() float64 {
 
 func (s *Session) LastActivityAt_() float64 {
 	return float64(s.LastActivityAt)
+}
+
+// standardDevicePlatforms is the allowlist for DeviceId.
+var standardDevicePlatforms = []string{
+	PushNotifyAppleReactNative,
+	PushNotifyAppleReactNative + "beta",
+	PushNotifyAndroidReactNative,
+}
+
+// voIPDevicePlatforms is the allowlist for VoIPDeviceId. Android isn't here
+// yet — once it grows a VoIP equivalent, add it or unify as a single allowlist.
+var voIPDevicePlatforms = []string{
+	PushNotifyAppleReactNative,
+	PushNotifyAppleReactNative + "beta",
+}
+
+// IsValidDeviceId checks that deviceId has the "<platform>[-v<N>]:<token>"
+// shape and <platform> is in the allowlist. The "-v<N>" suffix is only
+// stripped when it's terminal and N is a non-negative integer.
+func IsValidDeviceId(deviceId string, allowed []string) bool {
+	platform, token, ok := strings.Cut(deviceId, ":")
+	if !ok || token == "" {
+		return false
+	}
+	if idx := strings.LastIndex(platform, "-v"); idx != -1 {
+		if v, err := strconv.Atoi(platform[idx+2:]); err == nil && v >= 0 {
+			platform = platform[:idx]
+		}
+	}
+	return slices.Contains(allowed, platform)
+}
+
+func IsValidStandardDeviceId(deviceId string) bool {
+	return IsValidDeviceId(deviceId, standardDevicePlatforms)
+}
+
+func IsValidVoIPDeviceId(deviceId string) bool {
+	return IsValidDeviceId(deviceId, voIPDevicePlatforms)
+}
+
+// RedactDeviceId returns "<platform>:<first-16>…" for safe inclusion in logs.
+// Returns "" for empty input and the original prefix for malformed input.
+func RedactDeviceId(deviceId string) string {
+	if deviceId == "" {
+		return ""
+	}
+	platform, token, ok := strings.Cut(deviceId, ":")
+	if !ok || token == "" {
+		return platform
+	}
+	if len(token) <= 16 {
+		return platform + ":" + token
+	}
+	return platform + ":" + token[:16] + "…"
 }

@@ -14,7 +14,7 @@ type Props = {
     isMobile: boolean;
     channel: Channel;
     pluginItems: ReactNode[];
-}
+};
 
 const ChannelHeaderMobileMenu = (props: Props): JSX.Element => {
     if (!props.isMobile) {

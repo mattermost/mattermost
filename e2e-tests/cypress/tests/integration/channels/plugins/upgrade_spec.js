@@ -22,7 +22,6 @@ import {waitForAlertMessage} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {demoPlugin, demoPluginOld} from '@/utils/plugins';
 
-
 describe('Plugin remains enabled when upgraded', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();

@@ -8,6 +8,8 @@ import * as PostList from 'mattermost-redux/utils/post_list';
 
 import NotificationSeparator from 'components/widgets/separator/notification-separator';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+
 import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 
 type Props = {
@@ -16,7 +18,7 @@ type Props = {
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     channelId?: string;
     threadId?: string;
-}
+};
 
 const NewMessageSeparator = ({
     newMessagesSeparatorActions,
@@ -35,12 +37,16 @@ const NewMessageSeparator = ({
 
             const Component = item.component;
             return (
-                <Component
+                <PluggableErrorBoundary
                     key={item.id}
-                    lastViewedAt={lastViewedAt}
-                    channelId={channelId}
-                    threadId={threadId}
-                />
+                    pluginId={item.pluginId}
+                >
+                    <Component
+                        lastViewedAt={lastViewedAt}
+                        channelId={channelId}
+                        threadId={threadId}
+                    />
+                </PluggableErrorBoundary>
             );
         });
 
