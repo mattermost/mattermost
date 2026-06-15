@@ -1895,6 +1895,55 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
 	})
+
+	t.Run("it should reject deactivated users and only invite the remaining emails", func(t *testing.T) {
+		deactivatedUser := th.CreateUser(t)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{deactivatedUser.Email, "idontexist@mattermost.com"},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			[]string{"idontexist@mattermost.com"},
+			"",
+			mock.Anything,
+			true,
+			false,
+			false,
+		).Once().Return(nil)
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.Equal(t, deactivatedUser.Email, res[0].Email)
+		require.NotNil(t, res[0].Error)
+		require.Equal(t, "api.team.invite_members.deactivated_email.app_error", res[0].Error.Id)
+		require.Equal(t, "idontexist@mattermost.com", res[1].Email)
+		require.Nil(t, res[1].Error)
+	})
+
+	t.Run("it should return an error for deactivated users before sending emails", func(t *testing.T) {
+		deactivatedUser := th.CreateUser(t)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		err := th.App.InviteNewUsersToTeam(th.Context, []string{deactivatedUser.Email}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.NotNil(t, err)
+		require.Equal(t, "api.team.invite_members.deactivated_email.app_error", err.Id)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmails", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	})
 }
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {
