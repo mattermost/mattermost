@@ -1691,6 +1691,22 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1, arg2)
 }
 
+// ListConfigurations mocks base method.
+func (m *MockClient) ListConfigurations(arg0 context.Context, arg1 int, arg2 string) ([]*model.ConfigListItem, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListConfigurations", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.ConfigListItem)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListConfigurations indicates an expected call of ListConfigurations.
+func (mr *MockClientMockRecorder) ListConfigurations(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListConfigurations", reflect.TypeOf((*MockClient)(nil).ListConfigurations), arg0, arg1, arg2)
+}
+
 // ListExports mocks base method.
 func (m *MockClient) ListExports(arg0 context.Context) ([]string, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2216,6 +2232,22 @@ func (m *MockClient) RevokeUserAccessToken(arg0 context.Context, arg1 string) (*
 func (mr *MockClientMockRecorder) RevokeUserAccessToken(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeUserAccessToken", reflect.TypeOf((*MockClient)(nil).RevokeUserAccessToken), arg0, arg1)
+}
+
+// RollbackConfig mocks base method.
+func (m *MockClient) RollbackConfig(arg0 context.Context, arg1 string) (*model.Config, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RollbackConfig", arg0, arg1)
+	ret0, _ := ret[0].(*model.Config)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RollbackConfig indicates an expected call of RollbackConfig.
+func (mr *MockClientMockRecorder) RollbackConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RollbackConfig", reflect.TypeOf((*MockClient)(nil).RollbackConfig), arg0, arg1)
 }
 
 // SearchTeams mocks base method.

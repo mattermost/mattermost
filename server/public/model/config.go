@@ -5464,6 +5464,89 @@ type GetConfigOptions struct {
 	RemoveDefaults bool
 }
 
+// ConfigChange represents a single setting change between two configuration versions.
+type ConfigChange struct {
+	Path     string `json:"path"`
+	OldValue any    `json:"old_value,omitempty"`
+	NewValue any    `json:"new_value,omitempty"`
+}
+
+// ConfigListItem represents metadata about a stored configuration entry.
+type ConfigListItem struct {
+	Id       string         `json:"id"`
+	CreateAt int64          `json:"create_at"`
+	Active   bool           `json:"active"`
+	Changes  []ConfigChange `json:"changes,omitempty"`
+}
+
+// collectTaggedPaths walks a struct type and returns all dot-separated field
+// paths that carry the given tag value in the specified tag key.
+func collectTaggedPaths(t reflect.Type, tagKey, tagValue, prefix string) map[string]bool {
+	paths := map[string]bool{}
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldPath := field.Name
+		if prefix != "" {
+			fieldPath = prefix + "." + field.Name
+		}
+
+		tags := strings.Split(field.Tag.Get(tagKey), ",")
+		if isTagPresent(tagValue, tags) {
+			paths[fieldPath] = true
+			continue
+		}
+
+		ft := field.Type
+		if ft.Kind() == reflect.Ptr {
+			ft = ft.Elem()
+		}
+		if ft.Kind() == reflect.Struct {
+			for p := range collectTaggedPaths(ft, tagKey, tagValue, fieldPath) {
+				paths[p] = true
+			}
+		}
+	}
+	return paths
+}
+
+// CloudRestrictedPaths returns the set of config field paths tagged as cloud_restrictable.
+func CloudRestrictedPaths() map[string]bool {
+	return collectTaggedPaths(reflect.TypeFor[Config](), ConfigAccessTagType, ConfigAccessTagCloudRestrictable, "")
+}
+
+// isCloudRestricted checks whether a change path matches or is a descendant
+// of any cloud-restrictable config field path (e.g. "SqlSettings.ReplicaLagSettings"
+// also matches "SqlSettings.ReplicaLagSettings[0].DataSource").
+func isCloudRestricted(path string, restricted map[string]bool) bool {
+	if restricted[path] {
+		return true
+	}
+	for rp := range restricted {
+		if strings.HasPrefix(path, rp+".") || strings.HasPrefix(path, rp+"[") {
+			return true
+		}
+	}
+	return false
+}
+
+// FilterCloudRestrictedChanges removes changes whose paths match or descend from
+// cloud-restrictable config fields.
+func FilterCloudRestrictedChanges(items []*ConfigListItem) {
+	restricted := CloudRestrictedPaths()
+	for _, item := range items {
+		if len(item.Changes) == 0 {
+			continue
+		}
+		filtered := make([]ConfigChange, 0, len(item.Changes))
+		for _, ch := range item.Changes {
+			if !isCloudRestricted(ch.Path, restricted) {
+				filtered = append(filtered, ch)
+			}
+		}
+		item.Changes = filtered
+	}
+}
+
 // FilterConfig returns a map[string]any representation of the configuration.
 // Also, the function can filter the configuration by the options passed
 // in the argument. The options are used to remove the default values, the masked

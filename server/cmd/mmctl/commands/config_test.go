@@ -1025,3 +1025,198 @@ func (s *MmctlUnitTestSuite) TestConfigExportCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestConfigListCmd() {
+	newListCmd := func() *cobra.Command {
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("limit", 5, "")
+		cmd.Flags().Bool("detailed", false, "")
+		cmd.Flags().Bool("no-delta", false, "")
+		return cmd
+	}
+
+	s.Run("List configurations with deltas by default", func() {
+		printer.Clean()
+		items := []*model.ConfigListItem{
+			{
+				Id: "abc123def456ghi789jkl0mn", CreateAt: 1700000000000, Active: true,
+				Changes: []model.ConfigChange{{Path: "ServiceSettings.SiteURL"}},
+			},
+			{Id: "xyz789abc012def345ghi6mn", CreateAt: 1699999000000, Active: false},
+		}
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 5, "true").
+			Return(items, &model.Response{}, nil).
+			Times(1)
+
+		err := configListCmdF(s.client, newListCmd(), []string{})
+		s.Require().Nil(err)
+		// In JSON mode (test default), changes are embedded in struct, not separate lines
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		// Verify the changes are embedded in the first item
+		item := printer.GetLines()[0].(*model.ConfigListItem)
+		s.Require().Len(item.Changes, 1)
+		s.Require().Equal("ServiceSettings.SiteURL", item.Changes[0].Path)
+	})
+
+	s.Run("List configurations with custom limit", func() {
+		printer.Clean()
+		items := []*model.ConfigListItem{
+			{Id: "abc123def456ghi789jkl0mn", CreateAt: 1700000000000, Active: true},
+		}
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 10, "true").
+			Return(items, &model.Response{}, nil).
+			Times(1)
+
+		cmd := newListCmd()
+		_ = cmd.Flags().Set("limit", "10")
+
+		err := configListCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("List configurations returns error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 5, "true").
+			Return(nil, &model.Response{}, errors.New("database error")).
+			Times(1)
+
+		err := configListCmdF(s.client, newListCmd(), []string{})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "unable to list configurations")
+	})
+
+	s.Run("No configurations found", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 5, "true").
+			Return([]*model.ConfigListItem{}, &model.Response{}, nil).
+			Times(1)
+
+		err := configListCmdF(s.client, newListCmd(), []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("Detailed mode shows old and new values", func() {
+		printer.Clean()
+		items := []*model.ConfigListItem{
+			{
+				Id: "abc123def456ghi789jkl0mn", CreateAt: 1700000000000, Active: true,
+				Changes: []model.ConfigChange{
+					{Path: "ServiceSettings.SiteURL", OldValue: "", NewValue: "https://mm.example.com"},
+				},
+			},
+		}
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 5, "detailed").
+			Return(items, &model.Response{}, nil).
+			Times(1)
+
+		cmd := newListCmd()
+		_ = cmd.Flags().Set("detailed", "true")
+
+		err := configListCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		// In JSON mode, changes embedded in struct
+		s.Require().Len(printer.GetLines(), 1)
+		item := printer.GetLines()[0].(*model.ConfigListItem)
+		s.Require().Len(item.Changes, 1)
+		s.Require().Equal("https://mm.example.com", item.Changes[0].NewValue)
+	})
+
+	s.Run("No-delta takes precedence over detailed", func() {
+		printer.Clean()
+		items := []*model.ConfigListItem{
+			{Id: "abc123def456ghi789jkl0mn", CreateAt: 1700000000000, Active: true},
+			{Id: "xyz789abc012def345ghi6mn", CreateAt: 1699999000000, Active: false},
+		}
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 5, "").
+			Return(items, &model.Response{}, nil).
+			Times(1)
+
+		cmd := newListCmd()
+		_ = cmd.Flags().Set("detailed", "true")
+		_ = cmd.Flags().Set("no-delta", "true")
+
+		err := configListCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		// Verify no changes are present on either item
+		for _, line := range printer.GetLines() {
+			item := line.(*model.ConfigListItem)
+			s.Require().Empty(item.Changes)
+		}
+	})
+
+	s.Run("No-delta mode skips diffs", func() {
+		printer.Clean()
+		items := []*model.ConfigListItem{
+			{Id: "abc123def456ghi789jkl0mn", CreateAt: 1700000000000, Active: true},
+			{Id: "xyz789abc012def345ghi6mn", CreateAt: 1699999000000, Active: false},
+		}
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 5, "").
+			Return(items, &model.Response{}, nil).
+			Times(1)
+
+		cmd := newListCmd()
+		_ = cmd.Flags().Set("no-delta", "true")
+
+		err := configListCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
+	s.Run("Successful rollback", func() {
+		printer.Clean()
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		s.client.
+			EXPECT().
+			RollbackConfig(context.TODO(), "abc123def456ghi789jkl0mn").
+			Return(cfg, &model.Response{}, nil).
+			Times(1)
+
+		err := configRollbackCmdF(s.client, &cobra.Command{}, []string{"abc123def456ghi789jkl0mn"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Contains(printer.GetLines()[0], "rolled back successfully")
+	})
+
+	s.Run("Rollback returns error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			RollbackConfig(context.TODO(), "nonexistent").
+			Return(nil, &model.Response{}, errors.New("configuration not found")).
+			Times(1)
+
+		err := configRollbackCmdF(s.client, &cobra.Command{}, []string{"nonexistent"})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "unable to rollback configuration")
+	})
+}

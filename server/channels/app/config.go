@@ -6,7 +6,10 @@ package app
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
+	"database/sql"
 	"encoding/json"
+	stderrors "errors"
+	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -242,6 +245,27 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+}
+
+// ListConfigurations returns metadata for stored configuration entries with optional diffs.
+func (a *App) ListConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, *model.AppError) {
+	items, err := a.Srv().platform.ListConfigurations(limit, includeDiffs)
+	if err != nil {
+		return nil, model.NewAppError("ListConfigurations", "api.config.list_configurations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return items, nil
+}
+
+// RollbackConfig restores a historical configuration identified by its ID.
+func (a *App) RollbackConfig(id string) (*model.Config, *model.Config, *model.AppError) {
+	historicalCfg, err := a.Srv().platform.GetConfigByID(id)
+	if err != nil {
+		if stderrors.Is(err, sql.ErrNoRows) {
+			return nil, nil, model.NewAppError("RollbackConfig", "api.config.rollback_config.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, nil, model.NewAppError("RollbackConfig", "api.config.rollback_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return a.SaveConfig(historicalCfg, true)
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {

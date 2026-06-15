@@ -22,6 +22,8 @@ func (api *API) InitConfigLocal() {
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/list", api.APILocal(localListConfigurations)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/rollback", api.APILocal(localRollbackConfig)).Methods(http.MethodPost)
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -196,6 +198,60 @@ func localGetClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	_, err := w.Write([]byte(model.MapToJSON(c.App.Srv().Platform().ClientConfigWithComputed())))
 	if err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func localListConfigurations(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord(model.AuditEventListConfigurations, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit <= 0 {
+		limit = 5
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	includeDiffs := r.URL.Query().Get("include_diffs")
+
+	items, appErr := c.App.ListConfigurations(limit, includeDiffs)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(items); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func localRollbackConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord(model.AuditEventRollbackConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	var body struct {
+		ConfigID string `json:"config_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.ConfigID == "" {
+		c.SetInvalidParamWithErr("config_id", err)
+		return
+	}
+
+	_, newCfg, appErr := c.App.RollbackConfig(body.ConfigID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	c.App.SanitizedConfig(newCfg)
+
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(newCfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
