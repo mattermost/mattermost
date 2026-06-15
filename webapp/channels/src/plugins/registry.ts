@@ -1477,35 +1477,39 @@ export default class PluginRegistry {
      * (e.g., opens a modal or navigates to a route) and does not need full product routing or
      * header components.
      *
-     * `isAvailable` receives the **full** Redux `GlobalState` — do not project or narrow the
-     * state type. This lets plugins read `state['plugins-<pluginId>']` to gate visibility on
-     * plugin-owned data. If `isAvailable` is omitted the item is always visible.
+     * `isHidden` receives the full Redux `GlobalState` — do not project or narrow the state
+     * type. This lets plugins read `state['plugins-<pluginId>']` to gate visibility on plugin-owned
+     * data. Return `true` to hide the item. If `isHidden` is omitted the item is always visible.
      *
      * `action` is called when the user clicks the item. It typically dispatches a route push or
      * opens a modal. The menu will close automatically after `action` is invoked.
      *
      * Items from multiple plugins are sorted alphabetically by `pluginId` in the menu.
-     * All registered items are removed automatically when the plugin unregisters.
+     * Cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
      */
-    registerProductSwitcherMenuItem = reArg(['text', 'icon', 'action', 'isAvailable'], ({
+    registerProductSwitcherMenuItem = reArg(['text', 'icon', 'action', 'isHidden'], ({
         text,
         icon,
         action,
-        isAvailable,
+        isHidden,
     }: {
         text: ProductSwitcherMenuItemRegistration['text'];
         icon: ReactResolvable;
         action: ProductSwitcherMenuItemRegistration['action'];
-        isAvailable?: ProductSwitcherMenuItemRegistration['isAvailable'];
+        isHidden?: ProductSwitcherMenuItemRegistration['isHidden'];
     }) => {
+        const id = generateId();
         dispatchPluginComponentWithData('ProductSwitcherMenuItem', {
-            id: generateId(),
+            id,
             pluginId: this.id,
             text,
             icon: resolveReactElement(icon),
             action,
-            isAvailable,
+            isHidden,
         });
+        return id;
     });
 
     /**

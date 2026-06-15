@@ -46,7 +46,7 @@ exports[`components/global/product_switcher should have an active button state w
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             role="menuitem"
           >
@@ -67,11 +67,11 @@ exports[`components/global/product_switcher should have an active button state w
 	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Channels
-            </div>
+            </span>
             <svg
               fill="var(--button-bg)"
               height="18"
@@ -86,7 +86,7 @@ exports[`components/global/product_switcher should have an active button state w
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -116,11 +116,11 @@ exports[`components/global/product_switcher should have an active button state w
 	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Boards
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -140,7 +140,7 @@ exports[`components/global/product_switcher should have an active button state w
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -160,11 +160,11 @@ exports[`components/global/product_switcher should have an active button state w
 	L7.909,9.591L7.409,9.091z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Playbooks
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -322,7 +322,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             role="menuitem"
           >
@@ -343,11 +343,11 @@ exports[`components/global/product_switcher should match snapshot with a registe
 	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Channels
-            </div>
+            </span>
             <svg
               fill="var(--button-bg)"
               height="18"
@@ -362,7 +362,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -392,11 +392,11 @@ exports[`components/global/product_switcher should match snapshot with a registe
 	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Boards
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -416,7 +416,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -436,11 +436,11 @@ exports[`components/global/product_switcher should match snapshot with a registe
 	L7.909,9.591L7.409,9.091z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Playbooks
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -464,29 +464,33 @@ exports[`components/global/product_switcher should match snapshot with a registe
             role="separator"
             style="display: block;"
           />
-          <button
-            class="SwitcherActionItem-cmrnjN kvmQuU"
+          <li
             id="product-switcher-menu-item-item-1"
             role="menuitem"
           >
-            <svg
-              fill="var(--button-bg)"
-              height="24"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <button
+              class="SwitcherActionButton-gnHZoG jMgsOP"
+              type="button"
             >
-              <path
-                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-              />
-            </svg>
-            <span
-              class="SwitcherMenuItemText-ggWQtF hhUOdy"
-            >
-              Create Encrypted Channel
-            </span>
-          </button>
+              <svg
+                fill="var(--button-bg)"
+                height="24"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                />
+              </svg>
+              <span
+                class="ProductMenuItemText-bbJshj kjMpVz"
+              >
+                Create Encrypted Channel
+              </span>
+            </button>
+          </li>
           <div
             data-testid="product-menu-list"
           />
@@ -548,7 +552,7 @@ exports[`components/global/product_switcher should match snapshot with product s
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             role="menuitem"
           >
@@ -569,11 +573,11 @@ exports[`components/global/product_switcher should match snapshot with product s
 	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Channels
-            </div>
+            </span>
             <svg
               fill="var(--button-bg)"
               height="18"
@@ -588,7 +592,7 @@ exports[`components/global/product_switcher should match snapshot with product s
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -618,11 +622,11 @@ exports[`components/global/product_switcher should match snapshot with product s
 	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Boards
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -642,7 +646,7 @@ exports[`components/global/product_switcher should match snapshot with product s
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -662,11 +666,11 @@ exports[`components/global/product_switcher should match snapshot with product s
 	L7.909,9.591L7.409,9.091z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Playbooks
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -785,7 +789,7 @@ exports[`components/global/product_switcher should render once when there are no
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             role="menuitem"
           >
@@ -806,11 +810,11 @@ exports[`components/global/product_switcher should render once when there are no
 	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Channels
-            </div>
+            </span>
             <svg
               fill="var(--button-bg)"
               height="18"
@@ -825,7 +829,7 @@ exports[`components/global/product_switcher should render once when there are no
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -855,11 +859,11 @@ exports[`components/global/product_switcher should render once when there are no
 	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Boards
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -879,7 +883,7 @@ exports[`components/global/product_switcher should render once when there are no
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -899,11 +903,11 @@ exports[`components/global/product_switcher should render once when there are no
 	L7.909,9.591L7.409,9.091z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Playbooks
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -983,7 +987,7 @@ exports[`components/global/product_switcher should render the correct amount of 
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             role="menuitem"
           >
@@ -1004,11 +1008,11 @@ exports[`components/global/product_switcher should render the correct amount of 
 	H18h-1.5v2l-1.818-2H13h-0.5H10.063z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Channels
-            </div>
+            </span>
             <svg
               fill="var(--button-bg)"
               height="18"
@@ -1023,7 +1027,7 @@ exports[`components/global/product_switcher should render the correct amount of 
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -1053,11 +1057,11 @@ exports[`components/global/product_switcher should render the correct amount of 
 	c0.149,0.092,0.313,0.137,0.484,0.14c0.243,0.004,0.459-0.08,0.638-0.259L18.069,6.803z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Boards
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"
@@ -1077,7 +1081,7 @@ exports[`components/global/product_switcher should render the correct amount of 
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx eXCaei"
+            class="MenuItem-fJA-dRx CkdyB"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -1097,11 +1101,11 @@ exports[`components/global/product_switcher should render the correct amount of 
 	L7.909,9.591L7.409,9.091z"
               />
             </svg>
-            <div
-              class="MenuItemTextContainer-fgrARD jWEHwE"
+            <span
+              class="ProductMenuItemText-bbJshj kjMpVz"
             >
               Playbooks
-            </div>
+            </span>
             <button
               aria-label="Open in new tab"
               class="OpenInNewTabButton-fKoVVp cLFfqU"

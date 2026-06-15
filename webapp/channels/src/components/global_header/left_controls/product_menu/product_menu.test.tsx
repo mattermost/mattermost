@@ -284,7 +284,7 @@ describe('components/global/product_switcher', () => {
         expect(screen.queryByTestId('product-branding-free-edition')).not.toBeInTheDocument();
     });
 
-    it('renders registered ProductSwitcherMenuItems that pass isAvailable', () => {
+    it('renders registered ProductSwitcherMenuItems that are not hidden', () => {
         const action = jest.fn();
         const state = {
             ...baseState,
@@ -303,7 +303,7 @@ describe('components/global/product_switcher', () => {
         expect(screen.getByText('My Plugin Item')).toBeInTheDocument();
     });
 
-    it('hides ProductSwitcherMenuItems where isAvailable returns false', () => {
+    it('hides ProductSwitcherMenuItems where isHidden returns true', () => {
         const state = {
             ...baseState,
             views: {...baseState.views, productMenu: {switcherOpen: true}},
@@ -316,7 +316,7 @@ describe('components/global/product_switcher', () => {
                             text: 'Hidden Item',
                             icon: 'globe',
                             action: jest.fn(),
-                            isAvailable: () => false,
+                            isHidden: () => true,
                         },
                     ],
                 },
@@ -328,15 +328,15 @@ describe('components/global/product_switcher', () => {
         expect(screen.queryByText('Hidden Item')).not.toBeInTheDocument();
     });
 
-    it('passes full Redux state to isAvailable', () => {
-        const isAvailable = jest.fn(() => true);
+    it('passes full Redux state to isHidden', () => {
+        const isHidden = jest.fn(() => false);
         const state = {
             ...baseState,
             views: {...baseState.views, productMenu: {switcherOpen: true}},
             plugins: {
                 components: {
                     ProductSwitcherMenuItem: [
-                        {id: 'item-1', pluginId: 'test-plugin', text: 'Gated Item', icon: 'globe', action: jest.fn(), isAvailable},
+                        {id: 'item-1', pluginId: 'test-plugin', text: 'Gated Item', icon: 'globe', action: jest.fn(), isHidden},
                     ],
                 },
             },
@@ -345,7 +345,7 @@ describe('components/global/product_switcher', () => {
         renderWithContext(<ProductMenu/>, state);
 
         expect(screen.getByText('Gated Item')).toBeInTheDocument();
-        expect(isAvailable).toHaveBeenCalledWith(
+        expect(isHidden).toHaveBeenCalledWith(
             expect.objectContaining({
                 entities: expect.any(Object),
                 plugins: expect.any(Object),
@@ -353,7 +353,7 @@ describe('components/global/product_switcher', () => {
         );
     });
 
-    it('renders no separator when all items are hidden by isAvailable', () => {
+    it('renders no separator when all items are hidden by isHidden', () => {
         const state = {
             ...baseState,
             views: {...baseState.views, productMenu: {switcherOpen: true}},
@@ -366,7 +366,7 @@ describe('components/global/product_switcher', () => {
                             text: 'Hidden Item',
                             icon: 'globe',
                             action: jest.fn(),
-                            isAvailable: () => false,
+                            isHidden: () => true,
                         },
                     ],
                 },
@@ -378,7 +378,7 @@ describe('components/global/product_switcher', () => {
         expect(screen.queryByRole('separator')).toBeNull();
     });
 
-    it('hides ProductSwitcherMenuItems where isAvailable throws', () => {
+    it('hides ProductSwitcherMenuItems where isHidden throws', () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         const state = {
             ...baseState,
@@ -392,7 +392,7 @@ describe('components/global/product_switcher', () => {
                             text: 'Throwing Item',
                             icon: 'globe',
                             action: jest.fn(),
-                            isAvailable: () => {
+                            isHidden: () => {
                                 throw new Error('test error');
                             },
                         },

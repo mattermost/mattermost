@@ -402,15 +402,23 @@ describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
         expect(items[0].action).toBe(action);
     });
 
-    it('(b) isAvailable omitted stores undefined; provided function stored by reference', () => {
+    it('(a2) returns the non-empty string id of the stored entry', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id = registry.registerProductSwitcherMenuItem({text: 'My Item', icon: 'globe', action: () => {}});
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+        expect(getItems()[0].id).toBe(id);
+    });
+
+    it('(b) isHidden omitted stores undefined; provided function stored by reference', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         registry.registerProductSwitcherMenuItem({text: 'No Gate', icon: 'globe', action: () => {}});
-        expect(getItems()[0].isAvailable).toBeUndefined();
+        expect(getItems()[0].isHidden).toBeUndefined();
 
         mockCurrentStore = createStore(pluginsReducer);
-        const isAvailable = jest.fn(() => true);
-        registry.registerProductSwitcherMenuItem({text: 'Gated', icon: 'globe', action: () => {}, isAvailable});
-        expect(getItems()[0].isAvailable).toBe(isAvailable);
+        const isHidden = jest.fn(() => true);
+        registry.registerProductSwitcherMenuItem({text: 'Gated', icon: 'globe', action: () => {}, isHidden});
+        expect(getItems()[0].isHidden).toBe(isHidden);
     });
 
     it('(c) re-registration produces a second independent entry', () => {
