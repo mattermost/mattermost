@@ -26,7 +26,7 @@ type Props = {
     channelId: string;
     postId: string;
     remoteUserHourDisplayed?: boolean;
-}
+};
 
 export default function ScheduledPostIndicator({location, channelId, postId, remoteUserHourDisplayed}: Props) {
     // we use RHS_COMMENT for RHS and threads view, and CENTER for center channel.

@@ -14,7 +14,7 @@ const DATE_RANGES = [
 
 type Props = {
     date: number | Date;
-}
+};
 
 const DateSeparator: FC<Props> = ({date}) => {
     return (

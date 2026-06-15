@@ -29,7 +29,7 @@ type Props = {
     field: UserPropertyField;
     updateField: (field: UserPropertyField) => void;
     autoFocus?: boolean;
-}
+};
 
 type Option = {label: string; id: string; value: string};
 type SelectProps = CreatableProps<Option, true, GroupBase<Option>>;

@@ -14,7 +14,7 @@ import type {GlobalState} from 'types/store';
 import Table from './table';
 import type {Props} from './table';
 
-type OwnProps = Omit<Props, 'actions'|'jobs'|'downloadExportRresults'>;
+type OwnProps = Omit<Props, 'actions' | 'jobs' | 'downloadExportRresults'>;
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {

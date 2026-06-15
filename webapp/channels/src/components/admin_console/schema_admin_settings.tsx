@@ -64,7 +64,7 @@ export type SystemConsoleCustomSettingsComponentProps = {
     unRegisterSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
     cancelSubmit: () => void;
     showConfirm: boolean;
-}
+};
 
 export type SchemaAdminSettingsProps = {
     config: Partial<AdminConfig>;
@@ -80,7 +80,7 @@ export type SchemaAdminSettingsProps = {
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
-} & WrappedComponentProps
+} & WrappedComponentProps;
 
 type State = {
     [x: string]: any;
@@ -92,7 +92,7 @@ type State = {
     showConfirmId: string;
     clientWarning: string;
     prevSchemaId?: string;
-}
+};
 
 // Some path parts may contain periods (e.g. plugin ids), but path walking the configuration
 // relies on splitting by periods. Use this pair of functions to allow such path parts.

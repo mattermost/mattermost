@@ -47,7 +47,7 @@ const searchChannels = (teamId: string, term: string) => {
 type OwnProps = {
     channelToInvite?: Channel;
     canInviteGuests?: boolean;
-}
+};
 
 export function mapStateToProps(state: GlobalState, props: OwnProps) {
     const config = getConfig(state);

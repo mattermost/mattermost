@@ -17,7 +17,7 @@ export type PluginConfiguration = {
     /** Action that will appear at the beginning of the plugin settings tab */
     action?: PluginConfigurationAction;
     sections: Array<PluginConfigurationSection | PluginConfigurationCustomSection>;
-}
+};
 
 export type PluginConfigurationAction = {
 
@@ -32,7 +32,7 @@ export type PluginConfigurationAction = {
 
     /** This function is called when the button on the action is clicked */
     onClick: () => void;
-}
+};
 
 export type PluginConfigurationSection = {
     settings: PluginConfigurationSetting[];
@@ -51,7 +51,7 @@ export type PluginConfigurationSection = {
      * to the change.
     */
     onSubmit?: (changes: {[name: string]: string}) => void;
-}
+};
 
 export type PluginConfigurationCustomSection = {
 
@@ -60,7 +60,7 @@ export type PluginConfigurationCustomSection = {
 
     /** A React component used to render the custom section. */
     component: React.ComponentType;
-}
+};
 
 export type BasePluginConfigurationSetting = {
 
@@ -75,7 +75,7 @@ export type BasePluginConfigurationSetting = {
 
     /** The default value to use */
     default?: string;
-}
+};
 
 export type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
     type: 'radio';
@@ -83,7 +83,7 @@ export type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
     /** The default value to use */
     default: string;
     options: PluginConfigurationRadioSettingOption[];
-}
+};
 
 export type PluginCustomSettingComponent = React.ComponentType<{informChange: (name: string, value: string) => void}>;
 
@@ -92,7 +92,7 @@ export type PluginConfigurationCustomSetting = BasePluginConfigurationSetting & 
 
     /** A React component used to render the custom setting. */
     component: PluginCustomSettingComponent;
-}
+};
 
 export type PluginConfigurationRadioSettingOption = {
 
@@ -104,6 +104,6 @@ export type PluginConfigurationRadioSettingOption = {
 
     /** Optional help text for this option */
     helpText?: string;
-}
+};
 
-export type PluginConfigurationSetting = PluginConfigurationRadioSetting | PluginConfigurationCustomSetting
+export type PluginConfigurationSetting = PluginConfigurationRadioSetting | PluginConfigurationCustomSetting;

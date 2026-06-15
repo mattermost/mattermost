@@ -11,7 +11,7 @@ type Props = {
     onCancel: () => void;
     onExited: () => void;
     onJoin: () => void;
-}
+};
 
 function JoinPrivateChannelModal({channelName, onCancel, onExited, onJoin}: Props) {
     const join = React.useRef<boolean>(false);

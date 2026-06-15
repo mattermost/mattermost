@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import {BellRingOutlineIcon, GlobeIcon, PencilOutlineIcon, StarOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
+import {BellRingOutlineIcon, PencilOutlineIcon, StarOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
@@ -15,6 +15,7 @@ import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import {ChannelIcon} from 'components/channel_type_icon';
 import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
 import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
 import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
@@ -56,7 +57,7 @@ type Props = {
         favoriteChannel: (channelId: string) => any;
         unfavoriteChannel: (channelId: string) => any;
     };
-}
+};
 
 export default class ChannelIntroMessage extends React.PureComponent<Props> {
     toggleFavorite = () => {
@@ -688,7 +689,10 @@ function createStandardIntroMessage(
                 {channel.display_name}
             </h2>
             <div className='channel-intro__created'>
-                {isPrivate ? <LockOutlineIcon size={14}/> : <GlobeIcon size={14}/>}
+                <ChannelIcon
+                    channel={channel}
+                    size={14}
+                />
                 {createMessage}
             </div>
             <p className='channel-intro__text'>

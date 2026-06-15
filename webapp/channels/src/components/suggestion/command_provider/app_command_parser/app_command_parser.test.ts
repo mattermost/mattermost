@@ -74,14 +74,14 @@ describe('AppCommandParser', () => {
     type Variant = {
         expectError?: string;
         verify?(parsed: ParsedCommand): void;
-    }
+    };
 
     type TC = {
         title: string;
         command: string;
         submit: Variant;
         autocomplete?: Variant; // if undefined, use same checks as submnit
-    }
+    };
 
     const checkResult = (parsed: ParsedCommand, v: Variant) => {
         if (v.expectError) {

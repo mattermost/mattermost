@@ -29,19 +29,19 @@ export type AppManifest = {
     description?: string;
     requested_permissions?: Permission[];
     requested_locations?: Locations[];
-}
+};
 
 export type AppModalState = {
     form: AppForm;
     call: AppCallRequest;
-}
+};
 
-export type AppCommandFormMap = { [location: string]: AppForm }
+export type AppCommandFormMap = {[location: string]: AppForm};
 
 export type BindingsInfo = {
     bindings: AppBinding[];
     forms: AppCommandFormMap;
-}
+};
 
 export type AppsState = {
     main: BindingsInfo;
@@ -203,7 +203,7 @@ export type AppCallResponse<Res = unknown> = {
 export type AppMetadataForClient = {
     bot_user_id: string;
     bot_username: string;
-}
+};
 
 export type AppContext = {
     app_id: string;
@@ -409,7 +409,7 @@ function isAppFormValue(v: unknown): v is AppFormValue {
     return isAppSelectOption(v);
 }
 
-export type AppFormValues = { [name: string]: AppFormValue };
+export type AppFormValues = {[name: string]: AppFormValue};
 
 export type AppSelectOption = {
     label: string;
@@ -646,11 +646,11 @@ export type AutocompleteSuggestion = {
     description?: string;
     hint?: string;
     iconData?: string;
-}
+};
 
 export type AutocompleteSuggestionWithComplete = AutocompleteSuggestion & {
     complete: string;
-}
+};
 
 export type AutocompleteElement = AppField;
 export type AutocompleteStaticSelect = AutocompleteElement & {
@@ -667,8 +667,8 @@ export type FormResponseData = {
     errors?: {
         [field: string]: string;
     };
-}
+};
 
 export type AppLookupResponse = {
     items: AppSelectOption[];
-}
+};

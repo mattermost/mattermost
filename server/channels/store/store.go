@@ -558,7 +558,7 @@ type SessionStore interface {
 	UpdateExpiresAt(sessionID string, timestamp int64) error
 	UpdateLastActivityAt(sessionID string, timestamp int64) error
 	UpdateRoles(userID string, roles string) (string, error)
-	UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error)
+	UpdateDeviceId(id string, deviceId string, voIPDeviceId string, expiresAt int64) error
 	UpdateProps(session *model.Session) error
 	AnalyticsSessionCount() (int64, error)
 	Cleanup(expiryTime int64, batchSize int64) error
@@ -870,6 +870,10 @@ type PluginStore interface {
 
 type RoleStore interface {
 	Save(role *model.Role) (*model.Role, error)
+	// SavePreservingUnknownPermissions behaves like Save but tolerates and preserves
+	// permissions not recognized by this server build instead of rejecting the role.
+	// Unrecognized permissions are logged (see MM-68830).
+	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
 	GetByName(ctx context.Context, name string) (*model.Role, error)
@@ -1234,11 +1238,14 @@ type AttributesStore interface {
 	// GetUserPropertyValuesEpoch returns MAX(UpdateAt) across all active PropertyValues
 	// rows for the user, or 0. Used as the per-user epoch in ABAC-aware post-list ETags.
 	GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error)
+	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)
 }
 
 type SessionAttributeStore interface {
-	Refresh(sessionID string, attrs map[string]any) error
-	Get(sessionID string) (map[string]any, error)
+	Refresh(sessionID string, attrs map[string]any, updatedAt int64) error
+	Get(sessionID string) (map[string]any, map[string]int64, error)
+	Invalidate(sessionID string) error
+	Clear() error
 }
 
 type AutoTranslationStore interface {

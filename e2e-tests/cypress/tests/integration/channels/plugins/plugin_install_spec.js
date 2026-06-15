@@ -23,7 +23,6 @@ import {waitForAlertMessage} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {demoPlugin} from '@/utils/plugins';
 
-
 describe('Plugins Management', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();

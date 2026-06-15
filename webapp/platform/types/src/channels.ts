@@ -36,7 +36,7 @@ export type ChannelBanner = {
     enabled?: boolean;
     text?: string;
     background_color?: string;
-}
+};
 
 export function channelBannerEnabled(banner: ChannelBanner | undefined): boolean {
     if (!banner) {
@@ -110,7 +110,7 @@ export type ServerChannel = Channel & {
      * @remarks This field will be moved to a {@link ChannelMessageCount} object when this channel is stored in Redux.
      */
     total_msg_count_root: number;
-}
+};
 
 export type ChannelMessageCount = {
 
@@ -119,7 +119,7 @@ export type ChannelMessageCount = {
 
     /** The number of root posts in this channel, not including join/leave messages */
     root: number;
-}
+};
 
 export type ChannelWithTeamData = Channel & {
     team_display_name: string;
@@ -287,3 +287,4 @@ export type ChannelSearchOpts = {
     exclude_access_control_policy_enforced?: boolean;
     parent_access_control_policy_id?: string;
 };
+

@@ -85,6 +85,7 @@ export const enum WebSocketEvents {
     ChannelBookmarkSorted = 'channel_bookmark_sorted',
     ChannelAccessControlUpdated = 'channel_access_control_updated',
     PermissionPolicyUpdated = 'permission_policy_updated',
+    TeamAccessControlUpdated = 'team_access_control_updated',
     PresenceIndicator = 'presence',
     PostedNotifyAck = 'posted_notify_ack', // This isn't currently used by the web app
     ScheduledPostCreated = 'scheduled_post_created',

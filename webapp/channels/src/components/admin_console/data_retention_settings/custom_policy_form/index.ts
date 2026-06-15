@@ -30,7 +30,7 @@ type OwnProps = {
             policy_id: string;
         };
     };
-}
+};
 
 function mapStateToProps() {
     const getPolicyTeams = getTeamsInPolicy();

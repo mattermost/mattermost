@@ -89,6 +89,7 @@ const (
 	WebsocketEventChannelBookmarkSorted               WebsocketEventType = "channel_bookmark_sorted"
 	WebsocketEventChannelAccessControlUpdated         WebsocketEventType = "channel_access_control_updated"
 	WebsocketEventPermissionPolicyUpdated             WebsocketEventType = "permission_policy_updated"
+	WebsocketEventTeamAccessControlUpdated            WebsocketEventType = "team_access_control_updated"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
 	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
