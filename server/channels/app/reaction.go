@@ -155,6 +155,7 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 }
 
 func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) *model.AppError {
+	reaction.EmojiName = strings.ToLower(reaction.EmojiName)
 	post, err := a.GetSinglePost(rctx, reaction.PostId, false)
 	if err != nil {
 		return err
