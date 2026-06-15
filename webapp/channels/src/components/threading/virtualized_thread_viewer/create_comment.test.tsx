@@ -139,4 +139,33 @@ describe('components/threading/CreateComment', () => {
 
         expect(screen.getByTestId('advanced-create-comment')).toBeInTheDocument();
     });
+
+    it('renders ChannelComposerBanner component above the thread composer', () => {
+        const channel = TestHelper.getChannelMock({
+            id: 'ch-1',
+            type: 'O',
+            delete_at: 0,
+        });
+
+        const state = {
+            ...makeState(channel, threadId),
+            plugins: {
+                components: {
+                    ChannelIconOverride: [],
+                    ChannelComposerBanner: [{
+                        id: 'banner-1',
+                        pluginId: 'test-plugin',
+                        component: () => <div data-testid='composer-banner-content'/>,
+                    }],
+                },
+            },
+        } as any;
+
+        renderWithContext(
+            <CreateComment threadId={threadId}/>,
+            state,
+        );
+
+        expect(screen.getByTestId('composer-banner-content')).toBeInTheDocument();
+    });
 });

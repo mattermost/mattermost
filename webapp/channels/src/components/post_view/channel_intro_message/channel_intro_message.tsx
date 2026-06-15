@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {BellRingOutlineIcon, PencilOutlineIcon, StarOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -13,7 +14,10 @@ import {Permissions} from 'mattermost-redux/constants';
 import {NotificationLevel} from 'mattermost-redux/constants/channels';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
+import {getChannelIntroOverride} from 'selectors/channel_intro';
+
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
+import ChannelIntroRenderer from 'components/channel_intro_renderer/channel_intro_renderer';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import {ChannelIcon} from 'components/channel_type_icon';
 import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
@@ -29,6 +33,8 @@ import UserProfile from 'components/user_profile';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
@@ -524,6 +530,24 @@ function createDefaultIntroMessage(
     );
 }
 
+/**
+ * Renders either a plugin-supplied intro body for channels the plugin's matcher selects, or the
+ * default children. Action buttons (favorite, add members, etc.) are rendered outside this
+ * component so the server controls them regardless of any override.
+ */
+const ChannelIntroBody = ({channel, children}: {channel: Channel; children: React.ReactNode}) => {
+    const override = useSelector((state: GlobalState) => getChannelIntroOverride(state, channel.id));
+    if (override) {
+        return (
+            <ChannelIntroRenderer
+                registration={override}
+                channel={channel}
+            />
+        );
+    }
+    return <>{children}</>;
+};
+
 function createStandardIntroMessage(
     channel: Channel,
     centeredIntro: string,
@@ -684,21 +708,23 @@ function createStandardIntroMessage(
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
         >
-            {isPrivate ? <ChannelIntroPrivateSvg/> : <ChannelIntroPublicSvg/>}
-            <h2 className='channel-intro__title'>
-                {channel.display_name}
-            </h2>
-            <div className='channel-intro__created'>
-                <ChannelIcon
-                    channel={channel}
-                    size={14}
-                />
-                {createMessage}
-            </div>
-            <p className='channel-intro__text'>
-                {memberMessage}
-                {purposeMessage}
-            </p>
+            <ChannelIntroBody channel={channel}>
+                {isPrivate ? <ChannelIntroPrivateSvg/> : <ChannelIntroPublicSvg/>}
+                <h2 className='channel-intro__title'>
+                    {channel.display_name}
+                </h2>
+                <div className='channel-intro__created'>
+                    <ChannelIcon
+                        channel={channel}
+                        size={14}
+                    />
+                    {createMessage}
+                </div>
+                <p className='channel-intro__text'>
+                    {memberMessage}
+                    {purposeMessage}
+                </p>
+            </ChannelIntroBody>
             {actionButtons}
         </div>
     );

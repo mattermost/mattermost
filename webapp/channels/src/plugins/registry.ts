@@ -27,6 +27,7 @@ import {
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
+import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
 import store from 'stores/redux_store';
 
 import {compassIconForName} from 'components/channel_type_icon';
@@ -73,6 +74,7 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
+    ChannelIntroRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1394,6 +1396,34 @@ export default class PluginRegistry {
             matcher,
             iconName,
         });
+        return id;
+    });
+
+    /**
+     * Register a component rendered above the message input in both the center-channel composer
+     * and the thread/RHS composer. Receives {channel}; return null when nothing should show.
+     * Multiple registrations stack. Cleaned up automatically when the plugin is removed.
+     */
+    registerChannelComposerBannerComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('ChannelComposerBanner', this.id, component);
+    });
+
+    /**
+     * Register a component that replaces the descriptive body (icon, title, creation info, and
+     * description) of a standard public/private channel's intro for channels the matcher selects.
+     * The channel's action buttons (favorite, add members, set header, notification preferences,
+     * and plugin intro buttons) remain rendered by the server. The matcher receives the full Redux
+     * state so it can read plugin-owned slices (e.g. state['plugins-<id>']). First registration
+     * whose matcher returns true wins (alphabetical pluginId, then insertion order); the rest are
+     * ignored for that channel. Cleaned up automatically when the plugin is removed.
+     */
+    registerChannelIntro = reArg(['matcher', 'component'], ({matcher, component}: {
+        matcher: ChannelIntroRegistration['matcher'];
+        component: ChannelIntroRegistration['component'];
+    }) => {
+        clearLoggedChannelIntroErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
         return id;
     });
 
