@@ -16,7 +16,7 @@ type Props = {
     post: Post;
     previousPostId: string;
     isChannelAutotranslated: boolean;
-}
+};
 
 function Reply({
     a11yIndex,

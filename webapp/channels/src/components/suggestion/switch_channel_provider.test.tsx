@@ -1607,4 +1607,53 @@ describe('SwitchChannelSuggestion', () => {
             jest.useRealTimers();
         });
     });
+
+    test('should render override icon when matcher matches', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
+
+    test('should render fallback globe icon when matcher returns false', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => false, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-globe');
+    });
 });

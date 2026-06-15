@@ -9,11 +9,11 @@ export type TableItem = {
     name: string;
     tip: string;
     value: React.ReactNode;
-}
+};
 type Props = {
     title: React.ReactNode;
     data: TableItem[];
-}
+};
 
 const TableChart = ({
     title,

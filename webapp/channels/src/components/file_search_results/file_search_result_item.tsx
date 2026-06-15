@@ -28,7 +28,7 @@ type Props = OwnProps & PropsFromRedux;
 
 type State = {
     keepOpen: boolean;
-}
+};
 
 export default class FileSearchResultItem extends React.PureComponent<Props, State> {
     public constructor(props: Props) {

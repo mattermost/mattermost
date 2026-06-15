@@ -29,9 +29,9 @@ import type {GlobalState} from 'types/store';
 import PostMarkdown, {type OwnProps} from './post_markdown';
 
 export function makeGetMentionKeysForPost(): (
-    state: GlobalState,
-    post?: Post,
-    channel?: Channel
+state: GlobalState,
+post?: Post,
+channel?: Channel
 ) => MentionKey[] {
     return createSelector(
         'makeGetMentionKeysForPost',

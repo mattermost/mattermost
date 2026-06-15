@@ -28,7 +28,7 @@ let privateChannelJoinPromptVisible = false;
 
 type Option = {
     skipRedirectReplyPermalink: boolean;
-}
+};
 
 function focusRootPost(post: Post, channel: Channel): ActionFuncAsync {
     return async (dispatch, getState) => {

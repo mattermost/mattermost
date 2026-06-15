@@ -25,7 +25,7 @@ type UploadInfo = {
     name: string;
     percent?: number;
     type?: string;
-}
+};
 export type FilePreviewInfo = FileInfo & UploadInfo;
 
 type Props = {

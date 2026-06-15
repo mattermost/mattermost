@@ -50,17 +50,17 @@ type Props = {
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
     intl: IntlShape;
-}
+};
 
 export type EmailInvite = {
     value: string;
     label: string;
-}
+};
 
 type State = {
     options: UserProfile[];
     prevValue: string;
-}
+};
 
 const typedInputDelimiter = /[,;]+/;
 const pasteDelimiter = /[\n\r,;]+/;

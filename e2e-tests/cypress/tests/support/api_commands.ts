@@ -17,7 +17,7 @@ import type {ChainableT, ResponseT} from '@/types';
 // https://api.mattermost.com/#tag/commands
 // *****************************************************************************
 
-type CypressResponseBody = Cypress.Response<unknown>
+type CypressResponseBody = Cypress.Response<unknown>;
 function apiCreateCommand(command: Record<string, unknown> = {}): Cypress.Chainable<{data: CypressResponseBody['body']; status: CypressResponseBody['status']}> {
     const options = {
         url: '/api/v4/commands',

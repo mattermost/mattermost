@@ -24,7 +24,7 @@ type OwnProps = {
     postIds: Array<Post['id'] | FakePost['id']>;
     selected: Post | FakePost;
     onCardClick: (post: Post) => void;
-}
+};
 
 function makeMapStateToProps() {
     const getRepliesListWithSeparators = makePrepareReplyIdsForThreadViewer();

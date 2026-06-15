@@ -49,7 +49,7 @@ type Props = {
      * Set to show edit link
      */
     canChange: boolean;
-}
+};
 
 export function matchesFilter(command: Command, filter?: string) {
     if (!filter) {

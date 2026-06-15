@@ -20,7 +20,7 @@ type Props = {
     userId: string;
     customButton?: JSX.Element;
     dmChannel?: Channel | null;
-}
+};
 
 export default function ProfilePopoverCallButton({pluginCallComponents, channelMember, sidebarOpen, customButton, dmChannel, currentUserId, userId}: Props) {
     const [clickEnabled, setClickEnabled] = useState(true);

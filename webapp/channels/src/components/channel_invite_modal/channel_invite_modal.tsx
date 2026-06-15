@@ -84,7 +84,7 @@ export type Props = {
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearchParams) => Promise<ActionResult>;
         getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
     };
-}
+};
 
 // Helper function to check if an option is a user
 const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {

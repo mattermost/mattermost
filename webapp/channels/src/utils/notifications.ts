@@ -9,7 +9,7 @@ export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
     reason?: string;
     data?: string;
-}
+};
 
 let requestedNotificationPermission = Boolean('Notification' in window && Notification.permission !== 'default');
 
