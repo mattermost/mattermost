@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -145,7 +144,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 		data["include_profile_pictures"] = "true"
 	}
 
-	job, _, err := c.CreateJob(context.TODO(), &model.Job{
+	job, _, err := c.CreateJob(cmdContext(command), &model.Job{
 		Type: model.JobTypeExportProcess,
 		Data: data,
 	})
@@ -159,7 +158,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 }
 
 func exportListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	exports, _, err := c.ListExports(context.TODO())
+	exports, _, err := c.ListExports(cmdContext(command))
 	if err != nil {
 		return fmt.Errorf("failed to list exports: %w", err)
 	}
@@ -179,7 +178,7 @@ func exportListCmdF(c client.Client, command *cobra.Command, args []string) erro
 func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) error {
 	name := args[0]
 
-	if _, err := c.DeleteExport(context.TODO(), name); err != nil {
+	if _, err := c.DeleteExport(cmdContext(command), name); err != nil {
 		return fmt.Errorf("failed to delete export: %w", err)
 	}
 
@@ -191,7 +190,7 @@ func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) er
 func exportGeneratePresignedURLCmdF(c client.Client, command *cobra.Command, args []string) error {
 	name := args[0]
 
-	presignedURL, _, err := c.GeneratePresignedURL(context.TODO(), name)
+	presignedURL, _, err := c.GeneratePresignedURL(cmdContext(command), name)
 	if err != nil {
 		return fmt.Errorf("failed to generate export link: %w", err)
 	}
@@ -222,7 +221,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 			return "", fmt.Errorf("failed to seek file: %w", err)
 		}
 
-		_, _, err = c.DownloadExport(context.TODO(), name, outFile, off)
+		_, _, err = c.DownloadExport(cmdContext(command), name, outFile, off)
 		return "", err
 	}
 
@@ -294,7 +293,7 @@ func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
-	job, _, err := c.GetJob(context.TODO(), args[0])
+	job, _, err := c.GetJob(cmdContext(command), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get export job: %w", err)
 	}
@@ -304,13 +303,13 @@ func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 	return nil
 }
 
-func exportJobCancelCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	job, _, err := c.GetJob(context.TODO(), args[0])
+func exportJobCancelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	job, _, err := c.GetJob(cmdContext(cmd), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get export job: %w", err)
 	}
 
-	if _, err := c.CancelJob(context.TODO(), job.Id); err != nil {
+	if _, err := c.CancelJob(cmdContext(cmd), job.Id); err != nil {
 		return fmt.Errorf("failed to cancel export job: %w", err)
 	}
 

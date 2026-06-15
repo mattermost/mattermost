@@ -111,8 +111,8 @@ func hasAttrsChanges(cmd *cobra.Command) bool {
 		cmd.Flags().Changed("option")
 }
 
-func getFieldFromArg(c client.Client, fieldArg string) (*model.PropertyField, error) {
-	fields, _, err := c.ListCPAFields(context.TODO())
+func getFieldFromArg(ctx context.Context, c client.Client, fieldArg string) (*model.PropertyField, error) {
+	fields, _, err := c.ListCPAFields(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get CPA fields: %w", err)
 	}
@@ -135,9 +135,9 @@ func getFieldFromArg(c client.Client, fieldArg string) (*model.PropertyField, er
 }
 
 // setupCPATemplateContext sets up template functions for field and value resolution
-func setupCPATemplateContext(c client.Client) error {
+func setupCPATemplateContext(ctx context.Context, c client.Client) error {
 	// Get all fields once for the entire command
-	fields, _, err := c.ListCPAFields(context.TODO())
+	fields, _, err := c.ListCPAFields(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get CPA fields for template context: %w", err)
 	}

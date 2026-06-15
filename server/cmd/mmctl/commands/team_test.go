@@ -4,11 +4,11 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -56,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 
 		s.client.
 			EXPECT().
-			CreateTeam(context.TODO(), mockTeam).
+			CreateTeam(gomock.Any(), mockTeam).
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -84,7 +84,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 
 		s.client.
 			EXPECT().
-			CreateTeam(context.TODO(), mockTeam).
+			CreateTeam(gomock.Any(), mockTeam).
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -110,7 +110,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 
 		s.client.
 			EXPECT().
-			CreateTeam(context.TODO(), mockTeam).
+			CreateTeam(gomock.Any(), mockTeam).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -132,14 +132,14 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		// Mocking : GetTeam searches with team id, if team not found proceeds with team name search
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), "existingName", "").
+			GetTeam(gomock.Any(), "existingName", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// Mocking : GetTeamByname is called, if GetTeam fails to return any team, as team name was passed instead of team id
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), "existingName", "").
+			GetTeamByName(gomock.Any(), "existingName", "").
 			Return(nil, &model.Response{}, nil). // Error is nil as team not found will not return error from API
 			Times(1)
 
@@ -170,13 +170,13 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), args[0], "").
+			GetTeam(gomock.Any(), args[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), args[0], "").
+			GetTeamByName(gomock.Any(), args[0], "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -186,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		// Mock out UpdateTeam which calls the api to rename team
 		s.client.
 			EXPECT().
-			UpdateTeam(context.TODO(), renamedTeam).
+			UpdateTeam(gomock.Any(), renamedTeam).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -216,19 +216,19 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), args[0], "").
+			GetTeam(gomock.Any(), args[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), args[0], "").
+			GetTeamByName(gomock.Any(), args[0], "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeam(context.TODO(), updatedTeam).
+			UpdateTeam(gomock.Any(), updatedTeam).
 			Return(updatedTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -248,7 +248,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 0, DefaultPageSize).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -266,7 +266,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(2)
 
@@ -300,7 +300,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(2)
 
@@ -347,7 +347,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 0, DefaultPageSize).
 			Return(mockTeams, &model.Response{}, nil).
 			Times(2)
 
@@ -391,13 +391,13 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 0, DefaultPageSize).
 			Return(mockTeamsPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 1, DefaultPageSize).
 			Return(mockTeamsPage2, &model.Response{}, nil).
 			Times(1)
 
@@ -428,13 +428,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -455,13 +455,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(context.TODO(), teamID).
+			PermanentDeleteTeam(gomock.Any(), teamID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -484,13 +484,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(context.TODO(), teamID).
+			PermanentDeleteTeam(gomock.Any(), teamID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -512,7 +512,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: teamName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: teamName}).
 			Return([]*model.Team{mockTeam}, &model.Response{}, nil).
 			Times(1)
 
@@ -530,7 +530,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: displayName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: displayName}).
 			Return([]*model.Team{mockTeam}, &model.Response{}, nil).
 			Times(1)
 
@@ -547,7 +547,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: teamName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: teamName}).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -564,7 +564,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: displayName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: displayName}).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -585,13 +585,13 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: mockTeam1Name}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: mockTeam1Name}).
 			Return([]*model.Team{mockTeam1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: mockTeam2DisplayName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: mockTeam2DisplayName}).
 			Return([]*model.Team{mockTeam2}, &model.Response{}, nil).
 			Times(1)
 
@@ -612,7 +612,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: teamVariableName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2}, &model.Response{}, nil).
 			Times(1)
 
@@ -635,13 +635,13 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: "team"}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: "team"}).
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: teamVariableName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{}, nil).
 			Times(1)
 
@@ -663,7 +663,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: teamVariableName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4, mockTeam5}, &model.Response{}, nil).
 			Times(1)
 
@@ -683,7 +683,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		mockError := errors.New("remote error")
 		teamName := "teamName"
 		s.client.EXPECT().
-			SearchTeams(context.TODO(), &model.TeamSearch{Term: teamName}).
+			SearchTeams(gomock.Any(), &model.TeamSearch{Term: teamName}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -720,13 +720,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -751,13 +751,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(context.TODO(), teamID, model.TeamInvite).
+			UpdateTeamPrivacy(gomock.Any(), teamID, model.TeamInvite).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -780,13 +780,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(context.TODO(), teamID, model.TeamOpen).
+			UpdateTeamPrivacy(gomock.Any(), teamID, model.TeamOpen).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -811,13 +811,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(context.TODO(), teamID, model.TeamOpen).
+			UpdateTeamPrivacy(gomock.Any(), teamID, model.TeamOpen).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -843,13 +843,13 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -869,13 +869,13 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreTeam(context.TODO(), teamID).
+			RestoreTeam(gomock.Any(), teamID).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -895,13 +895,13 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreTeam(context.TODO(), teamID).
+			RestoreTeam(gomock.Any(), teamID).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 

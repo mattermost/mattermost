@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -55,19 +54,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(gomock.Any(), "user123").
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
@@ -114,19 +113,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(gomock.Any(), "user123").
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
@@ -182,19 +181,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(gomock.Any(), "user123").
 			Return(mockValues, &model.Response{}, nil).
 			Times(1)
 
@@ -228,19 +227,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(gomock.Any(), "user123").
 			Return(map[string]json.RawMessage{}, &model.Response{}, nil).
 			Times(1)
 
@@ -264,19 +263,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAValues(context.TODO(), "user123").
+			ListCPAValues(gomock.Any(), "user123").
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
@@ -293,7 +292,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
@@ -311,7 +310,7 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return([]*model.PropertyField{}, &model.Response{}, nil).
 			Times(1)
 
@@ -319,19 +318,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueListCmd() {
 		// All should return NotFoundError so it tries all methods
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "nonexistent@example.com", "").
+			GetUserByEmail(gomock.Any(), "nonexistent@example.com", "").
 			Return(nil, notFoundResponse, notFoundError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "nonexistent@example.com", "").
+			GetUserByUsername(gomock.Any(), "nonexistent@example.com", "").
 			Return(nil, notFoundResponse, notFoundError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), "nonexistent@example.com", "").
+			GetUser(gomock.Any(), "nonexistent@example.com", "").
 			Return(nil, notFoundResponse, notFoundError).
 			Times(1)
 
@@ -368,19 +367,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(2)
 
 		s.client.
 			EXPECT().
-			PatchCPAValuesForUser(context.TODO(), "user123", gomock.Any()).
+			PatchCPAValuesForUser(gomock.Any(), "user123", gomock.Any()).
 			Return(mockUpdatedValues, &model.Response{}, nil).
 			Times(1)
 
@@ -415,19 +414,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(2)
 
 		s.client.
 			EXPECT().
-			PatchCPAValuesForUser(context.TODO(), "user123", gomock.Any()).
+			PatchCPAValuesForUser(gomock.Any(), "user123", gomock.Any()).
 			Return(mockUpdatedValues, &model.Response{}, nil).
 			Times(1)
 
@@ -456,13 +455,13 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(1)
 
@@ -495,19 +494,19 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(mockFields, &model.Response{}, nil).
 			Times(2)
 
 		s.client.
 			EXPECT().
-			PatchCPAValuesForUser(context.TODO(), "user123", gomock.Any()).
+			PatchCPAValuesForUser(gomock.Any(), "user123", gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 
@@ -532,13 +531,13 @@ func (s *MmctlUnitTestSuite) TestCPAValueSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "testuser@example.com", "").
+			GetUserByEmail(gomock.Any(), "testuser@example.com", "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCPAFields(context.TODO()).
+			ListCPAFields(gomock.Any()).
 			Return(nil, &model.Response{}, expectedError).
 			Times(1)
 

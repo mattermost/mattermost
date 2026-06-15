@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -28,13 +29,13 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, true).
+			UpdateUserActive(gomock.Any(), mockUser.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -50,19 +51,19 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
@@ -80,13 +81,13 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, true).
+			UpdateUserActive(gomock.Any(), mockUser.Id, true).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -107,61 +108,61 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[0], "").
+			GetUserByEmail(gomock.Any(), emailArgs[0], "").
 			Return(&mockUser0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArgs[1], "").
+			GetUserByUsername(gomock.Any(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArgs[1], "").
+			GetUser(gomock.Any(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[2], "").
+			GetUserByEmail(gomock.Any(), emailArgs[2], "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[3], "").
+			GetUserByEmail(gomock.Any(), emailArgs[3], "").
 			Return(&mockUser3, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[4], "").
+			GetUserByEmail(gomock.Any(), emailArgs[4], "").
 			Return(&mockUser4, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser0.Id, true).
+			UpdateUserActive(gomock.Any(), mockUser0.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser2.Id, true).
+			UpdateUserActive(gomock.Any(), mockUser2.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser3.Id, true).
+			UpdateUserActive(gomock.Any(), mockUser3.Id, true).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser4.Id, true).
+			UpdateUserActive(gomock.Any(), mockUser4.Id, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -214,13 +215,13 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -236,19 +237,19 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArg, "").
+			GetUserByUsername(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArg, "").
+			GetUser(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -266,13 +267,13 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -290,13 +291,13 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -317,61 +318,61 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[0], "").
+			GetUserByEmail(gomock.Any(), emailArgs[0], "").
 			Return(&mockUser0, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), emailArgs[1], "").
+			GetUserByUsername(gomock.Any(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), emailArgs[1], "").
+			GetUser(gomock.Any(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[2], "").
+			GetUserByEmail(gomock.Any(), emailArgs[2], "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[3], "").
+			GetUserByEmail(gomock.Any(), emailArgs[3], "").
 			Return(&mockUser3, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[4], "").
+			GetUserByEmail(gomock.Any(), emailArgs[4], "").
 			Return(&mockUser4, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser0.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser0.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser2.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser2.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser3.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser3.Id, false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser4.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser4.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -410,19 +411,19 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -438,23 +439,23 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(gomock.Any(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(gomock.Any(), userID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email2, "").
+			GetUserByEmail(gomock.Any(), email2, "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID2).
+			PermanentDeleteUser(gomock.Any(), userID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -477,13 +478,13 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(gomock.Any(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(gomock.Any(), userID1).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -505,23 +506,23 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(gomock.Any(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email2, "").
+			GetUserByEmail(gomock.Any(), email2, "").
 			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(gomock.Any(), userID1).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID2).
+			PermanentDeleteUser(gomock.Any(), userID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -543,12 +544,12 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), email1, "").
+			GetUserByEmail(gomock.Any(), email1, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeleteUser(context.TODO(), userID1).
+			PermanentDeleteUser(gomock.Any(), userID1).
 			Return(&model.Response{StatusCode: http.StatusAccepted}, nil).
 			Times(1)
 
@@ -569,7 +570,7 @@ func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
 
 		s.client.
 			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
+			PermanentDeleteAllUsers(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -587,7 +588,7 @@ func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
 
 		s.client.
 			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
+			PermanentDeleteAllUsers(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -605,7 +606,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -622,7 +623,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -640,7 +641,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -657,19 +658,19 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -694,7 +695,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user by email")).
 			Times(1)
 
@@ -711,7 +712,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), usernameArg, "").
+			GetUserByUsername(gomock.Any(), usernameArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user by username")).
 			Times(1)
 
@@ -728,13 +729,13 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user")).
 			Times(1)
 
@@ -756,13 +757,13 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, currentPassword, password).
+			UpdateUserPassword(gomock.Any(), mockUser.Id, currentPassword, password).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -785,13 +786,13 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, "", password).
+			UpdateUserPassword(gomock.Any(), mockUser.Id, "", password).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -815,13 +816,13 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, currentPassword, password).
+			UpdateUserPassword(gomock.Any(), mockUser.Id, currentPassword, password).
 			Return(&model.Response{StatusCode: http.StatusOK}, mockError).
 			Times(1)
 
@@ -845,13 +846,13 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserPassword(context.TODO(), mockUser.Id, "", password).
+			UpdateUserPassword(gomock.Any(), mockUser.Id, "", password).
 			Return(&model.Response{StatusCode: http.StatusOK}, mockError).
 			Times(1)
 
@@ -872,19 +873,19 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -906,13 +907,13 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserHashedPassword(context.TODO(), mockUser.Id, hashedPassword).
+			UpdateUserHashedPassword(gomock.Any(), mockUser.Id, hashedPassword).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -936,13 +937,13 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserHashedPassword(context.TODO(), mockUser.Id, hashedPassword).
+			UpdateUserHashedPassword(gomock.Any(), mockUser.Id, hashedPassword).
 			Return(&model.Response{StatusCode: http.StatusOK}, mockError).
 			Times(1)
 
@@ -964,7 +965,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 
 		s.client.
 			EXPECT().
-			SendPasswordResetEmail(context.TODO(), emailArg).
+			SendPasswordResetEmail(gomock.Any(), emailArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -997,7 +998,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 
 		s.client.
 			EXPECT().
-			SendPasswordResetEmail(context.TODO(), emailArg).
+			SendPasswordResetEmail(gomock.Any(), emailArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -1029,7 +1030,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			case strings.HasPrefix(email, "error"):
 				s.client.
 					EXPECT().
-					SendPasswordResetEmail(context.TODO(), email).
+					SendPasswordResetEmail(gomock.Any(), email).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
 				expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", email, mockError))
@@ -1038,7 +1039,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			default:
 				s.client.
 					EXPECT().
-					SendPasswordResetEmail(context.TODO(), email).
+					SendPasswordResetEmail(gomock.Any(), email).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 					Times(1)
 			}
@@ -1062,13 +1063,13 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(gomock.Any(), argTeam, "").
 			Return(&model.Team{Id: argTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), argTeam, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), argTeam, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -1087,19 +1088,19 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(gomock.Any(), argTeam, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam, "").
+			GetTeamByName(gomock.Any(), argTeam, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultID, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), resultID, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -1124,38 +1125,38 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		// Setup GetTeam
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[0], "").
+			GetTeam(gomock.Any(), argTeam[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[1], "").
+			GetTeam(gomock.Any(), argTeam[1], "").
 			Return(resultTeamModels[1], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[2], "").
+			GetTeam(gomock.Any(), argTeam[2], "").
 			Return(resultTeamModels[2], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[3], "").
+			GetTeam(gomock.Any(), argTeam[3], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// Setup GetTeamByName
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[0], "").
+			GetTeamByName(gomock.Any(), argTeam[0], "").
 			Return(resultTeamModels[0], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[3], "").
+			GetTeamByName(gomock.Any(), argTeam[3], "").
 			Return(resultTeamModels[3], &model.Response{}, nil).
 			Times(1)
 
@@ -1163,7 +1164,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		for _, resultTeamModel := range resultTeamModels {
 			s.client.
 				EXPECT().
-				InviteUsersToTeam(context.TODO(), resultTeamModel.Id, []string{argUser}).
+				InviteUsersToTeam(gomock.Any(), resultTeamModel.Id, []string{argUser}).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
@@ -1184,13 +1185,13 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(gomock.Any(), argTeam, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam, "").
+			GetTeamByName(gomock.Any(), argTeam, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1210,13 +1211,13 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam, "").
+			GetTeam(gomock.Any(), argTeam, "").
 			Return(&model.Team{Id: argTeam, Name: resultName}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), argTeam, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), argTeam, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -1244,87 +1245,87 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		// Setup GetTeam
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[0], "").
+			GetTeam(gomock.Any(), argTeam[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[1], "").
+			GetTeam(gomock.Any(), argTeam[1], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[2], "").
+			GetTeam(gomock.Any(), argTeam[2], "").
 			Return(resultTeamModels[2], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[3], "").
+			GetTeam(gomock.Any(), argTeam[3], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[4], "").
+			GetTeam(gomock.Any(), argTeam[4], "").
 			Return(resultTeamModels[4], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), argTeam[5], "").
+			GetTeam(gomock.Any(), argTeam[5], "").
 			Return(resultTeamModels[5], &model.Response{}, nil).
 			Times(1)
 
 		// Setup GetTeamByName
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[0], "").
+			GetTeamByName(gomock.Any(), argTeam[0], "").
 			Return(resultTeamModels[0], &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[1], "").
+			GetTeamByName(gomock.Any(), argTeam[1], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), argTeam[3], "").
+			GetTeamByName(gomock.Any(), argTeam[3], "").
 			Return(resultTeamModels[3], &model.Response{}, nil).
 			Times(1)
 
 		// Setup InviteUsersToTeam
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[0].Id, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), resultTeamModels[0].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[2].Id, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), resultTeamModels[2].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[3].Id, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), resultTeamModels[3].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[4].Id, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), resultTeamModels[4].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(context.TODO(), resultTeamModels[5].Id, []string{argUser}).
+			InviteUsersToTeam(gomock.Any(), resultTeamModels[5].Id, []string{argUser}).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -1388,7 +1389,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(gomock.Any(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -1413,7 +1414,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(gomock.Any(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -1439,7 +1440,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(gomock.Any(), &mockUser).
 			Return(&mockUser, &model.Response{}, errors.New("remote error")).
 			Times(1)
 
@@ -1458,13 +1459,13 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(gomock.Any(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user system_admin").
+			UpdateUserRoles(gomock.Any(), mockUser.Id, "system_user system_admin").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -1486,13 +1487,13 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(gomock.Any(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DemoteUserToGuest(context.TODO(), mockUser.Id).
+			DemoteUserToGuest(gomock.Any(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -1514,13 +1515,13 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUser(context.TODO(), &mockUser).
+			CreateUser(gomock.Any(), &mockUser).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserRoles(context.TODO(), mockUser.Id, "system_user system_admin").
+			UpdateUserRoles(gomock.Any(), mockUser.Id, "system_user system_admin").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("remote error")).
 			Times(1)
 
@@ -1542,13 +1543,13 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "userId", "").
+			GetUserByUsername(gomock.Any(), "userId", "").
 			Return(&model.User{Id: "userId"}, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserMfa(context.TODO(), "userId", "", false).
+			UpdateUserMfa(gomock.Any(), "userId", "", false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -1563,13 +1564,13 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "userId", "").
+			GetUserByUsername(gomock.Any(), "userId", "").
 			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), "userId", "").
+			GetUser(gomock.Any(), "userId", "").
 			Return(nil, nil, nil).
 			Times(1)
 
@@ -1594,13 +1595,13 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), "userId", "").
+			GetUserByUsername(gomock.Any(), "userId", "").
 			Return(&model.User{Id: "userId"}, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserMfa(context.TODO(), "userId", "", false).
+			UpdateUserMfa(gomock.Any(), "userId", "", false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -1625,19 +1626,19 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			if user == "notfounduser" {
 				s.client.
 					EXPECT().
-					GetUserByUsername(context.TODO(), user, "").
+					GetUserByUsername(gomock.Any(), user, "").
 					Return(nil, nil, nil).
 					Times(1)
 
 				s.client.
 					EXPECT().
-					GetUser(context.TODO(), user, "").
+					GetUser(gomock.Any(), user, "").
 					Return(nil, nil, nil).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					GetUserByUsername(context.TODO(), user, "").
+					GetUserByUsername(gomock.Any(), user, "").
 					Return(&model.User{Id: user}, nil, nil).
 					Times(1)
 			}
@@ -1647,13 +1648,13 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			if user == "error1" {
 				s.client.
 					EXPECT().
-					UpdateUserMfa(context.TODO(), user, "", false).
+					UpdateUserMfa(gomock.Any(), user, "", false).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
 			} else if user != "notfounduser" {
 				s.client.
 					EXPECT().
-					UpdateUserMfa(context.TODO(), user, "", false).
+					UpdateUserMfa(gomock.Any(), user, "", false).
 					Return(&model.Response{StatusCode: http.StatusOK}, nil).
 					Times(1)
 			}
@@ -1690,7 +1691,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -1714,19 +1715,19 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 1, 1, "", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 2, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1751,19 +1752,19 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 1, 1, "", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 2, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1789,19 +1790,19 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 1, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser3}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 2, 1, "inactive=true", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1827,7 +1828,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "inactive=true", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 1, 1, "inactive=true", "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
@@ -1846,7 +1847,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "", "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -1867,7 +1868,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "", "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1888,7 +1889,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "", "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 2, 1, "", "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -1914,13 +1915,13 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(gomock.Any(), team, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
@@ -1948,13 +1949,13 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(gomock.Any(), team, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
@@ -1985,25 +1986,25 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(gomock.Any(), team, "").
 			Return(&model.Team{Id: resultID}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 1, 1, "in_team="+resultID, "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "in_team="+resultID, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 2, 1, "in_team="+resultID, "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -2031,7 +2032,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 5, "role="+role, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 5, "role="+role, "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 
@@ -2059,17 +2060,17 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "role="+role, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 0, 1, "role="+role, "").
 			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "role="+role, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 1, 1, "role="+role, "").
 			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "role="+role, "").
+			GetUsersWithCustomQueryParameters(gomock.Any(), 2, 1, "role="+role, "").
 			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
@@ -2089,13 +2090,13 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2112,13 +2113,13 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), usernameArg, "").
+			GetUserByUsername(gomock.Any(), usernameArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2134,19 +2135,19 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockUser.Id, "").
+			GetUserByUsername(gomock.Any(), mockUser.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), mockUser.Id, "").
+			GetUser(gomock.Any(), mockUser.Id, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2163,13 +2164,13 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(gomock.Any(), arg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2186,19 +2187,19 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), arg, "").
+			GetUserByEmail(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), arg, "").
+			GetUserByUsername(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), arg, "").
+			GetUser(gomock.Any(), arg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2221,7 +2222,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		for i := range argEmails {
 			s.client.
 				EXPECT().
-				GetUserByEmail(context.TODO(), argEmails[i], "").
+				GetUserByEmail(gomock.Any(), argEmails[i], "").
 				Return(&argUsers[i], &model.Response{}, nil).
 				Times(1)
 		}
@@ -2229,7 +2230,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		for i := range argEmails {
 			s.client.
 				EXPECT().
-				UpdateUserActive(context.TODO(), argUsers[i].Id, false).
+				UpdateUserActive(gomock.Any(), argUsers[i].Id, false).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
@@ -2252,34 +2253,34 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		// mockUser1
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), argsDelete[0], "").
+			GetUserByUsername(gomock.Any(), argsDelete[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), argsDelete[0], "").
+			GetUser(gomock.Any(), argsDelete[0], "").
 			Return(&argUsers[0], &model.Response{}, nil).
 			Times(1)
 
 		// mockUser2
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), argsDelete[1], "").
+			GetUserByEmail(gomock.Any(), argsDelete[1], "").
 			Return(&argUsers[1], &model.Response{}, nil).
 			Times(1)
 
 		// mockUser3
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), argsDelete[2], "").
+			GetUserByUsername(gomock.Any(), argsDelete[2], "").
 			Return(&argUsers[2], &model.Response{}, nil).
 			Times(1)
 
 		for _, user := range argUsers {
 			s.client.
 				EXPECT().
-				UpdateUserActive(context.TODO(), user.Id, false).
+				UpdateUserActive(gomock.Any(), user.Id, false).
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
@@ -2298,32 +2299,32 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		// mockUser1
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser1.Email, "").
+			GetUserByEmail(gomock.Any(), mockUser1.Email, "").
 			Return(&mockUser1, &model.Response{}, nil).
 			Times(1)
 
 		// nonexistent email
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), nonexistentEmail, "").
+			GetUserByEmail(gomock.Any(), nonexistentEmail, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), nonexistentEmail, "").
+			GetUserByUsername(gomock.Any(), nonexistentEmail, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), nonexistentEmail, "").
+			GetUser(gomock.Any(), nonexistentEmail, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserActive(context.TODO(), mockUser1.Id, false).
+			UpdateUserActive(gomock.Any(), mockUser1.Id, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2343,13 +2344,13 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			VerifyUserEmailWithoutToken(context.TODO(), mockUser.Id).
+			VerifyUserEmailWithoutToken(gomock.Any(), mockUser.Id).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -2366,13 +2367,13 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("")).
 			Times(1)
 
@@ -2398,13 +2399,13 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			VerifyUserEmailWithoutToken(context.TODO(), mockUser.Id).
+			VerifyUserEmailWithoutToken(gomock.Any(), mockUser.Id).
 			Return(nil, &model.Response{}, errors.New("some-message")).
 			Times(1)
 
@@ -2433,13 +2434,13 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertUserToBot(context.TODO(), mockUser.Id).
+			ConvertUserToBot(gomock.Any(), mockUser.Id).
 			Return(&mockBot, &model.Response{}, nil).
 			Times(1)
 
@@ -2471,13 +2472,13 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userNameArg, "").
+			GetUserByUsername(gomock.Any(), userNameArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertBotToUser(context.TODO(), mockBot.UserId, &userPatch, false).
+			ConvertBotToUser(gomock.Any(), mockBot.UserId, &userPatch, false).
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -2509,13 +2510,13 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertUserToBot(context.TODO(), mockUser.Id).
+			ConvertUserToBot(gomock.Any(), mockUser.Id).
 			Return(nil, &model.Response{}, errors.New("some-message")).
 			Times(1)
 
@@ -2546,13 +2547,13 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userNameArg, "").
+			GetUserByUsername(gomock.Any(), userNameArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ConvertBotToUser(context.TODO(), mockBot.UserId, &userPatch, false).
+			ConvertBotToUser(gomock.Any(), mockBot.UserId, &userPatch, false).
 			Return(nil, &model.Response{}, errors.New("some-message")).
 			Times(1)
 
@@ -2575,7 +2576,7 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateAuthToLdap(context.TODO(), fromAuth, matchField, false).
+			MigrateAuthToLdap(gomock.Any(), fromAuth, matchField, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2614,7 +2615,7 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateAuthToSaml(context.TODO(), fromAuth, userData, false).
+			MigrateAuthToSaml(gomock.Any(), fromAuth, userData, false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2636,7 +2637,7 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateAuthToSaml(context.TODO(), fromAuth, map[string]string{}, true).
+			MigrateAuthToSaml(gomock.Any(), fromAuth, map[string]string{}, true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2704,7 +2705,7 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateAuthToLdap(context.TODO(), fromAuth, matchField, false).
+			MigrateAuthToLdap(gomock.Any(), fromAuth, matchField, false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -2725,7 +2726,7 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateAuthToSaml(context.TODO(), fromAuth, map[string]string{}, true).
+			MigrateAuthToSaml(gomock.Any(), fromAuth, map[string]string{}, true).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -2743,13 +2744,13 @@ func (s *MmctlUnitTestSuite) TestPromoteGuestToUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PromoteGuestToUser(context.TODO(), mockUser.Id).
+			PromoteGuestToUser(gomock.Any(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2767,13 +2768,13 @@ func (s *MmctlUnitTestSuite) TestPromoteGuestToUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PromoteGuestToUser(context.TODO(), mockUser.Id).
+			PromoteGuestToUser(gomock.Any(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -2793,13 +2794,13 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DemoteUserToGuest(context.TODO(), mockUser.Id).
+			DemoteUserToGuest(gomock.Any(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2817,13 +2818,13 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArg, "").
+			GetUserByEmail(gomock.Any(), emailArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DemoteUserToGuest(context.TODO(), mockUser.Id).
+			DemoteUserToGuest(gomock.Any(), mockUser.Id).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -2845,13 +2846,13 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2871,13 +2872,13 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(gomock.Any(), &updatedUser).
 			Return(&updatedUser, &model.Response{}, nil).
 			Times(1)
 
@@ -2899,7 +2900,7 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -2919,13 +2920,13 @@ func (s *MmctlUnitTestSuite) TestUserEditUsernameCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(gomock.Any(), &updatedUser).
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 
@@ -2945,13 +2946,13 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2971,13 +2972,13 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(gomock.Any(), &updatedUser).
 			Return(&updatedUser, &model.Response{}, nil).
 			Times(1)
 
@@ -2999,7 +3000,7 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -3019,13 +3020,13 @@ func (s *MmctlUnitTestSuite) TestUserEditEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(context.TODO(), &updatedUser).
+			UpdateUser(gomock.Any(), &updatedUser).
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 
@@ -3045,13 +3046,13 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userArg, "").
+			GetUser(gomock.Any(), userArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -3071,13 +3072,13 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
+			UpdateUserAuth(gomock.Any(), mockUser.Id, &userAuth).
 			Return(&userAuth, &model.Response{}, nil).
 			Times(1)
 
@@ -3100,7 +3101,7 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -3121,7 +3122,7 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -3141,13 +3142,13 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
+			GetUserByUsername(gomock.Any(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUserAuth(context.TODO(), mockUser.Id, &userAuth).
+			UpdateUserAuth(gomock.Any(), mockUser.Id, &userAuth).
 			Return(nil, &model.Response{}, errors.New("API error")).
 			Times(1)
 

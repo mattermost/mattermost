@@ -4,13 +4,13 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -69,17 +69,17 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		// createCommandCmdF will call getTeamFromTeamArg,  getUserFromUserArg which then calls GetUserByUsername
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(gomock.Any(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			CreateCommand(context.TODO(), &mockCommand).
+			CreateCommand(gomock.Any(), &mockCommand).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
@@ -117,17 +117,17 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(gomock.Any(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			CreateCommand(context.TODO(), &mockCommand).
+			CreateCommand(gomock.Any(), &mockCommand).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
@@ -146,12 +146,12 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -197,12 +197,12 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(gomock.Any(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -248,12 +248,12 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(gomock.Any(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -313,18 +313,18 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), creatorIDArg, "").
+			GetUserByUsername(gomock.Any(), creatorIDArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		mockError := errors.New("mock error, simulated error for CreateCommand")
 		s.client.
 			EXPECT().
-			CreateCommand(context.TODO(), &mockCommand).
+			CreateCommand(gomock.Any(), &mockCommand).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -344,7 +344,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteCommand(context.TODO(), arg).
+			DeleteCommand(gomock.Any(), arg).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -362,7 +362,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteCommand(context.TODO(), arg).
+			DeleteCommand(gomock.Any(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -380,7 +380,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteCommand(context.TODO(), arg).
+			DeleteCommand(gomock.Any(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -417,10 +417,10 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
-		s.client.EXPECT().GetAllTeams(context.TODO(), "", 0, DefaultPageSize).Return(teams, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().GetAllTeams(context.TODO(), "", 1, DefaultPageSize).Return([]*model.Team{}, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().ListCommands(context.TODO(), team1ID, true).Return(team1Commands, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().ListCommands(context.TODO(), team2Id, true).Return(team2Commands, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetAllTeams(gomock.Any(), "", 0, DefaultPageSize).Return(teams, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetAllTeams(gomock.Any(), "", 1, DefaultPageSize).Return([]*model.Team{}, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(gomock.Any(), team1ID, true).Return(team1Commands, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(gomock.Any(), team2Id, true).Return(team2Commands, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
@@ -441,8 +441,8 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
-		s.client.EXPECT().GetTeam(context.TODO(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().ListCommands(context.TODO(), teamID, true).Return(teamCommand, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetTeam(gomock.Any(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(gomock.Any(), teamID, true).Return(teamCommand, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
@@ -455,9 +455,9 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		// first try to get team by id
-		s.client.EXPECT().GetTeam(context.TODO(), teamID, "").Return(nil, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetTeam(gomock.Any(), teamID, "").Return(nil, &model.Response{}, nil).Times(1)
 		// second try to search the team by name
-		s.client.EXPECT().GetTeamByName(context.TODO(), teamID, "").Return(nil, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetTeamByName(gomock.Any(), teamID, "").Return(nil, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
@@ -470,8 +470,8 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		team := &model.Team{Id: teamID}
-		s.client.EXPECT().GetTeam(context.TODO(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().ListCommands(context.TODO(), teamID, true).Return(nil, &model.Response{}, errors.New("")).Times(1)
+		s.client.EXPECT().GetTeam(gomock.Any(), teamID, "").Return(team, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(gomock.Any(), teamID, true).Return(nil, &model.Response{}, errors.New("")).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
@@ -543,17 +543,17 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// modifyCommandCmdF will call getCommandById, GetUserByUsername and UpdateCommand
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), arg).
+			GetCommandById(gomock.Any(), arg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), mockCommandModified.CreatorId, "").
+			GetUserByUsername(gomock.Any(), mockCommandModified.CreatorId, "").
 			Return(&model.User{Id: mockCommandModified.CreatorId}, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateCommand(context.TODO(), &mockCommand).
+			UpdateCommand(gomock.Any(), &mockCommand).
 			Return(mockCommandModified, &model.Response{}, nil).
 			Times(1)
 
@@ -584,7 +584,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// modifyCommandCmdF will call getCommandById
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), arg).
+			GetCommandById(gomock.Any(), arg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -617,17 +617,17 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// via email, username, and id.
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), arg).
+			GetCommandById(gomock.Any(), arg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), bogusUsername, "").
+			GetUserByUsername(gomock.Any(), bogusUsername, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), bogusUsername, "").
+			GetUser(gomock.Any(), bogusUsername, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -658,7 +658,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// modifyCommandCmdF will call getCommandById
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), arg).
+			GetCommandById(gomock.Any(), arg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
@@ -689,7 +689,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// modifyCommandCmdF will call getCommandById
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), arg).
+			GetCommandById(gomock.Any(), arg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
@@ -720,13 +720,13 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// modifyCommandCmdF will call getCommandById then UpdateCommand
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), arg).
+			GetCommandById(gomock.Any(), arg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		mockError := errors.New("mock error, simulated error for CreateCommand")
 		s.client.
 			EXPECT().
-			UpdateCommand(context.TODO(), &mockCommand).
+			UpdateCommand(gomock.Any(), &mockCommand).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -789,22 +789,22 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), commandArg).
+			GetCommandById(gomock.Any(), commandArg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			MoveCommand(context.TODO(), teamArg, mockCommand.Id).
+			MoveCommand(gomock.Any(), teamArg, mockCommand.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -819,12 +819,12 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArgBogus, "").
+			GetTeam(gomock.Any(), teamArgBogus, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArgBogus, "").
+			GetTeamByName(gomock.Any(), teamArgBogus, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -839,12 +839,12 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), commandArgBogus).
+			GetCommandById(gomock.Any(), commandArgBogus).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -859,17 +859,17 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), commandArg).
+			GetCommandById(gomock.Any(), commandArg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			MoveCommand(context.TODO(), teamArg, commandArg).
+			MoveCommand(gomock.Any(), teamArg, commandArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -884,17 +884,17 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), commandArg).
+			GetCommandById(gomock.Any(), commandArg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			MoveCommand(context.TODO(), teamArg, commandArg).
+			MoveCommand(gomock.Any(), teamArg, commandArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -933,7 +933,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		// showCommandCmdF will look up command by id
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), commandArg).
+			GetCommandById(gomock.Any(), commandArg).
 			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
@@ -949,7 +949,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		// showCommandCmdF will look up command by id
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), commandArgBogus).
+			GetCommandById(gomock.Any(), commandArgBogus).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -969,13 +969,13 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), mockTeam.Name, "").
+			GetTeamByName(gomock.Any(), mockTeam.Name, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCommands(context.TODO(), mockTeam.Id, false).
+			ListCommands(gomock.Any(), mockTeam.Id, false).
 			Return(list, &model.Response{}, nil).
 			Times(1)
 
@@ -998,13 +998,13 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, errors.New("team not found")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), teamTrigger).
+			GetCommandById(gomock.Any(), teamTrigger).
 			Return(nil, &model.Response{}, errors.New("command not found")).
 			Times(1)
 
@@ -1026,19 +1026,19 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), mockTeam.Name, "").
+			GetTeamByName(gomock.Any(), mockTeam.Name, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			ListCommands(context.TODO(), mockTeam.Id, false).
+			ListCommands(gomock.Any(), mockTeam.Id, false).
 			Return(list, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetCommandById(context.TODO(), teamTrigger).
+			GetCommandById(gomock.Any(), teamTrigger).
 			Return(nil, &model.Response{}, errors.New("bogus")).
 			Times(1)
 

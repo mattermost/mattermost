@@ -101,7 +101,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
 	if replyTo != "" {
-		replyToPost, _, err := c.GetPost(context.TODO(), replyTo, "")
+		replyToPost, _, err := c.GetPost(cmdContext(cmd), replyTo, "")
 		if err != nil {
 			return err
 		}
@@ -110,7 +110,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channel := getChannelFromChannelArg(c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
@@ -131,7 +131,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not decode post: %w", err)
 	}
 
-	if _, err := c.DoAPIPost(context.TODO(), url, data); err != nil {
+	if _, err := c.DoAPIPost(cmdContext(cmd), url, data); err != nil {
 		return fmt.Errorf("could not create post: %w", err)
 	}
 	return nil
@@ -153,13 +153,13 @@ func eventDataToPost(eventData map[string]any) (*model.Post, error) {
 	return post, nil
 }
 
-func printPost(c client.Client, post *model.Post, usernames map[string]string, showIds, showTimestamp bool) {
+func printPost(ctx context.Context, c client.Client, post *model.Post, usernames map[string]string, showIds, showTimestamp bool) {
 	var username string
 
 	if usernames[post.UserId] != "" {
 		username = usernames[post.UserId]
 	} else {
-		user, _, err := c.GetUser(context.TODO(), post.UserId, "")
+		user, _, err := c.GetUser(ctx, post.UserId, "")
 		if err != nil {
 			username = post.UserId
 		} else {
@@ -193,9 +193,9 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	printer.PrintT(templatedMessage, post)
 }
 
-func getPostList(client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
+func getPostList(ctx context.Context, client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
 	if since == "" {
-		return client.GetPostsForChannel(context.TODO(), channelID, 0, perPage, "", false, false)
+		return client.GetPostsForChannel(ctx, channelID, 0, perPage, "", false, false)
 	}
 
 	sinceTime, err := time.Parse(ISO8601Layout, since)
@@ -204,13 +204,13 @@ func getPostList(client client.Client, channelID, since string, perPage int) (*m
 	}
 
 	sinceTimeMillis := model.GetMillisForTime(sinceTime)
-	return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false)
+	return client.GetPostsSince(ctx, channelID, sinceTimeMillis, false)
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	channel := getChannelFromChannelArg(c, args[0])
+	channel := getChannelFromChannelArg(cmdContext(cmd), c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
@@ -220,7 +220,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	follow, _ := cmd.Flags().GetBool("follow")
 	since, _ := cmd.Flags().GetString("since")
 
-	postList, _, err := getPostList(c, channel.Id, since, number)
+	postList, _, err := getPostList(cmdContext(cmd), c, channel.Id, since, number)
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	usernames := map[string]string{}
 	for i := 1; i <= len(posts); i++ {
 		post := posts[len(posts)-i]
-		printPost(c, post, usernames, showIds, showTimestamp)
+		printPost(cmdContext(cmd), c, post, usernames, showIds, showTimestamp)
 	}
 
 	var multiErr *multierror.Error
@@ -255,7 +255,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 					multiErr = multierror.Append(multiErr, err)
 				}
 				if post.ChannelId == channel.Id {
-					printPost(c, post, usernames, showIds, showTimestamp)
+					printPost(cmdContext(cmd), c, post, usernames, showIds, showTimestamp)
 				}
 			}
 		}
@@ -292,7 +292,7 @@ func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			result = multierror.Append(result, err)
 			continue
 		}
-		if _, err := deleteFunc(context.TODO(), postID); err != nil {
+		if _, err := deleteFunc(cmdContext(cmd), postID); err != nil {
 			printer.PrintError(fmt.Sprintf("Error deleting post: %s. Error: %s", postID, err.Error()))
 			result = multierror.Append(result, err)
 			continue
@@ -304,10 +304,10 @@ func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func revealPostCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	postID := args[0]
-	post, _, err := c.RevealPost(context.TODO(), postID)
+	post, _, err := c.RevealPost(cmdContext(cmd), postID)
 	if err != nil {
 		return err
 	}
-	printPost(c, post, map[string]string{}, false, false)
+	printPost(cmdContext(cmd), c, post, map[string]string{}, false, false)
 	return nil
 }

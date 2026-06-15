@@ -14,25 +14,25 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 )
 
-func getTeamsFromTeamArgs(c client.Client, teamArgs []string) []*model.Team {
+func getTeamsFromTeamArgs(ctx context.Context, c client.Client, teamArgs []string) []*model.Team {
 	teams := make([]*model.Team, 0, len(teamArgs))
 	for _, teamArg := range teamArgs {
-		team := getTeamFromTeamArg(c, teamArg)
+		team := getTeamFromTeamArg(ctx, c, teamArg)
 		teams = append(teams, team)
 	}
 	return teams
 }
 
-func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
+func getTeamFromTeamArg(ctx context.Context, c client.Client, teamArg string) *model.Team {
 	if checkDots(teamArg) || checkSlash(teamArg) {
 		return nil
 	}
 
 	var team *model.Team
-	team, _, _ = c.GetTeam(context.TODO(), teamArg, "")
+	team, _, _ = c.GetTeam(ctx, teamArg, "")
 
 	if team == nil {
-		team, _, _ = c.GetTeamByName(context.TODO(), teamArg, "")
+		team, _, _ = c.GetTeamByName(ctx, teamArg, "")
 	}
 	return team
 }
@@ -41,11 +41,11 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 // teams and errors at the same time
 //
 //nolint:golint,unused
-func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error) {
+func getTeamsFromArgs(ctx context.Context, c client.Client, teamArgs []string) ([]*model.Team, error) {
 	var teams []*model.Team
 	var result *multierror.Error
 	for _, arg := range teamArgs {
-		team, err := getTeamFromArg(c, arg)
+		team, err := getTeamFromArg(ctx, c, arg)
 		if err != nil {
 			result = multierror.Append(result, err)
 			continue
@@ -56,14 +56,14 @@ func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error)
 }
 
 //nolint:golint,unused
-func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
+func getTeamFromArg(ctx context.Context, c client.Client, teamArg string) (*model.Team, error) {
 	if checkDots(teamArg) || checkSlash(teamArg) {
 		return nil, fmt.Errorf("invalid argument %q", teamArg)
 	}
 	var team *model.Team
 	var response *model.Response
 	var err error
-	team, response, err = c.GetTeam(context.TODO(), teamArg, "")
+	team, response, err = c.GetTeam(ctx, teamArg, "")
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
@@ -75,7 +75,7 @@ func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 	if team != nil {
 		return team, nil
 	}
-	team, response, err = c.GetTeamByName(context.TODO(), teamArg, "")
+	team, response, err = c.GetTeamByName(ctx, teamArg, "")
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
