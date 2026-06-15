@@ -71,7 +71,7 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
                 onChange={handleOnChangeDomains}
                 handleNewSelection={updateAllowedDomains}
                 isClearable={false}
-                description={formatMessage({id: 'general_tab.AllowedDomainsTip', defaultMessage: 'Seperate multiple domains with a space, comma, tab or enter.'})}
+                description={formatMessage({id: 'general_tab.AllowedDomainsTip', defaultMessage: 'Separate multiple domains with a space, comma, tab or enter.'})}
             />
             }
         </>
