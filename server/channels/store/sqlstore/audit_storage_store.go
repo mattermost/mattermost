@@ -97,7 +97,7 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
 		 SELECT user_id, $2, $3, $4
 		 FROM unnest($1::text[]) AS user_id
-		 ON CONFLICT (entity_id, user_id) DO NOTHING`,
+		 ON CONFLICT (entity_id, user_id, mechanism) DO NOTHING`,
 		pq.Array(userIDs), postID, mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to bulk-mark same-post")
