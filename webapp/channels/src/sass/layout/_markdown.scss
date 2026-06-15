@@ -27,12 +27,12 @@ h6.markdown__heading {
 }
 
 .markdown__heading {
-    margin: 10px 0;
+    margin: 4px 0;
     font-weight: 700;
     line-height: 1.5;
 
     &:first-child {
-        margin: 5px 0 10px;
+        margin: 0 0 4px;
     }
 
     .emoticon {

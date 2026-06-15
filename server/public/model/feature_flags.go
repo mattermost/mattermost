@@ -166,7 +166,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
-	f.WysiwygEditor = false
+	f.WysiwygEditor = true
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false

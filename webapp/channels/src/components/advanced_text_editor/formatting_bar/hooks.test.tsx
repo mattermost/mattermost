@@ -146,4 +146,34 @@ describe('splitFormattingBarControls', () => {
             expect(hiddenControls).toHaveLength(9);
         });
     });
+
+    describe('WYSIWYG text style dropdown — reduces visible count by 3 and excludes legacy heading control', () => {
+        test('wide mode keeps the remaining 8 controls (heading filtered out)', () => {
+            const {controls, hiddenControls} = splitFormattingBarControls(LayoutModes.Wide, 0, false, true);
+            expect(controls).toHaveLength(8);
+            expect(controls).toEqual(['bold', 'italic', 'strike', 'link', 'code', 'quote', 'ul', 'ol']);
+            expect(hiddenControls).toHaveLength(0);
+        });
+
+        test('normal mode reduces from 5 to 2 and excludes heading from overflow', () => {
+            const {controls, hiddenControls} = splitFormattingBarControls(LayoutModes.Normal, 0, false, true);
+            expect(controls).toHaveLength(2);
+            expect(hiddenControls).toHaveLength(6);
+            expect([...controls, ...hiddenControls]).not.toContain('heading');
+        });
+
+        test('narrow mode reduces from 2 to 0 and excludes heading from overflow', () => {
+            const {controls, hiddenControls} = splitFormattingBarControls(LayoutModes.Narrow, 0, false, true);
+            expect(controls).toHaveLength(0);
+            expect(hiddenControls).toHaveLength(8);
+            expect(hiddenControls).not.toContain('heading');
+        });
+
+        test('min mode reduces from 1 to 0 and excludes heading from overflow', () => {
+            const {controls, hiddenControls} = splitFormattingBarControls(LayoutModes.Min, 0, false, true);
+            expect(controls).toHaveLength(0);
+            expect(hiddenControls).toHaveLength(8);
+            expect(hiddenControls).not.toContain('heading');
+        });
+    });
 });
