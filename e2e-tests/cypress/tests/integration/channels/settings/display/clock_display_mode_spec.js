@@ -82,6 +82,14 @@ describe('Settings > Display > Clock Display Mode', () => {
         cy.apiAdminLogin().then(({user}) => {
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
+            // # Use standard timestamp format so post time renders as clock time
+            cy.apiSaveUserPreference([{
+                user_id: user.id,
+                category: 'display_settings',
+                name: 'datetime_display_format',
+                value: 'standard',
+            }], user.id);
+
             // # Set clock display to 24-hour
             setClockDisplayTo24Hour();
 
@@ -91,8 +99,11 @@ describe('Settings > Display > Clock Display Mode', () => {
             const futureDate = Date.UTC(nextYear, 0, 5, 14, 37); // Jan 5, 2:37pm
             cy.postMessageAs({sender: user, message: 'Hello from Jan 5, 2:37pm', channelId: testChannel.id, createAt: futureDate});
 
+            // # Reload to show the backdated post
+            cy.reload();
+
             // * Message posted shows timestamp in 24-hour format, e.g. 14:37
-            cy.getLastPost().
+            cy.contains('[data-testid="postView"]', 'Hello from Jan 5, 2:37pm').
                 find('time').
                 should('contain', '14:37').
                 and('have.attr', 'datetime', `${nextYear}-01-05T14:37:00.000`);
@@ -100,15 +111,15 @@ describe('Settings > Display > Clock Display Mode', () => {
     });
 });
 
-function navigateToClockDisplaySettings() {
+function navigateToDateAndTimeSettings() {
     // # Go to Settings modal - Display section
     cy.uiOpenSettingsModal('Display');
 
     // # Click the display tab
     cy.get('#displayButton').should('be.visible').click();
 
-    // # Click "Edit" to the right of "Clock Display"
-    cy.get('#clockEdit').
+    // # Click "Edit" to the right of "Date and Time"
+    cy.get('#date_and_timeEdit').
         scrollIntoView().
         should('be.visible').
         click();
@@ -120,8 +131,8 @@ function navigateToClockDisplaySettings() {
 }
 
 function setClockDisplayTo(clockFormat) {
-    // # Navigate to Clock Display Settings
-    navigateToClockDisplaySettings();
+    // # Navigate to Date and Time Settings
+    navigateToDateAndTimeSettings();
 
     // # Click the radio button and verify checked
     cy.get(`#${clockFormat}`).
@@ -132,11 +143,11 @@ function setClockDisplayTo(clockFormat) {
     // # Click Save button
     cy.uiSave();
 
-    // * Verify clock description
-    if (clockFormat === 'clockFormatA') {
-        cy.get('#clockDesc').should('have.text', '12-hour clock (example: 4:00 PM)');
+    // * Verify date and time description includes clock format
+    if (clockFormat === 'dateAndTimeClockFormatA') {
+        cy.get('#date_and_timeDesc').should('contain', '12-hour clock');
     } else {
-        cy.get('#clockDesc').should('have.text', '24-hour clock (example: 16:00)');
+        cy.get('#date_and_timeDesc').should('contain', '24-hour clock');
     }
 
     // # Close Settings modal
@@ -144,11 +155,11 @@ function setClockDisplayTo(clockFormat) {
 }
 
 function setClockDisplayTo12Hour() {
-    setClockDisplayTo('clockFormatA');
+    setClockDisplayTo('dateAndTimeClockFormatA');
 }
 
 function setClockDisplayTo24Hour() {
-    setClockDisplayTo('clockFormatB');
+    setClockDisplayTo('dateAndTimeClockFormatB');
 }
 
 function verifyClockFormat(timeFormat, isVisible) {
