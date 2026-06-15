@@ -331,7 +331,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             sortedResults = fileResults;
         }
 
-        contentItems = sortedResults.map((item: string|Post|FileSearchResultItemType, index: number) => {
+        contentItems = sortedResults.map((item: string | Post | FileSearchResultItemType, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
                 if (typeof item === 'string' && isDateLine(item)) {
                     const date = getDateForDateLine(item);

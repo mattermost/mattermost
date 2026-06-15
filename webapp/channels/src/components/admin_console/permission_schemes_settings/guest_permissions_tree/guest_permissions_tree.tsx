@@ -25,7 +25,7 @@ type Props = {
     parentRole?: Role;
     selected?: string;
     role?: Partial<Role>;
-}
+};
 
 const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, parentRole, selected, role = {permissions: []}}: Props) => {
     const setPermissions = () => {

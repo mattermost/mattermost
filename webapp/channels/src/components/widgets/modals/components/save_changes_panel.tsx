@@ -27,7 +27,7 @@ type Props = {
     saveButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
     saving?: boolean;
-}
+};
 function SaveChangesPanel({
     handleSubmit,
     handleCancel,

@@ -21,6 +21,8 @@ describe('TeamAccessPoliciesTab', () => {
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
+            TrustProxyDeviceIdentityHeader: false,
+            EnforceDeviceIDConsistency: false,
         },
         areThereUnsavedChanges: false,
         setAreThereUnsavedChanges: jest.fn(),

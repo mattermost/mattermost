@@ -312,8 +312,6 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 
 		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"), true)
-		fileInfo.Content = "test"
-		fileInfo.ChannelId = th.BasicChannel.Id
 		require.Nil(t, err)
 
 		post, _, err := th.App.CreatePost(th.Context, &model.Post{
@@ -323,15 +321,29 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		fileInfo.PostId = post.Id
-
-		var clientPost *model.Post
-		assert.Eventually(t, func() bool {
-			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
-			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
+		// DoUploadFile kicks off async content extraction; wait for attach + extraction on
+		// master before PreparePostForClient so the file-info cache is not seeded early.
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			attached, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+			if !assert.NoError(c, storeErr) || attached == nil {
+				return
+			}
+			assert.Equal(c, post.Id, attached.PostId)
+			if *th.App.Config().FileSettings.ExtractContent {
+				assert.Equal(c, "test", attached.Content)
+			}
 		}, 10*time.Second, 25*time.Millisecond)
 
-		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
+		expectedFileInfo, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+		require.NoError(t, storeErr)
+
+		var clientPost *model.Post
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
+			assert.True(c, assert.ObjectsAreEqual([]*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files))
+		}, 10*time.Second, 25*time.Millisecond)
+
+		assert.Equal(t, []*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
 
 	t.Run("emojis without custom emojis enabled", func(t *testing.T) {

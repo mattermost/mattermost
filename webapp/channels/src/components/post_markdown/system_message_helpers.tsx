@@ -495,7 +495,7 @@ export type AddMemberProps = {
     not_in_channel_user_ids: string[];
     not_in_groups_usernames: string[];
     not_in_channel_usernames: string[];
-}
+};
 
 export function isAddMemberProps(v: unknown): v is AddMemberProps {
     if (typeof v !== 'object' || !v) {

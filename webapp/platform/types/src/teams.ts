@@ -18,7 +18,7 @@ export type TeamMemberWithError = {
     member: TeamMembership;
     user_id: string;
     error: ServerError;
-}
+};
 
 export type TeamType = 'O' | 'I';
 

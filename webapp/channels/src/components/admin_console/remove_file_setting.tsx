@@ -18,7 +18,7 @@ type Props = SettingsProps & {
     fileName: string;
     onSubmit: (arg0: string, arg1: () => void) => void;
     disabled?: boolean;
-}
+};
 
 const RemoveFileSetting: FC<Props> = ({
     id,

@@ -16,7 +16,7 @@ type Props = {
     allowedDomains: string;
     onToggle: (syncChecked: boolean, allAllowedChecked: boolean, allowedDomainsChecked: boolean, allowedDomains: string) => void;
     isDisabled?: boolean;
-}
+};
 
 const SyncGroupsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChecked, allowedDomains, onToggle, isDisabled}: Props) => (
     <LineSwitch

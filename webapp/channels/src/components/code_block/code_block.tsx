@@ -18,7 +18,7 @@ type Props = {
     language: string;
     searchedContent?: string;
     channelId?: string;
-}
+};
 
 const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}: Props) => {
     const getUsedLanguage = useCallback(() => {

@@ -8,7 +8,7 @@ import './component_library.scss';
 type HookResult<T> = [
     {[x: string]: T},
     JSX.Element,
-]
+];
 export const useStringProp = (
     propName: string,
     defaultValue: string,

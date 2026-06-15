@@ -60,7 +60,7 @@ export type Props = {
         autocompleteChannelsForSearch: (teamId: string, term: string) => Promise<ActionResult<Channel[]>>;
     };
 
-}
+};
 
 type State = {
 
@@ -94,7 +94,7 @@ type State = {
     * An error to display when the add request fails
     */
     submitError: string;
-}
+};
 
 export default class AddUserToChannelModal extends React.PureComponent<Props, State> {
     private suggestionProviders: SearchChannelWithPermissionsProvider[];

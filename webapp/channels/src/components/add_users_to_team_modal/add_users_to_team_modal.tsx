@@ -33,8 +33,8 @@ type Props = {
     users: UserProfile[];
     intl: IntlShape;
     filterExcludeGuests?: boolean;
-    excludeUsers: { [userId: string]: UserProfile };
-    includeUsers: { [userId: string]: UserProfile };
+    excludeUsers: {[userId: string]: UserProfile};
+    includeUsers: {[userId: string]: UserProfile};
     onAddCallback: (users: UserProfile[]) => void;
     onExited?: () => void;
 
@@ -42,7 +42,7 @@ type Props = {
         getProfilesNotInTeam: (teamId: string, groupConstrained: boolean, page: number, perPage?: number, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
         searchProfiles: (term: string, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
     };
-}
+};
 
 type State = {
     searchResults: UserProfile[];
@@ -57,7 +57,7 @@ type State = {
     // IDs of users who satisfy the team's membership policy. Only consulted on a
     // private governed team, where non-matching users cannot be added.
     abacMatchingIds: Set<string>;
-}
+};
 
 const ABAC_MATCH_HARD_CAP = 1000;
 
@@ -219,7 +219,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
         );
     };
 
-    private renderValue = (value: { data: UserProfileValue }): string => {
+    private renderValue = (value: {data: UserProfileValue}): string => {
         return value.data?.username || '';
     };
 

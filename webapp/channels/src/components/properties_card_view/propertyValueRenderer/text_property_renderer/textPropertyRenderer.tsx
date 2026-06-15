@@ -10,7 +10,7 @@ import type {TextFieldMetadata} from 'components/properties_card_view/properties
 type Props = {
     value: PropertyValue<unknown>;
     metadata?: TextFieldMetadata;
-}
+};
 
 export default function TextPropertyRenderer({value, metadata}: Props) {
     return (

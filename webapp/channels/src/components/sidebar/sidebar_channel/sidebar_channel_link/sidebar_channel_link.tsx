@@ -254,9 +254,8 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         const content = (
             <>
                 <SidebarChannelIcon
-                    isDeleted={channel.delete_at !== 0}
+                    channel={channel}
                     icon={icon}
-                    channelType={channel.type}
                 />
                 <div
                     className='SidebarChannelLinkLabel_wrapper'

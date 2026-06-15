@@ -79,7 +79,7 @@ export type Props = InviteState & {
     onPaste?: (e: ClipboardEvent) => void;
     useGuestMagicLink: boolean;
     toggleGuestMagicLink: () => void;
-}
+};
 
 export default function InviteView(props: Props) {
     useEffect(() => {

@@ -6,8 +6,8 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {
-    CustomProfileAttribute,
     deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
 } from '../../../channels/custom_profile_attributes/helpers';

@@ -11,7 +11,7 @@ export type OutputSelector<S, R, C> = Selector<S, R> & {
     resultFunc: C;
     recomputations: () => number;
     resetRecomputations: () => number;
-}
+};
 
 export type ParametricSelector<S, P, R> = (state: S, props: P, ...args: any[]) => R;
 
@@ -19,7 +19,7 @@ export type OutputParametricSelector<S, P, R, C> = ParametricSelector<S, P, R> &
     resultFunc: C;
     recomputations: () => number;
     resetRecomputations: () => number;
-}
+};
 
 /* homogeneous selector parameter types */
 
