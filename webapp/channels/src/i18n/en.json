@@ -6970,8 +6970,6 @@
   "timestamp_format.standard_short": "Standard",
   "timestamp.datetime": "{relativeOrDate} at {time}",
   "timestamp.justNow": "just now",
-  "timestamp.weekdayAt": "{weekday} at {time}",
-  "timestamp.yesterdayAt": "Yesterday at {time}",
   "trial_benefits_modal.trial_just_started.buttons.close": "Close",
   "trial_benefits_modal.trial_just_started.buttons.invitePeople": "Invite people",
   "trial_benefits_modal.trial_just_started.buttons.setUp": "Set up system console",
