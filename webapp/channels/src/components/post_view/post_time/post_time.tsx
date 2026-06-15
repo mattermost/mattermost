@@ -39,7 +39,7 @@ type Props = {
     tier?: TimestampDisplayTier;
     isConsecutivePost?: boolean;
     forceTimeOnly?: boolean;
-}
+};
 
 export default class PostTime extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {

@@ -158,7 +158,7 @@ describe('datetime_display_format', () => {
 
         const intl = {
             formatMessage: jest.fn(({defaultMessage}) => defaultMessage),
-            formatRelativeTime: jest.fn((diff: number, unit: string, options?: Intl.RelativeTimeFormatOptions) => `${diff}${unit}`),
+            formatRelativeTime: jest.fn((diff: number, unit: string, _options?: Intl.RelativeTimeFormatOptions) => `${diff}${unit}`),
             formatDate: jest.fn(),
         };
         const twoDaysAgo = new Date('2020-06-13T12:00:00.000Z');
@@ -214,7 +214,7 @@ describe('datetime_display_format', () => {
 
         const intl = {
             formatMessage: jest.fn(({defaultMessage}) => defaultMessage),
-            formatRelativeTime: jest.fn((value: number, unit: string, options?: Intl.RelativeTimeFormatOptions) => `${value}${unit}`),
+            formatRelativeTime: jest.fn((value: number, unit: string, _options?: Intl.RelativeTimeFormatOptions) => `${value}${unit}`),
             formatDate: jest.fn(),
         };
 
