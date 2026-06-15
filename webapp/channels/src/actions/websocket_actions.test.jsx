@@ -1073,7 +1073,8 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
         // Updates the channel record and invalidates render decisions for that
-        // channel only. No broad channel/member/team refetch is dispatched.
+        // channel only. Non-current channel is marked stale for lazy reconciliation.
+        // No broad channel/member/team refetch is dispatched.
         expect(testStore.getActions()).toEqual([
             {
                 type: ChannelTypes.RECEIVED_CHANNEL,
@@ -1081,6 +1082,10 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
             },
             {
                 type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+                data: {channelId: 'channel-ac-1'},
+            },
+            {
+                type: RenderPermissionTypes.MARK_CHANNEL_POSTS_STALE_FOR_REDACTION,
                 data: {channelId: 'channel-ac-1'},
             },
         ]);
@@ -1665,6 +1670,8 @@ describe('render permission invalidation via existing events', () => {
                     profiles: {user1: {id: currentUserId, roles: 'system_user'}},
                 },
                 channels: {currentChannelId},
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                posts: {postsInChannel: {}},
             },
         };
     }
