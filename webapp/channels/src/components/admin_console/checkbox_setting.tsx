@@ -12,7 +12,7 @@ type Props = {
     onChange: (id: string, foo: boolean) => void;
     disabled?: boolean;
     setByEnv: boolean;
-}
+};
 
 const CheckboxSetting = ({
     disabled = false,

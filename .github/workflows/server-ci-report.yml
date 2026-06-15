@@ -155,19 +155,65 @@ jobs:
           PR_URL="${SERVER_URL}/${REPO}/pull/${PR_NUMBER}"
 
           # Convert the HTML <table> flaky summary into a Mattermost markdown table.
-          # Escape content pipes FIRST (HTML tags contain no '|', so any '|' is cell
-          # text), then strip tags, decode entities, and build delimiters.
-          TABLE_MD=$(printf '%s' "$FLAKY_SUMMARY" \
-            | sed -E 's#\|#\\|#g' \
-            | sed -E 's#</tr>#\n#g; s#<tr>##g; s#</?t(head|body)>##g' \
-            | sed -E 's#</?table>##g' \
-            | sed -E 's#&lt;#<#g; s#&gt;#>#g; s#&amp;#\&#g; s#&quot;#"#g' \
-            | sed -E 's#<th>([^<]*)</th>#| \1 #g; s#<td>([^<]*)</td>#| \1 #g' \
-            | sed -E 's#[[:space:]]*$# |#' \
-            | sed '/^[[:space:]|]*$/d')
-          # Insert markdown header separator after the first (header) row
-          TABLE_MD=$(printf '%s' "$TABLE_MD" \
-            | awk 'NR==1{print; print "|---|---|"; next} {print}')
+          # The summary contains a header row plus, per suite, a section-header row
+          # (<td colspan="2"><strong>...</strong></td>) that markdown tables cannot
+          # represent. Parse the HTML, keep only rows matching the header's column
+          # count (dropping section-header rows), and emit a flat markdown table.
+          TABLE_MD=$(python3 - <<'PY'
+          import os, html
+          from html.parser import HTMLParser
+
+
+          class FlakyTableParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.rows = []
+                  self.row = None
+                  self.cell = None
+
+              def handle_starttag(self, tag, attrs):
+                  if tag == "tr":
+                      self.row = []
+                  elif tag in ("td", "th"):
+                      self.cell = []
+
+              def handle_endtag(self, tag):
+                  if tag in ("td", "th") and self.cell is not None:
+                      self.row.append("".join(self.cell))
+                      self.cell = None
+                  elif tag == "tr" and self.row is not None:
+                      self.rows.append(self.row)
+                      self.row = None
+
+              def handle_data(self, data):
+                  if self.cell is not None:
+                      self.cell.append(data)
+
+
+          parser = FlakyTableParser()
+          parser.feed(os.environ.get("FLAKY_SUMMARY", ""))
+
+          rows = parser.rows
+          if rows:
+              width = len(rows[0])
+              # Keep header + data rows; drop colspan section-header rows.
+              rows = [r for r in rows if len(r) == width]
+
+
+          def cell(text):
+              # Collapse all whitespace (incl. newlines) so a cell stays on one
+              # line; otherwise an embedded newline would break the markdown row.
+              text = " ".join(html.unescape(text).split())
+              return text.replace("|", "\\|")
+
+
+          if len(rows) >= 2:
+              lines = ["| " + " | ".join(cell(c) for c in rows[0]) + " |",
+                       "|" + "|".join(["---"] * width) + "|"]
+              lines += ["| " + " | ".join(cell(c) for c in r) + " |" for r in rows[1:]]
+              print("\n".join(lines))
+          PY
+          )
 
           # Use real newlines; a literal "\n" renders verbatim in Mattermost.
           NL=$'\n'

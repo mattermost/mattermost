@@ -788,7 +788,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAIRecaps: false,
         ClassificationMarkings: true,
         IntegratedBoards: false,
-        CJKSearch: false,
+        CJKSearch: true,
         ManagedChannelCategories: false,
         MobileEphemeralMode: true,
     },

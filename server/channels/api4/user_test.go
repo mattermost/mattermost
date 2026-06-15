@@ -4695,7 +4695,7 @@ func TestAttachDeviceId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	deviceId := model.PushNotifyApple + ":1234567890"
+	deviceId := model.PushNotifyAppleReactNative + ":1234567890"
 
 	t.Run("success", func(t *testing.T) {
 		testCases := []struct {
@@ -4809,6 +4809,169 @@ func TestAttachDeviceId(t *testing.T) {
 		assert.Equal(t, "true", storeSession.Props[model.SessionPropDeviceNotificationDisabled])
 		assert.Equal(t, "2.19.0", updatedSession.Props[model.SessionPropMobileVersion])
 		assert.Equal(t, "2.19.0", storeSession.Props[model.SessionPropMobileVersion])
+	})
+
+	resetVoIP := func(session *model.Session) {
+		err := th.Server.Store().Session().UpdateDeviceId(session.Id, session.DeviceId, "", session.ExpiresAt)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	t.Run("Invalid voip_device_id is rejected", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "android_rn:abcd"})
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Empty(t, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("voip_device_id without platform separator is rejected", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": "abcd"})
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Empty(t, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("Valid voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		voIPId := model.PushNotifyAppleReactNative + ":abcd1234"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("Beta voip_device_id persists into VoIPDeviceId column", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		voIPId := model.PushNotifyAppleReactNative + "beta:abcd1234"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
+	})
+
+	resetBothTokens := func(session *model.Session) {
+		err := th.Server.Store().Session().UpdateDeviceId(session.Id, "", "", session.ExpiresAt)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	// The handler pre-fills the unset column from the current session so a
+	// one-token update doesn't wipe the other. Without that guard, a mobile
+	// client refreshing only one of its two tokens would silently lose the
+	// other from its session.
+	t.Run("Attaching voip_device_id alone preserves an existing device_id", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(session)
+
+		existingDeviceID := model.PushNotifyAppleReactNative + ":existing-standard"
+		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, existingDeviceID, "", session.ExpiresAt))
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		voIPId := model.PushNotifyAppleReactNative + ":new-voip"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"voip_device_id": voIPId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, existingDeviceID, storeSession.DeviceId, "existing DeviceId must not be wiped")
+		assert.Equal(t, voIPId, storeSession.VoIPDeviceId)
+	})
+
+	t.Run("Attaching device_id alone preserves an existing voip_device_id", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(session)
+
+		existingVoIPID := model.PushNotifyAppleReactNative + ":existing-voip"
+		require.NoError(t, th.Server.Store().Session().UpdateDeviceId(session.Id, "", existingVoIPID, session.ExpiresAt))
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		deviceId := model.PushNotifyAppleReactNative + ":new-standard"
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{"device_id": deviceId})
+		require.NoError(t, err)
+
+		storeSession, err := th.Server.Store().Session().Get(th.Context, session.Id)
+		require.NoError(t, err)
+		assert.Equal(t, deviceId, storeSession.DeviceId)
+		assert.Equal(t, existingVoIPID, storeSession.VoIPDeviceId, "existing VoIPDeviceId must not be wiped")
+	})
+
+	t.Run("Dual-token attach revokes a prior session matched by either token, current session survives", func(t *testing.T) {
+		currentSession, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(currentSession)
+
+		deviceId := model.PushNotifyAppleReactNative + ":dual-standard"
+		voIPId := model.PushNotifyAppleReactNative + ":dual-voip"
+
+		priorSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:       currentSession.UserId,
+			DeviceId:     deviceId,
+			VoIPDeviceId: voIPId,
+			ExpiresAt:    currentSession.ExpiresAt,
+		})
+		require.Nil(t, appErr)
+
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{
+			"device_id":      deviceId,
+			"voip_device_id": voIPId,
+		})
+		require.NoError(t, err)
+
+		_, appErr = th.App.GetSessionById(th.Context, priorSession.Id)
+		require.NotNil(t, appErr, "prior session matching both tokens must be revoked")
+
+		fresh, appErr := th.App.GetSessionById(th.Context, currentSession.Id)
+		require.Nil(t, appErr, "current session must survive its own attach")
+		assert.Equal(t, deviceId, fresh.DeviceId)
+		assert.Equal(t, voIPId, fresh.VoIPDeviceId)
+	})
+
+	t.Run("VoIP-only attach revokes a prior VoIP-only session but spares a prior standard-only session", func(t *testing.T) {
+		currentSession, _ := th.App.GetSession(client.AuthToken)
+		defer resetBothTokens(currentSession)
+
+		standardOnly := model.PushNotifyAppleReactNative + ":indep-standard"
+		voIPOnly := model.PushNotifyAppleReactNative + ":indep-voip"
+
+		priorStandardOnly, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:    currentSession.UserId,
+			DeviceId:  standardOnly,
+			ExpiresAt: currentSession.ExpiresAt,
+		})
+		require.Nil(t, appErr)
+
+		priorVoIPOnly, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:       currentSession.UserId,
+			VoIPDeviceId: voIPOnly,
+			ExpiresAt:    currentSession.ExpiresAt,
+		})
+		require.Nil(t, appErr)
+
+		_, err := client.AttachDeviceProps(context.Background(), map[string]string{
+			"voip_device_id": voIPOnly,
+		})
+		require.NoError(t, err)
+
+		_, appErr = th.App.GetSessionById(th.Context, priorVoIPOnly.Id)
+		require.NotNil(t, appErr, "prior VoIP-only session must be revoked")
+
+		_, appErr = th.App.GetSessionById(th.Context, priorStandardOnly.Id)
+		require.Nil(t, appErr, "prior standard-only session must not be touched")
 	})
 }
 
@@ -10529,6 +10692,47 @@ func TestGetSessionAttributesManifest(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Empty(t, manifest)
+	})
+
+	t.Run("enabled field carries its seeded display name", func(t *testing.T) {
+		const desktopUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+
+		var hardwareField *model.PropertyField
+		for _, field := range fields {
+			if field.Name == model.SessionAttributesPropertyFieldHardwareID {
+				hardwareField = field
+				break
+			}
+		}
+		require.NotNil(t, hardwareField)
+		if hardwareField.Attrs == nil {
+			hardwareField.Attrs = model.StringInterface{}
+		}
+		hardwareField.Attrs["enabled"] = true
+		_, _, appErr = th.App.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{hardwareField}, true, "")
+		require.Nil(t, appErr)
+
+		th.Client.HTTPHeader = map[string]string{"User-Agent": desktopUserAgent}
+		defer func() { th.Client.HTTPHeader = nil }()
+
+		manifest, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var hardwareEntry *model.SessionAttributeManifestEntry
+		for _, entry := range manifest {
+			if entry.Name == model.SessionAttributesPropertyFieldHardwareID {
+				hardwareEntry = entry
+				break
+			}
+		}
+		require.NotNil(t, hardwareEntry)
+		require.Equal(t, model.SessionAttributesDisplayNameHardwareID, hardwareEntry.DisplayName)
 	})
 }
 

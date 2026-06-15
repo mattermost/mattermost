@@ -363,7 +363,7 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 func TestDoSetupSessionAttributesProperties(t *testing.T) {
 	expectedFieldCount := len(model.SessionAttributeSystemFields("group-id"))
 
-	t.Run("fresh install seeds the group, fields, and done marker", func(t *testing.T) {
+	t.Run("fresh install seeds the group and fields", func(t *testing.T) {
 		th := Setup(t)
 
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
@@ -387,6 +387,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 			require.NotNil(t, field.PermissionValues)
 			require.Equal(t, model.PermissionLevelSysadmin, *field.PermissionValues, "field %q permission_values", field.Name)
 			require.Equal(t, false, field.Attrs["enabled"], "field %q must seed disabled", field.Name)
+			require.NotEmpty(t, field.Attrs[model.SAAttrDisplayName], "field %q must seed a display name", field.Name)
 		}
 
 		ipField := fieldsByName[model.SessionAttributesPropertyFieldIPAddress]
@@ -401,19 +402,16 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		// The typed attrs must survive the DB round trip so the app reads back what it seeded.
 		saField, err := model.SAFieldFromPropertyField(networkField)
 		require.NoError(t, err)
+		require.Equal(t, model.SessionAttributesDisplayNameNetworkInterfaceType, saField.Attrs.DisplayName)
 		require.Equal(t, model.SessionAttributeDefaultTTLNetworkIdentity, saField.Attrs.TTLSeconds)
 		require.Equal(t, model.SessionAttributeDefaultGraceNetworkIdentity, saField.Attrs.GracePeriodSeconds)
 		require.ElementsMatch(t,
-			[]string{model.SessionAttributePlatformDesktop, model.SessionAttributePlatformMobile, model.SessionAttributePlatformBrowser},
+			[]string{model.SessionAttributePlatformDesktop, model.SessionAttributePlatformMobile},
 			saField.Attrs.Platforms,
 		)
-
-		data, sysErr := th.Store.System().GetByName(sessionAttributesSetupDoneKey)
-		require.NoError(t, sysErr)
-		require.Equal(t, "true", data.Value)
 	})
 
-	t.Run("re-running after clearing the marker is idempotent", func(t *testing.T) {
+	t.Run("re-running is idempotent", func(t *testing.T) {
 		th := Setup(t)
 
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
@@ -423,31 +421,20 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, before, expectedFieldCount)
 
-		_, err := th.Store.System().PermanentDeleteByName(sessionAttributesSetupDoneKey)
-		require.NoError(t, err)
-
-		err = th.Server.doSetupSessionAttributesProperties()
+		err := th.Server.doSetupSessionAttributesProperties()
 		require.NoError(t, err)
 
 		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, after, expectedFieldCount, "re-running must not create duplicate fields")
-
-		data, sysErr := th.Store.System().GetByName(sessionAttributesSetupDoneKey)
-		require.NoError(t, sysErr)
-		require.Equal(t, "true", data.Value)
 	})
 
 	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
 		th := Setup(t)
 
-		// Fields already exist from Setup. Clearing the marker forces every
-		// goroutine into the seed body and onto the update path, racing on the
-		// same UpdateAt timestamps. Only one wins; the rest must tolerate the
-		// resulting ErrConflict rather than failing.
-		_, err := th.Store.System().PermanentDeleteByName(sessionAttributesSetupDoneKey)
-		require.NoError(t, err)
-
+		// Fields already exist from Setup. Every goroutine runs the seed body
+		// and races on the same UpdateAt timestamps. Only one wins; the rest
+		// must tolerate the resulting ErrConflict rather than failing.
 		const runners = 5
 		errs := make([]error, runners)
 		var wg sync.WaitGroup

@@ -21,7 +21,7 @@ type OwnProps = {
             policy_id: string;
         };
     };
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const policyId = ownProps.match.params.policy_id;

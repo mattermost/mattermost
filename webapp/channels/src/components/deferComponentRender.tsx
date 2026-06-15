@@ -6,7 +6,7 @@ import React from 'react';
 
 type DeferredRenderWrapperState = {
     shouldRender: boolean;
-}
+};
 
 /**
  * Allows two animation frames to complete to allow other components to update

@@ -249,6 +249,9 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 		if err != nil || !saField.EnabledForPlatform(platform) {
 			continue
 		}
+		if _, isDerived := model.SessionAttributesRequestDerivedFieldNames[field.Name]; isDerived {
+			continue
+		}
 		manifest = append(manifest, &model.SessionAttributeManifestEntry{
 			Name:               field.Name,
 			Type:               string(field.Type),

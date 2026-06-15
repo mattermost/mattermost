@@ -25,11 +25,11 @@ type UseNotifyAdminArgs = {
         id: string;
         defaultMessage: string;
     };
-}
+};
 
 type NotifyAdminArgs = {
     requestData: NotifyAdminRequest;
-}
+};
 
 const messages = defineMessages({
     [NotifyStatus.Started]: {
