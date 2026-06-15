@@ -830,12 +830,7 @@ describe('PostComponent', () => {
     });
 });
 
-jest.mock('components/post_decorator_renderer/post_decorator_renderer', () => ({
-    __esModule: true,
-    default: () => <div data-testid='post-decorator'/>,
-}));
-
-describe('PostComponent — post_header_badge decorator render site', () => {
+describe('PostComponent — PostHeader plugin component render site', () => {
     const currentTeam = TestHelper.getTeamMock();
     const channel = TestHelper.getChannelMock({team_id: currentTeam.id});
 
@@ -877,110 +872,53 @@ describe('PostComponent — post_header_badge decorator render site', () => {
         isChannelAutotranslated: false,
     };
 
-    it('renders a matching post_header_badge decorator in the badges area', () => {
-        const state = {
+    // A real plugin-registered component rendered through Pluggable — not mocked away, so the
+    // test exercises the same Pluggable path the host uses in production.
+    const PluginBadge = () => <div data-testid='post-header-plugin'/>;
+
+    function stateWithPluginBadge() {
+        return {
             plugins: {
                 components: {
-                    PostDecorator: [{
-                        id: 'dec-1',
+                    PostHeader: [{
+                        id: 'badge-1',
                         pluginId: 'test-plugin',
-                        slot: 'post_header_badge',
-                        matcher: () => true,
-                        component: () => null,
+                        component: PluginBadge,
                     }],
                 },
             },
         } as any;
+    }
 
-        renderWithContext(<PostComponent {...baseProps}/>, state);
-        expect(screen.getByTestId('post-decorator')).toBeInTheDocument();
+    it('renders a registered PostHeader component in the badges area', () => {
+        renderWithContext(<PostComponent {...baseProps}/>, stateWithPluginBadge());
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
     });
 
-    it('does not render a non-matching post_header_badge decorator', () => {
-        const state = {
-            plugins: {
-                components: {
-                    PostDecorator: [{
-                        id: 'dec-1',
-                        pluginId: 'test-plugin',
-                        slot: 'post_header_badge',
-                        matcher: () => false,
-                        component: () => null,
-                    }],
-                },
-            },
-        } as any;
-
-        renderWithContext(<PostComponent {...baseProps}/>, state);
-        expect(screen.queryByTestId('post-decorator')).not.toBeInTheDocument();
-    });
-
-    it('does not render the badge on a consecutive CENTER post (timestamp is hidden)', () => {
-        const state = {
-            plugins: {
-                components: {
-                    PostDecorator: [{
-                        id: 'dec-1',
-                        pluginId: 'test-plugin',
-                        slot: 'post_header_badge',
-                        matcher: () => true,
-                        component: () => null,
-                    }],
-                },
-            },
-        } as any;
-
+    it('does not render the component on a consecutive CENTER post (timestamp is hidden)', () => {
         renderWithContext(
             <PostComponent
                 {...baseProps}
                 isConsecutivePost={true}
             />,
-            state,
+            stateWithPluginBadge(),
         );
-        expect(screen.queryByTestId('post-decorator')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
     });
 
-    it('does not render the badge on a consecutive RHS_COMMENT post (timestamp is reflowed to narrow style)', () => {
-        const state = {
-            plugins: {
-                components: {
-                    PostDecorator: [{
-                        id: 'dec-1',
-                        pluginId: 'test-plugin',
-                        slot: 'post_header_badge',
-                        matcher: () => true,
-                        component: () => null,
-                    }],
-                },
-            },
-        } as any;
-
+    it('does not render the component on a consecutive RHS_COMMENT post (timestamp is reflowed to narrow style)', () => {
         renderWithContext(
             <PostComponent
                 {...baseProps}
                 isConsecutivePost={true}
                 location={Locations.RHS_COMMENT}
             />,
-            state,
+            stateWithPluginBadge(),
         );
-        expect(screen.queryByTestId('post-decorator')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
     });
 
-    it('renders the badge on a consecutive RHS_COMMENT post in compactDisplay mode (timestamp stays in badges area)', () => {
-        const state = {
-            plugins: {
-                components: {
-                    PostDecorator: [{
-                        id: 'dec-1',
-                        pluginId: 'test-plugin',
-                        slot: 'post_header_badge',
-                        matcher: () => true,
-                        component: () => null,
-                    }],
-                },
-            },
-        } as any;
-
+    it('renders the component on a consecutive RHS_COMMENT post in compactDisplay mode (timestamp stays in badges area)', () => {
         renderWithContext(
             <PostComponent
                 {...baseProps}
@@ -988,8 +926,8 @@ describe('PostComponent — post_header_badge decorator render site', () => {
                 location={Locations.RHS_COMMENT}
                 compactDisplay={true}
             />,
-            state,
+            stateWithPluginBadge(),
         );
-        expect(screen.getByTestId('post-decorator')).toBeInTheDocument();
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
     });
 });

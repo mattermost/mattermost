@@ -332,7 +332,7 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
-describe('PluginRegistry — registerPostDecorator', () => {
+describe('PluginRegistry — registerPostHeaderComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 
     let store: ReturnType<typeof createStore<ReturnType<typeof pluginsReducer>, any, any, any>>;
@@ -344,65 +344,34 @@ describe('PluginRegistry — registerPostDecorator', () => {
         registry = new PluginRegistry(PLUGIN_ID);
     });
 
-    function getDecorators() {
-        return mockCurrentStore.getState().components.PostDecorator;
+    function getComponents() {
+        return mockCurrentStore.getState().components.PostHeader;
     }
 
-    it('(a) valid registration adds entry to PostDecorator list', () => {
-        registry.registerPostDecorator({
-            slot: 'post_header_badge',
-            matcher: () => true,
-            component: () => null,
-        });
+    it('(a) registration adds an entry to the PostHeader list and returns its id', () => {
+        const id = registry.registerPostHeaderComponent(() => null);
 
-        const decorators = getDecorators();
-        expect(decorators).toHaveLength(1);
-        expect(decorators[0].pluginId).toBe(PLUGIN_ID);
-        expect(decorators[0].slot).toBe('post_header_badge');
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].id).toBe(id);
+        expect(components[0].pluginId).toBe(PLUGIN_ID);
     });
 
-    it('(b) invalid slot emits console.warn and does NOT add entry', () => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-        registry.registerPostDecorator({
-            slot: 'bad_slot' as any,
-            matcher: () => true,
-            component: () => null,
-        });
-
-        expect(warnSpy).toHaveBeenCalledTimes(1);
-        expect(warnSpy.mock.calls[0][0]).toContain('bad_slot');
-        expect(getDecorators()).toHaveLength(0);
-        warnSpy.mockRestore();
-    });
-
-    it('(c) REMOVED_WEBAPP_PLUGIN sweeps all post decorators for that plugin', () => {
+    it('(b) REMOVED_WEBAPP_PLUGIN sweeps all post-header components for that plugin', () => {
         const otherRegistry = new PluginRegistry('other_plugin');
 
-        registry.registerPostDecorator({
-            slot: 'post_header_badge',
-            matcher: () => true,
-            component: () => null,
-        });
-        registry.registerPostDecorator({
-            slot: 'post_header_badge',
-            matcher: () => true,
-            component: () => null,
-        });
-        otherRegistry.registerPostDecorator({
-            slot: 'post_header_badge',
-            matcher: () => false,
-            component: () => null,
-        });
+        registry.registerPostHeaderComponent(() => null);
+        registry.registerPostHeaderComponent(() => null);
+        otherRegistry.registerPostHeaderComponent(() => null);
 
         mockCurrentStore.dispatch({
             type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
             data: {id: PLUGIN_ID},
         });
 
-        const decorators = getDecorators();
-        expect(decorators).toHaveLength(1);
-        expect(decorators[0].pluginId).toBe('other_plugin');
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].pluginId).toBe('other_plugin');
     });
 });
 
