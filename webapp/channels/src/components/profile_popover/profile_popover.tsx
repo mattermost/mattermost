@@ -12,7 +12,7 @@ import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/u
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import * as GlobalActions from 'actions/global_actions';
-import {closeModal} from 'actions/views/modals';
+import {closeModal, openModal} from 'actions/views/modals';
 import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -20,8 +20,9 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 
 import Pluggable from 'plugins/pluggable';
+import SendDirectMessageModal from 'components/send_direct_message_modal/send_direct_message_modal';
 import {getHistory} from 'utils/browser_history';
-import {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
+import {A11yCustomEventTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import * as Utils from 'utils/utils';
@@ -118,28 +119,27 @@ const ProfilePopover = ({
         }
     }, [modals, dispatch]);
 
-    const handleShowDirectChannel = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // issue #33750: open a dialog box to send the message instead of navigating
+    // into the DM channel. The previous flow called getHistory().push(...) into
+    // a team-prefixed DM URL, which silently does nothing from contexts where
+    // there is no current team (e.g. System Console). The modal keeps the user
+    // on whatever page they were on and works in every entry point.
+    const handleShowDirectChannel = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (!user) {
             return;
         }
-
-        if (loadingDMChannel !== undefined) {
-            return;
+        if (isMobileView) {
+            GlobalActions.emitCloseRightHandSide();
         }
-        setLoadingDMChannel(user.id);
-
         handleCloseModals();
-        const result = await dispatch(openDirectChannelToUserId(user.id));
-        if (!result.error) {
-            if (isMobileView) {
-                GlobalActions.emitCloseRightHandSide();
-            }
-            setLoadingDMChannel(undefined);
-            hide?.();
-            getHistory().push(`${teamUrl}/messages/@${user.username}`);
-        }
-    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl, dispatch]);
+        hide?.();
+        dispatch(openModal({
+            modalId: ModalIdentifiers.SEND_DIRECT_MESSAGE,
+            dialogType: SendDirectMessageModal,
+            dialogProps: {user},
+        }));
+    }, [user, handleCloseModals, isMobileView, hide, dispatch]);
 
     useEffect(() => {
         if (currentTeamId && userId) {
