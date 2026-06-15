@@ -173,10 +173,23 @@ jobs:
             RELEASE | RELEASE_CLOUD)
               ### Populate support variables
               _TEST_FILTER_CYPRESS_VARIABLE="TEST_FILTER_CYPRESS_PROD_${SERVER@U}"
-              ### For ref and image tag generation: assume the 'inputs.ref' is a tag, and use the first two digits to construct the branch name
               COMMIT_SHA="$(git rev-parse --verify HEAD)"
-              BRANCH=$(sed -E "s/v([0-9]+)\.([0-9]+)\..+$/release-\1.\2/g" <<<$REF)
-              SERVER_IMAGE_TAG="$(cut -c2- <<<$REF)"   # Remove the leading 'v' from the given tag name, to generate the docker image tag
+              if [[ "$REF" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+                ### Release-branch testing: 'inputs.ref' is a release branch (e.g. 'release-11.4'),
+                ### as used by the automated branch-cut / push triggers. The server image is the
+                ### branch-tagged image published by the platform packaging pipeline (e.g. 'release-11.4').
+                BRANCH="$REF"
+                SERVER_IMAGE_TAG="$REF"
+                ### Run sanity assertions after variable generations
+                git show-ref --verify "refs/remotes/origin/${BRANCH}" # The given release branch must exist
+              else
+                ### Tag testing (default): assume 'inputs.ref' is a tag, and use the first two digits to construct the branch name
+                BRANCH=$(sed -E "s/v([0-9]+)\.([0-9]+)\..+$/release-\1.\2/g" <<<$REF)
+                SERVER_IMAGE_TAG="$(cut -c2- <<<$REF)"   # Remove the leading 'v' from the given tag name, to generate the docker image tag
+                ### Run sanity assertions after variable generations
+                git show-ref --verify "refs/tags/${REF}"              # 'inputs.ref' must be a tag, for release report types
+                git show-ref --verify "refs/remotes/origin/${BRANCH}" # The release branch computed from the given tag must exist
+              fi
               SERVER_IMAGE_ORG=mattermost
               BUILD_ID_SUFFIX="release-${SERVER}-ent"
               BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
@@ -184,9 +197,6 @@ jobs:
               TEST_FILTER_CYPRESS="${!_TEST_FILTER_CYPRESS_VARIABLE}"
               TM4J_ENABLE=true
               COMPUTED_REPORT_TYPE=RELEASE
-              ### Run sanity assertions after variable generations
-              git show-ref --verify "refs/tags/${REF}"              # 'inputs.ref' must be a tag, for release report types
-              git show-ref --verify "refs/remotes/origin/${BRANCH}" # The release branch computed from the given tag must exist
               ;;
             *)
               echo "Fatal: unimplemented test type. Aborting."
