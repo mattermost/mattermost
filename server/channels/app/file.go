@@ -858,12 +858,14 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 
 	if *a.Config().FileSettings.ExtractContent && t.ExtractContent {
 		infoCopy := *t.fileinfo
-		a.Srv().GoBuffered(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
 				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
-		})
+		}) {
+			c.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+		}
 	}
 
 	return t.fileinfo, nil
@@ -1125,12 +1127,14 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	// and something we can do without.
 	if *a.Config().FileSettings.ExtractContent && extractContent {
 		infoCopy := *info
-		a.Srv().GoBuffered(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
 				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
-		})
+		}) {
+			c.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+		}
 	}
 
 	return info, data, nil
@@ -1584,10 +1588,15 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
-	defer file.Close()
+	// Ownership of closing the file is handed to docextractor.Extract via
+	// ReaderCloser: with a timeout configured, extraction may continue on a
+	// detached goroutine after Extract returns, so closing the file here would
+	// race with that goroutine still reading it.
 	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 		MaxFileSize:      *a.Config().FileSettings.MaxFileSize,
+		Timeout:          time.Duration(*a.Config().FileSettings.ExtractContentTimeout) * time.Second,
+		ReaderCloser:     file,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to extract file content")
