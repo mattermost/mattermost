@@ -75,7 +75,7 @@ export type PluginsState = {
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
-        ComposerPlaceholderSuffix: ComposerPlaceholderSuffixRegistration[];
+        ComposerPlaceholder: ComposerPlaceholderRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -440,9 +440,8 @@ export type ChannelIntroRegistration = PluginComponent & {
     component: React.ComponentType<{channel: Channel}>;
 };
 
-export type ComposerPlaceholderSuffixRegistration = PluginComponent & {
-    matcher: (channel: Channel, state: GlobalState) => boolean;
-    text: string | ((channel: Channel, state: GlobalState, intl: IntlShape) => string);
+export type ComposerPlaceholderRegistration = PluginComponent & {
+    transform: (placeholder: string, channel: Channel, state: GlobalState, intl: IntlShape) => string;
 };
 
 export type ChannelTypeOptionComponent = PluginComponent & {

@@ -611,16 +611,15 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
-    describe('composer placeholder suffix', () => {
+    describe('composer placeholder', () => {
         const suffixState = {
             plugins: {
                 components: {
-                    ComposerPlaceholderSuffix: [
+                    ComposerPlaceholder: [
                         {
                             id: 'suffix-1',
                             pluginId: 'test-plugin',
-                            matcher: () => true,
-                            text: ' (encrypted)',
+                            transform: (placeholder: string) => `${placeholder} (encrypted)`,
                         },
                     ],
                 },

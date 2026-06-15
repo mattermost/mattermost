@@ -28,9 +28,9 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
-import {clearLoggedSuffixErrors} from 'selectors/composer_placeholder_suffix';
 import store from 'stores/redux_store';
 
+import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/composer_placeholder';
 import {compassIconForName} from 'components/channel_type_icon';
 import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
@@ -76,7 +76,7 @@ import type {
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
     ChannelIntroRegistration,
-    ComposerPlaceholderSuffixRegistration,
+    ComposerPlaceholderRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1430,27 +1430,25 @@ export default class PluginRegistry {
     });
 
     /**
-     * Register a plain-string suffix appended to the composer placeholder for matching channels.
+     * Register a transform applied to the composer placeholder for the current channel.
      *
-     * `matcher` receives (channel, state) where state is the full Redux state; plugins can read
-     * state['plugins-<pluginId>'] slices. `text` may be a static string or a function called with
-     * (channel, state, intl) — use the function form to access i18n via intl.formatMessage().
-     * Across plugins, suffixes are appended in pluginId alphabetical order; within one plugin,
-     * registration order is preserved.
+     * `transform` receives (placeholder, channel, state, intl) and returns the placeholder to show —
+     * append to it, replace it, or return it unchanged for channels the plugin doesn't act on. `state`
+     * is the full Redux state, so plugins can read state['plugins-<pluginId>'] slices to decide; use
+     * intl.formatMessage() for i18n. Transforms chain: across plugins they run in pluginId alphabetical
+     * order, within one plugin in registration order, each receiving the previous result.
      *
      * Registrations are cleaned up automatically when the plugin is removed.
      */
-    registerComposerPlaceholderSuffix = reArg(['matcher', 'text'], ({matcher, text}: {
-        matcher: ComposerPlaceholderSuffixRegistration['matcher'];
-        text: ComposerPlaceholderSuffixRegistration['text'];
+    registerComposerPlaceholder = reArg(['transform'], ({transform}: {
+        transform: ComposerPlaceholderRegistration['transform'];
     }) => {
-        clearLoggedSuffixErrors(this.id);
+        clearComposerPlaceholderErrors(this.id);
         const id = generateId();
-        dispatchPluginComponentWithData('ComposerPlaceholderSuffix', {
+        dispatchPluginComponentWithData('ComposerPlaceholder', {
             id,
             pluginId: this.id,
-            matcher,
-            text,
+            transform,
         });
         return id;
     });

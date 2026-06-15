@@ -47,7 +47,6 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
-import {useComposerPlaceholderSuffix} from 'hooks/useComposerPlaceholderSuffix';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -81,6 +80,7 @@ import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
 import UnifiedLabelsWrapper from './unified_labels_wrapper';
 import useBurnOnRead from './use_burn_on_read';
+import {useComposerPlaceholder} from './use_composer_placeholder';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import usePluginItems from './use_plugin_items';
@@ -184,7 +184,6 @@ const AdvancedTextEditor = ({
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
     const aiActionMenuItems = useSelector((state: GlobalState) => state.plugins.components.AIActionMenuItem);
     const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
-    const composerPlaceholderSuffix = useComposerPlaceholderSuffix(channelId);
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -662,9 +661,9 @@ const AdvancedTextEditor = ({
         createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
 
-    if (composerPlaceholderSuffix) {
-        createMessage = `${createMessage}${composerPlaceholderSuffix}`;
-    }
+    // Let plugins append to or replace the composer placeholder for this channel (e.g. an encryption
+    // marker). Called here, after every branch has set the base placeholder.
+    createMessage = useComposerPlaceholder(channelId, createMessage);
 
     const messageValue = isDisabled && !rewriteIsProcessing ? '' : draft.message_source || draft.message;
 
