@@ -10,7 +10,7 @@ import DropdownSetting from 'components/admin_console/dropdown_setting';
 
 import type {GeneralSettingProps} from './ldap_wizard';
 
-import {descriptorOrStringToString, renderDropdownOptionHelpText, renderLabel, renderSettingHelpText, resolveOptionDisplayNameValues} from '../schema_admin_settings';
+import {descriptorOrStringToString, renderDropdownOptionHelpText, renderLabel, renderSettingHelpText} from '../schema_admin_settings';
 import type {AdminDefinitionSettingDropdownOption} from '../types';
 
 type Props = {
@@ -38,14 +38,7 @@ const LDAPDropdownSetting = (props: Props) => {
         }
     });
 
-    const values = options.map((o) => ({
-        value: o.value,
-        text: descriptorOrStringToString(
-            o.display_name,
-            intl,
-            resolveOptionDisplayNameValues(o, props.config, props.state),
-        )!,
-    }));
+    const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, intl)!}));
     const selectedValue = (props.state[props.setting.key] as string) ?? values[0].value;
 
     let selectedOptionForHelpText = null;
