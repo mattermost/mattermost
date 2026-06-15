@@ -11499,6 +11499,10 @@
     "translation": "{{.Setting}} must be set when the corresponding AzureCloud value is 'custom'."
   },
   {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Invalid value {{.Value}} for {{.Setting}}. The Azure storage account name must be 3 to 24 characters long and contain only lowercase letters and numbers."
+  },
+  {
     "id": "model.config.is_valid.azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
