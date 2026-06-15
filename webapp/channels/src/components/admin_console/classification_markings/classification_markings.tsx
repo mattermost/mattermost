@@ -54,7 +54,7 @@ import {
 } from './utils';
 import {classificationPresetDropdownStyles} from './utils/preset_dropdown_styles';
 import type {ClassificationLevel} from './utils/presets';
-import {PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
+import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 import SaveChangesPanel from '../save_changes_panel';
 import {AdminSection, AdminWrapper, SectionHeader, SectionHeading} from '../system_properties/controls';
@@ -306,7 +306,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const addLevel = useCallback(() => {
         setLevels((prev) => {
             const maxRank = prev.reduce((max, l) => Math.max(max, l.rank), 0);
-            return [...prev, {id: `pending_${Date.now()}`, name: '', color: '#000000', rank: maxRank + 1}];
+            return [...prev, {id: `${PENDING_LEVEL_PREFIX}${Date.now()}`, name: '', color: '#000000', rank: maxRank + 1}];
         });
         switchToCustom();
     }, [switchToCustom]);

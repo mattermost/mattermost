@@ -676,19 +676,17 @@ function ChannelSettingsConfigurationTab({
 
                     {classificationEnabled && (
                         <div className='channel_banner_section_body'>
-                            <div style={{marginBottom: 16}}>
-                                <SectionNotice
-                                    type='warning'
-                                    iconOverride='icon-information-outline'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.classification_markings.notice.title'
-                                            defaultMessage='Classification markings are informational only'
-                                        />
-                                    }
-                                    text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
-                                />
-                            </div>
+                            <SectionNotice
+                                type='warning'
+                                iconOverride='icon-information-outline'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.classification_markings.notice.title'
+                                        defaultMessage='Classification markings are informational only'
+                                    />
+                                }
+                                text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
+                            />
 
                             <div className='setting_section'>
                                 <span className='setting_title'>
