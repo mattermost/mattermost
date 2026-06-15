@@ -10,10 +10,19 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-const DefMaxQueueSize = 1000
+// DefMaxQueueSize is the size of the central audit (logr) queue. Kept in line
+// with the per-target queue size (maxqueuesize in the advanced-logging config)
+// so the two stages feeding the delivery target don't mismatch at 10K vs 1K.
+const DefMaxQueueSize = 10000
 
 type Audit struct {
 	logger *mlog.Logger
+
+	// Factories registers custom mlog target and formatter types so they can be
+	// referenced from advanced-logging JSON. Set before Configure is called.
+	// Nil means only built-in target types (file, console, tcp, syslog) are
+	// available.
+	Factories *mlog.Factories
 
 	// OnQueueFull is called on an attempt to add an audit record to a full queue.
 	// Return true to drop record, or false to block until there is room in queue.
@@ -48,7 +57,7 @@ func (a *Audit) LogRecord(level mlog.Level, rec model.AuditRecord) {
 
 // Configure sets zero or more target to output audit logs to.
 func (a *Audit) Configure(cfg mlog.LoggerConfiguration) error {
-	return a.logger.ConfigureTargets(cfg, nil)
+	return a.logger.ConfigureTargets(cfg, a.Factories)
 }
 
 // Flush attempts to write all queued audit records to all targets.

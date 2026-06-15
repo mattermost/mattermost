@@ -66,6 +66,18 @@ type Sugar = logr.Sugar
 // LoggerConfiguration is a map of LogTarget configurations.
 type LoggerConfiguration map[string]TargetCfg
 
+// ValidationFactories is consulted by LoggerConfiguration.IsValid when
+// resolving target/formatter types that are not built into logr. Custom
+// target packages register themselves here at init() time so config
+// validation accepts their type names even though the real runtime
+// factory (which may need wired runtime dependencies like a store) is
+// only available later, when the logger is actually configured.
+//
+// The factory only needs to recognize the type name and return a
+// non-nil logr.Target; the returned Target is discarded after the
+// validation logger shuts down, so it does not need to be functional.
+var ValidationFactories *Factories
+
 func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
 	maps.Copy(lc, cfg)
 }
@@ -77,7 +89,7 @@ func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
 	}
 	defer logger.Shutdown()
 
-	err = logrcfg.ConfigureTargets(logger, lc, nil)
+	err = logrcfg.ConfigureTargets(logger, lc, ValidationFactories)
 	if err != nil {
 		return errors.Wrap(err, "logger configuration is invalid")
 	}
