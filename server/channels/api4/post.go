@@ -344,6 +344,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
+	c.App.AuditRecordBulk(c.AppContext.Session().UserId, clientPostList.Order, model.AuditMechChannelView)
+
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForChannel, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
@@ -427,6 +429,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	c.App.AuditRecordBulk(c.AppContext.Session().UserId, clientPostList.Order, model.AuditMechChannelView)
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForChannelAroundLastUnread, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
@@ -537,6 +541,8 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	c.App.AuditRecordBulk(c.AppContext.Session().UserId, clientPostList.Order, model.AuditMechAPIDirect)
 }
 
 // getPost also sets a header to indicate, if post is inaccessible due to the cloud plan's limit.
@@ -579,6 +585,8 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := post.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	c.App.AuditRecord(c.AppContext.Context(), c.AppContext.Session().UserId, post.Id, model.AuditMechAPIDirect)
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPost, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
@@ -656,6 +664,8 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	c.App.AuditRecordBulkPosts(c.AppContext.Session().UserId, posts, model.AuditMechAPIDirect)
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsByIds, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
@@ -905,6 +915,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
+	c.App.AuditRecordBulk(c.AppContext.Session().UserId, clientPostList.Order, model.AuditMechThreadView)
+
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostThread, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
@@ -1015,6 +1027,8 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	if err := results.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	c.App.AuditRecordBulk(c.AppContext.Session().UserId, clientPostList.Order, model.AuditMechSearchResult)
 }
 
 func postEditTimeLimitExpired(cfg *model.Config, post *model.Post) bool {
