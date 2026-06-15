@@ -135,7 +135,14 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 	h.Write([]byte(userID))
 	seed := h.Sum32()
 
-	initial := string(strings.ToUpper(username)[0])
+	// Guard against empty/whitespace-only usernames which can occur when user records
+	// bypass model validation (e.g. LDAP/SAML sync, direct DB inserts, data migrations).
+	// See: api4.getProfileImage → app.GetProfileImage → GetDefaultProfileImage → createProfileImage
+	trimmedUsername := strings.TrimSpace(username)
+	initial := "?"
+	if trimmedUsername != "" {
+		initial = string([]rune(strings.ToUpper(trimmedUsername))[0])
+	}
 
 	font, err := getFont(initialFont)
 	if err != nil {
