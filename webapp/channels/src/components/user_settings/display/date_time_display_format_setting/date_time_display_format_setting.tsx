@@ -88,11 +88,13 @@ export default function DateTimeDisplayFormatSetting({
     const [clockSelection, setClockSelection] = useState(militaryTime);
     const [secondsSelection, setSecondsSelection] = useState(showTimestampSeconds);
     const minRef = useRef<SettingItemMinComponent>(null);
+    const prevActiveRef = useRef(active);
 
     useEffect(() => {
-        if (!active && areAllSectionsInactive) {
+        if (prevActiveRef.current && !active && areAllSectionsInactive) {
             minRef.current?.focus();
         }
+        prevActiveRef.current = active;
     }, [active, areAllSectionsInactive]);
 
     useEffect(() => {
