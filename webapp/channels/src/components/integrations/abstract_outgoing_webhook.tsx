@@ -11,6 +11,7 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
+import {UserSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
 import ExternalLink from 'components/external_link';
@@ -28,6 +29,7 @@ interface State {
     description: string;
     displayName: string;
     iconURL: string;
+    creatorId: string;
     saving: boolean;
     triggerWhen: number;
     triggerWords: string;
@@ -85,6 +87,11 @@ interface Props {
      * Whether to allow configuration of the default post icon.
      */
     enablePostIconOverride: boolean;
+
+    /**
+     * Whether the user can reassign the webhook to a different owner.
+     */
+    canManageOthersWebhooks?: boolean;
 }
 
 export default class AbstractOutgoingWebhook extends React.PureComponent<Props, State> {
@@ -123,6 +130,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
             clientError: null,
             username: hook?.username || '',
             iconURL: hook?.icon_url || '',
+            creatorId: hook?.creator_id || '',
         };
     };
 
@@ -201,7 +209,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
             create_at: this.props.initialHook?.create_at || 0,
             update_at: this.props.initialHook?.update_at || 0,
             delete_at: this.props.initialHook?.delete_at || 0,
-            creator_id: this.props.initialHook?.creator_id || '',
+            creator_id: this.state.creatorId || this.props.initialHook?.creator_id || '',
             token: this.props.initialHook?.token || '',
         };
 
@@ -230,6 +238,10 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         this.setState({
             channelId: e.target.value,
         });
+    };
+
+    updateCreatorId = (creatorId: string) => {
+        this.setState({creatorId});
     };
 
     updateTriggerWords: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
@@ -416,6 +428,34 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 </div>
                             </div>
                         </div>
+                        { this.props.canManageOthersWebhooks &&
+                            <div className='form-group'>
+                                <label
+                                    className='control-label col-sm-4'
+                                    htmlFor='ownerId'
+                                >
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.owner'
+                                        defaultMessage='Owner'
+                                    />
+                                </label>
+                                <div className='col-md-5 col-sm-8'>
+                                    <UserSelector
+                                        id='ownerId'
+                                        isMulti={false}
+                                        showDropdownIndicator={true}
+                                        singleSelectInitialValue={this.state.creatorId}
+                                        singleSelectOnChange={this.updateCreatorId}
+                                    />
+                                    <div className='form__help'>
+                                        <FormattedMessage
+                                            id='add_outgoing_webhook.owner.help'
+                                            defaultMessage='Specify the user that owns this webhook. Response posts created by this webhook are attributed to the selected owner.'
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        }
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'

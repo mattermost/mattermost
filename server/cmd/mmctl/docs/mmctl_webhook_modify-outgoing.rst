@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, and triggers
+Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, triggers, and owner
 
 ::
 
@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start
+    webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start --user [username]
 
 Options
 ~~~~~~~
@@ -36,6 +36,7 @@ Options
       --trigger-when string        When to trigger webhook (exact: for first word matches a trigger word exactly, start: for first word starts with a trigger word)
       --trigger-word stringArray   Word to trigger webhook
       --url stringArray            Callback URL
+      --user string                User username, email, or ID to set as the webhook owner
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
