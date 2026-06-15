@@ -358,6 +358,7 @@ export const ModalIdentifiers = {
     NOTIFICATIONS: 'notifications',
     DELETE_POST: 'delete_post',
     BURN_ON_READ_CONFIRMATION: 'burn_on_read_confirmation',
+    BURN_ON_READ_SCREENSHOT_WARNING: 'burn_on_read_screenshot_warning',
     CONVERT_CHANNEL: 'convert_channel',
     RESET_STATUS: 'reset_status',
     LEAVE_TEAM: 'leave_team',

@@ -343,6 +343,7 @@ function PostComponent(props: Props) {
         const isMeMessage = checkIsMeMessage(post);
         const hovered =
             hover || fileDropdownOpened || dropdownOpened || a11yActive || props.isPostBeingEdited;
+
         return classNames('a11y__section post', {
             'post--highlight': shouldHighlight && !fadeOutHighlight,
             'same--root': hasSameRoot(props),
@@ -363,6 +364,7 @@ function PostComponent(props: Props) {
             'mention-comment': props.isCommentMention,
             'post--thread': isRHS,
             'post--modal': isModal,
+            'post--burn-on-read-revealed': isRevealedBoR,
         });
     };
 
@@ -384,6 +386,28 @@ function PostComponent(props: Props) {
         setHover(false);
         setAlt(false);
     }, []);
+
+    const showConcealedPlaceholder = props.shouldDisplayBurnOnReadConcealed && post.type === PostTypes.BURN_ON_READ;
+
+    // Revealed BoR post for a recipient — used for content protection handlers and CSS class.
+    const isRevealedBoR = post.type === PostTypes.BURN_ON_READ &&
+        post.user_id !== props.currentUserId &&
+        typeof post.metadata?.expire_at === 'number' &&
+        !showConcealedPlaceholder;
+
+    const handleCopy = useCallback((e: React.ClipboardEvent) => {
+        if (isRevealedBoR) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, [isRevealedBoR]);
+
+    const handleCut = useCallback((e: React.ClipboardEvent) => {
+        if (isRevealedBoR) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, [isRevealedBoR]);
 
     const handleCardClick = (post?: Post) => {
         if (!post) {
@@ -601,9 +625,6 @@ function PostComponent(props: Props) {
         }
     }
 
-    // Determine if we should show concealed placeholder for burn-on-read posts
-    const showConcealedPlaceholder = props.shouldDisplayBurnOnReadConcealed && post.type === PostTypes.BURN_ON_READ;
-
     let message;
     if (showConcealedPlaceholder) {
         message = (
@@ -742,6 +763,7 @@ function PostComponent(props: Props) {
                 <BurnOnReadTimerChip
                     expireAt={post.metadata.expire_at as number}
                     onClick={handleTimerChipClick}
+                    isRecipient={post.user_id !== props.currentUserId}
                 />
             );
         }
@@ -771,6 +793,8 @@ function PostComponent(props: Props) {
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
                 autotranslated={props.isChannelAutotranslated}
+                onCopy={handleCopy}
+                onCut={handleCut}
             >
                 {props.isChannelAutotranslated && isTranslating && (
                     <div className='post-message__shimmer'/>
