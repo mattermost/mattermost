@@ -1083,6 +1083,98 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	}
 }
 
+func TestBuildFullPushNotificationMessagePriorityTitles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	for name, tc := range map[string]struct {
+		priority       string
+		channelType    model.ChannelType
+		channelName    string
+		rootID         string
+		contentsConfig string
+		expectedTitle  string
+	}{
+		"urgent channel root post": {
+			priority:      model.PostPriorityUrgent,
+			channelType:   model.ChannelTypeOpen,
+			channelName:   "Town Square",
+			expectedTitle: "URGENT message in Town Square",
+		},
+		"urgent direct message root post": {
+			priority:      model.PostPriorityUrgent,
+			channelType:   model.ChannelTypeDirect,
+			channelName:   "@sender",
+			expectedTitle: "URGENT Direct Message",
+		},
+		"urgent group message root post": {
+			priority:      model.PostPriorityUrgent,
+			channelType:   model.ChannelTypeGroup,
+			channelName:   "sender, receiver",
+			expectedTitle: "URGENT Group Message",
+		},
+		"important channel root post": {
+			priority:      model.PostPriorityImportant,
+			channelType:   model.ChannelTypeOpen,
+			channelName:   "Town Square",
+			expectedTitle: "IMPORTANT message in Town Square",
+		},
+		"important direct message root post": {
+			priority:      model.PostPriorityImportant,
+			channelType:   model.ChannelTypeDirect,
+			channelName:   "@sender",
+			expectedTitle: "IMPORTANT Direct Message",
+		},
+		"important group message root post": {
+			priority:      model.PostPriorityImportant,
+			channelType:   model.ChannelTypeGroup,
+			channelName:   "sender, receiver",
+			expectedTitle: "IMPORTANT Group Message",
+		},
+		"priority reply keeps channel title": {
+			priority:      model.PostPriorityUrgent,
+			channelType:   model.ChannelTypeOpen,
+			channelName:   "Town Square",
+			rootID:        model.NewId(),
+			expectedTitle: "Reply in Town Square",
+		},
+		"generic no channel keeps channel title hidden": {
+			priority:       model.PostPriorityUrgent,
+			channelType:    model.ChannelTypeOpen,
+			channelName:    "Town Square",
+			contentsConfig: model.GenericNoChannelNotification,
+			expectedTitle:  "",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			contentsConfig := tc.contentsConfig
+			if contentsConfig == "" {
+				contentsConfig = model.FullNotification
+			}
+
+			post := &model.Post{
+				Id:      model.NewId(),
+				UserId:  model.NewId(),
+				RootId:  tc.rootID,
+				Message: "hello",
+				Metadata: &model.PostMetadata{
+					Priority: &model.PostPriority{
+						Priority: model.NewPointer(tc.priority),
+					},
+				},
+			}
+			channel := &model.Channel{
+				Id:   model.NewId(),
+				Type: tc.channelType,
+			}
+			user := &model.User{Locale: "en"}
+
+			msg := th.App.buildFullPushNotificationMessage(th.Context, contentsConfig, post, user, channel, tc.channelName, "sender", false, false, "")
+			assert.Equal(t, tc.expectedTitle, msg.ChannelName)
+		})
+	}
+}
+
 func TestSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

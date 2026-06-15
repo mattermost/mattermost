@@ -110,7 +110,8 @@ const (
 	PostPropsSharedChannelState         = "shared_channel_state"
 	PostPropsSharedChannelWorkspaceName = "workspace_name"
 
-	PostPriorityUrgent = "urgent"
+	PostPriorityImportant = "important"
+	PostPriorityUrgent    = "urgent"
 
 	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
 	DefaultReadDurationSeconds = 10 * 60          // 10 minutes

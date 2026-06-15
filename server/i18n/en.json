@@ -3363,6 +3363,30 @@
     "translation": "Reply in Direct Message"
   },
   {
+    "id": "api.push_notification.title.important_channel",
+    "translation": "IMPORTANT message in {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.important_dm",
+    "translation": "IMPORTANT Direct Message"
+  },
+  {
+    "id": "api.push_notification.title.important_gm",
+    "translation": "IMPORTANT Group Message"
+  },
+  {
+    "id": "api.push_notification.title.urgent_channel",
+    "translation": "URGENT message in {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.urgent_dm",
+    "translation": "URGENT Direct Message"
+  },
+  {
+    "id": "api.push_notification.title.urgent_gm",
+    "translation": "URGENT Group Message"
+  },
+  {
     "id": "api.push_notifications.message.parse.app_error",
     "translation": "An error occurred building the push notification message."
   },

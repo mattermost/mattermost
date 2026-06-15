@@ -326,6 +326,11 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 		Sender:     sender,
 	}
 
+	if post.GetPriority() == nil {
+		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
+		notification.Post = post
+	}
+
 	if int64(len(mentionedUsersList)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		return errors.Errorf("mentioned users: %d are more than allowed users: %d", len(mentionedUsersList), *a.Config().TeamSettings.MaxNotificationsPerChannel)
 	}
@@ -372,7 +377,6 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 	}
 
 	if len(desktopUsers) != 0 {
-		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
 		postJSON, jsonErr := post.ToJSON()
 		if jsonErr != nil {
 			return errors.Wrapf(jsonErr, "failed to encode post to JSON")
