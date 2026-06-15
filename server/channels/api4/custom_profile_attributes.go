@@ -417,8 +417,11 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 		results[value.FieldID] = value.Value
 	}
 
-	// CPA-specific websocket event (backward compat)
-	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+	// CPA-specific websocket event (backward compat). Scoped to the target
+	// user: CPA values are access-controlled per viewer on the REST path
+	// (UserCanSeeOtherUser and per-field visibility), so a system-wide
+	// broadcast would expose them to every connected user.
+	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", userID, nil, "")
 	message.Add("user_id", userID)
 	message.Add("values", results)
 	c.App.Publish(message)
