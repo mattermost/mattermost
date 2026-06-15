@@ -35,7 +35,7 @@ const (
 	MaxEmojiHeight         = 128
 	MaxEmojiOriginalWidth  = 1028
 	MaxEmojiOriginalHeight = 1028
-	MaxEmojiGIFFrames      = 32
+	MaxEmojiGIFFrames      = 70
 )
 
 func (a *App) CreateEmoji(rctx request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
