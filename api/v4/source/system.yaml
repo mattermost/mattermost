@@ -673,8 +673,8 @@
       summary: Update configuration
       description: >
         Submit a new configuration for the server to use. As of server version
-        4.8, the `PluginSettings.EnableUploads` setting cannot be modified by
-        this endpoint.
+        4.8, the `PluginSettings.EnableUploads` and `PluginSettings.SignaturePublicKeyFiles`
+        settings cannot be modified by this endpoint.
 
         Note that the parameters that aren't set in the configuration that you
         provide will be reset to default values. Therefore, if you want to
@@ -815,8 +815,8 @@
       summary: Patch configuration
       description: >
         Submit configuration to patch. As of server version 4.8, the
-        `PluginSettings.EnableUploads` setting cannot be modified by this
-        endpoint.
+        `PluginSettings.EnableUploads` and `PluginSettings.SignaturePublicKeyFiles`
+        settings cannot be modified by this endpoint.
 
         ##### Permissions
 
