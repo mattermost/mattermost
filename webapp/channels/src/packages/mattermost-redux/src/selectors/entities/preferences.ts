@@ -147,15 +147,7 @@ export const getTimestampFormat: (state: GlobalState) => TimestampFormat = creat
     },
 );
 
-/** @deprecated Use getTimestampFormat */
-export const getDateTimeDisplayFormat = getTimestampFormat;
-
 export function shouldShowThreadDateSeparators(state: GlobalState): boolean {
-    return getTimestampFormat(state) === TimestampFormat.STANDARD;
-}
-
-/** @deprecated Use TimestampFormat.STANDARD checks */
-export function isCompactDateTimeDisplayFormat(state: GlobalState): boolean {
     return getTimestampFormat(state) === TimestampFormat.STANDARD;
 }
 
@@ -195,11 +187,6 @@ export function getUseMilitaryTime(state: GlobalState): boolean {
 
 export function getTimestampFormatUserPreference(state: GlobalState): string | undefined {
     return getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)?.value;
-}
-
-/** @deprecated Use getTimestampFormatUserPreference */
-export function getDateTimeDisplayFormatUserPreference(state: GlobalState): string | undefined {
-    return getTimestampFormatUserPreference(state);
 }
 
 export const getThemePreferences = makeGetCategory('getThemePreferences', Preferences.CATEGORY_THEME);

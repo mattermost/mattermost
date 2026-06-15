@@ -10,7 +10,7 @@ import {getDiff, isWithin} from 'utils/datetime';
 
 export {TimestampFormat};
 
-export type TimestampDisplayContext = 'post' | 'thread_list' | 'thread_footer' | 'scheduled_post';
+export type TimestampDisplayContext = 'post' | 'thread_list' | 'thread_footer' | 'scheduled_post' | 'metadata';
 export type TimestampDisplayTier = 'inline' | 'time_only';
 
 type FormatOptions = {
@@ -62,9 +62,6 @@ export function shouldWrapPostTimestamp(format: TimestampFormat, forceTimeOnly: 
     return format === TimestampFormat.DATE_AND_TIME && !forceTimeOnly;
 }
 
-/** @deprecated Use shouldWrapPostTimestamp */
-export const shouldStackPostTimestamp = shouldWrapPostTimestamp;
-
 export function resolveTimestampDisplayTier(
     format: TimestampFormat,
     context: TimestampDisplayContext,
@@ -75,7 +72,7 @@ export function resolveTimestampDisplayTier(
         return explicitTier;
     }
 
-    if (context === 'thread_list' || context === 'thread_footer' || context === 'scheduled_post') {
+    if (context === 'thread_list' || context === 'thread_footer' || context === 'scheduled_post' || context === 'metadata') {
         return 'inline';
     }
 
@@ -356,29 +353,4 @@ export function getTimestampFormatShortLabel(
             defaultMessage: 'Standard',
         });
     }
-}
-
-/** @deprecated Use getTimestampFormatLabel */
-export const getDateTimeDisplayFormatLabel = getTimestampFormatLabel;
-
-/** @deprecated Use getTimestampFormatShortLabel */
-export const getDateTimeDisplayFormatShortLabel = getTimestampFormatShortLabel;
-
-/** @deprecated Use isValidTimestampFormat */
-export function isValidDateTimeDisplayFormat(value: string): value is TimestampFormat {
-    return isValidTimestampFormat(value) || Boolean(LEGACY_FORMAT_MAP[value]);
-}
-
-/** @deprecated Use TimestampFormat.STANDARD checks */
-export function isCompactDateTimeDisplayFormat(format: TimestampFormat): boolean {
-    return format === TimestampFormat.STANDARD;
-}
-
-/** @deprecated Use formatInlineTimestamp */
-export function formatEventTimestamp(
-    value: Date,
-    format: TimestampFormat,
-    options: FormatOptions,
-): string {
-    return formatInlineTimestamp(value, format, options);
 }

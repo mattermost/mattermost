@@ -237,7 +237,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
                         <span className='edit-post-history__date'>
                             <EventTimestamp
                                 value={timeStampValue}
-                                displayContext='thread_list'
+                                displayContext='metadata'
                                 showTooltip={false}
                             />
                         </span>

@@ -15,7 +15,6 @@ import {
     getTimestampFormatLabel,
     getTimestampFormatOptionDisplayNameValues,
     getTimestampFormatTimeExample,
-    isCompactDateTimeDisplayFormat,
     isValidTimestampFormat,
     resolveTimestampDisplayTier,
     resolveAdminShowTimestampSeconds,
@@ -33,11 +32,6 @@ describe('datetime_display_format', () => {
         expect(isValidTimestampFormat('relative')).toBe(true);
         expect(isValidTimestampFormat('date_and_time')).toBe(true);
         expect(isValidTimestampFormat('invalid')).toBe(false);
-    });
-
-    test('isCompactDateTimeDisplayFormat', () => {
-        expect(isCompactDateTimeDisplayFormat(TimestampFormat.STANDARD)).toBe(true);
-        expect(isCompactDateTimeDisplayFormat(TimestampFormat.DATE_AND_TIME)).toBe(false);
     });
 
     test('formatStandardTime with seconds', () => {

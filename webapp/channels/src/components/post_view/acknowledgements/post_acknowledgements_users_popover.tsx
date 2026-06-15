@@ -103,7 +103,7 @@ function Row({
                 <Span>
                     <EventTimestamp
                         value={acknowledgedAt}
-                        displayContext='thread_list'
+                        displayContext='metadata'
                         showTooltip={false}
                     />
                 </Span>

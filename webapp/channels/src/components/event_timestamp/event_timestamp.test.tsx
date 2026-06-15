@@ -78,12 +78,12 @@ describe('EventTimestamp', () => {
         expect(screen.queryByText(/:00/)).not.toBeInTheDocument();
     });
 
-    test('should render inline tier for thread list in standard mode', () => {
+    test('should render inline tier for metadata surfaces in standard mode', () => {
         renderWithContext(
             <EventTimestamp
                 {...baseProps}
                 timestampFormat={TimestampFormat.STANDARD}
-                displayContext='thread_list'
+                displayContext='metadata'
                 showTooltip={false}
             />,
         );

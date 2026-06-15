@@ -1152,13 +1152,6 @@ export enum TimestampFormat {
     DATE_AND_TIME = 'date_and_time',
 }
 
-/** @deprecated Use TimestampFormat */
-export enum DateTimeDisplayFormat {
-    COMPACT = 'compact',
-    TIME_SECONDS = 'time_seconds',
-    ISO_DATETIME = 'iso_datetime',
-}
-
 export enum ServiceEnvironment {
     PRODUCTION = 'production',
     TEST = 'test',

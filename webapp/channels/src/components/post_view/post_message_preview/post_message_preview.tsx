@@ -165,7 +165,7 @@ const PostMessagePreview = (props: Props) => {
                         <EventTimestamp
                             value={previewPost.create_at}
                             className='post-preview__time'
-                            displayContext='thread_list'
+                            displayContext='metadata'
                             showTooltip={false}
                         />
                         {previewPost.metadata?.priority && isPostPriorityEnabled && (
