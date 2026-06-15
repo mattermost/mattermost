@@ -1604,3 +1604,50 @@ describe('shouldShowActionsMenu', () => {
         expect(PostUtils.shouldShowActionsMenu(baseState, borPost)).toBe(false);
     });
 });
+
+describe('getPostTranslation', () => {
+    test('should return exact match first (fixes zh-CN translation bug)', () => {
+        const post = TestHelper.getPostMock({
+            metadata: {
+                translations: {
+                    zh: {
+                        state: 'processing',
+                        source_lang: 'en',
+                    },
+                    'zh-CN': {
+                        state: 'ready',
+                        source_lang: 'en',
+                        object: {message: '你好，世界'},
+                    },
+                },
+            },
+        } as any);
+
+        // Before the fix, this would incorrectly return the 'zh' (processing) state
+        // because it blindly stripped '-CN' and only checked the prefix.
+        // With the fix, it checks 'zh-CN' first and returns the ready state.
+        const translation = PostUtils.getPostTranslation(post, 'zh-CN');
+        expect(translation?.state).toBe('ready');
+        expect(translation?.object?.message).toBe('你好，世界');
+    });
+
+    test('should fallback to prefix match if exact match not found', () => {
+        const post = TestHelper.getPostMock({
+            metadata: {
+                translations: {
+                    es: {
+                        state: 'ready',
+                        source_lang: 'en',
+                        object: {message: 'Hola mundo'},
+                    },
+                },
+            },
+        } as any);
+
+        // Even though 'es-ES' isn't explicitly in translations,
+        // it falls back to 'es' correctly.
+        const translation = PostUtils.getPostTranslation(post, 'es-ES');
+        expect(translation?.state).toBe('ready');
+        expect(translation?.object?.message).toBe('Hola mundo');
+    });
+});
