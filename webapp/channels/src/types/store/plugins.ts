@@ -454,7 +454,7 @@ export type ProductSwitcherMenuItemRegistration = PluginComponent & {
     text: string;
     icon: IconGlyphTypes | React.ReactNode;
     action: () => void;
-    isAvailable?: (state: GlobalState) => boolean;
+    isHidden?: (state: GlobalState) => boolean;
 };
 
 export type ChannelTypeOptionComponent = PluginComponent & {
