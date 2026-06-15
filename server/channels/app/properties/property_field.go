@@ -487,6 +487,15 @@ func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, i
 	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
+func (ps *PropertyService) GetPropertyFieldsForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
+	fields, err := ps.fieldStore.GetForGroup(context.Background(), groupID)
+	if err != nil {
+		return nil, fmt.Errorf("GetPropertyFieldsForGroup: %w", err)
+	}
+
+	return ps.runPostGetPropertyFields(rctx, fields)
+}
+
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
 	field, err := ps.getPropertyFieldByName(groupID, targetID, name)
 	if err != nil {

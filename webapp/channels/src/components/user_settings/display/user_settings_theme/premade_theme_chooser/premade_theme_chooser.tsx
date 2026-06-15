@@ -15,7 +15,7 @@ type Props = {
     theme: Theme;
     updateTheme: (theme: Theme) => void;
     allowedThemes: string[];
-}
+};
 
 const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) => {
     const premadeThemes = [];

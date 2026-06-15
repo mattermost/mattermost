@@ -172,13 +172,15 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
 
-		// publishChannelPolicyEnforcedForChannelPoliciesWithImport iterates
-		// over child channel policies; with no children there is no fan-out
-		// to channel cache invalidation.
+		// A parent save fans out to both its channel and team children;
+		// with no children of either kind, neither search yields a broadcast.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
 		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
@@ -284,6 +286,10 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
 		})).Return([]*model.AccessControlPolicy{{ID: childChannelID, Type: model.AccessControlPolicyTypeChannel}}, int64(1), nil).Once()
+		// teamPolicyIDsWithImport is also called for parent-type deletes; no team children here.
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl
@@ -2355,6 +2361,7 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 
 	t.Run("populates session attributes from the cache", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
 
 		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 		require.Nil(t, appErr)
@@ -2363,7 +2370,7 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
 			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
 			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
-		}))
+		}, model.GetMillis()))
 
 		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
 		require.Nil(t, appErr)
@@ -4841,6 +4848,43 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 		require.Nil(t, appErr)
 		mockChannelStore.AssertExpectations(t)
 	})
+
+	t.Run("parent policy fans out to both channel and team children", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
+
+		parentID := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:   parentID,
+			Type: model.AccessControlPolicyTypeParent,
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
+
+		// Activating a parent must fan out to BOTH its channel and team children.
+		// With no children the import searches still run but broadcast nothing — the
+		// team search is what was previously missing on this path.
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeTeam && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil).Once()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockACS
+
+		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
+			{ID: parentID, Active: true},
+		})
+
+		require.Nil(t, appErr)
+		// The team import search proves the team fan-out is wired (previously absent).
+		mockACPStore.AssertExpectations(t)
+	})
 }
 
 // TestSaveForbiddenErrorHidesInternalID verifies that saveForbiddenError always returns
@@ -4954,5 +4998,25 @@ func TestMaskPolicyExpressions_FailClosedUsesDenyAllSentinel(t *testing.T) {
 
 		assert.Equal(t, "", policy.Rules[0].Expression, "empty expression must stay empty")
 		assert.Equal(t, "true", policy.Rules[1].Expression, "open-access rule must stay \"true\"")
+	})
+}
+
+// Verify that the team join path (channelID="") produces a subject with no
+// channel-scoped role — the user holds no channel role at team-join time, so
+// attaching one would produce a misleading subject for the membership decision.
+func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("no channel-scoped role when channelID is empty", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+
+		require.NotEmpty(t, subject.ScopedRoles)
+		assert.Equal(t, model.AccessControlSubjectScopeSystem, subject.ScopedRoles[0].Scope)
+
+		for _, sr := range subject.ScopedRoles {
+			assert.NotEqual(t, model.AccessControlSubjectScopeChannel, sr.Scope)
+		}
 	})
 }

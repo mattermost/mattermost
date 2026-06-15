@@ -19,6 +19,7 @@
 
     &__content {
         display: flex;
+        overflow: hidden; // clip transformed image previews so panning can't escape behind the header
         height: calc(100vh - 72px);
         align-items: center;
         justify-content: center;

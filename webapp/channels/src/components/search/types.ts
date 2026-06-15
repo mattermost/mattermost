@@ -20,7 +20,7 @@ export type OwnProps = {
     channelDisplayName?: string;
     getFocus?: (searchBarFocus: () => void) => void;
     children?: React.ReactNode;
-}
+};
 
 export type StateProps = {
     isRhsExpanded: boolean;
@@ -36,12 +36,12 @@ export type StateProps = {
     isSearch: boolean;
     isMobileView: boolean;
     crossTeamSearchEnabled: boolean;
-}
+};
 
 export type DispatchProps = {
     actions: {
         updateSearchTerms: (term: string) => Action;
-        updateSearchTeam: (teamId: string|null) => Action;
+        updateSearchTeam: (teamId: string | null) => Action;
         updateSearchTermsForShortcut: () => void;
         updateSearchType: (searchType: string) => Action;
         showSearchResults: (isMentionSearch: boolean) => unknown;
@@ -51,6 +51,6 @@ export type DispatchProps = {
         updateRhsState: (rhsState: string) => void;
         openRHSSearch: () => void;
     };
-}
+};
 
 export type Props = StateProps & DispatchProps & OwnProps;

@@ -812,6 +812,28 @@ func (a *App) GetUsersNotInAbacChannel(rctx request.CTX, teamID string, channelI
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersNotInAbacTeam returns users who satisfy the team's ABAC membership
+// policy, for candidate lists on policy-governed teams. Mirrors
+// GetUsersNotInAbacChannel, with the team as the resource being evaluated.
+func (a *App) GetUsersNotInAbacTeam(rctx request.CTX, teamID string, cursorID string, limit int, asAdmin bool) ([]*model.User, *model.AppError) {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("GetUsersNotInAbacTeam", "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	users, _, appErr := acs.QueryUsersForResource(rctx, teamID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
+		Limit: limit,
+		Cursor: model.SubjectCursor{
+			TargetID: cursorID, // Empty string means start from beginning
+		},
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
@@ -1147,6 +1169,10 @@ func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 
 	if nErr := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); nErr != nil {
 		rctx.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
+	}
+
+	if nErr := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(userID); nErr != nil {
+		rctx.Logger().Warn("unable to remove oauth access data by user id", mlog.Err(nErr))
 	}
 
 	return nil

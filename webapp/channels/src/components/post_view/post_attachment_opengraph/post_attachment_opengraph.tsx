@@ -45,7 +45,7 @@ export type Props = {
     isEmbedVisible?: boolean;
     toggleEmbedVisibility: () => void;
     actions: {
-        editPost: (post: { id: string; props: Record<string, any> }) => void;
+        editPost: (post: {id: string; props: Record<string, any>}) => void;
     };
     isInPermalink?: boolean;
     imageCollapsed?: boolean;
@@ -74,7 +74,7 @@ export function getBestImage(openGraphData?: OpenGraphMetadata, imagesMetadata?:
     return getNearestPoint<ImageMetadata>(DIMENSIONS_NEAREST_POINT_IMAGE, images);
 }
 
-export const getIsLargeImage = (data: ImageMetadata|null) => {
+export const getIsLargeImage = (data: ImageMetadata | null) => {
     if (!data) {
         return false;
     }
@@ -168,7 +168,7 @@ type BodyProps = {
     isInPermalink?: boolean;
     sitename?: string;
     description?: string;
-}
+};
 
 export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename = '', description = ''}: BodyProps) => {
     return title ? (
@@ -182,11 +182,11 @@ export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename
 
 type ImageProps = {
     title?: string;
-    imageMetadata?: ImageMetadata|null;
+    imageMetadata?: ImageMetadata | null;
     isInPermalink: Props['isInPermalink'];
     isEmbedVisible: Props['isEmbedVisible'];
     toggleEmbedVisibility: Props['toggleEmbedVisibility'];
-}
+};
 
 export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink, toggleEmbedVisibility, isEmbedVisible = true, title = ''}: ImageProps) => {
     const {formatMessage} = useIntl();

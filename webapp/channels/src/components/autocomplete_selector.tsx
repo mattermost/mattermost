@@ -17,7 +17,7 @@ export type Option = {
     text: string;
     value: string;
 };
-export type Selected = Option | UserProfile | Channel
+export type Selected = Option | UserProfile | Channel;
 
 type Props = {
     id: string;

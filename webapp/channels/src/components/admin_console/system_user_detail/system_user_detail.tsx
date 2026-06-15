@@ -214,7 +214,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     getCustomProfileAttributeValues = async (userId: UserProfile['id']) => {
         return this.props.getCustomProfileAttributeValues(userId).
-            then((result: { data?: Record<string, string | string[]> }) => result.data || {});
+            then((result: {data?: Record<string, string | string[]>}) => result.data || {});
     };
 
     componentDidMount() {

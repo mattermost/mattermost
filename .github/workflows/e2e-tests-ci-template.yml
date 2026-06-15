@@ -97,8 +97,12 @@ on:
       playwright_report_url:
         value: ${{ jobs.report.outputs.playwright_report_url }}
 
+permissions: {}
+
 jobs:
   update-initial-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
@@ -112,6 +116,8 @@ jobs:
           status: pending
 
   generate-build-variables:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - update-initial-status
@@ -125,6 +131,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/generate-build-variables
@@ -138,6 +145,8 @@ jobs:
           echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - generate-build-variables
@@ -151,6 +160,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
@@ -169,6 +179,9 @@ jobs:
           BUILD_ID: "${{ inputs.BUILD_ID }}"
           TEST: "${{ inputs.TEST }}"
           TEST_FILTER: "${{ inputs.TEST_FILTER }}"
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           set -e -o pipefail
           make generate-test-cycle | tee generate-test-cycle.out
@@ -177,10 +190,13 @@ jobs:
           if [ -n "$TEST_CYCLE_ID" ]; then
             echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
           else
-            echo "status_check_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+            echo "status_check_url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
           fi
 
   test:
+    permissions:
+      contents: read
+      actions: write
     continue-on-error: true # Individual runner failures shouldn't prevent the completion of an E2E run
     strategy:
       fail-fast: false # Individual runner failures shouldn't prevent the completion of an E2E run
@@ -229,6 +245,7 @@ jobs:
         # overwrites the workspace with inputs.commit_sha.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           sparse-checkout: .github/actions
           sparse-checkout-cone-mode: true
       - name: ci/runner-prep-for-openldap
@@ -236,6 +253,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-macos-docker
@@ -323,6 +341,9 @@ jobs:
           retention-days: 1
 
   report:
+    permissions:
+      actions: write
+      contents: read
     runs-on: ubuntu-24.04
     needs:
       - test
@@ -342,6 +363,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/download-artifacts
@@ -407,14 +429,18 @@ jobs:
       - name: ci/upload-results-to-s3
         if: (inputs.TEST == 'playwright')
         id: upload-to-s3
+        env:
+          AWS_REGION: us-east-1
+          AWS_S3_BUCKET: mattermost-cypress-report
+          INPUT_PR_NUMBER: ${{ inputs.PR_NUMBER }}
+          INPUT_TEST: ${{ inputs.TEST }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           echo "🔍 Checking if results directory exists..."
 
-          PR_NUMBER="${{ inputs.PR_NUMBER }}"
-          LOCAL_RESULTS_PATH="${{ inputs.TEST }}/results/"
-          LOCAL_LOGS_PATH="${{ inputs.TEST }}/logs/"
-          RUN_ID="${{ github.run_id }}"
-          S3_PATH="server-pr-${PR_NUMBER}/e2e-reports/${{ inputs.TEST }}/${RUN_ID}"
+          LOCAL_RESULTS_PATH="${INPUT_TEST}/results/"
+          LOCAL_LOGS_PATH="${INPUT_TEST}/logs/"
+          S3_PATH="server-pr-${INPUT_PR_NUMBER}/e2e-reports/${INPUT_TEST}/${GITHUB_RUN_ID}"
 
           echo "📤 Uploading to s3://${AWS_S3_BUCKET}/${S3_PATH}/"
 
@@ -428,9 +454,6 @@ jobs:
           echo "✅ Report uploaded to: $REPORT_URL"
 
           echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
-        env:
-          AWS_REGION: us-east-1
-          AWS_S3_BUCKET: mattermost-cypress-report
 
       - name: ci/report-calculate-results
         id: calculate-results
@@ -465,11 +488,15 @@ jobs:
           echo "$COMMIT_STATUS_MESSAGE"
       - name: ci/e2e-test-assert-results
         if: "${{ inputs.testcase_failure_fatal }}"
+        env:
+          CALCULATE_FAILED: ${{ steps.calculate-results.outputs.failed }}
         run: |
           # Assert that the run contained 0 failures
-          [ "${{ steps.calculate-results.outputs.failed }}" = "0" ]
+          [ "${CALCULATE_FAILED}" = "0" ]
 
   update-failure-final-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     if: failure() || cancelled()
     needs:
@@ -493,6 +520,8 @@ jobs:
 
 
   update-success-final-status:
+    permissions:
+      statuses: write
     runs-on: ubuntu-24.04
     if: success()
     needs:

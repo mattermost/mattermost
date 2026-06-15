@@ -17,28 +17,28 @@ export type AccessControlPolicy = {
     rules: AccessControlPolicyRule[];
     scope?: string;
     scope_id?: string;
-}
+};
 
 export type AccessControlPolicyCursor = {
     id: string;
-}
+};
 
 export type AccessControlPoliciesResult = {
     policies: AccessControlPolicy[];
     total: number;
-}
+};
 
 export type AccessControlPolicySearchOpts = {
     term: string;
     type: string;
     cursor: AccessControlPolicyCursor;
     limit: number;
-}
+};
 
 export type AccessControlPolicyChannelsResult = {
     channels: ChannelWithTeamData[];
     total: number;
-}
+};
 
 export type AccessControlPolicyRule = {
     actions?: string[];
@@ -56,7 +56,7 @@ export type AccessControlPolicyRule = {
      * empty.
      */
     role?: string;
-}
+};
 
 export const ACCESS_CONTROL_POLICY_VERSION_V0_3 = 'v0.3';
 export const ACCESS_CONTROL_POLICY_VERSION_V0_4 = 'v0.4';
@@ -165,21 +165,21 @@ export type CELExpressionError = {
     message: string;
     line: number;
     column: number;
-}
+};
 
 export type AccessControlTestResult = {
     users: UserProfile[];
     total: number;
-}
+};
 
 export type AccessControlAttribute = {
     name: string;
     values: string[];
-}
+};
 
 export type AccessControlVisualAST = {
     conditions: AccessControlVisualASTNode[];
-}
+};
 
 export type AccessControlVisualASTNode = {
     attribute: string;
@@ -188,7 +188,7 @@ export type AccessControlVisualASTNode = {
     value_type: number;
     attribute_type: string;
     has_masked_values?: boolean;
-}
+};
 
 /**
  * Type definition for access control attributes
@@ -209,7 +209,7 @@ export interface AccessControlled {
 export type AccessControlPolicyActiveUpdate = {
     id: string;
     active: boolean;
-}
+};
 
 /**
  * Sources of deny attribution returned by the simulate endpoint.
@@ -508,14 +508,22 @@ export type PolicyEvaluationScope = 'all' | 'this_rule';
 /**
  * Per-user payload for the picker-driven /cel/simulate_users endpoint. The
  * server resolves the user's profile attributes from CPA storage and then
- * layers session context on top: first the requesting admin's active-session
- * snapshot (when use_active_session is true), then the explicit
- * session_overrides map. Either source can be empty; both nil/empty means
- * "no session context" (strict default — rules referencing session.* will
- * surface as denies).
+ * layers session context on top: the requesting admin's resolved session
+ * snapshot (the same user_agent_* / ip_address bag the live PDP evaluates
+ * against) is applied as a baseline, then `session_overrides` overrides
+ * individual keys. Leaving overrides empty means "evaluate against the
+ * session as the server resolves it" — matching what the user would hit
+ * on a live request.
  */
 export type PolicySimulationUserOverride = {
     user_id: string;
+
+    /**
+     * Retained for API backward compatibility — the server now always
+     * layers the requesting admin's resolved session snapshot under
+     * `session_overrides`, so this flag is effectively a no-op. New
+     * clients should leave it unset.
+     */
     use_active_session?: boolean;
 
     /**

@@ -59,9 +59,41 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 	return a.ch.exportFilestore
 }
 
+// UseExportFileStore reports whether the dedicated export filestore is
+// active. When true, callers reading the filestore configuration should
+// resolve the export-side fields (ExportDriverName, ExportAmazonS3*,
+// ExportAzure*, ...) rather than the primary fields.
+func (a *App) UseExportFileStore() bool {
+	if !a.License().IsCloud() {
+		return false
+	}
+	if !a.Config().FeatureFlags.CloudDedicatedExportUI {
+		return false
+	}
+	dedicated := a.Config().FileSettings.DedicatedExportStore
+	return dedicated != nil && *dedicated
+}
+
+// ResolvedFileStoreDriverName returns the driver name that callers should
+// read for the active filestore -- ExportDriverName when the dedicated
+// export filestore is enabled, otherwise the primary DriverName. The empty
+// string is returned when neither pointer is set so callers can produce a
+// dedicated "unsupported driver" error.
+func (a *App) ResolvedFileStoreDriverName(settings *model.FileSettings) string {
+	name := settings.DriverName
+	if a.UseExportFileStore() {
+		name = settings.ExportDriverName
+	}
+
+	if name == nil {
+		return ""
+	}
+	return *name
+}
+
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 	bucket := settings.AmazonS3Bucket
-	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+	if a.UseExportFileStore() {
 		bucket = settings.ExportAmazonS3Bucket
 	}
 	if bucket == nil || *bucket == "" {
@@ -75,7 +107,7 @@ func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.App
 	authMode := settings.AzureAuthMode
 	accessKey := settings.AzureAccessKey
 	container := settings.AzureContainer
-	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+	if a.UseExportFileStore() {
 		storageAccount = settings.ExportAzureStorageAccount
 		authMode = settings.ExportAzureAuthMode
 		accessKey = settings.ExportAzureAccessKey
@@ -128,11 +160,12 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	var backend filestore.FileBackend
 	var err error
 	complianceEnabled := license != nil && *license.Features.Compliance
-	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
+	allowInsecure := insecure != nil && *insecure
+	allowedUntrustedInternalConnections := model.SafeDereference(a.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+	if a.UseExportFileStore() {
+		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure, allowedUntrustedInternalConnections))
 	} else {
-		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
+		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, allowInsecure, allowedUntrustedInternalConnections))
 	}
 	if err != nil {
 		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -888,12 +921,14 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 
 	if *a.Config().FileSettings.ExtractContent && t.ExtractContent {
 		infoCopy := *t.fileinfo
-		a.Srv().GoBuffered(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
 				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
-		})
+		}) {
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+		}
 	}
 
 	return t.fileinfo, nil
@@ -1155,12 +1190,14 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 	// and something we can do without.
 	if *a.Config().FileSettings.ExtractContent && extractContent {
 		infoCopy := *info
-		a.Srv().GoBuffered(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
 				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
-		})
+		}) {
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+		}
 	}
 
 	return info, data, nil
@@ -1725,10 +1762,15 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
-	defer file.Close()
+	// Ownership of closing the file is handed to docextractor.Extract via
+	// ReaderCloser: with a timeout configured, extraction may continue on a
+	// detached goroutine after Extract returns, so closing the file here would
+	// race with that goroutine still reading it.
 	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 		MaxFileSize:      *a.Config().FileSettings.MaxFileSize,
+		Timeout:          time.Duration(*a.Config().FileSettings.ExtractContentTimeout) * time.Second,
+		ReaderCloser:     file,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to extract file content")
@@ -1983,6 +2025,25 @@ func (a *App) sendFileDownloadRejectedEvent(info *model.FileInfo, userID string,
 	message.Add("channel_id", info.ChannelId)
 	message.Add("post_id", info.PostId)
 	message.Add("download_type", string(downloadType))
+	a.Publish(message)
+}
+
+// sendFileUploadRejectedEvent sends a websocket event to notify the user that their file upload was
+// rejected by a plugin. It mirrors sendFileDownloadRejectedEvent so the webapp can surface the
+// rejection as a toast instead of an inline composer error. When connectionID is provided, the event
+// is only sent to that specific connection.
+func (a *App) sendFileUploadRejectedEvent(info *model.FileInfo, userID string, connectionID string, rejectionReason string) {
+	if userID == "" {
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventFileUploadRejected, "", info.ChannelId, userID, nil, "")
+	if connectionID != "" {
+		message.GetBroadcast().ConnectionId = connectionID
+	}
+	message.Add("file_name", info.Name)
+	message.Add("rejection_reason", rejectionReason)
+	message.Add("channel_id", info.ChannelId)
 	a.Publish(message)
 }
 

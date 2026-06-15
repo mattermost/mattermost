@@ -1,20 +1,48 @@
 name: Server CI Artifacts
 
 on:
-  workflow_run:
-    workflows:
-      - "Server CI"
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      source-run-id:
+        description: Server CI workflow run ID (for artifact download)
+        required: true
+        type: string
+      source-event:
+        description: github.event_name from the Server CI run
+        required: true
+        type: string
+      head-sha:
+        description: Commit SHA for status and published artifacts
+        required: true
+        type: string
+      head-repository:
+        description: head_repository.full_name from the Server CI run
+        required: true
+        type: string
+    secrets:
+      PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID:
+        required: true
+      PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY:
+        required: true
+      DOCKERHUB_DEV_TOKEN:
+        required: true
+      WIZ_DEVOPS_CLIENT_ID:
+        required: true
+      WIZ_DEVOPS_CLIENT_SECRET:
+        required: true
 
 env:
   COSIGN_VERSION: 2.2.0
+
+permissions: {}
 
 jobs:
   ## We only need the condition on the first job
   ## This will run only when a pull request is created with server changes
   update-initial-status:
-    if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
+    permissions:
+      statuses: write
+    if: github.repository_owner == 'mattermost' && inputs.source-event == 'pull_request' && inputs.head-repository == github.repository
     runs-on: ubuntu-22.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
@@ -22,12 +50,15 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ github.event.workflow_run.head_sha }}
+          commit_sha: ${{ inputs.head-sha }}
           context: Server CI/Artifacts Build
           description: Artifacts upload and build for mattermost team platform
           status: pending
 
   upload-artifacts:
+    permissions:
+      actions: read
+      contents: read
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
@@ -42,7 +73,7 @@ jobs:
       - name: cd/download-artifacts-from-PR-workflow
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ inputs.source-run-id }}
           github-token: ${{ github.token }}
           name: server-dist-artifact
           path: server/dist
@@ -55,21 +86,28 @@ jobs:
           echo "EOF" >> "${GITHUB_ENV}"
 
       - name: cd/upload-artifacts-to-s3
-        run: aws s3 sync server/dist/ s3://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/ --cache-control no-cache --no-progress --acl public-read
+        env:
+          WORKFLOW_RUN_HEAD_SHA: ${{ inputs.head-sha }}
+        run: aws s3 sync server/dist/ "s3://pr-builds.mattermost.com/mattermost/commit/${WORKFLOW_RUN_HEAD_SHA}/" --cache-control no-cache --no-progress --acl public-read
 
       - name: cd/generate-summary
+        env:
+          WORKFLOW_RUN_HEAD_SHA: ${{ inputs.head-sha }}
         run: |
           echo "### Download links for Mattermost team package" >> "${GITHUB_STEP_SUMMARY}"
           echo " " >> "${GITHUB_STEP_SUMMARY}"
-          echo "Mattermost Repo SHA: \`${{ github.event.workflow_run.head_sha }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Mattermost Repo SHA: \`${WORKFLOW_RUN_HEAD_SHA}\`" >> "${GITHUB_STEP_SUMMARY}"
           echo "|Download Link|" >> "${GITHUB_STEP_SUMMARY}"
           echo "| --- |" >> "${GITHUB_STEP_SUMMARY}"
           for package in ${PACKAGES_FILE_LIST}
             do
-              echo "|[${package}](https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/${package})|" >> "${GITHUB_STEP_SUMMARY}"
+              echo "|[${package}](https://pr-builds.mattermost.com/mattermost/commit/${WORKFLOW_RUN_HEAD_SHA}/${package})|" >> "${GITHUB_STEP_SUMMARY}"
           done
 
   build-docker:
+    permissions:
+      actions: read
+      contents: read
     runs-on: ubuntu-22.04
     needs:
       - upload-artifacts
@@ -83,17 +121,18 @@ jobs:
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
 
       - name: cd/checkout-build-files
-        if: github.event.workflow_run.head_repository.full_name != github.repository
+        if: inputs.head-repository != github.repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           sparse-checkout: server/build/
           sparse-checkout-cone-mode: true
 
       - name: cd/download-build-artifact
-        if: github.event.workflow_run.head_repository.full_name == github.repository
+        if: inputs.head-repository == github.repository
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ inputs.source-run-id }}
           github-token: ${{ github.token }}
           name: server-build-artifact
           path: server/build/
@@ -108,13 +147,15 @@ jobs:
 
       - name: cd/set-docker-tag
         id: set_tag
+        env:
+          WORKFLOW_RUN_HEAD_SHA: ${{ inputs.head-sha }}
         run: |
-          echo "TAG=$(echo '${{ github.event.workflow_run.head_sha }}' | cut -c1-7)" >> $GITHUB_OUTPUT
+          echo "TAG=$(echo "${WORKFLOW_RUN_HEAD_SHA}" | cut -c1-7)" >> $GITHUB_OUTPUT
 
       - name: cd/docker-build-and-push
         id: docker
         env:
-          MM_PACKAGE: https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/mattermost-team-linux-amd64.tar.gz
+          MM_PACKAGE: https://pr-builds.mattermost.com/mattermost/commit/${{ inputs.head-sha }}/mattermost-team-linux-amd64.tar.gz
           TAG: ${{ steps.set_tag.outputs.TAG }}
         run: |
           cd server/build
@@ -123,15 +164,17 @@ jobs:
 
       - name: cd/generate-summary
         env:
+          DOCKERHUB_IMAGE_DIGEST: ${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}
           TAG: ${{ steps.set_tag.outputs.TAG }}
+          WORKFLOW_RUN_HEAD_SHA: ${{ inputs.head-sha }}
         run: |
           echo "### Docker Image for Mattermost team package" >> "${GITHUB_STEP_SUMMARY}"
           echo " " >> "${GITHUB_STEP_SUMMARY}"
-          echo "Mattermost Repo SHA: \`${{ github.event.workflow_run.head_sha }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Mattermost Repo SHA: \`${WORKFLOW_RUN_HEAD_SHA}\`" >> "${GITHUB_STEP_SUMMARY}"
           echo " " >> "${GITHUB_STEP_SUMMARY}"
           echo "Docker Image: \`mattermostdevelopment/mattermost-team-edition:${TAG}\`" >> "${GITHUB_STEP_SUMMARY}"
-          echo "Image Digest: \`${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
-          echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${TAG}@${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Image Digest: \`${DOCKERHUB_IMAGE_DIGEST}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${TAG}@${DOCKERHUB_IMAGE_DIGEST}\`" >> "${GITHUB_STEP_SUMMARY}"
 
   scan-docker-image:
     runs-on: ubuntu-22.04
@@ -150,15 +193,21 @@ jobs:
           WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
 
       - name: cd/download-container-image
+        env:
+          DOCKER_TAG: ${{ needs.build-docker.outputs.TAG }}
         run: |
-          docker pull mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }}
+          docker pull "mattermostdevelopment/mattermost-team-edition:${DOCKER_TAG}"
 
       - name: cd/scan-image
+        env:
+          DOCKER_TAG: ${{ needs.build-docker.outputs.TAG }}
         run: |
-          ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }} --policy "$POLICY"
+          ./wizcli docker scan --image "mattermostdevelopment/mattermost-team-edition:${DOCKER_TAG}" --policy "$POLICY"
 
   update-failure-final-status:
-    if: (failure() || cancelled()) && github.event.workflow_run.event == 'pull_request'
+    permissions:
+      statuses: write
+    if: (failure() || cancelled()) && inputs.source-event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:
       - build-docker
@@ -168,13 +217,15 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ github.event.workflow_run.head_sha }}
+          commit_sha: ${{ inputs.head-sha }}
           context: Server CI/Artifacts Build
           description: Artifacts upload and build for mattermost team platform
           status: failure
 
   update-success-final-status:
-    if: success() && github.event.workflow_run.event == 'pull_request'
+    permissions:
+      statuses: write
+    if: success() && inputs.source-event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:
       - build-docker
@@ -184,7 +235,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ github.event.workflow_run.head_sha }}
+          commit_sha: ${{ inputs.head-sha }}
           context: Server CI/Artifacts Build
           description: Artifacts upload and build for mattermost team platform
           status: success

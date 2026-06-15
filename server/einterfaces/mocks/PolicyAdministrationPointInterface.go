@@ -227,6 +227,38 @@ func (_m *PolicyAdministrationPointInterface) GetPolicyRuleAttributes(rctx reque
 	return r0, r1
 }
 
+// GetTeamMembersToRemove provides a mock function with given fields: rctx, teamID
+func (_m *PolicyAdministrationPointInterface) GetTeamMembersToRemove(rctx request.CTX, teamID string) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(rctx, teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamMembersToRemove")
+	}
+
+	var r0 []*model.TeamMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.TeamMember, *model.AppError)); ok {
+		return rf(rctx, teamID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.TeamMember); ok {
+		r0 = rf(rctx, teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, teamID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Init provides a mock function with given fields: rctx
 func (_m *PolicyAdministrationPointInterface) Init(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)

@@ -22,6 +22,9 @@
                   type: string
                 device_id:
                   type: string
+                voip_device_id:
+                  description: VoIP push token. Same prefix shape as device_id. Optional; when provided, enables ring-style call push notifications.
+                  type: string
                 ldap_only:
                   type: boolean
                 password:
@@ -2099,6 +2102,9 @@
                   description: Mobile device id. For Android prefix the id with `android:`
                     and Apple with `apple:`
                   type: string
+                voip_device_id:
+                  description: VoIP push token. Same prefix shape as device_id. Optional; when provided, enables ring-style call push notifications.
+                  type: string
                 deviceNotificationDisabled:
                   description: Whether the mobile device has notifications disabled.
                     Accepted values are "true" or "false".
@@ -2118,6 +2124,45 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /api/v4/users/sessions/attributes/manifest:
+    get:
+      tags:
+        - users
+      summary: Get the session attributes manifest
+      description: >
+        Get the set of session attributes the server expects the client to
+        collect, filtered to the requesting client's platform, including the
+        per-attribute TTL and grace period.
+
+        Requires the `SessionAttributes` feature flag and an Enterprise Advanced license.
+
+      operationId: GetSessionAttributesManifest
+      responses:
+        "200":
+          description: Session attributes manifest retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
+                    ttl_seconds:
+                      type: integer
+                    grace_period_seconds:
+                      type: integer
+                    platforms:
+                      type: array
+                      items:
+                        type: string
+                    display_name:
+                      type: string
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/audits":
     get:
       tags:

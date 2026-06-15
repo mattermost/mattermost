@@ -200,7 +200,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         let theme;
         try {
             theme = JSON.parse(text);
-        } catch (err) {
+        } catch {
             return;
         }
 

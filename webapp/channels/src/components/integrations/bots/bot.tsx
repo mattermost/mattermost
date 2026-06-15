@@ -96,14 +96,14 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
-}
+};
 
 type State = {
     confirmingId: string;
     creatingTokenState: string;
     token: UserAccessToken | Record<string, any>;
     error: ReactNode;
-}
+};
 
 export default class Bot extends React.PureComponent<Props, State> {
     public constructor(props: Props) {

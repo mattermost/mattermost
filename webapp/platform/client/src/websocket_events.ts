@@ -84,6 +84,7 @@ export const enum WebSocketEvents {
     ChannelBookmarkDeleted = 'channel_bookmark_deleted',
     ChannelBookmarkSorted = 'channel_bookmark_sorted',
     ChannelAccessControlUpdated = 'channel_access_control_updated',
+    TeamAccessControlUpdated = 'team_access_control_updated',
     PresenceIndicator = 'presence',
     PostedNotifyAck = 'posted_notify_ack', // This isn't currently used by the web app
     ScheduledPostCreated = 'scheduled_post_created',
@@ -97,6 +98,7 @@ export const enum WebSocketEvents {
     RecapUpdated = 'recap_updated',
     PostTranslationUpdated = 'post_translation_updated',
     FileDownloadRejected = 'file_download_rejected',
+    FileUploadRejected = 'file_upload_rejected',
     ShowToast = 'show_toast',
     SharedChannelRemoteUpdated = 'shared_channel_remote_updated',
     ChannelJoinRequestCreated = 'channel_join_request_created',
