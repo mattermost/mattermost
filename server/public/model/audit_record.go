@@ -21,6 +21,15 @@ const (
 	AuditStatusSuccess = "success"
 	AuditStatusAttempt = "attempt"
 	AuditStatusFail    = "fail"
+
+	// AuditMetaTypeMultiUser tags a post-delivery audit record whose Meta
+	// carries a single entity_id and a user_ids []string array (fan-out:
+	// one post delivered to many users, e.g. websocket broadcast).
+	AuditMetaTypeMultiUser = "multi_user"
+	// AuditMetaTypeMultiPost tags a post-delivery audit record whose Meta
+	// carries a single user_id and an entity_ids []string array (one user
+	// reading many posts, e.g. channel view).
+	AuditMetaTypeMultiPost = "multi_post"
 )
 
 // AuditRecord provides a consistent set of fields used for all audit logging.

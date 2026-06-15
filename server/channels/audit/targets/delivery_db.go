@@ -1,0 +1,135 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Package targets hosts custom mlog targets that the audit logger can route
+// records to. Targets here are registered via audit.Audit.Factories at
+// configureAudit time.
+package targets
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"strings"
+
+	"github.com/mattermost/logr/v2"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+)
+
+// DeliveryDBTargetType is the target-type string used in advanced-logging
+// JSON to wire this target. Match in lowercase since the configurator
+// passes the original string through to the factory.
+const DeliveryDBTargetType = "audit_delivery_db"
+
+// init registers a validation-time factory so LoggerConfiguration.IsValid
+// recognises this custom target type. The validation target is a no-op
+// (nil store) — it only exists so the type-name check during config
+// validation passes. The real runtime target, with the actual store
+// wired in, is constructed by app.configureAudit when the audit logger
+// is configured.
+func init() {
+	mlog.ValidationFactories = &mlog.Factories{
+		TargetFactory: func(targetType string, _ json.RawMessage) (logr.Target, error) {
+			if strings.ToLower(targetType) == DeliveryDBTargetType {
+				return &DeliveryDBTarget{}, nil
+			}
+			return nil, fmt.Errorf("unrecognized target type %q", targetType)
+		},
+	}
+}
+
+// DeliveryDBTarget writes audit records emitted at mlog.LvlAuditDelivery
+// into the audit_storage table via the AuditStorageStore. The expected
+// record shape is what app.emitDeliveryAudit produces: a model.AuditRecord
+// whose Meta map carries user_id, entity_id, and mechanism keys.
+//
+// One Write call performs one Mark(); there is no buffering. Callers that
+// produce wide fan-outs rely on the audit logger's per-target queue to
+// absorb bursts.
+type DeliveryDBTarget struct {
+	store store.AuditStorageStore
+}
+
+// NewDeliveryDBTarget builds a target backed by the given store. The store
+// reference is captured at construction; the noop fallback returned when
+// AuditStorageSettings.Enable=false is still safe to use here because its
+// Mark is a no-op.
+func NewDeliveryDBTarget(s store.AuditStorageStore) *DeliveryDBTarget {
+	return &DeliveryDBTarget{store: s}
+}
+
+func (t *DeliveryDBTarget) Init() error     { return nil }
+func (t *DeliveryDBTarget) Shutdown() error { return nil }
+
+// Write reads the structured Meta map off the log record and dispatches
+// to the matching store call. The formatted bytes (p) are ignored — we
+// read field values directly so we never have to parse a serialized
+// representation.
+func (t *DeliveryDBTarget) Write(p []byte, rec *mlog.LogRec) (int, error) {
+	for _, f := range rec.Fields() {
+		if f.Key != model.AuditKeyMeta {
+			continue
+		}
+		meta, ok := f.Interface.(map[string]any)
+		if !ok {
+			return 0, fmt.Errorf("audit_delivery_db: meta field is not map[string]any (got %T)", f.Interface)
+		}
+		if err := Dispatch(context.Background(), t.store, meta); err != nil {
+			return 0, err
+		}
+		return len(p), nil
+	}
+	return 0, nil
+}
+
+// Dispatch routes a single Meta map to the matching store call. Exported so
+// that the audit logger's sync-handler path (server/channels/app/audit.go)
+// can use the same dispatch logic without instantiating a target. The shape
+// is set by the producer in server/channels/app/audit_storage.go:
+//
+//   - type=multi_user → one entity, many users → MarkBulkSamePost
+//   - type=multi_post → one user, many entities → MarkBulkSameUser
+//   - no type        → single (user, entity) pair → Mark (single-record
+//     path; emitted by App.AuditRecord)
+func Dispatch(ctx context.Context, s store.AuditStorageStore, meta map[string]any) error {
+	mech, _ := meta["mechanism"].(int16)
+	switch meta["type"] {
+	case model.AuditMetaTypeMultiUser:
+		userIDs, ok := meta["user_ids"].([]string)
+		if !ok {
+			return fmt.Errorf("audit_delivery_db: user_ids not []string (got %T)", meta["user_ids"])
+		}
+		entityID, _ := meta["entity_id"].(string)
+		if entityID == "" || len(userIDs) == 0 {
+			return nil
+		}
+		if err := s.MarkBulkSamePost(ctx, userIDs, entityID, mech); err != nil {
+			return fmt.Errorf("audit_delivery_db: bulk-same-post failed: %w", err)
+		}
+	case model.AuditMetaTypeMultiPost:
+		entityIDs, ok := meta["entity_ids"].([]string)
+		if !ok {
+			return fmt.Errorf("audit_delivery_db: entity_ids not []string (got %T)", meta["entity_ids"])
+		}
+		userID, _ := meta["user_id"].(string)
+		if userID == "" || len(entityIDs) == 0 {
+			return nil
+		}
+		if err := s.MarkBulkSameUser(ctx, userID, entityIDs, mech); err != nil {
+			return fmt.Errorf("audit_delivery_db: bulk-same-user failed: %w", err)
+		}
+	default:
+		userID, _ := meta["user_id"].(string)
+		entityID, _ := meta["entity_id"].(string)
+		if userID == "" || entityID == "" {
+			return nil
+		}
+		if err := s.Mark(ctx, userID, entityID, mech); err != nil {
+			return fmt.Errorf("audit_delivery_db: mark failed: %w", err)
+		}
+	}
+	return nil
+}
