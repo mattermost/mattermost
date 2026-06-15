@@ -30,6 +30,7 @@ import {
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
 import store from 'stores/redux_store';
 
+import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/composer_placeholder';
 import {compassIconForName} from 'components/channel_type_icon';
 import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
@@ -75,6 +76,7 @@ import type {
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
     ChannelIntroRegistration,
+    ComposerPlaceholderRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1424,6 +1426,30 @@ export default class PluginRegistry {
         clearLoggedChannelIntroErrors(this.id);
         const id = generateId();
         dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
+        return id;
+    });
+
+    /**
+     * Register a transform applied to the composer placeholder for the current channel.
+     *
+     * `transform` receives (placeholder, channel, state, intl) and returns the placeholder to show —
+     * append to it, replace it, or return it unchanged for channels the plugin doesn't act on. `state`
+     * is the full Redux state, so plugins can read state['plugins-<pluginId>'] slices to decide; use
+     * intl.formatMessage() for i18n. Transforms chain: across plugins they run in pluginId alphabetical
+     * order, within one plugin in registration order, each receiving the previous result.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     */
+    registerComposerPlaceholder = reArg(['transform'], ({transform}: {
+        transform: ComposerPlaceholderRegistration['transform'];
+    }) => {
+        clearComposerPlaceholderErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ComposerPlaceholder', {
+            id,
+            pluginId: this.id,
+            transform,
+        });
         return id;
     });
 

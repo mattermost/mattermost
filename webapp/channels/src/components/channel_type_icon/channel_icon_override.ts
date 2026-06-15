@@ -5,11 +5,11 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getChannelIconClassName} from 'utils/channel_utils';
-import {createMatcherErrorLog} from 'utils/matcher_error_log';
+import {createPluginErrorLog} from 'utils/plugin_error_log';
 
 import type {GlobalState} from 'types/store';
 
-const matcherErrorLog = createMatcherErrorLog('ChannelIconOverride');
+const matcherErrorLog = createPluginErrorLog('ChannelIconOverride');
 
 /**
  * Clears the per-pluginId log-once tracker for matcher errors.
