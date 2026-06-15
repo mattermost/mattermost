@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -346,6 +347,68 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 			nil, "policy rules would exclude the requesting admin", http.StatusBadRequest)
 	}
 
+	return nil
+}
+
+// SendTeamAccessControlRemovalNotification DMs the user, from the system bot,
+// that the team's membership policy removed them. The message carries only the
+// team name — never any policy/attribute detail.
+// The systemBot may be pre-resolved by the caller (the sync worker resolves it
+// once per team rather than once per user, since GetSystemBot is not free); pass
+// nil to have it resolved here.
+func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
+	locale := ""
+	if user, err := a.GetUser(userID); err == nil {
+		locale = user.Locale
+	}
+	T := i18n.GetUserTranslations(locale)
+	message := T("api.team.access_control.removed.system_message", map[string]any{"TeamName": team.DisplayName})
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamRemoval, message)
+}
+
+// SendTeamAccessControlAdditionNotification audits the auto-add and DMs the
+// user, from the system bot, that they were added to the team because they meet
+// its membership policy. Like the removal DM, it leaks no policy detail. The
+// audit record is always written; only the DM depends on the system bot.
+func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
+	rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipAdded, model.AuditStatusSuccess)
+	model.AddEventParameterToAuditRec(rec, "user_id", userID)
+	model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+	a.LogAuditRec(rctx, rec, nil)
+
+	locale := ""
+	if user, err := a.GetUser(userID); err == nil {
+		locale = user.Locale
+	}
+	T := i18n.GetUserTranslations(locale)
+	message := T("api.team.access_control.added.system_message", map[string]any{"TeamName": team.DisplayName})
+	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamAddition, message)
+}
+
+func (a *App) sendTeamAccessControlMembershipDM(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team, postType, message string) *model.AppError {
+	if systemBot == nil {
+		var appErr *model.AppError
+		if systemBot, appErr = a.GetSystemBot(rctx); appErr != nil {
+			return appErr
+		}
+	}
+
+	channel, appErr := a.GetOrCreateDirectChannel(rctx, userID, systemBot.UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+		Type:      postType,
+		UserId:    systemBot.UserId,
+		Props:     model.StringInterface{"team_name": team.DisplayName},
+	}
+
+	if _, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
+		return appErr
+	}
 	return nil
 }
 

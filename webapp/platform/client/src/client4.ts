@@ -875,7 +875,7 @@ export default class Client4 {
             login_id: loginId,
         };
 
-        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean}>(
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
             `${this.getUsersRoute()}/login/type`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -1370,6 +1370,13 @@ export default class Client4 {
         return this.doFetch<Team>(
             `${this.getTeamRoute(team.id)}/patch`,
             {method: 'put', body: JSON.stringify(team)},
+        );
+    };
+
+    updateTeamPrivacy = (teamId: string, privacy: string) => {
+        return this.doFetch<Team>(
+            `${this.getTeamRoute(teamId)}/privacy`,
+            {method: 'put', body: JSON.stringify({privacy})},
         );
     };
 
@@ -3460,7 +3467,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase & {data?: any}) => {
+    createJob = (job: JobTypeBase & { data?: any }) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -4952,6 +4959,13 @@ export default class Client4 {
         );
     };
 
+    getTeamAccessControlAttributes = (teamId: string) => {
+        return this.doFetch<AccessControlAttributes>(
+            `${this.getTeamRoute(teamId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
     // getProfilesMatchingTeamPolicy returns only users who satisfy the team's
     // ABAC membership policy and are not yet members, for the policy-filtered
     // invite candidate list.
@@ -4974,6 +4988,14 @@ export default class Client4 {
     createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
         const job = {
             type: 'access_control_sync' as JobType,
+            data: jobData,
+        };
+        return this.createJob(job);
+    };
+
+    createAccessControlTeamSyncJob = (jobData: {[key: string]: string}) => {
+        const job = {
+            type: 'access_control_team_sync' as JobType,
             data: jobData,
         };
         return this.createJob(job);

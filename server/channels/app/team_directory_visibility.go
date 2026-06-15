@@ -196,3 +196,87 @@ func (a *App) FilterNonQualifyingTeamsForUser(rctx request.CTX, teams []*model.T
 
 	return filtered, dropCount, nil
 }
+
+// AnnotateRecommendedTeamsForUser sets Team.Recommended on public, policy-enforced
+// teams that userID qualifies to join and is not already a member of. The flag is a
+// transient per-viewer hint, never persisted and carrying no policy detail. Private
+// teams are never annotated — they are hidden by the directory filter, not
+// recommended. Decisions are memoised per-request, sharing the cache with the filter.
+//
+// Fail-secure: a missing AccessControl service, a member-lookup failure, a
+// subject-build failure, or any PDP error leaves Recommended false, so a
+// non-qualifying user is never tagged as recommended.
+func (a *App) AnnotateRecommendedTeamsForUser(rctx request.CTX, teams []*model.Team, userID string) {
+	if len(teams) == 0 || !a.TeamMembershipAccessControlEnabled() {
+		return
+	}
+
+	rctx = withTeamVisibilityCache(rctx)
+	cache := getTeamVisibilityCache(rctx)
+
+	var (
+		user       *model.User
+		userErr    *model.AppError
+		userOnce   sync.Once
+		memberOf   map[string]bool
+		memberErr  *model.AppError
+		memberOnce sync.Once
+	)
+
+	for _, team := range teams {
+		if team == nil || !team.PolicyEnforced {
+			continue
+		}
+
+		// Only public (advisory) governed teams carry the tag; private governed
+		// teams are hidden, never recommended.
+		if !(team.AllowOpenInvite && team.Type == model.TeamOpen) {
+			continue
+		}
+
+		// Suppress for current members — this also covers auto-added users, who
+		// are members by the time they would be tagged.
+		memberOnce.Do(func() {
+			members, err := a.GetTeamMembersForUser(rctx, userID, "", false)
+			if err != nil {
+				memberErr = err
+				return
+			}
+			memberOf = make(map[string]bool, len(members))
+			for _, m := range members {
+				memberOf[m.TeamId] = true
+			}
+		})
+		if memberErr != nil {
+			return
+		}
+		if memberOf[team.Id] {
+			continue
+		}
+
+		if cached, ok := cache.get(team.Id); ok {
+			team.Recommended = cached
+			continue
+		}
+
+		userOnce.Do(func() {
+			user, userErr = a.GetUser(userID)
+		})
+		if userErr != nil {
+			return
+		}
+
+		decision, evalErr := a.evaluateTeamMembership(rctx, user, team)
+		if evalErr != nil {
+			rctx.Logger().Warn("AnnotateRecommendedTeamsForUser: PDP error, not recommending (fail-secure)",
+				mlog.String("user_id", userID),
+				mlog.String("team_id", team.Id),
+				mlog.Err(evalErr),
+			)
+			cache.set(team.Id, false)
+			continue
+		}
+		cache.set(team.Id, decision)
+		team.Recommended = decision
+	}
+}

@@ -988,6 +988,47 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  "/api/v4/teams/{team_id}/access_control/attributes":
+    get:
+      tags:
+        - teams
+      summary: Get the access control attributes governing a team
+      description: |
+        Get the attributes used by the team's membership access control policy,
+        as a map of attribute name to the values that satisfy the rule. This lets
+        membership surfaces explain the requirement to join the team. Values that
+        are source-only or shared-only are stripped, so no sensitive value is
+        disclosed. The map is empty when no membership policy governs the team.
+        ##### Permissions
+        Must have the `view_team` permission for the team.
+      operationId: GetTeamAccessControlAttributes
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team access control attributes retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+                description: Map of attribute name to the values that satisfy the membership rule.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   "/api/v4/teams/{team_id}/regenerate_invite_id":
     post:
       tags:

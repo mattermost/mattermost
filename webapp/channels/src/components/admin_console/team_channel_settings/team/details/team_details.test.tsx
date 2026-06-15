@@ -16,6 +16,21 @@ jest.mock('./team_profile', () => ({
     TeamProfile: () => <div>{'TeamProfile'}</div>,
 }));
 
+jest.mock('./team_level_access_rules', () => {
+    return function MockTeamLevelAccessRules(props: any) {
+        return (
+            <div data-testid='team-level-access-rules'>
+                <input
+                    type='checkbox'
+                    data-testid='auto-add-members-checkbox'
+                    checked={props.initialAutoSync ?? false}
+                    onChange={(e) => props.onRulesChange(true, 'user.department == "Engineering"', e.target.checked)}
+                />
+            </div>
+        );
+    };
+});
+
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({push: jest.fn()}),
 }));
@@ -63,6 +78,12 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             assignTeamToAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
             unassignTeamsFromAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
             searchPolicies: jest.fn().mockResolvedValue({data: {policies: [], total: 0}}),
+            updateAccessControlPoliciesActive: jest.fn().mockResolvedValue({data: {}}),
+            createAccessControlTeamSyncJob: jest.fn().mockResolvedValue({data: {}}),
+            getTeamStats: jest.fn().mockResolvedValue({data: {total_member_count: 5}}),
+            saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+            getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
+            searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
         },
     };
 
@@ -162,6 +183,27 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
     });
 
+    test('renders two ABAC panels when policy is enforced', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Membership policies')).toBeInTheDocument();
+        });
+        expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument();
+    });
+
     test('removing the policy and disabling the toggle unassigns it on save', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
@@ -188,7 +230,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
         });
 
-        // Remove the parent policy, then disable ABAC (now allowed since the list is empty).
         await userEvent.click(screen.getByLabelText('Remove policy'));
         await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
@@ -206,8 +247,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
 
-        // The thunk resolves with {error} rather than throwing — the handler must
-        // inspect the result, render the error, and not navigate away as success.
         const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({error: {message: 'policy update failed'}});
         const props = {
             ...baseProps,
@@ -264,9 +303,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
         });
 
-        // Removing the only policy disables the toggle, which lets us save without
-        // re-touching the already-assigned parent1. The assign action must never
-        // fire for a policy that was already on the server when the page loaded.
         await userEvent.click(screen.getByLabelText('Remove policy'));
         await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
@@ -275,5 +311,153 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
         });
         expect(assignTeamToAccessControlPolicy).not.toHaveBeenCalled();
+    });
+
+    test('shows the auto-add checkbox when a policy is enforced and ABAC is supported', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+        expect(screen.getByTestId('auto-add-members-checkbox')).not.toBeChecked();
+    });
+
+    test('auto-add checkbox reflects the active flag from the server policy', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: true}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeChecked();
+        });
+    });
+
+    test('shows the ABAC save confirmation modal when toggling auto-add and clicking Save', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 8}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy, getTeamStats},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
+        });
+        expect(getTeamStats).toHaveBeenCalledWith('123');
+    });
+
+    test('shows empty-team warning in save confirmation when all members would be removed', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 0}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy, getTeamStats},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Saving may result in an empty private team/)).toBeInTheDocument();
+        });
+    });
+
+    test('persists auto-add flag and triggers team sync job on confirmation', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+        });
+        const updateAccessControlPoliciesActive = jest.fn().mockResolvedValue({data: {}});
+        const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
+        const saveTeamAccessPolicy = jest.fn().mockResolvedValue({data: {}});
+        const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 5}});
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                updateAccessControlPoliciesActive,
+                createAccessControlTeamSyncJob,
+                saveTeamAccessPolicy,
+                getTeamStats,
+                patchTeam,
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByText('Apply'));
+
+        await waitFor(() => {
+            expect(updateAccessControlPoliciesActive).toHaveBeenCalledWith([{id: '123', active: true}]);
+        });
+        await waitFor(() => {
+            expect(createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: '123'});
+        });
     });
 });

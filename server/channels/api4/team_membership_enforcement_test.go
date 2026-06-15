@@ -14,14 +14,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-// containsTeam reports whether teamID appears in the slice.
-func containsTeam(teams []*model.Team, teamID string) bool {
-	for _, tm := range teams {
-		if tm != nil && tm.Id == teamID {
-			return true
-		}
+// teamID returns a team's ID, tolerating nil entries so directory slices that
+// may carry gaps don't panic the membership lookups.
+func teamID(t *model.Team) string {
+	if t == nil {
+		return ""
 	}
-	return false
+	return t.Id
 }
 
 // TestTeamDirectoryABACVisibility pins the team-membership ABAC security boundary
@@ -84,7 +83,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.False(t, containsTeam(teams, team.Id), "a non-qualifying non-member must not see the governed team in the directory")
+		require.False(t, containsByID(teams, team.Id, teamID), "a non-qualifying non-member must not see the governed team in the directory")
 		// Response carries no policy metadata: PolicyEnforced is the only ABAC-derived
 		// field on the wire and it never names the policy/rules/attributes.
 		for _, tm := range teams {
@@ -98,7 +97,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: team.Name})
 		require.NoError(t, err)
-		require.False(t, containsTeam(teams, team.Id), "search must not surface the governed team to a non-qualifying user")
+		require.False(t, containsByID(teams, team.Id, teamID), "search must not surface the governed team to a non-qualifying user")
 	})
 
 	t.Run("qualifying regular user sees the governed team", func(t *testing.T) {
@@ -107,7 +106,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.True(t, containsTeam(teams, team.Id), "a qualifying user must see the governed team")
+		require.True(t, containsByID(teams, team.Id, teamID), "a qualifying user must see the governed team")
 	})
 
 	t.Run("system admin is exempt from directory hiding (visibility, not access)", func(t *testing.T) {
@@ -117,7 +116,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.SystemAdminClient.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.True(t, containsTeam(teams, team.Id), "the System Console list must stay complete for admins")
+		require.True(t, containsByID(teams, team.Id, teamID), "the System Console list must stay complete for admins")
 		m.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
@@ -146,7 +145,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.False(t, containsTeam(teams, privateTeam.Id), "an ungoverned private team must never appear in a regular user's directory")
+		require.False(t, containsByID(teams, privateTeam.Id, teamID), "an ungoverned private team must never appear in a regular user's directory")
 	})
 
 	t.Run("public governed team stays visible to a non-qualifying regular user (advisory mode)", func(t *testing.T) {
@@ -163,6 +162,6 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.True(t, containsTeam(teams, publicTeam.Id), "a public governed team must remain visible regardless of qualification")
+		require.True(t, containsByID(teams, publicTeam.Id, teamID), "a public governed team must remain visible regardless of qualification")
 	})
 }

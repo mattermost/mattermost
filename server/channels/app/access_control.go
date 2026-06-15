@@ -114,6 +114,22 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
+	// Defense in depth: a team admin must remain within their own team policy's
+	// rules. The api4 handler enforces this for the request path, but guard here
+	// so any internal caller saving a team policy is held to the same invariant
+	// regardless of the masking flag. System admins and sessionless internal
+	// callers may intentionally set rules they don't match, mirroring the
+	// masking self-inclusion exemption below.
+	if policy.Type == model.AccessControlPolicyTypeTeam {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
+			for _, rule := range policy.Rules {
+				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
+					return nil, appErr
+				}
+			}
+		}
+	}
+
 	// ABAC is gated at route registration; only check masking here. Masking is
 	// attribute-based: edits are allowed with masked values present as long as
 	// the caller doesn't drop a condition holding values they couldn't see.
@@ -2399,6 +2415,34 @@ func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression stri
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil, 0, model.NewAppError("TestExpressionWithChannelContext", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	return a.TestExpression(rctx, expression, opts)
+}
+
+// TestExpressionWithTeamContext tests expressions for team admins with the same
+// info-leak guard as the channel variant: a team admin may only see users who
+// match an expression that they themselves match.
+func (a *App) TestExpressionWithTeamContext(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	session := rctx.Session()
+	if session == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithTeamContext", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+	}
+
+	currentUserID := session.UserId
+
+	// SECURITY: a team admin who doesn't match the expression must not learn who does.
+	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+	if !adminMatches {
+		return []*model.User{}, 0, nil
+	}
+
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithTeamContext", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
 	return a.TestExpression(rctx, expression, opts)

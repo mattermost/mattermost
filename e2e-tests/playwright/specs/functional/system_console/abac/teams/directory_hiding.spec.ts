@@ -109,6 +109,17 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         // wait until the qualifying user is visible to the evaluator before asserting.
         await waitForAttributeViewToInclude(adminClient, expression, [qualUser.id], 45_000);
 
+        // The child policy row is written to the master DB; the directory query
+        // reads from a read replica. Poll policy_enforced until the replica has
+        // caught up so the EXISTS subquery in GetAllPage widens correctly.
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+                message: 'team should show policy_enforced=true before asserting directory visibility',
+            })
+            .toBe(true);
+
         // API layer: proves the server filters the listing, not just the DOM.
         const {client: qualClient} = await pw.makeClient({username: qualUser.username, password: qualUser.password});
         const {client: nonQualClient} = await pw.makeClient({
@@ -116,15 +127,35 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
             password: nonQualUser.password,
         });
 
-        const qualTeams = (await qualClient.getTeams(0, 200)) as Team[];
-        const nonQualTeams = (await nonQualClient.getTeams(0, 200)) as Team[];
+        // Paginate to collect all visible teams — busy CI environments accumulate
+        // many public teams across test runs, so a single page-0 fetch misses teams
+        // that land beyond per_page=200. Use batch.length === 0 (not < per_page) as
+        // the stop condition: the server applies FilterNonQualifyingTeamsForUser
+        // after fetching a full DB page, so a batch can legitimately come back
+        // smaller than per_page while more pages still exist in the DB.
+        const allTeamIds = async (client: Client4): Promise<string[]> => {
+            const ids: string[] = [];
+            let page = 0;
+            while (true) {
+                const batch = (await client.getTeams(page, 200)) as Team[];
+                if (batch.length === 0) {
+                    break;
+                }
+                ids.push(...batch.map((t) => t.id));
+                page++;
+            }
+            return ids;
+        };
 
-        expect(qualTeams.map((t) => t.id)).toContain(team.id);
-        expect(nonQualTeams.map((t) => t.id)).not.toContain(team.id);
+        const qualIds = await allTeamIds(qualClient);
+        const nonQualIds = await allTeamIds(nonQualClient);
+
+        expect(qualIds).toContain(team.id);
+        expect(nonQualIds).not.toContain(team.id);
 
         // The ungoverned private team is never surfaced, qualified or not.
-        expect(qualTeams.map((t) => t.id)).not.toContain(ungoverned.id);
-        expect(nonQualTeams.map((t) => t.id)).not.toContain(ungoverned.id);
+        expect(qualIds).not.toContain(ungoverned.id);
+        expect(nonQualIds).not.toContain(ungoverned.id);
 
         // The boundary is asserted at the API layer. The /select_team directory page
         // additionally filters joinable teams to open-invite teams client-side, so it
