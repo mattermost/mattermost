@@ -10,8 +10,8 @@ type SvgProps = {
 
 const ClassificationMarkingsSVG = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '359'}
-        height={props.height ? props.height.toString() : '220'}
+        width={(props.width ?? 359).toString()}
+        height={(props.height ?? 220).toString()}
         viewBox='0 0 359 220'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
