@@ -506,7 +506,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
-		s.Audit.Init(audit.DefMaxQueueSize)
+		s.Audit.Init(audit.DefMaxQueueSize * 10)
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}

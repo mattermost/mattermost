@@ -58,12 +58,20 @@ var (
 
 	// LvlAuditCLI is intended for auditing command-line interface operations. This level was
 	// originally designed for the legacy CLI. It's mostly unused now.
-	LvlAuditCLI  = Level{ID: 103, Name: "audit-cli"}
+	LvlAuditCLI = Level{ID: 103, Name: "audit-cli"}
+
+	// LvlAuditDelivery is used for auditing post-delivery events: a single
+	// (user, post, mechanism) record per delivery. It is the level consumed
+	// by the audit_delivery_db target, which writes rows into the
+	// audit_storage table via SqlAuditStorage.
+	LvlAuditDelivery = Level{ID: 104, Name: "audit-delivery"}
+
 	MLvlAuditAll = []Level{
 		LvlAuditAPI,
 		LvlAuditContent,
 		LvlAuditPerms,
 		LvlAuditCLI,
+		LvlAuditDelivery,
 	}
 
 	LvlRemoteClusterServiceDebug = Level{ID: 130, Name: "RemoteClusterServiceDebug"}

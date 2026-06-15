@@ -145,6 +145,8 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 	channel := notification.Channel
 	post := notification.Post
 
+	a.AuditRecord(rctx.Context(), user.Id, post.Id, model.AuditMechEmailNotif)
+
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv().Store().Team().GetTeamsByUserId(user.Id)
 		if err != nil {
