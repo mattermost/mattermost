@@ -2259,7 +2259,6 @@ func (a *App) publishTeamPolicyEnforcedUpdate(rctx request.CTX, teamID string) {
 	a.Publish(messageWs)
 }
 
-
 // ValidateChannelEligibilityForAccessControl checks that a channel is eligible for
 // access control policy assignment: must be public or private (DM/GM excluded),
 // not group-constrained, not shared, and not a team default channel (e.g. town-square).
