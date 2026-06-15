@@ -3468,6 +3468,9 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 	c.LogAudit("user verified")
 
+	// The user object was fetched before verification, so reflect the new state in the response.
+	user.EmailVerified = true
+
 	c.App.SanitizeProfile(user, true)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

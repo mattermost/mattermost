@@ -745,7 +745,6 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.Password = ""
 	u.MfaSecret = ""
 	u.MfaUsedTimestamps = nil
-	u.EmailVerified = false
 	u.AllowMarketing = false
 	u.LastPasswordUpdate = 0
 
@@ -753,6 +752,7 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 		u.AuthData = new("")
 		u.NotifyProps = StringMap{}
 		u.FailedAttempts = 0
+		u.EmailVerified = false
 	}
 }
 

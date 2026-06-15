@@ -421,6 +421,26 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
     };
 
+    handleVerifyEmail = async () => {
+        if (!this.state.user) {
+            return;
+        }
+
+        try {
+            const {error} = await this.props.verifyUserEmailWithoutToken(this.state.user.id);
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            await this.getUser(this.state.user.id);
+        } catch (err) {
+            console.error('SystemUserDetails-handleVerifyEmail', err); // eslint-disable-line no-console
+
+            const errorMessage = err instanceof Error ? err.message : this.props.intl.formatMessage({id: 'admin.user_item.verifyEmailFailed', defaultMessage: 'Failed to verify user\'s email'});
+            this.setState({error: errorMessage});
+        }
+    };
+
     handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (!this.state.user || this.state.user.auth_service) {
             return;
@@ -667,6 +687,35 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         );
     };
 
+    renderEmailVerificationStatus = () => {
+        if (!this.state.user) {
+            return null;
+        }
+
+        const isVerified = this.state.user.email_verified;
+
+        return (
+            <span
+                className={classNames('SystemUserDetail__email-verification', {
+                    verified: isVerified,
+                    unverified: !isVerified,
+                })}
+            >
+                {isVerified ? (
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.emailVerified'
+                        defaultMessage='Email verified'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.emailNotVerified'
+                        defaultMessage='Email verification pending'
+                    />
+                )}
+            </span>
+        );
+    };
+
     renderTwoColumnLayout = () => {
         const fields: Array<React.ReactNode | null> = [];
 
@@ -737,60 +786,63 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         );
 
         fields.push(
-            <label key='email'>
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.email'
-                    defaultMessage='Email'
-                />
-                <EmailIcon/>
-                {this.state.user?.auth_service ? (
-                    <WithTooltip
-                        title={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.title',
-                            defaultMessage: 'Managed by login provider',
-                        })}
-                        hint={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.managedByProvider.email',
-                            defaultMessage: 'This email is managed by the {authService} login provider and cannot be changed here.',
-                        }, {
-                            authService: this.state.user.auth_service.toUpperCase(),
-                        })}
-                    >
-                        <input
-                            className='form-control'
-                            type='text'
-                            value={this.state.emailField}
-                            disabled={true}
-                            readOnly={true}
-                            style={{cursor: 'not-allowed'}}
-                        />
-                    </WithTooltip>
-                ) : (
-                    <>
-                        <input
-                            className={classNames('form-control', {
-                                error: this.state.emailError,
+            <React.Fragment key='email'>
+                <label>
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.email'
+                        defaultMessage='Email'
+                    />
+                    <EmailIcon/>
+                    {this.state.user?.auth_service ? (
+                        <WithTooltip
+                            title={this.props.intl.formatMessage({
+                                id: 'admin.userManagement.userDetail.managedByProvider.title',
+                                defaultMessage: 'Managed by login provider',
                             })}
-                            type='text'
-                            value={this.state.emailField}
-                            onChange={this.handleEmailChange}
-                            disabled={this.state.isSaving}
-                            aria-describedby='email-error'
-                            aria-invalid={this.state.emailError ? 'true' : 'false'}
-                        />
-                        {this.state.emailError && (
-                            <div
-                                id='email-error'
-                                className='field-error'
-                                role='alert'
-                                aria-live='polite'
-                            >
-                                {this.state.emailError}
-                            </div>
-                        )}
-                    </>
-                )}
-            </label>,
+                            hint={this.props.intl.formatMessage({
+                                id: 'admin.userManagement.userDetail.managedByProvider.email',
+                                defaultMessage: 'This email is managed by the {authService} login provider and cannot be changed here.',
+                            }, {
+                                authService: this.state.user.auth_service.toUpperCase(),
+                            })}
+                        >
+                            <input
+                                className='form-control'
+                                type='text'
+                                value={this.state.emailField}
+                                disabled={true}
+                                readOnly={true}
+                                style={{cursor: 'not-allowed'}}
+                            />
+                        </WithTooltip>
+                    ) : (
+                        <>
+                            <input
+                                className={classNames('form-control', {
+                                    error: this.state.emailError,
+                                })}
+                                type='text'
+                                value={this.state.emailField}
+                                onChange={this.handleEmailChange}
+                                disabled={this.state.isSaving}
+                                aria-describedby='email-error'
+                                aria-invalid={this.state.emailError ? 'true' : 'false'}
+                            />
+                            {this.state.emailError && (
+                                <div
+                                    id='email-error'
+                                    className='field-error'
+                                    role='alert'
+                                    aria-live='polite'
+                                >
+                                    {this.state.emailError}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </label>
+                {this.renderEmailVerificationStatus()}
+            </React.Fragment>,
         );
 
         fields.push(
@@ -1389,6 +1441,17 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             <FormattedMessage
                                                 id='admin.user_item.resetMfa'
                                                 defaultMessage='Remove MFA'
+                                            />
+                                        </Button>
+                                    )}
+                                    {this.state.user && !this.state.user.email_verified && (
+                                        <Button
+                                            emphasis='secondary'
+                                            onClick={this.handleVerifyEmail}
+                                        >
+                                            <FormattedMessage
+                                                id='admin.user_item.verifyEmail'
+                                                defaultMessage='Verify Email'
                                             />
                                         </Button>
                                     )}
