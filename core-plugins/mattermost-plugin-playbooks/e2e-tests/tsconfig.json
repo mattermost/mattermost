@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    "types": ["cypress", "cypress-wait-until", "@testing-library/cypress", "node"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "allowJs": true,
+    "noEmit": true,
+  },
+  "include": ["**/*.*"]
+}
