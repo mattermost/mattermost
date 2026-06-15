@@ -62,14 +62,33 @@ func Run(args []string) error {
 		}
 	}()
 
-	err := RootCmd.Execute()
+	cmd, err := RootCmd.ExecuteC()
 	// Flush the printer first before printing any error
 	_ = printer.Flush()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+		if isCobraPositionalArgsError(err) {
+			if cmd != nil {
+				_ = cmd.Help()
+			} else {
+				_ = RootCmd.Help()
+			}
+		} else {
+			_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+		}
 	}
 
 	return err
+}
+
+// isCobraPositionalArgsError reports errors from cobra's built-in positional
+// validators (ExactArgs, MinimumNArgs, MaximumNArgs, RangeArgs).
+func isCobraPositionalArgsError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, " arg(s), received ") ||
+		strings.Contains(msg, " arg(s), only received ")
 }
 
 func printPanic(x any) {
