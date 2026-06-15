@@ -107,6 +107,13 @@ type PlatformService struct {
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
 
+	// Document content extraction runs on a dedicated, bounded worker pool so
+	// that expensive extractions cannot saturate the generic worker pool and
+	// block the request goroutines that dispatch them.
+	extractionQueue chan func()
+	extractionStop  chan struct{}
+	extractionWG    sync.WaitGroup
+
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 
 	shareChannelServiceMux sync.RWMutex
@@ -152,6 +159,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		hashSeed:            maphash.MakeSeed(),
 		goroutineExitSignal: make(chan struct{}, 1),
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
+		extractionQueue:     make(chan func(), runtime.NumCPU()),
+		extractionStop:      make(chan struct{}),
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
 		},
@@ -438,6 +447,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	ps.searchConfigListenerId = searchConfigListenerId
 	ps.searchLicenseListenerId = searchLicenseListenerId
 
+	ps.startExtractionWorkers()
+
 	return ps, nil
 }
 
@@ -553,6 +564,10 @@ func (ps *PlatformService) Shutdown() error {
 	<-ps.statusUpdateDoneSignal
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
+
+	// Stop the document extraction workers and wait for any in-flight
+	// extraction to finish before closing the store it depends on.
+	ps.stopExtractionWorkers()
 
 	// we need to wait the goroutines to finish before closing the store
 	// and this needs to be called after hub stop because hub generates goroutines

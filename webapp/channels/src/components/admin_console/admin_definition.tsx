@@ -1164,6 +1164,18 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'number',
+                            key: 'FileSettings.ExtractContentTimeout',
+                            label: defineMessage({id: 'admin.image.extractContentTimeoutTitle', defaultMessage: 'Document content extraction timeout (seconds):'}),
+                            help_text: defineMessage({id: 'admin.image.extractContentTimeoutDescription', defaultMessage: 'Maximum number of seconds spent extracting the searchable content of a single uploaded document. Extractions that exceed this limit are aborted to protect server performance. Set to 0 to disable the timeout.'}),
+                            placeholder: defineMessage({id: 'admin.image.extractContentTimeoutExample', defaultMessage: '10'}),
+                            validate: validators.minValue(0, defineMessage({id: 'admin.image.extractContentTimeout.minValue', defaultMessage: 'Timeout must be 0 or greater.'})),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.configIsFalse('FileSettings', 'ExtractContent'),
+                            ),
+                        },
+                        {
                             type: 'bool',
                             key: 'FileSettings.ArchiveRecursion',
                             label: defineMessage({id: 'admin.image.archiveRecursionTitle', defaultMessage: 'Enable searching content of documents within ZIP files:'}),
