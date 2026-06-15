@@ -449,6 +449,12 @@
             font-weight: normal;
         }
 
+        .admin-console__header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         &.with-back {
             padding: 0;
 
