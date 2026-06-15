@@ -80,6 +80,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 
@@ -206,6 +207,18 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 
 	ch.notifyPluginStatusesChanged()
 
+	// this func checks to see if the installed plugin already has custom settings, if not then it is given default settings
+	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+		if _, ok := cfg.PluginSettings.Plugins[manifest.Id]; !ok {
+			cfg.PluginSettings.Plugins[manifest.Id] = make(map[string]any)
+
+			if ok := manifest.SettingsSchema; ok != nil {
+				for _, pluginSetting := range manifest.SettingsSchema.Settings {
+					cfg.PluginSettings.Plugins[manifest.Id][strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
+				}
+			}
+		}
+	})
 	return manifest, nil
 }
 
