@@ -5,7 +5,8 @@ import React from 'react';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
-import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor, act} from 'tests/react_testing_utils';
+import {HttpHeaders} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/SingleImageView', () => {
@@ -38,6 +39,78 @@ describe('components/SingleImageView', () => {
         enablePublicLink: false,
         isFileRejected: false,
     };
+
+    test('should reserve image space without loading preview while thumbnail check is pending', async () => {
+        let resolveFetch: (response: Response) => void;
+        mockFetch.mockImplementationOnce(() => new Promise<Response>((resolve) => {
+            resolveFetch = resolve;
+        }));
+
+        const {container} = renderWithContext(
+            <SingleImageView {...baseProps}/>,
+        );
+
+        const svgElement = container.querySelector('.image-loading__container > svg');
+        expect(svgElement).toBeInTheDocument();
+        expect(svgElement?.getAttribute('viewBox')).toEqual('0 0 350 200');
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+        expect(container.querySelector('.file-preview__button')).not.toBeInTheDocument();
+
+        await act(async () => {
+            resolveFetch!({
+                status: 200,
+                headers: new Headers(),
+            } as Response);
+        });
+
+        await waitFor(() => {
+            expect(container.querySelector('img')).toBeInTheDocument();
+        });
+    });
+
+    test('should collapse placeholder to filename when thumbnail check is rejected by plugin', async () => {
+        let resolveFetch: (response: Response) => void;
+        mockFetch.mockImplementationOnce(() => new Promise<Response>((resolve) => {
+            resolveFetch = resolve;
+        }));
+
+        const {container} = renderWithContext(
+            <SingleImageView {...baseProps}/>,
+        );
+
+        expect(container.querySelector('.image-loading__container > svg')).toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+
+        await act(async () => {
+            resolveFetch!({
+                status: 403,
+                headers: new Headers({
+                    [HttpHeaders.REJECT_REASON]: 'plugin_rejected',
+                }),
+            } as Response);
+        });
+
+        await waitFor(() => {
+            expect(container.querySelector('.image-name')?.textContent).toEqual(baseProps.fileInfo.name);
+        });
+        expect(container.querySelector('.image-loading__container')).not.toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
+    test('should keep rejected files collapsed without reserving image space', () => {
+        mockFetch.mockImplementationOnce(() => new Promise<Response>(() => {}));
+
+        const {container} = renderWithContext(
+            <SingleImageView
+                {...baseProps}
+                isFileRejected={true}
+            />,
+        );
+
+        expect(container.querySelector('.image-name')?.textContent).toEqual(baseProps.fileInfo.name);
+        expect(container.querySelector('.image-loading__container')).not.toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
 
     test('should match snapshot', async () => {
         const {container} = renderWithContext(
