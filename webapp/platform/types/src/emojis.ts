@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 export type EmojiCategory =
-    | 'recent'
-    | 'searchResults'
-    | 'smileys-emotion'
-    | 'people-body'
-    | 'animals-nature'
-    | 'food-drink'
-    | 'activities'
-    | 'travel-places'
-    | 'objects'
-    | 'symbols'
-    | 'flags'
-    | 'custom';
+    'recent' |
+    'searchResults' |
+    'smileys-emotion' |
+    'people-body' |
+    'animals-nature' |
+    'food-drink' |
+    'activities' |
+    'travel-places' |
+    'objects' |
+    'symbols' |
+    'flags' |
+    'custom';
 
 export type CustomEmoji = {
     id: string;

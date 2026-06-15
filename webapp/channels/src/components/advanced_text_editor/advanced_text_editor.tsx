@@ -133,9 +133,9 @@ const AdvancedTextEditor = ({
 
     const dispatch = useDispatch();
 
-    const getChannelSelector = useMemo(makeGetChannel, []);
-    const getDraftSelector = useMemo(makeGetDraft, []);
-    const getDisplayName = useMemo(makeGetDisplayName, []);
+    const getChannelSelector = useMemo(() => makeGetChannel(), []);
+    const getDraftSelector = useMemo(() => makeGetDraft(), []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
 
     let textboxId: string;
     if (isInEditMode) {
