@@ -124,17 +124,10 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if config.Width <= MaxEmojiWidth && config.Height <= MaxEmojiHeight {
-		// No need to resize the image
-		_, appErr := a.WriteFile(file, getEmojiImagePath(id))
-		return appErr
-	}
-
-	// Create a buffer for the resized image
-	buf := &bytes.Buffer{}
-
-	info := model.NewInfo(filename)
-	if info.MimeType == "image/gif" {
+	// Enforce the frame limit on every animated GIF, regardless of whether it
+	// needs resizing, so the cap applies to the direct-write path too.
+	isGIF := model.NewInfo(filename).MimeType == "image/gif"
+	if isGIF {
 		frameCount, err := imgutils.CountGIFFrames(file)
 		if err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -147,6 +140,18 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 		if _, err = file.Seek(0, io.SeekStart); err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	if config.Width <= MaxEmojiWidth && config.Height <= MaxEmojiHeight {
+		// No need to resize the image
+		_, appErr := a.WriteFile(file, getEmojiImagePath(id))
+		return appErr
+	}
+
+	// Create a buffer for the resized image
+	buf := &bytes.Buffer{}
+
+	if isGIF {
 		g, err := gif.DecodeAll(file)
 		if err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest).Wrap(err)

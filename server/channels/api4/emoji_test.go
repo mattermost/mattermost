@@ -179,6 +179,17 @@ func TestCreateEmoji(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	CheckErrorID(t, err, "api.emoji.upload.too_many_frames.app_error")
 
+	// try to create an animated gif with too many frames that does not need resizing
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	_, resp, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestAnimatedGif(t, app.MaxEmojiWidth, app.MaxEmojiHeight, app.MaxEmojiGIFFrames+1), "image.gif")
+	require.Error(t, err, "should fail - gif has too many frames")
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.emoji.upload.too_many_frames.app_error")
+
 	// try to create an animated gif with exactly the maximum allowed frames
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
