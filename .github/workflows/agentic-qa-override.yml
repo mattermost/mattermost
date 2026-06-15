@@ -1,0 +1,34 @@
+---
+name: Agentic QA (Override)
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  override:
+    permissions:
+      statuses: write
+      pull-requests: read
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/qa-override') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Apply QA override statuses
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          PR="${{ github.event.issue.number }}"
+          SHA=$(gh pr view "$PR" --repo "${{ github.repository }}" --json headRefOid -q .headRefOid)
+          REASON="${{ github.event.comment.body }}"
+          for CTX in QA/skipped QA/automation QA/execution; do
+            gh api "repos/${{ github.repository }}/statuses/${SHA}" \
+              -f state=success \
+              -f context="$CTX" \
+              -f description="(override) ${REASON:0:100}"
+          done

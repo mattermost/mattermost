@@ -3,6 +3,14 @@
 Explicitly import subdirectory instruction files that must always be in context:
 @server/AGENTS.md
 
+## Agentic QA (AMQA)
+
+- Ingest CodeRabbit Change Impact from PR body; do not re-score risk when that block exists.
+- 🟢 Low + "no manual QA required" → no verification work; respect `QA/skipped`.
+- Execute CodeRabbit **QA Recommendation** steps for 🔴 High PRs; evidence in PR comment.
+- Release confidence uses merge-time `qa-result` artifacts — see `.github/amqa/BASELINE.md`.
+- Browser verification: follow `.cursor/qa-playbook.md` and `.cursor/cursor.md` AMQA section.
+
 ## Pull Requests
 
 When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:

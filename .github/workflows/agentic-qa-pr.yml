@@ -1,0 +1,182 @@
+---
+name: Agentic QA (PR)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - master
+      - 'release-*'
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to analyze
+        required: true
+        type: number
+
+concurrency:
+  group: agentic-qa-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  resolve:
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    runs-on: ubuntu-24.04
+    outputs:
+      pr_number: ${{ steps.meta.outputs.pr_number }}
+      head_sha: ${{ steps.meta.outputs.head_sha }}
+      action: ${{ steps.amqa.outputs.action }}
+      should_skip: ${{ steps.amqa.outputs.should_skip }}
+      needs_execution: ${{ steps.amqa.outputs.needs_execution }}
+      mapped_specs: ${{ steps.amqa.outputs.mapped_specs }}
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.draft == false &&
+       github.event.pull_request.head.repo.full_name == 'mattermost/mattermost') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       (startsWith(github.event.comment.body, '/qa-verify') ||
+        contains(github.event.comment.body, 'summarize by coderabbit.ai')))
+    steps:
+      - name: Resolve PR metadata
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR="${{ inputs.pr_number }}"
+          elif [ "${{ github.event_name }}" = "issue_comment" ]; then
+            PR="${{ github.event.issue.number }}"
+          else
+            PR="${{ github.event.pull_request.number }}"
+          fi
+          SHA=$(gh pr view "$PR" --repo "${{ github.repository }}" --json headRefOid -q .headRefOid)
+          echo "pr_number=$PR" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Python dependencies
+        run: pip install requests pyyaml
+
+      - name: Run AMQA PR orchestrator
+        id: amqa
+        working-directory: .github/scripts/amqa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          HEAD_SHA: ${{ steps.meta.outputs.head_sha }}
+          AMQA_DRY_RUN: ${{ vars.AMQA_DRY_RUN || 'false' }}
+          AMQA_OUTPUT_DIR: ${{ runner.temp }}/amqa
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: python3 amqa_pr.py
+
+      - name: Upload qa-result artifact
+        uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
+        with:
+          name: qa-result-pr-${{ steps.meta.outputs.pr_number }}
+          path: ${{ runner.temp }}/amqa/qa-result.json
+          retention-days: 90
+
+  automation:
+    needs: resolve
+    if: needs.resolve.outputs.should_skip != 'true'
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Download qa-result
+        uses: actions/download-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
+        with:
+          name: qa-result-pr-${{ needs.resolve.outputs.pr_number }}
+          path: /tmp/amqa
+
+      - name: Install Python dependencies
+        run: pip install requests pyyaml
+
+      - name: Resolve scoped specs
+        id: specs
+        run: |
+          SPECS=$(python3 -c "import json; print(','.join(json.load(open('/tmp/amqa/qa-result.json')).get('mapped_specs',[])))")
+          echo "specs=$SPECS" >> "$GITHUB_OUTPUT"
+          if [ -z "$SPECS" ]; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Mark automation success (no mapped specs)
+        if: steps.specs.outputs.empty == 'true' || vars.AMQA_RUN_SCOPED_PLAYWRIGHT != 'true'
+        working-directory: .github/scripts/amqa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
+          HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
+          STATUS_CONTEXT: QA/automation
+          STATUS_STATE: success
+          STATUS_DESCRIPTION: No scoped specs or Playwright disabled — see spec-map
+          OVERALL: automation_only
+          STAGE: automation
+          AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
+        run: python3 amqa_update_result.py
+
+      - name: Mark automation pending (specs listed)
+        if: steps.specs.outputs.empty != 'true' && vars.AMQA_RUN_SCOPED_PLAYWRIGHT == 'true'
+        working-directory: .github/scripts/amqa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
+          HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
+          STATUS_CONTEXT: QA/automation
+          STATUS_STATE: success
+          STATUS_DESCRIPTION: Scoped specs identified — enable full Playwright in AMQA_RUN_SCOPED_PLAYWRIGHT
+          OVERALL: automation_only
+          STAGE: automation
+          AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
+          SPECS_RUN: ${{ steps.specs.outputs.specs }}
+        run: python3 amqa_update_result.py
+
+      - name: Upload updated qa-result
+        uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
+        with:
+          name: qa-result-pr-${{ needs.resolve.outputs.pr_number }}
+          path: /tmp/amqa/qa-result.json
+          overwrite: true
+          retention-days: 90
+
+  execute:
+    needs: [resolve, automation]
+    if: >-
+      needs.resolve.outputs.needs_execution == 'true' ||
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/qa-verify'))
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    uses: ./.github/workflows/agentic-qa-execute.yml
+    with:
+      pr_number: ${{ needs.resolve.outputs.pr_number }}
+      head_sha: ${{ needs.resolve.outputs.head_sha }}
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

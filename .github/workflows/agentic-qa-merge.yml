@@ -1,0 +1,42 @@
+---
+name: Agentic QA (Merge artifact)
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+      - 'release-*'
+
+permissions: {}
+
+jobs:
+  store:
+    permissions:
+      contents: read
+      actions: read
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download qa-result from PR runs
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          PR="${{ github.event.pull_request.number }}"
+          mkdir -p /tmp/amqa/release-artifacts
+          RUNS=$(gh run list --repo "${{ github.repository }}" --workflow agentic-qa-pr.yml --json databaseId -q '.[].databaseId' | head -5)
+          for RUN in $RUNS; do
+            gh run download "$RUN" --repo "${{ github.repository }}" --name "qa-result-pr-${PR}" -D /tmp/amqa/dl 2>/dev/null && break || true
+          done
+          if [ -f /tmp/amqa/dl/qa-result.json ]; then
+            cp /tmp/amqa/dl/qa-result.json "/tmp/amqa/release-artifacts/qa-result-pr-${PR}.json"
+          else
+            echo '{"schema_version":"1.0","pr_number":'${PR}',"overall":"missing","verified_at_pr":false}' > "/tmp/amqa/release-artifacts/qa-result-pr-${PR}.json"
+          fi
+
+      - name: Upload release rollup artifact
+        uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
+        with:
+          name: amqa-merge-${{ github.event.pull_request.number }}
+          path: /tmp/amqa/release-artifacts/
+          retention-days: 400
