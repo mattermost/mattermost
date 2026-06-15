@@ -131,6 +131,142 @@ func TestQueueSetStatusOffline(t *testing.T) {
 	}
 }
 
+func TestSetStatusAutoUpdatePreference(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	user := th.BasicUser
+
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableUserStatuses = true
+	})
+
+	setAutoStatusPref := func(t *testing.T, userID, value string) {
+		t.Helper()
+		err := th.Service.Store.Preference().Save(model.Preferences{{
+			UserId:   userID,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     model.PreferenceNameAutoStatusUpdate,
+			Value:    value,
+		}})
+		require.NoError(t, err)
+	}
+
+	clearAutoStatusPref := func(t *testing.T, userID string) {
+		t.Helper()
+		err := th.Service.Store.Preference().Delete(userID, model.PreferenceCategoryAdvancedSettings, model.PreferenceNameAutoStatusUpdate)
+		require.NoError(t, err)
+	}
+
+	t.Run("does not set away when auto status updates are disabled", func(t *testing.T) {
+		setAutoStatusPref(t, user.Id, "false")
+		t.Cleanup(func() { clearAutoStatusPref(t, user.Id) })
+
+		// Online with a stale last activity so the user would normally be moved to away.
+		th.Service.SaveAndBroadcastStatus(&model.Status{
+			UserId:         user.Id,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: 0,
+		})
+
+		th.Service.SetStatusAwayIfNeeded(user.Id, false)
+
+		after, err := th.Service.GetStatus(user.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOnline, after.Status)
+	})
+
+	t.Run("sets away by default when auto status updates are enabled", func(t *testing.T) {
+		setAutoStatusPref(t, user.Id, "true")
+		t.Cleanup(func() { clearAutoStatusPref(t, user.Id) })
+
+		th.Service.SaveAndBroadcastStatus(&model.Status{
+			UserId:         user.Id,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: 0,
+		})
+
+		th.Service.SetStatusAwayIfNeeded(user.Id, false)
+
+		after, err := th.Service.GetStatus(user.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusAway, after.Status)
+	})
+
+	t.Run("does not set online when auto status updates are disabled", func(t *testing.T) {
+		setAutoStatusPref(t, user.Id, "false")
+		t.Cleanup(func() { clearAutoStatusPref(t, user.Id) })
+
+		// Automatically set to away (non-manual) so the gate is what keeps it there.
+		th.Service.SaveAndBroadcastStatus(&model.Status{
+			UserId: user.Id,
+			Status: model.StatusAway,
+			Manual: false,
+		})
+
+		th.Service.SetStatusOnline(user.Id, false)
+
+		after, err := th.Service.GetStatus(user.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusAway, after.Status)
+	})
+
+	t.Run("creates initial status even when auto status updates are disabled", func(t *testing.T) {
+		newUserID := model.NewId()
+		setAutoStatusPref(t, newUserID, "false")
+		t.Cleanup(func() { clearAutoStatusPref(t, newUserID) })
+
+		// No existing status row for this user, so it should still be created.
+		th.Service.SetStatusOnline(newUserID, false)
+
+		after, err := th.Service.GetStatus(newUserID)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOnline, after.Status)
+	})
+
+	t.Run("manual status changes are unaffected by the preference", func(t *testing.T) {
+		setAutoStatusPref(t, user.Id, "false")
+		t.Cleanup(func() { clearAutoStatusPref(t, user.Id) })
+
+		th.Service.SaveAndBroadcastStatus(&model.Status{
+			UserId: user.Id,
+			Status: model.StatusOnline,
+			Manual: false,
+		})
+
+		// Manual away should still apply.
+		th.Service.SetStatusAwayIfNeeded(user.Id, true)
+		after, err := th.Service.GetStatus(user.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusAway, after.Status)
+		assert.True(t, after.Manual)
+
+		// Manual online should still apply.
+		th.Service.SetStatusOnline(user.Id, true)
+		after, err = th.Service.GetStatus(user.Id)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusOnline, after.Status)
+	})
+
+	t.Run("sets away by default when no preference is set", func(t *testing.T) {
+		freshUserID := model.NewId()
+
+		th.Service.SaveAndBroadcastStatus(&model.Status{
+			UserId:         freshUserID,
+			Status:         model.StatusOnline,
+			Manual:         false,
+			LastActivityAt: 0,
+		})
+
+		th.Service.SetStatusAwayIfNeeded(freshUserID, false)
+
+		after, err := th.Service.GetStatus(freshUserID)
+		require.Nil(t, err)
+		assert.Equal(t, model.StatusAway, after.Status)
+	})
+}
+
 func TestSetStatusOffline(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 

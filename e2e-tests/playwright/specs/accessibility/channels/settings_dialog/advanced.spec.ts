@@ -53,6 +53,10 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(advancedSettings.joinLeaveEditButton);
 
+        // # Press Tab to move focus to Automatic status updates button
+        await page.keyboard.press('Tab');
+        await pw.toBeFocusedWithFocusVisible(advancedSettings.autoStatusUpdateEditButton);
+
         // # Press Tab to move focus to Scroll position button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(advancedSettings.scrollPositionEditButton);
@@ -107,6 +111,9 @@ test(
             - text: /(On|Off)/
             - heading "Enable Join/Leave Messages" [level=4]
             - button "Enable Join/Leave Messages Edit"
+            - text: /(On|Off)/
+            - heading "Automatic status updates" [level=4]
+            - button "Automatic status updates Edit"
             - text: /(On|Off)/
             - heading "Scroll position when viewing an unread channel" [level=4]
             - button "Scroll position when viewing an unread channel Edit"

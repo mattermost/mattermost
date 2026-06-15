@@ -20,6 +20,7 @@ import SettingItemMax from 'components/setting_item_max';
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
 
+import AutoStatusUpdateSection from './auto_status_update_section';
 import EnableConcurrentReactExperimentalSection from './enable_concurrent_react_experimental_section';
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
@@ -769,6 +770,16 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     <div className='divider-light'/>
                     <JoinLeaveSection
                         active={this.props.activeSection === AdvancedSections.JOIN_LEAVE}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        onUpdateSection={this.handleUpdateSection}
+                        renderOnOffLabel={this.renderOnOffLabel}
+                        adminMode={this.props.adminMode}
+                        userPreferences={this.props.userPreferences}
+                        userId={this.props.user.id}
+                    />
+                    <div className='divider-light'/>
+                    <AutoStatusUpdateSection
+                        active={this.props.activeSection === AdvancedSections.AUTO_STATUS_UPDATE}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         onUpdateSection={this.handleUpdateSection}
                         renderOnOffLabel={this.renderOnOffLabel}

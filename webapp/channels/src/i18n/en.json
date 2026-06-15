@@ -7078,6 +7078,8 @@
   "user_settings.notifications.test_notification.send_button.sending": "Sending a test notification",
   "user_settings.notifications.test_notification.send_button.sent": "Test notification sent",
   "user_settings.notifications.test_notification.title": "Troubleshooting notifications",
+  "user.settings.advance.autoStatusUpdateDesc": "When \"On\", your status is automatically set to \"Away\" when you are inactive and back to \"Online\" when you return. When \"Off\", Mattermost will not change your status automatically, so it stays as you set it.",
+  "user.settings.advance.autoStatusUpdateTitle": "Automatic status updates",
   "user.settings.advance.concurrentReactExperimental": "Enable Concurrent React (Experimental)",
   "user.settings.advance.concurrentReactExperimentalDesc1": "When \"On\", enable concurrent React support for development. This is known to cause issues and should only be done if you know what you're doing.",
   "user.settings.advance.concurrentReactExperimentalDesc2": "You may need to refresh the page before this setting takes effect.",
