@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"github.com/ledongthuc/pdf"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type pdfExtractor struct{}
@@ -29,7 +31,7 @@ func (pe *pdfExtractor) Match(filename string) bool {
 	return supportedExtensions[extension]
 }
 
-func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (out string, outErr error) {
+func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker, maxFileSize int64) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""
@@ -42,7 +44,14 @@ func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (out 
 	}
 	defer f.Close()
 	defer os.Remove(f.Name())
-	size, err := io.Copy(f, r)
+
+	// Bound how much data is copied to disk so a small upload cannot expand
+	// into an unbounded amount of temporary storage.
+	var src io.Reader = r
+	if maxFileSize > 0 {
+		src = utils.NewLimitedReaderWithError(r, maxFileSize)
+	}
+	size, err := io.Copy(f, src)
 	if err != nil {
 		return "", fmt.Errorf("error copying data into temporary file: %v", err)
 	}

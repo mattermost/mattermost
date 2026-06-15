@@ -33,7 +33,7 @@ export type Props = {
     actions: {
         updateUserPassword: (userId: string, currentPassword: string, password: string) => Promise<ActionResult>;
     };
-}
+};
 
 export default function ResetPasswordModal({
     user,

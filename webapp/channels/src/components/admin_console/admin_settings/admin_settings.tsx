@@ -20,7 +20,7 @@ type Props = {
     saving: boolean;
     saveNeeded: boolean;
     serverError?: React.ReactNode;
-}
+};
 
 const AdminSettings = ({
     doSubmit,

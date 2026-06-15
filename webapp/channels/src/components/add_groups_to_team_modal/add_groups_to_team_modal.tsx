@@ -40,7 +40,7 @@ type Props = {
     skipCommit?: boolean;
     onAddCallback?: (groupIDs: string[]) => void;
     actions: Actions;
-}
+};
 
 export type Actions = {
     getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number, source?: GroupSource | string, onlySyncableSources?: boolean) => Promise<ActionResult>;
@@ -56,7 +56,7 @@ type State = {
     saving: boolean;
     addError: null | string;
     loadingGroups: boolean;
-}
+};
 
 export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
@@ -240,7 +240,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     };
 
     // public for tests
-    public renderValue = (props: { data: Value }): string | undefined => props.data.display_name;
+    public renderValue = (props: {data: Value}): string | undefined => props.data.display_name;
 
     public render(): JSX.Element {
         const numRemainingText = (

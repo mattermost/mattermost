@@ -18,7 +18,7 @@ import './ee_license_modal.scss';
 
 type Props = {
     onClose?: () => void;
-}
+};
 
 const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch();

@@ -69,14 +69,14 @@ export type Props<T extends Value> = {
     handleCancel?: () => void;
     customNoOptionsMessage?: React.ReactNode;
     required?: boolean;
-}
+};
 
 export type State = {
     a11yActive: boolean;
     input: string;
     page: number;
     hasError: boolean;
-}
+};
 
 const KeyCodes = Constants.KeyCodes;
 

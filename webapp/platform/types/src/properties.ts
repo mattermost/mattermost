@@ -51,7 +51,7 @@ export type PropertyValue<T> = {
     delete_at: number;
     created_by: string;
     updated_by: string;
-}
+};
 
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 
@@ -71,6 +71,7 @@ export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 export type UserPropertyFieldGroupID = 'custom_profile_attributes' | 'session_attributes';
 
 export const SESSION_ATTRIBUTES_GROUP_ID: UserPropertyFieldGroupID = 'session_attributes';
+export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
 
 export type UserPropertyValueType = 'phone' | 'url' | '';
 
@@ -86,7 +87,7 @@ export type PropertyFieldOption = {
     name: string;
     color?: string;
     rank?: number;
-}
+};
 
 export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
@@ -110,7 +111,7 @@ export type SelectPropertyField = PropertyField & {
         editable?: boolean;
         options?: PropertyFieldOption[];
     };
-}
+};
 
 export const supportsOptions = (field: UserPropertyField) => {
     return field.type === 'select' || field.type === 'multiselect';
@@ -150,7 +151,7 @@ export type PropertyValuesState = {
 
 export type PropertyGroupsState = {
     byId: IDMappedObjects<PropertyGroup>;
-    byName: { [name: string]: PropertyGroup };
+    byName: {[name: string]: PropertyGroup};
 };
 
 export type PropertyValuesUpdated<T> = {

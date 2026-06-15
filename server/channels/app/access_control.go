@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
@@ -160,8 +159,11 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	switch policy.Type {
 	case model.AccessControlPolicyTypeChannel:
 		a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
+	case model.AccessControlPolicyTypeTeam:
+		a.publishTeamPolicyEnforcedUpdate(rctx, policy.ID)
 	case model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
+		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 	}
 
 	return policy, nil
@@ -562,18 +564,30 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 	}
 
 	var affectedChannelIDs []string
-	if policy != nil && policy.Type != model.AccessControlPolicyTypeChannel {
+	var affectedTeamIDs []string
+	if policy != nil && policy.Type == model.AccessControlPolicyTypeParent {
 		affectedChannelIDs = a.channelPolicyIDsWithImport(rctx, id)
+		affectedTeamIDs = a.teamPolicyIDsWithImport(rctx, id)
 	}
 
 	if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
 		return appErr
 	}
 
-	if policy != nil && policy.Type == model.AccessControlPolicyTypeChannel {
+	// Parent deletes leave child rows in place (their dangling Imports are
+	// reconciled lazily); we only fan out a refresh per affected resource.
+	switch {
+	case policy == nil:
+		// GetPolicy is expected to return a non-nil policy on success, but the
+		// surrounding code already guards against nil; keep the switch consistent
+		// so a future (nil, nil) return can never dereference policy.Type.
+	case policy.Type == model.AccessControlPolicyTypeChannel:
 		a.publishChannelPolicyEnforcedUpdate(rctx, id)
-	} else if policy.Type == model.AccessControlPolicyTypeParent {
+	case policy.Type == model.AccessControlPolicyTypeTeam:
+		a.publishTeamPolicyEnforcedUpdate(rctx, id)
+	case policy.Type == model.AccessControlPolicyTypeParent:
 		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
+		a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, affectedTeamIDs)
 	}
 
 	return nil
@@ -1599,6 +1613,117 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 	return nil
 }
 
+func (a *App) AssignAccessControlPolicyToTeams(rctx request.CTX, parentID string, teamIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_access_control_policy_to_teams.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	policy, appErr := a.GetAccessControlPolicy(rctx, parentID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if policy.Type != model.AccessControlPolicyTypeParent {
+		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_access_control_policy_to_teams.app_error", nil, "Policy is not of type parent", http.StatusBadRequest)
+	}
+
+	teams, appErr := a.GetTeams(teamIDs)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	policies := make([]*model.AccessControlPolicy, 0, len(teamIDs))
+	for _, team := range teams {
+		if appErr := a.ValidateTeamEligibilityForAccessControl(rctx, team); appErr != nil {
+			return nil, appErr
+		}
+
+		child, err := acs.GetPolicy(rctx, team.Id)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_access_control_policy_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if child == nil {
+			child = &model.AccessControlPolicy{
+				ID:       team.Id,
+				Type:     model.AccessControlPolicyTypeTeam,
+				Active:   policy.Active,
+				CreateAt: model.GetMillis(),
+				Props:    map[string]any{},
+			}
+		}
+		child.Version = model.AccessControlPolicyVersionV0_3
+
+		appErr := child.Inherit(policy)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		child, appErr = acs.SavePolicy(rctx, child)
+		if appErr != nil {
+			return nil, appErr
+		}
+		a.publishTeamPolicyEnforcedUpdate(rctx, child.ID)
+		policies = append(policies, child)
+	}
+
+	return policies, nil
+}
+
+func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamIDs []string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		Type:     model.AccessControlPolicyTypeTeam,
+		ParentID: policyID,
+		Limit:    1000,
+	})
+	if err != nil {
+		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	childPolicies := make(map[string]bool)
+	for _, p := range cps {
+		childPolicies[p.ID] = true
+	}
+
+	for _, teamID := range teamIDs {
+		if _, ok := childPolicies[teamID]; !ok {
+			mlog.Warn("Policy is not assigned to the parent policy", mlog.String("team_id", teamID), mlog.String("parent_policy_id", policyID))
+			continue
+		}
+
+		child, appErr := acs.GetPolicy(rctx, teamID)
+		if appErr != nil {
+			return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		}
+
+		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
+			return importID == policyID
+		})
+		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+			// No imports and no custom rules left — the child only existed to
+			// carry this parent assignment, so remove it. A child with custom
+			// rules is kept (a team admin's rules must survive an unassign).
+			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
+				return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			a.publishTeamPolicyEnforcedUpdate(rctx, teamID)
+			continue
+		}
+		_, appErr = acs.SavePolicy(rctx, child)
+		if appErr != nil {
+			return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		}
+		a.publishTeamPolicyEnforcedUpdate(rctx, teamID)
+	}
+
+	return nil
+}
+
 func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -1728,8 +1853,11 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 		switch policy.Type {
 		case model.AccessControlPolicyTypeChannel:
 			a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
+		case model.AccessControlPolicyTypeTeam:
+			a.publishTeamPolicyEnforcedUpdate(rctx, policy.ID)
 		case model.AccessControlPolicyTypeParent:
 			a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
+			a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 		}
 	}
 
@@ -1770,6 +1898,55 @@ func (a *App) publishChannelPolicyEnforcedUpdatesForChannels(rctx request.CTX, c
 		seen[channelID] = struct{}{}
 		a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
 	}
+}
+
+func (a *App) publishTeamPolicyEnforcedUpdatesForTeams(rctx request.CTX, teamIDs []string) {
+	seen := make(map[string]struct{}, len(teamIDs))
+	for _, teamID := range teamIDs {
+		if teamID == "" {
+			continue
+		}
+		if _, ok := seen[teamID]; ok {
+			continue
+		}
+		seen[teamID] = struct{}{}
+		a.publishTeamPolicyEnforcedUpdate(rctx, teamID)
+	}
+}
+
+// publishTeamPolicyEnforcedForTeamPoliciesWithImport broadcasts
+// team_access_control_updated for every team-type policy that lists importID in
+// its imports. Call only after the imported policy (parent) is persisted.
+func (a *App) publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx request.CTX, importID string) {
+	a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, a.teamPolicyIDsWithImport(rctx, importID))
+}
+
+func (a *App) teamPolicyIDsWithImport(rctx request.CTX, importID string) []string {
+	teamIDs := []string{}
+	var cursor model.AccessControlPolicyCursor
+	for {
+		children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Type:     model.AccessControlPolicyTypeTeam,
+			ParentID: importID,
+			Cursor:   cursor,
+			Limit:    accessControlChildPolicySearchLimit,
+		})
+		if err != nil {
+			rctx.Logger().Warn("Failed to list team policies that import a policy; skipping team access control fan-out",
+				mlog.String("imported_policy_id", importID),
+				mlog.Err(err),
+			)
+			return teamIDs
+		}
+		for _, child := range children {
+			teamIDs = append(teamIDs, child.ID)
+		}
+		if len(children) < accessControlChildPolicySearchLimit {
+			break
+		}
+		cursor.ID = children[len(children)-1].ID
+	}
+	return teamIDs
 }
 
 func (a *App) channelPolicyIDsWithImport(rctx request.CTX, importID string) []string {
@@ -1870,6 +2047,68 @@ func (a *App) HydrateChannelsPolicyActions(rctx request.CTX, channels []*model.C
 	return nil
 }
 
+// HydrateTeamPolicyActions populates team.PolicyActions for a single team
+// when team.PolicyEnforced is true. Mirrors HydrateChannelPolicyActions: a
+// no-op for teams without an attached policy, so the common no-policy path
+// costs nothing. A store error is returned as an AppError; callers must
+// treat it as fail-closed for any membership gate.
+func (a *App) HydrateTeamPolicyActions(rctx request.CTX, team *model.Team) *model.AppError {
+	if team == nil || !team.PolicyEnforced {
+		return nil
+	}
+	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, team.Id)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			// Policy was deleted between the team read and this lookup;
+			// treat as "no actions" rather than failing.
+			team.PolicyActions = map[string]bool{}
+			return nil
+		}
+		return model.NewAppError("HydrateTeamPolicyActions", "app.pap.hydrate_actions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	team.PolicyActions = actions
+	return nil
+}
+
+// HydrateTeamsPolicyActions does the same for a slice of teams, batching the
+// underlying store call for the subset with PolicyEnforced=true. Teams with
+// PolicyEnforced=false never reach the AccessControlPolicies table. Used by
+// list/directory paths to avoid an N+1 against the policy store.
+func (a *App) HydrateTeamsPolicyActions(rctx request.CTX, teams []*model.Team) *model.AppError {
+	if len(teams) == 0 {
+		return nil
+	}
+	var ids []string
+	for _, team := range teams {
+		if team == nil || !team.PolicyEnforced {
+			continue
+		}
+		ids = append(ids, team.Id)
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	actionsByID, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicies(rctx, ids)
+	if err != nil {
+		return model.NewAppError("HydrateTeamsPolicyActions", "app.pap.hydrate_actions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	for _, team := range teams {
+		if team == nil || !team.PolicyEnforced {
+			continue
+		}
+		if actions, ok := actionsByID[team.Id]; ok {
+			team.PolicyActions = actions
+		} else {
+			// Policy row missing for an enforced team — same semantics as
+			// the single-team ErrNotFound path: treat as empty rather than
+			// fail the whole batch.
+			team.PolicyActions = map[string]bool{}
+		}
+	}
+	return nil
+}
+
 // publishChannelPolicyEnforcedUpdate invalidates the channel cache for the
 // given channel ID and broadcasts a channel_access_control_updated websocket
 // event so that connected clients can refresh their view of the channel's
@@ -1917,6 +2156,54 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 	a.Publish(messageWs)
 }
 
+// publishTeamPolicyEnforcedUpdate reloads the team, hydrates its policy
+// actions, and broadcasts a team_access_control_updated websocket event so
+// connected clients can refresh their view of the team's access control state
+// (the shield indicator, Join button state, Team Settings banners). Mirrors
+// publishChannelPolicyEnforcedUpdate. Teams are not cached per-id like
+// channels, so a fresh GetTeam already reflects the post-mutation
+// PolicyEnforced flag without an explicit cache invalidation.
+//
+// A hydrate failure logs a warning but still broadcasts (clients then see
+// policy_actions=nil) — parity with the channel path.
+func (a *App) publishTeamPolicyEnforcedUpdate(rctx request.CTX, teamID string) {
+	team, appErr := a.GetTeam(teamID)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to load team after access control policy change",
+			mlog.String("team_id", teamID),
+			mlog.Err(appErr),
+		)
+		return
+	}
+
+	if appErr := a.HydrateTeamPolicyActions(rctx, team); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate team policy actions before broadcast; clients will see policy_actions=nil",
+			mlog.String("team_id", teamID),
+			mlog.Err(appErr),
+		)
+	}
+
+	// Sanitize before broadcasting to the whole team: this event reaches every
+	// connected member, including those without InviteUser, so Email/InviteId
+	// must be stripped. Sanitize() preserves PolicyEnforced/PolicyActions.
+	sanitizedTeam := &model.Team{}
+	*sanitizedTeam = *team
+	sanitizedTeam.Sanitize()
+
+	teamJSON, jsonErr := json.Marshal(sanitizedTeam)
+	if jsonErr != nil {
+		rctx.Logger().Warn("Failed to marshal team after access control policy change",
+			mlog.String("team_id", teamID),
+			mlog.Err(jsonErr),
+		)
+		return
+	}
+
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventTeamAccessControlUpdated, team.Id, "", "", nil, "")
+	messageWs.Add("team", string(teamJSON))
+	a.Publish(messageWs)
+}
+
 // ValidateChannelEligibilityForAccessControl checks that a channel is eligible for
 // access control policy assignment: must be public or private (DM/GM excluded),
 // not group-constrained, not shared, and not a team default channel (e.g. town-square).
@@ -1943,6 +2230,19 @@ func (a *App) ValidateChannelEligibilityForAccessControl(rctx request.CTX, chann
 		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
 			"app.pap.access_control.channel_default",
 			nil, "Channel is a team default channel", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// ValidateTeamEligibilityForAccessControl checks that a team is eligible for
+// access control policy assignment. Group sync and ABAC are mutually exclusive
+// on the same team, so a group-constrained team is rejected.
+func (a *App) ValidateTeamEligibilityForAccessControl(rctx request.CTX, team *model.Team) *model.AppError {
+	if team.IsGroupConstrained() {
+		return model.NewAppError("ValidateTeamEligibilityForAccessControl",
+			"api.access_control.assign.team_group_constrained",
+			nil, "Team is group constrained", http.StatusBadRequest)
 	}
 
 	return nil
@@ -2125,6 +2425,8 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 // from ChannelMember and appended to Subject.ScopedRoles so v0.4 channel resource policy
 // permission rules can match (channel_guest / channel_user / channel_admin). When empty,
 // only the system-scoped role is populated.
+//
+// Team join evaluations pass channelID="" — no channel role exists at join time.
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
@@ -2193,29 +2495,6 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		subject.Session = attrs
 	}
 	return subject, nil
-}
-
-// GetSessionAttributes returns the request-provided session attributes
-// (user_agent_*, ip_address — see model.SessionAttributesPropertyField*)
-// captured for the given session, or nil when none have been recorded.
-//
-// The session-attribute cache is populated by
-// RefreshRequestProvidedSessionAttributesIfNeeded on each authenticated
-// request (gated by FeatureFlags.SessionAttributes and the Enterprise
-// Advanced license). This getter is the shared entry point that both
-// the production PDP (BuildAccessControlSubjectForSession) and the
-// policy-simulator's active-session snapshot read from, so the snapshot
-// the simulator shows the admin matches what the live PDP would
-// evaluate against.
-func (a *App) GetSessionAttributes(sessionID string) (map[string]any, *model.AppError) {
-	attrs, err := a.Srv().Store().SessionAttribute().Get(sessionID)
-	if err != nil {
-		if errors.Is(err, cache.ErrKeyNotFound) {
-			return nil, nil
-		}
-		return nil, model.NewAppError("GetSessionAttributes", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return attrs, nil
 }
 
 // GetSubjectChannelRole returns the channel-scoped role identifier

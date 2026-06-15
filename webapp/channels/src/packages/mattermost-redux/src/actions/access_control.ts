@@ -143,6 +143,27 @@ export function unassignChannelsFromAccessControlPolicy(policyId: string, channe
     });
 }
 
+export function assignTeamsToAccessControlPolicy(policyId: string, teamIds: string[]) {
+    return bindClientFunc({
+        clientFunc: () => Client4.assignTeamsToAccessControlPolicy(policyId, teamIds),
+        params: [],
+    });
+}
+
+export function unassignTeamsFromAccessControlPolicy(policyId: string, teamIds: string[]) {
+    return bindClientFunc({
+        clientFunc: () => Client4.unassignTeamsFromAccessControlPolicy(policyId, teamIds),
+        params: [],
+    });
+}
+
+export function getTeamAccessControlPolicy(teamId: string) {
+    return bindClientFunc({
+        clientFunc: () => Client4.getTeamAccessControlPolicy(teamId),
+        params: [],
+    });
+}
+
 export function getAccessControlFields(after: string, limit: number, channelId?: string, teamId?: string) {
     return bindClientFunc({
         clientFunc: () => Client4.getAccessControlFields(after, limit, channelId, teamId),

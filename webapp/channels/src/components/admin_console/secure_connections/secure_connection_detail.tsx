@@ -56,7 +56,7 @@ type Params = {
 
 type Props = {
     disabled: boolean;
-}
+};
 
 export default function SecureConnectionDetail(props: Props) {
     const {formatMessage} = useIntl();
