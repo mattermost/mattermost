@@ -141,11 +141,9 @@ function resolveTimestampFormatFromValue(value: string | undefined, configValue:
 export const getTimestampFormat: (state: GlobalState) => TimestampFormat = createSelector(
     'getTimestampFormat',
     getConfig,
-    (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.TIMESTAMP_FORMAT),
     (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT),
-    (config, userPreference, legacyUserPreference) => {
-        const userValue = userPreference?.value || legacyUserPreference?.value;
-        return resolveTimestampFormatFromValue(userValue, config?.DefaultTimestampFormat as string | undefined);
+    (config, userPreference) => {
+        return resolveTimestampFormatFromValue(userPreference?.value, config?.DateTimeDisplayFormat as string | undefined);
     },
 );
 
@@ -196,8 +194,7 @@ export function getUseMilitaryTime(state: GlobalState): boolean {
 }
 
 export function getTimestampFormatUserPreference(state: GlobalState): string | undefined {
-    return getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.TIMESTAMP_FORMAT)?.value ||
-        getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)?.value;
+    return getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)?.value;
 }
 
 /** @deprecated Use getTimestampFormatUserPreference */

@@ -19,7 +19,7 @@ describe('TimestampPropertyRenderer', () => {
         entities: {
             general: {
                 config: {
-                    DefaultTimestampFormat: TimestampFormat.STANDARD,
+                    DateTimeDisplayFormat: TimestampFormat.STANDARD,
                 },
             },
             preferences: {
@@ -58,7 +58,7 @@ describe('TimestampPropertyRenderer', () => {
                 ...baseState.entities,
                 general: {
                     config: {
-                        DefaultTimestampFormat: TimestampFormat.DATE_AND_TIME,
+                        DateTimeDisplayFormat: TimestampFormat.DATE_AND_TIME,
                     },
                 },
             },
@@ -132,7 +132,7 @@ describe('TimestampPropertyRenderer', () => {
                 ...baseState.entities,
                 general: {
                     config: {
-                        DefaultTimestampFormat: TimestampFormat.DATE_AND_TIME,
+                        DateTimeDisplayFormat: TimestampFormat.DATE_AND_TIME,
                     },
                 },
                 preferences: {

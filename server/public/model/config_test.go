@@ -1146,7 +1146,7 @@ func TestDisplaySettingsIsValidCustomURLSchemes(t *testing.T) {
 	}
 }
 
-func TestDisplaySettingsIsValidDefaultTimestampFormat(t *testing.T) {
+func TestDisplaySettingsIsValidDateTimeDisplayFormat(t *testing.T) {
 	tests := []struct {
 		name  string
 		value string
@@ -1183,14 +1183,14 @@ func TestDisplaySettingsIsValidDefaultTimestampFormat(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			ds := &DisplaySettings{}
 			ds.SetDefaults()
-			ds.DefaultTimestampFormat = new(test.value)
+			ds.DateTimeDisplayFormat = new(test.value)
 
 			appErr := ds.isValid()
 			if test.valid {
 				require.Nil(t, appErr)
 			} else {
 				require.NotNil(t, appErr)
-				require.Equal(t, "model.config.is_valid.display.timestamp_format.app_error", appErr.Id)
+				require.Equal(t, "model.config.is_valid.display.datetime_display_format.app_error", appErr.Id)
 			}
 		})
 	}

@@ -3954,7 +3954,7 @@ func (s *MessageExportSettings) SetDefaults() {
 type DisplaySettings struct {
 	CustomURLSchemes       []string `access:"site_posts"`
 	MaxMarkdownNodes       *int     `access:"site_posts"`
-	DefaultTimestampFormat *string  `access:"site_posts"`
+	DateTimeDisplayFormat *string  `access:"site_posts"`
 	ShowTimestampSeconds   *bool    `access:"site_posts"`
 }
 
@@ -3968,8 +3968,8 @@ func (s *DisplaySettings) SetDefaults() {
 		s.MaxMarkdownNodes = new(0)
 	}
 
-	if s.DefaultTimestampFormat == nil {
-		s.DefaultTimestampFormat = new(DateTimeDisplayFormatStandard)
+	if s.DateTimeDisplayFormat == nil {
+		s.DateTimeDisplayFormat = new(DateTimeDisplayFormatStandard)
 	}
 
 	if s.ShowTimestampSeconds == nil {
@@ -5254,10 +5254,10 @@ func (s *DisplaySettings) isValid() *AppError {
 		}
 	}
 
-	if *s.DefaultTimestampFormat != DateTimeDisplayFormatStandard &&
-		*s.DefaultTimestampFormat != DateTimeDisplayFormatRelative &&
-		*s.DefaultTimestampFormat != DateTimeDisplayFormatDateAndTime {
-		return NewAppError("Config.IsValid", "model.config.is_valid.display.timestamp_format.app_error", nil, "", http.StatusBadRequest)
+	if *s.DateTimeDisplayFormat != DateTimeDisplayFormatStandard &&
+		*s.DateTimeDisplayFormat != DateTimeDisplayFormatRelative &&
+		*s.DateTimeDisplayFormat != DateTimeDisplayFormatDateAndTime {
+		return NewAppError("Config.IsValid", "model.config.is_valid.display.datetime_display_format.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

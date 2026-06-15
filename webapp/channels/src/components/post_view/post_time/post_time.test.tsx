@@ -32,7 +32,7 @@ describe('components/post_view/post_time/PostTime', () => {
         entities: {
             general: {
                 config: {
-                    DefaultTimestampFormat: TimestampFormat.STANDARD,
+                    DateTimeDisplayFormat: TimestampFormat.STANDARD,
                 },
             },
             preferences: {

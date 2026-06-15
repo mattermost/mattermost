@@ -730,7 +730,7 @@ describe('PostComponent', () => {
             entities: {
                 general: {
                     config: {
-                        DefaultTimestampFormat: TimestampFormat.DATE_AND_TIME,
+                        DateTimeDisplayFormat: TimestampFormat.DATE_AND_TIME,
                     },
                 },
                 preferences: {
@@ -826,7 +826,7 @@ describe('PostComponent', () => {
                 entities: {
                     general: {
                         config: {
-                            DefaultTimestampFormat: TimestampFormat.STANDARD,
+                            DateTimeDisplayFormat: TimestampFormat.STANDARD,
                         },
                     },
                     preferences: {

@@ -49,7 +49,7 @@ const FORMAT_OPTIONS = [
 export function isDateAndTimeSectionActive(activeSection: string): boolean {
     return activeSection === DATE_AND_TIME_SECTION ||
         activeSection === 'clock' ||
-        activeSection === Preferences.TIMESTAMP_FORMAT;
+        activeSection === Preferences.DATETIME_DISPLAY_FORMAT;
 }
 
 function getClockDisplayShortLabel(militaryTime: string, intl: ReturnType<typeof useIntl>) {
@@ -78,7 +78,7 @@ export default function DateTimeDisplayFormatSetting({
     const intl = useIntl();
     const dispatch = useDispatch();
     const userId = useSelector(getCurrentUserId);
-    const configFormat = useSelector((state: GlobalState) => getConfig(state).DefaultTimestampFormat as TimestampFormat) || configTimestampFormat;
+    const configFormat = useSelector((state: GlobalState) => getConfig(state).DateTimeDisplayFormat as TimestampFormat) || configTimestampFormat;
     const configSeconds = useSelector((state: GlobalState) => getConfig(state).ShowTimestampSeconds === 'true') || configShowTimestampSeconds;
     const effectiveFormat = useSelector(getTimestampFormat);
     const effectiveShowSeconds = useSelector(getShowTimestampSeconds);
@@ -137,7 +137,7 @@ export default function DateTimeDisplayFormatSetting({
         const formatPreference: PreferenceType = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: Preferences.TIMESTAMP_FORMAT,
+            name: Preferences.DATETIME_DISPLAY_FORMAT,
             value: formatSelection,
         };
 

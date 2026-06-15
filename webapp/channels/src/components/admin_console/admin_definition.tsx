@@ -3911,7 +3911,7 @@ const AdminDefinition: AdminDefinitionType = {
                             settings: [
                                 {
                                     type: 'dropdown',
-                                    key: 'DisplaySettings.DefaultTimestampFormat',
+                                    key: 'DisplaySettings.DateTimeDisplayFormat',
                                     label: defineMessage({id: 'admin.posts.defaultTimestampFormat.title', defaultMessage: 'Default timestamp format:'}),
                                     help_text: defineMessage({id: 'admin.posts.defaultTimestampFormat.desc', defaultMessage: 'Sets the default format for message timestamps. Users can override this in Account Settings > Display.'}),
                                     options: [
@@ -3945,7 +3945,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.posts.showTimestampSeconds.desc', defaultMessage: 'Sets the default for showing seconds in message timestamps when using Standard or Date and Time format. Users can override this in Account Settings > Display.'}),
                                     isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                                     isHidden: (config, state) => {
-                                        const format = state['DisplaySettings.DefaultTimestampFormat'] ?? config.DisplaySettings?.DefaultTimestampFormat;
+                                        const format = state['DisplaySettings.DateTimeDisplayFormat'] ?? config.DisplaySettings?.DateTimeDisplayFormat;
                                         return format === 'relative';
                                     },
                                 },

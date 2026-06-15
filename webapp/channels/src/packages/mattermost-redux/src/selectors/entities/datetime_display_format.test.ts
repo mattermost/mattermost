@@ -12,7 +12,7 @@ describe('timestamp format selectors', () => {
         entities: {
             general: {
                 config: {
-                    DefaultTimestampFormat: TimestampFormat.DATE_AND_TIME,
+                    DateTimeDisplayFormat: TimestampFormat.DATE_AND_TIME,
                     ShowTimestampSeconds: 'false',
                 },
             },
@@ -30,9 +30,9 @@ describe('timestamp format selectors', () => {
                 ...baseState.entities,
                 preferences: {
                     myPreferences: {
-                        'display_settings--timestamp_format': {
+                        'display_settings--datetime_display_format': {
                             category: 'display_settings',
-                            name: 'timestamp_format',
+                            name: 'datetime_display_format',
                             value: TimestampFormat.RELATIVE,
                         },
                     },
@@ -98,7 +98,7 @@ describe('timestamp format selectors', () => {
                 ...baseState.entities,
                 general: {
                     config: {
-                        DefaultTimestampFormat: TimestampFormat.RELATIVE,
+                        DateTimeDisplayFormat: TimestampFormat.RELATIVE,
                         ShowTimestampSeconds: 'true',
                     },
                 },

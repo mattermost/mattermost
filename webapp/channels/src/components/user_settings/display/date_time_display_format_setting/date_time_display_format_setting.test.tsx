@@ -26,7 +26,7 @@ describe('DateTimeDisplayFormatSetting', () => {
             },
             general: {
                 config: {
-                    DefaultTimestampFormat: TimestampFormat.STANDARD,
+                    DateTimeDisplayFormat: TimestampFormat.STANDARD,
                     ShowTimestampSeconds: 'false',
                 },
             },
@@ -70,7 +70,7 @@ describe('DateTimeDisplayFormatSetting', () => {
         expect(savePreferences).toHaveBeenCalledWith(userId, expect.arrayContaining([
             expect.objectContaining({
                 category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-                name: Preferences.TIMESTAMP_FORMAT,
+                name: Preferences.DATETIME_DISPLAY_FORMAT,
                 value: TimestampFormat.RELATIVE,
             }),
         ]));
@@ -88,10 +88,10 @@ describe('DateTimeDisplayFormatSetting', () => {
                 ...baseState.entities,
                 preferences: {
                     myPreferences: {
-                        [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.TIMESTAMP_FORMAT}`]: {
+                        [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.DATETIME_DISPLAY_FORMAT}`]: {
                             user_id: userId,
                             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-                            name: Preferences.TIMESTAMP_FORMAT,
+                            name: Preferences.DATETIME_DISPLAY_FORMAT,
                             value: TimestampFormat.RELATIVE,
                         },
                     },
@@ -114,7 +114,7 @@ describe('DateTimeDisplayFormatSetting', () => {
         expect(deletePreferences).toHaveBeenCalledWith(userId, expect.arrayContaining([
             expect.objectContaining({
                 category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-                name: Preferences.TIMESTAMP_FORMAT,
+                name: Preferences.DATETIME_DISPLAY_FORMAT,
                 value: TimestampFormat.STANDARD,
             }),
         ]));

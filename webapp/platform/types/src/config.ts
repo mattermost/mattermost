@@ -37,7 +37,7 @@ export type ClientConfig = {
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionHours: string;
     DataRetentionMessageRetentionHours: string;
-    DefaultTimestampFormat: TimestampFormat;
+    DateTimeDisplayFormat: TimestampFormat;
     ShowTimestampSeconds: string;
     DefaultClientLocale: string;
     DefaultTheme: string;
@@ -997,7 +997,7 @@ export type PluginSettings = {
 export type DisplaySettings = {
     CustomURLSchemes: string[];
     MaxMarkdownNodes: number;
-    DefaultTimestampFormat: TimestampFormat;
+    DateTimeDisplayFormat: TimestampFormat;
     ShowTimestampSeconds: boolean;
 };
 

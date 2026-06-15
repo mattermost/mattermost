@@ -729,7 +729,7 @@ const defaultServerConfig: AdminConfig = {
     DisplaySettings: {
         CustomURLSchemes: [],
         MaxMarkdownNodes: 0,
-        DefaultTimestampFormat: TimestampFormat.STANDARD,
+        DateTimeDisplayFormat: TimestampFormat.STANDARD,
         ShowTimestampSeconds: false,
     },
     GuestAccountsSettings: {

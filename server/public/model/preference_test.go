@@ -99,16 +99,16 @@ func TestPreferenceIsValid(t *testing.T) {
 		require.NotNil(t, preference.IsValid())
 	})
 
-	t.Run("timestamp format is invalid", func(t *testing.T) {
+	t.Run("datetime display format is invalid", func(t *testing.T) {
 		preference.Category = PreferenceCategoryDisplaySettings
-		preference.Name = PreferenceNameTimestampFormat
+		preference.Name = PreferenceNameDateTimeDisplayFormat
 		preference.Value = "invalid"
 		require.NotNil(t, preference.IsValid())
 	})
 
-	t.Run("timestamp format is valid", func(t *testing.T) {
+	t.Run("datetime display format is valid", func(t *testing.T) {
 		preference.Category = PreferenceCategoryDisplaySettings
-		preference.Name = PreferenceNameTimestampFormat
+		preference.Name = PreferenceNameDateTimeDisplayFormat
 		preference.Value = DateTimeDisplayFormatRelative
 		require.Nil(t, preference.IsValid())
 	})

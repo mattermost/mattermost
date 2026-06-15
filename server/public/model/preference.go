@@ -87,7 +87,6 @@ const (
 	PreferenceNameColorizeUsernames       = "colorize_usernames"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
-	PreferenceNameTimestampFormat         = "timestamp_format"
 	PreferenceNameShowTimestampSeconds    = "show_timestamp_seconds"
 	PreferenceNameDateTimeDisplayFormat   = "datetime_display_format"
 
@@ -163,11 +162,11 @@ func (o *Preference) IsValid() *AppError {
 		}
 	}
 
-	if o.Category == PreferenceCategoryDisplaySettings && o.Name == PreferenceNameTimestampFormat {
+	if o.Category == PreferenceCategoryDisplaySettings && o.Name == PreferenceNameDateTimeDisplayFormat {
 		if o.Value != DateTimeDisplayFormatStandard &&
 			o.Value != DateTimeDisplayFormatRelative &&
 			o.Value != DateTimeDisplayFormatDateAndTime {
-			return NewAppError("Preference.IsValid", "model.config.is_valid.display.timestamp_format.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+			return NewAppError("Preference.IsValid", "model.config.is_valid.display.datetime_display_format.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
 	}
 

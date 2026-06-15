@@ -18,7 +18,7 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
 
     return {
-        configTimestampFormat: (config.DefaultTimestampFormat as TimestampFormat) || TimestampFormat.STANDARD,
+        configTimestampFormat: (config.DateTimeDisplayFormat as TimestampFormat) || TimestampFormat.STANDARD,
         configShowTimestampSeconds: config.ShowTimestampSeconds === 'true',
         militaryTime: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, Preferences.USE_MILITARY_TIME_DEFAULT),
         showTimestampSeconds: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.SHOW_TIMESTAMP_SECONDS, 'false'),
