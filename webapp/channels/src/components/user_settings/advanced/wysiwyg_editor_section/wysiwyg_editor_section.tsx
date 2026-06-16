@@ -28,7 +28,7 @@ type Props = {
     onUpdateSection: (section: string) => void;
     user: UserProfile;
     actions: Actions;
-}
+};
 
 const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, onUpdateSection, user, actions}) => {
     const wysiwygEditorFeatureFlag = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'WysiwygEditor') === 'true');

@@ -298,12 +298,13 @@ const AdvancedTextEditor = ({
             const text = $from.parent.textContent;
             const offset = $from.parentOffset;
             if (text && offset >= 0) {
+                const isWordChar = (/\S/);
                 let start = offset;
-                while (start > 0 && /\S/.test(text[start - 1])) {
+                while (start > 0 && isWordChar.test(text[start - 1])) {
                     start--;
                 }
                 let end = offset;
-                while (end < text.length && /\S/.test(text[end])) {
+                while (end < text.length && isWordChar.test(text[end])) {
                     end++;
                 }
                 if (start < end) {

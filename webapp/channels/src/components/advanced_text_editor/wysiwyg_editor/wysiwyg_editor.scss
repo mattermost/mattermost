@@ -61,9 +61,9 @@
             + p:last-child:empty,
             + p:last-child:has(> br:only-child),
             + p.is-editor-empty:last-child {
+                margin: 0;
                 font-size: 0;
                 line-height: 0;
-                margin: 0;
             }
         }
 
@@ -311,22 +311,22 @@
 }
 
 .WysiwygTextStyleDropdown__trigger {
-    box-sizing: border-box;
     display: inline-flex;
-    flex: 0 0 auto;
     height: 32px;
+    box-sizing: border-box;
+    flex: 0 0 auto;
     align-items: center;
     padding: 0 12px;
     border: none;
     border-radius: 4px;
     background: transparent;
     color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
+    cursor: pointer;
     font-family: inherit;
-    font-weight: 600;
     font-size: 14px;
+    font-weight: 600;
     line-height: 20px;
     vertical-align: middle;
-    cursor: pointer;
 
     &:hover,
     &.btn-force-hover {
@@ -341,7 +341,7 @@
     }
 
     &[disabled] {
-        pointer-events: none;
         opacity: 0.4;
+        pointer-events: none;
     }
 }

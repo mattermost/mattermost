@@ -92,7 +92,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
         return null;
     });
 
-    const getProfilesForThread = useMemo(makeGetProfilesForThread, []);
+    const getProfilesForThread = useMemo(() => makeGetProfilesForThread(), []);
     const priorityProfiles = useSelector((state: GlobalState) => getProfilesForThread(state, rootId ?? ''));
     const delayChannelAutocomplete = config.DelayChannelAutocomplete === 'true';
 
