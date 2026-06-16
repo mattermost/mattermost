@@ -13,17 +13,17 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 	f := &FeatureFlags{}
 	f.SetDefaults()
 
-	t.Run("ClassificationMarkings should default to false", func(t *testing.T) {
-		require.False(t, f.ClassificationMarkings)
+	t.Run("ClassificationMarkings should default to true", func(t *testing.T) {
+		require.True(t, f.ClassificationMarkings)
 	})
 
 	t.Run("ClassificationMarkings should serialize correctly", func(t *testing.T) {
 		m := f.ToMap()
-		require.Equal(t, "false", m["ClassificationMarkings"])
-
-		f.ClassificationMarkings = true
-		m = f.ToMap()
 		require.Equal(t, "true", m["ClassificationMarkings"])
+
+		f.ClassificationMarkings = false
+		m = f.ToMap()
+		require.Equal(t, "false", m["ClassificationMarkings"])
 	})
 }
 
@@ -57,6 +57,59 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 
 	require.False(t, flags.AttributeValueMasking, "AttributeValueMasking should default to false")
 	require.Equal(t, "false", flags.ToMap()["AttributeValueMasking"])
+}
+
+// TestFeatureFlagsPermissionPoliciesDependencies pins down the
+// "sub-flag is gated by the umbrella PermissionPolicies flag"
+// contract for both ChannelPermissionPolicies and PolicySimulation.
+// Centralizing this in helper methods means future changes to the
+// dependency (additional gates, new sub-flags) only have to update
+// one place and existing call sites stay correct.
+func TestFeatureFlagsPermissionPoliciesDependencies(t *testing.T) {
+	t.Run("both helpers are off when defaults are applied", func(t *testing.T) {
+		var f FeatureFlags
+		f.SetDefaults()
+
+		require.False(t, f.IsChannelPermissionPoliciesEnabled())
+		require.False(t, f.IsPolicySimulationEnabled())
+	})
+
+	t.Run("sub-flag alone is not enough — the umbrella must be on too", func(t *testing.T) {
+		f := FeatureFlags{
+			PermissionPolicies:        false,
+			ChannelPermissionPolicies: true,
+			PolicySimulation:          true,
+		}
+		require.False(t, f.IsChannelPermissionPoliciesEnabled(),
+			"ChannelPermissionPolicies sub-flag must be ignored when the PermissionPolicies umbrella is off")
+		require.False(t, f.IsPolicySimulationEnabled(),
+			"PolicySimulation sub-flag must be ignored when the PermissionPolicies umbrella is off")
+	})
+
+	t.Run("umbrella alone is not enough — the sub-flag must be on too", func(t *testing.T) {
+		f := FeatureFlags{
+			PermissionPolicies:        true,
+			ChannelPermissionPolicies: false,
+			PolicySimulation:          false,
+		}
+		require.False(t, f.IsChannelPermissionPoliciesEnabled())
+		require.False(t, f.IsPolicySimulationEnabled())
+	})
+
+	t.Run("both flags on enables each sub-feature independently", func(t *testing.T) {
+		f := FeatureFlags{
+			PermissionPolicies:        true,
+			ChannelPermissionPolicies: true,
+			PolicySimulation:          false,
+		}
+		require.True(t, f.IsChannelPermissionPoliciesEnabled())
+		require.False(t, f.IsPolicySimulationEnabled(), "sub-flags are independent — enabling one must not enable the other")
+
+		f.ChannelPermissionPolicies = false
+		f.PolicySimulation = true
+		require.False(t, f.IsChannelPermissionPoliciesEnabled())
+		require.True(t, f.IsPolicySimulationEnabled())
+	})
 }
 
 func TestFeatureFlagsToMapBool(t *testing.T) {

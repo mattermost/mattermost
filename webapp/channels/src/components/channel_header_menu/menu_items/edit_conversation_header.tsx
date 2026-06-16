@@ -17,7 +17,7 @@ import {ModalIdentifiers} from 'utils/constants';
 type Props = {
     channel: Channel;
     leadingElement?: React.ReactNode;
-}
+};
 
 const EditConversationHeader = ({channel, leadingElement}: Props): JSX.Element => {
     const dispatch = useDispatch();

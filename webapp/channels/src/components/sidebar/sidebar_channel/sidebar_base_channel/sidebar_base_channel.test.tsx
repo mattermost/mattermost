@@ -16,7 +16,7 @@ jest.mock('components/tours/onboarding_tour', () => ({
 jest.mock('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const React = require('react');
 
-    return ({label, channelLeaveHandler}: {label: string; channelLeaveHandler?: (callback: () => void) => void}) => {
+    return ({label, channelLeaveHandler}: {label: string; icon?: JSX.Element | null; channelLeaveHandler?: (callback: () => void) => void}) => {
         const [isOpen, setIsOpen] = React.useState(false);
 
         return (
@@ -184,5 +184,36 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         await waitFor(() => {
             expect(mockfn).toHaveBeenCalledTimes(1);
         });
+    });
+
+    test('expect openModal to be called when leaving a policy enforced public channel', async () => {
+        const openModalMock = jest.fn();
+        const leaveChannelMock = jest.fn();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'O' as ChannelType,
+                name: 'l',
+                policy_enforced: true,
+            },
+            actions: {
+                leaveChannel: leaveChannelMock,
+                openModal: openModalMock,
+            },
+        };
+
+        renderWithContext(<SidebarBaseChannel {...props}/>);
+        const user = userEvent.setup();
+
+        const optionsBtn = screen.getByRole('button', {name: /channel options/i});
+
+        await user.click(optionsBtn);
+        await user.click(screen.getByRole('menuitem', {name: 'Leave Channel'}));
+        await waitFor(() => {
+            expect(openModalMock).toHaveBeenCalledTimes(1);
+        });
+        expect(leaveChannelMock).not.toHaveBeenCalled();
     });
 });

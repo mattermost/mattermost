@@ -18,7 +18,7 @@ import Setup from '../setup';
 
 type Location = {
     search: string;
-}
+};
 
 type Props = {
     location: Location;
@@ -33,7 +33,7 @@ type Props = {
     match: {
         url: string;
     };
-}
+};
 
 export default class MFAController extends React.PureComponent<Props & RouteComponentProps> {
     public componentDidMount(): void {

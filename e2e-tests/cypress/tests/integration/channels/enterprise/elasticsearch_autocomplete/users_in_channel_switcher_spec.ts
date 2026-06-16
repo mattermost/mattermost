@@ -11,7 +11,8 @@
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
 import {doTestQuickChannelSwitcher} from '../../autocomplete/common_test';
-import {createSearchData, SimpleUser} from '../../autocomplete/helpers';
+import type {SimpleUser} from '../../autocomplete/helpers';
+import {createSearchData} from '../../autocomplete/helpers';
 
 import {enableElasticSearch} from './helpers';
 

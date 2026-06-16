@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import SystemConsoleSidebarHeader from './sidebar_header';
 
@@ -80,6 +81,7 @@ export default class SystemConsoleSidebar {
         return this.environment.mobileSecurity;
     }
     get notifications() {
+        // Rendered under Site Configuration (`site`); URL is environment/notifications.
         return this.siteConfiguration.notifications;
     }
     get pluginManagement() {
@@ -97,6 +99,7 @@ class SidebarSection {
     }
 
     async click() {
+        await this.link.scrollIntoViewIfNeeded();
         await this.link.click();
     }
 

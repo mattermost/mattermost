@@ -15,7 +15,7 @@ import {formatAsString} from 'utils/i18n';
 type OptionType = {
     label: string | JSX.Element;
     value: string;
-}
+};
 
 type Props<T extends OptionType> = Omit<SelectProps<T, false>, 'onChange' | 'onInputChange' | 'isMulti' | 'placeholder'> & {
     value: T;

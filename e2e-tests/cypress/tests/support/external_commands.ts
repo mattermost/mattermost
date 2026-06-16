@@ -10,7 +10,6 @@ import {getRandomId} from '../utils';
 
 import {getAdminAccount} from './env';
 
-
 function externalActivateUser(userId: string, active = true) {
     const admin = getAdminAccount();
 

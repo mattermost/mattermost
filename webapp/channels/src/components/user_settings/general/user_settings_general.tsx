@@ -27,6 +27,7 @@ import Input from 'components/widgets/inputs/input/input';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
 
@@ -170,7 +171,7 @@ export type Props = {
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
     enableCustomProfileAttributes: boolean;
-}
+};
 
 type State = {
     username: string;
@@ -191,7 +192,7 @@ type State = {
     serverError?: string;
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
-}
+};
 
 // Private component to get plugin display name
 type PluginDisplayNameProps = {
@@ -861,7 +862,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
         if (this.props.user.auth_service === '') {
             describe = this.props.user.email;
         } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
@@ -1065,7 +1066,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
 
         if (user.first_name && user.last_name) {
             describe = user.first_name + ' ' + user.last_name;
@@ -1124,7 +1125,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     </span>
                 );
             } else {
-                let nicknameLabel: JSX.Element|string = (
+                let nicknameLabel: JSX.Element | string = (
                     <FormattedMessage
                         id='user.settings.general.nickname'
                         defaultMessage='Nickname'
@@ -1181,7 +1182,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
         if (user.nickname) {
             describe = user.nickname;
         } else {
@@ -1330,7 +1331,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         if (active) {
             const inputs = [];
 
-            let extraInfo: JSX.Element|string;
+            let extraInfo: JSX.Element | string;
             let submit = null;
             if ((this.props.user.auth_service === Constants.LDAP_SERVICE && this.props.ldapPositionAttributeSet) || (this.props.user.auth_service === Constants.SAML_SERVICE && this.props.samlPositionAttributeSet)) {
                 extraInfo = (
@@ -1400,7 +1401,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = '';
         if (user.position) {
             describe = user.position;
         } else {
@@ -1480,7 +1481,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             if (active) {
                 const inputs = [];
-                let extraInfo: JSX.Element|string = '';
+                let extraInfo: JSX.Element | string = '';
                 let submit = null;
 
                 const validate = () => {
@@ -1547,7 +1548,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 // Only render inputs if the field is not synced, admin-managed, or protected
                 if (!isSynced && !isAdminManaged && !isProtected) {
                     let attributeLabel: JSX.Element | string = (
-                        attribute.name
+                        getUserPropertyFieldLabel(attribute)
                     );
                     if (this.props.isMobileView) {
                         attributeLabel = '';
@@ -1598,7 +1599,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                                         autoCapitalize='off'
                                         onFocus={Utils.moveCursorToEnd}
-                                        aria-label={attribute.name}
+                                        aria-label={getUserPropertyFieldLabel(attribute)}
                                         validate={validate}
                                     />
                                 </div>
@@ -1623,7 +1624,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 max = (
                     <SettingItemMax
                         key={'settingItemMax_' + attribute.id}
-                        title={attribute.name}
+                        title={getUserPropertyFieldLabel(attribute)}
                         inputs={inputs}
                         submit={submit}
                         saving={this.state.sectionIsSaving}
@@ -1634,7 +1635,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     />
                 );
             }
-            let describe: JSX.Element|string = '';
+            let describe: JSX.Element | string = '';
             if (this.props.user.custom_profile_attributes?.[attribute.id]) {
                 const attributeValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
                 if (attributeValue) {
@@ -1670,7 +1671,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         key={'settingItem_' + attribute.id}
                         active={active}
                         areAllSectionsInactive={this.props.activeSection === ''}
-                        title={attribute.name}
+                        title={getUserPropertyFieldLabel(attribute)}
                         describe={describe}
                         section={sectionName}
                         updateSection={this.updateSection}
@@ -1740,7 +1741,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             );
         }
 
-        let minMessage: JSX.Element|string = formatMessage(holders.uploadImage);
+        let minMessage: JSX.Element | string = formatMessage(holders.uploadImage);
         if (this.props.isMobileView) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }

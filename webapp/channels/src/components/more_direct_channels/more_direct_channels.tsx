@@ -52,7 +52,6 @@ export type Props = {
         loadProfilesMissingStatus: (users: UserProfile[]) => void;
         getTotalUsersStats: () => void;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
-        loadProfilesForGroupChannels: (groupChannels: Channel[]) => void;
         openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
         openGroupChannelToUserIds: (userIds: string[]) => Promise<ActionResult>;
         searchProfiles: (term: string, options: any) => Promise<ActionResult<UserProfile[]>>;
@@ -61,7 +60,7 @@ export type Props = {
         canUserDirectMessage: (userId: string, otherUserId: string) => Promise<ActionResult<{can_dm: boolean}>>;
     };
     focusOriginElement: string;
-}
+};
 
 type State = {
     values: OptionValue[];
@@ -70,7 +69,7 @@ type State = {
     saving: boolean;
     loadingUsers: boolean;
     directMessageCapabilityCache: Record<string, boolean>;
-}
+};
 
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
     searchTimeoutId: any;
@@ -157,15 +156,12 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 this.searchTimeoutId = setTimeout(
                     async () => {
                         this.setUsersLoadingState(true);
-                        const [{data: profilesData}, {data: groupChannelsData}] = await Promise.all([
+                        const [{data: profilesData}] = await Promise.all([
                             this.props.actions.searchProfiles(searchTerm, {team_id: teamId}),
                             this.props.actions.searchGroupChannels(searchTerm),
                         ]);
                         if (profilesData) {
                             this.props.actions.loadStatusesForProfilesList(profilesData);
-                        }
-                        if (groupChannelsData) {
-                            this.props.actions.loadProfilesForGroupChannels(groupChannelsData);
                         }
                         this.resetPaging();
                         this.setUsersLoadingState(false);

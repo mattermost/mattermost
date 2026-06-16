@@ -24,7 +24,7 @@ type Props = {
     actions: {
         patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
-}
+};
 
 export default function ResetEmailModal({
     user,

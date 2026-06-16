@@ -190,41 +190,54 @@ func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 
 func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	th := Setup(t)
+	// LicenseCheckHook gates writes to the access_control group on an
+	// Enterprise license; the seed CreatePropertyField calls below would
+	// otherwise be rejected with app.property.license_error.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
-	// fieldA exercises the "display_name present as empty string in JSONB" case — the true
-	// idempotency boundary.
-	fieldABase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: "department",
-		Type: model.PropertyFieldTypeText,
-	})
-	require.NoError(t, convErr)
-	fieldA, appErr := th.App.CreateCPAField(th.Context, fieldABase)
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
-	require.Equal(t, "", fieldA.Attrs.DisplayName, "seed invariant: fieldA must have empty display_name")
 
-	fieldBBase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: "job_title",
-		Type: model.PropertyFieldTypeText,
-	})
-	require.NoError(t, convErr)
-	fieldBBase.Attrs.DisplayName = "Job Title"
-	fieldB, appErr := th.App.CreateCPAField(th.Context, fieldBBase)
+	// fieldA exercises the "display_name absent / empty in JSONB" case — the
+	// true idempotency boundary the migration is designed to fix.
+	fieldA, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "department",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
 	require.Nil(t, appErr)
-	require.Equal(t, "Job Title", fieldB.Attrs.DisplayName, "seed invariant: fieldB must have display_name set")
+	require.Empty(t, fieldA.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"seed invariant: fieldA must have empty display_name")
+
+	fieldB, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "job_title",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsDisplayName: "Job Title",
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+	require.Equal(t, "Job Title", fieldB.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"seed invariant: fieldB must have display_name set")
 
 	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
-	updatedFieldA, appErr := th.App.GetCPAField(th.Context, fieldA.ID)
+	updatedFieldA, appErr := th.App.GetPropertyField(th.Context, group.ID, fieldA.ID)
 	require.Nil(t, appErr)
-	require.Equal(t, "department", updatedFieldA.Attrs.DisplayName,
+	require.Equal(t, "department", updatedFieldA.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"fieldA: display_name must be backfilled to field name")
 
-	updatedFieldB, appErr := th.App.GetCPAField(th.Context, fieldB.ID)
+	updatedFieldB, appErr := th.App.GetPropertyField(th.Context, group.ID, fieldB.ID)
 	require.Nil(t, appErr)
-	require.Equal(t, "Job Title", updatedFieldB.Attrs.DisplayName,
+	require.Equal(t, "Job Title", updatedFieldB.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"fieldB: display_name must not be overwritten when already set")
 
 	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -235,15 +248,23 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 
 func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	th := Setup(t)
+	// LicenseCheckHook gates writes to the access_control group on an
+	// Enterprise license; the seed CreatePropertyField call below would
+	// otherwise be rejected with app.property.license_error.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
-	fieldBase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: "location",
-		Type: model.PropertyFieldTypeText,
-	})
-	require.NoError(t, convErr)
-	seeded, appErr := th.App.CreateCPAField(th.Context, fieldBase)
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	seeded, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "location",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
 	require.Nil(t, appErr)
 
 	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
@@ -253,9 +274,9 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	require.NoError(t, sysErr)
 	require.Equal(t, "true", data1.Value)
 
-	updatedAfterFirst, appErr := th.App.GetCPAField(th.Context, seeded.ID)
+	updatedAfterFirst, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
 	require.Nil(t, appErr)
-	require.Equal(t, "location", updatedAfterFirst.Attrs.DisplayName)
+	require.Equal(t, "location", updatedAfterFirst.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName])
 
 	// Snapshot UpdateAt before the second run so we can prove the second run is a no-op
 	// at the DB-write level. PropertyField.UpdateAt is set to model.GetMillis() on every
@@ -272,9 +293,9 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	require.NoError(t, sysErr)
 	require.Equal(t, "true", data2.Value)
 
-	updatedAfterSecond, appErr := th.App.GetCPAField(th.Context, seeded.ID)
+	updatedAfterSecond, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
 	require.Nil(t, appErr)
-	require.Equal(t, "location", updatedAfterSecond.Attrs.DisplayName,
+	require.Equal(t, "location", updatedAfterSecond.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"second run must not change display_name")
 
 	require.Equal(t, firstFieldUpdate, updatedAfterSecond.UpdateAt,
@@ -283,21 +304,30 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 
 func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) {
 	th := Setup(t)
+	// LicenseCheckHook gates writes to the access_control group on an
+	// Enterprise license. The seed below bypasses Create-side hooks via a
+	// direct store insert, but the backfill migration calls UpdatePropertyFields
+	// (unhooked) which still runs the version-match check; the license is
+	// nevertheless required by other CPA paths exercised across the suite.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
-	groupID, appErr := th.App.CpaGroupID()
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
+	groupID := group.ID
 
 	// Insert directly via the store so we bypass the property service's
 	// access-control routing (which would reject creating a protected
-	// source_only field from a non-plugin caller). Type=text avoids the
-	// options-stripping branch in read access control, but the migration's
-	// correctness here doesn't depend on the field type.
+	// source_only field from a non-plugin caller). ObjectType/TargetType are
+	// required so the field is recognized as PSAv2 and matches the group's
+	// version when the migration's UpdatePropertyFields runs.
 	field := &model.PropertyField{
-		GroupID: groupID,
-		Name:    "uas_employee_id",
-		Type:    model.PropertyFieldTypeText,
+		GroupID:    groupID,
+		Name:       "uas_employee_id",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: model.StringInterface{
 			model.PropertyAttrsProtected:      true,
 			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
@@ -328,4 +358,160 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.NoError(t, sysErr)
 	require.NotNil(t, data)
 	require.Equal(t, "true", data.Value)
+}
+
+func TestDoSetupSessionAttributesProperties(t *testing.T) {
+	expectedFieldCount := len(model.SessionAttributeSystemFields("group-id"))
+
+	t.Run("fresh install seeds the group and fields", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, model.SessionAttributesPropertyGroupName, group.Name)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, expectedFieldCount)
+
+		fieldsByName := make(map[string]*model.PropertyField, len(fields))
+		for _, field := range fields {
+			fieldsByName[field.Name] = field
+
+			require.Equal(t, model.PropertyFieldObjectTypeSession, field.ObjectType, "field %q object type", field.Name)
+			require.Equal(t, string(model.PropertyFieldTargetLevelSystem), field.TargetType, "field %q target type", field.Name)
+			require.False(t, field.Protected, "field %q must not be protected", field.Name)
+			require.NotNil(t, field.PermissionField)
+			require.Equal(t, model.PermissionLevelSysadmin, *field.PermissionField, "field %q permission_field", field.Name)
+			require.NotNil(t, field.PermissionValues)
+			require.Equal(t, model.PermissionLevelSysadmin, *field.PermissionValues, "field %q permission_values", field.Name)
+			require.Equal(t, false, field.Attrs["enabled"], "field %q must seed disabled", field.Name)
+			require.NotEmpty(t, field.Attrs[model.SAAttrDisplayName], "field %q must seed a display name", field.Name)
+		}
+
+		ipField := fieldsByName[model.SessionAttributesPropertyFieldIPAddress]
+		require.NotNil(t, ipField)
+		require.Equal(t, model.PropertyFieldTypeText, ipField.Type)
+
+		networkField := fieldsByName[model.SessionAttributesPropertyFieldNetworkInterfaceType]
+		require.NotNil(t, networkField)
+		require.Equal(t, model.PropertyFieldTypeSelect, networkField.Type)
+		require.NotNil(t, networkField.Attrs[model.PropertyFieldAttributeOptions])
+
+		// The typed attrs must survive the DB round trip so the app reads back what it seeded.
+		saField, err := model.SAFieldFromPropertyField(networkField)
+		require.NoError(t, err)
+		require.Equal(t, model.SessionAttributesDisplayNameNetworkInterfaceType, saField.Attrs.DisplayName)
+		require.Equal(t, model.SessionAttributeDefaultTTLNetworkIdentity, saField.Attrs.TTLSeconds)
+		require.Equal(t, model.SessionAttributeDefaultGraceNetworkIdentity, saField.Attrs.GracePeriodSeconds)
+		require.ElementsMatch(t,
+			[]string{model.SessionAttributePlatformDesktop, model.SessionAttributePlatformMobile},
+			saField.Attrs.Platforms,
+		)
+	})
+
+	t.Run("re-running is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		before, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, before, expectedFieldCount)
+
+		err := th.Server.doSetupSessionAttributesProperties()
+		require.NoError(t, err)
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, expectedFieldCount, "re-running must not create duplicate fields")
+	})
+
+	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
+		th := Setup(t)
+
+		// Fields already exist from Setup. Every goroutine runs the seed body
+		// and races on the same UpdateAt timestamps. Only one wins; the rest
+		// must tolerate the resulting ErrConflict rather than failing.
+		const runners = 5
+		errs := make([]error, runners)
+		var wg sync.WaitGroup
+		wg.Add(runners)
+		for i := range runners {
+			go func() {
+				defer wg.Done()
+				errs[i] = th.Server.doSetupSessionAttributesProperties()
+			}()
+		}
+		wg.Wait()
+
+		for i, err := range errs {
+			require.NoError(t, err, "runner %d must not fail on concurrent update", i)
+		}
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, expectedFieldCount)
+	})
+}
+
+func TestDoSetupBoardsProperties(t *testing.T) {
+	t.Run("should register property group and fields", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, model.BoardsPropertyGroupName, group.Name)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+
+		fieldsByName := map[string]*model.PropertyField{}
+		for _, f := range propertyFields {
+			fieldsByName[f.Name] = f
+		}
+
+		assignee := fieldsByName[model.BoardsPropertyFieldAssignee]
+		require.NotNil(t, assignee)
+		require.Equal(t, model.PropertyFieldTypeUser, assignee.Type)
+		require.True(t, assignee.Protected)
+
+		status := fieldsByName[model.BoardsPropertyFieldStatus]
+		require.NotNil(t, status)
+		require.Equal(t, model.PropertyFieldTypeSelect, status.Type)
+		require.True(t, status.Protected)
+		require.NotNil(t, status.Attrs["options"])
+
+		data, sysErr := th.Store.System().GetByName(boardsPropertySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
+	})
+
+	t.Run("the migration is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		_, err := th.Store.System().PermanentDeleteByName(boardsPropertySetupDoneKey)
+		require.NoError(t, err)
+
+		err = th.Server.doSetupBoardsProperties()
+		require.NoError(t, err)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, model.BoardsPropertyGroupName, group.Name)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+
+		data, sysErr := th.Store.System().GetByName(boardsPropertySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
+	})
 }

@@ -1,21 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {
-    BrowseChannelsModal,
+import type {
     ChannelsPost,
-    ChannelSettingsModal,
-    CreateTeamForm,
-    NewChannelModal,
     SettingsModal,
     TeamSettingsModal,
-    components,
     InvitePeopleModal,
     MembersInvitedModal,
 } from '@/ui/components';
+import {BrowseChannelsModal, ChannelSettingsModal, CreateTeamForm, NewChannelModal, components} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -38,6 +35,7 @@ export default class ChannelsPage {
     readonly findChannelsModal;
     readonly newChannelModal;
     readonly browseChannelsModal;
+    readonly directChannelsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -77,6 +75,9 @@ export default class ChannelsPage {
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.newChannelModal = new NewChannelModal(page.getByRole('dialog', {name: 'Create a new channel'}));
         this.browseChannelsModal = new BrowseChannelsModal(page.getByRole('dialog', {name: 'Browse Channels'}));
+        this.directChannelsModal = new components.DirectChannelsModal(
+            page.getByRole('dialog', {name: 'Direct Messages'}),
+        );
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
@@ -201,7 +202,20 @@ export default class ChannelsPage {
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {
         await this.centerView.header.openChannelMenu();
-        await this.page.locator('#channelSettings[role="menuitem"]').click();
+
+        const channelSettingsMenuItem = this.page.getByRole('menuitem', {name: 'Channel Settings'});
+        const moreActionsMenuItem = this.page.getByRole('menuitem', {name: /More actions/i});
+
+        const channelSettingsVisible = await channelSettingsMenuItem.isVisible({timeout: 1500}).catch(() => false);
+        if (!channelSettingsVisible) {
+            const moreActionsVisible = await moreActionsMenuItem.isVisible({timeout: 1500}).catch(() => false);
+            if (moreActionsVisible) {
+                await moreActionsMenuItem.click();
+            }
+        }
+
+        await expect(channelSettingsMenuItem).toBeVisible();
+        await channelSettingsMenuItem.click();
         await this.channelSettingsModal.toBeVisible();
 
         return this.channelSettingsModal;
@@ -227,6 +241,13 @@ export default class ChannelsPage {
         await this.browseChannelsModal.toBeVisible();
 
         return this.browseChannelsModal;
+    }
+
+    async openDirectChannelsModal() {
+        await this.sidebarLeft.openDirectMessageButton.click();
+        await this.directChannelsModal.toBeVisible();
+
+        return this.directChannelsModal;
     }
 
     async openCreateTeamForm(): Promise<CreateTeamForm> {
@@ -285,7 +306,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
@@ -297,7 +318,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {

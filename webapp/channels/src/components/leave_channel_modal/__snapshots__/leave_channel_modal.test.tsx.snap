@@ -1,5 +1,116 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`components/LeaveChannelModal should match snapshot for the policy enforced public channel variant 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="leavePolicyChannelModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="leavePolicyChannelModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign LeavePolicyChannelModal a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Leave Ask IT channel
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="LeavePolicyChannelModal__body"
+                >
+                  <p>
+                    You're part of this channel's membership policy. If you leave, you will not be automatically re-added.
+                  </p>
+                  <p>
+                    To stay a member without notifications, you can mute this channel instead.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="btn btn-tertiary"
+                id="leavePolicyChannelMuteButton"
+                type="button"
+              >
+                Mute instead
+              </button>
+              <button
+                class="btn btn-danger"
+                id="confirmModalButton"
+                type="button"
+              >
+                Leave channel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
 exports[`components/LeaveChannelModal should match snapshot, init 1`] = `
 <body
   class="modal-open"

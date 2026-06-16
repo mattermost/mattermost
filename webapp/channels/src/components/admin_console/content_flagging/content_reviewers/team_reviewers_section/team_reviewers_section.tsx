@@ -26,7 +26,7 @@ type Props = {
     teamReviewersSetting: Record<string, TeamReviewerSetting>;
     onChange: (updatedTeamSettings: Record<string, TeamReviewerSetting>) => void;
     disabled?: boolean;
-}
+};
 
 export default function TeamReviewers({teamReviewersSetting, onChange, disabled}: Props): JSX.Element {
     const intl = useIntl();

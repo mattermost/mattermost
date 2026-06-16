@@ -1,0 +1,44 @@
+name: Runner prep for openldap
+description: |
+  Disable the Ubuntu 24.04 AppArmor user-namespace restriction and ensure
+  docker-compose >= 2.36.0 before starting any stack that includes openldap.
+
+  Background: Ubuntu 24.04 sets kernel.apparmor_restrict_unprivileged_userns=1
+  by default.  The osixia/openldap:1.4.0 init scripts rely on unprivileged
+  user namespaces; blocking them causes an immediate exit(1) with no useful
+  stderr ("dependency failed to start: container mmserver-openldap-1 exited (1)").
+  The container's own security_opt: apparmor:unconfined is insufficient — it
+  only unconfines the slapd process, not the entrypoint.  The fix must be at
+  the host-kernel level.
+
+  docker-compose 2.35.1 (shipped on some ubuntu-24.04 runner images) also has
+  a known `up` regression that surfaces as spurious dependency-failed errors
+  under load.  We upgrade to >= 2.36.0 when needed.
+
+runs:
+  using: composite
+  steps:
+    - name: Disable AppArmor user-namespace restriction and ensure docker-compose >= 2.36.0
+      shell: bash
+      run: |
+        echo "Before: docker compose version"
+        docker compose version || true
+
+        # Disable the AppArmor user-namespace restriction.  Idempotent;
+        # safe if the key doesn't exist (older kernel).
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+        # If docker-compose is older than 2.36.0, install a newer one to
+        # the user's cli-plugins dir (takes precedence over the system copy).
+        CURRENT=$(docker compose version --short 2>/dev/null || echo "0.0.0")
+        NEED="2.36.0"
+        if [ "$(printf '%s\n' "$NEED" "$CURRENT" | sort -V | head -n1)" != "$NEED" ]; then
+          echo "Upgrading docker-compose from ${CURRENT} to 2.39.1"
+          mkdir -p "$HOME/.docker/cli-plugins"
+          curl -SL -o "$HOME/.docker/cli-plugins/docker-compose" \
+            "https://github.com/docker/compose/releases/download/v2.39.1/docker-compose-linux-x86_64"
+          chmod +x "$HOME/.docker/cli-plugins/docker-compose"
+        fi
+
+        echo "After: docker compose version"
+        docker compose version

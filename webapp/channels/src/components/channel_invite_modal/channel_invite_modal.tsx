@@ -32,6 +32,7 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
 import {sortUsersAndGroups} from 'utils/utils';
@@ -83,7 +84,7 @@ export type Props = {
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearchParams) => Promise<ActionResult>;
         getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
     };
-}
+};
 
 // Helper function to check if an option is a user
 const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
@@ -122,17 +123,21 @@ const ChannelInviteModalComponent = (props: Props) => {
     // overwrite abacFilteredUsers after the user switches channels.
     const abacProfilesFetchRequestId = useRef<number>(0);
 
-    // Public channels with a policy are advisory — the invite list is not
-    // filtered and matching users are merely surfaced as a recommendation.
-    // Private channels with a policy remain a hard gate.
-    const isPolicyEnforcedPrivate = props.channel.policy_enforced && props.channel.type !== Constants.OPEN_CHANNEL;
-    const isPolicyRecommendedPublic = props.channel.policy_enforced && props.channel.type === Constants.OPEN_CHANNEL;
+    // Public channels with a membership policy are advisory — the invite
+    // list is not filtered and matching users are merely surfaced as a
+    // recommendation. Private channels with a membership policy remain a
+    // hard gate. Permission-only policies (e.g. file upload) must not flip
+    // either branch, which is why we read the membership action key
+    // specifically instead of the broad policy_enforced flag.
+    const isMembershipPolicy = isMembershipPolicyEnforced(props.channel);
+    const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
+    const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
 
     // Use the useAccessControlAttributes hook
     const {structuredAttributes} = useAccessControlAttributes(
         EntityType.Channel,
         props.channel.id,
-        props.channel.policy_enforced,
+        isMembershipPolicy,
     );
 
     // Memoise the rendered access-control tags so they don't re-render on
@@ -367,7 +372,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         try {
             const ids = new Set<string>();
             let cursorId = '';
-            // eslint-disable-next-line no-constant-condition
+
             while (true) {
                 // eslint-disable-next-line no-await-in-loop
                 const profiles = await Client4.getProfilesMatchingChannelPolicy(
@@ -756,33 +761,15 @@ const ChannelInviteModalComponent = (props: Props) => {
     }, []);
 
     // Render the component
+    const {channel} = props;
+
     const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
     const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
-    const closeMembersInviteModal = () => {
-        props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
-    };
-
-    const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string; abacChannelPolicyEnforced?: boolean}) => {
-        return (
-            <ToggleModalButton
-                className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
-                modalId={ModalIdentifiers.INVITATION}
-                dialogType={InvitationModal}
-                dialogProps={{
-                    channelToInvite: channel,
-                    initialValue: term,
-                    inviteAsGuest: props.inviteAsGuest,
-                    focusOriginElement: 'customNoOptionsMessageLink',
-                    canInviteGuests: Boolean(!props.abacChannelPolicyEnforced),
-                }}
-                onClick={closeMembersInviteModal}
-                id={props.id}
-            >
-                {props.children}
-            </ToggleModalButton>
-        );
-    };
+    const {closeModal} = props.actions;
+    const closeMembersInviteModal = useCallback(() => {
+        closeModal(ModalIdentifiers.CHANNEL_INVITE);
+    }, [closeModal]);
 
     const customNoOptionsMessage = (
         <div
@@ -796,6 +783,10 @@ const ChannelInviteModalComponent = (props: Props) => {
                         <InviteModalLink
                             id='customNoOptionsMessageLink'
                             abacChannelPolicyEnforced={isPolicyEnforcedPrivate}
+                            channel={channel}
+                            closeMembersInviteModal={closeMembersInviteModal}
+                            inviteAsGuest={false}
+                            term={term}
                         >
                             {chunks}
                         </InviteModalLink>
@@ -835,15 +826,20 @@ const ChannelInviteModalComponent = (props: Props) => {
     );
 
     const inviteGuestLink = (
-        <InviteModalLink inviteAsGuest={true}>
+        <InviteModalLink
+            id='inviteAsGuestLink'
+            abacChannelPolicyEnforced={false}
+            channel={channel}
+            closeMembersInviteModal={closeMembersInviteModal}
+            inviteAsGuest={true}
+            term={term}
+        >
             <FormattedMessage
                 id='channel_invite.invite_guest'
                 defaultMessage='Invite as a Guest'
             />
         </InviteModalLink>
     );
-
-    const {channel} = props;
 
     return (
         <GenericModal
@@ -866,7 +862,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         >
             <div className='channel-invite__wrapper'>
                 {inviteError && <label className='has-error control-label'>{inviteError}</label>}
-                {(channel.policy_enforced) && (
+                {isMembershipPolicy && (
                     <div className='channel-invite__policy-banner'>
                         <AlertBanner
                             mode='info'
@@ -909,6 +905,44 @@ const ChannelInviteModalComponent = (props: Props) => {
                 </div>
             </div>
         </GenericModal>
+    );
+};
+
+interface InviteModalLinkProps extends Pick<Props, 'channel'> {
+    abacChannelPolicyEnforced: boolean;
+    children: React.ReactNode;
+    closeMembersInviteModal: () => void;
+    id: string;
+    inviteAsGuest: boolean;
+    term: string;
+}
+
+const InviteModalLink = ({
+    abacChannelPolicyEnforced,
+    channel,
+    children,
+    closeMembersInviteModal,
+    id,
+    inviteAsGuest,
+    term,
+}: InviteModalLinkProps) => {
+    return (
+        <ToggleModalButton
+            className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+            modalId={ModalIdentifiers.INVITATION}
+            dialogType={InvitationModal}
+            dialogProps={{
+                channelToInvite: channel,
+                initialValue: term,
+                inviteAsGuest,
+                focusOriginElement: id,
+                canInviteGuests: Boolean(!abacChannelPolicyEnforced),
+            }}
+            onClick={closeMembersInviteModal}
+            id={id}
+        >
+            {children}
+        </ToggleModalButton>
     );
 };
 

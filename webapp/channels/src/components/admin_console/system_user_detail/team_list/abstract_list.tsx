@@ -35,18 +35,18 @@ type Props = {
         getTeamsData: (userId: string) => Promise<ActionResult<Team[]>>;
         removeGroup?: () => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
-}
+};
 
 type Paging = {
     startCount: number;
     endCount: number;
     total: number;
-}
+};
 
 export default class AbstractList extends React.PureComponent<Props, State> {
     public static defaultProps = {

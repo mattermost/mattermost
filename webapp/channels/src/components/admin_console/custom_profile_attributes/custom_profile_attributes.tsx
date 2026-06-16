@@ -21,6 +21,8 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
 
+import {getUserPropertyFieldLabel} from 'utils/properties';
+
 import type {GlobalState} from 'types/store';
 
 type AttributeHelpTextProps = {
@@ -84,7 +86,7 @@ type Props = {
     registerSaveAction: (saveAction: () => Promise<unknown>) => void;
     unRegisterSaveAction: (saveAction: () => Promise<unknown>) => void;
     id?: string;
-}
+};
 
 type SaveActionResult = {
     error?: Error;
@@ -168,7 +170,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                             <TextSetting
                                 key={attr.id}
                                 id={`custom_profile_attribute-${attr.name}`}
-                                label={attr.name}
+                                label={getUserPropertyFieldLabel(attr)}
                                 value={attr.attrs?.[attributeKey] as string || ''}
                                 onChange={(id, newValue) => {
                                     setAttributes((prevAttrs) => prevAttrs.map((a) => {
@@ -194,7 +196,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                                     ) : (
                                         <AttributeHelpText
                                             attributeKey={attributeKey}
-                                            attributeName={attr.name}
+                                            attributeName={getUserPropertyFieldLabel(attr)}
                                             attributeType={attr.type}
                                         />
                                     )

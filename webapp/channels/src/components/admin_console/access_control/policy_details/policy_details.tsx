@@ -32,7 +32,7 @@ import Constants from 'utils/constants';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {hasUsableAttributes, isSimpleExpression} from '../editors/shared';
+import {hasUsableAttributes, isSimpleExpression, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -46,7 +46,7 @@ interface PolicyActions {
     setNavigationBlocked: (blocked: boolean) => void;
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
-    createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
+    createJob: (job: JobTypeBase & {data: any}) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
 }
 
@@ -81,6 +81,16 @@ function PolicyDetails({
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
+
+    // Check for masked values using existingRules when available (updated after each fetch),
+    // falling back to the prop. The "--------" sentinel may be absent from a locally rebuilt
+    // CEL string even when masked values are present, so we rely on the server-sourced rules.
+    const hasMaskedRows = useMemo(
+        () => (existingRules.length > 0 ? existingRules : policy?.rules ?? []).some(
+            (rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL),
+        ),
+        [existingRules, policy],
+    );
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
         removed: {},
         added: {},
@@ -197,6 +207,12 @@ function PolicyDetails({
                 if (result.error) {
                     if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {
                         setServerError(formatMessage({id: 'admin.access_control.edit_policy.name_exists', defaultMessage: 'A policy with this name already exists. Please choose a different name.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.invalid_value') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.invalid_value', defaultMessage: 'Invalid value.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.self_exclusion') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.self_exclusion', defaultMessage: 'You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.forbidden') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.forbidden', defaultMessage: 'You do not have permission to make this change to the policy. Contact a System Admin for assistance.'}));
                     } else {
                         setServerError(result.error.message);
                     }
@@ -363,6 +379,34 @@ function PolicyDetails({
         );
     };
 
+    // Effective channel mix = (saved - removed) + added. Reused by the
+    // mixed-channel notice below the channel list and by the confirmation
+    // modal so both surfaces stay in sync.
+    const channelTypeCounts = useMemo(() => {
+        let publicCount = 0;
+        let privateCount = 0;
+        for (const [id, type] of Object.entries(savedChannelTypes)) {
+            if (channelChanges.removed[id]) {
+                continue;
+            }
+            if (type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        for (const ch of Object.values(channelChanges.added)) {
+            if (ch.type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        return {publicCount, privateCount};
+    }, [savedChannelTypes, channelChanges.removed, channelChanges.added]);
+
+    const hasMixedChannels = channelTypeCounts.publicCount > 0 && channelTypeCounts.privateCount > 0;
+
     return (
         <div className='wrapper--fixed AccessControlPolicySettings'>
             <AdminHeader withBackButton={true}>
@@ -478,6 +522,23 @@ function PolicyDetails({
                             />
                         </Card.Header>
                         <Card.Body>
+                            {hasMaskedRows && (
+                                <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                                defaultMessage='This policy contains restricted values'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
+                                            defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                             {editorMode === 'cel' ? (
                                 <CELEditor
                                     value={expression}
@@ -488,6 +549,7 @@ function PolicyDetails({
                                     }}
                                     onValidate={() => {}}
                                     disabled={noUsableAttributes}
+                                    hasMaskedRows={hasMaskedRows}
                                     userAttributes={autocompleteResult.
                                         filter((attr) => {
                                             if (accessControlSettings.EnableUserManagedAttributes) {
@@ -561,6 +623,23 @@ function PolicyDetails({
                                 onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
                                 saving={saving}
                             />
+                            {hasMixedChannels && (
+                                <div className='AccessControlPolicySettings__mixedChannelsNotice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.mixed_channels.title'
+                                                defaultMessage='Membership policies affect public and private channels differently'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
+                                            defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                         </Card.Body>
                     </Card>
                     {policyId && (
@@ -568,6 +647,23 @@ function PolicyDetails({
                             expanded={true}
                             className={'console delete-policy'}
                         >
+                            {hasMaskedRows && (
+                                <div className='admin-console__warning-notice EditPolicy__delete-masked-values-warning'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.title'
+                                                defaultMessage='This policy contains restricted values - Deletion not allowed'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.text',
+                                            defaultMessage: 'Removing this policy could affect access for users you cannot fully account for.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                             <Card.Header>
                                 <TitleAndButtonCardHeader
                                     title={
@@ -601,7 +697,7 @@ function PolicyDetails({
                                         }
                                         setShowDeleteConfirmationModal(true);
                                     }}
-                                    isDisabled={hasChannels()}
+                                    isDisabled={hasChannels() || hasMaskedRows}
                                 />
                             </Card.Header>
                         </Card>
@@ -622,40 +718,16 @@ function PolicyDetails({
                 />
             )}
 
-            {showConfirmationModal && (() => {
-                // Effective channel mix = (saved - removed) + added. The
-                // confirmation modal messages the user differently for mixed,
-                // private-only, and public-only selections.
-                let publicCount = 0;
-                let privateCount = 0;
-                for (const [id, type] of Object.entries(savedChannelTypes)) {
-                    if (channelChanges.removed[id]) {
-                        continue;
-                    }
-                    if (type === Constants.OPEN_CHANNEL) {
-                        publicCount++;
-                    } else if (type === Constants.PRIVATE_CHANNEL) {
-                        privateCount++;
-                    }
-                }
-                for (const ch of Object.values(channelChanges.added)) {
-                    if (ch.type === Constants.OPEN_CHANNEL) {
-                        publicCount++;
-                    } else if (ch.type === Constants.PRIVATE_CHANNEL) {
-                        privateCount++;
-                    }
-                }
-                return (
-                    <PolicyConfirmationModal
-                        active={autoSyncMembership}
-                        onExited={() => setShowConfirmationModal(false)}
-                        onConfirm={handleSubmit}
-                        channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
-                        publicChannelsAffected={publicCount}
-                        privateChannelsAffected={privateCount}
-                    />
-                );
-            })()}
+            {showConfirmationModal && (
+                <PolicyConfirmationModal
+                    active={autoSyncMembership}
+                    onExited={() => setShowConfirmationModal(false)}
+                    onConfirm={handleSubmit}
+                    channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                    publicChannelsAffected={channelTypeCounts.publicCount}
+                    privateChannelsAffected={channelTypeCounts.privateCount}
+                />
+            )}
 
             {showDeleteConfirmationModal && (
                 <GenericModal
@@ -677,10 +749,12 @@ function PolicyDetails({
                     confirmButtonVariant='destructive'
                     compassDesign={true}
                 >
-                    <FormattedMessage
-                        id='admin.access_control.policy.edit_policy.delete_confirmation.message'
-                        defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
-                    />
+                    <>
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.message'
+                            defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
+                        />
+                    </>
                 </GenericModal>
             )}
 

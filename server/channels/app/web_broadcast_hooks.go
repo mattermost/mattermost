@@ -25,6 +25,7 @@ const (
 	broadcastBurnOnRead         = "burn_on_read"
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
 	broadcastAbacFiles          = "abac_files"
+	broadcastOnlyChannelAdmins  = "only_channel_admins"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -37,6 +38,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
 		broadcastAbacFiles:          &abacFilesBroadcastHook{},
+		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 	}
 }
 
@@ -295,15 +297,14 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 			continue
 		}
 
-		// Check if the recipient has permission to read this channel
+		// Resolve the mention if the recipient may see the channel's name/link.
 		channel, appErr := webConn.Platform.Store.Channel().Get(channelID, true)
 		if appErr != nil {
 			// If we can't get the channel, don't include the mention
 			continue
 		}
 
-		hasPermission, _ := webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, channel)
-		if hasPermission {
+		if webConn.Suite.HasPermissionToResolveChannelMention(rctx, webConn.UserId, channel) {
 			filteredMentions[channelName] = channelInfo
 		}
 	}
@@ -500,6 +501,34 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 		msg.Add("post", postJSON)
 	} else {
 		mlog.Warn("abacFilesBroadcastHook: failed to marshal post in fallback strip; rejecting event", mlog.Err(jsonErr))
+		msg.Event().Reject()
+	}
+	return nil
+}
+
+// onlyChannelAdminsBroadcastHook narrows a channel-scoped broadcast to the
+// channel-admin subset of the channel's members. The hook arg
+// `channel_admin_user_ids` is the precomputed list of admin user ids at publish
+// time; recipients not in that set have the event rejected.
+//
+// Pair with `Broadcast{ChannelId: channelId}` so the platform's existing
+// channel-member fan-out is the outer bound and this hook simply filters
+// non-admin members out.
+type onlyChannelAdminsBroadcastHook struct{}
+
+func useOnlyChannelAdminsHook(message *model.WebSocketEvent, channelAdminUserIds []string) {
+	message.GetBroadcast().AddHook(broadcastOnlyChannelAdmins, map[string]any{
+		"channel_admin_user_ids": model.StringArray(channelAdminUserIds),
+	})
+}
+
+func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	adminUserIDs, err := getTypedArg[model.StringArray](args, "channel_admin_user_ids")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_admin_user_ids value passed to onlyChannelAdminsBroadcastHook")
+	}
+
+	if !slices.Contains(adminUserIDs, webConn.UserId) {
 		msg.Event().Reject()
 	}
 	return nil

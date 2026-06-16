@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -21,10 +22,13 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
 	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
+	t.Run("SearchChildCounts", func(t *testing.T) { testAccessControlPolicyStoreSearchChildCounts(t, rctx, ss) })
 	t.Run("SearchByActions", func(t *testing.T) { testAccessControlPolicyStoreSearchByActions(t, rctx, ss) })
 	t.Run("GetPoliciesByFieldID", func(t *testing.T) { testAccessControlPolicyStoreGetPoliciesByFieldID(t, rctx, ss) })
 	t.Run("ScopeRoundtrip", func(t *testing.T) { testAccessControlPolicyStoreScopeRoundtrip(t, rctx, ss) })
 	t.Run("SearchByTeamIDWithScope", func(t *testing.T) { testAccessControlPolicyStoreSearchByTeamIDWithScope(t, rctx, ss) })
+	t.Run("GetActionsForPolicy", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicy(t, rctx, ss) })
+	t.Run("GetActionsForPolicies", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicies(t, rctx, ss) })
 }
 
 func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -573,8 +577,8 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 2)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
-		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}}, policies[0].Props)
-		require.Equal(t, map[string]any{"child_ids": []string{}}, policies[1].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}, "channel_count": 1, "team_count": 0}, policies[0].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{}, "channel_count": 0, "team_count": 0}, policies[1].Props)
 
 		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeChannel})
 		require.NoError(t, err)
@@ -643,6 +647,97 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
+}
+
+func testAccessControlPolicyStoreSearchChildCounts(t *testing.T, rctx request.CTX, ss store.Store) {
+	saveParent := func() string {
+		id := model.NewId()
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:       id,
+			Name:     "Parent " + id,
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "user.properties.program == \"engineering\"",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, id))
+		})
+		return id
+	}
+
+	saveChild := func(parentID, policyType string) {
+		id := model.NewId()
+		// team-type policies validate only from v0.3 onward.
+		version := model.AccessControlPolicyVersionV0_2
+		if policyType == model.AccessControlPolicyTypeTeam {
+			version = model.AccessControlPolicyVersionV0_3
+		}
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:       id,
+			Name:     id,
+			Type:     policyType,
+			Active:   true,
+			Revision: 1,
+			Version:  version,
+			Imports:  []string{parentID},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "policies." + parentID + " == true",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, id))
+		})
+	}
+
+	counts := func(parentID string) (int, int) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:             []string{parentID},
+			IncludeChildren: true,
+			Limit:           10,
+		})
+		require.NoError(t, err)
+		require.Len(t, policies, 1)
+		return policies[0].Props["channel_count"].(int), policies[0].Props["team_count"].(int)
+	}
+
+	t.Run("3 channel + 2 team children", func(t *testing.T) {
+		parentID := saveParent()
+		for range 3 {
+			saveChild(parentID, model.AccessControlPolicyTypeChannel)
+		}
+		for range 2 {
+			saveChild(parentID, model.AccessControlPolicyTypeTeam)
+		}
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 3, channelCount)
+		require.Equal(t, 2, teamCount)
+	})
+
+	t.Run("only channel children", func(t *testing.T) {
+		parentID := saveParent()
+		for range 4 {
+			saveChild(parentID, model.AccessControlPolicyTypeChannel)
+		}
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 4, channelCount)
+		require.Equal(t, 0, teamCount)
+	})
+
+	t.Run("no children", func(t *testing.T) {
+		parentID := saveParent()
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 0, channelCount)
+		require.Equal(t, 0, teamCount)
 	})
 }
 
@@ -1358,5 +1453,291 @@ func testAccessControlPolicyStoreSearchByTeamIDWithScope(t *testing.T, rctx requ
 		})
 		require.NoError(t, err)
 		require.Empty(t, results, "cross-team policy should not match single-team search")
+	})
+}
+
+func testAccessControlPolicyStoreGetActionsForPolicy(t *testing.T, rctx request.CTX, ss store.Store) {
+	savePolicy := func(t *testing.T, policy *model.AccessControlPolicy) *model.AccessControlPolicy {
+		t.Helper()
+		saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = ss.AccessControlPolicy().Delete(rctx, saved.ID)
+		})
+		return saved
+	}
+
+	t.Run("membership-only policy returns membership action", func(t *testing.T) {
+		policy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Membership Only " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: "user.attributes.program == \"engineering\"",
+				},
+			},
+		})
+
+		actions, err := ss.AccessControlPolicy().GetActionsForPolicy(rctx, policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionMembership: true}, actions)
+	})
+
+	t.Run("permission-only policy returns the non-membership action", func(t *testing.T) {
+		policy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Permission Only " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+					Expression: "user.attributes.program == \"engineering\"",
+				},
+			},
+		})
+
+		actions, err := ss.AccessControlPolicy().GetActionsForPolicy(rctx, policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}, actions)
+		require.False(t, actions[model.AccessControlPolicyActionMembership], "membership must not leak in")
+	})
+
+	t.Run("mixed actions are deduplicated across rules", func(t *testing.T) {
+		policy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Mixed " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership, model.AccessControlPolicyActionUploadFileAttachment},
+					Expression: "user.attributes.program == \"engineering\"",
+				},
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: "user.attributes.region == \"emea\"",
+				},
+			},
+		})
+
+		actions, err := ss.AccessControlPolicy().GetActionsForPolicy(rctx, policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, map[string]bool{
+			model.AccessControlPolicyActionMembership:           true,
+			model.AccessControlPolicyActionUploadFileAttachment: true,
+		}, actions)
+	})
+
+	t.Run("child policy with no rules inherits parent's actions via imports", func(t *testing.T) {
+		parent := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Parent For Inherit " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: "user.attributes.program == \"engineering\"",
+				},
+			},
+		})
+
+		child := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Child " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{parent.ID},
+			Rules:    []model.AccessControlPolicyRule{},
+		})
+
+		actions, err := ss.AccessControlPolicy().GetActionsForPolicy(rctx, child.ID)
+		require.NoError(t, err)
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionMembership: true}, actions, "child must inherit parent's action union")
+	})
+
+	t.Run("child policy unions own rules with parent imports", func(t *testing.T) {
+		parent := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Parent Membership " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		})
+
+		child := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Child Upload " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{parent.ID},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+			},
+		})
+
+		actions, err := ss.AccessControlPolicy().GetActionsForPolicy(rctx, child.ID)
+		require.NoError(t, err)
+		require.Equal(t, map[string]bool{
+			model.AccessControlPolicyActionMembership:           true,
+			model.AccessControlPolicyActionUploadFileAttachment: true,
+		}, actions)
+	})
+
+	t.Run("non-existent policy returns ErrNotFound", func(t *testing.T) {
+		_, err := ss.AccessControlPolicy().GetActionsForPolicy(rctx, model.NewId())
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr), "expected ErrNotFound, got %T: %v", err, err)
+	})
+
+	t.Run("invalid policy id returns ErrInvalidInput", func(t *testing.T) {
+		_, err := ss.AccessControlPolicy().GetActionsForPolicy(rctx, "not-a-valid-id")
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr), "expected ErrInvalidInput, got %T: %v", err, err)
+	})
+}
+
+func testAccessControlPolicyStoreGetActionsForPolicies(t *testing.T, rctx request.CTX, ss store.Store) {
+	savePolicy := func(t *testing.T, policy *model.AccessControlPolicy) *model.AccessControlPolicy {
+		t.Helper()
+		saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = ss.AccessControlPolicy().Delete(rctx, saved.ID)
+		})
+		return saved
+	}
+
+	t.Run("empty input returns empty map", func(t *testing.T) {
+		result, err := ss.AccessControlPolicy().GetActionsForPolicies(rctx, []string{})
+		require.NoError(t, err)
+		require.Empty(t, result)
+		require.NotNil(t, result, "empty result must not be nil so callers can range safely")
+	})
+
+	t.Run("returns per-policy action union for each ID", func(t *testing.T) {
+		membershipPolicy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Batch Membership " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		})
+
+		permissionPolicy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Batch Permission " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+			},
+		})
+
+		result, err := ss.AccessControlPolicy().GetActionsForPolicies(rctx, []string{membershipPolicy.ID, permissionPolicy.ID})
+		require.NoError(t, err)
+		require.Len(t, result, 2)
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionMembership: true}, result[membershipPolicy.ID])
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}, result[permissionPolicy.ID])
+	})
+
+	t.Run("missing IDs are absent from the result map (not nil-valued)", func(t *testing.T) {
+		policy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Batch Existing " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		})
+
+		missing := model.NewId()
+		result, err := ss.AccessControlPolicy().GetActionsForPolicies(rctx, []string{policy.ID, missing})
+		require.NoError(t, err)
+		require.Len(t, result, 1, "missing ID should be absent (not nil-valued)")
+		require.Contains(t, result, policy.ID)
+		require.NotContains(t, result, missing)
+	})
+
+	t.Run("imports are unioned for batch reads", func(t *testing.T) {
+		parent := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Batch Parent " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		})
+
+		child := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Batch Child " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{parent.ID},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+			},
+		})
+
+		result, err := ss.AccessControlPolicy().GetActionsForPolicies(rctx, []string{child.ID})
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.Equal(t, map[string]bool{
+			model.AccessControlPolicyActionMembership:           true,
+			model.AccessControlPolicyActionUploadFileAttachment: true,
+		}, result[child.ID])
+	})
+
+	t.Run("invalid ID in batch surfaces ErrInvalidInput", func(t *testing.T) {
+		_, err := ss.AccessControlPolicy().GetActionsForPolicies(rctx, []string{"not-a-valid-id"})
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr), "expected ErrInvalidInput, got %T: %v", err, err)
 	})
 }

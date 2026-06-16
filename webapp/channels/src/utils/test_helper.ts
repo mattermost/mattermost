@@ -305,6 +305,7 @@ export class TestHelper {
             create_at: 1,
             update_at: 1,
             delete_at: 1,
+            last_used: 0,
             user_id: '',
             channel_id: '',
             team_id: '',
@@ -490,8 +491,8 @@ export class TestHelper {
             ...override,
         };
     }
-    public static getPreferencesMock(override: Array<{category: string; name: string; value: string}> = [], userId = ''): { [x: string]: PreferenceType } {
-        const preferences: { [x: string]: PreferenceType } = {};
+    public static getPreferencesMock(override: Array<{category: string; name: string; value: string}> = [], userId = ''): {[x: string]: PreferenceType} {
+        const preferences: {[x: string]: PreferenceType} = {};
         override.forEach((p) => {
             preferences[getPreferenceKey(p.category, p.name)] = {
                 category: p.category,
