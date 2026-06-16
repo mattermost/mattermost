@@ -36,7 +36,7 @@ export default [
             '@stylistic/wrap-regex': 'off', // Covered by Prettier
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
             'func-names': 'off',
             'max-lines': ['warn', {max: 800, skipBlankLines: true, skipComments: true}],
             'no-await-in-loop': 'off',
