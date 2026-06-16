@@ -126,7 +126,7 @@ describe('Notifications.showNotification', () => {
         });
     });
 
-    it('should not leak the message body via the Notifications API tag', async () => {
+    it('should not leak notification text via the Notifications API tag when no tag is provided', async () => {
         // The Notifications API tag is serialised into the activation command line on Chromium
         // and captured by EDR / SIEM tooling. The tag must therefore never carry message content.
         window.Notification.permission = 'granted';
@@ -134,9 +134,10 @@ describe('Notifications.showNotification', () => {
         Notifications = require('utils/notifications');
 
         const sensitiveBody = '@alice: token=AKIA-SECRET-VALUE confidential incident details';
+        const visibleTitle = '@alice posted in Town Square';
 
         await store.dispatch(Notifications.showNotification({
-            title: '@alice posted in Town Square',
+            title: visibleTitle,
             body: sensitiveBody,
             requireInteraction: false,
             silent: false,
@@ -147,7 +148,8 @@ describe('Notifications.showNotification', () => {
         expect(options.body).toBe(sensitiveBody);
         expect(options.tag).not.toContain('AKIA-SECRET-VALUE');
         expect(options.tag).not.toContain('token=');
-        expect(options.tag).toBe('@alice posted in Town Square');
+        expect(options.tag).not.toContain(visibleTitle);
+        expect(options.tag).toBe('');
     });
 
     it('should use the explicit tag identifier when the caller provides one', async () => {
