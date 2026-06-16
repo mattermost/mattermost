@@ -4,10 +4,13 @@
     max-width: 960px;
     box-sizing: border-box;
     margin: 8px 0;
+    clear: both;
     container-type: inline-size;
 
-    &--collapsed {
-        margin: 4px 0;
+    .post--compact & {
+        display: block;
+        margin: 4px 0 0;
+        clear: both;
     }
 
     &__header {
@@ -15,17 +18,13 @@
         height: 24px;
         align-items: center;
         justify-content: flex-start;
-        padding: 2px 0;
-        margin-bottom: 4px;
+        padding: 0;
+        margin: 0 0 4px -4px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         font-weight: 600;
         line-height: 16px;
         text-align: left;
-    }
-
-    &__header--collapsed {
-        margin-bottom: 0;
     }
 
     &__toggle {
@@ -70,14 +69,71 @@
         user-select: none;
     }
 
+    &__download_all {
+        display: inline-flex;
+        height: 24px;
+        align-items: center;
+        padding: 0 6px;
+        border: none;
+        border-radius: 4px;
+        margin-left: 8px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 16px;
+        opacity: 0;
+        transition: opacity 150ms ease, background 150ms ease;
+
+        .post:hover &,
+        .post.a11y--active &,
+        &:focus-visible {
+            opacity: 1;
+        }
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+
     &__rows {
+        display: grid;
+        overflow: hidden;
+        min-width: 0;
+        gap: 8px;
+        grid-template-rows: 1fr;
+        text-align: left;
+        transition: grid-template-rows 200ms ease, opacity 200ms ease;
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+
+    &__rows--collapsed {
+        grid-template-rows: 0fr;
+        opacity: 0;
+    }
+
+    &__rows_inner {
         display: flex;
+        overflow: hidden;
         min-width: 0;
         flex-direction: column;
         align-items: flex-start;
         justify-content: flex-start;
         gap: 8px;
-        text-align: left;
     }
 
     &__row {

@@ -110,8 +110,8 @@ describe('MediaGallery', () => {
         expect(onToggle).toHaveBeenCalledWith('p1');
     });
 
-    it('hides the tiles when isEmbedVisible is false', () => {
-        renderWithContext(
+    it('marks the tile container as hidden when isEmbedVisible is false', () => {
+        const {container} = renderWithContext(
             <MediaGallery
                 fileInfos={[
                     fileInfo({id: 'a', name: 'a.png'}),
@@ -125,6 +125,9 @@ describe('MediaGallery', () => {
             baseState,
         );
 
-        expect(screen.queryByTestId('media-gallery-tile')).not.toBeInTheDocument();
+        const rows = container.querySelector('.MediaGallery__rows');
+        expect(rows).not.toBeNull();
+        expect(rows).toHaveClass('MediaGallery__rows--collapsed');
+        expect(rows).toHaveAttribute('aria-hidden', 'true');
     });
 });

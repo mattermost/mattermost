@@ -6,9 +6,12 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import {FileTypes} from 'utils/constants';
 import {getFileType} from 'utils/utils';
@@ -94,6 +97,21 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
         }
     }, [onToggleCollapse, postId]);
 
+    const handleDownloadAll = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        tiles.forEach((tile, idx) => {
+            window.setTimeout(() => {
+                const link = document.createElement('a');
+                link.href = getFileDownloadUrl(tile.file.id);
+                link.download = tile.file.name || '';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }, idx * 100);
+        });
+    }, [tiles]);
+
     if (tiles.length === 0) {
         return null;
     }
@@ -120,11 +138,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
             data-post-id={postId}
         >
             {showHeader && (
-                <div
-                    className={classNames('MediaGallery__header', {
-                        'MediaGallery__header--collapsed': !isEmbedVisible,
-                    })}
-                >
+                <div className='MediaGallery__header'>
                     <button
                         type='button'
                         className='style--none MediaGallery__toggle'
@@ -150,14 +164,39 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                             values={{count: tiles.length}}
                         />
                     </span>
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'media_gallery.download_all_tooltip',
+                            defaultMessage: 'Download all',
+                        })}
+                    >
+                        <button
+                            type='button'
+                            className='style--none MediaGallery__download_all'
+                            aria-label={formatMessage(
+                                {id: 'media_gallery.download_all_label', defaultMessage: 'Download all {count, plural, one {# item} other {# items}}'},
+                                {count: tiles.length},
+                            )}
+                            onClick={handleDownloadAll}
+                        >
+                            <DownloadOutlineIcon size={14}/>
+                            <FormattedMessage
+                                id='media_gallery.download_all'
+                                defaultMessage='Download all'
+                            />
+                        </button>
+                    </WithTooltip>
                 </div>
             )}
-            {isEmbedVisible && (
-                <div
-                    className='MediaGallery__rows'
-                    role='list'
-                    aria-label={groupLabel}
-                >
+            <div
+                className={classNames('MediaGallery__rows', {
+                    'MediaGallery__rows--collapsed': !isEmbedVisible,
+                })}
+                role='list'
+                aria-label={groupLabel}
+                aria-hidden={!isEmbedVisible}
+            >
+                <div className='MediaGallery__rows_inner'>
                     {rows.map((row, rIdx) => (
                         <div
                             key={`row-${rIdx}`}
@@ -195,7 +234,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                         </div>
                     ))}
                 </div>
-            )}
+            </div>
         </div>
     );
 };
