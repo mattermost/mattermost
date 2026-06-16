@@ -46,7 +46,11 @@ describe('components/admin_console/feature_discovery/features/ClassificationMark
         expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'Learn more'})).toHaveAttribute(
             'href',
-            expect.stringContaining('https://docs.mattermost.com/security-guide/cmmc-compliance.html'),
+            expect.stringContaining('https://docs.mattermost.com/end-user-guide/collaborate/display-channel-banners.html'),
+        );
+        expect(screen.getByRole('link', {name: 'Learn more'})).toHaveAttribute(
+            'href',
+            expect.stringContaining('#classification-markings'),
         );
         expect(document.querySelector('.FeatureDiscovery_imageWrapper svg')).toBeInTheDocument();
     });

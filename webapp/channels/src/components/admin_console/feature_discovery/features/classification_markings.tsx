@@ -23,7 +23,7 @@ const ClassificationMarkingsFeatureDiscovery: React.FC = () => {
                 id: 'admin.classification_markings_feature_discovery.desc',
                 defaultMessage: 'Set up global and channel-specific classification banners with built-in presets or custom levels, ensuring that users consistently view the appropriate classification level for their workspace.',
             })}
-            learnMoreURL='https://docs.mattermost.com/security-guide/cmmc-compliance.html'
+            learnMoreURL='https://docs.mattermost.com/end-user-guide/collaborate/display-channel-banners.html#classification-markings'
             featureDiscoveryImage={
                 <ClassificationMarkingsSVG
                     width={294}
