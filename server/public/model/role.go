@@ -872,6 +872,39 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
+// GetBuiltInRoleScope returns the scope of a built-in role from its name prefix.
+// Custom roles return ok=false.
+func GetBuiltInRoleScope(roleName string) (RoleScope, bool) {
+	switch {
+	case strings.HasPrefix(roleName, "channel_"):
+		return RoleScopeChannel, true
+	case strings.HasPrefix(roleName, "team_"):
+		return RoleScopeTeam, true
+	case strings.HasPrefix(roleName, "system_"), strings.HasPrefix(roleName, "playbook_"), strings.HasPrefix(roleName, "run_"):
+		return RoleScopeSystem, true
+	case strings.HasPrefix(roleName, "custom_group_"):
+		return RoleScopeGroup, true
+	default:
+		return "", false
+	}
+}
+
+// IsValidChannelMemberRoles reports whether roles are valid for a channel member.
+// IsValidUserRoles is format validation only; this rejects non-channel-scoped built-in roles.
+func IsValidChannelMemberRoles(channelMemberRoles string) bool {
+	if !IsValidUserRoles(channelMemberRoles) {
+		return false
+	}
+
+	for _, roleName := range strings.Fields(channelMemberRoles) {
+		if scope, ok := GetBuiltInRoleScope(roleName); ok && scope != RoleScopeChannel {
+			return false
+		}
+	}
+
+	return true
+}
+
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
 
