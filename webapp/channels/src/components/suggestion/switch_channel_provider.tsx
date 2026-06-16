@@ -2,19 +2,21 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
+import type {Dispatch} from 'redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import {fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, searchAllChannels, withdrawMyChannelJoinRequest} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
@@ -28,8 +30,9 @@ import {
     getChannelsInAllTeams,
     getSortedAllTeamsUnreadChannels,
     getAllTeamsUnreadChannelIds,
+    getMyPendingJoinRequestsByChannel,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getActiveTeamsList,
@@ -50,6 +53,7 @@ import {sortChannelsByTypeAndDisplayName, isChannelMuted} from 'mattermost-redux
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {openModal} from 'actions/views/modals';
 import {getPostDraft} from 'selectors/rhs';
 import globalStore from 'stores/redux_store';
 
@@ -57,11 +61,12 @@ import ChannelTypeIcon from 'components/channel_type_icon';
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {Constants, StoragePrefixes} from 'utils/constants';
+import {Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
@@ -114,6 +119,8 @@ export interface WrappedChannel {
     type?: string;
     unread?: boolean;
     unread_mentions?: number;
+    discoverableNonMember?: boolean;
+    hasPendingJoinRequest?: boolean;
 }
 
 type Props = SuggestionProps<WrappedChannel> & {
@@ -125,6 +132,10 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
+    discoverableNonMember: boolean;
+    hasPendingJoinRequest: boolean;
+    onRequestToJoin: (channel: Channel) => void;
+    onWithdrawRequest: (channelId: string) => Promise<ActionResult<ChannelJoinRequest>>;
 };
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
@@ -137,9 +148,14 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     isPartOfOnlyOneTeam,
     status,
     team,
+    discoverableNonMember,
+    hasPendingJoinRequest,
+    onRequestToJoin,
+    onWithdrawRequest,
     ...otherProps
 }, ref) => {
     const {formatMessage} = useIntl();
+    const [actionLoading, setActionLoading] = useState(false);
 
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
@@ -348,6 +364,42 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
 
     Reflect.deleteProperty(otherProps, 'dispatch');
 
+    const handleDiscoverableAction = useCallback(async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!isRealChannel(channel)) {
+            return;
+        }
+        setActionLoading(true);
+        try {
+            if (hasPendingJoinRequest) {
+                await onWithdrawRequest(channel.id);
+            } else {
+                onRequestToJoin(channel);
+            }
+        } finally {
+            setActionLoading(false);
+        }
+    }, [channel, hasPendingJoinRequest, onRequestToJoin, onWithdrawRequest]);
+
+    let discoverableAction = null;
+    if (discoverableNonMember && isRealChannel(channel) && !channelIsArchived) {
+        discoverableAction = (
+            <div className='suggestion-list__discoverable-action'>
+                <Button
+                    emphasis={hasPendingJoinRequest ? 'tertiary' : 'primary'}
+                    size='sm'
+                    disabled={actionLoading}
+                    tabIndex={-1}
+                    onClick={handleDiscoverableAction}
+                    aria-label={hasPendingJoinRequest ? formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'}) : formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
+                >
+                    {hasPendingJoinRequest ? formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'}) : formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
+                </Button>
+            </div>
+        );
+    }
+
     useLayoutEffect(() => {
         const channelEl = channelNameRef.current;
         setIsChannelNameTruncated(Boolean(channelEl && channelEl.scrollWidth > channelEl.clientWidth));
@@ -396,6 +448,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     {tag && <span id={ids.tag}>{tag}</span>}
                     {badge}
                 </div>
+                {discoverableAction}
                 {!isPartOfOnlyOneTeam && teamName}
             </div>
         </SuggestionContainer>
@@ -430,6 +483,8 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
     }
 
     const isPartOfOnlyOneTeam = getMyTeams(state).length === 1;
+    const discoverableNonMember = Boolean(ownProps.item?.discoverableNonMember);
+    const hasPendingJoinRequest = Boolean(ownProps.item?.hasPendingJoinRequest);
 
     return {
         channelMember: getMyChannelMemberships(state)[channelId],
@@ -439,10 +494,30 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
         collapsedThreads,
         team,
         isPartOfOnlyOneTeam,
+        discoverableNonMember,
+        hasPendingJoinRequest,
     };
 }
 
-export const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(SwitchChannelSuggestion);
+function mapDispatchToPropsForSwitchChannelSuggestion(dispatch: Dispatch) {
+    return {
+        onRequestToJoin: (channel: Channel) => {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+                dialogType: RequestJoinChannelModal,
+                dialogProps: {channel},
+            }));
+        },
+        onWithdrawRequest: (channelId: string) => dispatch(withdrawMyChannelJoinRequest(channelId)),
+    };
+}
+
+export const ConnectedSwitchChannelSuggestion = connect(
+    mapStateToPropsForSwitchChannelSuggestion,
+    mapDispatchToPropsForSwitchChannelSuggestion,
+    null,
+    {forwardRef: true},
+)(SwitchChannelSuggestion);
 
 let prefix = '';
 
@@ -810,6 +885,15 @@ export default class SwitchChannelProvider extends Provider {
                 if (unread) {
                     wrappedChannel.unread = true;
                 }
+
+                if (isDiscoverableChannelsEnabled(state) &&
+                    newChannel.type === Constants.PRIVATE_CHANNEL &&
+                    'discoverable' in newChannel && newChannel.discoverable &&
+                    !members[newChannel.id]) {
+                    wrappedChannel.discoverableNonMember = true;
+                    wrappedChannel.hasPendingJoinRequest = Boolean(getMyPendingJoinRequestsByChannel(state)[newChannel.id]);
+                }
+
                 completedChannels[channel.id] = true;
                 channels.push(wrappedChannel);
             }

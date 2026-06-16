@@ -40,6 +40,7 @@ export type Props = WrappedComponentProps & {
         joinChannelById: (channelId: string) => Promise<ActionResult>;
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
+        openRequestJoinModal: (channel: Channel) => void;
     };
     focusOriginElement: string;
 };
@@ -125,8 +126,17 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
 
         if (this.state.mode === CHANNEL_MODE) {
-            const {joinChannelById, switchToChannel} = this.props.actions;
+            const {joinChannelById, switchToChannel, openRequestJoinModal} = this.props.actions;
             const selectedChannel = selected.channel;
+
+            if (selected.discoverableNonMember && selectedChannel?.id) {
+                if (selected.hasPendingJoinRequest) {
+                    return;
+                }
+                openRequestJoinModal(selectedChannel);
+                this.hideOnSelect();
+                return;
+            }
 
             if (selected.type === Constants.MENTION_MORE_CHANNELS && selectedChannel.type === Constants.OPEN_CHANNEL) {
                 await joinChannelById(selectedChannel.id);

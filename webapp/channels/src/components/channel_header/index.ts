@@ -11,15 +11,17 @@ import {
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
-import {General} from 'mattermost-redux/constants';
+import {General, Permissions} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
     isCurrentChannelMuted,
     getCurrentChannelStats,
     isMyChannelAutotranslated,
+    getPendingJoinRequestsCount,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -85,6 +87,22 @@ function makeMapStateToProps() {
             timestampUnits = getLastActiveTimestampUnits(state, dmUser.id);
         }
 
+        const discoverableFeatureEnabled = isDiscoverableChannelsEnabled(state);
+        const canManageJoinRequests = discoverableFeatureEnabled &&
+            channel?.type === General.PRIVATE_CHANNEL &&
+            channel.discoverable === true &&
+            haveIChannelPermission(
+                state,
+                getCurrentTeam(state)?.id,
+                channel?.id || '',
+                Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
+            );
+        const hasPendingJoinRequests = Boolean(
+            canManageJoinRequests &&
+            channel &&
+            getPendingJoinRequestsCount(state, channel.id) > 0,
+        );
+
         return {
             team: getCurrentTeam(state),
             channel,
@@ -108,6 +126,7 @@ function makeMapStateToProps() {
             hideGuestTags: config.HideGuestTags === 'true',
             sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
+            hasPendingJoinRequests,
         };
     };
 }

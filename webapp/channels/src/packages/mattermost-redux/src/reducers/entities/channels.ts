@@ -1047,7 +1047,9 @@ export function joinRequests(state: ChannelJoinRequestsState = initialJoinReques
     case ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED: {
         const req: ChannelJoinRequest = action.data;
         const existing = state.byChannel[req.channel_id] ?? [];
-        const replaced = existing.map((r) => (r.id === req.id ? req : r));
+        const byChannelList = isTerminal(req.status) ?
+            existing.filter((r) => r.id !== req.id) :
+            existing.map((r) => (r.id === req.id ? req : r));
         const myPending = {...state.myPendingByChannel};
         if (isTerminal(req.status)) {
             delete myPending[req.channel_id];
@@ -1064,7 +1066,7 @@ export function joinRequests(state: ChannelJoinRequestsState = initialJoinReques
         }
         return {
             ...state,
-            byChannel: {...state.byChannel, [req.channel_id]: replaced},
+            byChannel: {...state.byChannel, [req.channel_id]: byChannelList},
             myPendingByChannel: myPending,
             myList,
             countsByChannel: counts,

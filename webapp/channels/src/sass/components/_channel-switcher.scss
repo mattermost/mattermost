@@ -153,6 +153,23 @@ body.app__body {
     }
 }
 
+.channel-switcher {
+    .suggestion-list__item {
+        .suggestion-list__discoverable-action {
+            flex: 0 0 auto;
+            margin-left: 8px;
+            visibility: hidden;
+        }
+
+        &:hover,
+        &:focus {
+            .suggestion-list__discoverable-action {
+                visibility: visible;
+            }
+        }
+    }
+}
+
 // Colour overrides for the System Console
 body:not(.app__body) {
     .channel-switcher,
