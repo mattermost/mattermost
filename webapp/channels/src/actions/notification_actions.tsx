@@ -424,6 +424,8 @@ export function notifyMe(title: string, body: string, channelId: string, teamId:
     return async (dispatch) => {
         // handle notifications in desktop app
         if (isDesktopApp()) {
+            // The notification-tag leak only affects Chromium-based browser notifications,
+            // so the desktop app path does not need the opaque post id.
             const result = await DesktopApp.dispatchNotification(title, body, channelId, teamId, silent, soundName, url);
             return {data: result};
         }
