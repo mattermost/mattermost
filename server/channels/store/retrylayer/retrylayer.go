@@ -1042,7 +1042,7 @@ func (s *RetryLayerAuditStorageStore) Mark(ctx context.Context, userID string, p
 
 }
 
-func (s *RetryLayerAuditStorageStore) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+func (s *RetryLayerAuditStorageStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 
 	tries := 0
 	for {

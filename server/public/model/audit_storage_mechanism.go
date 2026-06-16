@@ -21,3 +21,10 @@ const (
 	AuditMechSearchResult       int16 = 15
 	AuditMechWebsocketBroadcast int16 = 16
 )
+
+// AuditDeliveryRecord is one row's worth of input to MarkBulk.
+type AuditDeliveryRecord struct {
+	UserID    string
+	EntityID  string
+	Mechanism int16
+}
