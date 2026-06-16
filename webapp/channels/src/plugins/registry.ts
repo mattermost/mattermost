@@ -77,6 +77,7 @@ import type {
     ChannelIconOverrideRegistration,
     ChannelIntroRegistration,
     ComposerPlaceholderRegistration,
+    ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1465,6 +1466,48 @@ export default class PluginRegistry {
             id,
             pluginId: this.id,
             transform,
+        });
+        return id;
+    });
+
+    /**
+     * Register a clickable menu item in the product-switcher dropdown.
+     *
+     * Use this instead of `registerProduct` when your plugin only needs a menu entry point
+     * (e.g., opens a modal or navigates to a route) and does not need full product routing or
+     * header components.
+     *
+     * `isHidden` receives the full Redux `GlobalState` — do not project or narrow the state
+     * type. This lets plugins read `state['plugins-<pluginId>']` to gate visibility on plugin-owned
+     * data. Return `true` to hide the item. If `isHidden` is omitted the item is always visible.
+     *
+     * `action` is called when the user clicks the item. It typically dispatches a route push or
+     * opens a modal. The menu will close automatically after `action` is invoked.
+     *
+     * Items from multiple plugins are sorted alphabetically by `pluginId` in the menu.
+     * Cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerProductSwitcherMenuItem = reArg(['text', 'icon', 'action', 'isHidden'], ({
+        text,
+        icon,
+        action,
+        isHidden,
+    }: {
+        text: ProductSwitcherMenuItemRegistration['text'];
+        icon: ReactResolvable;
+        action: ProductSwitcherMenuItemRegistration['action'];
+        isHidden?: ProductSwitcherMenuItemRegistration['isHidden'];
+    }) => {
+        const id = generateId();
+        dispatchPluginComponentWithData('ProductSwitcherMenuItem', {
+            id,
+            pluginId: this.id,
+            text,
+            icon: resolveReactElement(icon),
+            action,
+            isHidden,
         });
         return id;
     });
