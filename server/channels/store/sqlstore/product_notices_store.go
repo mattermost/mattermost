@@ -60,7 +60,7 @@ func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNoti
 }
 
 func (s SqlProductNoticesStore) View(userId string, notices []string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

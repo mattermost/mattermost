@@ -15,7 +15,7 @@ export type ClientResponse<T> = {
 };
 
 export type Options = {
-    headers?: { [x: string]: string };
+    headers?: {[x: string]: string};
     method?: string;
     url?: string;
     credentials?: 'omit' | 'same-origin' | 'include';
@@ -38,10 +38,10 @@ export type FetchPaginatedThreadOptions = {
     collapsedThreads?: boolean;
     collapsedThreadsExtended?: boolean;
     updatesOnly?: boolean; // This indicates the API is meant to be used to only get delta updates.
-    direction?: 'up'|'down';
+    direction?: 'up' | 'down';
     fetchAll?: boolean;
     perPage?: number;
     fromCreateAt?: number;
     fromUpdateAt?: number;
     fromPost?: string;
-}
+};

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
 
 import SystemConsoleNavbar from '@/ui/components/system_console/navbar';
 import SystemConsoleSidebar from '@/ui/components/system_console/sidebar';
@@ -95,5 +95,11 @@ export default class SystemConsolePage {
 
     async goto() {
         await this.page.goto('/admin_console');
+    }
+
+    /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
+    async gotoNotificationsSettings() {
+        await this.page.goto('/admin_console/environment/notifications');
+        await this.page.waitForLoadState('networkidle');
     }
 }

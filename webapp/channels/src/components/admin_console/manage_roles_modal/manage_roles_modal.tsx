@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -31,7 +32,7 @@ export type Props = {
     actions: {
         updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     show: boolean;
@@ -41,7 +42,7 @@ type State = {
     hasPostAllPublicRole: boolean;
     hasUserAccessTokenRole: boolean;
     isSystemAdmin: boolean;
-}
+};
 
 function getStateFromProps(props: Props): State {
     const roles = props.user && props.user.roles ? props.user.roles : '';
@@ -362,26 +363,26 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                     {this.state.error}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='admin.manage_roles.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
                             id='admin.manage_roles.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

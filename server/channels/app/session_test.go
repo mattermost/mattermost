@@ -374,6 +374,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 	rc := model.RemoteCluster{
 		RemoteId:  remoteID,
 		Name:      "test",
+		SiteURL:   "https://test.example.com",
 		Token:     token,
 		CreatorId: model.NewId(),
 	}
@@ -411,7 +412,7 @@ func TestSessionsLimit(t *testing.T) {
 	r := &http.Request{}
 	w := httptest.NewRecorder()
 	for range maxSessionsLimit {
-		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 		require.Nil(t, err)
 		sessions = append(sessions, session)
 		time.Sleep(1 * time.Millisecond)
@@ -428,7 +429,7 @@ func TestSessionsLimit(t *testing.T) {
 
 	// Now add 10 more.
 	for range 10 {
-		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 		require.Nil(t, err, "should not have an error creating user sessions")
 
 		// Remove oldest, append newest.
@@ -454,7 +455,7 @@ func TestSetExtraSessionProps(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, _ := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, _ := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 
 	resetSession := func(session *model.Session) {
 		session.AddProp("testProp", "")

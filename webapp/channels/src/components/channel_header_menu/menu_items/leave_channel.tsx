@@ -21,7 +21,7 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 type Props = {
     channel: Channel;
     id?: string;
-}
+};
 
 const LeaveChannel = ({
     channel,
@@ -29,7 +29,7 @@ const LeaveChannel = ({
 }: Props) => {
     const dispatch = useDispatch();
     const handleLeave = () => {
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
             dispatch(
                 openModal({
                     modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL,

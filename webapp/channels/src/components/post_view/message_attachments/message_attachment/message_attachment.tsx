@@ -62,14 +62,14 @@ type Props = {
     };
 
     currentRelativeTeamUrl: string;
-}
+};
 
 type State = {
     checkOverflow: number;
     actionExecuting: boolean;
     actionExecutingMessage: string | null;
     actionError: React.ReactNode | null;
-}
+};
 
 export default class MessageAttachment extends React.PureComponent<Props, State> {
     private mounted = false;

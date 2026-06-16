@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import {emailToLdap} from 'actions/admin_actions.jsx';
@@ -19,7 +20,7 @@ type Props = {
     email: string | null;
     siteName?: string;
     ldapLoginFieldName?: string;
-}
+};
 
 export type SubmitOptions = {
     loginId: string;
@@ -27,7 +28,7 @@ export type SubmitOptions = {
     token?: string;
     ldapIdParam?: string;
     ldapPasswordParam?: string;
-}
+};
 
 const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
     const {formatMessage} = useIntl();
@@ -214,15 +215,15 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
                     />
                 </div>
                 <ErrorLabel errorText={ldapPasswordError}/>
-                <button
+                <Button
                     type='submit'
-                    className='btn btn-primary'
+                    emphasis='primary'
                 >
                     <FormattedMessage
                         id='claim.email_to_ldap.switchTo'
                         defaultMessage='Switch Account to AD/LDAP'
                     />
-                </button>
+                </Button>
                 <ErrorLabel errorText={serverError}/>
             </form>
         </>

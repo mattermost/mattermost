@@ -4,9 +4,9 @@
 import React from 'react';
 
 import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import NewChannelWithBoardTourTip from 'components/app_bar/new_channel_with_board_tour_tip';
-import WithTooltip from 'components/with_tooltip';
 
 import {suitePluginIds} from 'utils/constants';
 
@@ -26,7 +26,7 @@ type Props = {
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
-}
+};
 
 const HeaderIconWrapper = (props: Props) => {
     const {

@@ -6,6 +6,8 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {Channel} from '@mattermost/types/channels';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
@@ -17,6 +19,7 @@ import {
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -40,7 +43,6 @@ import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeh
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
@@ -76,7 +78,6 @@ export type Props = {
     isReadOnly?: boolean;
     pluginPostTypes?: {[postType: string]: PostPluginComponent};
     channelIsArchived?: boolean;
-    channelIsShared?: boolean;
     isConsecutivePost?: boolean;
     isLastPost?: boolean;
     recentEmojis: Emoji[];
@@ -138,9 +139,40 @@ export type Props = {
     burnOnReadSkipConfirmation?: boolean;
     preventClickInteraction?: boolean;
     permissionPoliciesEnabled: boolean;
+    channel?: Channel;
 };
 
 const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
+
+type ArchivedChannelIconProps = {channel?: Channel; channelType?: string};
+const ArchivedChannelIcon = ({channel, channelType}: ArchivedChannelIconProps) => {
+    const {formatMessage} = useIntl();
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getArchiveIconComponent(channelType);
+
+    if (OverrideIcon) {
+        return (
+            <span className='search-channel__archived'>
+                <IconComponent className='svg-text-color'/>
+            </span>
+        );
+    }
+
+    return (
+        <WithTooltip
+            id='channelArchivedTooltip'
+            title={formatMessage({
+                id: 'search_item.channelArchived',
+                defaultMessage: 'Archived',
+            })}
+        >
+            <span className='search-channel__archived'>
+                <IconComponent className='icon icon__archive channel-header-archived-icon svg-text-color'/>
+            </span>
+        </WithTooltip>
+    );
+};
 
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
@@ -754,20 +786,10 @@ function PostComponent(props: Props) {
                         </span>
                         }
                         {props.channelIsArchived &&
-                        <WithTooltip
-                            id='channelArchivedTooltip'
-                            title={formatMessage({
-                                id: 'search_item.channelArchived',
-                                defaultMessage: 'Archived',
-                            })}
-                        >
-                            <span className='search-channel__archived'>
-                                {(() => {
-                                    const ArchiveIcon = getArchiveIconComponent(props.channelType);
-                                    return <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>;
-                                })()}
-                            </span>
-                        </WithTooltip>
+                        <ArchivedChannelIcon
+                            channel={props.channel}
+                            channelType={props.channelType}
+                        />
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>

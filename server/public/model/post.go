@@ -61,6 +61,9 @@ const (
 	PostTypeReminder              = "reminder"
 	PostTypeBurnOnRead            = "burn_on_read"
 	PostTypeCard                  = "card"
+	// PostTypeSharedChannelState is a system post for share/unshare events; the client translates using props.
+	// Name must fit Posts.Type varchar(26) (see store migrations).
+	PostTypeSharedChannelState = "system_shared_chan_state"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -90,6 +93,7 @@ const (
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsAttachments              = "attachments"
+	PostPropsMmBlocksActions          = "mm_blocks_actions"
 	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
@@ -102,6 +106,9 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
+	PostPropsSharedChannelState         = "shared_channel_state"
+	PostPropsSharedChannelWorkspaceName = "workspace_name"
 
 	PostPriorityUrgent = "urgent"
 
@@ -111,40 +118,46 @@ const (
 	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
 
-type Post struct {
-	Id         string `json:"id"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	EditAt     int64  `json:"edit_at"`
-	DeleteAt   int64  `json:"delete_at"`
-	IsPinned   bool   `json:"is_pinned"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RootId     string `json:"root_id"`
-	OriginalId string `json:"original_id"`
+// Values for PostPropsSharedChannelState on posts with Type PostTypeSharedChannelState.
+const (
+	SharedChannelStatePostValueShared   = "shared"
+	SharedChannelStatePostValueUnshared = "unshared"
+)
 
-	Message string `json:"message"`
+type Post struct {
+	Id         string `json:"id" xml:"Id"`
+	CreateAt   int64  `json:"create_at" xml:"CreateAt"`
+	UpdateAt   int64  `json:"update_at" xml:"UpdateAt"`
+	EditAt     int64  `json:"edit_at" xml:"EditAt"`
+	DeleteAt   int64  `json:"delete_at" xml:"DeleteAt"`
+	IsPinned   bool   `json:"is_pinned" xml:"IsPinned"`
+	UserId     string `json:"user_id" xml:"UserId"`
+	ChannelId  string `json:"channel_id" xml:"ChannelId"`
+	RootId     string `json:"root_id" xml:"RootId"`
+	OriginalId string `json:"original_id" xml:"OriginalId"`
+
+	Message string `json:"message" xml:"Message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
-	MessageSource string `json:"message_source,omitempty"`
+	MessageSource string `json:"message_source,omitempty" xml:"MessageSource,omitempty"`
 
-	Type          string          `json:"type"`
-	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
-	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
-	Hashtags      string          `json:"hashtags"`
-	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids"`
-	PendingPostId string          `json:"pending_post_id"`
-	HasReactions  bool            `json:"has_reactions,omitempty"`
-	RemoteId      *string         `json:"remote_id,omitempty"`
+	Type          string          `json:"type" xml:"Type"`
+	propsMu       sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
+	Props         StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
+	Hashtags      string          `json:"hashtags" xml:"Hashtags"`
+	Filenames     StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
+	FileIds       StringArray     `json:"file_ids" xml:"FileIds>Id"`
+	PendingPostId string          `json:"pending_post_id" xml:"PendingPostId"`
+	HasReactions  bool            `json:"has_reactions,omitempty" xml:"HasReactions,omitempty"`
+	RemoteId      *string         `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ReplyCount   int64         `json:"reply_count"`
-	LastReplyAt  int64         `json:"last_reply_at"`
-	Participants []*User       `json:"participants"`
-	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
-	Metadata     *PostMetadata `json:"metadata,omitempty"`
+	ReplyCount   int64         `json:"reply_count" xml:"ReplyCount"`
+	LastReplyAt  int64         `json:"last_reply_at" xml:"LastReplyAt"`
+	Participants []*User       `json:"participants" xml:"Participants>User"`
+	IsFollowing  *bool         `json:"is_following,omitempty" xml:"IsFollowing,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	Metadata     *PostMetadata `json:"metadata,omitempty" xml:"-"`
 }
 
 func (o *Post) Auditable() map[string]any {
@@ -363,7 +376,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewPointer(*o.IsFollowing)
+		dst.IsFollowing = new(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -534,7 +547,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
 		PostTypeBurnOnRead,
-		PostTypeCard:
+		PostTypeCard,
+		PostTypeSharedChannelState:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -578,7 +592,7 @@ func (o *Post) SanitizeProps() {
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewPointer("")
+	o.RemoteId = new("")
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil
@@ -606,6 +620,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsWebhookDisplayName,
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
+			PostPropsMmBlocksActions,
 		}
 
 		for _, key := range reservedProps {
@@ -827,6 +842,12 @@ func (o *Post) propsIsValid() error {
 	if props[PostPropsAIGeneratedByUsername] != nil {
 		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
+		}
+	}
+
+	if props[PostPropsMmBlocksActions] != nil {
+		if err := ValidateMmBlocksActions(o); err != nil {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid mm_blocks_actions: %w", err))
 		}
 	}
 
@@ -1184,6 +1205,14 @@ func (o *Post) CleanPost() *Post {
 type UpdatePostOptions struct {
 	SafeUpdate    bool
 	IsRestorePost bool
+
+	// AllowMmBlocksActionsUpdate grants the caller permission to add,
+	// remove, or modify the mm_blocks_actions prop. Without it,
+	// non-integration sessions cannot change mm_blocks_actions and the
+	// prop is reset to its prior value. Set only from trusted paths (e.g.
+	// the post-action integration response handler which has already
+	// validated the incoming value).
+	AllowMmBlocksActionsUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

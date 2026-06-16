@@ -41,15 +41,28 @@ const (
 	PermissionLevelNone     PermissionLevel = "none"
 	PermissionLevelSysadmin PermissionLevel = "sysadmin"
 	PermissionLevelMember   PermissionLevel = "member"
+	// PermissionLevelAdmin resolves to the admin of the field's target: sysadmin
+	// for system targets, team admin for team targets, channel admin for
+	// channel targets. The specific permission checked per scope is documented
+	// at hasPropertyFieldPermissionLevel in the app package.
+	PermissionLevelAdmin PermissionLevel = "admin"
 
 	PropertyFieldObjectTypePost     = "post"
 	PropertyFieldObjectTypeChannel  = "channel"
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
+	PropertyFieldObjectTypeSession  = "session"
+
+	PropertyFieldObjectTypeSystem = "system"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
-var validPermissionLevels = []PermissionLevel{PermissionLevelNone, PermissionLevelSysadmin, PermissionLevelMember}
+var validPermissionLevels = []PermissionLevel{
+	PermissionLevelNone,
+	PermissionLevelSysadmin,
+	PermissionLevelMember,
+	PermissionLevelAdmin,
+}
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
 var validPSAv2TargetTypes = []string{
@@ -64,6 +77,8 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeChannel,
 	PropertyFieldObjectTypeUser,
 	PropertyFieldObjectTypeTemplate,
+	PropertyFieldObjectTypeSession,
+	PropertyFieldObjectTypeSystem,
 }
 
 type PropertyField struct {
@@ -213,6 +228,11 @@ func (pf *PropertyField) IsValid() error {
 			if !IsValidId(pf.TargetID) {
 				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "must be a valid ID for team or channel target type"}, "id="+pf.ID, http.StatusBadRequest)
 			}
+		}
+
+		// System-object fields attach to the system itself; they cannot be scoped below the system level.
+		if pf.ObjectType == PropertyFieldObjectTypeSystem && pf.TargetType != string(PropertyFieldTargetLevelSystem) {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "must be system for system object type"}, "id="+pf.ID, http.StatusBadRequest)
 		}
 	} else {
 		// PSAv1 properties cannot have permissions or be protected
@@ -393,12 +413,8 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 // Legacy properties have an empty ObjectType and rely on simple TargetID uniqueness
 // enforced by the idx_propertyfields_unique_legacy database constraint, rather than
 // the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
-//
-// FIXME: treating template fields as PSAv1 is a temporary measure until the
-// CPA feature fully transitions to v2. Once that happens, remove the
-// PropertyFieldObjectTypeTemplate check.
 func (pf *PropertyField) IsPSAv1() bool {
-	return pf.ObjectType == "" || pf.ObjectType == PropertyFieldObjectTypeTemplate
+	return pf.ObjectType == ""
 }
 
 // IsPSAv2 returns true if this property field uses the PSAv2 schema.

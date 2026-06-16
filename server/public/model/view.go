@@ -4,6 +4,8 @@
 package model
 
 import (
+	"encoding/json"
+	"fmt"
 	"maps"
 	"net/http"
 	"strings"
@@ -21,7 +23,60 @@ const (
 
 	BoardsPropertyGroupName      = "boards"
 	BoardsPropertyFieldNameBoard = "board"
+	BoardsPropertyFieldAssignee  = "assignee"
+	BoardsPropertyFieldStatus    = "status"
+
+	BoardsStatusOptionTodo       = "Todo"
+	BoardsStatusOptionInProgress = "In Progress"
+	BoardsStatusOptionComplete   = "Complete"
+
+	MaxKanbanColumns = 100
 )
+
+// KanbanColumn represents a single column in a kanban view.
+// Each column maps to one or more option IDs from the grouped property field.
+type KanbanColumn struct {
+	ID        string   `json:"id"`
+	Name      string   `json:"name"`
+	OptionIDs []string `json:"option_ids"`
+}
+
+// KanbanGroupBy defines how a kanban view groups cards into columns.
+type KanbanGroupBy struct {
+	FieldID string         `json:"field_id"`
+	Columns []KanbanColumn `json:"columns"`
+}
+
+// KanbanProps is the typed representation of View.Props for kanban views.
+type KanbanProps struct {
+	GroupBy KanbanGroupBy `json:"group_by"`
+}
+
+// ToProps converts KanbanProps to a StringInterface map for storage in View.Props.
+func (kp *KanbanProps) ToProps() (StringInterface, error) {
+	raw, err := json.Marshal(kp)
+	if err != nil {
+		return nil, fmt.Errorf("kanban props marshal: %w", err)
+	}
+	var m StringInterface
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return nil, fmt.Errorf("kanban props unmarshal: %w", err)
+	}
+	return m, nil
+}
+
+// KanbanPropsFromProps parses View.Props into a typed KanbanProps.
+func KanbanPropsFromProps(props StringInterface) (*KanbanProps, error) {
+	raw, err := json.Marshal(props)
+	if err != nil {
+		return nil, fmt.Errorf("kanban props marshal: %w", err)
+	}
+	var kp KanbanProps
+	if err := json.Unmarshal(raw, &kp); err != nil {
+		return nil, fmt.Errorf("kanban props unmarshal: %w", err)
+	}
+	return &kp, nil
+}
 
 type View struct {
 	Id          string          `json:"id"`
@@ -125,9 +180,47 @@ func (o *View) IsValid() *AppError {
 }
 
 // validateViewProps validates the props map based on the view type.
-// As we add new view types with specific prop requirements, add validation rules here.
-func validateViewProps(_ ViewType, _ StringInterface) *AppError {
-	// ViewTypeKanban: no required props at this time.
+func validateViewProps(viewType ViewType, props StringInterface) *AppError {
+	if viewType == ViewTypeKanban {
+		return validateKanbanProps(props)
+	}
+	return nil
+}
+
+func validateKanbanProps(props StringInterface) *AppError {
+	if props == nil {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_required.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	kanban, err := KanbanPropsFromProps(props)
+	if err != nil {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if !IsValidId(kanban.GroupBy.FieldID) {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_field_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(kanban.GroupBy.Columns) == 0 {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_columns_empty.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(kanban.GroupBy.Columns) > MaxKanbanColumns {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_columns_max.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	for i, col := range kanban.GroupBy.Columns {
+		if !IsValidId(col.ID) {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_column_id.app_error", map[string]any{"Index": i}, "", http.StatusBadRequest)
+		}
+		if strings.TrimSpace(col.Name) == "" {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_column_name.app_error", map[string]any{"Index": i}, "", http.StatusBadRequest)
+		}
+		if len(col.OptionIDs) == 0 {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_column_options.app_error", map[string]any{"Index": i}, "", http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
 

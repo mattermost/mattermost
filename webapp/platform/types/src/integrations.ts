@@ -9,6 +9,7 @@ export type IncomingWebhook = {
     create_at: number;
     update_at: number;
     delete_at: number;
+    last_used: number;
     user_id: string;
     channel_id: string;
     team_id: string;
@@ -44,34 +45,34 @@ export type OutgoingWebhook = {
 };
 
 export type Command = {
-    'id': string;
-    'token': string;
-    'create_at': number;
-    'update_at': number;
-    'delete_at': number;
-    'creator_id': string;
-    'team_id': string;
-    'trigger': string;
-    'method': 'P' | 'G' | '';
-    'username': string;
-    'icon_url': string;
-    'auto_complete': boolean;
-    'auto_complete_desc': string;
-    'auto_complete_hint': string;
-    'display_name': string;
-    'description': string;
-    'url': string;
+    id: string;
+    token: string;
+    create_at: number;
+    update_at: number;
+    delete_at: number;
+    creator_id: string;
+    team_id: string;
+    trigger: string;
+    method: 'P' | 'G' | '';
+    username: string;
+    icon_url: string;
+    auto_complete: boolean;
+    auto_complete_desc: string;
+    auto_complete_hint: string;
+    display_name: string;
+    description: string;
+    url: string;
 };
 
 export type CommandArgs = {
     channel_id: string;
     team_id?: string;
     root_id?: string;
-}
+};
 
 export type DialogArgs = {
     channel_id: string;
-}
+};
 
 export type CommandResponse = {
     response_type: string;
@@ -100,34 +101,34 @@ export type AutocompleteSuggestion = {
 export type CommandAutocompleteSuggestion = AutocompleteSuggestion; // TODO remove this alias after the mattermost-redux migration
 
 export type OAuthApp = {
-    'id': string;
-    'creator_id': string;
-    'create_at': number;
-    'update_at': number;
-    'client_secret': string;
-    'name': string;
-    'description': string;
-    'icon_url': string;
-    'callback_urls': string[];
-    'homepage': string;
-    'is_trusted': boolean;
-    'is_dynamically_registered'?: boolean;
-    'is_public'?: boolean;
+    id: string;
+    creator_id: string;
+    create_at: number;
+    update_at: number;
+    client_secret: string;
+    name: string;
+    description: string;
+    icon_url: string;
+    callback_urls: string[];
+    homepage: string;
+    is_trusted: boolean;
+    is_dynamically_registered?: boolean;
+    is_public?: boolean;
 };
 
 export type OutgoingOAuthConnection = {
-    'id': string;
-    'name': string;
-    'creator_id': string;
-    'create_at': number;
-    'update_at': number;
-    'client_id': string;
-    'client_secret'?: string;
-    'credentials_username'?: string;
-    'credentials_password'?: string;
-    'oauth_token_url': string;
-    'grant_type': 'client_credentials' | 'password';
-    'audiences': string[];
+    id: string;
+    name: string;
+    creator_id: string;
+    create_at: number;
+    update_at: number;
+    client_id: string;
+    client_secret?: string;
+    credentials_username?: string;
+    credentials_password?: string;
+    oauth_token_url: string;
+    grant_type: 'client_credentials' | 'password';
+    audiences: string[];
 };
 
 export type IntegrationsState = {
@@ -149,7 +150,7 @@ export type OpenDialogRequest = {
     trigger_id: string;
     url: string;
     dialog: Dialog;
-}
+};
 
 export type Dialog = {
     callback_id?: string;
@@ -199,14 +200,23 @@ export type DialogElement = {
 
     // Date/datetime configuration
     datetime_config?: {
+        min_date?: string;
+        max_date?: string;
         time_interval?: number;
         location_timezone?: string;
+        manual_time_entry?: boolean;
+
+        /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
         allow_manual_time_entry?: boolean;
     };
 
-    // Simple date/datetime configuration (fallback when datetime_config not provided)
+    /** @deprecated Use datetime_config.min_date instead. Kept for backward compatibility. */
     min_date?: string;
+
+    /** @deprecated Use datetime_config.max_date instead. Kept for backward compatibility. */
     max_date?: string;
+
+    /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
 };
 

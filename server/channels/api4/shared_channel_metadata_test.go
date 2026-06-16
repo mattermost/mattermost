@@ -154,8 +154,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(true),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(true),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -216,8 +216,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(false),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -292,8 +292,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(false),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -398,8 +398,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(true),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(true),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -571,8 +571,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(false),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -683,17 +683,28 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// Trigger another sync to ensure no duplicates are created
 		service.NotifyChannelChanged(testChannel.Id)
 
-		// Verify acknowledgement count remains 1 (no duplicates)
+		// Echo prevention may suppress resending unchanged acknowledgements, so wait
+		// for sync work to finish instead of requiring Cluster A to receive traffic.
 		require.Eventually(t, func() bool {
-			muA.Lock()
-			defer muA.Unlock()
-			for _, post := range syncedPostsServerA {
-				if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
-					return len(post.Metadata.Acknowledgements) == 1
-				}
+			return !service.HasPendingTasksForTesting()
+		}, 10*time.Second, 100*time.Millisecond, "Sync tasks should complete after resync trigger")
+
+		finalAcks, appErr := th.App.GetAcknowledgementsForPost(postIdToTrack)
+		require.Nil(t, appErr)
+		require.Len(t, finalAcks, 1, "Should maintain single acknowledgement after resync")
+
+		muA.Lock()
+		var serverAResyncPost *model.Post
+		for _, post := range syncedPostsServerA {
+			if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
+				serverAResyncPost = post
+				break
 			}
-			return len(syncedPostsServerA) > 0
-		}, 3*time.Second, 100*time.Millisecond, "Should maintain single acknowledgement after resync")
+		}
+		muA.Unlock()
+		if serverAResyncPost != nil {
+			require.Len(t, serverAResyncPost.Metadata.Acknowledgements, 1, "Sync payload should not contain duplicate acknowledgements")
+		}
 
 		t.Logf("✅ Cross-cluster acknowledgement flow completed successfully:")
 		t.Logf("   1. Server A created post with ack request: %s", postIdToTrack)

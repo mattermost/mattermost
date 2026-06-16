@@ -4,12 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import Markdown from 'components/markdown';
-import WithTooltip from 'components/with_tooltip';
 
 import './shared.scss';
+
+// Sentinel emitted by the server in masked CEL expressions for values the caller cannot see.
+export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
 
 // CEL operator constants
 export enum CELOperator {
@@ -122,6 +126,11 @@ interface TestButtonProps {
     onClick: () => void;
     disabled: boolean;
     disabledTooltip?: string;
+
+    /** Override the default "Test access rule" label. Used by the
+     *  permission-rule editors to surface "Simulate rules" instead,
+     *  matching the dual-lane simulation modal they open. */
+    label?: React.ReactNode;
 }
 
 interface AddAttributeButtonProps {
@@ -134,19 +143,22 @@ interface HelpTextProps {
     onLearnMoreClick?: () => void;
 }
 
-export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps): JSX.Element {
+export function TestButton({onClick, disabled, disabledTooltip, label}: TestButtonProps): JSX.Element {
     const button = (
-        <button
-            className='btn btn-sm btn-tertiary'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             onClick={onClick}
             disabled={disabled}
         >
             <i className='icon icon-lock-outline'/>
-            <FormattedMessage
-                id='admin.access_control.table_editor.test_access_rule'
-                defaultMessage='Test access rule'
-            />
-        </button>
+            {label ?? (
+                <FormattedMessage
+                    id='admin.access_control.table_editor.test_access_rule'
+                    defaultMessage='Test access rule'
+                />
+            )}
+        </Button>
     );
 
     if (disabled && disabledTooltip) {
@@ -162,8 +174,9 @@ export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps
 
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {
     return (
-        <button
-            className='btn btn-sm btn-tertiary'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             onClick={onClick}
             disabled={disabled}
         >
@@ -172,7 +185,7 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'
             />
-        </button>
+        </Button>
     );
 }
 

@@ -36,7 +36,7 @@ type Props = {
         doManageTokens: (user: UserProfile) => void;
         isDisabled?: boolean;
     };
-}
+};
 
 const UserList = ({
     actionUserProps,

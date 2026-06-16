@@ -33,11 +33,11 @@ type Props = {
     readOnly?: boolean;
     license?: ClientLicense;
     customGroupsEnabled: boolean;
-}
+};
 
 type State = {
     editTimeLimitModalIsVisible: boolean;
-}
+};
 
 export default class PermissionsTree extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
@@ -160,6 +160,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                             Permissions.EDIT_OTHERS_POSTS,
                         ],
                     },
+                    Permissions.EDIT_FILE_ATTACHMENT,
                     {
                         id: 'delete_posts',
                         permissions: [

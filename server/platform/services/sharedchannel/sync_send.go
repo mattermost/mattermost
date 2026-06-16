@@ -5,7 +5,10 @@ package sharedchannel
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -429,6 +432,16 @@ func (scs *Service) processTask(task syncTask) error {
 	} else {
 		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID, false)
 		if err != nil {
+			// The remote cluster has been deleted or no longer exists; there is
+			// nothing to sync, so drop the task rather than retrying and logging
+			// an error on every change for the orphaned reference.
+			if errors.Is(err, sql.ErrNoRows) {
+				scs.server.Log().Warn("Skipping sync for deleted remote cluster",
+					mlog.String("channelId", task.channelID),
+					mlog.String("remoteId", task.remoteID),
+				)
+				return nil
+			}
 			return err
 		}
 		if !rc.IsOnline() {
@@ -529,8 +542,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 
 	// range the slice in reverse so the newest posts are visited first; this ensures an ephemeral
 	// get added where it is mostly likely to be seen.
-	for i := len(posts) - 1; i >= 0; i-- {
-		post := posts[i]
+	for _, post := range slices.Backward(posts) {
 		if didNotify := notified[post.UserId]; didNotify {
 			continue
 		}

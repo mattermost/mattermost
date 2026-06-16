@@ -11,6 +11,7 @@ import {useHistory, useParams, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -18,6 +19,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -55,7 +57,7 @@ type Params = {
 
 type Props = {
     disabled: boolean;
-}
+};
 
 export default function SecureConnectionDetail(props: Props) {
     const {formatMessage} = useIntl();
@@ -364,7 +366,7 @@ const Placeholder = (props: {filter: 'home' | 'remote'; rc: RemoteCluster}) => {
     );
 };
 
-const AddChannelsButton = styled.button.attrs({className: 'btn btn-primary'})`
+const AddChannelsButton = styled(Button)`
     padding-left: 15px;
 `;
 
@@ -424,7 +426,9 @@ const TabsWrapper = styled.div`
 
 const ChannelIcon = ({channelId}: {channelId: string}) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    const IconComponent = getChannelIconComponent(channel);
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getChannelIconComponent(channel);
 
     return (
         <ChannelIconWrapper>

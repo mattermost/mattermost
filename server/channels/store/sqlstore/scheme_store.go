@@ -56,7 +56,7 @@ func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
-		transaction, terr := s.GetMaster().Beginx()
+		transaction, terr := s.GetMaster().Begin()
 		if terr != nil {
 			return nil, errors.Wrap(terr, "begin_transaction")
 		}

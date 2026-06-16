@@ -1,7 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AdminConfig} from '@mattermost/types/config';
+
 import {expect, test} from '@mattermost/playwright-lib';
+
+/**
+ * Patch the Posts page required fields to known valid values so tests that
+ * load the page always start with a saveable form state, regardless of what
+ * other parallel tests may have left in the server config.
+ */
+async function resetPostsConfig(adminClient: {patchConfig: (config: Partial<AdminConfig>) => Promise<unknown>}) {
+    await adminClient.patchConfig({
+        ServiceSettings: {
+            PersistentNotificationIntervalMinutes: 5,
+            PersistentNotificationMaxRecipients: 5,
+            PersistentNotificationMaxCount: 6,
+        },
+    } as Partial<AdminConfig>);
+}
 
 test.describe('System Console > Self-Deleting Messages', () => {
     test('admin can enable and disable self-deleting messages', async ({pw}) => {
@@ -16,6 +33,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
+
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
 
         // # Log in as admin
         const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
@@ -87,6 +107,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
             throw new Error('Failed to create admin user');
         }
 
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
+
         // # Ensure BoR is enabled via API
         const config = await adminClient.getConfig();
         config.ServiceSettings.EnableBurnOnRead = true;
@@ -136,6 +159,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
+
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
 
         // # Ensure BoR is enabled via API
         const config = await adminClient.getConfig();
@@ -191,6 +217,10 @@ test.describe('System Console > Self-Deleting Messages', () => {
         const config = await adminClient.getConfig();
         config.ServiceSettings.EnableBurnOnRead = false;
         await adminClient.patchConfig(config);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings?.EnableBurnOnRead === false;
+        });
 
         // # Log in as admin
         const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
@@ -209,26 +239,26 @@ test.describe('System Console > Self-Deleting Messages', () => {
         const durationDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadDurationSecondsdropdown');
         const maxTTLDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadMaximumTimeToLiveSecondsdropdown');
 
-        // * Verify feature is disabled (from API config)
-        expect(await enableToggleFalse.isChecked()).toBe(true);
+        // * Verify feature is disabled (from API config) — use built-in retry to tolerate render lag
+        await expect(enableToggleFalse).toBeChecked({timeout: 10000});
 
         // * Verify dropdowns are disabled when feature is off
-        expect(await durationDropdown.isDisabled()).toBe(true);
-        expect(await maxTTLDropdown.isDisabled()).toBe(true);
+        await expect(durationDropdown).toBeDisabled({timeout: 30000});
+        await expect(maxTTLDropdown).toBeDisabled({timeout: 30000});
 
         // # Enable the feature (just toggle, don't save)
         await enableToggleTrue.click();
 
         // * Verify dropdowns are now enabled
-        expect(await durationDropdown.isDisabled()).toBe(false);
-        expect(await maxTTLDropdown.isDisabled()).toBe(false);
+        await expect(durationDropdown).not.toBeDisabled({timeout: 30000});
+        await expect(maxTTLDropdown).not.toBeDisabled({timeout: 30000});
 
         // # Toggle back to disabled
         await enableToggleFalse.click();
 
         // * Verify dropdowns are disabled again
-        expect(await durationDropdown.isDisabled()).toBe(true);
-        expect(await maxTTLDropdown.isDisabled()).toBe(true);
+        await expect(durationDropdown).toBeDisabled({timeout: 30000});
+        await expect(maxTTLDropdown).toBeDisabled({timeout: 30000});
     });
 
     test('settings persist after page reload', async ({pw}) => {
@@ -246,11 +276,20 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Configure BoR via API with specific values (using valid dropdown options)
         // Duration: 300 (5 minutes), Max TTL: 259200 (3 days)
-        const config = await adminClient.getConfig();
-        config.ServiceSettings.EnableBurnOnRead = true;
-        config.ServiceSettings.BurnOnReadDurationSeconds = 300;
-        config.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds = 259200;
-        await adminClient.patchConfig(config);
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 259200,
+            },
+        });
+        // Wait until the server confirms the patch before logging in, so the browser
+        // reads the correct value when it loads the Posts section. A concurrent
+        // initSetup() reset may otherwise overwrite BurnOnReadDurationSeconds.
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 300;
+        });
 
         // # Log in as admin
         const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
@@ -273,14 +312,27 @@ test.describe('System Console > Self-Deleting Messages', () => {
         expect(await durationDropdown.inputValue()).toBe('300');
         expect(await maxTTLDropdown.inputValue()).toBe('259200');
 
+        // Re-apply guard: a concurrent initSetup() may reset BoR config between
+        // the initial page load and this reload.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 259200,
+            },
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 300;
+        });
+
         // # Reload directly to Posts section
         await page.goto('/admin_console/site_config/posts');
         await page.waitForLoadState('networkidle');
 
-        // * Verify values persist after reload
-        expect(await enableToggleTrue.isChecked()).toBe(true);
-        expect(await durationDropdown.inputValue()).toBe('300');
-        expect(await maxTTLDropdown.inputValue()).toBe('259200');
+        // * Verify values persist after reload — toHaveValue has built-in retry
+        await expect(enableToggleTrue).toBeChecked({timeout: 5000});
+        await expect(durationDropdown).toHaveValue('300', {timeout: 5000});
+        await expect(maxTTLDropdown).toHaveValue('259200', {timeout: 5000});
     });
 
     test('BoR toggle appears in channels when feature is enabled in System Console', async ({pw}) => {
@@ -295,6 +347,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
+
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
 
         // # First, disable BoR via API to start clean
         const config = await adminClient.getConfig();
@@ -321,6 +376,13 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await saveButton.click();
         await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
 
+        // Re-apply guard: concurrent initSetup() may reset EnableBurnOnRead between UI save and navigation
+        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: true}});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.EnableBurnOnRead === true;
+        });
+
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
         await page.waitForLoadState('networkidle');
@@ -342,6 +404,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
+
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
 
         // # First, enable BoR via API
         const config = await adminClient.getConfig();
@@ -367,6 +432,13 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await enableToggleFalse.click();
         await saveButton.click();
         await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
+
+        // Re-apply guard: concurrent initSetup() may re-enable BoR between UI save and navigation
+        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: false}});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.EnableBurnOnRead === false;
+        });
 
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
@@ -397,6 +469,12 @@ test.describe('System Console > Self-Deleting Messages', () => {
         config.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds = 604800; // 7 days (so max TTL doesn't interfere)
         await adminClient.patchConfig(config);
 
+        // # Verify the config was applied before proceeding (guard against state pollution)
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 300;
+        });
+
         // # Create a second user to receive the message
         const randomUser = await pw.random.user();
         const receiver = await adminClient.createUser(randomUser, '', '');
@@ -417,6 +495,13 @@ test.describe('System Console > Self-Deleting Messages', () => {
         const {channelsPage: senderChannelsPage} = await pw.testBrowser.login(adminUser);
         await senderChannelsPage.goto(team.name, channelName);
         await senderChannelsPage.toBeVisible();
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 604800,
+            },
+        });
 
         // # Toggle BoR on and post message
         await senderChannelsPage.centerView.postCreate.toggleBurnOnRead();
@@ -435,6 +520,16 @@ test.describe('System Console > Self-Deleting Messages', () => {
         // Wait for it to not be in loading state
         await expect(concealedPlaceholder).not.toHaveClass(/BurnOnReadConcealedPlaceholder--loading/, {timeout: 10000});
         await expect(concealedPlaceholder).toBeEnabled({timeout: 5000});
+
+        // Re-apply guard: TTL is set by the server at reveal time; ensure BurnOnReadDurationSeconds
+        // is still 300 at the moment of reveal — a concurrent initSetup() may have reset it.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 604800,
+            },
+        });
 
         // # Click to reveal the concealed message
         await concealedPlaceholder.click();

@@ -223,10 +223,11 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
-		// Allow system admins OR channel admins to create access control sync jobs
+		// Allow system admins to create access control sync jobs
 		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
 		if hasSystemPermission {
 			return true, model.PermissionManageSystem
@@ -235,8 +236,9 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		// For channel admins, check if they have permission for the specific channel/policy
 		channelID := a.getChannelIDFromJobData(job.Data)
 		if channelID != "" {
-			// SECURE: Check specific channel permission
-			hasChannelPermission, _ := a.HasPermissionToChannel(request.EmptyContext(a.Srv().Log()), session.UserId, channelID, model.PermissionManageChannelAccessRules)
+			// Check specific channel permission
+			ctx := request.EmptyContext(a.Srv().Log())
+			hasChannelPermission, _ := a.HasPermissionToChannel(ctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
 			if hasChannelPermission {
 				return true, model.PermissionManageChannelAccessRules
 			}
@@ -247,6 +249,18 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		if hasTeamID && teamID != "" && model.IsValidId(teamID) && job.Data["policy_id"] == "" {
 			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
 				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+
+		// Check team admin permission for policy-scoped syncs (e.g. triggered after policy creation).
+		// Verify the team admin owns the policy via ValidateTeamAdminPolicyOwnership.
+		policyID, hasPolicyID := job.Data["policy_id"]
+		if hasPolicyID && policyID != "" && model.IsValidId(policyID) && hasTeamID && teamID != "" && model.IsValidId(teamID) {
+			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
+				ctx := request.EmptyContext(a.Srv().Log())
+				if owned, appErr := a.ValidateTeamAdminPolicyOwnership(ctx, teamID, policyID); appErr == nil && owned {
+					return true, model.PermissionManageTeamAccessRules
+				}
 			}
 		}
 
@@ -281,7 +295,8 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		model.JobTypeExportProcess,
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
@@ -318,7 +333,8 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent:
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
 		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem

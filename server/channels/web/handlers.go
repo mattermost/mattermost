@@ -191,6 +191,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t,
 	)
 
+	if connectionId := r.Header.Get(model.ConnectionId); connectionId != "" {
+		c.AppContext = c.AppContext.WithConnectionId(connectionId)
+	}
+
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -319,6 +323,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("method", r.Method),
 	)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
+	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()

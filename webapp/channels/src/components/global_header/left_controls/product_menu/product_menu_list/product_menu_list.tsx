@@ -13,6 +13,7 @@ import {
     ViewGridPlusOutlineIcon,
     WebhookIncomingIcon,
 } from '@mattermost/compass-icons/components';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -208,7 +209,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
                     id='nativeAppLink'
-                    show={appDownloadLink}
+                    show={Boolean(appDownloadLink) && !isDesktopApp()}
                     url={makeUrlSafe(appDownloadLink)}
                     text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
                     icon={<DownloadOutlineIcon size={18}/>}

@@ -19,7 +19,6 @@ import {
 import {getAdminAccount} from '@/support/env';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Search Date Filter', () => {
     const testData = getTestMessages();
     const {

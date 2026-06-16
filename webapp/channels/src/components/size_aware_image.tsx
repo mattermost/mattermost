@@ -10,6 +10,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -17,7 +18,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
-import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
@@ -87,7 +87,7 @@ export type Props = WrappedComponentProps & {
     /**
     * Action to fetch public link of an image from server.
     */
-    getFilePublicLink?: () => Promise<ActionResult<{ link: string }>>;
+    getFilePublicLink?: () => Promise<ActionResult<{link: string}>>;
 
     /*
     * Prevents display of utility buttons when image in a location that makes them inappropriate
@@ -98,7 +98,7 @@ export type Props = WrappedComponentProps & {
     * Indicates whether the file has been rejected and should not show preview
     */
     isFileRejected?: boolean;
-}
+};
 
 type State = {
     loaded: boolean;
@@ -107,7 +107,7 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
-}
+};
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
 // ensuring that the page is laid out correctly.

@@ -40,7 +40,7 @@ const COMMA_REGEX = /,/g;
 type MultiInputValue = {
     label: string;
     value: string;
-}
+};
 
 export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
 
@@ -64,6 +64,7 @@ type State = {
     customKeysWithHighlightInputValue: string;
     firstNameKey: boolean;
     channelKey: boolean;
+    channelMentionAutoFollow: boolean;
     autoResponderActive: boolean;
     autoResponderMessage: UserNotifyProps['auto_responder_message'];
     notifyCommentsLevel: UserNotifyProps['comments'];
@@ -146,6 +147,7 @@ function getDefaultStateFromProps(props: Props): State {
     let usernameKey = false;
     let firstNameKey = false;
     let channelKey = false;
+    let channelMentionAutoFollow = true;
     let isCustomKeysWithNotificationInputChecked = false;
     const customKeysWithNotification: MultiInputValue[] = [];
     const customKeysWithHighlight: MultiInputValue[] = [];
@@ -182,6 +184,7 @@ function getDefaultStateFromProps(props: Props): State {
 
         firstNameKey = props.user.notify_props?.first_name === 'true';
         channelKey = props.user.notify_props?.channel === 'true';
+        channelMentionAutoFollow = props.user.notify_props?.channel_mention_auto_follow_threads !== 'false';
     }
 
     return {
@@ -204,6 +207,7 @@ function getDefaultStateFromProps(props: Props): State {
         customKeysWithHighlightInputValue: '',
         firstNameKey,
         channelKey,
+        channelMentionAutoFollow,
         autoResponderActive,
         autoResponderMessage,
         notifyCommentsLevel: comments,
@@ -252,6 +256,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.auto_responder_message = this.state.autoResponderMessage;
         data.first_name = this.state.firstNameKey ? 'true' : 'false';
         data.channel = this.state.channelKey ? 'true' : 'false';
+        data.channel_mention_auto_follow_threads = this.state.channelMentionAutoFollow ? 'true' : 'false';
 
         if (this.state.desktopAndMobileSettingsDifferent) {
             data.push = this.state.pushActivity;
@@ -330,7 +335,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     setStateValue = (key: string, value: string | boolean): void => {
-        const data: {[key: string]: string | boolean } = {};
+        const data: {[key: string]: string | boolean} = {};
         data[key] = value;
         this.setState((prevState) => ({...prevState, ...data}));
     };
@@ -359,12 +364,16 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({channelKey: checked});
     };
 
+    handleChangeForChannelMentionAutoFollowRadio = (value: boolean) => {
+        this.setState({channelMentionAutoFollow: value});
+    };
+
     handleChangeForCustomKeysWithNotificationCheckbox = (event: ChangeEvent<HTMLInputElement>) => {
         const {target: {checked}} = event;
         this.setState({isCustomKeysWithNotificationInputChecked: checked});
     };
 
-    handleChangeForCustomKeysWithNotificationInput = (values: OnChangeValue<{ value: string }, true>) => {
+    handleChangeForCustomKeysWithNotificationInput = (values: OnChangeValue<{value: string}, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             // Check the custom keys input checkbox when atleast a single key is entered
             if (this.state.isCustomKeysWithNotificationInputChecked === false) {
@@ -432,7 +441,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHighlightInput = (values: OnChangeValue<{ value: string }, true>) => {
+    handleChangeForCustomKeysWithHighlightInput = (values: OnChangeValue<{value: string}, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             const customKeysWithHighlight = values.
                 map((value: MultiInputValue) => {
@@ -485,6 +494,97 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     handleCloseSettingsModal = () => {
         this.props.closeModal();
+    };
+
+    createChannelMentionAutoFollowSection = () => {
+        const serverError = this.state.serverError;
+        const isSectionExpanded = this.props.activeSection === UserSettingsNotificationSections.CHANNEL_MENTION_AUTO_FOLLOW;
+
+        let max = null;
+        if (isSectionExpanded) {
+            max = (
+                <SettingItemMax
+                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.channelMentionAutoFollow.title', defaultMessage: 'Auto-follow threads on channel-wide mentions'})}
+                    inputs={
+                        <fieldset>
+                            <legend className='form-legend hidden-label'>
+                                <FormattedMessage
+                                    id='user.settings.notifications.channelMentionAutoFollow.title'
+                                    defaultMessage='Auto-follow threads on channel-wide mentions'
+                                />
+                            </legend>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        id='channelMentionAutoFollowOn'
+                                        type='radio'
+                                        name='channelMentionAutoFollow'
+                                        checked={this.state.channelMentionAutoFollow}
+                                        onChange={() => this.handleChangeForChannelMentionAutoFollowRadio(true)}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.notifications.channelMentionAutoFollow.on'
+                                        defaultMessage='On'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        id='channelMentionAutoFollowOff'
+                                        type='radio'
+                                        name='channelMentionAutoFollow'
+                                        checked={!this.state.channelMentionAutoFollow}
+                                        onChange={() => this.handleChangeForChannelMentionAutoFollowRadio(false)}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.notifications.channelMentionAutoFollow.off'
+                                        defaultMessage='Off'
+                                    />
+                                </label>
+                            </div>
+                        </fieldset>
+                    }
+                    extraInfo={
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.notifications.channelMentionAutoFollow.description'
+                                defaultMessage='When enabled, @channel, @all, and @here mentions auto-follow the thread. Disabling stops the auto-follow. Notifications may still trigger based on your keyword settings.'
+                            />
+                        </span>
+                    }
+                    submit={this.handleSubmit}
+                    saving={this.state.isSaving}
+                    serverError={serverError}
+                    updateSection={this.handleUpdateSection}
+                />
+            );
+        }
+
+        const describe = this.state.channelMentionAutoFollow ? (
+            <FormattedMessage
+                id='user.settings.notifications.channelMentionAutoFollow.on'
+                defaultMessage='On'
+            />
+        ) : (
+            <FormattedMessage
+                id='user.settings.notifications.channelMentionAutoFollow.off'
+                defaultMessage='Off'
+            />
+        );
+
+        return (
+            <SettingItem
+                title={this.props.intl.formatMessage({id: 'user.settings.notifications.channelMentionAutoFollow.title', defaultMessage: 'Auto-follow threads on channel-wide mentions'})}
+                active={isSectionExpanded}
+                describe={describe}
+                section={UserSettingsNotificationSections.CHANNEL_MENTION_AUTO_FOLLOW}
+                updateSection={this.handleUpdateSection}
+                max={max}
+                areAllSectionsInactive={this.props.activeSection === ''}
+            />
+        );
     };
 
     createKeywordsWithNotificationSection = () => {
@@ -976,6 +1076,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     render() {
+        const channelMentionAutoFollowSection = this.createChannelMentionAutoFollowSection();
         const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
         const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
         const commentsSection = this.createCommentsSection();
@@ -1079,6 +1180,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         onChange={this.handleEmailRadio}
                         threads={this.state.emailThreads || ''}
                     />
+                    <div className='divider-light'/>
+                    {channelMentionAutoFollowSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
                     {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (

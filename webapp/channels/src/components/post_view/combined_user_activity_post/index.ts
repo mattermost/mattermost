@@ -15,7 +15,7 @@ type Props = {
     combinedId: string;
     shouldHighlight?: boolean;
     shouldShowDotMenu?: boolean;
-}
+};
 
 function makeMapStateToProps() {
     const generateCombinedPost = makeGenerateCombinedPost();

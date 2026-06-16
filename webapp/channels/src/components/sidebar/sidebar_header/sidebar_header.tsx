@@ -22,7 +22,7 @@ export type Props = {
     handleOpenDirectMessagesModal: () => void;
     unreadFilterEnabled: boolean;
     canCreateCustomGroups: boolean;
-}
+};
 
 const SidebarHeader = (props: Props) => {
     const currentTeam = useSelector(getCurrentTeam);

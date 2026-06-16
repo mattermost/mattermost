@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
@@ -41,7 +42,7 @@ type Props = {
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         clearUserAccessTokens: () => void;
     };
-}
+};
 
 type State = {
     active?: boolean;
@@ -49,14 +50,14 @@ type State = {
     newToken?: UserAccessToken | null;
     tokenCreationState?: string;
     tokenError?: React.ReactNode;
-    serverError?: string|null;
+    serverError?: string | null;
     saving?: boolean;
     confirmTitle?: React.ReactNode;
-    confirmMessage?: ((state: State) => JSX.Element)|null;
+    confirmMessage?: ((state: State) => JSX.Element) | null;
     confirmButton?: React.ReactNode;
-    confirmComplete?: (() => void)|null;
+    confirmComplete?: (() => void) | null;
     confirmHideCancel?: boolean;
-}
+};
 
 export default class UserAccessTokenSection extends React.PureComponent<Props, State> {
     private minRef: React.RefObject<SettingItemMinComponent>;
@@ -556,15 +557,15 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             saving={this.state.saving}
                             onClick={this.confirmCreateToken}
                         />
-                        <button
-                            className='btn btn-tertiary'
+                        <Button
+                            emphasis='tertiary'
                             onClick={this.stopCreatingToken}
                         >
                             <FormattedMessage
                                 id='user.settings.tokens.cancel'
                                 defaultMessage='Cancel'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             );
@@ -609,16 +610,15 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             );
         } else {
             newTokenSection = (
-                <a
-                    className='btn btn-primary'
-                    href='#'
+                <Button
+                    emphasis='primary'
                     onClick={this.startCreatingToken}
                 >
                     <FormattedMessage
                         id='user.settings.tokens.create'
                         defaultMessage='Create Token'
                     />
-                </a>
+                </Button>
             );
         }
 

@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import IPNotInRangeErrorPanel from './edit_section_ip_not_in_range_panel';
 
 type EditSectionHeaderProps = {
@@ -44,8 +46,8 @@ const EditSectionHeader = ({
                     </div>
                 </div>
                 <div className='AddIPFilterButton'>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={() => {
                             setShowAddModal(true);
                         }}
@@ -55,7 +57,7 @@ const EditSectionHeader = ({
                             id='admin.ip_filtering.add_filter'
                             defaultMessage='Add Filter'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
             {

@@ -4,15 +4,16 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -80,8 +81,11 @@ const SearchableSyncJobChannelList = (props: Props) => {
     const createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
 
-        const ChannelIcon = getChannelIconComponent(channel);
-        const channelTypeIcon = <ChannelIcon size={18}/>;
+        const channelTypeIcon = (
+            <ChannelIcon
+                channel={channel}
+                size={18}
+            />);
 
         const team = props.teams[channel.team_id];
 
@@ -199,8 +203,10 @@ const SearchableSyncJobChannelList = (props: Props) => {
 
         if (channelsToDisplay.length >= props.channelsPerPage && pageEnd < props.channels.length) {
             nextButton = (
-                <button
-                    className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                <Button
+                    emphasis='tertiary'
+                    size='sm'
+                    className='filter-control filter-control__next'
                     onClick={nextPage}
                     disabled={nextDisabled}
                     aria-label={props.intl.formatMessage({id: 'more_channels.next', defaultMessage: 'Next'})}
@@ -209,14 +215,16 @@ const SearchableSyncJobChannelList = (props: Props) => {
                         id='more_channels.next'
                         defaultMessage='Next'
                     />
-                </button>
+                </Button>
             );
         }
 
         if (page > 0) {
             previousButton = (
-                <button
-                    className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                <Button
+                    emphasis='tertiary'
+                    size='sm'
+                    className='filter-control filter-control__prev'
                     onClick={previousPage}
                     aria-label={props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}
                 >
@@ -224,7 +232,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
                         id='more_channels.prev'
                         defaultMessage='Previous'
                     />
-                </button>
+                </Button>
             );
         }
     }
