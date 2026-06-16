@@ -3,6 +3,9 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
+import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
+
 import {notifyMe} from 'actions/notification_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
@@ -11,7 +14,9 @@ import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
+import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import DatePicker from 'components/date_picker/date_picker';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import * as Menu from 'components/menu';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
@@ -70,6 +75,11 @@ interface WindowWithLibraries {
         sendDesktopNotificationToMe: typeof notifyMe;
         openUserSettings: (dialogProps: any) => void;
         browserHistory: ReturnType<typeof getHistory>;
+        channels: {
+            favoriteChannel: typeof favoriteChannel;
+            unfavoriteChannel: typeof unfavoriteChannel;
+            isFavoriteChannel: typeof isFavoriteChannel;
+        };
         popouts: {
             sendToParent: typeof sendToParent;
             onMessageFromParent: typeof onMessageFromParent;
@@ -85,6 +95,8 @@ interface WindowWithLibraries {
         Timestamp: typeof Timestamp;
         ChannelInviteModal: typeof ChannelInviteModal;
         ChannelMembersModal: typeof ChannelMembersModal;
+        ChannelNotificationsModal: typeof ChannelNotificationsModal;
+        EditChannelHeaderModal: typeof EditChannelHeaderModal;
         Avatar: typeof Avatar;
         imageURLForUser: typeof imageURLForUser;
         BotBadge: typeof BotTag;
@@ -151,6 +163,7 @@ window.WebappUtils = {
         dialogType: UserSettingsModal,
         dialogProps,
     }),
+    channels: {favoriteChannel, unfavoriteChannel, isFavoriteChannel},
     popouts: {
         sendToParent,
         onMessageFromParent,
@@ -173,6 +186,8 @@ window.Components = {
     Timestamp,
     ChannelInviteModal,
     ChannelMembersModal,
+    ChannelNotificationsModal,
+    EditChannelHeaderModal,
     Avatar,
     imageURLForUser,
     BotBadge: BotTag,
