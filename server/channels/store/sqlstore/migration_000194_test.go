@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func TestMigration000198(t *testing.T) {
+func TestMigration000194(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -27,8 +27,8 @@ func TestMigration000198(t *testing.T) {
 
 	master := store.GetMaster()
 
-	upSQL := readMigrationSQL(t, "000198_add_type_id_index_to_access_control_policies.up.sql")
-	downSQL := readMigrationSQL(t, "000198_add_type_id_index_to_access_control_policies.down.sql")
+	upSQL := readMigrationSQL(t, "000194_add_type_id_index_to_access_control_policies.up.sql")
+	downSQL := readMigrationSQL(t, "000194_add_type_id_index_to_access_control_policies.down.sql")
 
 	indexExists := func() bool {
 		var exists bool
