@@ -30,11 +30,11 @@ type Props = {
         postEphemeralCallResponseForPost: PostEphemeralCallResponseForPost;
         openAppsModal: OpenAppsModal;
     };
-}
+};
 
 type State = {
     executing: boolean;
-}
+};
 
 class ButtonBinding extends React.PureComponent<Props, State> {
     constructor(props: Props) {

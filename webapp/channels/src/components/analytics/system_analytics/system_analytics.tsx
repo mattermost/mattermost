@@ -44,12 +44,12 @@ type Props = {
     config?: Partial<ClientConfig>;
     pluginStatHandlers: GlobalState['plugins']['siteStatsHandlers'];
     serverLimits: ServerLimits;
-}
+};
 
 type State = {
     pluginSiteStats: Record<string, PluginAnalyticsRow>;
     lineChartsDataLoaded: boolean;
-}
+};
 
 const messages = defineMessages({
     title: {id: 'analytics.system.title', defaultMessage: 'System Statistics'},

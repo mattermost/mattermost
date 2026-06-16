@@ -11,7 +11,7 @@ import ExternalLink from 'components/external_link';
 type Props = {
     attribute: UserPropertyField;
     userProfile: UserProfile;
-}
+};
 
 const ProfilePopoverUrl = ({attribute, userProfile}: Props) => {
     const url = userProfile.custom_profile_attributes?.[attribute.id] as string;

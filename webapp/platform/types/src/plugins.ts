@@ -7,7 +7,7 @@ import type {Channel} from './channels';
 type MessageDescriptor = {
     id: string;
     defaultMessage: string;
-}
+};
 
 export type PluginManifest = {
     id: string;
@@ -96,7 +96,7 @@ type PluginInstance = {
     cluster_id: string;
     version: string;
     state: number;
-}
+};
 
 export type PluginStatusRedux = {
     id: string;
@@ -107,7 +107,7 @@ export type PluginStatusRedux = {
     state: number;
     error?: string;
     instances: PluginInstance[];
-}
+};
 
 export type ClientPluginManifest = {
     id: string;
@@ -117,14 +117,14 @@ export type ClientPluginManifest = {
     webapp: {
         bundle_path: string;
     };
-}
+};
 
 export type MarketplaceLabel = { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
     name: string;
     description?: string;
     url?: string;
     color?: string;
-}
+};
 
 export enum HostingType { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
     OnPrem = 'on-prem',
@@ -155,7 +155,7 @@ export type MarketplacePlugin = { // TODO remove this in favour of the definitio
     enterprise: boolean;
     manifest: PluginManifest;
     installed_version?: string;
-}
+};
 
 /**
  * Snapshot of the "Create a new channel" modal's form, passed to a plugin's channel-type option
@@ -179,6 +179,6 @@ export type NewChannelFormState = {
  * - `error`: plugin encountered an error; the modal displays `message`.
  */
 export type NewChannelFormResult =
-    | {status: 'created'; channel: Channel}
-    | {status: 'deferred'}
-    | {status: 'error'; message: string};
+    {status: 'created'; channel: Channel} |
+    {status: 'deferred'} |
+    {status: 'error'; message: string};

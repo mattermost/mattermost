@@ -12,8 +12,8 @@ type Actions = {
 };
 
 type Props = {
-    user: { id: string };
-    channel: { id: string };
+    user: {id: string};
+    channel: {id: string};
     actions: Actions;
 };
 

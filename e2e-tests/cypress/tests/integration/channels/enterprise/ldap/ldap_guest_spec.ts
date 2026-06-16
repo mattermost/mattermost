@@ -271,12 +271,12 @@ function demoteUserToGuest(user: Record<string, unknown>) {
     });
 }
 
-function removeUserFromAllTeams(user: { id: string }) {
+function removeUserFromAllTeams(user: {id: string}) {
     // # Get all teams of a user
     cy.apiGetTeamsForUser(user.id).then((teams) => {
         // # Remove user from all the teams
         if (teams.length > 0) {
-            teams.forEach((team: { id: string }) => {
+            teams.forEach((team: {id: string}) => {
                 cy.apiDeleteUserFromTeam(team.id, user.id);
             });
         }

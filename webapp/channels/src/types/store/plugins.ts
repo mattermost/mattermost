@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
+import type {IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {WebSocketClient} from '@mattermost/client';
@@ -71,6 +72,10 @@ export type PluginsState = {
         SidebarChannelLinkLabel: SidebarChannelLinkLabelComponent[];
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
+        ChannelIconOverride: ChannelIconOverrideRegistration[];
+        ChannelComposerBanner: ChannelComposerBannerComponent[];
+        ChannelIntro: ChannelIntroRegistration[];
+        ComposerPlaceholder: ComposerPlaceholderRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -124,7 +129,7 @@ export type Menu = {
     icon?: React.ReactNode;
     direction?: 'left' | 'right';
     isHeader?: boolean;
-}
+};
 
 export type PluginComponent = {
     id: string;
@@ -134,7 +139,7 @@ export type PluginComponent = {
 type BasePluggableProps = {
     webSocketClient: WebSocketClient;
     theme: Theme;
-}
+};
 
 export type PluggableText = string | React.ReactNode;
 
@@ -236,11 +241,11 @@ export type DesktopNotificationHook = PluginComponent & {
         error?: string;
         args?: DesktopNotificationArgs;
     }>;
-}
+};
 
 export type FilesWillUploadHook = PluginComponent & {
-    hook: (files: File[], uploadFiles: (files: File[]) => void) => { message?: string; files?: File[] };
-}
+    hook: (files: File[], uploadFiles: (files: File[]) => void) => {message?: string; files?: File[]};
+};
 
 type ProductBaseProps = {theme: Theme};
 export type ProductSubComponentNames = 'mainComponent' | 'publicComponent' | 'headerCentreComponent' | 'headerRightComponent';
@@ -315,7 +320,7 @@ export type ProductComponent = PluginComponent & {
 export type NeedsTeamComponent = PluginComponent & {
     route: string;
     component: React.ComponentType<BasePluggableProps>;
-}
+};
 
 export type FilePreviewComponent = PluginComponent & {
     override: (fileInfo: FileInfo, post?: Post) => boolean;
@@ -324,7 +329,7 @@ export type FilePreviewComponent = PluginComponent & {
         post?: Post;
         onModalDismissed: () => void;
     }>;
-}
+};
 
 export type PostWillRenderEmbedComponent = PluginComponent & {
     component: React.ComponentType<{
@@ -333,7 +338,7 @@ export type PostWillRenderEmbedComponent = PluginComponent & {
     }>;
     match: (arg: PostEmbed) => boolean;
     toggleable: boolean;
-}
+};
 
 export type PostDropdownMenuItemComponent = PluginComponent & {
     text: PluggableText;
@@ -421,6 +426,24 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     icon: React.ReactNode;
 };
 
+export type ChannelIconOverrideRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    iconName: IconGlyphTypes;
+};
+
+export type ChannelComposerBannerComponent = PluginComponent & {
+    component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ChannelIntroRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ComposerPlaceholderRegistration = PluginComponent & {
+    transform: (placeholder: string, channel: Channel, state: GlobalState, intl: IntlShape) => string;
+};
+
 export type ChannelTypeOptionComponent = PluginComponent & {
     label: PluggableText;
     description: PluggableText;
@@ -491,7 +514,7 @@ export type GlobalComponent = PluginComponent & {
 
 export type ChannelToastComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps>;
-}
+};
 
 export type CreateBoardFromTemplateComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps & {

@@ -892,6 +892,7 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 		if current, ok := existingByName[expected.Name]; ok {
 			current.Type = expected.Type
 			current.Attrs["platforms"] = expected.Attrs["platforms"]
+			current.Attrs[model.SAAttrDisplayName] = expected.Attrs[model.SAAttrDisplayName]
 			current.ObjectType = expected.ObjectType
 			current.TargetType = expected.TargetType
 			current.Protected = expected.Protected

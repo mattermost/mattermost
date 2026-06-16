@@ -43,7 +43,7 @@ export type ExecuteCommandReturnType = {
     silentFailureReason?: Error;
     commandResponse?: CommandResponse;
     appResponse?: AppCallResponse;
-}
+};
 
 export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {

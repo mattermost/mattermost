@@ -37,7 +37,7 @@ type FieldActions = {
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
     reorderField: (field: UserPropertyField, nextOrder: number) => void;
-}
+};
 
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
@@ -98,7 +98,7 @@ export const useUserPropertiesTable = (): SectionHook => {
 type Props = {
     data: UserPropertyFields;
     canCreate: boolean;
-}
+};
 
 export function UserPropertiesTable({
     data: collection,
@@ -655,7 +655,7 @@ const NAME_BANNER_ORDER = [
 
 type ValidationBannersProps = {
     warnings: UserPropertyFields['warnings'];
-}
+};
 
 export const ValidationBanners = ({warnings}: ValidationBannersProps) => {
     const {counts, presentTypes} = useMemo(() => {

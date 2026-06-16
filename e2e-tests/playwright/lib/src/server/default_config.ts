@@ -789,7 +789,7 @@ const defaultServerConfig: AdminConfig = {
         ClassificationMarkings: true,
         PropertyFieldRank: true,
         IntegratedBoards: false,
-        CJKSearch: false,
+        CJKSearch: true,
         ManagedChannelCategories: false,
         MobileEphemeralMode: true,
     },

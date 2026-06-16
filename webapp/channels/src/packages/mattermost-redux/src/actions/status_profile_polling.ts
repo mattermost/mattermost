@@ -177,7 +177,7 @@ export function extractUserIdsAndMentionsFromPosts(posts: Post[]): ActionFunc<Us
  * Gets in batch the user profiles, user statuses and user groups for the users in the posts list
  * This action however doesn't refetch the profiles and statuses except for groups if they are already fetched once
  */
-export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[]|PostList['posts']|Post): ActionFunc<boolean> {
+export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[] | PostList['posts'] | Post): ActionFunc<boolean> {
     return (dispatch, getState) => {
         if (!postsArrayOrMap) {
             return {data: false};

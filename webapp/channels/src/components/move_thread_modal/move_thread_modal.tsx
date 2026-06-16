@@ -37,7 +37,7 @@ export type ActionProps = {
 
     // action called to move the post from the original channel to a new channel
     moveThread: (postId: string, channelId: string) => Promise<ActionResult>;
-}
+};
 
 export type OwnProps = {
 

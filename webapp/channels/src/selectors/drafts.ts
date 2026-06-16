@@ -16,7 +16,7 @@ export type Draft = DraftInfo & {
     key: keyof GlobalState['storage']['storage'];
     value: PostDraft;
     timestamp: Date;
-}
+};
 
 export type DraftSelector = (state: GlobalState) => Draft[];
 export type DraftCountSelector = (state: GlobalState) => number;

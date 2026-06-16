@@ -79,12 +79,12 @@ export type Props = {
         fetchBindings: (channelId: string, teamId: string) => Promise<ActionResult<AppBinding[]>>;
 
     }; // TechDebt: Made non-mandatory while converting to typescript
-}
+};
 
 type State = {
     openUp: boolean;
     appBindings?: AppBinding[];
-}
+};
 
 export class ActionMenuClass extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
