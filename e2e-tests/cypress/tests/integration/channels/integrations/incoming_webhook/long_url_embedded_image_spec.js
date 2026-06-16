@@ -15,15 +15,23 @@ describe('Integrations', () => {
     let testChannel;
     let newIncomingHook;
     let incomingWebhook;
+    const oldSettings = {};
 
     before(() => {
-        // # Raise the maximum URL length so the long image proxy URL used in this
-        // test is not rejected by the server's URL length security check.
-        cy.apiUpdateConfig({
+        const newSettings = {
             ServiceSettings: {
                 MaximumURLLength: 8192,
             },
+        };
+
+        // # Raise the maximum URL length so the long image proxy URL used in this
+        // test is not rejected by the server's URL length security check.
+        cy.apiGetConfig((config) => {
+            Object.entries(newSettings).forEach(([key]) => {
+                oldSettings[key] = config[key];
+            });
         });
+        cy.apiUpdateConfig(newSettings);
 
         // # Create new setup
         cy.apiInitSetup().then(({user}) => {
@@ -58,6 +66,10 @@ describe('Integrations', () => {
                 });
             });
         });
+    });
+
+    after(() => {
+        cy.apiAdminLogin().apiUpdateConfig(oldSettings);
     });
 
     it('MM-T643 Incoming webhook:Long URL for embedded image', () => {
