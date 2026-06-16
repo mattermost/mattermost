@@ -15,10 +15,10 @@ import (
 
 const auditStorageTableName = "audit_storage"
 
-// SqlAuditStorage writes user-post delivery events to an independent
-// Postgres pool. The backing table is a regular LOGGED table (WAL-backed,
-// crash-durable, replication-friendly) and has no unique index, so
-// duplicates are allowed. Callers dedupe on read.
+// SqlAuditStorage writes user-post delivery events to the audit_storage table
+// on the primary Mattermost database. The table carries a UNIQUE composite
+// index on (entity_id, user_id, mechanism); every write uses
+// ON CONFLICT DO NOTHING so duplicate deliveries are absorbed silently.
 //
 // Bulk paths use Postgres' unnest() with array parameters: a single
 // INSERT … SELECT statement expands an array of N values into N rows
@@ -31,35 +31,13 @@ type SqlAuditStorage struct {
 	*SqlStore
 }
 
-// noopAuditStorage is returned when AuditStorageSettings.Enable=false,
-// so callers don't have to nil-check the store before calling Mark/etc.
-type noopAuditStorage struct{}
-
-func (noopAuditStorage) Mark(context.Context, string, string, int16) error { return nil }
-func (noopAuditStorage) MarkBulkSameUser(context.Context, string, []string, int16) error {
-	return nil
-}
-func (noopAuditStorage) MarkBulkSamePost(context.Context, []string, string, int16) error {
-	return nil
-}
-func (noopAuditStorage) HasRead(context.Context, string, string) (bool, error) { return false, nil }
-
 func newSqlAuditStorage(s *SqlStore) store.AuditStorageStore {
-	// Pool may be open (migrations always run) while writes are gated off.
-	// Treat both "no pool" and "Enable=false" as no-op so callers don't have
-	// to nil-check or know about config state.
-	if s.auditStorageX == nil ||
-		s.asSettings == nil ||
-		s.asSettings.Enable == nil ||
-		!*s.asSettings.Enable {
-		return noopAuditStorage{}
-	}
 	return &SqlAuditStorage{SqlStore: s}
 }
 
 // Mark appends a single user-post delivery event tagged with the mechanism.
 func (s *SqlAuditStorage) Mark(ctx context.Context, userID, postID string, mechanism int16) error {
-	_, err := s.auditStorageX.ExecContext(ctx,
+	_, err := s.GetMaster().ExecContext(ctx,
 		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at) VALUES ($1, $2, $3, $4)
 				ON CONFLICT (entity_id, user_id, mechanism) DO NOTHING`,
 		userID, postID, mechanism, model.GetMillis())
@@ -75,7 +53,7 @@ func (s *SqlAuditStorage) MarkBulkSameUser(ctx context.Context, userID string, p
 	if userID == "" || len(postIDs) == 0 {
 		return nil
 	}
-	_, err := s.auditStorageX.ExecContext(ctx,
+	_, err := s.GetMaster().ExecContext(ctx,
 		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
 		 SELECT $1, entity_id, $3, $4
 		 FROM unnest($2::text[]) AS entity_id
@@ -93,7 +71,7 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 	if postID == "" || len(userIDs) == 0 {
 		return nil
 	}
-	_, err := s.auditStorageX.ExecContext(ctx,
+	_, err := s.GetMaster().ExecContext(ctx,
 		`INSERT INTO `+auditStorageTableName+` (user_id, entity_id, mechanism, created_at)
 		 SELECT user_id, $2, $3, $4
 		 FROM unnest($1::text[]) AS user_id
@@ -106,10 +84,9 @@ func (s *SqlAuditStorage) MarkBulkSamePost(ctx context.Context, userIDs []string
 }
 
 // HasRead returns true if at least one delivery event exists for the pair.
-// Duplicates are ignored — EXISTS short-circuits on the first match.
 func (s *SqlAuditStorage) HasRead(ctx context.Context, userID, postID string) (bool, error) {
 	var exists bool
-	err := s.auditStorageX.DB().GetContext(ctx, &exists,
+	err := s.GetReplica().DB().GetContext(ctx, &exists,
 		`SELECT EXISTS(SELECT 1 FROM `+auditStorageTableName+` WHERE user_id=$1 AND entity_id=$2 LIMIT 1)`,
 		userID, postID)
 	if err != nil {

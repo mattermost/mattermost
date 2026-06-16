@@ -30,16 +30,6 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 		attempts)
 }
 
-// SetupAuditStorageConnection opens a connection for the independent
-// audit-storage pool. Mirrors SetupConnection but reads pool tuning from
-// AuditStorageSettings (driver is fixed to postgres for this DB).
-func SetupAuditStorageConnection(logger mlog.LoggerIFace, connType string, settings *model.AuditStorageSettings, attempts int) (*dbsql.DB, error) {
-	return setupConnection(logger, connType, *settings.DataSource, model.DatabaseDriverPostgres,
-		*settings.MaxIdleConns, *settings.MaxOpenConns,
-		*settings.ConnMaxLifetimeMilliseconds, *settings.ConnMaxIdleTimeMilliseconds,
-		attempts)
-}
-
 func setupConnection(logger mlog.LoggerIFace, connType, dataSource, driverName string, maxIdle, maxOpen, lifetimeMs, idleMs, attempts int) (*dbsql.DB, error) {
 	db, err := dbsql.Open(driverName, dataSource)
 	if err != nil {

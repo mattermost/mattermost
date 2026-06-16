@@ -137,11 +137,6 @@ type SqlStore struct {
 
 	replicaLagHandles []*sql.DB
 
-	// auditStorageX is an independent pool for the audit-storage DB. Nil when
-	// AuditStorageSettings.Enable is false.
-	auditStorageX *sqlxDBWrapper
-	asSettings    *model.AuditStorageSettings
-
 	stores         SqlStoreStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
@@ -190,15 +185,6 @@ func DisableMorphLogging() Option {
 func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
 	return func(s *SqlStore) error {
 		s.featureFlagsFn = fn
-		return nil
-	}
-}
-
-// WithAuditStorageSettings configures the independent audit-storage pool.
-// If omitted (or Enable=false), Store().AuditStorage() returns a no-op store.
-func WithAuditStorageSettings(rt model.AuditStorageSettings) Option {
-	return func(s *SqlStore) error {
-		s.asSettings = &rt
 		return nil
 	}
 }
@@ -257,13 +243,6 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
-		}
-
-		if store.auditStorageX != nil {
-			err = store.migrateAuditStorage(migrationsDirectionUp, !store.disableMorphLogging)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to apply audit-storage database migrations")
-			}
 		}
 	}
 
@@ -404,27 +383,6 @@ func (ss *SqlStore) initConnection() error {
 				continue
 			}
 			ss.replicaLagHandles = append(ss.replicaLagHandles, replicaLagHandle)
-		}
-	}
-
-	// Open the audit-storage pool only when Enable=true. When Enable=false the
-	// audit DB does not need to be reachable at startup; flipping Enable on
-	// later requires a server restart so the pool can open and the migration
-	// can run.
-	auditStorageEnabled := ss.asSettings != nil && ss.asSettings.Enable != nil && *ss.asSettings.Enable
-	if auditStorageEnabled {
-		if ss.asSettings.DataSource == nil || *ss.asSettings.DataSource == "" {
-			return errors.New("audit-storage is enabled but data source is empty")
-		}
-		rtHandle, err := sqlUtils.SetupAuditStorageConnection(ss.Logger(), "audit-storage", ss.asSettings, DBPingAttempts)
-		if err != nil {
-			return errors.Wrap(err, "failed to setup audit-storage connection")
-		}
-		ss.auditStorageX = newSqlxDBWrapper(sqlx.NewDb(rtHandle, model.DatabaseDriverPostgres),
-			time.Duration(*ss.asSettings.QueryTimeout)*time.Second,
-			*ss.settings.Trace)
-		if ss.metrics != nil {
-			ss.metrics.RegisterDBCollector(ss.auditStorageX.DB().DB, "audit-storage")
 		}
 	}
 
@@ -777,10 +735,6 @@ func (ss *SqlStore) Close() {
 
 	for _, replica := range ss.replicaLagHandles {
 		replica.Close()
-	}
-
-	if ss.auditStorageX != nil {
-		ss.auditStorageX.Close()
 	}
 }
 
