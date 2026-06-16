@@ -17,6 +17,13 @@ export type FieldType = (
     'multiuser'
 );
 
+export type FieldVisibility = 'always' | 'hidden' | 'when_set';
+export type FieldValueType =
+    'email' |
+    'url' |
+    'phone' |
+    '';
+
 export type PropertyField = {
     id: string;
     group_id: string;

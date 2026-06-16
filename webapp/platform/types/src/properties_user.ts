@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption} from './properties';
+import type {FieldValueType, FieldVisibility, PropertyField, PropertyFieldOption} from './properties';
 
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 
@@ -24,13 +24,6 @@ export const SESSION_ATTRIBUTES_GROUP_ID: UserPropertyFieldGroupID = 'session_at
 export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
 
 export type UserPropertyValueType = 'phone' | 'url' | '';
-
-export type FieldVisibility = 'always' | 'hidden' | 'when_set';
-export type FieldValueType =
-    'email' |
-    'url' |
-    'phone' |
-    '';
 
 export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
