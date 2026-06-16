@@ -17,6 +17,14 @@ describe('Integrations', () => {
     let incomingWebhook;
 
     before(() => {
+        // # Raise the maximum URL length so the long image proxy URL used in this
+        // test is not rejected by the server's URL length security check.
+        cy.apiUpdateConfig({
+            ServiceSettings: {
+                MaximumURLLength: 8192,
+            },
+        });
+
         // # Create new setup
         cy.apiInitSetup().then(({user}) => {
             testUser = user;
