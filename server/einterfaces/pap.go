@@ -51,6 +51,7 @@ type PolicyAdministrationPointInterface interface {
 	// persisted. Backs the picker-based "Simulate access" UX in the
 	// System Console and Channel Settings.
 	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
+
 	// OnPropertyFieldOptionsChanged signals the access control service that
 	// a property field's options changed (e.g. an admin re-ranked or
 	// renamed options on a rank-typed field). The service invalidates any
@@ -59,4 +60,26 @@ type PolicyAdministrationPointInterface interface {
 	// re-read the authoritative values. Safe to call for any field type;
 	// the service no-ops for fields it does not track.
 	OnPropertyFieldOptionsChanged(rctx request.CTX, fieldID string)
+
+	// HasMaskedValuesForCaller reports whether expression contains any literal
+	// value hidden from the caller according to resolver. Returns an error when
+	// field resolution or CEL parsing fails — callers must treat any error as
+	// fail-closed (assume values are hidden).
+	HasMaskedValuesForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) (bool, *model.AppError)
+
+	// MaskExpressionForCaller rewrites hidden literal values in expression to
+	// the masked token and returns the modified CEL string. The logical tree
+	// shape is preserved (|| / grouping / function calls are not flattened).
+	MaskExpressionForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) (string, bool, *model.AppError)
+
+	// ValidateExpressionValuesForCaller walks expression and returns an error
+	// if any non-token literal is forbidden for the caller under resolver's
+	// visibility rules.
+	ValidateExpressionValuesForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) *model.AppError
+
+	// MergeExpressionWithMaskedValuesCanonical re-injects hidden stored
+	// literals from storedExpr into submittedExpr using a canonical CEL AST
+	// walk. Returns the merged CEL string. Fails closed when the submitted
+	// tree's shape diverges from stored while hidden values are present.
+	MergeExpressionWithMaskedValuesCanonical(rctx request.CTX, submittedExpr, storedExpr string, resolver model.MaskingFieldResolver) (string, *model.AppError)
 }
