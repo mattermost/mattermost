@@ -24,7 +24,7 @@ import {deleteFieldFromDB, purgeFieldsByPrefix, setFieldAsSharedOnly, setFieldAs
 
 const fieldPrefix = 'MaskingAR';
 
-test.describe('Attribute-Value Masking - Admin Roles', () => {
+test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_masking']}, () => {
     test.beforeAll(async () => {
         await purgeFieldsByPrefix(fieldPrefix);
     });

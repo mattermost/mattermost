@@ -23,7 +23,7 @@ import {getStoredPolicyRuleExpressions, purgeFieldsByPrefix, setFieldAsSharedOnl
 
 const fieldPrefix = 'MaskingAD';
 
-test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
+test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@abac', '@abac_masking']}, () => {
     test.beforeAll(async () => {
         await purgeFieldsByPrefix(fieldPrefix);
     });

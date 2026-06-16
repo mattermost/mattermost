@@ -20,7 +20,7 @@ import {getStoredPolicyRuleExpressions, purgeFieldsByPrefix, setFieldAsSharedOnl
 
 const fieldPrefix = 'MaskingTE';
 
-test.describe('Attribute-Value Masking - Table Editor', () => {
+test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_masking']}, () => {
     // Purge any orphaned MaskingTE* CPA fields left by previous failed runs so we
     // don't hit the 200-field global limit mid-suite.
     test.beforeAll(async () => {

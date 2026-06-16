@@ -20,7 +20,7 @@ import {purgeFieldsByPrefix, setFieldAsSharedOnly} from './masking_db_setup';
 
 const fieldPrefix = 'MaskingVT';
 
-test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
+test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@abac', '@abac_masking']}, () => {
     test.beforeAll(async () => {
         await purgeFieldsByPrefix(fieldPrefix);
     });
