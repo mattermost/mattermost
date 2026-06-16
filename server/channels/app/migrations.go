@@ -52,8 +52,6 @@ const (
 	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
-
-	sessionAttributesSetupDoneKey = "session_attributes_setup_done"
 )
 
 // This function migrates the default built in roles from code/config to the database.
