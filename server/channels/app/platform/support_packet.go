@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -31,6 +32,52 @@ const (
 	envVarInstallType = "MM_INSTALL_TYPE"
 	unknownDataPoint  = "unknown"
 )
+
+// diagnosticsYAMLComments annotates non-obvious fields in diagnostics.yaml
+// with inline (and a few group-header) comments so support engineers reading
+// the file under triage conditions have units, omitempty semantics, and
+// cumulative-vs-point-in-time semantics visible at a glance.
+var diagnosticsYAMLComments = yaml.CommentMap{
+	// server: — grouped into Machine / Capacity / Process lifecycle / Software
+	"$.server.os":                        {yaml.HeadComment(" Machine")},
+	"$.server.cpu_cores":                 {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
+	"$.server.total_memory_mb":           {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
+	"$.server.container_cpu_limit":       {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
+	"$.server.container_memory_limit_mb": {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
+	"$.server.process_id":                {yaml.HeadComment(" Process lifecycle")},
+	"$.server.started_at":                {yaml.LineComment(" when Mattermost process started")},
+	"$.server.host_started_at":           {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
+	"$.server.open_file_descriptors":     {yaml.LineComment(" current open FDs for this process")},
+	"$.server.max_file_descriptors":      {yaml.LineComment(" system limit (ulimit -n)")},
+	"$.server.version":                   {yaml.HeadComment(" Software")},
+
+	// database: sql.DBStats cumulative counters (lifetime of process; all drivers)
+	"$.database.master_pool_wait_count":                  {yaml.LineComment(" cumulative; total times a goroutine waited for a connection since process start")},
+	"$.database.master_pool_wait_duration_ms":            {yaml.LineComment(" cumulative wait time across all goroutines since process start")},
+	"$.database.master_connections_closed_max_idle":      {yaml.LineComment(" cumulative; connections closed because the idle pool was full")},
+	"$.database.master_connections_closed_max_lifetime":  {yaml.LineComment(" cumulative; connections closed for exceeding ConnMaxLifetime")},
+	"$.database.replica_pool_wait_count":                 {yaml.LineComment(" cumulative across all replicas; see master_pool_wait_count")},
+	"$.database.replica_pool_wait_duration_ms":           {yaml.LineComment(" cumulative across all replicas")},
+	"$.database.replica_connections_closed_max_idle":     {yaml.LineComment(" cumulative across all replicas")},
+	"$.database.replica_connections_closed_max_lifetime": {yaml.LineComment(" cumulative across all replicas")},
+
+	// database: PostgreSQL-only fields (omitted on MySQL)
+	"$.database.cache_hit_ratio":                {yaml.HeadComment(" PostgreSQL-only (these fields are omitted on MySQL)"), yaml.LineComment(" blks_hit / (blks_hit + blks_read) from pg_stat_database; cumulative since stats reset")},
+	"$.database.deadlocks":                      {yaml.LineComment(" cumulative since pg_stat_database reset")},
+	"$.database.temp_files":                     {yaml.LineComment(" cumulative count of temp files created since stats reset")},
+	"$.database.temp_bytes_mb":                  {yaml.LineComment(" cumulative bytes written to temp files, in MB")},
+	"$.database.rollbacks":                      {yaml.LineComment(" cumulative transaction rollbacks since stats reset")},
+	"$.database.idle_in_transaction_count":      {yaml.LineComment(" point-in-time count from pg_stat_activity")},
+	"$.database.longest_query_duration_seconds": {yaml.LineComment(" point-in-time; max age of any active query right now")},
+	"$.database.waiting_for_lock_count":         {yaml.LineComment(" point-in-time count of backends waiting on a Lock wait_event_type")},
+	"$.database.posts_dead_tuples":              {yaml.LineComment(" n_dead_tup for the posts table from pg_stat_user_tables")},
+	"$.database.posts_last_autovacuum":          {yaml.LineComment(" last autovacuum on posts; null if never autovacuumed (then omitted)")},
+
+	// file_store: local driver only fields
+	"$.file_store.filesystem_type": {yaml.LineComment(" local driver only (e.g. ext4, xfs); omitted for s3 and other remote drivers")},
+	"$.file_store.total_mb":        {yaml.LineComment(" local driver only; capacity of the volume hosting FileSettings.Directory")},
+	"$.file_store.available_mb":    {yaml.LineComment(" local driver only; free space remaining on that volume")},
+}
 
 func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) ([]model.FileData, error) {
 	functions := map[string]func(request.CTX) (*model.FileData, error){
@@ -160,9 +207,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	} else {
 		d.Database.Version = databaseVersion
 	}
-	d.Database.MasterConnectios = ps.Store.TotalMasterDbConnections()
-	d.Database.ReplicaConnectios = ps.Store.TotalReadDbConnections()
+	d.Database.MasterConnections = ps.Store.TotalMasterDbConnections()
+	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
+
+	err = ps.applyStoreDiagnostics(rctx.Context(), &d)
+	if err != nil {
+		rErr = multierror.Append(rErr, err)
+	}
 
 	/* File store */
 	d.FileStore.Status = model.StatusOk
@@ -235,6 +287,16 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
+	if samlDiagnostic := ps.SamlDiagnostic(); samlDiagnostic != nil && model.SafeDereference(ps.Config().SamlSettings.Enable) {
+		if err = samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings); err != nil {
+			d.SAML.Status = model.StatusFail
+			d.SAML.Error = err.Error()
+		} else {
+			d.SAML.Status = model.StatusOk
+		}
+	} else {
+		d.SAML.Status = model.StatusDisabled
+	}
 
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
@@ -286,10 +348,16 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Notifications.Email.Status = model.StatusDisabled
 	}
 
+	/* OAuth2 / OpenID Connect Providers */
+	d.OAuthProviders.GitLab = probeOAuthProvider(rctx.Context(), &ps.Config().GitLabSettings)
+	d.OAuthProviders.Google = probeOAuthProvider(rctx.Context(), &ps.Config().GoogleSettings)
+	d.OAuthProviders.Office365 = probeOAuthProvider(rctx.Context(), ps.Config().Office365Settings.SSOSettings())
+	d.OAuthProviders.OpenID = probeOAuthProvider(rctx.Context(), &ps.Config().OpenIdSettings)
+
 	/* Push Notifications */
 	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
 		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
-		if pushErr := testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
+		if pushErr := ps.testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
 			d.Notifications.Push.Status = model.StatusFail
 			d.Notifications.Push.Error = pushErr.Error()
 		} else {
@@ -299,7 +367,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Notifications.Push.Status = model.StatusDisabled
 	}
 
-	b, err := yaml.Marshal(&d)
+	b, err := yaml.MarshalWithOptions(&d, yaml.WithComment(diagnosticsYAMLComments))
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
 	}
@@ -311,8 +379,129 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	return fileData, rErr.ErrorOrNil()
 }
 
+func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostics *model.SupportPacketDiagnostics) error {
+	storeDiagnostics, err := ps.Store.GetDiagnostics(ctx)
+	if storeDiagnostics == nil {
+		if err != nil {
+			return errors.Wrap(err, "error while collecting support packet database diagnostics")
+		}
+		return nil
+	}
+
+	diagnostics.Database.MasterConnectionsInUse = storeDiagnostics.MasterConnectionsInUse
+	diagnostics.Database.MasterConnectionsIdle = storeDiagnostics.MasterConnectionsIdle
+	diagnostics.Database.MasterPoolWaitCount = storeDiagnostics.MasterPoolWaitCount
+	diagnostics.Database.MasterPoolWaitDurationMs = storeDiagnostics.MasterPoolWaitDurationMs
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = storeDiagnostics.MasterConnectionsClosedMaxIdle
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = storeDiagnostics.MasterConnectionsClosedMaxLifetime
+	diagnostics.Database.ReplicaConnectionsInUse = storeDiagnostics.ReplicaConnectionsInUse
+	diagnostics.Database.ReplicaConnectionsIdle = storeDiagnostics.ReplicaConnectionsIdle
+	diagnostics.Database.ReplicaPoolWaitCount = storeDiagnostics.ReplicaPoolWaitCount
+	diagnostics.Database.ReplicaPoolWaitDurationMs = storeDiagnostics.ReplicaPoolWaitDurationMs
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = storeDiagnostics.ReplicaConnectionsClosedMaxIdle
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = storeDiagnostics.ReplicaConnectionsClosedMaxLifetime
+	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
+	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
+	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles
+	diagnostics.Database.TempBytesMB = storeDiagnostics.TempBytesMB
+	diagnostics.Database.Rollbacks = storeDiagnostics.Rollbacks
+	diagnostics.Database.IdleInTransactionCount = storeDiagnostics.IdleInTransactionCount
+	diagnostics.Database.LongestQueryDurationSeconds = storeDiagnostics.LongestQueryDurationSeconds
+	diagnostics.Database.WaitingForLockCount = storeDiagnostics.WaitingForLockCount
+	diagnostics.Database.PostsDeadTuples = storeDiagnostics.PostsDeadTuples
+	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
+
+	if err != nil {
+		return errors.Wrap(err, "error while collecting support packet database diagnostics")
+	}
+
+	return nil
+}
+
+// probeOAuthProvider checks connectivity for an OAuth2/OpenID Connect provider.
+// If the provider has a DiscoveryEndpoint configured, it issues an HTTP GET to
+// that URL and verifies the response is a valid OIDC discovery document.
+// Otherwise it probes the TokenEndpoint host: any HTTP response (including
+// 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
+func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) model.OAuthProviderStatus {
+	if !model.SafeDereference(sso.Enable) {
+		return model.OAuthProviderStatus{Status: model.StatusDisabled}
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
+		if err := probeOIDCDiscovery(ctx, discoveryEndpoint); err != nil {
+			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
+		}
+		return model.OAuthProviderStatus{Status: model.StatusOk}
+	}
+
+	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
+		if err := probeOAuthTokenEndpoint(ctx, tokenEndpoint); err != nil {
+			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
+		}
+		return model.OAuthProviderStatus{Status: model.StatusOk}
+	}
+
+	return model.OAuthProviderStatus{Status: model.StatusFail, Error: "no discovery or token endpoint configured"}
+}
+
+func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer drainAndCloseBody(resp.Body)
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("discovery endpoint returned unexpected status %d", resp.StatusCode)
+	}
+	// Cap the discovery document at 1 MiB; real OIDC discovery responses are a few KiB.
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return errors.Wrap(err, "failed to read discovery response")
+	}
+	var doc struct {
+		Issuer string `json:"issuer"`
+	}
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return errors.Wrap(err, "discovery endpoint did not return valid JSON")
+	}
+	if doc.Issuer == "" {
+		return fmt.Errorf("discovery endpoint response missing required 'issuer' field")
+	}
+	return nil
+}
+
+func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer drainAndCloseBody(resp.Body)
+	return nil
+}
+
+// drainAndCloseBody fully reads and discards an HTTP response body (up to 1 MiB
+// to bound a misbehaving server) and closes it. Draining before closing allows
+// net/http to return the underlying TCP connection to the idle pool for
+// keep-alive reuse on subsequent requests.
+func drainAndCloseBody(body io.ReadCloser) {
+	_, _ = io.Copy(io.Discard, io.LimitReader(body, 1<<20))
+	_ = body.Close()
+}
+
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
-func testPushProxyConnection(ctx context.Context, serverURL string) error {
+func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	versionURL, err := url.JoinPath(serverURL, "version")
@@ -327,7 +516,7 @@ func testPushProxyConnection(ctx context.Context, serverURL string) error {
 	if err != nil {
 		return err
 	}
-	resp.Body.Close()
+	defer drainAndCloseBody(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("push proxy returned unexpected status %d", resp.StatusCode)
 	}

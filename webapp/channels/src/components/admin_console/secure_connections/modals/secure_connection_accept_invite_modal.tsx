@@ -21,7 +21,7 @@ type Props = {
     onCancel?: () => void;
     onExited: () => void;
     onHide: () => void;
-}
+};
 
 const noop = () => {};
 

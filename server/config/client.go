@@ -37,6 +37,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostIconOverride)
 	props["EnableUserAccessTokens"] = strconv.FormatBool(*c.ServiceSettings.EnableUserAccessTokens)
+	props["MaximumPersonalAccessTokenLifetimeDays"] = strconv.Itoa(*c.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays)
 	props["EnableLinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnableLinkPreviews)
 	props["EnablePermalinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnablePermalinkPreviews)
 	props["EnableTesting"] = strconv.FormatBool(*c.ServiceSettings.EnableTesting)
@@ -255,6 +256,20 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 				props["AutoTranslationLanguages"] = ""
 			}
 			props["RestrictDMAndGMAutotranslation"] = strconv.FormatBool(*c.AutoTranslationSettings.RestrictDMAndGM)
+
+			if c.FeatureFlags.MobileEphemeralMode {
+				ephemeralEnabled := c.MobileEphemeralModeSettings.Enable != nil && *c.MobileEphemeralModeSettings.Enable
+				props["MobileEphemeralModeEnabled"] = strconv.FormatBool(ephemeralEnabled)
+				if c.MobileEphemeralModeSettings.DisconnectionTimeoutSeconds != nil {
+					props["MobileEphemeralModeDisconnectionTimeoutSeconds"] = strconv.Itoa(*c.MobileEphemeralModeSettings.DisconnectionTimeoutSeconds)
+				}
+				if c.MobileEphemeralModeSettings.OfflinePersistenceTimerHours != nil {
+					props["MobileEphemeralModeOfflinePersistenceTimerHours"] = strconv.Itoa(*c.MobileEphemeralModeSettings.OfflinePersistenceTimerHours)
+				}
+				if c.MobileEphemeralModeSettings.AutoCacheCleanupDays != nil {
+					props["MobileEphemeralModeAutoCacheCleanupDays"] = strconv.Itoa(*c.MobileEphemeralModeSettings.AutoCacheCleanupDays)
+				}
+			}
 		}
 	}
 

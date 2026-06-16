@@ -323,6 +323,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("method", r.Method),
 	)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
+	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()

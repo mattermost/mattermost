@@ -35,6 +35,113 @@ func TestChannelPatch(t *testing.T) {
 	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
 }
 
+func TestChannelPatchDiscoverable(t *testing.T) {
+	t.Run("applies discoverable when set", func(t *testing.T) {
+		on := true
+		p := &ChannelPatch{Discoverable: &on}
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate}
+		o.Patch(p)
+		require.True(t, o.Discoverable)
+	})
+
+	t.Run("clears discoverable when set to false", func(t *testing.T) {
+		off := false
+		p := &ChannelPatch{Discoverable: &off}
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate, Discoverable: true}
+		o.Patch(p)
+		require.False(t, o.Discoverable)
+	})
+
+	t.Run("nil discoverable leaves channel untouched", func(t *testing.T) {
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate, Discoverable: true}
+		o.Patch(&ChannelPatch{})
+		require.True(t, o.Discoverable)
+	})
+}
+
+func TestChannelIsValidDiscoverable(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Header:      "h",
+		Purpose:     "p",
+	}
+
+	t.Run("discoverable=false is valid on any type", func(t *testing.T) {
+		c := base
+		c.Type = ChannelTypeOpen
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("discoverable=true requires private channel", func(t *testing.T) {
+		c := base
+		c.Type = ChannelTypeOpen
+		c.Discoverable = true
+		require.NotNil(t, c.IsValid(), "discoverable=true on public channel must be rejected")
+
+		c.Type = ChannelTypeDirect
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivate
+		require.Nil(t, c.IsValid())
+	})
+}
+
+func TestChannelSupportsGroupSync(t *testing.T) {
+	require.True(t, (&Channel{Type: ChannelTypeOpen}).SupportsGroupSync())
+	require.True(t, (&Channel{Type: ChannelTypePrivate}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeDirect}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeGroup}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypeOpenBoard}).SupportsGroupSync())
+	require.False(t, (&Channel{Type: ChannelTypePrivateBoard}).SupportsGroupSync())
+}
+
+func TestChannelIsValidGroupConstrained(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Header:      "h",
+		Purpose:     "p",
+	}
+
+	t.Run("group_constrained is allowed on public and private channels", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeOpen
+		require.Nil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivate
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("group_constrained is rejected on direct, group, and board channels", func(t *testing.T) {
+		c := base
+		c.GroupConstrained = NewPointer(true)
+
+		c.Type = ChannelTypeDirect
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeOpenBoard
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivateBoard
+		require.NotNil(t, c.IsValid())
+	})
+}
+
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 
@@ -85,6 +192,39 @@ func TestChannelIsValid(t *testing.T) {
 
 	o.Name = "71b03afcbb2d503d49f87f057549c43db4e19f92"
 	require.NotNil(t, o.IsValid())
+}
+
+func TestChannelIsValidBoard(t *testing.T) {
+	t.Run("rejects non-board type", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpen, TeamId: NewId(), DisplayName: "Board"}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.type.app_error", err.Id)
+	})
+
+	t.Run("rejects missing team_id", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, DisplayName: "Board"}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.team_id.app_error", err.Id)
+	})
+
+	t.Run("rejects empty display name", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, TeamId: NewId()}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.display_name.app_error", err.Id)
+	})
+
+	t.Run("accepts valid open board", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, TeamId: NewId(), DisplayName: "Board"}
+		require.Nil(t, c.IsValidBoard())
+	})
+
+	t.Run("accepts valid private board", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypePrivateBoard, TeamId: NewId(), DisplayName: "Board"}
+		require.Nil(t, c.IsValidBoard())
+	})
 }
 
 func TestChannelBannerBackgroundColorValidation(t *testing.T) {

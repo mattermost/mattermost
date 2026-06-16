@@ -4,6 +4,7 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
@@ -11,8 +12,10 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
+import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -34,8 +37,8 @@ import './permission_policy_details.scss';
 const roleMessages = defineMessages({
     guestLabel: {id: 'admin.permission_policies.role.system_guest.label', defaultMessage: 'Guest users'},
     guestDescription: {id: 'admin.permission_policies.role.system_guest.description', defaultMessage: 'Applies only to guest users'},
-    memberLabel: {id: 'admin.permission_policies.role.system_user.label', defaultMessage: 'Members and system administrators'},
-    memberDescription: {id: 'admin.permission_policies.role.system_user.description', defaultMessage: 'Applies to regular members and administrators'},
+    memberLabel: {id: 'admin.permission_policies.role.system_user.label', defaultMessage: 'Members'},
+    memberDescription: {id: 'admin.permission_policies.role.system_user.description', defaultMessage: 'Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.'},
     adminLabel: {id: 'admin.permission_policies.role.system_admin.label', defaultMessage: 'System administrators'},
     adminDescription: {id: 'admin.permission_policies.role.system_admin.description', defaultMessage: 'Applies only to system administrators'},
     selectRole: {id: 'admin.permission_policies.role.select', defaultMessage: 'Select a role'},
@@ -90,6 +93,7 @@ export interface PermissionPolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
     accessControlSettings: AccessControlSettings;
+    sessionAttributesEnabled: boolean;
     actions: PolicyActions;
 }
 
@@ -110,6 +114,7 @@ function PermissionPolicyDetails({
     policyId,
     actions,
     accessControlSettings,
+    sessionAttributesEnabled,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
@@ -125,11 +130,21 @@ function PermissionPolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
+    const [showTest, setShowTest] = useState(false);
 
     const {formatMessage} = useIntl();
     const abacActions = useChannelAccessControlActions();
 
-    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+    // Gate the "Simulate rules" button + modal. The
+    // /cel/simulate_users endpoint returns 501 when this is off, so
+    // hiding the UI here keeps the author from clicking a button
+    // that would only surface a backend error. Mirror gate exists on
+    // the channel-settings Permissions Policy tab.
+    const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+
+    // Permission policies can reference session attributes (e.g. user.session.ip_address),
+    // so the editor stays usable even without any configured user attributes when SessionAttributes is on.
+    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
@@ -543,6 +558,49 @@ function PermissionPolicyDetails({
                                                 attribute: attr.name,
                                                 values: [],
                                             }))}
+
+                                            // Both editor modes route the test
+                                            // button through SimulateAccessModal:
+                                            // the legacy TestResultsModal only
+                                            // searched users that match the
+                                            // expression, which doesn't surface
+                                            // upper-scoped denies that the
+                                            // permission-policy author needs to
+                                            // see. The label is also re-tagged to
+                                            // "Simulate rules" since the modal
+                                            // simulates the full rule set, not a
+                                            // single expression.
+                                            //
+                                            // PolicySimulation feature flag off →
+                                            // drop the override and the
+                                            // "Simulate rules" label; the editor
+                                            // then falls back to its default
+                                            // "Test access rule" button +
+                                            // TestResultsModal. The button is a
+                                            // separate, always-on feature; only
+                                            // the dual-lane simulation override
+                                            // is gated.
+                                            //
+                                            // Additionally require at least one
+                                            // selected permission: SimulateAccessModal
+                                            // forwards `actions={selectedPermissions}`
+                                            // to /cel/simulate_users, which rejects
+                                            // empty action arrays with HTTP 400
+                                            // (app.pap.simulate.missing_actions). The
+                                            // editor card renders before the
+                                            // permission-picker card, so the button
+                                            // is otherwise clickable in the no-action
+                                            // state — leaving the override off in
+                                            // that case lets the legacy
+                                            // expression-only test path stay usable
+                                            // until the author picks an action.
+                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? () => setShowTest(true) : undefined}
+                                            testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
+                                                <FormattedMessage
+                                                    id='admin.permission_policies.editor.simulate_rules'
+                                                    defaultMessage='Simulate rules'
+                                                />
+                                            ) : undefined}
                                         />
                                     ) : (
                                         <TableEditor
@@ -559,6 +617,13 @@ function PermissionPolicyDetails({
                                             }}
                                             enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                             actions={abacActions}
+                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? () => setShowTest(true) : undefined}
+                                            testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
+                                                <FormattedMessage
+                                                    id='admin.permission_policies.editor.simulate_rules'
+                                                    defaultMessage='Simulate rules'
+                                                />
+                                            ) : undefined}
                                         />
                                     )}
                                 </Card.Body>
@@ -727,6 +792,28 @@ function PermissionPolicyDetails({
                                 defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
                             />
                         </GenericModal>
+                    )}
+
+                    {policySimulationEnabled && showTest && (
+                        <SimulateAccessModal
+                            onExited={() => setShowTest(false)}
+                            policy={{
+                                id: policyId || '',
+                                name: policyName,
+                                type: 'permission',
+                                roles: [selectedRole],
+                                rules: buildRulesWithActions(expression, selectedPermissions),
+                            }}
+                            actions={selectedPermissions}
+                            ruleName={policyName}
+                            actionLabels={{
+                                upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
+                                download_file_attachment: formatMessage(permissionMessages.downloadLabel),
+                            }}
+                            targetRole={selectedRole}
+                            targetScope='system'
+                            accessControlFields={autocompleteResult}
+                        />
                     )}
 
                     <div className='admin-console-save'>

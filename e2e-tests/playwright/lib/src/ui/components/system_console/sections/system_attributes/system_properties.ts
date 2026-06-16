@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 const USER_ATTRIBUTES_URL = '/admin_console/system_attributes/user_attributes';
 
@@ -51,6 +52,17 @@ export default class SystemProperties {
         return this.container.locator(`input[value="${value}"]`);
     }
 
+    displayNameInput(nth: number): Locator {
+        return this.container.getByTestId('property-display-name-input').nth(nth);
+    }
+
+    displayNameInputNear(identifierValue: string): Locator {
+        return this.container
+            .locator('tr')
+            .filter({has: this.nameInputByValue(identifierValue)})
+            .getByTestId('property-display-name-input');
+    }
+
     typeSelector(nth: number): Locator {
         return this.container.getByTestId('fieldTypeSelectorMenuButton').nth(nth);
     }
@@ -71,6 +83,10 @@ export default class SystemProperties {
      */
     lastNameInput(): Locator {
         return this.container.getByTestId('property-field-input').last();
+    }
+
+    lastDisplayNameInput(): Locator {
+        return this.container.getByTestId('property-display-name-input').last();
     }
 
     lastTypeSelector(): Locator {
@@ -209,7 +225,31 @@ export default class SystemProperties {
 
     // ── Validation ──────────────────────────────────────────────────────
 
-    validationMessage(text: string): Locator {
+    identifierValidationError(): Locator {
+        return this.container.getByTestId('property-field-validation-error');
+    }
+
+    /**
+     * Resolves the in-cell error icon for the row whose Name input currently
+     * equals `nameValue`. Use this to assert a *specific* row is highlighted
+     * (rather than `identifierValidationError()` which matches any row).
+     */
+    cellErrorIconForField(nameValue: string): Locator {
+        return this.container
+            .locator('tr')
+            .filter({has: this.nameInputByValue(nameValue)})
+            .getByTestId('property-field-validation-error');
+    }
+
+    /**
+     * Resolves the warning AlertBanner whose title text matches `title`.
+     * Banners stack below the table; one per unique error type.
+     */
+    validationBannerByTitle(title: string | RegExp): Locator {
+        return this.container.locator('.AlertBanner').filter({hasText: title});
+    }
+
+    validationMessage(text: string | RegExp): Locator {
         return this.container.getByText(text);
     }
 }

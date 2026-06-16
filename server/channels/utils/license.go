@@ -123,7 +123,7 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte,
 
 	var license model.License
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		return nil, nil, fmt.Errorf("Found license key at %s but it appears to be invalid: %w", fileName, err)
+		return nil, nil, fmt.Errorf("Found license key at %s but it appears to be invalid: %w", fileName, jsonErr)
 	}
 
 	return &license, licenseBytes, nil

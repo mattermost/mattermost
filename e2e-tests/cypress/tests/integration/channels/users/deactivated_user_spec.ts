@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @system_console @user_management
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('Deactivated user', () => {
     let testUser: UserProfile;

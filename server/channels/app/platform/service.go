@@ -97,6 +97,7 @@ type PlatformService struct {
 	esWatcher *searchEngineWatcher
 
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
+	samlDiagnostic einterfaces.SamlDiagnosticInterface
 
 	Jobs *jobs.JobServer
 
@@ -106,6 +107,13 @@ type PlatformService struct {
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
+
+	// Document content extraction runs on a dedicated, bounded worker pool so
+	// that expensive extractions cannot saturate the generic worker pool and
+	// block the request goroutines that dispatch them.
+	extractionQueue chan func()
+	extractionStop  chan struct{}
+	extractionWG    sync.WaitGroup
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 
@@ -155,6 +163,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		startTime:           time.Now(),
 		goroutineExitSignal: make(chan struct{}, 1),
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
+		extractionQueue:     make(chan func(), runtime.NumCPU()),
+		extractionStop:      make(chan struct{}),
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
 		},
@@ -369,7 +379,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 9: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure, allowedUntrustedInternalConnections))
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
@@ -381,7 +392,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.exportFilestore = ps.filestore
 		if *ps.Config().FileSettings.DedicatedExportStore {
 			mlog.Info("Setting up dedicated export filestore", mlog.String("driver_name", *ps.Config().FileSettings.ExportDriverName))
-			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false, allowedUntrustedInternalConnections))
 			if errFileBack != nil {
 				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
 			}
@@ -440,6 +452,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	searchConfigListenerId, searchLicenseListenerId := ps.StartSearchEngine()
 	ps.searchConfigListenerId = searchConfigListenerId
 	ps.searchLicenseListenerId = searchLicenseListenerId
+
+	ps.startExtractionWorkers()
 
 	return ps, nil
 }
@@ -534,6 +548,10 @@ func (ps *PlatformService) initEnterprise() {
 		ps.ldapDiagnostic = ldapDiagnosticInterface(ps)
 	}
 
+	if samlDiagnosticInterface != nil {
+		ps.samlDiagnostic = samlDiagnosticInterface(ps)
+	}
+
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
 	}
@@ -564,6 +582,10 @@ func (ps *PlatformService) Shutdown() error {
 	<-ps.statusUpdateDoneSignal
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
+
+	// Stop the document extraction workers and wait for any in-flight
+	// extraction to finish before closing the store it depends on.
+	ps.stopExtractionWorkers()
 
 	// we need to wait the goroutines to finish before closing the store
 	// and this needs to be called after hub stop because hub generates goroutines
@@ -665,6 +687,10 @@ func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
 
 func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
 	return ps.ldapDiagnostic
+}
+
+func (ps *PlatformService) SamlDiagnostic() einterfaces.SamlDiagnosticInterface {
+	return ps.samlDiagnostic
 }
 
 // DatabaseTypeAndSchemaVersion returns the database type and current version of the schema

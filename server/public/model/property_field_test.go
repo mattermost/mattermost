@@ -723,8 +723,8 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.NoError(t, pf.IsValid())
 		})
 
-		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
-			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember} {
+		t.Run("non-protected field with non-none field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
 				pf := baseField()
 				pf.Protected = false
 				pf.PermissionField = new(level)
@@ -759,22 +759,15 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 
-		t.Run("protected field with field=admin is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelSysadmin)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("protected field with field=member is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelMember)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
+		t.Run("protected field with non-none field permission is invalid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
+				pf := baseField()
+				pf.Protected = true
+				pf.PermissionField = new(level)
+				pf.PermissionValues = new(PermissionLevelMember)
+				pf.PermissionOptions = new(PermissionLevelMember)
+				require.Error(t, pf.IsValid(), "should be invalid with field permission %s", level)
+			}
 		})
 
 		t.Run("invalid permission_field value is rejected", func(t *testing.T) {
@@ -795,6 +788,46 @@ func TestPropertyField_IsValid(t *testing.T) {
 			pf.PermissionField = new(PermissionLevelMember)
 			pf.PermissionValues = new(PermissionLevelMember)
 			pf.PermissionOptions = new(PermissionLevel("bogus"))
+			require.Error(t, pf.IsValid())
+		})
+	})
+
+	t.Run("admin permission level", func(t *testing.T) {
+		baseField := func(target PropertyFieldTargetLevel) *PropertyField {
+			pf := &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       PropertyFieldTypeText,
+				ObjectType: PropertyFieldObjectTypePost,
+				TargetType: string(target),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+			if target != PropertyFieldTargetLevelSystem {
+				pf.TargetID = NewId()
+			}
+			return pf
+		}
+
+		for _, target := range []PropertyFieldTargetLevel{
+			PropertyFieldTargetLevelSystem,
+			PropertyFieldTargetLevelTeam,
+			PropertyFieldTargetLevelChannel,
+		} {
+			t.Run("admin is valid on "+string(target)+" target", func(t *testing.T) {
+				pf := baseField(target)
+				pf.PermissionField = new(PermissionLevelAdmin)
+				pf.PermissionValues = new(PermissionLevelAdmin)
+				pf.PermissionOptions = new(PermissionLevelAdmin)
+				require.NoError(t, pf.IsValid())
+			})
+		}
+
+		t.Run("PSAv1 field rejects admin permission level", func(t *testing.T) {
+			pf := baseField(PropertyFieldTargetLevelChannel)
+			pf.ObjectType = ""
+			pf.PermissionField = new(PermissionLevelAdmin)
 			require.Error(t, pf.IsValid())
 		})
 	})

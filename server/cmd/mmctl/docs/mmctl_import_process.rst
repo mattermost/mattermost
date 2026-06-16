@@ -30,6 +30,7 @@ Options
       --bypass-upload     If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.
       --extract-content   If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance. (default true)
   -h, --help              help for process
+      --workers int       The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

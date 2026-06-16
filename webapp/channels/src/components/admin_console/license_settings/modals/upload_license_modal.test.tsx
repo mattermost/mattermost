@@ -18,6 +18,15 @@ import UploadLicenseModal from './upload_license_modal';
 jest.mock('selectors/i18n');
 jest.mock('mattermost-redux/actions/admin', () => ({
     uploadLicense: jest.fn(() => () => Promise.resolve({data: true})),
+    previewLicense: jest.fn(() => () => Promise.resolve({data: {
+        id: 'preview-id',
+        issued_at: 1517714643650,
+        starts_at: 1517714643650,
+        expires_at: 1620335443650,
+        sku_name: 'Enterprise',
+        sku_short_name: 'Enterprise',
+        features: {},
+    }})),
 }));
 jest.mock('mattermost-redux/actions/general', () => ({
     ...jest.requireActual('mattermost-redux/actions/general'),
@@ -26,6 +35,10 @@ jest.mock('mattermost-redux/actions/general', () => ({
 
 describe('components/admin_console/license_settings/modals/upload_license_modal', () => {
     (i18Selectors.getCurrentLocale as jest.Mock).mockReturnValue(General.DEFAULT_LOCALE);
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     // required state to mount using the provider
     const license = {
@@ -46,6 +59,9 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
                     IsLicensed: 'false',
                 },
             },
+            users: {
+                currentUserId: '',
+            },
         },
         views: {
             modals: {
@@ -65,15 +81,18 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         fileObjFromProps: {name: 'Test license file'} as File,
     };
 
-    test('should match snapshot when is not licensed', () => {
-        const {container} = renderWithContext(
-            <UploadLicenseModal {...props}/>,
-            state,
-        );
-        expect(container).toMatchSnapshot();
+    test('should match snapshot when is not licensed', async () => {
+        let container: HTMLElement;
+        await act(async () => {
+            ({container} = renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                state,
+            ));
+        });
+        expect(container!).toMatchSnapshot();
     });
 
-    test('should match snapshot when is licensed', () => {
+    test('should match snapshot when is licensed', async () => {
         const localState: DeepPartial<GlobalState> = {
             ...state,
             entities: {
@@ -82,59 +101,56 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
                 },
             },
         };
-        const {container} = renderWithContext(
-            <UploadLicenseModal {...props}/>,
-            localState,
-        );
-        expect(container).toMatchSnapshot();
+        let container: HTMLElement;
+        await act(async () => {
+            ({container} = renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                localState,
+            ));
+        });
+        expect(container!).toMatchSnapshot();
     });
 
-    test('should display upload btn Disabled on initial load and no file selected', () => {
+    test('should not show apply button when no file is selected', () => {
         const newProps = {...props, fileObjFromProps: null};
         renderWithContext(
             <UploadLicenseModal {...newProps}/>,
             state,
         );
-        const uploadButton = screen.getByRole('button', {name: 'Upload'});
-        expect(uploadButton).toBeDisabled();
+        expect(screen.queryByRole('button', {name: 'Apply License'})).not.toBeInTheDocument();
     });
 
-    test('should display upload btn Enabled when file is loaded', () => {
-        const realUseState = React.useState;
-        const initialStateForFileObj = {name: 'testing.mattermost-license', size: 10240000} as File;
-
-        jest.spyOn(React, 'useState').mockImplementationOnce(() => realUseState(initialStateForFileObj as any));
-        renderWithContext(
-            <UploadLicenseModal {...props}/>,
-            state,
-        );
-        const uploadButton = screen.getByRole('button', {name: 'Upload'});
-        expect(uploadButton).not.toBeDisabled();
+    test('should show apply button enabled after preview when file is loaded', async () => {
+        await act(async () => {
+            renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                state,
+            );
+        });
+        const applyButton = screen.getByRole('button', {name: 'Apply License'});
+        expect(applyButton).not.toBeDisabled();
     });
 
-    test('should display no file selected text when no file is loaded', () => {
+    test('should show loading state when no file is loaded', () => {
         const newProps = {...props, fileObjFromProps: null};
         renderWithContext(
             <UploadLicenseModal {...newProps}/>,
             state,
         );
-        expect(screen.getByText('No file selected')).toBeInTheDocument();
+        expect(screen.getByText('Validating License')).toBeInTheDocument();
     });
 
-    test('should display the file name when is selected', () => {
-        const realUseState = React.useState;
-        const initialStateForFileObj = {name: 'testing.mattermost-license', size: (5 * 1024)} as File;
-
-        jest.spyOn(React, 'useState').mockImplementationOnce(() => realUseState(initialStateForFileObj as any));
-        renderWithContext(
-            <UploadLicenseModal {...props}/>,
-            state,
-        );
-        expect(screen.getByText('testing.mattermost-license')).toBeInTheDocument();
-        expect(screen.getByText('5KB')).toBeInTheDocument();
+    test('should show preview step after file is loaded', async () => {
+        await act(async () => {
+            renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                state,
+            );
+        });
+        expect(screen.getByText('Review License Changes')).toBeInTheDocument();
     });
 
-    test('should show success image when open and there is a license (successful license upload)', async () => {
+    test('should show success state when apply license is clicked', async () => {
         const localState: DeepPartial<GlobalState> = {
             ...state,
             entities: {
@@ -143,17 +159,19 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
                 },
             },
         };
-
-        renderWithContext(
-            <UploadLicenseModal {...props}/>,
-            localState,
-        );
 
         await act(async () => {
-            fireEvent.click(screen.getByRole('button', {name: 'Upload'}));
+            renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                localState,
+            );
         });
 
-        expect(screen.getByText('Successful Upgrade!')).toBeInTheDocument();
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', {name: 'Apply License'}));
+        });
+
+        expect(screen.getByText('New license successfully applied')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument();
     });
 
@@ -167,16 +185,36 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
             },
         };
 
-        renderWithContext(
-            <UploadLicenseModal {...props}/>,
-            localState,
-        );
+        await act(async () => {
+            renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                localState,
+            );
+        });
 
         await act(async () => {
-            fireEvent.click(screen.getByRole('button', {name: 'Upload'}));
+            fireEvent.click(screen.getByRole('button', {name: 'Apply License'}));
         });
 
         expect(screen.getByText(/123,456,789/)).toBeInTheDocument();
+    });
+
+    test('should show error state when license validation fails', async () => {
+        const previewLicenseMock = jest.requireMock('mattermost-redux/actions/admin').previewLicense;
+        previewLicenseMock.mockImplementationOnce(() => () => Promise.resolve({error: {message: 'Invalid license file.'}}));
+
+        await act(async () => {
+            renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                state,
+            );
+        });
+
+        expect(screen.getByText('License validation failed')).toBeInTheDocument();
+        expect(screen.getByText('Invalid license file.')).toBeInTheDocument();
+        expect(document.getElementById('close-button')).toBeInTheDocument();
+        expect(screen.queryByText('Please wait while we validate your license file...')).not.toBeInTheDocument();
+        expect(screen.queryByText('Validating License')).not.toBeInTheDocument();
     });
 
     test('should hide the upload modal', () => {
@@ -193,6 +231,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
             localState,
         );
 
-        expect(screen.queryByText('Upload a License Key')).not.toBeInTheDocument();
+        expect(screen.queryByText('Validating License')).not.toBeInTheDocument();
     });
 });

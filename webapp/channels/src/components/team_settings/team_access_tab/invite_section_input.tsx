@@ -29,7 +29,7 @@ const translations = defineMessages({
 
 type Props = {
     regenerateTeamInviteId: (teamId: string) => Promise<ActionResult>;
-}
+};
 
 const InviteSectionInput = ({regenerateTeamInviteId}: Props) => {
     const team = useSelector((state: GlobalState) => getCurrentTeam(state));

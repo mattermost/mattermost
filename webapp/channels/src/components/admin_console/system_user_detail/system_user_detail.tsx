@@ -43,6 +43,7 @@ import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
 import {toTitleCase} from 'utils/utils';
 
@@ -213,7 +214,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     getCustomProfileAttributeValues = async (userId: UserProfile['id']) => {
         return this.props.getCustomProfileAttributeValues(userId).
-            then((result: { data?: Record<string, string | string[]> }) => result.data || {});
+            then((result: {data?: Record<string, string | string[]>}) => result.data || {});
     };
 
     componentDidMount() {
@@ -653,11 +654,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             <label
                 key={field.id}
                 className='cpa-field'
+                data-testid={`user-detail-custom-attribute-label-${field.id}`}
             >
                 <FormattedMessage
                     id='admin.userManagement.userDetail.cpaField'
                     defaultMessage='{fieldName}'
-                    values={{fieldName: field.name}}
+                    values={{fieldName: getUserPropertyFieldLabel(field)}}
                 />
                 {fieldContent}
                 {syncIndicator}

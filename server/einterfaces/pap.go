@@ -33,6 +33,8 @@ type PolicyAdministrationPointInterface interface {
 	QueryUsersForResource(rctx request.CTX, resourceID, action string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError)
 	// GetChannelMembersToRemove retrieves the channel members that need to be removed from the given channel.
 	GetChannelMembersToRemove(rctx request.CTX, channelID string) ([]*model.ChannelMember, *model.AppError)
+	// GetTeamMembersToRemove retrieves the team members that need to be removed from the given team.
+	GetTeamMembersToRemove(rctx request.CTX, teamID string) ([]*model.TeamMember, *model.AppError)
 	// SavePolicy saves the given access control policy.
 	SavePolicy(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
 	// GetPolicy retrieves the access control policy with the given ID.
@@ -42,4 +44,11 @@ type PolicyAdministrationPointInterface interface {
 	// GetPoliciesForFieldIDs returns the policies that reference any of the given
 	// property field IDs in their CEL rule expressions.
 	GetPoliciesForFieldIDs(rctx request.CTX, fieldIDs []string) ([]*model.AccessControlPolicy, *model.AppError)
+	// SimulatePolicyForUsers evaluates a DRAFT policy against an explicit
+	// user list (with optional per-user session attribute overrides) and
+	// returns per-user, per-action ALLOW/DENY decisions plus blame
+	// attribution. The draft is compiled in-memory only; nothing is
+	// persisted. Backs the picker-based "Simulate access" UX in the
+	// System Console and Channel Settings.
+	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
 }

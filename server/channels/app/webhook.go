@@ -367,6 +367,12 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 				model.PostPropsOverrideUsername,
 				model.PostPropsFromWebhook:
 			// Do nothing
+			case model.PostPropsMmBlocksActions:
+				// Webhook payloads are user-controlled even when the
+				// webhook is bound to a bot user, so the bot-author
+				// signal in CreatePost's strip rule cannot distinguish
+				// them. Drop here so mm_blocks_actions never reaches
+				// the post object.
 			default:
 				post.AddProp(key, val)
 			}
@@ -385,6 +391,29 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 	}
 
 	return splits[0], nil
+}
+
+// ValidateIncomingWebhookUser ensures a user being assigned as an incoming webhook's owner can
+// legitimately be attributed posts in the target channel: the user must have access to the
+// channel and must not hold privileges the requester lacks, so a requester cannot forge posts
+// as a non-member or higher-privileged user.
+func (a *App) ValidateIncomingWebhookUser(rctx request.CTX, session model.Session, user *model.User, channel *model.Channel) *model.AppError {
+	if user.IsSystemAdmin() && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		return model.NewAppError("ValidateIncomingWebhookUser", "api.webhook.incoming.user_role.app_error", nil, "user_id="+user.Id, http.StatusForbidden)
+	}
+
+	return a.ValidateIncomingWebhookUserChannelAccess(rctx, user.Id, channel)
+}
+
+// ValidateIncomingWebhookUserChannelAccess ensures the webhook owner can read the channel its
+// posts are attributed to, preventing attribution to a user who is not a member of the channel
+// (or its team, for open channels).
+func (a *App) ValidateIncomingWebhookUserChannelAccess(rctx request.CTX, userID string, channel *model.Channel) *model.AppError {
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); !hasPermission {
+		return model.NewAppError("ValidateIncomingWebhookUserChannelAccess", "api.webhook.incoming.user_membership.app_error", nil, "user_id="+userID+", channel_id="+channel.Id, http.StatusForbidden)
+	}
+
+	return nil
 }
 
 func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
@@ -445,6 +474,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	updatedHook.UpdateAt = model.GetMillis()
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.DeleteAt = oldHook.DeleteAt
+	updatedHook.LastUsed = oldHook.LastUsed
 
 	newWebhook, err := a.Srv().Store().Webhook().UpdateIncoming(updatedHook)
 	if err != nil {
@@ -797,6 +827,17 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 			if nErr != nil {
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"user": channelName[1:]}, "", http.StatusBadRequest).Wrap(nErr)
 			}
+			// Only allow a DM target the webhook owner shares a team with, so the stored
+			// user_id cannot be used to reach users the owner could not message directly.
+			if hook.UserId != result.Id {
+				commonTeamIDs, teamErr := a.GetCommonTeamIDsForTwoUsers(hook.UserId, result.Id)
+				if teamErr != nil {
+					return teamErr
+				}
+				if len(commonTeamIDs) == 0 {
+					return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channelName}, "", http.StatusForbidden)
+				}
+			}
 			ch, err := a.GetOrCreateDirectChannel(rctx, hook.UserId, result.Id)
 			if err != nil {
 				return err
@@ -903,7 +944,16 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 
 	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
-	return err
+	if err != nil {
+		return err
+	}
+
+	now := model.GetMillis()
+	if nErr := a.Srv().Store().Webhook().UpdateIncomingLastUsed(hook.Id, now); nErr != nil {
+		rctx.Logger().Warn("Failed to update incoming webhook LastUsed", mlog.String("hook_id", hook.Id), mlog.Err(nErr))
+	}
+
+	return nil
 }
 
 func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {

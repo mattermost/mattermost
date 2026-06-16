@@ -22,6 +22,9 @@
                   type: string
                 device_id:
                   type: string
+                voip_device_id:
+                  description: VoIP push token. Same prefix shape as device_id. Optional; when provided, enables ring-style call push notifications.
+                  type: string
                 ldap_only:
                   type: boolean
                 password:
@@ -1534,6 +1537,54 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  /api/v4/users/auth_data:
+    get:
+      tags:
+        - users
+      summary: Get a user by auth data
+      description: >
+        Get a user by their external auth data identifier. The `value` is
+        matched against what is stored in `Users.AuthData`, which for most
+        identity providers is the identifier as the provider issues it.
+
+
+        The exception is Active Directory `objectGUID`: under
+        `auth_service: ldap` it is stored as the LDAP filter hex-escape
+        form (e.g. `\61\14\e1\d1\c5\35\18\4a\b6\60\d6\78\50\fd\0d\5d`),
+        and under `auth_service: saml` it is stored as the standard
+        Base64 of the same bytes (e.g. `YRTh0cU1GEq2YNZ4UP0NXQ==`). Use
+        the form matching the user's current `AuthService`.
+
+
+        ##### Permissions
+
+        Must be a system admin.
+      operationId: GetUserByAuthData
+      parameters:
+        - name: value
+          in: query
+          description: >
+            The user's AuthData as stored in `Users.AuthData`. Must be
+            URL-encoded; in particular, Base64 `+` characters must be sent
+            as `%2B` so they are not decoded as spaces.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/v4/users/password/reset:
     post:
       tags:
@@ -2051,6 +2102,9 @@
                   description: Mobile device id. For Android prefix the id with `android:`
                     and Apple with `apple:`
                   type: string
+                voip_device_id:
+                  description: VoIP push token. Same prefix shape as device_id. Optional; when provided, enables ring-style call push notifications.
+                  type: string
                 deviceNotificationDisabled:
                   description: Whether the mobile device has notifications disabled.
                     Accepted values are "true" or "false".
@@ -2070,6 +2124,45 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /api/v4/users/sessions/attributes/manifest:
+    get:
+      tags:
+        - users
+      summary: Get the session attributes manifest
+      description: >
+        Get the set of session attributes the server expects the client to
+        collect, filtered to the requesting client's platform, including the
+        per-attribute TTL and grace period.
+
+        Requires the `SessionAttributes` feature flag and an Enterprise Advanced license.
+
+      operationId: GetSessionAttributesManifest
+      responses:
+        "200":
+          description: Session attributes manifest retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
+                    ttl_seconds:
+                      type: integer
+                    grace_period_seconds:
+                      type: integer
+                    platforms:
+                      type: array
+                      items:
+                        type: string
+                    display_name:
+                      type: string
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/audits":
     get:
       tags:
@@ -2690,6 +2783,11 @@
         to/from LDAP authentication for example.
 
 
+        For `auth_service` set to `email`, omit `auth_data`; this clears external
+        authentication and switches the user to email authentication. For other
+        authentication services, `auth_data` must be present and non-empty.
+
+
         __Minimum server version__: 4.6
 
         ##### Permissions
@@ -3158,6 +3256,60 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/users/{user_id}/teams/{team_id}/read":
+    put:
+      tags:
+        - channels
+      summary: Mark all channels and threads in a team as read
+      description: |
+        Mark all channels and threads in a team as read for a user.
+
+        ##### Permissions
+
+        Must be logged in as user or have `edit_other_users` permission. Must have `view_team` permission for the team.
+
+        __Minimum server version__: 11.3
+      operationId: MarkAllTeamChannelsRead
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID to mark channels as read for
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team ID to mark all channels as read in
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team channels marked as read successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Value should be "OK" if successful
+                  last_viewed_at_times:
+                    type: object
+                    description: A JSON object mapping channel IDs to the last viewed times
+                    additionalProperties:
+                      type: integer
+                      format: int64
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/teams/{team_id}/threads/read":
     put:
       tags:

@@ -15,16 +15,16 @@
  * Use underscores instead of spaces (e.g. 'Test_Department' not 'Test Department').
  */
 
-import {Client4} from '@mattermost/client';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Client4} from '@mattermost/client';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
-import {expect, getAdminClient, test, SystemConsolePage} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended, SystemConsolePage} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
 import {
     setupCustomProfileAttributeFields,
     deleteCustomProfileAttributes,
-    CustomProfileAttribute,
 } from '../../channels/custom_profile_attributes/helpers';
 
 type FieldsMap = Record<string, UserPropertyField>;
@@ -165,14 +165,14 @@ test.describe('System Console - User Attributes Management', () => {
         await expect(nameInput).toBeVisible();
 
         // # Type attribute name (must be a valid CEL identifier — no spaces)
-        await nameInput.fill('Test_Department');
+        await nameInput.fill('test_department');
         await nameInput.blur();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify the field was created by fetching from API
         const fieldsMap = await getFieldsMap(adminClient);
-        const createdField = Object.values(fieldsMap).find((f) => f.name === 'Test_Department');
+        const createdField = Object.values(fieldsMap).find((f) => f.name === 'test_department');
         expect(createdField).toBeDefined();
         expect(createdField!.type).toBe('text');
 
@@ -195,7 +195,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         // # Type attribute name (must be a valid CEL identifier — no spaces)
         const nameInput = sp.lastNameInput();
-        await nameInput.fill('Office_Location');
+        await nameInput.fill('office_location');
         await nameInput.blur();
 
         // # Change type to Select (use selectLastType so the index stays correct
@@ -212,7 +212,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         // * Verify field was created with correct type via API
         const fieldsMap = await getFieldsMap(adminClient);
-        const createdField = Object.values(fieldsMap).find((f) => f.name === 'Office_Location');
+        const createdField = Object.values(fieldsMap).find((f) => f.name === 'office_location');
         expect(createdField).toBeDefined();
         expect(createdField!.type).toBe('select');
         expect(createdField!.attrs.options).toBeDefined();
@@ -233,16 +233,16 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Old_Name', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'old_name', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
         await sp.goto();
 
-        const nameInputLocator = sp.nameInputByValue('Old_Name');
-        await expect(nameInputLocator).toBeVisible();
-        await nameInputLocator.focus();
-        await nameInputLocator.fill('New_Name');
+        const nameInput = sp.nameInputByValue('old_name');
+        await expect(nameInput).toBeVisible();
+        await nameInput.focus();
+        await nameInput.fill('new_name');
         // blur via keyboard — the CSS-attribute locator no longer matches
         // after fill() so calling .blur() on it would time out.
         await sp.page.keyboard.press('Tab');
@@ -251,7 +251,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         // * Verify field was updated via API
         const updatedMap = await getFieldsMap(adminClient);
-        expect(Object.values(updatedMap).find((f) => f.name === 'New_Name')).toBeDefined();
+        expect(Object.values(updatedMap).find((f) => f.name === 'new_name')).toBeDefined();
 
         await cleanupFields(adminClient, {...fieldsMap, ...updatedMap});
     });
@@ -268,7 +268,7 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'To_Delete', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'to_delete', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
         const fieldId = Object.keys(fieldsMap)[0];
 
@@ -276,7 +276,7 @@ test.describe('System Console - User Attributes Management', () => {
         await sp.goto();
 
         // * Verify the attribute exists
-        await expect(sp.nameInputByValue('To_Delete')).toBeVisible();
+        await expect(sp.nameInputByValue('to_delete')).toBeVisible();
 
         // # Open dot menu for the field
         await sp.openDotMenu(fieldId);
@@ -291,7 +291,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         // * Verify field was deleted via API
         const updatedMap = await getFieldsMap(adminClient);
-        expect(Object.values(updatedMap).find((f) => f.name === 'To_Delete')).toBeUndefined();
+        expect(Object.values(updatedMap).find((f) => f.name === 'to_delete')).toBeUndefined();
 
         await cleanupFields(adminClient, updatedMap);
     });
@@ -321,13 +321,10 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Duplicate attribute"
         await sp.duplicateAttribute();
 
-        // * Verify a copy row appeared (server generates "Original (copy)" as the default name)
-        await expect(sp.nameInputByValue('Original (copy)')).toBeVisible();
+        // * Verify a copy row appeared with "_copy" suffix in the name
+        await expect(sp.nameInputByValue('Original_copy')).toBeVisible();
 
-        // # Rename the copy to a valid CEL identifier.
-        // "Original (copy)" contains spaces and parentheses which the server rejects with 422.
-        // Use lastNameInput() for the fill/blur — it's position-based (.last()) so it stays
-        // valid after the value changes, unlike the value-based nameInputByValue locator.
+        // # Rename the copy to a valid CEL identifier (server rejects spaces/parens with 422)
         const copyInput = sp.lastNameInput();
         await copyInput.fill('Original_copy');
         await copyInput.blur();
@@ -354,7 +351,7 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Visibility_Test', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'visibility_test', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
         const fieldId = Object.keys(fieldsMap)[0];
 
@@ -371,7 +368,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         // * Verify visibility was updated via API
         const updatedMap = await getFieldsMap(adminClient);
-        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Visibility_Test');
+        const updatedField = Object.values(updatedMap).find((f) => f.name === 'visibility_test');
         expect(updatedField).toBeDefined();
         expect(updatedField!.attrs.visibility).toBe('hidden');
 
@@ -390,7 +387,7 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Editable_Test', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'editable_test', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
         const fieldId = Object.keys(fieldsMap)[0];
 
@@ -420,7 +417,7 @@ test.describe('System Console - User Attributes Management', () => {
         await expect
             .poll(async () => {
                 const map = await getFieldsMap(adminClient);
-                return Object.values(map).find((f) => f.name === 'Editable_Test');
+                return Object.values(map).find((f) => f.name === 'editable_test');
             })
             .toMatchObject({attrs: {managed: 'admin'}});
 
@@ -428,8 +425,10 @@ test.describe('System Console - User Attributes Management', () => {
     });
 
     /**
-     * @objective Verify that leaving an attribute name empty shows a validation
-     * warning and disables the Save button.
+     * @objective Verify that clearing the auto-derived CEL identifier (Name)
+     * after entering a Display Name shows the empty-name validation warning
+     * in both the offending Name cell (red icon) and a banner below the table,
+     * and that Save remains disabled.
      */
     test('shows validation warning for empty attribute name', {tag: '@user_attributes'}, async ({pw}) => {
         const {systemConsolePage} = await setupTest(pw);
@@ -441,55 +440,129 @@ test.describe('System Console - User Attributes Management', () => {
         // # Add a new attribute
         await sp.addAttribute();
 
-        // # Clear the auto-focused name input (leave it empty).
-        // Use lastNameInput() so concurrent UAAE/ABAC rows don't shift the index.
+        // # Fill Display Name so the Name field auto-derives as snake_case
+        const displayNameInput = sp.lastDisplayNameInput();
+        await displayNameInput.fill('Job Title');
+        await displayNameInput.blur();
+
+        // * Verify the Name field auto-populated with the snake_case identifier
         const nameInput = sp.lastNameInput();
+        await expect(nameInput).toHaveValue('job_title');
+
+        // # Clear the auto-derived identifier and blur to trigger the empty-name warning
         await nameInput.clear();
         await nameInput.blur();
 
-        // * Verify validation warning about empty name is shown
-        await expect(sp.validationMessage('Please enter an attribute name.')).toBeVisible();
+        // * Verify the in-cell error icon is rendered for the offending row
+        await expect(sp.identifierValidationError()).toBeVisible();
+
+        // * Verify the bottom banner with the title and body copy is rendered
+        await expect(sp.validationBannerByTitle('Please enter an attribute name.')).toBeVisible();
+        await expect(sp.validationBannerByTitle(/missing a Name/)).toBeVisible();
 
         // * Verify Save button is disabled due to validation error
         await expect(sp.saveButton).toBeDisabled();
     });
 
     /**
-     * @objective Verify that entering a duplicate attribute name shows a "must be
-     * unique" warning and disables the Save button.
-     *
-     * @precondition
-     * A custom profile attribute named "UniqueName_<timestamp>" exists via API setup.
+     * @objective Verify that two pending fields with the same Name surface the
+     * `name_unique` validation: both rows display the in-cell error icon, a
+     * single banner appears below the table, and Save stays disabled.
      */
-    test.fixme('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
-        const {adminClient, systemConsolePage} = await setupTest(pw);
+    test('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
+        const {systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
-        // # Create an attribute via API (name must be a valid CEL identifier — no spaces)
-        const uniqueDupName = `UniqueName_${Date.now()}`;
-        const attributes: CustomProfileAttribute[] = [{name: uniqueDupName, type: 'text'}];
-        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const dupName = `dup_${Date.now()}`;
 
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Add a new attribute with the same name
+        // # Add the first new attribute with the duplicate name. We commit the
+        // # value via lastNameInput() here, then resolve the row by value below
+        // # so subsequent addAttribute() calls don't cause `.last()` to slide
+        // # onto the second row.
         await sp.addAttribute();
+        await sp.lastNameInput().fill(dupName);
+        await sp.lastNameInput().blur();
 
-        // Use lastNameInput() so concurrent UAAE/ABAC rows don't shift the index.
-        const newNameInput = sp.lastNameInput();
-        await newNameInput.clear();
-        await newNameInput.fill(uniqueDupName);
-        await newNameInput.blur();
+        // # Add the second new attribute with the same name (triggers name_unique)
+        await sp.addAttribute();
+        const secondNameInput = sp.lastNameInput();
+        await secondNameInput.fill(dupName);
+        await secondNameInput.blur();
 
-        // * Verify validation warning about duplicate name is shown
-        await expect(sp.validationMessage('Attribute names must be unique.').first()).toBeVisible();
+        // * Both rows should display the in-cell error icon
+        await expect(sp.identifierValidationError()).toHaveCount(2);
+
+        // * A single name_unique banner is rendered below the table
+        await expect(sp.validationBannerByTitle('Attribute names must be unique.')).toHaveCount(1);
+        await expect(sp.validationBannerByTitle(/share the same Name/)).toBeVisible();
 
         // * Verify Save button is disabled
         await expect(sp.saveButton).toBeDisabled();
-
-        await cleanupFields(adminClient, fieldsMap);
     });
+
+    /**
+     * @objective Verify the `name_taken` validation path: renaming a persisted
+     * field to free its name, then renaming a second persisted field to take
+     * the freed name, surfaces the in-cell icon and bottom banner. This is the
+     * only sequence that reaches the `NameTaken` branch — duplicate-pending
+     * fields trigger `NameUnique` first.
+     *
+     * @precondition
+     * Two custom profile attributes (`taken_a`, `taken_b`) exist via API setup.
+     */
+    test(
+        'shows validation warning when a persisted attribute name is taken',
+        {tag: '@user_attributes'},
+        async ({pw}) => {
+            const {adminClient, systemConsolePage} = await setupTest(pw);
+            const sp = systemConsolePage.systemProperties;
+
+            // # Create two persisted attributes via API
+            const uid = Date.now();
+            const nameA = `taken_a_${uid}`;
+            const nameB = `taken_b_${uid}`;
+            const freedName = `taken_freed_${uid}`;
+            const attributes: CustomProfileAttribute[] = [
+                {name: nameA, type: 'text'},
+                {name: nameB, type: 'text'},
+            ];
+            const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+
+            try {
+                // # Navigate to User Attributes page
+                await sp.goto();
+
+                // # Rename A first — frees the original `taken_a_*` name
+                const inputA = sp.nameInputByValue(nameA);
+                await expect(inputA).toBeVisible();
+                await inputA.focus();
+                await inputA.fill(freedName);
+                await sp.page.keyboard.press('Tab');
+
+                // # Rename B to the now-freed name — reaches the NameTaken branch
+                const inputB = sp.nameInputByValue(nameB);
+                await expect(inputB).toBeVisible();
+                await inputB.focus();
+                await inputB.fill(nameA);
+                await sp.page.keyboard.press('Tab');
+
+                // * Verify the offending row carries the in-cell error icon
+                await expect(sp.identifierValidationError()).toHaveCount(1);
+
+                // * Verify the bottom banner with the name_taken title and body
+                await expect(sp.validationBannerByTitle('Attribute name already taken.')).toBeVisible();
+                await expect(sp.validationBannerByTitle(/already used by another attribute/)).toBeVisible();
+
+                // * Verify Save button is disabled
+                await expect(sp.saveButton).toBeDisabled();
+            } finally {
+                await cleanupFields(adminClient, fieldsMap);
+            }
+        },
+    );
 
     /**
      * @objective Verify changing an attribute type from Text to Phone via the type
@@ -503,7 +576,7 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create a text attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Contact_Number', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'contact_number', type: 'text'}];
         await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
@@ -512,13 +585,13 @@ test.describe('System Console - User Attributes Management', () => {
         // # Select "Phone" type for the Contact_Number field.
         // Use selectTypeForField() — resolves the row index by name so concurrent
         // UAAE/ABAC rows don't shift the positional index.
-        await sp.selectTypeForField('Contact_Number', 'Phone');
+        await sp.selectTypeForField('contact_number', 'Phone');
 
         await sp.saveAndWaitForSettled();
 
         // * Verify field type was updated via API
         const updatedMap = await getFieldsMap(adminClient);
-        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Contact_Number');
+        const updatedField = Object.values(updatedMap).find((f) => f.name === 'contact_number');
         expect(updatedField).toBeDefined();
         expect(updatedField!.type).toBe('text');
         expect(updatedField!.attrs.value_type).toBe('phone');
@@ -581,21 +654,21 @@ test.describe('System Console - User Attributes Management', () => {
         // # Create first attribute (text) — use lastNameInput() after each addAttribute()
         await sp.addAttribute();
         const firstInput = sp.lastNameInput();
-        await firstInput.fill('Job_Title');
+        await firstInput.fill('job_title');
         await firstInput.blur();
 
         // # Create second attribute (text)
         await sp.addAttribute();
         const secondInput = sp.lastNameInput();
-        await secondInput.fill('Team_Name');
+        await secondInput.fill('team_name');
         await secondInput.blur();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify both fields were created via API
         const fieldsMap = await getFieldsMap(adminClient);
-        expect(Object.values(fieldsMap).find((f) => f.name === 'Job_Title')).toBeDefined();
-        expect(Object.values(fieldsMap).find((f) => f.name === 'Team_Name')).toBeDefined();
+        expect(Object.values(fieldsMap).find((f) => f.name === 'job_title')).toBeDefined();
+        expect(Object.values(fieldsMap).find((f) => f.name === 'team_name')).toBeDefined();
 
         await cleanupFields(adminClient, fieldsMap);
     });
@@ -612,20 +685,20 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        await setupCustomProfileAttributeFields(adminClient, [{name: 'Persistent_Field', type: 'text'}]);
+        await setupCustomProfileAttributeFields(adminClient, [{name: 'persistent_field', type: 'text'}]);
 
         // # Navigate to User Attributes page
         await sp.goto();
 
         // * Verify attribute exists
-        await expect(sp.nameInputByValue('Persistent_Field')).toBeVisible();
+        await expect(sp.nameInputByValue('persistent_field')).toBeVisible();
 
         // # Edit the name using a value-based locator so concurrent UAAE/ABAC rows
         // don't shift a positional index to the wrong field.
-        const nameInput = sp.nameInputByValue('Persistent_Field');
-        await expect(nameInput).toHaveValue('Persistent_Field');
+        const nameInput = sp.nameInputByValue('persistent_field');
+        await expect(nameInput).toHaveValue('persistent_field');
         await nameInput.focus();
-        await nameInput.fill('Updated_Persistent');
+        await nameInput.fill('updated_persistent');
         // blur via keyboard — the value-based locator is stale after fill()
         await sp.page.keyboard.press('Tab');
 
@@ -635,9 +708,58 @@ test.describe('System Console - User Attributes Management', () => {
         await sp.goto();
 
         // * Verify the updated name persisted
-        await expect(sp.nameInputByValue('Updated_Persistent')).toBeVisible();
+        await expect(sp.nameInputByValue('updated_persistent')).toBeVisible();
 
         await cleanupFields(adminClient, await getFieldsMap(adminClient));
+    });
+
+    /**
+     * @objective Verify that two distinct name validation errors produce two
+     * stacked banners below the table (one per type), both offending rows
+     * carry the in-cell error icon, and that fixing one row removes only the
+     * matching banner while the other persists.
+     */
+    test('stacks one banner per distinct validation error type', {tag: '@user_attributes'}, async ({pw}) => {
+        const {systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
+        // # Navigate to User Attributes page
+        await sp.goto();
+
+        // # Row 1: trigger name_required (fill Display Name, clear auto-Name, blur)
+        await sp.addAttribute();
+        const firstDisplayName = sp.lastDisplayNameInput();
+        await firstDisplayName.fill('Job Title');
+        await firstDisplayName.blur();
+        const firstNameInput = sp.lastNameInput();
+        await expect(firstNameInput).toHaveValue('job_title');
+        await firstNameInput.clear();
+        await firstNameInput.blur();
+
+        // # Row 2: trigger name_invalid_cel (reserved CEL keyword)
+        await sp.addAttribute();
+        const secondNameInput = sp.lastNameInput();
+        await secondNameInput.fill('true');
+        await secondNameInput.blur();
+
+        // * Both banners stack at the bottom of the table
+        await expect(sp.validationBannerByTitle('Please enter an attribute name.')).toBeVisible();
+        await expect(sp.validationBannerByTitle(/Identifier must start with a letter or underscore/)).toBeVisible();
+
+        // * Both offending Name cells carry the in-cell error icon
+        await expect(sp.identifierValidationError()).toHaveCount(2);
+
+        // * Save button stays disabled while any banner is present
+        await expect(sp.saveButton).toBeDisabled();
+
+        // # Fix the second row (give it a valid name) — only the CEL banner should disappear
+        await secondNameInput.fill('valid_name');
+        await secondNameInput.blur();
+
+        await expect(sp.validationBannerByTitle(/Identifier must start with a letter or underscore/)).toHaveCount(0);
+        await expect(sp.validationBannerByTitle('Please enter an attribute name.')).toBeVisible();
+        await expect(sp.identifierValidationError()).toHaveCount(1);
+        await expect(sp.saveButton).toBeDisabled();
     });
 
     /**

@@ -14,7 +14,6 @@ import {changeDesktopNotificationAs} from './helper';
 
 import {spyNotificationAs} from '@/support/notification';
 
-
 describe('Desktop notifications', () => {
     let testTeam;
     let testChannel;

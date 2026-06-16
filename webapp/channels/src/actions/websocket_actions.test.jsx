@@ -5,15 +5,17 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
+    getPostsAround,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -28,20 +30,25 @@ import store from 'stores/redux_store';
 import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {setIntl} from 'utils/i18n';
 
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handleTeamAccessControlUpdatedEvent,
     handleEvent,
+    handleFileUploadRejected,
     handleNewPostEvent,
     handleNewPostEvents,
     handlePluginEnabled,
     handlePluginDisabled,
     handlePostEditEvent,
     handlePostUnreadEvent,
+    handleUserAddedEvent,
     handleUserRemovedEvent,
     handleLeaveTeamEvent,
     reconnect,
@@ -59,6 +66,7 @@ import {
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
+    getPostsAround: jest.fn(() => ({type: 'GET_POSTS_AROUND'})),
     getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
@@ -122,6 +130,14 @@ jest.mock('plugins', () => ({
 jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
     EntityType: {Channel: 'channel'},
     invalidateAccessControlAttributesCache: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/shared_channels', () => ({
+    fetchChannelRemotes: jest.fn((channelId, forceRefresh) => ({
+        type: 'MOCK_FETCH_CHANNEL_REMOTES',
+        channelId,
+        forceRefresh,
+    })),
 }));
 
 let mockState = {
@@ -211,6 +227,10 @@ let mockState = {
                     order: ['post5', 'post2', 'post1'],
                     recent: true,
                 }],
+                channel2: [{
+                    order: ['post4', 'post3'],
+                    recent: true,
+                }],
             },
         },
     },
@@ -251,20 +271,102 @@ describe('handleEvent', () => {
 });
 
 describe('handlePostEditEvent', () => {
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        getPostsAround.mockClear();
+    });
+
+    const buildMsg = (postOverrides) => {
+        const post = JSON.stringify({
+            id: 'test',
+            create_at: 123,
+            update_at: 123,
+            user_id: 'user',
+            channel_id: '12345',
+            root_id: '',
+            message: 'asd',
+            pending_post_id: '2345',
+            metadata: {},
+            ...postOverrides,
+        });
+        return {
+            data: {post},
+            broadcast: {channel_id: '1234657'},
+        };
+    };
+
     test('post edited', async () => {
-        const post = '{"id":"test","create_at":123,"update_at":123,"user_id":"user","channel_id":"12345","root_id":"","message":"asd","pending_post_id":"2345","metadata":{}}';
-        const expectedAction = {type: 'RECEIVED_POST', data: JSON.parse(post), features: {crtEnabled: false}};
-        const msg = {
-            data: {
-                post,
-            },
-            broadcast: {
-                channel_id: '1234657',
-            },
+        const msg = buildMsg({});
+        const expectedAction = {
+            type: 'RECEIVED_POST',
+            data: JSON.parse(msg.data.post),
+            features: {crtEnabled: false},
         };
 
         handlePostEditEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post within a loaded block range triggers getPostsAround', () => {
+        // mockState's otherChannel block contains post5 (create_at 12345 — newest)
+        // through post1 (create_at 12341 — oldest). A restored post not in that
+        // order but with create_at inside the range should fetch surrounding posts.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+        expect(store.dispatch).toHaveBeenCalledWith({type: 'GET_POSTS_AROUND'});
+    });
+
+    test('restored post newer than every loaded block in the current channel triggers getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+    });
+
+    test('restored post newer than every loaded block in a non-current channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channel2', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post older than every loaded block does not trigger getPostsAround', () => {
+        // create_at well below the block's oldest (12341). Inserting here would
+        // produce a disjoint block; let the user load it naturally on scroll.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 100});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('post already in a block does not trigger getPostsAround', () => {
+        // post5 is in mockState's otherChannel order — receivedPost updates the
+        // entity in place; no surrounding fetch is needed.
+        const msg = buildMsg({id: 'post5', channel_id: 'otherChannel', create_at: 12345});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('edit for an unloaded channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channelNotInState', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('thread reply does not trigger getPostsAround', () => {
+        // Replies live in postsInThread, not postsInChannel — skip this path.
+        const msg = buildMsg({id: 'reply', channel_id: 'otherChannel', create_at: 12343, root_id: 'post5'});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
     });
 });
 
@@ -344,6 +446,68 @@ describe('handlePostUnreadEvent', () => {
 
         handlePostUnreadEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleUserAddedEvent', () => {
+    const currentChannelId = mockState.entities.channels.currentChannelId;
+
+    // getLicense() must resolve to an object for handleUserAddedEvent, so add one
+    // to a local copy of the state rather than mutating the shared mockState.
+    const stateWithLicense = {
+        ...mockState,
+        entities: {
+            ...mockState.entities,
+            general: {
+                ...mockState.entities.general,
+                license: {},
+            },
+        },
+    };
+
+    test('should load the added user profile when it is not already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).toHaveBeenCalledWith('remoteUser');
+    });
+
+    test('should not load the added user profile when it is already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'user',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
+    });
+
+    test('should not load the added user profile when the channel is not the current channel', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: 'someOtherChannel',
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
     });
 });
 
@@ -920,6 +1084,39 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         expect(testStore.getActions()).toEqual([]);
         expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleTeamAccessControlUpdatedEvent', () => {
+    test('dispatches RECEIVED_TEAM with parsed team', () => {
+        const testStore = configureStore({});
+        const team = {
+            id: 'team-ac-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                team: JSON.stringify(team),
+            },
+        };
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: TeamTypes.RECEIVED_TEAM,
+                data: team,
+            },
+        ]);
+    });
+
+    test('returns early when msg.data.team is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
     });
 });
 
@@ -1820,5 +2017,134 @@ describe('handleChannelConvertedEvent', () => {
                 name: 'test-channel',
             },
         });
+    });
+});
+
+describe('handleSharedChannelRemoteUpdatedEvent', () => {
+    const channelId = 'shared-remote-channel';
+
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        fetchChannelRemotes.mockClear();
+        mockState = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                channels: {
+                    ...mockState.entities.channels,
+                    channels: {
+                        ...mockState.entities.channels.channels,
+                        [channelId]: {
+                            id: channelId,
+                            team_id: 'currentTeamId',
+                            type: Constants.OPEN_CHANNEL,
+                            name: 'shared-channel',
+                            shared: true,
+                        },
+                    },
+                },
+            },
+        };
+    });
+
+    test('dispatches fetchChannelRemotes when local channel is shared', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).toHaveBeenCalledWith(channelId, true);
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'MOCK_FETCH_CHANNEL_REMOTES',
+            channelId,
+            forceRefresh: true,
+        });
+    });
+
+    test('skips fetch when local channel is not shared (regression: MM-66162)', () => {
+        mockState.entities.channels.channels[channelId].shared = false;
+
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel is absent from local state', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: 'unknown-channel'},
+            broadcast: {channel_id: 'unknown-channel'},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel_id is missing from both data and broadcast', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {},
+            broadcast: {},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleFileUploadRejected', () => {
+    beforeAll(() => {
+        setIntl(defaultIntl);
+    });
+
+    afterAll(() => {
+        setIntl(null);
+    });
+
+    const msg = {
+        event: WebSocketEvents.FileUploadRejected,
+        data: {
+            file_name: 'secret.tdf',
+            rejection_reason: 'blocked by policy',
+            channel_id: 'channel1',
+        },
+        broadcast: {},
+    };
+
+    test('opens an info toast with the rejection reason', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        expect(openModalAction).toBeDefined();
+        expect(openModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+        expect(openModalAction.dialogProps.position).toBe('bottom-center');
+        expect(openModalAction.dialogProps.content.message).toContain('blocked by policy');
+        expect(typeof openModalAction.dialogProps.onExited).toBe('function');
+    });
+
+    test('onExited closes the info toast', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        openModalAction.dialogProps.onExited();
+
+        const closeModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_CLOSE);
+        expect(closeModalAction).toBeDefined();
+        expect(closeModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
     });
 });

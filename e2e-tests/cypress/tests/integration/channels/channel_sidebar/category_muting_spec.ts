@@ -15,7 +15,6 @@ import {clickCategoryMenuItem} from './helpers';
 import {getAdminAccount} from '@/support/env';
 import {getRandomId} from '@/utils';
 
-
 describe('Category muting', () => {
     let testTeam: Cypress.Team;
     let testUser: Cypress.UserProfile;

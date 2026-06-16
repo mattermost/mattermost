@@ -82,6 +82,11 @@ const (
 
 	TemporaryPostCacheSize    = 10000
 	TemporaryPostCacheMinutes = 60
+
+	SessionAttributeCacheSize = model.SessionCacheSize
+
+	PropertyFieldCacheSize = 100
+	PropertyFieldCacheSec  = 30 * 60
 )
 
 var clearCacheMessageData = []byte("")
@@ -152,6 +157,12 @@ type LocalCacheStore struct {
 
 	temporaryPost      LocalCacheTemporaryPostStore
 	temporaryPostCache cache.Cache
+
+	sessionAttribute      LocalCacheSessionAttributeStore
+	sessionAttributeCache cache.Cache
+
+	propertyField      LocalCachePropertyFieldStore
+	propertyFieldCache cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -456,6 +467,27 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.temporaryPost = LocalCacheTemporaryPostStore{TemporaryPostStore: baseStore.TemporaryPost(), rootStore: &localCacheStore}
 
+	// Session Attributes
+	if localCacheStore.sessionAttributeCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   SessionAttributeCacheSize,
+		Name:                   "SessionAttribute",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForSessionAttributes,
+	}); err != nil {
+		return
+	}
+	localCacheStore.sessionAttribute = LocalCacheSessionAttributeStore{SessionAttributeStore: baseStore.SessionAttribute(), rootStore: &localCacheStore}
+
+	// Property Fields
+	if localCacheStore.propertyFieldCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   PropertyFieldCacheSize,
+		Name:                   "PropertyField",
+		DefaultExpiry:          PropertyFieldCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForPropertyFields,
+	}); err != nil {
+		return
+	}
+	localCacheStore.propertyField = LocalCachePropertyFieldStore{PropertyFieldStore: baseStore.PropertyField(), rootStore: &localCacheStore}
+
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReactions, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForRoles, localCacheStore.role.handleClusterInvalidateRole)
@@ -485,6 +517,8 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReadReceipts, localCacheStore.readReceipt.handleClusterInvalidateReadReceipts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTemporaryPosts, localCacheStore.temporaryPost.handleClusterInvalidateTemporaryPosts)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForSessionAttributes, localCacheStore.sessionAttribute.handleClusterInvalidateSessionAttributes)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPropertyFields, localCacheStore.propertyField.handleClusterInvalidatePropertyField)
 	}
 	return
 }
@@ -547,6 +581,14 @@ func (s LocalCacheStore) ReadReceipt() store.ReadReceiptStore {
 
 func (s LocalCacheStore) TemporaryPost() store.TemporaryPostStore {
 	return s.temporaryPost
+}
+
+func (s LocalCacheStore) SessionAttribute() store.SessionAttributeStore {
+	return &s.sessionAttribute
+}
+
+func (s LocalCacheStore) PropertyField() store.PropertyFieldStore {
+	return s.propertyField
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -687,6 +729,8 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.readReceiptCache)
 	s.doClearCacheCluster(s.readReceiptPostReadersCache)
 	s.doClearCacheCluster(s.temporaryPostCache)
+	s.doClearCacheCluster(s.sessionAttributeCache)
+	s.doClearCacheCluster(s.propertyFieldCache)
 }
 
 // allocateCacheTargets is used to fill target value types

@@ -56,9 +56,7 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
-permissions:
-  contents: read
-  statuses: write
+permissions: {}
 
 jobs:
   generate-build-variables:
@@ -74,10 +72,15 @@ jobs:
         id: build-vars
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
-          PR_NUMBER: ${{ inputs.pr_number }}
+          INPUT_REF_BRANCH: ${{ inputs.ref_branch }}
+          INPUT_REPORT_TYPE: ${{ inputs.report_type }}
+          INPUT_SERVER_EDITION: ${{ inputs.server_edition }}
+          INPUT_SERVER_IMAGE_ALIASES: ${{ inputs.server_image_aliases }}
+          INPUT_SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
           INPUT_SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
-          RUN_ID: ${{ github.run_id }}
+          PR_NUMBER: ${{ inputs.pr_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           # Use provided server_image_tag or derive from commit SHA
           if [ -n "$INPUT_SERVER_IMAGE_TAG" ]; then
@@ -99,7 +102,7 @@ jobs:
           # build on that branch instead of treating each image tag as its
           # own "branch". PR and commit-only fallback paths keep their
           # synthetic prefix because there's no real branch to use.
-          REF_BRANCH="${{ inputs.ref_branch }}"
+          REF_BRANCH="${INPUT_REF_BRANCH}"
           if [ -n "$PR_NUMBER" ]; then
             echo "branch=pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
           elif [ -n "$REF_BRANCH" ]; then
@@ -109,8 +112,8 @@ jobs:
           fi
 
           # Determine server image name
-          EDITION="${{ inputs.server_edition }}"
-          REPO="${{ inputs.server_image_repo }}"
+          EDITION="${INPUT_SERVER_EDITION}"
+          REPO="${INPUT_SERVER_IMAGE_REPO}"
           REPO="${REPO:-mattermostdevelopment}"
           case "$EDITION" in
             fips) IMAGE_NAME="mattermost-enterprise-fips-edition" ;;
@@ -121,7 +124,7 @@ jobs:
           echo "server_image=${SERVER_IMAGE}" >> $GITHUB_OUTPUT
 
           # Validate server_image_aliases format if provided
-          ALIASES="${{ inputs.server_image_aliases }}"
+          ALIASES="${INPUT_SERVER_IMAGE_ALIASES}"
           if [ -n "$ALIASES" ] && ! [[ "$ALIASES" =~ ^[a-zA-Z0-9._,\ -]+$ ]]; then
             echo "::error::Invalid server_image_aliases format: ${ALIASES}"
             exit 1
@@ -135,7 +138,7 @@ jobs:
           fi
 
           # Generate context name suffix based on report type
-          REPORT_TYPE="${{ inputs.report_type }}"
+          REPORT_TYPE="${INPUT_REPORT_TYPE}"
           case "$REPORT_TYPE" in
             MASTER) echo "context_suffix=/master" >> $GITHUB_OUTPUT ;;
             RELEASE) echo "context_suffix=/release" >> $GITHUB_OUTPUT ;;
@@ -154,15 +157,17 @@ jobs:
     steps:
       - name: ci/post-skip-status
         env:
-          GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ inputs.commit_sha }}
           CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
-          gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
             -f state=success \
             -f context="${CONTEXT_NAME}" \
             -f description="No E2E-relevant changes - skipped" \
-            -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "Posted success for ${CONTEXT_NAME}"
 
   # ── Routing fork ─────────────────────────────────────────────────────

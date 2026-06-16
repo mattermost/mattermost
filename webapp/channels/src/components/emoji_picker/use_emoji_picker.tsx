@@ -41,13 +41,13 @@ type UseEmojiPickerOptions = {
      * Replaces the middleware for positioning the emoji picker in cases where we want it positioned differently.
      */
     overrideMiddleware?: UseFloatingOptions['middleware'];
-}
+};
 
 type UseEmojiPickerReturn = {
     emojiPicker: React.ReactNode;
     getReferenceProps: ReturnType<typeof useInteractions>['getReferenceProps'];
     setReference: UseFloatingReturn['refs']['setReference'];
-}
+};
 
 export default function useEmojiPicker({
     showEmojiPicker,

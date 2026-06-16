@@ -130,8 +130,10 @@ jobs:
     steps:
       - name: ci/generate-workers
         id: generate-workers
+        env:
+          INPUT_WORKERS: ${{ inputs.workers }}
         run: |
-          echo "workers=$(jq -nc '[range(1; ${{ inputs.workers }} + 1)]')" >> $GITHUB_OUTPUT
+          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n + 1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
   run-tests:
@@ -159,9 +161,21 @@ jobs:
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
     steps:
+      - name: ci/checkout-actions
+        # Sparse-checkout just .github/actions from the triggering ref (master)
+        # so the composite action below is available before the full checkout
+        # overwrites the workspace with inputs.commit_sha.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+      - name: ci/runner-prep-for-openldap
+        uses: ./.github/actions/runner-prep-openldap
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
@@ -169,49 +183,17 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+          cache-dependency-path: |
+            e2e-tests/playwright/package-lock.json
+            webapp/package-lock.json
+      - name: ci/npm-cache-verify
+        # Heal any partial/dangling entries left in the restored ~/.npm cache
+        # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
+        # failures in npm's cacache writer.
+        run: npm cache verify
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
-      - name: ci/runner-prep-for-openldap
-        # Observed failure: "dependency failed to start: container
-        # mmserver-openldap-1 exited (1)" on ubuntu-24.04 runners — kills
-        # every ABAC/LDAP spec on the affected shard.
-        #
-        # Ubuntu 24.04 introduced an AppArmor profile that restricts the
-        # creation of unprivileged user namespaces. The osixia/openldap
-        # image's internal init scripts rely on this capability; blocking
-        # it produces an immediate exit(1) with no useful stderr. The
-        # container's own security_opt: apparmor:unconfined (already set
-        # in server/build/docker-compose.common.yml) isn't sufficient —
-        # that only unconfines slapd, not the container's entrypoint
-        # process. The actual switch is at the host-kernel level.
-        #
-        # Also ensure docker-compose is >= 2.36.0 — the 2.35.1 shipped on
-        # some ubuntu-24.04 images has a known `up` regression that
-        # manifests as random dependency-failed errors under load.
-        run: |
-          echo "Before: docker compose version"
-          docker compose version || true
-
-          # Disable the AppArmor user-namespace restriction. Idempotent;
-          # safe if the key doesn't exist (older kernel).
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
-
-          # If docker-compose is older than 2.36.0, install a newer one to
-          # the user's cli-plugins dir (takes precedence over the system copy).
-          CURRENT=$(docker compose version --short 2>/dev/null || echo "0.0.0")
-          NEED="2.36.0"
-          if [ "$(printf '%s\n' "$NEED" "$CURRENT" | sort -V | head -n1)" != "$NEED" ]; then
-            echo "Upgrading docker-compose from ${CURRENT} to 2.39.1"
-            mkdir -p "$HOME/.docker/cli-plugins"
-            curl -SL -o "$HOME/.docker/cli-plugins/docker-compose" \
-              "https://github.com/docker/compose/releases/download/v2.39.1/docker-compose-linux-x86_64"
-            chmod +x "$HOME/.docker/cli-plugins/docker-compose"
-          fi
-
-          echo "After: docker compose version"
-          docker compose version
       - name: ci/restore-playwright-image-cache
         # Cache the Playwright Docker image tar by the SHA of the files that pin
         # its version. Cache busts automatically when either file is edited to bump
@@ -311,6 +293,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -376,6 +360,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -484,19 +470,21 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
           RETEST_DISPLAY: ${{ steps.duration.outputs.retest_display }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
         run: |
           # Capitalize test type
           TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
 
           # Build source line based on report type
           COMMIT_SHORT="${COMMIT_SHA::7}"
-          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}"
+          COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${COMMIT_SHA}"
           if [ "$REPORT_TYPE" = "RELEASE_CUT" ]; then
             SOURCE_LINE=":github_round: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
           elif [ "$REPORT_TYPE" = "MASTER" ] || [ "$REPORT_TYPE" = "RELEASE" ]; then
             SOURCE_LINE=":git_merge: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
           else
-            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})"
+            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${GITHUB_REPOSITORY}/pull/${PR_NUMBER})"
           fi
 
           # Build retest part for message
@@ -512,7 +500,7 @@ jobs:
             "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
             "attachments": [{
               "color": "${COLOR}",
-              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE}${RETEST_PART} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
+              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${SERVER_IMAGE}\`\n${COMMIT_STATUS_MESSAGE}${RETEST_PART} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
             }]
           }
           EOF
@@ -576,8 +564,10 @@ jobs:
             echo "[View Full Report](${REPORT_URL})"
           } >> $GITHUB_STEP_SUMMARY
       - name: ci/assert-results
+        env:
+          FINAL_RESULTS_FAILED: ${{ steps.final-results.outputs.failed }}
         run: |
-          [ "${{ steps.final-results.outputs.failed }}" = "0" ]
+          [ "${FINAL_RESULTS_FAILED}" = "0" ]
 
   update-success-status:
     runs-on: ubuntu-24.04

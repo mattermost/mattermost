@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-import {
+import type {
     AdminConfig,
     ClusterSettings,
-    CollapsedThreads,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -14,6 +13,7 @@ import {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 
@@ -306,6 +306,7 @@ const defaultServerConfig: AdminConfig = {
         Directory: './data/',
         EnablePublicLink: false,
         ExtractContent: true,
+        ExtractContentTimeout: 10,
         ArchiveRecursion: false,
         PublicLinkSalt: '',
         InitialFont: 'nunito-bold.ttf',
@@ -779,7 +780,6 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         PermissionPolicies: true,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
         AutoTranslation: true,
@@ -788,8 +788,9 @@ const defaultServerConfig: AdminConfig = {
         EnableAIRecaps: false,
         ClassificationMarkings: true,
         IntegratedBoards: false,
-        CJKSearch: false,
+        CJKSearch: true,
         ManagedChannelCategories: false,
+        MobileEphemeralMode: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -820,6 +821,8 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: true,
         EnableUserManagedAttributes: true,
+        TrustProxyDeviceIdentityHeader: false,
+        EnforceDeviceIDConsistency: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: true,
@@ -867,5 +870,11 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
 };

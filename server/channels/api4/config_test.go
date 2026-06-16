@@ -912,6 +912,20 @@ func TestPatchConfig(t *testing.T) {
 		assert.Equal(t, newURL, *cfg.PluginSettings.MarketplaceURL)
 	})
 
+	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		// Mirror the behavior of the full update endpoint (TestUpdateConfig):
+		// changes to this field are silently preserved, not rejected.
+		oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+
+		cfg := th.App.Config().Clone()
+		cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+
+		updatedConfig, _, err := th.SystemAdminClient.PatchConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		assert.Equal(t, oldPublicKeys, updatedConfig.PluginSettings.SignaturePublicKeyFiles)
+		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)

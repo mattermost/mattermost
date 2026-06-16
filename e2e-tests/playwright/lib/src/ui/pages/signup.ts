@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, expect} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {duration, wait} from '@/util';
 import {components} from '@/ui/components';
