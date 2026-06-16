@@ -138,3 +138,270 @@ describe('PluginRegistry — registerChannelTypeOption', () => {
         expect(options[0].pluginId).toBe('other_plugin');
     });
 });
+
+describe('PluginRegistry — registerChannelIconOverride', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getOverrides() {
+        return mockCurrentStore.getState().components.ChannelIconOverride;
+    }
+
+    it('(a) returns a string id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id = registry.registerChannelIconOverride({
+            matcher: () => false,
+            iconName: 'shield-outline',
+        });
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+    });
+
+    it('(b) reduced entry has pluginId, matcher, and iconName', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => false;
+        registry.registerChannelIconOverride({matcher, iconName: 'shield-outline'});
+
+        const overrides = getOverrides();
+        expect(overrides).toHaveLength(1);
+        expect(overrides[0].pluginId).toBe(PLUGIN_ID);
+        expect(overrides[0].matcher).toBe(matcher);
+        expect(overrides[0].iconName).toBe('shield-outline');
+    });
+
+    it('(c) re-registering produces a second entry with a different id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id1 = registry.registerChannelIconOverride({matcher: () => false, iconName: 'shield-outline'});
+        const id2 = registry.registerChannelIconOverride({matcher: () => true, iconName: 'lock-outline'});
+
+        expect(id1).not.toBe(id2);
+        expect(getOverrides()).toHaveLength(2);
+    });
+
+    it('(d) REMOVED_WEBAPP_PLUGIN sweeps all overrides for that plugin', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelIconOverride({matcher: () => false, iconName: 'shield-outline'});
+        registry.registerChannelIconOverride({matcher: () => false, iconName: 'lock-outline'});
+        otherRegistry.registerChannelIconOverride({matcher: () => true, iconName: 'globe'});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const overrides = getOverrides();
+        expect(overrides).toHaveLength(1);
+        expect(overrides[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(f) LOGOUT_SUCCESS resets the slot to []', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelIconOverride({matcher: () => false, iconName: 'shield-outline'});
+        expect(getOverrides()).toHaveLength(1);
+
+        mockCurrentStore.dispatch({type: 'LOGOUT_SUCCESS'});
+
+        expect(getOverrides()).toHaveLength(0);
+    });
+
+    it('(g) two registrations from different plugins are sorted by pluginId', () => {
+        const registryA = new PluginRegistry('aaa_plugin');
+        const registryZ = new PluginRegistry('zzz_plugin');
+
+        registryZ.registerChannelIconOverride({matcher: () => false, iconName: 'shield-outline'});
+        registryA.registerChannelIconOverride({matcher: () => true, iconName: 'lock-outline'});
+
+        const overrides = getOverrides();
+        expect(overrides).toHaveLength(2);
+        expect(overrides[0].pluginId).toBe('aaa_plugin');
+        expect(overrides[1].pluginId).toBe('zzz_plugin');
+    });
+
+    it('(h) registering with an unknown iconName logs an error and does not add an entry', () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const registry = new PluginRegistry(PLUGIN_ID);
+
+        registry.registerChannelIconOverride({
+            matcher: () => false,
+            iconName: 'not-a-real-icon' as any,
+        });
+
+        expect(getOverrides()).toHaveLength(0);
+        expect(consoleSpy).toHaveBeenCalledTimes(1);
+        expect(consoleSpy.mock.calls[0][0]).toContain('not-a-real-icon');
+        consoleSpy.mockRestore();
+    });
+
+    it('(j) registering with a prototype-inherited key logs an error and does not add an entry', () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const registry = new PluginRegistry(PLUGIN_ID);
+
+        registry.registerChannelIconOverride({
+            matcher: () => false,
+            iconName: 'constructor' as any,
+        });
+
+        expect(getOverrides()).toHaveLength(0);
+        expect(consoleSpy).toHaveBeenCalledTimes(1);
+        consoleSpy.mockRestore();
+    });
+});
+
+describe('PluginRegistry — registerChannelComposerBannerComponent', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getBanners() {
+        return mockCurrentStore.getState().components.ChannelComposerBanner;
+    }
+
+    it('adds an entry to ChannelComposerBanner with the plugin id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelComposerBannerComponent({component: () => null});
+
+        const entries = getBanners();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+    });
+
+    it('REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelComposerBannerComponent({component: () => null});
+        otherRegistry.registerChannelComposerBannerComponent({component: () => null});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const entries = getBanners();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+});
+
+describe('PluginRegistry — registerChannelIntro', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getIntroRegs() {
+        return mockCurrentStore.getState().components.ChannelIntro;
+    }
+
+    it('adds an entry to ChannelIntro with the plugin id, matcher, and component', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const component = () => null;
+        registry.registerChannelIntro({matcher, component});
+
+        const entries = getIntroRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+        expect(entries[0].matcher).toBe(matcher);
+        expect(entries[0].component).toBe(component);
+    });
+
+    it('REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelIntro({matcher: () => true, component: () => null});
+        otherRegistry.registerChannelIntro({matcher: () => false, component: () => null});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const entries = getIntroRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+});
+
+describe('PluginRegistry — registerComposerPlaceholder', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getRegistrations() {
+        return mockCurrentStore.getState().components.ComposerPlaceholder;
+    }
+
+    it('(a) dispatches RECEIVED_PLUGIN_COMPONENT with name ComposerPlaceholder, storing transform as-is', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const transform = (p: string) => `${p} (encrypted)`;
+        registry.registerComposerPlaceholder({transform});
+
+        const registrations = getRegistrations();
+        expect(registrations).toHaveLength(1);
+        expect(registrations[0].pluginId).toBe(PLUGIN_ID);
+        expect(registrations[0].transform).toBe(transform);
+    });
+
+    it('(b) returns a non-empty string id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id = registry.registerComposerPlaceholder({transform: (p) => p});
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+    });
+
+    it('(c) REMOVED_WEBAPP_PLUGIN sweeps all registrations for that plugin', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerComposerPlaceholder({transform: (p) => `${p} (a)`});
+        registry.registerComposerPlaceholder({transform: (p) => `${p} (b)`});
+        otherRegistry.registerComposerPlaceholder({transform: (p) => `${p} (c)`});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const registrations = getRegistrations();
+        expect(registrations).toHaveLength(1);
+        expect(registrations[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(e) two registrations from same plugin accumulate in insertion order (no deduplication)', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const first = (p: string) => `${p} (first)`;
+        const second = (p: string) => `${p} (second)`;
+        const id1 = registry.registerComposerPlaceholder({transform: first});
+        const id2 = registry.registerComposerPlaceholder({transform: second});
+
+        expect(id1).not.toBe(id2);
+        expect(getRegistrations()).toHaveLength(2);
+        expect(getRegistrations()[0].transform).toBe(first);
+        expect(getRegistrations()[1].transform).toBe(second);
+    });
+
+    it('(g) two registrations from different plugins are sorted by pluginId', () => {
+        const registryZ = new PluginRegistry('zzz_plugin');
+        const registryA = new PluginRegistry('aaa_plugin');
+
+        registryZ.registerComposerPlaceholder({transform: (p) => `${p} (zzz)`});
+        registryA.registerComposerPlaceholder({transform: (p) => `${p} (aaa)`});
+
+        const registrations = getRegistrations();
+        expect(registrations).toHaveLength(2);
+        expect(registrations[0].pluginId).toBe('aaa_plugin');
+        expect(registrations[1].pluginId).toBe('zzz_plugin');
+    });
+});

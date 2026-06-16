@@ -2313,6 +2313,10 @@
     "translation": "Unable to seek to file start."
   },
   {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Unable to create emoji. Animated GIF must have at most {{.MaxFrames}} frames."
+  },
+  {
     "id": "api.encoding_error",
     "translation": "Encountered an error encoding JSON for the API response"
   },
@@ -11497,6 +11501,10 @@
   {
     "id": "model.config.is_valid.azure_custom_endpoint.app_error",
     "translation": "{{.Setting}} must be set when the corresponding AzureCloud value is 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Invalid value {{.Value}} for {{.Setting}}. The Azure storage account name must be 3 to 24 characters long and contain only lowercase letters and numbers."
   },
   {
     "id": "model.config.is_valid.azure_timeout.app_error",

@@ -46,7 +46,7 @@ const ProfilePopoverCustomStatus = ({
     haveOverrideProp,
 }: Props) => {
     const dispatch = useDispatch();
-    const getCustomStatus = useMemo(makeGetCustomStatus, []);
+    const getCustomStatus = useMemo(() => makeGetCustomStatus(), []);
     const customStatus = useSelector((state: GlobalState) => getCustomStatus(state, user.id));
     const isCustomStatusExpired = useSelector((state: GlobalState) => getIsCustomStatusExpired(state, customStatus));
     const isCustomStatusEnabled = useSelector((state: GlobalState) => getIsCustomStatusEnabled(state));
