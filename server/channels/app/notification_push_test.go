@@ -1246,9 +1246,12 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		}
 
 		var resp model.PushResponse
-		if h.behavior == "simple" {
+		switch h.behavior {
+		case "simple":
 			resp = model.NewOkPushResponse()
-		} else {
+		case "fail":
+			resp = model.NewErrorPushResponse("device error")
+		default:
 			// alternating between ok and remove response to test both code paths.
 			if h._numReqs%2 == 0 {
 				resp = model.NewOkPushResponse()

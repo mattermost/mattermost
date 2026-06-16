@@ -577,6 +577,40 @@ func TestSendMobileWipeSignal(t *testing.T) {
 		require.Equal(t, model.PushSoundNone, n.Sound)
 		require.Empty(t, n.Message)
 	})
+
+	t.Run("continues to remaining sessions when proxy returns PushStatusRemove", func(t *testing.T) {
+		handler := &testPushNotificationHandler{t: t} // alternates: req 1 → REMOVE, req 2 → OK
+		pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+		t.Cleanup(pushServer.Close)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendPushNotifications = true
+			*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			*cfg.MobileEphemeralModeSettings.Enable = true
+		})
+
+		session1 := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:device1", ExpiresAt: model.GetMillis() + 100000}
+		session2 := &model.Session{UserId: th.BasicUser.Id, DeviceId: "apple:device2", ExpiresAt: model.GetMillis() + 100000}
+		th.App.sendMobileWipeSignal(th.Context, session1, session2)
+
+		require.Equal(t, 2, handler.numReqs())
+	})
+
+	t.Run("continues to remaining sessions when proxy returns PushStatusFail", func(t *testing.T) {
+		handler := &testPushNotificationHandler{t: t, behavior: "fail"}
+		pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+		t.Cleanup(pushServer.Close)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendPushNotifications = true
+			*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			*cfg.MobileEphemeralModeSettings.Enable = true
+		})
+
+		session1 := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:device1", ExpiresAt: model.GetMillis() + 100000}
+		session2 := &model.Session{UserId: th.BasicUser.Id, DeviceId: "apple:device2", ExpiresAt: model.GetMillis() + 100000}
+		th.App.sendMobileWipeSignal(th.Context, session1, session2)
+
+		require.Equal(t, 2, handler.numReqs())
+	})
 }
 
 func TestRevokeAllSessionsSendsWipeSignal(t *testing.T) {

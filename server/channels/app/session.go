@@ -197,39 +197,46 @@ func (a *App) sendMobileWipeSignal(rctx request.CTX, sessions ...*model.Session)
 		return
 	}
 
-	// Send an empty push notification of type Session that will cause apps to terminate sessions and wipe data.
-	// ContentAvailable and SoundNone are set to trigger a silent notification that wakes up
-	// the app in the background without alerting the user.
-	msg := &model.PushNotification{
-		Version:          model.PushMessageV2,
-		Type:             model.PushTypeSession,
-		ContentAvailable: 1,
-		Sound:            model.PushSoundNone,
-	}
-
 	for _, session := range sessions {
 		if session.DeviceId == "" {
 			continue
 		}
 
-		tmp := msg.DeepCopy()
-		tmp.SetDeviceIdAndPlatform(session.DeviceId)
-		tmp.AckId = model.NewId()
+		// Send an empty push notification of type Session that will cause apps to terminate sessions and wipe data.
+		// ContentAvailable and SoundNone are set to trigger a silent notification that wakes up
+		// the app in the background without alerting the user.
+		msg := &model.PushNotification{
+			Version:          model.PushMessageV2,
+			Type:             model.PushTypeSession,
+			ContentAvailable: 1,
+			Sound:            model.PushSoundNone,
+		}
+
+		msg.SetDeviceIdAndPlatform(session.DeviceId)
+		msg.AckId = model.NewId()
 		signature, signErr := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
-			AckId:    tmp.AckId,
-			DeviceId: tmp.DeviceId,
+			AckId:    msg.AckId,
+			DeviceId: msg.DeviceId,
 		}).SignedString(a.AsymmetricSigningKey())
 		if signErr != nil {
 			rctx.Logger().Warn("Failed to sign session wipe push", mlog.String("session_id", session.Id), mlog.Err(signErr))
 			continue
 		}
-		tmp.Signature = signature
-		if sendErr := a.sendToPushProxy(rctx, tmp, session); sendErr != nil {
-			reason := model.NotificationReasonPushProxySendError
-			if sendErr.Error() == notificationErrorRemoveDevice {
-				reason = model.NotificationReasonPushProxyRemoveDevice
-			}
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, tmp.Platform)
+		msg.Signature = signature
+		msg.ServerId = a.ServerId()
+		pushResponse, sendErr := a.rawSendToPushProxy(msg)
+
+		reason := model.NotificationReasonPushProxySendError
+		switch pushResponse[model.PushStatus] {
+		case model.PushStatusRemove:
+			reason = model.NotificationReasonPushProxyRemoveDevice
+			sendErr = errors.New(notificationErrorRemoveDevice)
+		case model.PushStatusFail:
+			sendErr = errors.New(pushResponse[model.PushStatusErrorMsg])
+		}
+
+		if sendErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, msg.Platform)
 			rctx.Logger().Warn("Failed to send session wipe push",
 				mlog.String("session_id", session.Id),
 				mlog.String("reason", reason),
