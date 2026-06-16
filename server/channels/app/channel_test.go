@@ -1753,6 +1753,61 @@ func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 	})
 }
 
+func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setupMember := func(t *testing.T) *model.User {
+		t.Helper()
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser, appErr := th.App.CreateUser(th.Context, &user)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		return ruser
+	}
+
+	deniedRoles := []string{
+		model.SystemManagerRoleId,
+		model.SystemUserManagerRoleId,
+		model.SystemReadOnlyAdminRoleId,
+		model.SystemAdminRoleId,
+		model.TeamAdminRoleId,
+	}
+
+	for _, deniedRole := range deniedRoles {
+		t.Run(deniedRole+" is rejected", func(t *testing.T) {
+			ruser := setupMember(t)
+
+			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user channel_admin "+deniedRole)
+			require.NotNil(t, appErr)
+			require.Equal(t, "api.channel.update_channel_member_roles.non_channel_scope.app_error", appErr.Id)
+
+			member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, ruser.Id)
+			require.Nil(t, appErr)
+			require.NotContains(t, member.GetRoles(), deniedRole)
+		})
+	}
+
+	t.Run("custom roles remain allowed", func(t *testing.T) {
+		ruser := setupMember(t)
+
+		customRole := "custom" + model.NewId()
+		createdRole, appErr := th.App.CreateRole(&model.Role{Name: customRole, DisplayName: "custom", Description: "custom"})
+		require.Nil(t, appErr)
+		require.False(t, createdRole.BuiltIn)
+
+		updatedMember, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user "+customRole)
+		require.Nil(t, appErr)
+		require.Contains(t, updatedMember.GetRoles(), customRole)
+	})
+}
+
 func TestUpdateChannelMemberAutotranslation(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

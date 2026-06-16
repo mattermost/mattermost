@@ -1398,6 +1398,9 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		}
 
 		if !role.SchemeManaged {
+			if role.BuiltIn && !model.IsChannelScopedRoleName(roleName) {
+				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.non_channel_scope.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+			}
 			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {

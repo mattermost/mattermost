@@ -558,3 +558,29 @@ func TestManageAgentPermissionsDefaultRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestIsChannelScopedRoleName(t *testing.T) {
+	channelScoped := []string{
+		ChannelGuestRoleId,
+		ChannelUserRoleId,
+		ChannelAdminRoleId,
+	}
+	for _, roleName := range channelScoped {
+		assert.True(t, IsChannelScopedRoleName(roleName), "%s should be channel-scoped", roleName)
+	}
+
+	notChannelScoped := []string{
+		SystemAdminRoleId,
+		SystemManagerRoleId,
+		SystemUserManagerRoleId,
+		SystemReadOnlyAdminRoleId,
+		SystemUserRoleId,
+		TeamAdminRoleId,
+		TeamUserRoleId,
+		"custom_role",
+		"",
+	}
+	for _, roleName := range notChannelScoped {
+		assert.False(t, IsChannelScopedRoleName(roleName), "%s should not be channel-scoped", roleName)
+	}
+}

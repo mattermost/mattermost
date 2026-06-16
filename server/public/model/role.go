@@ -872,6 +872,19 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
+// IsChannelScopedRoleName reports whether the named role is one of the built-in
+// channel-scoped roles. Team- and system-scoped built-in roles (e.g.
+// system_manager) return false so they can be rejected when assigning explicit
+// roles to a channel membership.
+func IsChannelScopedRoleName(roleName string) bool {
+	switch roleName {
+	case ChannelGuestRoleId, ChannelUserRoleId, ChannelAdminRoleId:
+		return true
+	default:
+		return false
+	}
+}
+
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
 
