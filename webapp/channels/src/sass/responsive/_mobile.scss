@@ -140,9 +140,12 @@
                         }
 
                         .modal-header {
+                            position: relative;
                             display: flex;
                             width: 100%;
                             align-items: center;
+                            justify-content: center;
+                            padding: 0;
                             border-bottom: 0;
                             background-color: var(--sidebar-bg);
                             box-shadow: none;
@@ -171,8 +174,13 @@
                             }
 
                             .close {
+                                position: absolute;
+                                top: 50%;
+                                right: 16px;
+                                margin-top: 0;
                                 color: inherit;
                                 opacity: 1;
+                                transform: translateY(-50%);
                             }
                         }
 
@@ -206,13 +214,46 @@
                         margin: 0;
                         background: var(--center-channel-bg);
 
+                        > div[role='group'] {
+                            margin: 0;
+                        }
+
+                        .settings-sidebar__plugin-divider {
+                            display: none;
+                        }
+
+                        .settings-sidebar__plugin-group {
+                            position: relative;
+                            padding-top: 12px;
+
+                            &::before {
+                                position: absolute;
+                                top: 0;
+                                right: 24px;
+                                left: 24px;
+                                height: 1px;
+                                background: rgba(var(--center-channel-color-rgb), 0.12);
+                                content: '';
+                            }
+                        }
+
+                        .settings-sidebar__plugin-header {
+                            padding: 12px 24px 8px;
+                            margin-bottom: 0;
+                            color: rgba(var(--center-channel-color-rgb), 0.64);
+                            font-size: 12px;
+                            font-weight: 600;
+                            letter-spacing: 0.02em;
+                            line-height: 16px;
+                        }
+
                         &-pills__tab {
+                            position: relative;
                             display: flex;
                             min-height: 56px;
                             align-items: center;
-                            padding: 16px 20px;
+                            padding: 16px 24px;
                             border-radius: 0;
-                            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                             margin-bottom: 0;
                             background: var(--center-channel-bg);
                             color: var(--center-channel-color);
@@ -220,6 +261,16 @@
                             font-weight: 600;
                             gap: 12px;
                             line-height: 20px;
+
+                            &::before {
+                                position: absolute;
+                                right: 24px;
+                                bottom: 0;
+                                left: 24px;
+                                height: 1px;
+                                background: rgba(var(--center-channel-color-rgb), 0.12);
+                                content: '';
+                            }
 
                             &::after {
                                 width: 8px;
@@ -231,8 +282,8 @@
                                 transform: rotate(45deg);
                             }
 
-                            &:first-child {
-                                border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+                            &:last-child::before {
+                                display: none;
                             }
 
                             &:hover,
