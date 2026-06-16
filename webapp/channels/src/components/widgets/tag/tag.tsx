@@ -11,7 +11,7 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 export type TagVariant = 'info' | 'success' | 'warning' | 'danger' | 'dangerDim' | 'default';
 
-export type TagSize = 'xs' | 'sm' | 'md' | 'lg'
+export type TagSize = 'xs' | 'sm' | 'md' | 'lg';
 
 type Props = {
     text: React.ReactNode;

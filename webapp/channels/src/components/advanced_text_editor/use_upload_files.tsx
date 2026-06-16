@@ -37,7 +37,7 @@ const useUploadFiles = (
     editorBodyRef: React.RefObject<HTMLDivElement>,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (forceFocust?: boolean) => void,
-    setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     isPostBeingEdited?: boolean,
 ): [React.ReactNode, React.ReactNode] => {
     const intl = useIntl();
@@ -48,7 +48,7 @@ const useUploadFiles = (
     });
     const editAttachmentsDisabled = isPostBeingEdited && !canEditAttachments;
 
-    const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
+    const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
 
     const fileUploadRef = useRef<FileUploadClass>(null);
 

@@ -17,7 +17,7 @@ type Props = {
     inputClassName?: string;
     onChange(name: string, value: any): void; // value is any since onChange is a common func for inputs and checkboxes
     autoFocus?: boolean;
-}
+};
 
 const BoolSetting = ({
     id,

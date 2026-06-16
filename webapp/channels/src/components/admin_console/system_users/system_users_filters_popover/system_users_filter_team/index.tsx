@@ -28,7 +28,7 @@ const TEAMS_PER_PAGE = 50;
 export type OptionType = {
     label: string | ReactElement;
     value: string;
-}
+};
 
 interface Props {
     className?: string;

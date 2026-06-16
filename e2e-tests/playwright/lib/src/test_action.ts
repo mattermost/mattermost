@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, Page, expect} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 export {waitUntil} from 'async-wait-until';
 
 const visibilityHidden = 'visibility: hidden !important;';
@@ -45,8 +46,8 @@ export async function logFocusedElement(page: Page) {
 
         return {
             selector: `tag: ${tagName} | id: ${id} | class: ${className}`,
-            role: role,
-            ariaLabel: ariaLabel,
+            role,
+            ariaLabel,
             text: text.length > 50 ? `${text}...` : text,
             nodeName: activeElement.nodeName,
             isVisible: htmlElement.offsetWidth > 0 && htmlElement.offsetHeight > 0,

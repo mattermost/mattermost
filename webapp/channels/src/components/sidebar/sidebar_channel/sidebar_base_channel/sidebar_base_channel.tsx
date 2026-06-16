@@ -46,7 +46,7 @@ const SidebarBaseChannel = ({
 
     const channelIcon = (
         <SidebarBaseChannelIcon
-            channelType={channel.type}
+            channel={channel}
         />
     );
 

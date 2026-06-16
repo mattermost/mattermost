@@ -97,9 +97,6 @@ function getVisibleControlsCount(layoutMode: LayoutMode, additionalControlsCount
     return Math.max(0, base - reduction);
 }
 
-// The TextStyleDropdown only fits comfortably in Wide and Normal layouts.
-// In Narrow/Min, the toolbar is too tight and the dropdown overlaps adjacent
-// controls — fall back to the legacy heading icon in those modes.
 function canFitTextStyleDropdown(layoutMode: LayoutMode): boolean {
     return layoutMode === LayoutModes.Wide || layoutMode === LayoutModes.Normal;
 }
@@ -114,13 +111,10 @@ export function splitFormattingBarControls(
 
     let visibleControlsCount = getVisibleControlsCount(layoutMode, additionalControlsCount, isRHS);
 
-    // The TextStyleDropdown (~130px) takes the space of roughly 3 icon buttons.
     if (showTextStyleDropdown && layoutMode !== LayoutModes.Wide) {
         visibleControlsCount = Math.max(0, visibleControlsCount - 3);
     }
 
-    // When the dropdown is rendered, the legacy single-button heading control
-    // is redundant. When it falls back to the icon, keep heading in the list.
     const sourceControls = showTextStyleDropdown ? ALL_CONTROLS.filter((c) => c !== 'heading') : ALL_CONTROLS;
 
     const controls = sourceControls.slice(0, visibleControlsCount);
@@ -138,12 +132,12 @@ export const useFormattingBarControls = (
     location: string = '',
     hasTextStyleDropdown: boolean = false,
 ): {
-        formattingBarRef: (node: HTMLDivElement | null) => void;
-        controls: MarkdownMode[];
-        hiddenControls: MarkdownMode[];
-        layoutMode: LayoutMode;
-        showTextStyleDropdown: boolean;
-    } => {
+    formattingBarRef: (node: HTMLDivElement | null) => void;
+    controls: MarkdownMode[];
+    hiddenControls: MarkdownMode[];
+    layoutMode: LayoutMode;
+    showTextStyleDropdown: boolean;
+} => {
     const [element, setElement] = useState<HTMLDivElement | null>(null);
 
     const isRHS = useMemo(() => isRHSLocation(location), [location]);

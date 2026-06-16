@@ -4,7 +4,7 @@
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ErrorTypes} from 'mattermost-redux/action_types';
 
-export default ((state: Array<{error: any;displayable?: boolean;date: string}> = [], action: MMReduxAction) => {
+export default ((state: Array<{error: any; displayable?: boolean; date: string}> = [], action: MMReduxAction) => {
     switch (action.type) {
     case ErrorTypes.DISMISS_ERROR: {
         const nextState = [...state];

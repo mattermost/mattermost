@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import throttle from 'lodash/throttle';
-import {useCallback, useEffect, useRef} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {setLhsSize} from 'actions/views/lhs';
@@ -41,10 +41,10 @@ function WindowSizeObserver() {
         }
     }, [dispatch]);
 
-    const setSidebarSizeWhenWindowResized = useCallback(throttle(() => {
+    const setSidebarSizeWhenWindowResized = useMemo(() => throttle(() => {
         dispatch(setLhsSize());
         dispatch(setRhsSize());
-    }, 100), []);
+    }, 100), [dispatch]);
 
     const handleSidebarMediaQueryChangeEvent = useCallback((e: MediaQueryListEvent) => {
         if (e.matches) {

@@ -5,6 +5,8 @@ package sharedchannel
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -430,6 +432,16 @@ func (scs *Service) processTask(task syncTask) error {
 	} else {
 		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID, false)
 		if err != nil {
+			// The remote cluster has been deleted or no longer exists; there is
+			// nothing to sync, so drop the task rather than retrying and logging
+			// an error on every change for the orphaned reference.
+			if errors.Is(err, sql.ErrNoRows) {
+				scs.server.Log().Warn("Skipping sync for deleted remote cluster",
+					mlog.String("channelId", task.channelID),
+					mlog.String("remoteId", task.remoteID),
+				)
+				return nil
+			}
 			return err
 		}
 		if !rc.IsOnline() {

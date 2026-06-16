@@ -34,7 +34,7 @@ import './upload_license_modal.scss';
 type Props = {
     onExited?: () => void;
     fileObjFromProps: File | null;
-}
+};
 
 type ModalStep = 'loading' | 'preview' | 'success';
 

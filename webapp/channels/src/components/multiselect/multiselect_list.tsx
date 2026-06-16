@@ -21,17 +21,17 @@ export type Props<T extends Value> = {
         option: T,
         isSelected: boolean,
         add: (value: T) => void,
-        select: (value: T) => void
+        select: (value: T) => void,
     ) => React.ReactNode;
     query?: string;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
     customNoOptionsMessage?: React.ReactNode;
-}
+};
 
 type State = {
     selected: number;
-}
+};
 const KeyCodes = Constants.KeyCodes;
 
 export default class MultiSelectList<T extends Value> extends React.PureComponent<Props<T>, State> {

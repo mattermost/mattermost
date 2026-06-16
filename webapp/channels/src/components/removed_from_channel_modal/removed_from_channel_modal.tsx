@@ -12,11 +12,11 @@ type Props = {
     onExited: () => void;
     channelName?: string;
     remover?: string;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class RemovedFromChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
