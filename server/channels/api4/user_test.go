@@ -7713,7 +7713,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 func TestGetThreadsForUser_AfterTeamRemovalAndReinvite(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -7724,8 +7724,8 @@ func TestGetThreadsForUser_AfterTeamRemovalAndReinvite(t *testing.T) {
 	admin := th.BasicUser
 	victim := th.BasicUser2
 
-	privateChannel := th.CreatePrivateChannel(t)
-	th.AddUserToChannel(t, victim, privateChannel)
+	privateChannel := th.CreatePrivateChannel()
+	th.AddUserToChannel(victim, privateChannel)
 
 	defer func() {
 		require.NoError(t, th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, admin.Id))
@@ -7739,7 +7739,7 @@ func TestGetThreadsForUser_AfterTeamRemovalAndReinvite(t *testing.T) {
 	require.NoError(t, err)
 
 	victimClient := th.CreateClient()
-	th.LoginBasic2WithClient(t, victimClient)
+	th.LoginBasic2WithClient(victimClient)
 
 	_, _, err = victimClient.CreatePost(context.Background(), &model.Post{
 		ChannelId: privateChannel.Id,
@@ -7758,7 +7758,7 @@ func TestGetThreadsForUser_AfterTeamRemovalAndReinvite(t *testing.T) {
 	_, _, err = th.SystemAdminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, victim.Id)
 	require.NoError(t, err)
 
-	th.LoginBasic2WithClient(t, victimClient)
+	th.LoginBasic2WithClient(victimClient)
 
 	uss, _, err = victimClient.GetUserThreads(context.Background(), victim.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{Extended: true})
 	require.NoError(t, err)

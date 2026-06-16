@@ -1141,7 +1141,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 
 func TestLeaveTeamCleansUpThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -1152,8 +1152,8 @@ func TestLeaveTeamCleansUpThreadMemberships(t *testing.T) {
 	admin := th.BasicUser
 	victim := th.BasicUser2
 
-	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
-	th.AddUserToChannel(t, victim, privateChannel)
+	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	th.AddUserToChannel(victim, privateChannel)
 
 	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    admin.Id,
@@ -1189,7 +1189,7 @@ func TestLeaveTeamCleansUpThreadMemberships(t *testing.T) {
 
 func TestLeaveTeamCleansUpThreadMembershipsAcrossChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -1200,12 +1200,12 @@ func TestLeaveTeamCleansUpThreadMembershipsAcrossChannels(t *testing.T) {
 	admin := th.BasicUser
 	victim := th.BasicUser2
 
-	privateA := th.CreatePrivateChannel(t, th.BasicTeam)
-	privateB := th.CreatePrivateChannel(t, th.BasicTeam)
-	openC := th.CreateChannel(t, th.BasicTeam)
-	th.AddUserToChannel(t, victim, privateA)
-	th.AddUserToChannel(t, victim, privateB)
-	th.AddUserToChannel(t, victim, openC)
+	privateA := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	privateB := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	openC := th.CreateChannel(th.Context, th.BasicTeam)
+	th.AddUserToChannel(victim, privateA)
+	th.AddUserToChannel(victim, privateB)
+	th.AddUserToChannel(victim, openC)
 
 	rootIDs := make([]string, 0, 3)
 	for _, ch := range []*model.Channel{privateA, privateB, openC} {
@@ -1246,7 +1246,7 @@ func TestLeaveTeamCleansUpThreadMembershipsAcrossChannels(t *testing.T) {
 
 func TestLeaveTeamPreservesDMThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -1290,7 +1290,7 @@ func TestLeaveTeamPreservesDMThreadMemberships(t *testing.T) {
 
 func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -1301,8 +1301,8 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	admin := th.BasicUser
 	victim := th.BasicUser2
 
-	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
-	th.AddUserToChannel(t, victim, privateChannel)
+	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	th.AddUserToChannel(victim, privateChannel)
 
 	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    admin.Id,
@@ -1331,7 +1331,7 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	_, sErr2 := th.App.Srv().Store().Thread().GetMembershipForUser(victim.Id, rootPost.Id)
 	require.NoError(t, sErr2, "sanity: synthetic orphan ThreadMembership must remain")
 
-	threads, gErr := th.App.Srv().Store().Thread().GetThreadsForUser(th.Context, victim.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	threads, gErr := th.App.Srv().Store().Thread().GetThreadsForUser(victim.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 	require.NoError(t, gErr)
 	for _, thr := range threads {
 		require.NotEqual(t, rootPost.Id, thr.PostId, "read path must not surface threads from channels the user no longer belongs to")
@@ -1349,7 +1349,7 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 
 func TestPermanentDeleteChannelRemovesThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -1360,8 +1360,8 @@ func TestPermanentDeleteChannelRemovesThreadMemberships(t *testing.T) {
 	admin := th.BasicUser
 	victim := th.BasicUser2
 
-	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
-	th.AddUserToChannel(t, victim, privateChannel)
+	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	th.AddUserToChannel(victim, privateChannel)
 
 	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    admin.Id,
