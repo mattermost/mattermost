@@ -215,10 +215,13 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             e.preventDefault();
+            e.stopPropagation();
             handleSave();
+            return;
         }
         if (e.key === 'Escape') {
             e.preventDefault();
+            e.stopPropagation();
             editor.chain().focus().run();
             onClose();
         }
@@ -250,6 +253,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                         autoFocus={true}
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         placeholder={formatMessage({id: 'wysiwyg.link.placeholder', defaultMessage: 'Type or paste a link'})}
                     />
                     {isUrlDirty && (
@@ -294,6 +298,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                         <RowInput
                             value={displayText}
                             onChange={(e) => setDisplayText(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             placeholder={formatMessage({id: 'wysiwyg.link.display_text', defaultMessage: 'Display text'})}
                         />
                     </Row>

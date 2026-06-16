@@ -29,7 +29,7 @@
             outline: none;
         }
 
-        p.is-editor-empty:first-child::before {
+        .is-editor-empty:first-child::before {
             height: 0;
             color: rgba(var(--center-channel-color-rgb), 0.56);
             content: attr(data-placeholder);
@@ -49,43 +49,52 @@
         h4,
         h5,
         h6 {
-            margin: 4px 0 0;
+            margin: 4px 0;
             color: var(--center-channel-color);
-            font-weight: 600;
-            line-height: 1.4;
+            font-weight: 700;
+            line-height: 1.5;
 
             &:first-child {
-                margin-top: 0;
+                margin: 0 0 4px;
             }
 
-            + p:last-child:has(> br:only-child) {
+            + p:last-child:empty,
+            + p:last-child:has(> br:only-child),
+            + p.is-editor-empty:last-child {
                 font-size: 0;
                 line-height: 0;
+                margin: 0;
             }
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: Metropolis, sans-serif;
         }
 
         h1 {
-            font-size: 1.65em;
+            font-size: 28px;
         }
 
         h2 {
-            font-size: 1.47em;
+            font-size: 25px;
         }
 
         h3 {
-            font-size: 1.3em;
+            font-size: 22px;
         }
 
         h4 {
-            font-size: 1.15em;
+            font-size: 19px;
         }
 
         h5 {
-            font-size: 1em;
+            font-size: 15px;
         }
 
         h6 {
-            font-size: 0.85em;
+            font-size: 14px;
         }
 
         strong {
@@ -298,5 +307,41 @@
             cursor: not-allowed;
             opacity: 0.5;
         }
+    }
+}
+
+.WysiwygTextStyleDropdown__trigger {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 32px;
+    align-items: center;
+    padding: 0 12px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    vertical-align: middle;
+    cursor: pointer;
+
+    &:hover,
+    &.btn-force-hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
+    }
+
+    &:active,
+    &.active {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+    }
+
+    &[disabled] {
+        pointer-events: none;
+        opacity: 0.4;
     }
 }

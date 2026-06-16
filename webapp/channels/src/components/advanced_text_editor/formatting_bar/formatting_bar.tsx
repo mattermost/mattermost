@@ -186,7 +186,7 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
         return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
     }, [additionalControls]);
 
-    const {formattingBarRef, controls, hiddenControls, layoutMode} = useFormattingBarControls(additionalControlsCount, location, Boolean(getEditor));
+    const {formattingBarRef, controls, hiddenControls, layoutMode, showTextStyleDropdown} = useFormattingBarControls(additionalControlsCount, location, Boolean(getEditor));
 
     const editorInstance = getEditor?.() ?? null;
     const [activeModes, setActiveModes] = useState<Partial<Record<MarkdownMode, boolean>>>(() =>
@@ -309,7 +309,7 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
         >
             {aiActionsMenu}
             {aiActionsMenu && showSeparators && <Separator/>}
-            {getEditor && (
+            {getEditor && showTextStyleDropdown && (
                 <>
                     <TextStyleDropdown
                         getWysiwygEditor={getEditor}

@@ -291,6 +291,27 @@ const AdvancedTextEditor = ({
     }, [dispatch]);
 
     const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
+        const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
+        if (isInlineMark && editor.state.selection.empty) {
+            const $from = editor.state.selection.$from;
+            const text = $from.parent.textContent;
+            const offset = $from.parentOffset;
+            if (text && offset >= 0) {
+                let start = offset;
+                while (start > 0 && /\S/.test(text[start - 1])) {
+                    start--;
+                }
+                let end = offset;
+                while (end < text.length && /\S/.test(text[end])) {
+                    end++;
+                }
+                if (start < end) {
+                    const parentStart = $from.pos - offset;
+                    editor.chain().focus().setTextSelection({from: parentStart + start, to: parentStart + end}).run();
+                }
+            }
+        }
+
         const chain = editor.chain().focus();
         switch (mode) {
         case 'bold':

@@ -97,18 +97,31 @@ function getVisibleControlsCount(layoutMode: LayoutMode, additionalControlsCount
     return Math.max(0, base - reduction);
 }
 
-export function splitFormattingBarControls(layoutMode: LayoutMode, additionalControlsCount: number = 0, isRHS: boolean = false, hasTextStyleDropdown: boolean = false) {
+// The TextStyleDropdown only fits comfortably in Wide and Normal layouts.
+// In Narrow/Min, the toolbar is too tight and the dropdown overlaps adjacent
+// controls — fall back to the legacy heading icon in those modes.
+function canFitTextStyleDropdown(layoutMode: LayoutMode): boolean {
+    return layoutMode === LayoutModes.Wide || layoutMode === LayoutModes.Normal;
+}
+
+export function splitFormattingBarControls(
+    layoutMode: LayoutMode,
+    additionalControlsCount: number = 0,
+    isRHS: boolean = false,
+    hasTextStyleDropdown: boolean = false,
+) {
+    const showTextStyleDropdown = hasTextStyleDropdown && canFitTextStyleDropdown(layoutMode);
+
     let visibleControlsCount = getVisibleControlsCount(layoutMode, additionalControlsCount, isRHS);
 
     // The TextStyleDropdown (~130px) takes the space of roughly 3 icon buttons.
-    // Reduce visible controls to prevent overflow.
-    if (hasTextStyleDropdown && layoutMode !== LayoutModes.Wide) {
+    if (showTextStyleDropdown && layoutMode !== LayoutModes.Wide) {
         visibleControlsCount = Math.max(0, visibleControlsCount - 3);
     }
 
-    // When the TextStyleDropdown is rendered, the legacy single-button heading
-    // control is redundant
-    const sourceControls = hasTextStyleDropdown ? ALL_CONTROLS.filter((c) => c !== 'heading') : ALL_CONTROLS;
+    // When the dropdown is rendered, the legacy single-button heading control
+    // is redundant. When it falls back to the icon, keep heading in the list.
+    const sourceControls = showTextStyleDropdown ? ALL_CONTROLS.filter((c) => c !== 'heading') : ALL_CONTROLS;
 
     const controls = sourceControls.slice(0, visibleControlsCount);
     const hiddenControls = sourceControls.slice(visibleControlsCount);
@@ -116,6 +129,7 @@ export function splitFormattingBarControls(layoutMode: LayoutMode, additionalCon
     return {
         controls,
         hiddenControls,
+        showTextStyleDropdown,
     };
 }
 
@@ -128,13 +142,14 @@ export const useFormattingBarControls = (
         controls: MarkdownMode[];
         hiddenControls: MarkdownMode[];
         layoutMode: LayoutMode;
+        showTextStyleDropdown: boolean;
     } => {
     const [element, setElement] = useState<HTMLDivElement | null>(null);
 
     const isRHS = useMemo(() => isRHSLocation(location), [location]);
     const layoutMode = useResponsiveFormattingBar(element, isRHS);
 
-    const {controls, hiddenControls} = useMemo(() => {
+    const {controls, hiddenControls, showTextStyleDropdown} = useMemo(() => {
         return splitFormattingBarControls(layoutMode, additionalControlsCount, isRHS, hasTextStyleDropdown);
     }, [layoutMode, additionalControlsCount, isRHS, hasTextStyleDropdown]);
 
@@ -143,6 +158,7 @@ export const useFormattingBarControls = (
         controls,
         hiddenControls,
         layoutMode,
+        showTextStyleDropdown,
     };
 };
 

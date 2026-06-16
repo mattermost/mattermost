@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import type {Editor} from '@tiptap/react';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {useIntl, defineMessages} from 'react-intl';
 import styled from 'styled-components';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import * as Menu from 'components/menu';
+
+const TRIGGER_CLASS = 'WysiwygTextStyleDropdown__trigger';
 
 const TriggerLabel = styled.span`
     display: inline-flex;
@@ -23,6 +24,7 @@ const TriggerLabel = styled.span`
 
 const HeadingSample = styled.span<{$level: number}>`
     font-weight: 600;
+    font-family: ${({$level}) => ($level <= 3 ? 'Metropolis, sans-serif' : 'inherit')};
     font-size: ${({$level}) => {
         switch ($level) {
         case 1: return '20px';
@@ -82,7 +84,26 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
     const {formatMessage} = useIntl();
 
     const editor = getWysiwygEditor();
-    const activeStyle = getActiveStyle(editor);
+    const [activeStyle, setActiveStyle] = useState<TextStyle>(() => getActiveStyle(editor));
+
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) {
+            return undefined;
+        }
+        const recompute = () => {
+            setActiveStyle((prev) => {
+                const next = getActiveStyle(editor);
+                return prev === next ? prev : next;
+            });
+        };
+        recompute();
+        editor.on('selectionUpdate', recompute);
+        editor.on('transaction', recompute);
+        return () => {
+            editor.off('selectionUpdate', recompute);
+            editor.off('transaction', recompute);
+        };
+    }, [editor]);
 
     const applyStyle = useCallback((style: TextStyle) => {
         const ed = getWysiwygEditor();
@@ -97,8 +118,6 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
             chain.setHeading({level}).run();
         }
     }, [getWysiwygEditor]);
-
-    const triggerClass = buttonClassNames({emphasis: 'quaternary', size: 'sm'});
 
     const renderItem = (style: TextStyle, label: React.ReactNode) => (
         <Menu.Item
@@ -116,7 +135,7 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
                 id: 'textStyleDropdownButton',
                 'aria-label': formatMessage(messages.ariaLabel),
                 disabled,
-                class: triggerClass,
+                class: TRIGGER_CLASS,
                 children: (
                     <TriggerLabel>
                         {formatMessage(STYLE_TO_MESSAGE[activeStyle])}
@@ -131,6 +150,8 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
                 id: 'textStyleDropdownMenu',
                 'aria-label': formatMessage(messages.ariaLabel),
             }}
+            anchorOrigin={{vertical: 'top', horizontal: 'left'}}
+            transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
         >
             {renderItem('normal', formatMessage(messages.normalText))}
             {HEADING_LEVELS.map((level) => {

@@ -74,16 +74,16 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
     if (active) {
         const options = [
             {
-                option: 'true',
-                inputId: 'wysiwygEditorOn',
-                messageId: 'user.settings.advance.on',
-                defaultMessage: 'On',
+                option: 'false',
+                inputId: 'wysiwygEditorMarkdown',
+                messageId: 'user.settings.display.wysiwygEditor.markdown',
+                defaultMessage: 'Markdown editing (default)',
             },
             {
-                option: 'false',
-                inputId: 'wysiwygEditorOff',
-                messageId: 'user.settings.advance.off',
-                defaultMessage: 'Off',
+                option: 'true',
+                inputId: 'wysiwygEditorRich',
+                messageId: 'user.settings.display.wysiwygEditor.richText',
+                defaultMessage: 'Rich text editing (formatting appears as you type)',
             },
         ];
 
@@ -92,7 +92,7 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                 <legend className='form-legend hidden-label'>
                     <FormattedMessage
                         id='user.settings.display.wysiwygEditorTitle'
-                        defaultMessage='WYSIWYG Editor (Beta)'
+                        defaultMessage='Rich text editing (Beta)'
                     />
                 </legend>
                 {options.map(({option, inputId, messageId, defaultMessage}) => (
@@ -120,7 +120,7 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                 <div className='mt-5'>
                     <FormattedMessage
                         id='user.settings.display.wysiwygEditorDesc'
-                        defaultMessage='When enabled, the message editor uses a rich-text WYSIWYG mode with inline formatting preview instead of plain markdown input.'
+                        defaultMessage='Choose how the message editor renders formatting. Markdown editing uses plain markdown syntax. Rich text editing shows inline formatting (bold, italic, headings, lists) as you type.'
                     />
                 </div>
             </fieldset>
@@ -131,7 +131,7 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                 title={
                     <FormattedMessage
                         id='user.settings.display.wysiwygEditorTitle'
-                        defaultMessage='WYSIWYG Editor (Beta)'
+                        defaultMessage='Rich text editing (Beta)'
                     />
                 }
                 inputs={[input]}
@@ -150,19 +150,19 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
             title={
                 <FormattedMessage
                     id='user.settings.display.wysiwygEditorTitle'
-                    defaultMessage='WYSIWYG Editor (Beta)'
+                    defaultMessage='Rich text editing (Beta)'
                 />
             }
             describe={
                 wysiwygEditorPref === 'true' ? (
                     <FormattedMessage
-                        id='user.settings.advance.on'
-                        defaultMessage='On'
+                        id='user.settings.display.wysiwygEditor.richText'
+                        defaultMessage='Rich text editing (formatting appears as you type)'
                     />
                 ) : (
                     <FormattedMessage
-                        id='user.settings.advance.off'
-                        defaultMessage='Off'
+                        id='user.settings.display.wysiwygEditor.markdown'
+                        defaultMessage='Markdown editing (default)'
                     />
                 )
             }

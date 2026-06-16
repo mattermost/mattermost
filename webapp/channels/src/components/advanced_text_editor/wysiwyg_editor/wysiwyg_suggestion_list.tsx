@@ -3,7 +3,6 @@
 
 import type {Editor} from '@tiptap/react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {createPortal} from 'react-dom';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -281,7 +280,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
         return null;
     }
 
-    return createPortal(
+    return (
         <SuggestionList
             inputRef={editorDomRef as React.RefObject<HTMLDivElement>}
             open={isOpen}
@@ -292,8 +291,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
             onCompleteWord={handleCompleteWord}
             onItemHover={handleItemHover}
             position='top'
-        />,
-        document.body,
+        />
     );
 };
 

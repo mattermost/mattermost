@@ -232,6 +232,23 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return true;
                 }
 
+                // Enter or Shift+Enter inside a heading should exit to a new
+                // Normal paragraph below, not a hard break inside the heading.
+                if (
+                    event.key === 'Enter' &&
+                    insideHeading &&
+                    !event.metaKey &&
+                    !event.ctrlKey &&
+                    !event.altKey
+                ) {
+                    const ed = editorRef.current;
+                    if (ed && !ed.isDestroyed) {
+                        event.preventDefault();
+                        ed.chain().focus().splitBlock().setNode('paragraph').run();
+                        return true;
+                    }
+                }
+
                 if (event.key === 'Tab') {
                     const {state} = view;
                     const {$from} = state.selection;
