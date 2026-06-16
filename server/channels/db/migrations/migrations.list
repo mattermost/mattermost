@@ -385,6 +385,8 @@ channels/db/migrations/postgres/000193_add_property_groups_schema_version.down.s
 channels/db/migrations/postgres/000193_add_property_groups_schema_version.up.sql
 channels/db/migrations/postgres/000194_add_type_id_index_to_access_control_policies.down.sql
 channels/db/migrations/postgres/000194_add_type_id_index_to_access_control_policies.up.sql
+channels/db/migrations/postgres/000195_threadmemberships_cleanup_v2.down.sql
+channels/db/migrations/postgres/000195_threadmemberships_cleanup_v2.up.sql
 channels/db/migrations/postgres/000196_add_rank_to_property_field_type.down.sql
 channels/db/migrations/postgres/000196_add_rank_to_property_field_type.up.sql
 channels/db/migrations/postgres/000197_convert_classification_fields_to_rank.down.sql
