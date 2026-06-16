@@ -213,6 +213,24 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
+func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(UpdateAt), 0)").
+		From("PropertyValues").
+		Where(sq.Eq{"TargetID": userID}).
+		Where("DeleteAt = 0").
+		ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "GetUserPropertyValuesEpoch: failed to build query")
+	}
+
+	var epoch int64
+	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+		return 0, errors.Wrap(err, "GetUserPropertyValuesEpoch: query failed")
+	}
+	return epoch, nil
+}
+
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().
 		Select(teamMemberSliceColumns()...).From("TeamMembers").LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").

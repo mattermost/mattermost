@@ -1223,6 +1223,11 @@ type AccessControlPolicyStore interface {
 	// channel-list reads to avoid an N+1 against AccessControlPolicies.
 	// Empty input returns an empty map and fires no SQL.
 	GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error)
+
+	// GetMaxUpdateAt returns MAX(CreateAt) across file-action policies (upload/download),
+	// or 0. No UpdateAt column — table uses delete-and-reinsert; CreateAt is "last saved".
+	// TypePermission always included; TypeChannel/TypeParent only when they hold a file rule.
+	GetMaxUpdateAt(rctx request.CTX) (int64, error)
 }
 
 type AttributesStore interface {
@@ -1230,6 +1235,9 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+	// GetUserPropertyValuesEpoch returns MAX(UpdateAt) across all active PropertyValues
+	// rows for the user, or 0. Used as the per-user epoch in ABAC-aware post-list ETags.
+	GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error)
 	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)
 }
 

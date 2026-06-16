@@ -1332,18 +1332,53 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
-	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
-		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+// AppendABACEtag extends a base ETag with two DB-derived epoch components so that
+// a file-policy change or user attribute change causes an ETag miss — forcing
+// SanitizePostListMetadataForUser to run instead of returning a stale 304.
+// Format: "base.maxPolicyCreateAt.userCPAUpdateAt". No-op when ABAC is inactive.
+func (a *App) AppendABACEtag(base string, userID string) string {
+	if !a.Config().FeatureFlags.PermissionPolicies ||
+		a.Config().AccessControlSettings.EnableAttributeBasedAccessControl == nil ||
+		!*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return base
 	}
 
-	channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channelID)
-	if err != nil || !channelEnabled {
-		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+	rctx := request.EmptyContext(a.Log())
+
+	var maxPolicyAt int64
+	if epoch, err := a.getMaxPolicyAtCached(rctx); err == nil {
+		maxPolicyAt = epoch
+	} else {
+		a.Log().Warn("ABAC ETag: failed to get max policy CreateAt; policy component will be 0",
+			mlog.Err(err))
 	}
 
-	// Channel has auto-translation enabled - include translation etag
-	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, true)
+	var userCPAAt int64
+	if userID != "" {
+		if epoch, err := a.Srv().Store().Attributes().GetUserPropertyValuesEpoch(rctx, userID); err == nil {
+			userCPAAt = epoch
+		} else {
+			a.Log().Warn("ABAC ETag: failed to get user CPA epoch; attribute component will be 0",
+				mlog.String("user_id", userID),
+				mlog.Err(err))
+		}
+	}
+
+	return fmt.Sprintf("%s.%s.%s", base,
+		strconv.FormatInt(maxPolicyAt, 10),
+		strconv.FormatInt(userCPAAt, 10),
+	)
+}
+
+func (a *App) GetPostsEtag(channelID string, userID string, collapsedThreads bool) string {
+	includeTranslations := false
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		if enabled, err := a.AutoTranslation().IsChannelEnabled(channelID); err == nil && enabled {
+			includeTranslations = true
+		}
+	}
+	base := a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, includeTranslations)
+	return a.AppendABACEtag(base, userID)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {

@@ -941,3 +941,34 @@ func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldI
 
 	return policies, nil
 }
+
+func (s *SqlAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
+	// No UpdateAt column; table uses delete-and-reinsert, so MAX(CreateAt) is "last saved".
+	// Only include policies with file-action rules so membership-only changes don't
+	// invalidate post-list ETags. TypePermission is always included (no membership rules).
+	hasFileAction := fmt.Sprintf(
+		"EXISTS (SELECT 1 FROM jsonb_array_elements("+
+			"CASE WHEN jsonb_typeof(Data->'rules') = 'array' THEN Data->'rules' ELSE '[]'::jsonb END"+
+			") AS rule WHERE rule->'actions' @> '[%q]'::jsonb OR rule->'actions' @> '[%q]'::jsonb)",
+		model.AccessControlPolicyActionUploadFileAttachment,
+		model.AccessControlPolicyActionDownloadFileAttachment,
+	)
+
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(CreateAt), 0)").
+		From("AccessControlPolicies").
+		Where(sq.Or{
+			sq.Eq{"Type": model.AccessControlPolicyTypePermission},
+			sq.Expr(hasFileAction),
+		}).
+		ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "GetMaxUpdateAt: failed to build query")
+	}
+
+	var epoch int64
+	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+		return 0, errors.Wrap(err, "GetMaxUpdateAt: query failed")
+	}
+	return epoch, nil
+}

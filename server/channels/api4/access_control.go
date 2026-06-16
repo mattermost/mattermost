@@ -44,6 +44,31 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
+
+	api.BaseRoutes.AccessControlDecisions.Handle("/actions/search", api.APISessionRequired(searchAccessControlDecisionActions)).Methods(http.MethodPost)
+}
+
+// searchAccessControlDecisionActions returns non-authoritative, render-time ABAC
+// decisions for the current session user on a single resource. The subject is
+// always the authenticated session user; there is no subject field in the
+// request body, so a caller cannot probe another user's decisions. Results are
+// for rendering only — protected endpoints always re-evaluate the PDP live.
+func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *http.Request) {
+	var req model.ActionSearchRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
+		c.SetInvalidParamWithErr("action_search", jsonErr)
+		return
+	}
+
+	resp, appErr := c.App.SearchAllowedActionsForCurrentUser(c.AppContext, req)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {

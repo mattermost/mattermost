@@ -717,6 +717,27 @@ func (s *RetryLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) GetMaxUpdateAt(rctx request.CTX) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.GetMaxUpdateAt(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
 
 	tries := 0
@@ -869,6 +890,27 @@ func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, tea
 	tries := 0
 	for {
 		result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
 		if err == nil {
 			return result, nil
 		}

@@ -141,6 +141,13 @@ export type Props = {
     canUploadFiles: boolean;
 
     /**
+     * When true, the upload affordance is rendered but disabled (with an
+     * explanatory tooltip). Used for ABAC render-time decisions: the control
+     * stays discoverable but cannot be used. Enforcement remains server-side.
+     */
+    forceDisabled?: boolean;
+
+    /**
      * Plugin file upload methods to be added
      */
     pluginFileUploadMethods: FileUploadMethodAction[];
@@ -607,6 +614,34 @@ export class FileUpload extends PureComponent<Props, State> {
         let bodyAction;
         const buttonAriaLabel = formatMessage({id: 'accessibility.button.attachment', defaultMessage: 'attachment'});
         const iconAriaLabel = formatMessage({id: 'generic_icons.attach', defaultMessage: 'Attachment Icon'});
+
+        // ABAC render-time decision: keep the affordance visible but disabled so
+        // the user understands uploads are restricted here, instead of silently
+        // hiding it or letting them click and hit a server error.
+        if (this.props.forceDisabled) {
+            return (
+                <div className='style--none btn-file__disabled'>
+                    <WithTooltip
+                        title={formatMessage({id: 'file_upload.disabled_by_policy', defaultMessage: 'File uploads are restricted in this channel'})}
+                    >
+                        <button
+                            type='button'
+                            id='fileUploadButton'
+                            aria-label={buttonAriaLabel}
+                            aria-disabled={true}
+                            disabled={true}
+                            className='style--none AdvancedTextEditor__action-button disabled'
+                        >
+                            <PaperclipIcon
+                                size={18}
+                                color={'currentColor'}
+                                aria-label={iconAriaLabel}
+                            />
+                        </button>
+                    </WithTooltip>
+                </div>
+            );
+        }
 
         if (this.props.pluginFileUploadMethods.length === 0) {
             bodyAction = (

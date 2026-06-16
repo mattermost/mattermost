@@ -4998,6 +4998,7 @@
   "file_type.video": "Video",
   "file_type.word": "Word Document",
   "file_upload.disabled": "File attachments are disabled.",
+  "file_upload.disabled_by_policy": "File uploads are restricted in this channel",
   "file_upload.drag_folder": "This attachment cannot be uploaded.",
   "file_upload.fileAbove": "File above {max}MB could not be uploaded: {filename}",
   "file_upload.filesAbove": "Files above {max}MB could not be uploaded: {filenames}",
