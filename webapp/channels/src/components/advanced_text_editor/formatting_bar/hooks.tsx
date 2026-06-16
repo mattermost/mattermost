@@ -113,11 +113,11 @@ export const useFormattingBarControls = (
     additionalControlsCount: number = 0,
     location: string = '',
 ): {
-        formattingBarRef: (node: HTMLDivElement | null) => void;
-        controls: MarkdownMode[];
-        hiddenControls: MarkdownMode[];
-        layoutMode: LayoutMode;
-    } => {
+    formattingBarRef: (node: HTMLDivElement | null) => void;
+    controls: MarkdownMode[];
+    hiddenControls: MarkdownMode[];
+    layoutMode: LayoutMode;
+} => {
     const [element, setElement] = useState<HTMLDivElement | null>(null);
 
     const isRHS = useMemo(() => isRHSLocation(location), [location]);

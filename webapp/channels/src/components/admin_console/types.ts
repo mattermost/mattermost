@@ -227,9 +227,11 @@ export type AdminDefinitionSection = {
 };
 
 /** From {@link IntlShape.formatMessage}. Cannot discriminate overloaded method signature. */
-declare function formatMessageBasic(descriptor: MessageDescriptor, values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>): string;
+interface FormatMessage {
+    (descriptor: MessageDescriptor, values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>): string;
+}
 
-export type SearchableStrings = Array<string | MessageDescriptor | Parameters<typeof formatMessageBasic>>;
+export type SearchableStrings = Array<string | MessageDescriptor | Parameters<FormatMessage>>;
 
 export type AdminDefinition = {[key: string]: AdminDefinitionSection};
 

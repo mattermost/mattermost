@@ -4594,6 +4594,15 @@ func (s *SqlSettings) isValid() *AppError {
 	return nil
 }
 
+// See https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview#storage-account-name
+var azureStorageAccountNameRegex = regexp.MustCompile(`^[a-z0-9]{3,24}$`)
+
+// IsValidAzureStorageAccountName reports whether name matches Azure's storage
+// account name format: 3 to 24 lowercase letters and digits.
+func IsValidAzureStorageAccountName(name string) bool {
+	return azureStorageAccountNameRegex.MatchString(name)
+}
+
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
@@ -4636,14 +4645,22 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_auth_mode.app_error", map[string]any{"Value": *s.AzureAuthMode}, "", http.StatusBadRequest)
 	}
 
+	// Empty cloud is treated as commercial for configs that pre-date the field,
+	// matching buildAzureServiceURL.
 	switch *s.AzureCloud {
-	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom, "":
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.AzureCloud", "Value": *s.AzureCloud}, "", http.StatusBadRequest)
 	}
 
 	if *s.AzureCloud == AzureCloudCustom && *s.AzureEndpoint == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.AzureEndpoint"}, "", http.StatusBadRequest)
+	}
+
+	// For managed clouds the account name forms the service hostname and must
+	// match Azure's format; custom mode uses AzureEndpoint instead.
+	if *s.DriverName == ImageDriverAzure && *s.AzureCloud != AzureCloudCustom && !IsValidAzureStorageAccountName(*s.AzureStorageAccount) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_storage_account.app_error", map[string]any{"Setting": "FileSettings.AzureStorageAccount", "Value": *s.AzureStorageAccount}, "", http.StatusBadRequest)
 	}
 
 	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
@@ -4675,13 +4692,17 @@ func (s *FileSettings) isValid() *AppError {
 	}
 
 	switch *s.ExportAzureCloud {
-	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom, "":
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.ExportAzureCloud", "Value": *s.ExportAzureCloud}, "", http.StatusBadRequest)
 	}
 
 	if *s.ExportAzureCloud == AzureCloudCustom && *s.ExportAzureEndpoint == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.ExportAzureEndpoint"}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportDriverName == ImageDriverAzure && *s.ExportAzureCloud != AzureCloudCustom && !IsValidAzureStorageAccountName(*s.ExportAzureStorageAccount) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_storage_account.app_error", map[string]any{"Setting": "FileSettings.ExportAzureStorageAccount", "Value": *s.ExportAzureStorageAccount}, "", http.StatusBadRequest)
 	}
 
 	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {
