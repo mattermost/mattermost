@@ -78,17 +78,25 @@ describe('Integrations', () => {
 
         // * Assert that the message was posted
         cy.uiWaitUntilMessagePostedIncludes('Hey attachments');
-        cy.getLastPostId().then(() => {
+        cy.getLastPostId().then((postId) => {
             const encodedUrl = `${baseUrl}/api/v4/image?url=${encodeURIComponent(url)}`;
+            const postSelector = `#post_${postId}`;
 
-            // * Assert that file image is present
-            cy.findByLabelText('file thumbnail').should('be.visible').and('have.attr', 'src', encodedUrl);
+            // * Assert that the embedded image renders through the image proxy and actually loads
+            cy.get(postSelector).findByLabelText('file thumbnail').
+                should('be.visible').
+                and('have.attr', 'src', encodedUrl).
+                and(($img) => {
+                    expect($img[0].naturalWidth).to.be.greaterThan(0);
+                });
 
             // * Assert that the Show more button is visible, then expand the post
-            cy.get('#showMoreButton').scrollIntoView().should('be.visible').and('contain', 'Show more').click();
+            cy.get(postSelector).find('#showMoreButton').
+                scrollIntoView().should('be.visible').and('contain', 'Show more').click();
 
             // * Assert that the button now shows Show less
-            cy.get('#showMoreButton').scrollIntoView().should('be.visible').and('contain', 'Show less');
+            cy.get(postSelector).find('#showMoreButton').
+                scrollIntoView().should('be.visible').and('contain', 'Show less');
         });
     });
 });
