@@ -48,7 +48,7 @@ type Props = {
     archivedIcon?: JSX.Element;
     sharedIcon?: JSX.Element;
     isMobile?: boolean;
-}
+};
 
 export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archivedIcon, sharedIcon}: Props): JSX.Element | null {
     const intl = useIntl();

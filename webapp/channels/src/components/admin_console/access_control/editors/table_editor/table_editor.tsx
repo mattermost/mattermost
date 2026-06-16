@@ -526,7 +526,7 @@ function TableEditor({
                 />
                 <TestButton
                     onClick={onTestClick ?? (() => setShowTestResults(true))}
-                    disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded}
+                    disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
                     disabledTooltip={
 
                         // Precedence: an explicit parent-supplied

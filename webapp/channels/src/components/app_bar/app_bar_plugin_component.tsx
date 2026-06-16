@@ -21,7 +21,7 @@ import NewChannelWithBoardTourTip from './new_channel_with_board_tour_tip';
 
 type AppBarComponentProps = {
     component: ChannelHeaderButtonAction | AppBarAction;
-}
+};
 
 enum ImageLoadState {
     LOADING = 'loading',

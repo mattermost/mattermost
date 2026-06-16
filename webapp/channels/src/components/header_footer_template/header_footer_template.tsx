@@ -11,7 +11,7 @@ import ExternalLink from 'components/external_link';
 
 type Props = {
     children?: React.ReactNode | React.ReactNodeArray;
-}
+};
 
 const HeaderFooterNotLoggedIn = (props: Props) => {
     const intl = useIntl();

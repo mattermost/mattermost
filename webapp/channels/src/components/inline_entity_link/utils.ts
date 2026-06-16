@@ -27,7 +27,7 @@ export function parseInlineEntityUrl(url: string): ParsedInlineEntity {
                 channelName,
             };
         }
-    } catch (e) {
+    } catch {
         return {
             type: null,
             postId,

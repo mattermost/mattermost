@@ -34,7 +34,7 @@ import DesktopApp from 'utils/desktop_api';
 enum BadgeStatus {
     Mention = 'Mention',
     Unread = 'Unread',
-    None = 'None'
+    None = 'None',
 }
 
 type Props = {

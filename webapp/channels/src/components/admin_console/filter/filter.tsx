@@ -37,17 +37,17 @@ export type FilterOption = {
 
     // Filter Component type, optional parameter defaults to FilterList
     type?: React.ElementType;
-}
+};
 
 export type FilterOptions = {
     [key: string]: FilterOption;
-}
+};
 
 type Props = {
     onFilter: (filters: FilterOptions) => void;
     options: FilterOptions;
     keys: string[];
-}
+};
 
 type State = {
     show: boolean;
@@ -55,7 +55,7 @@ type State = {
     keys: string[];
     optionsModified: boolean;
     filterCount: number;
-}
+};
 
 class Filter extends React.PureComponent<Props, State> {
     private buttonRef: React.RefObject<HTMLButtonElement>;

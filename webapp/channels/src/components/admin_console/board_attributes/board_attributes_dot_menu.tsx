@@ -19,7 +19,7 @@ type Props = {
     canCreate: boolean;
     createField: (field: BoardsPropertyField) => void;
     deleteField: (id: string) => void;
-}
+};
 
 const menuId = 'board-attribute-field_dotmenu';
 

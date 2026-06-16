@@ -36,7 +36,7 @@ type FieldActions = {
     updateField: (field: BoardsPropertyField) => void;
     deleteField: (id: string) => void;
     reorderField: (field: BoardsPropertyField, nextOrder: number) => void;
-}
+};
 
 export const useBoardAttributesTable = (): SectionHook => {
     const [boardPropertyFields, readIO, pendingIO, itemOps] = useBoardPropertyFields();
@@ -96,7 +96,7 @@ export const useBoardAttributesTable = (): SectionHook => {
 type Props = {
     data: BoardPropertyFields;
     canCreate: boolean;
-}
+};
 
 export function BoardAttributesTable({
     data: collection,

@@ -23,7 +23,7 @@ import './billing_history.scss';
 type BillingHistoryModalProps = {
     invoices: Invoice[] | undefined;
     onHide?: () => void;
-}
+};
 
 const invoiceListToRecordList = (invoices: Invoice[]) => {
     const records = {} as Record<string, Invoice>;

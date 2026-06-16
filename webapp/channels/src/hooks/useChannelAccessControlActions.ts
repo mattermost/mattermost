@@ -33,7 +33,7 @@ export interface ChannelAccessControlActions {
     saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
     deleteChannelPolicy: (policyId: string) => Promise<ActionResult>;
     getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult<ChannelMembership[]>>;
-    createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
+    createJob: (job: JobTypeBase & {data: any}) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
     createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => Promise<ActionResult>;
@@ -85,7 +85,7 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
             return dispatch(getChannelMembers(channelId, page, perPage));
         },
 
-        createJob: (job: JobTypeBase & { data: any }) => {
+        createJob: (job: JobTypeBase & {data: any}) => {
             return dispatch(createJob(job));
         },
 

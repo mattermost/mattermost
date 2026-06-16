@@ -77,7 +77,7 @@ export const messages = defineMessages({
     enableSearchingDescription: {id: 'admin.elasticsearch.enableSearchingDescription', defaultMessage: 'Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+export const searchableStrings: Array<string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]> = [
     [messages.connectionUrlDescription, {link: (msg: string) => msg}],
     [messages.enableIndexingDescription, {link: (msg: string) => msg}],
     messages.title,

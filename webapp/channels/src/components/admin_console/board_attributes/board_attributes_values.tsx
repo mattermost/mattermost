@@ -34,7 +34,7 @@ type Props = {
     updateField: (field: BoardsPropertyField) => void;
     warning?: string;
     autoFocus?: boolean;
-}
+};
 
 const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     const {formatMessage} = useIntl();

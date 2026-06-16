@@ -15,7 +15,7 @@ export type Props = {
     checked: boolean;
     tooltip?: string;
     size?: 'regular' | 'small';
-}
+};
 const MultiSelectCard = (props: Props) => {
     const buttonProps: {
         className: string;

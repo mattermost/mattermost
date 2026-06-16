@@ -15,7 +15,7 @@ type Props = {
     onConfirm: () => void;
     onCancel: () => void;
     onExited: () => void;
-}
+};
 
 export const useBoardAttributeFieldDelete = () => {
     const dispatch = useDispatch();

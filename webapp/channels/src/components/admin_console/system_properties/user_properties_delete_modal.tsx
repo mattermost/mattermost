@@ -20,7 +20,7 @@ type Props = {
     onExited: () => void;
     isOrphaned?: boolean;
     sourcePluginId?: string;
-}
+};
 
 const noop = () => {};
 

@@ -59,7 +59,7 @@ export type PropertyValue<T> = {
     delete_at: number;
     created_by: string;
     updated_by: string;
-}
+};
 
 /**
  * Base shape for a select/multiselect option. Features that constrain or
@@ -73,14 +73,14 @@ export type PropertyFieldOption = {
     // Optional explicit ordering. When unset, consumers fall back to the
     // position of the option within `attrs.options`.
     rank?: number;
-}
+};
 
 export type SelectPropertyField = PropertyField & {
     attrs?: {
         editable?: boolean;
         options?: PropertyFieldOption[];
     };
-}
+};
 
 export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect';
@@ -118,7 +118,7 @@ export type PropertyValuesState = {
 
 export type PropertyGroupsState = {
     byId: IDMappedObjects<PropertyGroup>;
-    byName: { [name: string]: PropertyGroup };
+    byName: {[name: string]: PropertyGroup};
 };
 
 export type PropertyValuesUpdated<T> = {

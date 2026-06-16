@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 type Props = {
     handleEmojiPickerClose: MouseEventHandler;
-}
+};
 
 const EmojiPickerHeader = ({handleEmojiPickerClose}: Props) => {
     return (

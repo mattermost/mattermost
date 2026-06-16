@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -12,6 +13,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+)
+
+var (
+	ErrEmptyDeviceId     = errors.New("device id is empty")
+	ErrEmptyVoIPDeviceId = errors.New("voip device id is empty")
 )
 
 func (ps *PlatformService) CreateSession(rctx request.CTX, session *model.Session) (*model.Session, error) {
@@ -178,16 +184,39 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 	return nil
 }
 
-func (ps *PlatformService) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) error {
+func (ps *PlatformService) RevokeOtherSessionsForDeviceId(rctx request.CTX, userID string, deviceId string, currentSessionId string) error {
+	if deviceId == "" {
+		return ErrEmptyDeviceId
+	}
 	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, session := range sessions {
-		if session.DeviceId == deviceID && session.Id != currentSessionId {
+		if session.DeviceId == deviceId && session.Id != currentSessionId {
 			rctx.Logger().Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
 			if err := ps.RevokeSession(rctx, session); err != nil {
-				rctx.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
+				rctx.Logger().Warn("Could not revoke session for device", mlog.String("session_id", session.Id), mlog.Err(err))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (ps *PlatformService) RevokeOtherSessionsForVoIPDeviceId(rctx request.CTX, userID string, voIPDeviceId string, currentSessionId string) error {
+	if voIPDeviceId == "" {
+		return ErrEmptyVoIPDeviceId
+	}
+	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
+	if err != nil {
+		return err
+	}
+	for _, session := range sessions {
+		if session.VoIPDeviceId == voIPDeviceId && session.Id != currentSessionId {
+			rctx.Logger().Debug("Revoking sessionId for userId. Re-login with the same VoIP device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
+			if err := ps.RevokeSession(rctx, session); err != nil {
+				rctx.Logger().Warn("Could not revoke session for VoIP device", mlog.String("session_id", session.Id), mlog.Err(err))
 			}
 		}
 	}

@@ -75,9 +75,9 @@ export function filterCELIdentifier(input: string): string {
 }
 
 export type CPAFieldNameValidationError =
-    | {kind: 'invalid_charset'}
-    | {kind: 'reserved_word'; word: string}
-    | {kind: 'too_long'; max: number};
+    {kind: 'invalid_charset'} |
+    {kind: 'reserved_word'; word: string} |
+    {kind: 'too_long'; max: number};
 
 /**
  * Client-side mirror of server ValidateCPAFieldName.

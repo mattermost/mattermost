@@ -137,7 +137,7 @@ function ChannelSettingsAccessRulesTab({
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
                 }
-            } catch (error) {
+            } catch {
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');

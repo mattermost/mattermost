@@ -25,7 +25,7 @@ export type PostPreviewFieldMetadata = {
 export type UserPropertyMetadata = {
     searchUsers?: (term: string) => Promise<UserProfile[]>;
     setUser?: (userId: string) => void;
-}
+};
 
 export type TextFieldMetadata = {
     placeholder?: string;
@@ -43,7 +43,7 @@ export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata | UserP
 
 export type PropertiesCardViewMetadata = {
     [key: string]: FieldMetadata;
-}
+};
 
 type OrderedRow = {
     field: PropertyField;
@@ -129,7 +129,7 @@ type Props = {
     actionRows?: ActionRow[];
     metadata?: PropertiesCardViewMetadata;
     footer?: React.ReactNode;
-}
+};
 
 export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionRows, metadata, footer}: Props) {
     const orderedRows = useMemo<OrderedRow[]>(() => {

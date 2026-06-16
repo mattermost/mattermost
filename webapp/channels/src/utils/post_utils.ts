@@ -470,9 +470,9 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
 export function usePostAriaLabel(post: Post | undefined, autotranslated: boolean) {
     const intl = useIntl();
 
-    const getDisplayName = useMemo(makeGetDisplayName, []);
-    const getReactionsForPost = useMemo(makeGetReactionsForPost, []);
-    const getMentionsFromMessage = useMemo(makeGetMentionsFromMessage, []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
+    const getReactionsForPost = useMemo(() => makeGetReactionsForPost(), []);
+    const getMentionsFromMessage = useMemo(() => makeGetMentionsFromMessage(), []);
 
     const createAriaLabelMemoized = memoizeResult(createAriaLabelForPost);
 
