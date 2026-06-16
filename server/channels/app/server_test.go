@@ -68,18 +68,13 @@ func TestStartServerSuccess(t *testing.T) {
 
 func TestStartServerPortUnavailable(t *testing.T) {
 	mainHelper.Parallel(t)
-	// Pin to IPv4 so the blocked port cannot be bypassed via [::1] on dual-stack hosts.
+	// Pin to IPv4 so the blocked port exactly matches the address Start() will bind.
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	defer listener.Close()
 
 	_, port, err := net.SplitHostPort(listener.Addr().String())
 	require.NoError(t, err)
-
-	// Hold the same port on IPv6 when available; otherwise Start() can succeed on [::1].
-	if listener6, err6 := net.Listen("tcp", net.JoinHostPort("::1", port)); err6 == nil {
-		defer listener6.Close()
-	}
 
 	blockedAddr := net.JoinHostPort("127.0.0.1", port)
 
