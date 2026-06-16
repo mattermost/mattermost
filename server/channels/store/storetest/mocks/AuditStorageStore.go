@@ -44,24 +44,6 @@ func (_m *AuditStorageStore) HasRead(ctx context.Context, userID string, postID 
 	return r0, r1
 }
 
-// MarkBulk provides a mock function with given fields: ctx, records
-func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
-	ret := _m.Called(ctx, records)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MarkBulk")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []store.AuditDeliveryRecord) error); ok {
-		r0 = rf(ctx, records)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Mark provides a mock function with given fields: ctx, userID, postID, mechanism
 func (_m *AuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
 	ret := _m.Called(ctx, userID, postID, mechanism)
@@ -73,6 +55,24 @@ func (_m *AuditStorageStore) Mark(ctx context.Context, userID string, postID str
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, int16) error); ok {
 		r0 = rf(ctx, userID, postID, mechanism)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MarkBulk provides a mock function with given fields: ctx, records
+func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []store.AuditDeliveryRecord) error {
+	ret := _m.Called(ctx, records)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkBulk")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []store.AuditDeliveryRecord) error); ok {
+		r0 = rf(ctx, records)
 	} else {
 		r0 = ret.Error(0)
 	}

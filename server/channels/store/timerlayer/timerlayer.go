@@ -935,6 +935,22 @@ func (s *TimerLayerAuditStorageStore) Mark(ctx context.Context, userID string, p
 	return err
 }
 
+func (s *TimerLayerAuditStorageStore) MarkBulk(ctx context.Context, records []AuditDeliveryRecord) error {
+	start := time.Now()
+
+	err := s.AuditStorageStore.MarkBulk(ctx, records)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulk", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerAuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
 	start := time.Now()
 

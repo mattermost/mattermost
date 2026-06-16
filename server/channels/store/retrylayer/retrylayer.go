@@ -1042,6 +1042,27 @@ func (s *RetryLayerAuditStorageStore) Mark(ctx context.Context, userID string, p
 
 }
 
+func (s *RetryLayerAuditStorageStore) MarkBulk(ctx context.Context, records []AuditDeliveryRecord) error {
+
+	tries := 0
+	for {
+		err := s.AuditStorageStore.MarkBulk(ctx, records)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
 
 	tries := 0
