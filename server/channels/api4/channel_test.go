@@ -5023,6 +5023,10 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 		{name: "system admin with channel admin", roles: channelAdmin + " " + model.SystemAdminRoleId},
 		{name: "team user with channel user", roles: channelMember + " " + model.TeamUserRoleId},
 		{name: "team admin with channel user", roles: channelMember + " " + model.TeamAdminRoleId},
+		{name: "team post all with channel user", roles: channelMember + " " + model.TeamPostAllRoleId},
+		{name: "system post all with channel user", roles: channelMember + " " + model.SystemPostAllRoleId},
+		{name: "system read only admin with channel user", roles: channelMember + " " + model.SystemReadOnlyAdminRoleId},
+		{name: "custom group user with channel user", roles: channelMember + " " + model.CustomGroupUserRoleId},
 	}
 
 	for _, tc := range invalidRoles {
@@ -5059,6 +5063,20 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 			require.Equal(t, tc.roles, member.Roles)
 		})
 	}
+
+	t.Run("rejects system manager assigned by system admin", func(t *testing.T) {
+		memberBefore, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		rolesBefore := memberBefore.Roles
+
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(context.Background(), channel.Id, th.BasicUser2.Id, channelMember+" "+model.SystemManagerRoleId)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		memberAfter, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, rolesBefore, memberAfter.Roles)
+	})
 }
 
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
