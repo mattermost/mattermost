@@ -872,21 +872,38 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
-// GetBuiltInRoleScope returns the scope of a built-in role from its name prefix.
+var builtInRoleScopes = map[string]RoleScope{
+	ChannelGuestRoleId:           RoleScopeChannel,
+	ChannelUserRoleId:            RoleScopeChannel,
+	ChannelAdminRoleId:           RoleScopeChannel,
+	TeamGuestRoleId:              RoleScopeTeam,
+	TeamUserRoleId:               RoleScopeTeam,
+	TeamAdminRoleId:              RoleScopeTeam,
+	TeamPostAllRoleId:            RoleScopeTeam,
+	TeamPostAllPublicRoleId:      RoleScopeTeam,
+	SystemGuestRoleId:            RoleScopeSystem,
+	SystemUserRoleId:             RoleScopeSystem,
+	SystemAdminRoleId:            RoleScopeSystem,
+	SystemPostAllRoleId:          RoleScopeSystem,
+	SystemPostAllPublicRoleId:    RoleScopeSystem,
+	SystemUserAccessTokenRoleId:  RoleScopeSystem,
+	SystemUserManagerRoleId:      RoleScopeSystem,
+	SystemReadOnlyAdminRoleId:    RoleScopeSystem,
+	SystemManagerRoleId:          RoleScopeSystem,
+	SystemCustomGroupAdminRoleId: RoleScopeSystem,
+	SharedChannelManagerRoleId:   RoleScopeSystem,
+	PlaybookAdminRoleId:          RoleScopeSystem,
+	PlaybookMemberRoleId:         RoleScopeSystem,
+	RunAdminRoleId:               RoleScopeSystem,
+	RunMemberRoleId:              RoleScopeSystem,
+	CustomGroupUserRoleId:        RoleScopeGroup,
+}
+
+// GetBuiltInRoleScope returns the scope of a built-in role by exact ID match.
 // Custom roles return ok=false.
 func GetBuiltInRoleScope(roleName string) (RoleScope, bool) {
-	switch {
-	case strings.HasPrefix(roleName, "channel_"):
-		return RoleScopeChannel, true
-	case strings.HasPrefix(roleName, "team_"):
-		return RoleScopeTeam, true
-	case strings.HasPrefix(roleName, "system_"), strings.HasPrefix(roleName, "playbook_"), strings.HasPrefix(roleName, "run_"):
-		return RoleScopeSystem, true
-	case strings.HasPrefix(roleName, "custom_group_"):
-		return RoleScopeGroup, true
-	default:
-		return "", false
-	}
+	scope, ok := builtInRoleScopes[roleName]
+	return scope, ok
 }
 
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
@@ -896,7 +913,7 @@ func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 		return false
 	}
 
-	for _, roleName := range strings.Fields(channelMemberRoles) {
+	for roleName := range strings.FieldsSeq(channelMemberRoles) {
 		if scope, ok := GetBuiltInRoleScope(roleName); ok && scope != RoleScopeChannel {
 			return false
 		}

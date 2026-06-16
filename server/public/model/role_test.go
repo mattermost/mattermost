@@ -558,6 +558,9 @@ func TestGetBuiltInRoleScope(t *testing.T) {
 		{name: "run member", roleName: "run_member", scope: RoleScopeSystem, ok: true},
 		{name: "custom group user", roleName: CustomGroupUserRoleId, scope: RoleScopeGroup, ok: true},
 		{name: "custom role", roleName: "custom_role", scope: "", ok: false},
+		{name: "prefixed custom team role", roleName: "team_custom", scope: "", ok: false},
+		{name: "prefixed custom system role", roleName: "system_custom", scope: "", ok: false},
+		{name: "prefixed custom channel role", roleName: "channel_custom", scope: "", ok: false},
 		{name: "empty role", roleName: "", scope: "", ok: false},
 	}
 
@@ -582,6 +585,8 @@ func TestIsValidChannelMemberRoles(t *testing.T) {
 		{name: "channel user and admin", roles: ChannelUserRoleId + " " + ChannelAdminRoleId, valid: true},
 		{name: "channel guest only", roles: ChannelGuestRoleId, valid: true},
 		{name: "custom role with channel user", roles: ChannelUserRoleId + " custom_role", valid: true},
+		{name: "prefixed custom team role with channel user", roles: ChannelUserRoleId + " team_custom", valid: true},
+		{name: "prefixed custom system role with channel user", roles: ChannelUserRoleId + " system_custom", valid: true},
 		{name: "team user with channel user", roles: ChannelUserRoleId + " " + TeamUserRoleId, valid: false},
 		{name: "team post all with channel user", roles: ChannelUserRoleId + " " + TeamPostAllRoleId, valid: false},
 		{name: "system user with channel user", roles: ChannelUserRoleId + " " + SystemUserRoleId, valid: false},
