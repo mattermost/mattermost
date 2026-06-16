@@ -55,6 +55,51 @@ func TestAddMentionsHook_Process(t *testing.T) {
 	})
 }
 
+func TestAddMutedUsersHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &addMutedUsersBroadcastHook{}
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	webConn := &platform.WebConn{
+		UserId: userID,
+	}
+
+	t.Run("should set mute_for_recipient: true when the current user is in the muted list", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": model.StringArray{userID, otherUserID},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, true, msg.Event().GetData()["mute_for_recipient"])
+	})
+
+	t.Run("should set mute_for_recipient: false when the current user is not in the muted list", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": model.StringArray{otherUserID},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, false, msg.Event().GetData()["mute_for_recipient"])
+	})
+
+	t.Run("should set mute_for_recipient: false when the muted list is empty", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": model.StringArray{},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, false, msg.Event().GetData()["mute_for_recipient"])
+	})
+}
+
 func TestAddFollowersHook_Process(t *testing.T) {
 	mainHelper.Parallel(t)
 	hook := &addFollowersBroadcastHook{}

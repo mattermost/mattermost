@@ -781,22 +781,6 @@ func (s *TimerLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, 
 	return result, err
 }
 
-func (s *TimerLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
-	start := time.Now()
-
-	result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetTeamMembersToRemove", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
 	start := time.Now()
 
@@ -809,6 +793,22 @@ func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, grou
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetSubject", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetTeamMembersToRemove", success, elapsed)
 	}
 	return result, err
 }
@@ -1927,10 +1927,10 @@ func (s *TimerLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []strin
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap, isCRTEnabled bool) (model.ChannelsViewedResult, error) {
 	start := time.Now()
 
-	result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, userNotifyProps)
+	result, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, userNotifyProps, isCRTEnabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1940,7 +1940,7 @@ func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx requ
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsWithUnreadsAndWithMentions", success, elapsed)
 	}
-	return result, resultVar1, resultVar2, err
+	return result, err
 }
 
 func (s *TimerLayerChannelStore) GetDMGMProfilesByChannelIds(channelIDs []string, userID string, since int64) (map[string][]*model.User, error) {
@@ -2275,6 +2275,22 @@ func (s *TimerLayerChannelStore) GetMembersInfoByChannelIds(channelIDs []string)
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersInfoByChannelIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetMembersUnreadsAndMentionsForChannel(channelID string) (map[string]*model.ChannelMemberUnreadsAndMentions, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetMembersUnreadsAndMentionsForChannel(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersUnreadsAndMentionsForChannel", success, elapsed)
 	}
 	return result, err
 }

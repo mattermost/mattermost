@@ -8505,6 +8505,8 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(1), data["previous_unread_mentions"])
 						require.EqualValues(t, float64(0), data["unread_replies"])
 						require.EqualValues(t, float64(0), data["unread_mentions"])
+						require.Equal(t, th.BasicChannel.Id, data["channel_id"])
+						require.Equal(t, th.BasicChannel.TeamId, data["thread_team_id"])
 					}
 				case <-time.After(2 * time.Second):
 					return
@@ -8701,6 +8703,96 @@ func TestThreadSocketEvents(t *testing.T) {
 		}()
 
 		require.Equalf(t, 1, count, "User should have received 1 %s event", model.WebsocketEventThreadUpdated)
+	})
+
+	t.Run("Read event for DM thread carries empty thread_team_id", func(t *testing.T) {
+		dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		dmRoot, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: dmChannel.Id, Message: "dm root", UserId: th.BasicUser2.Id}, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+		dmReply, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: dmChannel.Id, Message: "dm reply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: dmRoot.Id}, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		// Drain pending events from the post creation above before the read.
+		drain := func() {
+			for {
+				select {
+				case <-userWSClient.EventChannel:
+				case <-time.After(200 * time.Millisecond):
+					return
+				}
+			}
+		}
+		drain()
+
+		// Mobile passes the user's current team as the path param when reading a DM thread.
+		_, resp, err = th.Client.UpdateThreadReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, dmRoot.Id, dmReply.CreateAt+1)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadReadChanged {
+						caught = true
+						data := ev.GetData()
+						require.Equal(t, dmChannel.Id, data["channel_id"])
+						// thread_team_id reflects the channel's TeamId — empty for DM/GM.
+						require.Equal(t, "", data["thread_team_id"])
+						// broadcast.team_id is the caller's current team (placeholder) — preserved for backwards compatibility.
+						require.Equal(t, th.BasicTeam.Id, ev.GetBroadcast().TeamId)
+					}
+				case <-time.After(2 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
+	})
+
+	t.Run("thread_team_id omitted when EnableExperienceAPI is off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		flagOffRoot, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "flag-off root", UserId: th.BasicUser2.Id}, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+		flagOffReply, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "flag-off reply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: flagOffRoot.Id}, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		// Drain pending events from the posts above so we only assert on the read event.
+		func() {
+			for {
+				select {
+				case <-userWSClient.EventChannel:
+				case <-time.After(200 * time.Millisecond):
+					return
+				}
+			}
+		}()
+
+		_, resp, err = th.Client.UpdateThreadReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, flagOffRoot.Id, flagOffReply.CreateAt+1)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadReadChanged {
+						caught = true
+						_, present := ev.GetData()["thread_team_id"]
+						require.False(t, present, "thread_team_id must not be present when flag is off")
+					}
+				case <-time.After(2 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
 	})
 }
 

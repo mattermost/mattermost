@@ -5678,6 +5678,106 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	}
 }
 
+func TestCreatePostWebSocketEventCarriesMuteForRecipient(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().Store().Channel().ClearCaches()
+
+	t.Run("unmuted recipient receives mute_for_recipient: false", func(t *testing.T) {
+		userWSClient := th.CreateConnectedWebSocketClient(t)
+
+		_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser2.Id,
+		}, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventPosted {
+						caught = true
+						require.Equal(t, false, ev.GetData()["mute_for_recipient"])
+					}
+				case <-time.After(5 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
+	})
+
+	t.Run("muted recipient receives mute_for_recipient: true", func(t *testing.T) {
+		_, err := th.Client.UpdateChannelNotifyProps(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, map[string]string{
+			model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention,
+		})
+		require.NoError(t, err)
+		th.App.Srv().Store().Channel().ClearCaches()
+
+		userWSClient := th.CreateConnectedWebSocketClient(t)
+
+		_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "another message",
+			UserId:    th.BasicUser2.Id,
+		}, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventPosted {
+						caught = true
+						require.Equal(t, true, ev.GetData()["mute_for_recipient"])
+					}
+				case <-time.After(5 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
+	})
+
+	t.Run("mute_for_recipient omitted when EnableExperienceAPI is off", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		userWSClient := th.CreateConnectedWebSocketClient(t)
+
+		_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "flag-off message",
+			UserId:    th.BasicUser2.Id,
+		}, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventPosted {
+						caught = true
+						_, present := ev.GetData()["mute_for_recipient"]
+						require.False(t, present, "mute_for_recipient must not be present when flag is off")
+					}
+				case <-time.After(5 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
+	})
+}
+
 func TestGetPostStripActionIntegrations(t *testing.T) {
 	mainHelper.Parallel(t)
 

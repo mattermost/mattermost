@@ -8835,26 +8835,32 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 			o1, m1 := setupMembership(tc.pushProp, tc.withUnreads, tc.withMentions, tc.isDirect, model.NewId())
 			userNotifyProps := model.GetDefaultChannelNotifyProps()
 			userNotifyProps[model.PushNotifyProp] = tc.userNotifyProp
-			unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, m1.UserId, userNotifyProps)
+			viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, m1.UserId, userNotifyProps, false)
 			require.NoError(t, err)
 
-			expectedUnreadsLength := 0
+			info := viewed[o1.Id]
+			require.NotNil(t, info)
+
 			if tc.withUnreads {
-				expectedUnreadsLength = 1
+				require.True(t, info.HasUnread)
+			} else {
+				require.False(t, info.HasUnread)
 			}
-			require.Len(t, unreads, expectedUnreadsLength)
 
 			propToUse := tc.pushProp
 			if tc.pushProp == model.ChannelNotifyDefault {
 				propToUse = tc.userNotifyProp
 			}
-			expectedMentionsLength := 0
-			if (tc.isDirect && tc.withUnreads) || (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions) {
-				expectedMentionsLength = 1
-			}
+			expectedClearPush := (tc.isDirect && tc.withUnreads) || (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions)
+			require.Equal(t, expectedClearPush, info.ClearPush)
 
-			require.Len(t, mentions, expectedMentionsLength)
-			require.Equal(t, o1.LastPostAt, times[o1.Id])
+			require.Equal(t, o1.LastPostAt, info.LastViewed)
+			require.Equal(t, o1.TeamId, info.TeamID)
+			if tc.withMentions {
+				require.Equal(t, int64(5), info.ClearedMentions)
+			} else {
+				require.Equal(t, int64(0), info.ClearedMentions)
+			}
 		})
 	}
 
@@ -8866,26 +8872,92 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		userNotifyProps := model.GetDefaultChannelNotifyProps()
 		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
 
-		unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id, o2.Id}, userID, userNotifyProps)
+		viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id, o2.Id}, userID, userNotifyProps, false)
 		require.NoError(t, err)
 
-		require.Contains(t, unreads, o1.Id)
-		require.Contains(t, unreads, o2.Id)
-		require.Contains(t, mentions, o1.Id)
-		require.Contains(t, mentions, o2.Id)
-		require.Equal(t, o1.LastPostAt, times[o1.Id])
-		require.Equal(t, o2.LastPostAt, times[o2.Id])
+		require.True(t, viewed[o1.Id].HasUnread)
+		require.True(t, viewed[o2.Id].HasUnread)
+		require.True(t, viewed[o1.Id].ClearPush)
+		require.True(t, viewed[o2.Id].ClearPush)
+		require.Equal(t, o1.LastPostAt, viewed[o1.Id].LastViewed)
+		require.Equal(t, o2.LastPostAt, viewed[o2.Id].LastViewed)
+		require.Equal(t, o1.TeamId, viewed[o1.Id].TeamID)
+		require.Equal(t, o2.TeamId, viewed[o2.Id].TeamID)
+		require.Equal(t, int64(5), viewed[o1.Id].ClearedMentions)
+		require.Equal(t, int64(5), viewed[o2.Id].ClearedMentions)
 	})
 
 	t.Run("non existing channel", func(t *testing.T) {
 		userNotifyProps := model.GetDefaultChannelNotifyProps()
 		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
-		unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{"foo"}, "foo", userNotifyProps)
+		viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{"foo"}, "foo", userNotifyProps, false)
+		require.NoError(t, err)
+		require.Len(t, viewed, 0)
+	})
+
+	t.Run("muted channel reports 0 cleared mentions", func(t *testing.T) {
+		userID := model.NewId()
+		o1, m1 := setupMembership(model.ChannelNotifyDefault, true, true, false, userID)
+
+		// Re-fetch and mute the membership.
+		m1.NotifyProps[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
+		_, err := ss.Channel().UpdateMember(rctx, &m1)
 		require.NoError(t, err)
 
-		require.Len(t, unreads, 0)
-		require.Len(t, mentions, 0)
-		require.Len(t, times, 0)
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+		viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, userID, userNotifyProps, false)
+		require.NoError(t, err)
+
+		// The channel still has unreads, but ClearedMentions is zeroed because of the mute.
+		require.True(t, viewed[o1.Id].HasUnread)
+		require.Equal(t, int64(0), viewed[o1.Id].ClearedMentions)
+	})
+
+	t.Run("CRT-enabled uses root counters", func(t *testing.T) {
+		userID := model.NewId()
+		// Channel where the user is caught up on root posts but has reply mentions only.
+		// MsgCount == TotalMsgCount → no non-root unreads to drive hasUnreads.
+		// MentionCount > 0 (reply mention), MentionCountRoot == 0.
+		o1 := model.Channel{}
+		o1.TeamId = model.NewId()
+		o1.DisplayName = "CRT Channel"
+		o1.Name = NewTestID()
+		o1.Type = model.ChannelTypeOpen
+		o1.TotalMsgCount = 10
+		o1.TotalMsgCountRoot = 5
+		o1.LastPostAt = 12345
+		o1.LastRootPostAt = 12345
+		_, nErr := ss.Channel().Save(rctx, &o1, -1)
+		require.NoError(t, nErr)
+
+		m1 := model.ChannelMember{
+			ChannelId:        o1.Id,
+			UserId:           userID,
+			NotifyProps:      model.GetDefaultChannelNotifyProps(),
+			MsgCount:         8,
+			MsgCountRoot:     5, // caught up on root
+			MentionCount:     3, // reply mention
+			MentionCountRoot: 0, // no root mention
+			LastViewedAt:     o1.LastPostAt,
+		}
+		_, err := ss.Channel().SaveMember(rctx, &m1)
+		require.NoError(t, err)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		// Non-CRT: channel has unreads (MentionCount > 0, MsgCount < TotalMsgCount).
+		viewedNonCRT, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, userID, userNotifyProps, false)
+		require.NoError(t, err)
+		require.True(t, viewedNonCRT[o1.Id].HasUnread)
+		require.Equal(t, int64(3), viewedNonCRT[o1.Id].ClearedMentions)
+
+		// CRT: root counters are caught up and there are no root mentions — not unread.
+		viewedCRT, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, userID, userNotifyProps, true)
+		require.NoError(t, err)
+		require.False(t, viewedCRT[o1.Id].HasUnread)
+		require.Equal(t, int64(0), viewedCRT[o1.Id].ClearedMentions)
 	})
 }
 

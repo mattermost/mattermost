@@ -843,11 +843,11 @@ func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, 
 
 }
 
-func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
 
 	tries := 0
 	for {
-		result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
+		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -864,11 +864,11 @@ func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, tea
 
 }
 
-func (s *RetryLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
+func (s *RetryLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
+		result, err := s.AttributesStore.GetTeamMembersToRemove(rctx, teamID, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -2265,21 +2265,21 @@ func (s *RetryLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []strin
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap, isCRTEnabled bool) (model.ChannelsViewedResult, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, resultVar2, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, userNotifyProps)
+		result, err := s.ChannelStore.GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, userNotifyProps, isCRTEnabled)
 		if err == nil {
-			return result, resultVar1, resultVar2, nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return result, resultVar1, resultVar2, err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, resultVar1, resultVar2, err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -2696,6 +2696,27 @@ func (s *RetryLayerChannelStore) GetMembersInfoByChannelIds(channelIDs []string)
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetMembersInfoByChannelIds(channelIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetMembersUnreadsAndMentionsForChannel(channelID string) (map[string]*model.ChannelMemberUnreadsAndMentions, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetMembersUnreadsAndMentionsForChannel(channelID)
 		if err == nil {
 			return result, nil
 		}

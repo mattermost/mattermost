@@ -51,6 +51,27 @@ type ChannelUnreadAt struct {
 	NotifyProps        StringMap `json:"-"`
 }
 
+// ChannelViewedInfo holds the read state for a single channel at mark-as-read time.
+type ChannelViewedInfo struct {
+	LastViewed      int64  // max(Channel.LastPostAt, ChannelMember.LastViewedAt)
+	ClearedMentions int64  // 0 for muted channels
+	TeamID          string // "" for DM/GM
+	HasUnread       bool
+	ClearPush       bool
+}
+
+// ChannelsViewedResult maps channelId → its read state, computed at mark-as-read time.
+type ChannelsViewedResult map[string]*ChannelViewedInfo
+
+// ChannelMemberUnreadsAndMentions captures a member's unread/mention state for
+// a channel. Muted channels report 0 for the mention counts, matching the
+// filtering applied elsewhere in the badge path.
+type ChannelMemberUnreadsAndMentions struct {
+	MentionCount     int64 `json:"mention_count"`
+	MentionCountRoot int64 `json:"mention_count_root"`
+	IsUnread         bool  `json:"is_unread"`
+}
+
 type ChannelMember struct {
 	ChannelId               string    `json:"channel_id"`
 	UserId                  string    `json:"user_id"`

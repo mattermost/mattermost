@@ -1218,52 +1218,34 @@ func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includ
 	return r0, r1
 }
 
-// GetChannelsWithUnreadsAndWithMentions provides a mock function with given fields: rctx, channelIDs, userID, userNotifyProps
-func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
-	ret := _m.Called(rctx, channelIDs, userID, userNotifyProps)
+// GetChannelsWithUnreadsAndWithMentions provides a mock function with given fields: rctx, channelIDs, userID, userNotifyProps, isCRTEnabled
+func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap, isCRTEnabled bool) (model.ChannelsViewedResult, error) {
+	ret := _m.Called(rctx, channelIDs, userID, userNotifyProps, isCRTEnabled)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetChannelsWithUnreadsAndWithMentions")
 	}
 
-	var r0 []string
-	var r1 []string
-	var r2 map[string]int64
-	var r3 error
-	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap) ([]string, []string, map[string]int64, error)); ok {
-		return rf(rctx, channelIDs, userID, userNotifyProps)
+	var r0 model.ChannelsViewedResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap, bool) (model.ChannelsViewedResult, error)); ok {
+		return rf(rctx, channelIDs, userID, userNotifyProps, isCRTEnabled)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap) []string); ok {
-		r0 = rf(rctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, model.StringMap, bool) model.ChannelsViewedResult); ok {
+		r0 = rf(rctx, channelIDs, userID, userNotifyProps, isCRTEnabled)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).(model.ChannelsViewedResult)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, []string, string, model.StringMap) []string); ok {
-		r1 = rf(rctx, channelIDs, userID, userNotifyProps)
+	if rf, ok := ret.Get(1).(func(request.CTX, []string, string, model.StringMap, bool) error); ok {
+		r1 = rf(rctx, channelIDs, userID, userNotifyProps, isCRTEnabled)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]string)
-		}
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(request.CTX, []string, string, model.StringMap) map[string]int64); ok {
-		r2 = rf(rctx, channelIDs, userID, userNotifyProps)
-	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(map[string]int64)
-		}
-	}
-
-	if rf, ok := ret.Get(3).(func(request.CTX, []string, string, model.StringMap) error); ok {
-		r3 = rf(rctx, channelIDs, userID, userNotifyProps)
-	} else {
-		r3 = ret.Error(3)
-	}
-
-	return r0, r1, r2, r3
+	return r0, r1
 }
 
 // GetDMGMProfilesByChannelIds provides a mock function with given fields: channelIDs, userID, since
@@ -1887,6 +1869,36 @@ func (_m *ChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[str
 
 	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(channelIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetMembersUnreadsAndMentionsForChannel provides a mock function with given fields: channelID
+func (_m *ChannelStore) GetMembersUnreadsAndMentionsForChannel(channelID string) (map[string]*model.ChannelMemberUnreadsAndMentions, error) {
+	ret := _m.Called(channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMembersUnreadsAndMentionsForChannel")
+	}
+
+	var r0 map[string]*model.ChannelMemberUnreadsAndMentions
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (map[string]*model.ChannelMemberUnreadsAndMentions, error)); ok {
+		return rf(channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string) map[string]*model.ChannelMemberUnreadsAndMentions); ok {
+		r0 = rf(channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.ChannelMemberUnreadsAndMentions)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
 	} else {
 		r1 = ret.Error(1)
 	}

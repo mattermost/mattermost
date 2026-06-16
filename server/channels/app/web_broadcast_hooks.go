@@ -17,28 +17,32 @@ import (
 )
 
 const (
-	broadcastAddMentions        = "add_mentions"
-	broadcastAddFollowers       = "add_followers"
-	broadcastPostedAck          = "posted_ack"
-	broadcastPermalink          = "permalink"
-	broadcastChannelMentions    = "channel_mentions"
-	broadcastBurnOnRead         = "burn_on_read"
-	broadcastBurnOnReadReaction = "burn_on_read_reaction"
-	broadcastAbacFiles          = "abac_files"
-	broadcastOnlyChannelAdmins  = "only_channel_admins"
+	broadcastAddMentions              = "add_mentions"
+	broadcastAddFollowers             = "add_followers"
+	broadcastAddMutedUsers            = "add_muted_users"
+	broadcastAddMemberUnreadsMentions = "add_member_unreads_mentions"
+	broadcastPostedAck                = "posted_ack"
+	broadcastPermalink                = "permalink"
+	broadcastChannelMentions          = "channel_mentions"
+	broadcastBurnOnRead               = "burn_on_read"
+	broadcastBurnOnReadReaction       = "burn_on_read_reaction"
+	broadcastAbacFiles                = "abac_files"
+	broadcastOnlyChannelAdmins        = "only_channel_admins"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	return map[string]platform.BroadcastHook{
-		broadcastAddMentions:        &addMentionsBroadcastHook{},
-		broadcastAddFollowers:       &addFollowersBroadcastHook{},
-		broadcastPostedAck:          &postedAckBroadcastHook{},
-		broadcastPermalink:          &permalinkBroadcastHook{},
-		broadcastChannelMentions:    &channelMentionsBroadcastHook{},
-		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
-		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
-		broadcastAbacFiles:          &abacFilesBroadcastHook{},
-		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
+		broadcastAddMentions:              &addMentionsBroadcastHook{},
+		broadcastAddFollowers:             &addFollowersBroadcastHook{},
+		broadcastAddMutedUsers:            &addMutedUsersBroadcastHook{},
+		broadcastAddMemberUnreadsMentions: &addMemberUnreadsMentionsBroadcastHook{},
+		broadcastPostedAck:                &postedAckBroadcastHook{},
+		broadcastPermalink:                &permalinkBroadcastHook{},
+		broadcastChannelMentions:          &channelMentionsBroadcastHook{},
+		broadcastBurnOnRead:               &burnOnReadBroadcastHook{},
+		broadcastBurnOnReadReaction:       &burnOnReadReactionBroadcastHook{},
+		broadcastAbacFiles:                &abacFilesBroadcastHook{},
+		broadcastOnlyChannelAdmins:        &onlyChannelAdminsBroadcastHook{},
 	}
 }
 
@@ -83,6 +87,45 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
 		"followers": followers,
+	})
+}
+
+// addMutedUsersBroadcastHook tags every recipient with mute_for_recipient: bool.
+type addMutedUsersBroadcastHook struct{}
+
+func (h *addMutedUsersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	mutedUsers, err := getTypedArg[model.StringArray](args, "muted_users")
+	if err != nil {
+		return errors.Wrap(err, "Invalid muted_users value passed to addMutedUsersBroadcastHook")
+	}
+
+	msg.Add("mute_for_recipient", slices.Contains(mutedUsers, webConn.UserId))
+	return nil
+}
+
+func useAddMutedUsersHook(message *model.WebSocketEvent, mutedUsers model.StringArray) {
+	message.GetBroadcast().AddHook(broadcastAddMutedUsers, map[string]any{
+		"muted_users": mutedUsers,
+	})
+}
+
+type addMemberUnreadsMentionsBroadcastHook struct{}
+
+func (h *addMemberUnreadsMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	byUser, err := getTypedArg[map[string]*model.ChannelMemberUnreadsAndMentions](args, "by_user")
+	if err != nil {
+		return errors.Wrap(err, "Invalid by_user value passed to addMemberUnreadsMentionsBroadcastHook")
+	}
+
+	if v, ok := byUser[webConn.UserId]; ok && v != nil {
+		msg.Add("member_unreads_mentions", v)
+	}
+	return nil
+}
+
+func useAddMemberUnreadsMentionsHook(message *model.WebSocketEvent, byUser map[string]*model.ChannelMemberUnreadsAndMentions) {
+	message.GetBroadcast().AddHook(broadcastAddMemberUnreadsMentions, map[string]any{
+		"by_user": byUser,
 	})
 }
 

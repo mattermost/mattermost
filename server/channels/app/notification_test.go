@@ -3185,6 +3185,51 @@ func TestRemoveNotifications(t *testing.T) {
 		require.Equal(t, int64(0), thread.UnreadReplies)
 	})
 
+	t.Run("thread_updated WS event carries correct previous_unread_mentions", func(t *testing.T) {
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post",
+			UserId:    u1.Id,
+		}
+		rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Two mention replies so UnreadMentions starts at 2.
+		var mentionReplyId string
+		for range 2 {
+			reply := &model.Post{
+				ChannelId: c1.Id,
+				Message:   "@" + u2.Username + " mention",
+				UserId:    u1.Id,
+				RootId:    rootPost.Id,
+			}
+			reply, _, appErr = th.App.CreatePost(th.Context, reply, c1, model.CreatePostFlags{SetOnline: true})
+			require.Nil(t, appErr)
+			mentionReplyId = reply.Id
+		}
+
+		// Confirm u2 has 2 unread mentions before deletion.
+		tm, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, int64(2), tm.UnreadMentions)
+
+		// Connect u2's WS before triggering the deletion.
+		messages, closeWS := connectFakeWebSocket(t, th, u2.Id, "", []model.WebsocketEventType{model.WebsocketEventThreadUpdated})
+		defer closeWS()
+
+		_, appErr = th.App.DeletePost(th.Context, mentionReplyId, u1.Id)
+		require.Nil(t, appErr)
+
+		select {
+		case ev := <-messages:
+			data := ev.GetData()
+			require.EqualValues(t, int64(2), data["previous_unread_mentions"],
+				"previous_unread_mentions must be the pre-decrement value")
+		case <-time.After(5 * time.Second):
+			t.Fatal("u2 should have received a thread_updated event")
+		}
+	})
+
 	t.Run("when mentioned via a user group", func(t *testing.T) {
 		group, appErr := th.App.CreateGroup(&model.Group{
 			Name:        new("test_group"),

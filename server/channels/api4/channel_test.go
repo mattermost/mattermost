@@ -4457,6 +4457,671 @@ func TestViewChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestViewChannelMultipleChannelsViewedEventPayload(t *testing.T) {
+	// Verifies the multiple_channels_viewed WebSocket event payload includes
+	// channel_times, cleared_mentions, and team_ids — fields consumed by clients
+	// to keep their badge state in sync without re-fetching from the server.
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// BasicUser2 posts twice in BasicChannel mentioning BasicUser so the channel
+	// has both unread messages and a mention count to clear.
+	mentionedUser := th.BasicUser
+	mentionMsg := "hello @" + mentionedUser.Username
+	_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   mentionMsg,
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+	_, _, appErr = th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   mentionMsg,
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	// Connect a WS client for BasicUser to receive the broadcast.
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	// Mark BasicChannel as viewed.
+	view := &model.ChannelView{ChannelId: th.BasicChannel.Id}
+	_, _, err := th.Client.ViewChannel(context.Background(), th.BasicUser.Id, view)
+	require.NoError(t, err)
+
+	// Drain the event channel looking for multiple_channels_viewed.
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventMultipleChannelsViewed {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				// channel_times: existing field, unchanged.
+				times, ok := data["channel_times"].(map[string]any)
+				require.True(t, ok, "channel_times must be present and a map")
+				_, hasChannel := times[th.BasicChannel.Id]
+				require.True(t, hasChannel, "channel_times must include the viewed channel")
+
+				// cleared_mentions: NEW — per-channel mention count just cleared.
+				cleared, ok := data["cleared_mentions"].(map[string]any)
+				require.True(t, ok, "cleared_mentions must be present and a map")
+				clearedForChannel, hasCleared := cleared[th.BasicChannel.Id]
+				require.True(t, hasCleared, "cleared_mentions must include the viewed channel")
+				require.EqualValues(t, 2, clearedForChannel, "cleared_mentions must equal the mention count at view time")
+
+				// team_ids: NEW — per-channel team_id so clients can route the update.
+				teamIDs, ok := data["team_ids"].(map[string]any)
+				require.True(t, ok, "team_ids must be present and a map")
+				teamForChannel, hasTeam := teamIDs[th.BasicChannel.Id]
+				require.True(t, hasTeam, "team_ids must include the viewed channel")
+				require.Equal(t, th.BasicTeam.Id, teamForChannel, "team_ids[channel] must equal the channel's team_id")
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventMultipleChannelsViewed)
+}
+
+func TestViewChannelMultipleChannelsViewedEventPayloadFlagOff(t *testing.T) {
+	// When FeatureFlags.EnableExperienceAPI is off, the multiple_channels_viewed
+	// payload omits cleared_mentions and team_ids; only the pre-existing
+	// channel_times field is sent.
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "post for flag-off view",
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, _, err := th.Client.ViewChannel(context.Background(), th.BasicUser.Id, &model.ChannelView{ChannelId: th.BasicChannel.Id})
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventMultipleChannelsViewed {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				// channel_times is pre-existing and stays on.
+				_, hasTimes := data["channel_times"]
+				require.True(t, hasTimes, "channel_times must remain when flag is off")
+
+				// cleared_mentions and team_ids are gated by the flag.
+				_, hasCleared := data["cleared_mentions"]
+				require.False(t, hasCleared, "cleared_mentions must not be present when flag is off")
+				_, hasTeamIDs := data["team_ids"]
+				require.False(t, hasTeamIDs, "team_ids must not be present when flag is off")
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventMultipleChannelsViewed)
+}
+
+func TestDeleteChannelWebSocketEventCarriesMemberUnreadsMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// BasicUser2 posts and @mentions BasicUser so BasicUser has an unread + mention
+	// to assert on when the channel is deleted.
+	mentionMsg := "hello @" + th.BasicUser.Username
+	_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   mentionMsg,
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	appErr = th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventChannelDeleted {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				// team_id rides on the top-level payload.
+				require.Equal(t, th.BasicTeam.Id, data["team_id"])
+
+				// Per-recipient contribution must be present and accurate.
+				raw, ok := data["member_unreads_mentions"].(map[string]any)
+				require.True(t, ok, "member_unreads_mentions must be present as a map")
+				require.EqualValues(t, 1, raw["mention_count"])
+				require.EqualValues(t, 1, raw["mention_count_root"])
+				require.Equal(t, true, raw["is_unread"])
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelDeleted)
+}
+
+func TestRemoveUserFromChannelWebSocketEventCarriesMemberUnreadsMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	mentionMsg := "hello @" + th.BasicUser.Username
+	_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   mentionMsg,
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	// th.BasicChannel was captured at setup and has stale TotalMsgCount.
+	// Fetch the fresh channel so is_unread reflects the post above.
+	freshChannel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	appErr = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, freshChannel)
+	require.Nil(t, appErr)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventUserRemoved {
+					continue
+				}
+				data := ev.GetData()
+				if _, present := data["member_unreads_mentions"]; !present {
+					continue
+				}
+				caught = true
+
+				require.Equal(t, th.BasicTeam.Id, data["team_id"])
+				require.Equal(t, th.BasicChannel.Id, data["channel_id"])
+
+				raw, ok := data["member_unreads_mentions"].(map[string]any)
+				require.True(t, ok, "member_unreads_mentions must be a map")
+				require.EqualValues(t, 1, raw["mention_count"])
+				require.EqualValues(t, 1, raw["mention_count_root"])
+				require.Equal(t, true, raw["is_unread"])
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received the user-scoped %s event with member_unreads_mentions", model.WebsocketEventUserRemoved)
+}
+
+func TestRemoveUserFromChannelWebSocketEventOmitsExperienceFieldsWhenFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
+	require.Nil(t, appErr)
+
+	timeout := time.After(2 * time.Second)
+	for {
+		select {
+		case ev := <-userWSClient.EventChannel:
+			if ev.EventType() != model.WebsocketEventUserRemoved {
+				continue
+			}
+			data := ev.GetData()
+			_, hasTeamId := data["team_id"]
+			require.False(t, hasTeamId, "team_id must not be present when flag is off")
+			_, hasField := data["member_unreads_mentions"]
+			require.False(t, hasField, "member_unreads_mentions must not be present when flag is off")
+		case <-timeout:
+			return
+		}
+	}
+}
+
+func TestUpdateChannelNotifyPropsMuteToggleCarriesExperienceFields(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	mentionMsg := "hello @" + th.BasicUser.Username
+	_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   mentionMsg,
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, err := th.Client.UpdateChannelNotifyProps(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, map[string]string{
+		model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention,
+	})
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventChannelMemberUpdated {
+					continue
+				}
+				data := ev.GetData()
+				if _, present := data["previous_muted"]; !present {
+					continue
+				}
+				caught = true
+
+				require.Equal(t, th.BasicTeam.Id, data["team_id"])
+				require.Equal(t, false, data["previous_muted"])
+				require.Equal(t, true, data["current_muted"])
+
+				raw, ok := data["member_unreads_mentions"].(map[string]any)
+				require.True(t, ok, "member_unreads_mentions must be a map")
+				require.EqualValues(t, 1, raw["mention_count"])
+				require.EqualValues(t, 1, raw["mention_count_root"])
+				require.Equal(t, true, raw["is_unread"])
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event with mute toggle data", model.WebsocketEventChannelMemberUpdated)
+}
+
+func TestUpdateChannelNotifyPropsMuteToggleOmitsExperienceFieldsWhenFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, err := th.Client.UpdateChannelNotifyProps(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, map[string]string{
+		model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention,
+	})
+	require.NoError(t, err)
+
+	timeout := time.After(2 * time.Second)
+	for {
+		select {
+		case ev := <-userWSClient.EventChannel:
+			if ev.EventType() != model.WebsocketEventChannelMemberUpdated {
+				continue
+			}
+			data := ev.GetData()
+			_, hasTeamId := data["team_id"]
+			require.False(t, hasTeamId, "team_id must not be present when flag is off")
+			_, hasPrev := data["previous_muted"]
+			require.False(t, hasPrev, "previous_muted must not be present when flag is off")
+			_, hasCurrent := data["current_muted"]
+			require.False(t, hasCurrent, "current_muted must not be present when flag is off")
+			_, hasField := data["member_unreads_mentions"]
+			require.False(t, hasField, "member_unreads_mentions must not be present when flag is off")
+		case <-timeout:
+			return
+		}
+	}
+}
+
+func TestSetCategoryMutedFiresPerChannelMemberUpdatedWithMuteToggle(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+	require.NoError(t, err)
+	require.Len(t, categories.Categories, 3)
+
+	channelsCategory := categories.Categories[1]
+	require.NotEmpty(t, channelsCategory.Channels)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	updated := &model.SidebarCategoryWithChannels{
+		SidebarCategory: channelsCategory.SidebarCategory,
+		Channels:        channelsCategory.Channels,
+	}
+	updated.Muted = true
+
+	_, _, err = th.Client.UpdateSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, updated)
+	require.NoError(t, err)
+
+	expected := make(map[string]bool, len(channelsCategory.Channels))
+	for _, channelID := range channelsCategory.Channels {
+		expected[channelID] = true
+	}
+
+	seenChannels := make(map[string]bool, len(expected))
+	timeout := time.After(3 * time.Second)
+	for len(seenChannels) < len(expected) {
+		select {
+		case ev := <-userWSClient.EventChannel:
+			if ev.EventType() != model.WebsocketEventChannelMemberUpdated {
+				continue
+			}
+			data := ev.GetData()
+			if _, present := data["previous_muted"]; !present {
+				continue
+			}
+			require.Equal(t, false, data["previous_muted"])
+			require.Equal(t, true, data["current_muted"])
+			require.Equal(t, th.BasicTeam.Id, data["team_id"])
+			_, hasField := data["member_unreads_mentions"]
+			require.True(t, hasField, "member_unreads_mentions must be present on mute toggle")
+
+			memberJSON, ok := data["channelMember"].(string)
+			require.True(t, ok, "channelMember must be a JSON string")
+			var cm model.ChannelMember
+			require.NoError(t, json.Unmarshal([]byte(memberJSON), &cm))
+			seenChannels[cm.ChannelId] = true
+		case <-timeout:
+			require.Failf(t, "Timed out", "Expected mute toggle events for all channels in category. Seen: %v, expected: %v", seenChannels, expected)
+		}
+	}
+
+	for channelID := range expected {
+		require.True(t, seenChannels[channelID], "Expected mute toggle event for channel %s", channelID)
+	}
+}
+
+func TestUpdateChannelNotifyPropsNonMuteChangeDoesNotCarryMuteFields(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, err := th.Client.UpdateChannelNotifyProps(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, map[string]string{
+		model.DesktopNotifyProp: model.ChannelNotifyMention,
+	})
+	require.NoError(t, err)
+
+	timeout := time.After(2 * time.Second)
+	for {
+		select {
+		case ev := <-userWSClient.EventChannel:
+			if ev.EventType() != model.WebsocketEventChannelMemberUpdated {
+				continue
+			}
+			data := ev.GetData()
+			_, hasPrev := data["previous_muted"]
+			require.False(t, hasPrev, "previous_muted must be absent when MarkUnread was not changed")
+			_, hasCurrent := data["current_muted"]
+			require.False(t, hasCurrent, "current_muted must be absent when MarkUnread was not changed")
+		case <-timeout:
+			return
+		}
+	}
+}
+
+func TestDeleteChannelWebSocketEventOmitsExperienceFieldsWhenFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	appErr := th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventChannelDeleted {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				// Pre-existing fields stay.
+				_, hasChannelId := data["channel_id"]
+				require.True(t, hasChannelId, "channel_id must remain when flag is off")
+				_, hasDeleteAt := data["delete_at"]
+				require.True(t, hasDeleteAt, "delete_at must remain when flag is off")
+
+				// Experience-API fields are gated and must be absent.
+				_, hasTeamId := data["team_id"]
+				require.False(t, hasTeamId, "team_id must not be present when flag is off")
+				_, hasContribution := data["member_unreads_mentions"]
+				require.False(t, hasContribution, "member_unreads_mentions must not be present when flag is off")
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelDeleted)
+}
+
+func TestRestoreChannelWebSocketEventCarriesMemberUnreadsMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// BasicUser2 posts and @mentions BasicUser so the member row has a non-zero
+	// mention count when the channel is archived and then restored.
+	mentionMsg := "hello @" + th.BasicUser.Username
+	_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   mentionMsg,
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	appErr = th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, _, err := th.SystemAdminClient.RestoreChannel(context.Background(), th.BasicChannel.Id)
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventChannelRestored {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				require.Equal(t, th.BasicTeam.Id, data["team_id"])
+
+				raw, ok := data["member_unreads_mentions"].(map[string]any)
+				require.True(t, ok, "member_unreads_mentions must be present")
+				require.EqualValues(t, 1, raw["mention_count"])
+				require.EqualValues(t, 1, raw["mention_count_root"])
+				require.Equal(t, true, raw["is_unread"])
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelRestored)
+}
+
+func TestRestoreChannelWebSocketEventOmitsExperienceFieldsWhenFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	appErr := th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, _, err := th.SystemAdminClient.RestoreChannel(context.Background(), th.BasicChannel.Id)
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventChannelRestored {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				_, hasChannelId := data["channel_id"]
+				require.True(t, hasChannelId, "channel_id must remain when flag is off")
+
+				_, hasTeamId := data["team_id"]
+				require.False(t, hasTeamId, "team_id must not be present when flag is off")
+				_, hasMemberFields := data["member_unreads_mentions"]
+				require.False(t, hasMemberFields, "member_unreads_mentions must not be present when flag is off")
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelRestored)
+}
+
+func TestConvertChannelPrivacyWebSocketEventCarriesMemberUnreadsMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// BasicUser2 posts and @mentions BasicUser so the channel member row has a
+	// non-zero mention count before the privacy conversion.
+	mentionMsg := "hello @" + th.BasicUser.Username
+	_, _, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   mentionMsg,
+		UserId:    th.BasicUser2.Id,
+	}, th.Context.Session().Id, false)
+	require.Nil(t, appErr)
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, _, err := th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), th.BasicChannel.Id, model.ChannelTypePrivate)
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventChannelConverted {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				require.Equal(t, th.BasicChannel.Id, data["channel_id"])
+				require.Equal(t, string(model.ChannelTypePrivate), data["channel_type"])
+				require.Equal(t, th.BasicTeam.Id, data["team_id"])
+
+				raw, ok := data["member_unreads_mentions"].(map[string]any)
+				require.True(t, ok, "member_unreads_mentions must be present")
+				require.EqualValues(t, 1, raw["mention_count"])
+				require.EqualValues(t, 1, raw["mention_count_root"])
+				require.Equal(t, true, raw["is_unread"])
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelConverted)
+}
+
+func TestConvertChannelPrivacyWebSocketEventOmitsExperienceFieldsWhenFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	userWSClient := th.CreateConnectedWebSocketClient(t)
+
+	_, _, err := th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), th.BasicChannel.Id, model.ChannelTypePrivate)
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() != model.WebsocketEventChannelConverted {
+					continue
+				}
+				caught = true
+				data := ev.GetData()
+
+				_, hasChannelId := data["channel_id"]
+				require.True(t, hasChannelId, "channel_id must remain when flag is off")
+				_, hasChannelType := data["channel_type"]
+				require.True(t, hasChannelType, "channel_type must remain when flag is off")
+
+				_, hasTeamId := data["team_id"]
+				require.False(t, hasTeamId, "team_id must not be present when flag is off")
+				_, hasMemberFields := data["member_unreads_mentions"]
+				require.False(t, hasMemberFields, "member_unreads_mentions must not be present when flag is off")
+				return
+			case <-time.After(2 * time.Second):
+				return
+			}
+		}
+	}()
+	require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelConverted)
+}
+
 func TestReadMultipleChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
