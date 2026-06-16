@@ -138,15 +138,26 @@ func (a *App) AuditRecordBulkPosts(userID string, posts []*model.Post, mechanism
 // record. This is the hot path: a broadcast to N users now costs
 // ceil(N/auditDeliveryChunkSize) LogRecord calls instead of N, which is what
 // keeps the single-threaded logr drain from becoming the bottleneck.
-func (a *App) AuditRecordBulkMany(userIDs []string, postID string, mechanism int16) {
+func (a *App) AuditRecordBulkMany(profileMap map[string]*model.User, postID string, mechanism int16) {
 	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
 		return
 	}
 
-	if postID == "" || len(userIDs) == 0 {
+	if postID == "" || len(profileMap) == 0 {
 		return
 	}
-	for _, chunk := range chunkDeliveryIDs(userIDs, auditDeliveryChunkSize) {
+
+	chunk := make([]string, 0, len(profileMap))
+	for userId := range profileMap {
+		chunk = append(chunk, userId)
+
+		if len(chunk) >= auditDeliveryChunkSize {
+			a.emitDeliveryAuditMultiUser(chunk, postID, mechanism)
+			chunk = chunk[:0]
+		}
+	}
+
+	if len(chunk) > 0 {
 		a.emitDeliveryAuditMultiUser(chunk, postID, mechanism)
 	}
 }
