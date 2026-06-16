@@ -302,6 +302,81 @@ describe('ChannelSelector', () => {
             const icon = privateChannelItem?.querySelector('.icon-lock-outline');
             expect(icon).toBeInTheDocument();
         });
+
+        it('renders override icon-shield-outline when matcher matches', () => {
+            renderWithContext(
+                <ChannelSelector {...defaultProps}/>,
+                {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'p', matcher: () => true, iconName: 'shield-outline'}]}}} as any,
+            );
+
+            const townSquareItem = screen.getByText('Town Square').closest('.channel-selector-item');
+            const icon = townSquareItem?.querySelector('i');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveClass('icon-shield-outline');
+            expect(icon).not.toHaveClass('icon-globe');
+        });
+
+        it('falls back to icon-globe for open channel when matcher returns false', () => {
+            renderWithContext(
+                <ChannelSelector {...defaultProps}/>,
+                {plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'p', matcher: () => false, iconName: 'shield-outline'}]}}} as any,
+            );
+
+            const townSquareItem = screen.getByText('Town Square').closest('.channel-selector-item');
+            const icon = townSquareItem?.querySelector('i');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveClass('icon-globe');
+        });
+
+        it('should show group icon for GM channels (not overridden by ChannelTypeIcon)', () => {
+            const gmChannel: Channel = {
+                id: 'gm-1',
+                name: 'gm-channel',
+                display_name: 'Group Channel',
+                type: 'G',
+                create_at: 1000,
+                update_at: 1000,
+                delete_at: 0,
+                team_id: 'team1',
+                creator_id: 'user1',
+            } as Channel;
+
+            renderWithContext(
+                <ChannelSelector
+                    {...defaultProps}
+                    myChannels={[gmChannel]}
+                    unreadChannels={[]}
+                />,
+            );
+
+            const item = screen.getByText('Group Channel').closest('.channel-selector-item');
+            expect(item?.querySelector('.icon-account-multiple-outline')).toBeInTheDocument();
+        });
+
+        it('should show account icon for DM channels (not overridden by ChannelTypeIcon)', () => {
+            const dmChannel: Channel = {
+                id: 'dm-1',
+                name: 'dm-channel',
+                display_name: 'Direct Channel',
+                type: 'D',
+                create_at: 1000,
+                update_at: 1000,
+                delete_at: 0,
+                team_id: 'team1',
+                creator_id: 'user1',
+            } as Channel;
+
+            renderWithContext(
+                <ChannelSelector
+                    {...defaultProps}
+                    myChannels={[dmChannel]}
+                    unreadChannels={[]}
+                />,
+            );
+
+            const item = screen.getByText('Direct Channel').closest('.channel-selector-item');
+            expect(item?.querySelector('.icon-account-outline')).toBeInTheDocument();
+        });
     });
 
     describe('Empty State', () => {

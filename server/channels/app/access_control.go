@@ -2287,6 +2287,18 @@ func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX,
 	// Get the policy to determine its type
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
 	if appErr != nil {
+		// Authorization must not hinge on the policy already existing. A
+		// channel policy uses its channel's ID as the policy ID, so when the
+		// record is missing (e.g. a channel admin opening the Permissions
+		// Policy tab before any policy has been created) fall back to a direct
+		// channel-permission check. An authorized channel admin is then
+		// allowed through so the caller's own lookup surfaces a clean 404
+		// ("first-time create") instead of a misleading 403.
+		if appErr.StatusCode == http.StatusNotFound {
+			if channelErr := a.ValidateChannelAccessControlPermission(rctx, userID, policyID); channelErr == nil {
+				return nil
+			}
+		}
 		return appErr
 	}
 

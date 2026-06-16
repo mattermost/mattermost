@@ -50,7 +50,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    const getChannel = useMemo(makeGetChannel, []);
+    const getChannel = useMemo(() => makeGetChannel(), []);
 
     const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const currentTeam = useSelector(getCurrentTeam);

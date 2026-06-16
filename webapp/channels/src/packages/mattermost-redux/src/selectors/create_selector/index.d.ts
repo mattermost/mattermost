@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable max-lines */
-/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type Selector<S, R> = (state: S) => R;
@@ -1092,7 +1092,7 @@ export function createSelectorCreator<O1, O2, O3>(
     option1: O1,
     option2: O2,
     option3: O3,
-    ...rest: any[],
+    ...rest: any[]
 ): typeof createSelector;
 
 export function createStructuredSelector<S, T>(

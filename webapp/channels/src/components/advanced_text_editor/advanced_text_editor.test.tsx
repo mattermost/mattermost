@@ -610,4 +610,64 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
         });
     });
+
+    describe('composer placeholder', () => {
+        const suffixState = {
+            plugins: {
+                components: {
+                    ComposerPlaceholder: [
+                        {
+                            id: 'suffix-1',
+                            pluginId: 'test-plugin',
+                            transform: (placeholder: string) => `${placeholder} (encrypted)`,
+                        },
+                    ],
+                },
+            },
+        };
+
+        it('appends registered suffix to the composer placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Write to Test Channel (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the thread-reply placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='root-post-id'
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Reply to this thread... (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the read-only channel placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(mergeObjects(initialState, suffixState), {
+                    entities: {
+                        roles: {
+                            roles: {
+                                user_roles: {permissions: []},
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(screen.getByPlaceholderText(
+                'This channel is read-only. Only members with permission can post here. (encrypted)',
+            )).toBeInTheDocument();
+        });
+    });
 });
