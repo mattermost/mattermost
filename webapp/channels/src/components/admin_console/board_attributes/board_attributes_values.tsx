@@ -8,7 +8,7 @@ import styled, {css} from 'styled-components';
 
 import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions, type BoardsPropertyField, type PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions, type BoardsPropertyField, type BoardsPropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
@@ -47,7 +47,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 
     const options = field.attrs?.options ?? [];
 
-    const setOptions = (next: Array<PropertyFieldOption<BoardsColorToken>>) => {
+    const setOptions = (next: BoardsPropertyFieldOption[]) => {
         updateField({...field, attrs: {...field.attrs, options: next}});
     };
 
@@ -159,9 +159,9 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 };
 
 type ChipProps = {
-    option: PropertyFieldOption<BoardsColorToken>;
-    options: Array<PropertyFieldOption<BoardsColorToken>>;
-    setOptions: (next: Array<PropertyFieldOption<BoardsColorToken>>) => void;
+    option: BoardsPropertyFieldOption;
+    options: BoardsPropertyFieldOption[];
+    setOptions: (next: BoardsPropertyFieldOption[]) => void;
     fieldId: string;
 
     // When true, render the chip with no menu, no delete affordance, and no

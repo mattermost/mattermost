@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {BoardsPropertyField, BoardsColorToken, PropertyFieldOption} from '@mattermost/types/properties';
+import type {BoardsPropertyField, BoardsPropertyFieldOption, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
@@ -249,7 +249,7 @@ describe('BoardAttributesValues', () => {
     });
 
     describe('EditableChip interactions', () => {
-        const makeFieldWithOptions = (options: Array<PropertyFieldOption<BoardsColorToken>>) =>
+        const makeFieldWithOptions = (options: BoardsPropertyFieldOption[]) =>
             makeField({attrs: {sort_order: 0, options}});
 
         it('removes the option when the chip X button is clicked', async () => {

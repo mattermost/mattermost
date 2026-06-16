@@ -59,12 +59,14 @@ export type PropertyValue<T> = {
     updated_by: string;
 }
 
-// `color` is free-form on the wire; consumers narrow it per feature
-// (Boards: BoardsColorToken, Classification Markings: hex, CPAs: '').
-export type PropertyFieldOption<TColor extends string = string> = {
+/**
+ * Base shape for a select/multiselect option. Features that constrain or
+ * extend an option define their own type by aliasing this one.
+ */
+export type PropertyFieldOption = {
     id: string;
     name: string;
-    color?: TColor;
+    color?: string;
 }
 
 export type SelectPropertyField = PropertyField & {

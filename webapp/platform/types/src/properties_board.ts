@@ -11,12 +11,16 @@ export type BoardsColorToken = typeof BOARDS_COLOR_TOKEN_NAMES[number];
 
 export type BoardsPropertyFieldGroupID = 'boards';
 
+export type BoardsPropertyFieldOption = Omit<PropertyFieldOption, 'color'> & {
+    color?: BoardsColorToken;
+};
+
 export type BoardsPropertyField = PropertyField & {
     group_id: BoardsPropertyFieldGroupID;
     object_type: 'post';
     attrs: {
         sort_order: number;
-        options?: Array<PropertyFieldOption<BoardsColorToken>>;
+        options?: BoardsPropertyFieldOption[];
     };
 };
 
