@@ -60,7 +60,7 @@ export type PropertyValue<T> = {
 }
 
 // `color` is free-form on the wire; consumers narrow it per feature
-// (Boards: ColorToken, Classification Markings: hex, CPAs: '').
+// (Boards: BoardsColorToken, Classification Markings: hex, CPAs: '').
 export type PropertyFieldOption<TColor extends string = string> = {
     id: string;
     name: string;

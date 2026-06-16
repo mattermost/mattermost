@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import type {BoardPropertyField, BoardPropertyFieldGroupID, BoardPropertyFieldPatch, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {BoardsPropertyField, BoardsPropertyFieldGroupID, BoardsPropertyFieldPatch, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
 import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
@@ -19,9 +19,9 @@ import {generateId} from 'utils/utils';
 import type {CollectionIO, PendingOps} from '../system_properties/section_utils';
 import {useThing, usePendingThing, BatchProcessingError} from '../system_properties/section_utils';
 
-export type BoardPropertyFields = IDMappedCollection<BoardPropertyField>;
+export type BoardPropertyFields = IDMappedCollection<BoardsPropertyField>;
 
-export const BOARDS_GROUP_NAME = 'boards' satisfies BoardPropertyFieldGroupID;
+export const BOARDS_GROUP_NAME = 'boards' satisfies BoardsPropertyFieldGroupID;
 export const OBJECT_TYPE_POST = 'post';
 export const TARGET_TYPE_SYSTEM = 'system';
 
@@ -32,7 +32,7 @@ export const useBoardPropertyFields = () => {
             const data = await Client4.getPropertyFields(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, TARGET_TYPE_SYSTEM);
 
             // Protected (system) fields render first, then custom fields ordered by sort_order.
-            const sorted = (data as BoardPropertyField[]).sort((a, b) => {
+            const sorted = (data as BoardsPropertyField[]).sort((a, b) => {
                 if (Boolean(a.protected) !== Boolean(b.protected)) {
                     return a.protected ? -1 : 1;
                 }
@@ -54,7 +54,7 @@ export const useBoardPropertyFields = () => {
             // never reaches this loop — itemOps.delete short-circuits via
             // collectionRemoveItem when isCreatePending(field), so create_at=0
             // delete_at!=0 combinations don't end up in either op bucket.
-            const process = collectionToArray(collection).reduce<PendingOps<BoardPropertyField>>((ops, item) => {
+            const process = collectionToArray(collection).reduce<PendingOps<BoardsPropertyField>>((ops, item) => {
                 // don't process unchanged items
                 if (item === prevCollection.data[item.id]) {
                     return ops;
@@ -108,7 +108,7 @@ export const useBoardPropertyFields = () => {
                 }
 
                 const {id, name, type, attrs} = pendingItem;
-                const patch: BoardPropertyFieldPatch = {
+                const patch: BoardsPropertyFieldPatch = {
                     name,
                     type,
                     attrs: stripIrrelevantOptions(stripPendingFromAttrs(attrs), type),
@@ -117,7 +117,7 @@ export const useBoardPropertyFields = () => {
                 return Client4.patchPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, id, patch as Partial<PropertyField> & Record<string, unknown>).
                     then((nextItem) => {
                         // data:updated
-                        next.data[id] = nextItem as BoardPropertyField;
+                        next.data[id] = nextItem as BoardsPropertyField;
                     }).
                     catch((reason: ClientError) => {
                         next.errors = {...next.errors, [id]: reason};
@@ -138,7 +138,7 @@ export const useBoardPropertyFields = () => {
                     then((newItem) => {
                         // data:created (delete pending data)
                         Reflect.deleteProperty(next.data, id);
-                        next.data[newItem?.id] = newItem as BoardPropertyField;
+                        next.data[newItem?.id] = newItem as BoardsPropertyField;
 
                         // order:created (replace pending id with created id)
                         next.order = next.order.map((orderId) => (orderId === pendingItem?.id ? newItem.id : orderId));
@@ -158,7 +158,7 @@ export const useBoardPropertyFields = () => {
             return next;
         },
         beforeUpdate: (pending, current) => {
-            const byNamesLower = (data: IDMappedObjects<BoardPropertyField>) => {
+            const byNamesLower = (data: IDMappedObjects<BoardsPropertyField>) => {
                 return groupBy(data, ({name}) => name.toLowerCase());
             };
 
@@ -271,7 +271,7 @@ export const useBoardPropertyFields = () => {
                     return pending;
                 }
 
-                const nextItems = Object.values(pending.data).reduce<BoardPropertyField[]>((changedItems, item) => {
+                const nextItems = Object.values(pending.data).reduce<BoardsPropertyField[]>((changedItems, item) => {
                     // never patch sort_order on protected fields
                     if (item.protected) {
                         return changedItems;
@@ -307,7 +307,7 @@ export const useBoardPropertyFields = () => {
                 return collectionReplaceItem(pending, {...field, delete_at: Date.now()});
             });
         },
-    } satisfies CollectionIO<BoardPropertyField>), [pendingIO.apply]);
+    } satisfies CollectionIO<BoardsPropertyField>), [pendingIO.apply]);
 
     return [pendingCollection, readIO, pendingIO, itemOps] as const;
 };
@@ -398,7 +398,7 @@ export const isPendingId = (id: string) => id.startsWith(PENDING);
 export const stripPendingOptionIds = (options?: PropertyFieldOption[]) =>
     options?.map((o) => (isPendingId(o.id) ? {...o, id: ''} : o));
 
-const stripPendingFromAttrs = <A extends BoardPropertyField['attrs']>(attrs: A): A => {
+const stripPendingFromAttrs = <A extends BoardsPropertyField['attrs']>(attrs: A): A => {
     if (!attrs?.options) {
         return attrs;
     }
@@ -408,7 +408,7 @@ const stripPendingFromAttrs = <A extends BoardPropertyField['attrs']>(attrs: A):
 // Remove `options` from `attrs` when the field type doesn't carry an option
 // list, so a stale options array left over from a recent type-switch can't
 // be persisted on either create or update.
-const stripIrrelevantOptions = <A extends BoardPropertyField['attrs']>(attrs: A, type: BoardPropertyField['type']): A => {
+const stripIrrelevantOptions = <A extends BoardsPropertyField['attrs']>(attrs: A, type: BoardsPropertyField['type']): A => {
     if (type === 'select' || type === 'multiselect') {
         return attrs;
     }
@@ -420,7 +420,7 @@ const stripIrrelevantOptions = <A extends BoardPropertyField['attrs']>(attrs: A,
     return next;
 };
 
-export const newPendingBoardField = (patch: BoardPropertyFieldPatch & Pick<BoardPropertyField, 'name'>): BoardPropertyField => {
+export const newPendingBoardField = (patch: BoardsPropertyFieldPatch & Pick<BoardsPropertyField, 'name'>): BoardsPropertyField => {
     const attrs = {...patch.attrs};
 
     if (attrs.options) {
@@ -433,7 +433,7 @@ export const newPendingBoardField = (patch: BoardPropertyFieldPatch & Pick<Board
     return {
         type: 'text',
         ...patch,
-        group_id: BOARDS_GROUP_NAME satisfies BoardPropertyFieldGroupID,
+        group_id: BOARDS_GROUP_NAME satisfies BoardsPropertyFieldGroupID,
         object_type: OBJECT_TYPE_POST,
         id: newPendingId(),
         create_at: 0,

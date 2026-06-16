@@ -8,15 +8,15 @@ import styled, {css} from 'styled-components';
 
 import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions, type BoardsPropertyField, type PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
 import {useFLIPAnimation} from 'hooks/use_flip_animation';
 import {
     COLOR_DESCRIPTOR,
-    COLOR_TOKEN_NAMES,
-    type ColorToken,
+    BOARDS_COLOR_TOKEN_NAMES,
+    type BoardsColorToken,
     normalizeColor,
 } from 'utils/board_property_colors';
 
@@ -29,8 +29,8 @@ import {DangerText} from '../system_properties/controls';
 const MAX_OPTION_NAME_LENGTH = 64;
 
 type Props = {
-    field: BoardPropertyField;
-    updateField: (field: BoardPropertyField) => void;
+    field: BoardsPropertyField;
+    updateField: (field: BoardsPropertyField) => void;
     warning?: string;
     autoFocus?: boolean;
 }
@@ -47,7 +47,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 
     const options = field.attrs?.options ?? [];
 
-    const setOptions = (next: Array<PropertyFieldOption<ColorToken>>) => {
+    const setOptions = (next: Array<PropertyFieldOption<BoardsColorToken>>) => {
         updateField({...field, attrs: {...field.attrs, options: next}});
     };
 
@@ -159,9 +159,9 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 };
 
 type ChipProps = {
-    option: PropertyFieldOption<ColorToken>;
-    options: Array<PropertyFieldOption<ColorToken>>;
-    setOptions: (next: Array<PropertyFieldOption<ColorToken>>) => void;
+    option: PropertyFieldOption<BoardsColorToken>;
+    options: Array<PropertyFieldOption<BoardsColorToken>>;
+    setOptions: (next: Array<PropertyFieldOption<BoardsColorToken>>) => void;
     fieldId: string;
 
     // When true, render the chip with no menu, no delete affordance, and no
@@ -228,7 +228,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
         setOptions(options.map((o) => (o === option ? {...o, name: trimmed} : o)));
     };
 
-    const setColor = (color: ColorToken) => {
+    const setColor = (color: BoardsColorToken) => {
         setOptions(options.map((o) => (o === option ? {...o, color} : o)));
     };
 
@@ -353,7 +353,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                             defaultMessage='Colors'
                         />
                     </ColorsLabel>
-                    {COLOR_TOKEN_NAMES.map((token) => (
+                    {BOARDS_COLOR_TOKEN_NAMES.map((token) => (
                         <Menu.Item
                             key={token}
                             id={`${menuId}-color-${token}`}

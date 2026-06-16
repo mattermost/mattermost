@@ -9,7 +9,7 @@ import styled from 'styled-components';
 
 import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions, type BoardPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type BoardsPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
@@ -28,18 +28,18 @@ import './board_attributes_drag_preview.scss';
 
 const MAX_BOARD_ATTRIBUTES = 20;
 
-const col = createColumnHelper<BoardPropertyField>();
+const col = createColumnHelper<BoardsPropertyField>();
 
 type FieldActions = {
-    createField: (field: BoardPropertyField) => void;
-    updateField: (field: BoardPropertyField) => void;
+    createField: (field: BoardsPropertyField) => void;
+    updateField: (field: BoardsPropertyField) => void;
     deleteField: (id: string) => void;
-    reorderField: (field: BoardPropertyField, nextOrder: number) => void;
+    reorderField: (field: BoardsPropertyField, nextOrder: number) => void;
 }
 
 export const useBoardAttributesTable = (): SectionHook => {
     const [boardPropertyFields, readIO, pendingIO, itemOps] = useBoardPropertyFields();
-    const nonDeletedCount = Object.values(boardPropertyFields.data).filter((f: BoardPropertyField) => f.delete_at === 0).length;
+    const nonDeletedCount = Object.values(boardPropertyFields.data).filter((f: BoardsPropertyField) => f.delete_at === 0).length;
 
     const canCreate = nonDeletedCount < MAX_BOARD_ATTRIBUTES;
 
@@ -107,7 +107,7 @@ export function BoardAttributesTable({
 }: Props & FieldActions) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
-    const columns = useMemo<Array<ColumnDef<BoardPropertyField, any>>>(() => {
+    const columns = useMemo<Array<ColumnDef<BoardsPropertyField, any>>>(() => {
         return [
             col.accessor('name', {
                 size: 180,
@@ -249,11 +249,11 @@ export function BoardAttributesTable({
         ];
     }, [createField, updateField, deleteField, collection.warnings, canCreate]);
 
-    const table = useReactTable<BoardPropertyField>({
+    const table = useReactTable<BoardsPropertyField>({
         data,
         columns,
-        getCoreRowModel: getCoreRowModel<BoardPropertyField>(),
-        getSortedRowModel: getSortedRowModel<BoardPropertyField>(),
+        getCoreRowModel: getCoreRowModel<BoardsPropertyField>(),
+        getSortedRowModel: getSortedRowModel<BoardsPropertyField>(),
         enableSortingRemoval: false,
         enableMultiSort: false,
         renderFallbackValue: '',
@@ -280,7 +280,7 @@ export function BoardAttributesTable({
 
     return (
         <TableWrapper>
-            <AdminConsoleListTable<BoardPropertyField> table={table}/>
+            <AdminConsoleListTable<BoardsPropertyField> table={table}/>
         </TableWrapper>
     );
 }
@@ -364,9 +364,9 @@ const ProtectedLock = styled.span`
 `;
 
 type ActionsCellProps = {
-    field: BoardPropertyField;
+    field: BoardsPropertyField;
     canCreate: boolean;
-    createField: (field: BoardPropertyField) => void;
+    createField: (field: BoardsPropertyField) => void;
     deleteField: (id: string) => void;
 };
 

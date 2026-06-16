@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import type {BoardPropertyField, ColorToken, PropertyFieldOption} from '@mattermost/types/properties';
+import type {BoardsPropertyField, BoardsColorToken, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {isPendingId, ValidationWarningOptionsUnique} from './board_attributes_utils';
 import BoardAttributesValues from './board_attributes_values';
 
-function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyField {
+function makeField(overrides: Partial<BoardsPropertyField> = {}): BoardsPropertyField {
     return {
         id: 'field-1',
         name: 'Status',
@@ -29,7 +29,7 @@ function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyFi
             options: [],
         },
         ...overrides,
-    } as BoardPropertyField;
+    } as BoardsPropertyField;
 }
 
 describe('BoardAttributesValues', () => {
@@ -153,7 +153,7 @@ describe('BoardAttributesValues', () => {
             await userEvent.click(screen.getByRole('button', {name: /add value/i}));
 
             expect(updateField).toHaveBeenCalledTimes(1);
-            const next = updateField.mock.calls[0][0] as BoardPropertyField;
+            const next = updateField.mock.calls[0][0] as BoardsPropertyField;
             const options = next.attrs.options ?? [];
             expect(options).toHaveLength(2);
 
@@ -188,7 +188,7 @@ describe('BoardAttributesValues', () => {
 
             await userEvent.click(screen.getByRole('button', {name: /add value/i}));
 
-            const next = updateField.mock.calls[0][0] as BoardPropertyField;
+            const next = updateField.mock.calls[0][0] as BoardsPropertyField;
             const added = (next.attrs.options ?? []).at(-1) as PropertyFieldOption;
 
             // First "Option 1" / "Option 2" are taken; the next one available is "Option 3"
@@ -249,7 +249,7 @@ describe('BoardAttributesValues', () => {
     });
 
     describe('EditableChip interactions', () => {
-        const makeFieldWithOptions = (options: Array<PropertyFieldOption<ColorToken>>) =>
+        const makeFieldWithOptions = (options: Array<PropertyFieldOption<BoardsColorToken>>) =>
             makeField({attrs: {sort_order: 0, options}});
 
         it('removes the option when the chip X button is clicked', async () => {
@@ -269,7 +269,7 @@ describe('BoardAttributesValues', () => {
             await userEvent.click(screen.getByTestId('property-option-delete-opt-1'));
 
             expect(updateField).toHaveBeenCalledTimes(1);
-            const next = updateField.mock.calls[0][0] as BoardPropertyField;
+            const next = updateField.mock.calls[0][0] as BoardsPropertyField;
             expect(next.attrs.options).toEqual([{id: 'opt-2', name: 'High'}]);
         });
 
@@ -314,7 +314,7 @@ describe('BoardAttributesValues', () => {
             await userEvent.tab();
 
             await waitFor(() => expect(updateField).toHaveBeenCalledTimes(1));
-            const next = updateField.mock.calls[0][0] as BoardPropertyField;
+            const next = updateField.mock.calls[0][0] as BoardsPropertyField;
             expect(next.attrs.options).toEqual([
                 {id: 'opt-1', name: 'New name'},
                 {id: 'opt-2', name: 'Other'},
@@ -421,7 +421,7 @@ describe('BoardAttributesValues', () => {
             // Exactly one updateField call — guards against false positives
             // where an unrelated earlier flush would satisfy `toHaveBeenCalled()`.
             expect(updateField).toHaveBeenCalledTimes(1);
-            const lastCall = updateField.mock.calls[0][0] as BoardPropertyField;
+            const lastCall = updateField.mock.calls[0][0] as BoardsPropertyField;
             const updatedOption = (lastCall.attrs.options ?? []).find((o) => o.id === 'opt-1');
             expect(updatedOption?.color).toBe('blue');
         });

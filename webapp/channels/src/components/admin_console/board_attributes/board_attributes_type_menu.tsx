@@ -10,7 +10,7 @@ import {css} from 'styled-components';
 
 import {AccountOutlineIcon, CalendarOutlineIcon, CheckIcon, ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
-import type {BoardPropertyField, FieldType} from '@mattermost/types/properties';
+import type {BoardsPropertyField, FieldType} from '@mattermost/types/properties';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
@@ -18,8 +18,8 @@ import * as Menu from 'components/menu';
 import '../system_properties/user_properties_type_menu.scss';
 
 interface Props {
-    field: BoardPropertyField;
-    updateField: (field: BoardPropertyField) => void;
+    field: BoardsPropertyField;
+    updateField: (field: BoardsPropertyField) => void;
 }
 
 const SelectType = (props: Props) => {
@@ -114,7 +114,7 @@ const SelectType = (props: Props) => {
 
 export default SelectType;
 
-const getTypeDescriptor = (field: BoardPropertyField): TypeDescriptor => {
+const getTypeDescriptor = (field: BoardsPropertyField): TypeDescriptor => {
     for (const descriptor of Object.values(TYPE_DESCRIPTOR)) {
         if (descriptor.fieldType === field.type) {
             return descriptor;

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {BoardPropertyField} from '@mattermost/types/properties';
+import type {BoardsPropertyField} from '@mattermost/types/properties';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
@@ -15,7 +15,7 @@ import {
     ValidationWarningNameUnique,
 } from './board_attributes_utils';
 
-function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyField {
+function makeField(overrides: Partial<BoardsPropertyField> = {}): BoardsPropertyField {
     return {
         id: 'field-1',
         name: 'Priority',
@@ -31,11 +31,11 @@ function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyFi
         target_type: 'system',
         attrs: {sort_order: 0},
         ...overrides,
-    } as BoardPropertyField;
+    } as BoardsPropertyField;
 }
 
-function makeCollection(fields: BoardPropertyField[], warnings?: BoardPropertyFields['warnings']): BoardPropertyFields {
-    const data: Record<string, BoardPropertyField> = {};
+function makeCollection(fields: BoardsPropertyField[], warnings?: BoardPropertyFields['warnings']): BoardPropertyFields {
+    const data: Record<string, BoardsPropertyField> = {};
     const order: string[] = [];
     for (const f of fields) {
         data[f.id] = f;
@@ -182,7 +182,7 @@ describe('BoardAttributesTable', () => {
 
             await waitFor(() => expect(props.updateField).toHaveBeenCalled());
             const updateFieldMock = props.updateField as jest.Mock;
-            const lastCall = updateFieldMock.mock.calls.at(-1)![0] as BoardPropertyField;
+            const lastCall = updateFieldMock.mock.calls.at(-1)![0] as BoardsPropertyField;
             expect(lastCall.name).toBe('New');
             expect(lastCall.id).toBe('1');
         });

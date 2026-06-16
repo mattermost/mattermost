@@ -4,13 +4,13 @@
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
-import {COLOR_TOKEN_NAMES, type ColorToken} from '@mattermost/types/properties';
+import {BOARDS_COLOR_TOKEN_NAMES, type BoardsColorToken} from '@mattermost/types/properties';
 
 // Token names live in @mattermost/types/properties; hex values +
 // labels are presentation-only and live here.
-export {COLOR_TOKEN_NAMES, type ColorToken};
+export {BOARDS_COLOR_TOKEN_NAMES, type BoardsColorToken};
 
-export type ColorDescriptor<K extends ColorToken = ColorToken> = {
+export type ColorDescriptor<K extends BoardsColorToken = BoardsColorToken> = {
     id: K;
     color: string;
     label: MessageDescriptor;
@@ -18,7 +18,7 @@ export type ColorDescriptor<K extends ColorToken = ColorToken> = {
 
 // Mapped type forces each entry's `id` to literally match its key — catches
 // copy-paste mistakes like `orange: {id: 'green', ...}` at compile time.
-export const COLOR_DESCRIPTOR: {[K in ColorToken]: ColorDescriptor<K>} = {
+export const COLOR_DESCRIPTOR: {[K in BoardsColorToken]: ColorDescriptor<K>} = {
     default: {
         id: 'default',
         color: '#f0f0f1',
@@ -66,11 +66,11 @@ export const COLOR_DESCRIPTOR: {[K in ColorToken]: ColorDescriptor<K>} = {
     },
 };
 
-const isColorToken = (s: string): s is ColorToken => Object.hasOwn(COLOR_DESCRIPTOR, s);
+const isColorToken = (s: string): s is BoardsColorToken => Object.hasOwn(COLOR_DESCRIPTOR, s);
 
 // Unknown tokens (e.g. v1's `"neutral"` before the v2 migration rewrites
 // it server-side) fall through to `"default"`.
-export const normalizeColor = (token: string | undefined): ColorToken => {
+export const normalizeColor = (token: string | undefined): BoardsColorToken => {
     if (token && isColorToken(token)) {
         return token;
     }

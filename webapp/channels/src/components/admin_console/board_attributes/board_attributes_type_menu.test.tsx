@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import type {BoardPropertyField} from '@mattermost/types/properties';
+import type {BoardsPropertyField} from '@mattermost/types/properties';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SelectType from './board_attributes_type_menu';
 
-function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyField {
+function makeField(overrides: Partial<BoardsPropertyField> = {}): BoardsPropertyField {
     return {
         id: 'field-1',
         name: 'My Attribute',
@@ -25,7 +25,7 @@ function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyFi
         target_type: 'system',
         attrs: {sort_order: 0},
         ...overrides,
-    } as BoardPropertyField;
+    } as BoardsPropertyField;
 }
 
 describe('SelectType (board attributes type menu)', () => {

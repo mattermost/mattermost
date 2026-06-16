@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import type {BoardPropertyField} from '@mattermost/types/properties';
+import type {BoardsPropertyField} from '@mattermost/types/properties';
 
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import DotMenu from './board_attributes_dot_menu';
 
-function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyField {
+function makeField(overrides: Partial<BoardsPropertyField> = {}): BoardsPropertyField {
     return {
         id: 'field-1',
         name: 'My Attribute',
@@ -25,7 +25,7 @@ function makeField(overrides: Partial<BoardPropertyField> = {}): BoardPropertyFi
         target_type: 'system',
         attrs: {sort_order: 0},
         ...overrides,
-    } as BoardPropertyField;
+    } as BoardsPropertyField;
 }
 
 function renderMenu(overrides: Partial<React.ComponentProps<typeof DotMenu>> = {}) {
@@ -106,7 +106,7 @@ describe('Board attributes DotMenu', () => {
         // Menu.Item defers onClick for non-radio items until after the menu close animation completes
         await waitFor(() => expect(props.createField).toHaveBeenCalledTimes(1));
         const createFieldMock = props.createField as jest.Mock;
-        const passed = createFieldMock.mock.calls[0][0] as BoardPropertyField;
+        const passed = createFieldMock.mock.calls[0][0] as BoardsPropertyField;
         expect(passed.name).toBe('Priority');
 
         // attrs should be a shallow copy, not the original reference

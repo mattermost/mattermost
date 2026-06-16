@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {ContentCopyIcon, DotsHorizontalIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
-import type {BoardPropertyField} from '@mattermost/types/properties';
+import type {BoardsPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
@@ -15,9 +15,9 @@ import {isCreatePending} from './board_attributes_utils';
 import '../system_properties/user_properties_dot_menu.scss';
 
 type Props = {
-    field: BoardPropertyField;
+    field: BoardsPropertyField;
     canCreate: boolean;
-    createField: (field: BoardPropertyField) => void;
+    createField: (field: BoardsPropertyField) => void;
     deleteField: (id: string) => void;
 }
 
