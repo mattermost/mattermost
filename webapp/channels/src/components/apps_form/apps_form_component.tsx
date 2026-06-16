@@ -48,7 +48,7 @@ export type AppsFormProps = {
         performLookupCall: (field: AppField, values: AppFormValues, userInput: string) => Promise<DoAppCallResult<AppLookupResponse>>;
         refreshOnSelect: (field: AppField, values: AppFormValues) => Promise<DoAppCallResult<FormResponseData>>;
     };
-}
+};
 
 export type Props = AppsFormProps & WrappedComponentProps<'intl'>;
 
@@ -61,10 +61,10 @@ export type State = {
     submitting: string | null;
     form: AppForm;
     isInteracting: boolean;
-}
+};
 
 // Helper function to validate date format and warn if datetime format is used
-const validateDateFieldValue = (fieldName: string, valueType: string, value: string): { warning: string; datePortion: string } | null => {
+const validateDateFieldValue = (fieldName: string, valueType: string, value: string): {warning: string; datePortion: string} | null => {
     if (!value) {
         return null;
     }

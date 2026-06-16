@@ -10,6 +10,8 @@
 }
 
 .image_preview {
+    user-select: none;
+
     &__image {
         max-height: calc(100vh - 168px);
         border-radius: 8px;
@@ -24,5 +26,15 @@
         @media screen and (max-width: 768px) {
             border-radius: 0;
         }
+
+        &--zoomed {
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+    }
+
+    &--dragging &__image {
+        cursor: grabbing;
+        transition: none;
     }
 }

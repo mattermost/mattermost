@@ -27,7 +27,7 @@ import {it} from '../admin_definition_helpers';
 import {escapePathPart} from '../schema_admin_settings';
 import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema, AdminDefinitionConfigSchemaSection} from '../types';
 
-type OwnProps = { match: { params: { plugin_id: string } } }
+type OwnProps = {match: {params: {plugin_id: string}}};
 
 function makeGetPluginSchema() {
     return createSelector(

@@ -59,10 +59,10 @@ const useSubmit = (
     postError: React.ReactNode,
     channelId: string,
     rootId: string,
-    serverError: (ServerError & { submittedMessage?: string }) | null,
+    serverError: (ServerError & {submittedMessage?: string}) | null,
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
-    setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     setShowPreview: (showPreview: boolean) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
@@ -76,7 +76,7 @@ const useSubmit = (
 
     const dispatch = useDispatch();
 
-    const getFilesIdsForPost = useMemo(makeGetFileIdsForPost, []);
+    const getFilesIdsForPost = useMemo(() => makeGetFileIdsForPost(), []);
     const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);

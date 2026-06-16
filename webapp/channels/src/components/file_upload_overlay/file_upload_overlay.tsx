@@ -21,7 +21,7 @@ type Props = {
     id: string;
     isInEditMode?: boolean;
     direction?: 'horizontal' | 'vertical';
-}
+};
 
 export const FileUploadOverlay = (props: Props) => {
     let overlayClass = 'file-overlay hidden';

@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -39,6 +39,7 @@ import {setIntl} from 'utils/i18n';
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handleTeamAccessControlUpdatedEvent,
     handleEvent,
     handleFileUploadRejected,
     handleNewPostEvent,
@@ -47,6 +48,7 @@ import {
     handlePluginDisabled,
     handlePostEditEvent,
     handlePostUnreadEvent,
+    handleUserAddedEvent,
     handleUserRemovedEvent,
     handleLeaveTeamEvent,
     reconnect,
@@ -444,6 +446,68 @@ describe('handlePostUnreadEvent', () => {
 
         handlePostUnreadEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleUserAddedEvent', () => {
+    const currentChannelId = mockState.entities.channels.currentChannelId;
+
+    // getLicense() must resolve to an object for handleUserAddedEvent, so add one
+    // to a local copy of the state rather than mutating the shared mockState.
+    const stateWithLicense = {
+        ...mockState,
+        entities: {
+            ...mockState.entities,
+            general: {
+                ...mockState.entities.general,
+                license: {},
+            },
+        },
+    };
+
+    test('should load the added user profile when it is not already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).toHaveBeenCalledWith('remoteUser');
+    });
+
+    test('should not load the added user profile when it is already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'user',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
+    });
+
+    test('should not load the added user profile when the channel is not the current channel', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: 'someOtherChannel',
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
     });
 });
 
@@ -1020,6 +1084,39 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         expect(testStore.getActions()).toEqual([]);
         expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleTeamAccessControlUpdatedEvent', () => {
+    test('dispatches RECEIVED_TEAM with parsed team', () => {
+        const testStore = configureStore({});
+        const team = {
+            id: 'team-ac-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                team: JSON.stringify(team),
+            },
+        };
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: TeamTypes.RECEIVED_TEAM,
+                data: team,
+            },
+        ]);
+    });
+
+    test('returns early when msg.data.team is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
     });
 });
 

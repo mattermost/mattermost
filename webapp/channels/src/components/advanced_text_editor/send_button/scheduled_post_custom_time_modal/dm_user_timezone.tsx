@@ -20,7 +20,7 @@ import './dm_user_timezone.scss';
 type Props = {
     channelId: string;
     selectedTime?: Date;
-}
+};
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

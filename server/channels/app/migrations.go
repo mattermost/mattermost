@@ -873,6 +873,71 @@ func (s *Server) doSetupBoardsProperties() error {
 	return nil
 }
 
+// seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
+func (s *Server) seedSessionAttributeFields(groupID string) error {
+	existing, err := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing session attribute fields: %w", err)
+	}
+
+	existingByName := make(map[string]*model.PropertyField, len(existing))
+	for _, field := range existing {
+		existingByName[field.Name] = field
+	}
+
+	var fieldsToUpdate []*model.PropertyField
+	var fieldsToCreate []*model.PropertyField
+
+	for _, expected := range model.SessionAttributeSystemFields(groupID) {
+		if current, ok := existingByName[expected.Name]; ok {
+			current.Type = expected.Type
+			current.Attrs["platforms"] = expected.Attrs["platforms"]
+			current.Attrs[model.SAAttrDisplayName] = expected.Attrs[model.SAAttrDisplayName]
+			current.ObjectType = expected.ObjectType
+			current.TargetType = expected.TargetType
+			current.Protected = expected.Protected
+			current.PermissionField = expected.PermissionField
+			current.PermissionValues = expected.PermissionValues
+			current.PermissionOptions = expected.PermissionOptions
+			fieldsToUpdate = append(fieldsToUpdate, current)
+		} else {
+			fieldsToCreate = append(fieldsToCreate, expected)
+		}
+	}
+
+	for _, field := range fieldsToCreate {
+		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, groupID, "", field.Name); retryErr != nil {
+				return fmt.Errorf("failed to create session attribute field: %q, error: %w", field.Name, err)
+			}
+		}
+	}
+
+	if len(fieldsToUpdate) > 0 {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); err != nil {
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update session attribute fields: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Server) doSetupSessionAttributesProperties() error {
+	group, err := s.propertyService.Group(model.SessionAttributesPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to look up session attributes property group: %w", err)
+	}
+
+	if err := s.seedSessionAttributeFields(group.ID); err != nil {
+		return fmt.Errorf("failed to seed session attribute fields: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) doSetupManagedCategoryProperties() error {
 	var nfErr *store.ErrNotFound
 	data, err := s.Store().System().GetByName(managedCategorySetupDoneKey)
@@ -1172,6 +1237,7 @@ func (s *Server) doAppMigrations() {
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
 	}
 
 	for i := range m1 {

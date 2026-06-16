@@ -360,6 +360,105 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.Equal(t, "true", data.Value)
 }
 
+func TestDoSetupSessionAttributesProperties(t *testing.T) {
+	expectedFieldCount := len(model.SessionAttributeSystemFields("group-id"))
+
+	t.Run("fresh install seeds the group and fields", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, model.SessionAttributesPropertyGroupName, group.Name)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, expectedFieldCount)
+
+		fieldsByName := make(map[string]*model.PropertyField, len(fields))
+		for _, field := range fields {
+			fieldsByName[field.Name] = field
+
+			require.Equal(t, model.PropertyFieldObjectTypeSession, field.ObjectType, "field %q object type", field.Name)
+			require.Equal(t, string(model.PropertyFieldTargetLevelSystem), field.TargetType, "field %q target type", field.Name)
+			require.False(t, field.Protected, "field %q must not be protected", field.Name)
+			require.NotNil(t, field.PermissionField)
+			require.Equal(t, model.PermissionLevelSysadmin, *field.PermissionField, "field %q permission_field", field.Name)
+			require.NotNil(t, field.PermissionValues)
+			require.Equal(t, model.PermissionLevelSysadmin, *field.PermissionValues, "field %q permission_values", field.Name)
+			require.Equal(t, false, field.Attrs["enabled"], "field %q must seed disabled", field.Name)
+			require.NotEmpty(t, field.Attrs[model.SAAttrDisplayName], "field %q must seed a display name", field.Name)
+		}
+
+		ipField := fieldsByName[model.SessionAttributesPropertyFieldIPAddress]
+		require.NotNil(t, ipField)
+		require.Equal(t, model.PropertyFieldTypeText, ipField.Type)
+
+		networkField := fieldsByName[model.SessionAttributesPropertyFieldNetworkInterfaceType]
+		require.NotNil(t, networkField)
+		require.Equal(t, model.PropertyFieldTypeSelect, networkField.Type)
+		require.NotNil(t, networkField.Attrs[model.PropertyFieldAttributeOptions])
+
+		// The typed attrs must survive the DB round trip so the app reads back what it seeded.
+		saField, err := model.SAFieldFromPropertyField(networkField)
+		require.NoError(t, err)
+		require.Equal(t, model.SessionAttributesDisplayNameNetworkInterfaceType, saField.Attrs.DisplayName)
+		require.Equal(t, model.SessionAttributeDefaultTTLNetworkIdentity, saField.Attrs.TTLSeconds)
+		require.Equal(t, model.SessionAttributeDefaultGraceNetworkIdentity, saField.Attrs.GracePeriodSeconds)
+		require.ElementsMatch(t,
+			[]string{model.SessionAttributePlatformDesktop, model.SessionAttributePlatformMobile},
+			saField.Attrs.Platforms,
+		)
+	})
+
+	t.Run("re-running is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		before, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, before, expectedFieldCount)
+
+		err := th.Server.doSetupSessionAttributesProperties()
+		require.NoError(t, err)
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, expectedFieldCount, "re-running must not create duplicate fields")
+	})
+
+	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
+		th := Setup(t)
+
+		// Fields already exist from Setup. Every goroutine runs the seed body
+		// and races on the same UpdateAt timestamps. Only one wins; the rest
+		// must tolerate the resulting ErrConflict rather than failing.
+		const runners = 5
+		errs := make([]error, runners)
+		var wg sync.WaitGroup
+		wg.Add(runners)
+		for i := range runners {
+			go func() {
+				defer wg.Done()
+				errs[i] = th.Server.doSetupSessionAttributesProperties()
+			}()
+		}
+		wg.Wait()
+
+		for i, err := range errs {
+			require.NoError(t, err, "runner %d must not fail on concurrent update", i)
+		}
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, expectedFieldCount)
+	})
+}
+
 func TestDoSetupBoardsProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {
 		th := Setup(t)

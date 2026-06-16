@@ -22,7 +22,6 @@ import {
 
 import {getRandomId} from '@/utils';
 
-
 describe('Guest Account - Guest User Invitation Flow', () => {
     let testTeam: Cypress.Team;
     let newUser: Cypress.UserProfile;
@@ -49,6 +48,29 @@ describe('Guest Account - Guest User Invitation Flow', () => {
 
             // # Go to town square
             cy.visit(`/${team.name}/channels/town-square`);
+        });
+    });
+
+    it('MM-T1335 Invite Guests - Add Public and Private channels', () => {
+        // # Create a private channel in the test team
+        const privateChannelDisplayName = `Private ${getRandomId()}`;
+        cy.apiCreateChannel(testTeam.id, `private-${getRandomId()}`, privateChannelDisplayName, 'P').then(() => {
+            // # Invite a new guest by email, adding both a public and a private channel
+            const email = `temp-${getRandomId()}@mattermost.com`;
+            invitePeople(email, 1, email, ['Town Square', privateChannelDisplayName], false);
+
+            // * Verify both channels are added to the list of channels the guest will be added to
+            cy.get('.channels-input__control').should('be.visible').within(() => {
+                cy.get('.channels-input__multi-value').should('have.length', 2);
+
+                // * Verify the public channel (Town Square) is added
+                cy.findByText('Town Square').should('be.visible');
+                cy.get('.public-channel-icon').should('be.visible');
+
+                // * Verify the private channel is added
+                cy.contains('.channels-input__multi-value', privateChannelDisplayName).should('be.visible');
+                cy.get('.private-channel-icon').should('be.visible');
+            });
         });
     });
 

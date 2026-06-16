@@ -18,7 +18,6 @@ import {
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Upload Files', () => {
     let channelUrl;
     let channelId;

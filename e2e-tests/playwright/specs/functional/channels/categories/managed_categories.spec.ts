@@ -349,13 +349,13 @@ test.describe('Managed Channel Categories', () => {
         const channelB = await adminClient.createChannel({
             team_id: team.id,
             name: `bravo-${suffix}`,
-            display_name: `Bravo Channel`,
+            display_name: 'Bravo Channel',
             type: 'O',
         });
         const channelA = await adminClient.createChannel({
             team_id: team.id,
             name: `alpha-${suffix}`,
-            display_name: `Alpha Channel`,
+            display_name: 'Alpha Channel',
             type: 'O',
         });
 
@@ -645,7 +645,7 @@ test.describe('Managed Channel Categories', () => {
             // * Verify the managed category appears in real-time
             await pw.waitUntil(
                 async () => {
-                    return await sidebar
+                    return sidebar
                         .getByText('Realtime Ops')
                         .isVisible()
                         .catch(() => false);

@@ -20,31 +20,31 @@ import './result_table.scss';
 
 type InviteNotSent = {
     text: React.ReactNode | React.ReactNodeArray;
-}
+};
 
 type InviteEmail = {
     email: string;
-}
+};
 
 type InviteUser = {
     user: UserProfile;
-}
+};
 
 type I18nLike = {
     id: string;
     defaultMessage: string;
     values?: Record<string, React.ReactNode>;
-}
+};
 
 export type InviteResult = (InviteNotSent | InviteEmail | InviteUser) & {
     reason: string | I18nLike;
     path?: string;
-}
+};
 
 export type Props = {
     sent?: boolean;
     rows: InviteResult[];
-}
+};
 
 export default function ResultTable(props: Props) {
     const intl = useIntl();
