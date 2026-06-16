@@ -31,7 +31,6 @@ import {
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
 } from './utils';
-import type {ClassificationOption} from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
 
@@ -155,7 +154,7 @@ describe('detectPreset', () => {
 
 describe('optionsToLevels', () => {
     test('should convert options to levels with explicit rank and color', () => {
-        const options: ClassificationOption[] = [
+        const options: PropertyFieldOption[] = [
             {id: 'a', name: 'Alpha', color: '#FF0000', rank: 2},
             {id: 'b', name: 'Beta', color: '#00FF00', rank: 1},
         ];

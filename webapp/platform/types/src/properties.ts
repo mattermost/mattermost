@@ -67,6 +67,10 @@ export type PropertyFieldOption = {
     id: string;
     name: string;
     color?: string;
+
+    // Optional explicit ordering. When unset, consumers fall back to the
+    // position of the option within `attrs.options`.
+    rank?: number;
 }
 
 export type SelectPropertyField = PropertyField & {
