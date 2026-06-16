@@ -4,7 +4,7 @@
 import {act} from '@testing-library/react';
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {collectionFromArray} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';

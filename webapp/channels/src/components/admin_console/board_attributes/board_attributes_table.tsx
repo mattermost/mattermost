@@ -9,7 +9,8 @@ import styled from 'styled-components';
 
 import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions, type BoardsPropertyField} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
+import {type BoardsPropertyField} from '@mattermost/types/properties_board';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';

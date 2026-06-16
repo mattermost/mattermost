@@ -10,7 +10,8 @@ import {css} from 'styled-components';
 
 import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
-import type {FieldType, FieldValueType, UserPropertyField} from '@mattermost/types/properties';
+import type {FieldType, FieldValueType} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';

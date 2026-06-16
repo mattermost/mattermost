@@ -3,11 +3,6 @@
 
 import type {IDMappedObjects} from './utilities';
 
-// Feature-specific attribute types live in sibling modules but are re-exported
-// here so consumers keep a single import surface: '@mattermost/types/properties'.
-export * from './properties_user';
-export * from './properties_board';
-
 export type FieldType = (
     'text' |
     'select' |

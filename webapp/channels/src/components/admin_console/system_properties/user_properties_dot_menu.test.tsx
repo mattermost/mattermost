@@ -4,7 +4,7 @@
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {Client4} from 'mattermost-redux/client';
 

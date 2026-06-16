@@ -16,8 +16,8 @@ import type {
     PolicySimulationResponse,
     PolicySimulationUserOverride,
 } from '@mattermost/types/access_control';
-import type {UserPropertyField} from '@mattermost/types/properties';
-import {SESSION_ATTRIBUTES_GROUP_ID} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
+import {SESSION_ATTRIBUTES_GROUP_ID} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {simulatePolicyForUsers} from 'mattermost-redux/actions/access_control';

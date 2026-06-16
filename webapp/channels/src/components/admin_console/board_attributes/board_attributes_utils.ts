@@ -6,8 +6,9 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import type {BoardsPropertyField, BoardsPropertyFieldGroupID, BoardsPropertyFieldPatch, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
+import type {BoardsPropertyField, BoardsPropertyFieldGroupID, BoardsPropertyFieldPatch} from '@mattermost/types/properties_board';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
 import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
 

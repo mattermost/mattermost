@@ -6,11 +6,7 @@ import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {
-    NameMappedPropertyFields,
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 

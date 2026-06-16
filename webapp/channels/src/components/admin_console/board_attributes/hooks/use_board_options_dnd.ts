@@ -6,7 +6,7 @@ import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {useEffect} from 'react';
 
-import type {BoardsPropertyFieldOption} from '@mattermost/types/properties';
+import type {BoardsPropertyFieldOption} from '@mattermost/types/properties_board';
 
 import {useLatest} from 'hooks/useLatest';
 

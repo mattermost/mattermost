@@ -3,10 +3,7 @@
 
 import React from 'react';
 
-import type {
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {useUser} from 'components/common/hooks/useUser';
 import PreviewPostAvatar from 'components/post_view/post_message_preview/avatar/avatar';

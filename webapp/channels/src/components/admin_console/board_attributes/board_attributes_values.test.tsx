@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import type {BoardsPropertyField, BoardsPropertyFieldOption, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {BoardsPropertyField, BoardsPropertyFieldOption} from '@mattermost/types/properties_board';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 

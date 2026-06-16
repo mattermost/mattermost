@@ -10,7 +10,7 @@ import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';

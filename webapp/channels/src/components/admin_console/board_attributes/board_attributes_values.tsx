@@ -8,7 +8,8 @@ import styled, {css} from 'styled-components';
 
 import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions, type BoardsPropertyField, type BoardsPropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
+import {type BoardsPropertyField, type BoardsPropertyFieldOption} from '@mattermost/types/properties_board';
 
 import * as Menu from 'components/menu';
 

@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, PolicySimulationActionDecision} from '@mattermost/types/access_control';
 import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {Client4} from 'mattermost-redux/client';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
