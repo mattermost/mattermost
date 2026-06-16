@@ -359,7 +359,7 @@ func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
 func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr string, resolver model.MaskingFieldResolver) (bool, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
-		return false, nil
+		return false, model.NewAppError("expressionHasMaskedValuesForCaller", "app.pap.has_masked_values.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
 	return acs.HasMaskedValuesForCaller(rctx, storedExpr, resolver)
@@ -374,7 +374,7 @@ func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr st
 func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, storedExpr string, resolver model.MaskingFieldResolver) (string, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
-		return submittedExpr, nil
+		return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.merge_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
 	// No separate has-masked pre-check here: MergeExpressionWithMaskedValuesCanonical
