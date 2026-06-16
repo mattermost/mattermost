@@ -1361,7 +1361,7 @@ export default class PluginRegistry {
             isAvailable,
             extraContent,
             onCreate,
-            createButtonText: createButtonText ? resolveReactElement(createButtonText) : undefined,
+            createButtonText: createButtonText === undefined ? undefined : resolveReactElement(createButtonText),
         });
 
         return id;
