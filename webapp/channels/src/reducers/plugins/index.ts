@@ -226,6 +226,7 @@ const initialComponents: PluginsState['components'] = {
     ChannelIconOverride: [],
     ChannelComposerBanner: [],
     ChannelIntro: [],
+    PostHeader: [],
     ComposerPlaceholder: [],
     MessageWillBePosted: [],
     MessageWillBeUpdated: [],

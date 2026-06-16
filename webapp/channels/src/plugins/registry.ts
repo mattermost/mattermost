@@ -1430,6 +1430,22 @@ export default class PluginRegistry {
     });
 
     /**
+     * Register a React component rendered in the header of every post, after the timestamp and
+     * alongside any other registered post-header components. The component receives the post as a
+     * prop and should return null for posts it has nothing to show for (e.g., read its own
+     * plugin-scoped Redux state to decide).
+     *
+     * The component is suppressed on consecutive posts where the server hides the post timestamp.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerPostHeaderComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostHeader', this.id, component);
+    });
+
+    /**
      * Register a transform applied to the composer placeholder for the current channel.
      *
      * `transform` receives (placeholder, channel, state, intl) and returns the placeholder to show —

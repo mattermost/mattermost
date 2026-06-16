@@ -332,6 +332,49 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
+describe('PluginRegistry — registerPostHeaderComponent', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    let store: ReturnType<typeof createStore<ReturnType<typeof pluginsReducer>, any, any, any>>;
+    let registry: PluginRegistry;
+
+    beforeEach(() => {
+        store = createStore(pluginsReducer);
+        mockCurrentStore = store;
+        registry = new PluginRegistry(PLUGIN_ID);
+    });
+
+    function getComponents() {
+        return mockCurrentStore.getState().components.PostHeader;
+    }
+
+    it('(a) registration adds an entry to the PostHeader list and returns its id', () => {
+        const id = registry.registerPostHeaderComponent(() => null);
+
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].id).toBe(id);
+        expect(components[0].pluginId).toBe(PLUGIN_ID);
+    });
+
+    it('(b) REMOVED_WEBAPP_PLUGIN sweeps all post-header components for that plugin', () => {
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerPostHeaderComponent(() => null);
+        registry.registerPostHeaderComponent(() => null);
+        otherRegistry.registerPostHeaderComponent(() => null);
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].pluginId).toBe('other_plugin');
+    });
+});
+
 describe('PluginRegistry — registerComposerPlaceholder', () => {
     const PLUGIN_ID = 'test_plugin';
 

@@ -75,6 +75,7 @@ export type PluginsState = {
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
+        PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
@@ -438,6 +439,10 @@ export type ChannelComposerBannerComponent = PluginComponent & {
 export type ChannelIntroRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<{channel: Channel}>;
+};
+
+export type PostHeaderComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {post: Post}>;
 };
 
 export type ComposerPlaceholderRegistration = PluginComponent & {
