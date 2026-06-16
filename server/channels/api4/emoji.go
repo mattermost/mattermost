@@ -48,12 +48,18 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, app.MaxEmojiFileSize)
 	if err := r.ParseMultipartForm(app.MaxEmojiFileSize); err != nil {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.create.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createEmoji", model.AuditStatusFail)
+	if imageFiles := r.MultipartForm.File["image"]; len(imageFiles) > 0 && imageFiles[0].Size > app.MaxEmojiFileSize {
+		c.Err = model.NewAppError("createEmoji", "api.emoji.create.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateEmoji, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
