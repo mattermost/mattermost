@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitFor, within} from '@testing-library/react';
+import {act, waitFor, within} from '@testing-library/react';
 import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
@@ -68,7 +68,9 @@ describe('SharedChannelsAddModal', () => {
 
         expect(screen.getByRole('button', {name: 'Share'})).toBeDisabled();
 
-        mockLastChannelsInputProps.onChange([channelA, channelB]);
+        act(() => {
+            mockLastChannelsInputProps.onChange([channelA, channelB]);
+        });
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -90,7 +92,9 @@ describe('SharedChannelsAddModal', () => {
             />,
         );
 
-        mockLastChannelsInputProps.onChange([channelA]);
+        act(() => {
+            mockLastChannelsInputProps.onChange([channelA]);
+        });
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -125,7 +129,9 @@ describe('SharedChannelsAddModal', () => {
             />,
         );
 
-        mockLastChannelsInputProps.onChange([channelA]);
+        act(() => {
+            mockLastChannelsInputProps.onChange([channelA]);
+        });
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -166,7 +172,9 @@ describe('SharedChannelsAddModal', () => {
             />,
         );
 
-        mockLastChannelsInputProps.onChange([channelA]);
+        act(() => {
+            mockLastChannelsInputProps.onChange([channelA]);
+        });
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -177,7 +185,9 @@ describe('SharedChannelsAddModal', () => {
             expect(screen.getByText(/could not be added/)).toBeInTheDocument();
         });
 
-        mockLastChannelsInputProps.onChange([channelB]);
+        act(() => {
+            mockLastChannelsInputProps.onChange([channelB]);
+        });
 
         await waitFor(() => {
             expect(screen.queryByText(/could not be added/)).not.toBeInTheDocument();

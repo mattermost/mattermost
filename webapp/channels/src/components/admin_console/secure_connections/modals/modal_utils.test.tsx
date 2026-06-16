@@ -3,12 +3,13 @@
 
 import {act} from '@testing-library/react';
 
-import type {RemoteCluster, RemoteClusterPatch} from '@mattermost/types/remote_clusters';
+import type {RemoteClusterPatch} from '@mattermost/types/remote_clusters';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import {
     useRemoteClusterAcceptInvite,
@@ -28,12 +29,12 @@ jest.mock('actions/views/modals', () => ({
     }),
 }));
 
-const remoteCluster = {
+const remoteCluster = TestHelper.getRemoteClusterMock({
     remote_id: 'rc-1',
     display_name: 'Acme',
     name: 'acme',
     site_url: 'https://siteurl',
-} as RemoteCluster;
+});
 
 describe('modal_utils', () => {
     beforeEach(() => {
@@ -71,7 +72,7 @@ describe('modal_utils', () => {
         });
 
         it('passes an onConfirm that calls Client4.generateInviteRemoteCluster', async () => {
-            jest.spyOn(Client4, 'generateInviteRemoteCluster').mockResolvedValue('INVITE_TOKEN' as any);
+            jest.spyOn(Client4, 'generateInviteRemoteCluster').mockResolvedValue('INVITE_TOKEN');
 
             const {result} = renderHookWithContext(() => useRemoteClusterCreateInvite(remoteCluster));
 
@@ -99,7 +100,7 @@ describe('modal_utils', () => {
         });
 
         it('passes an onConfirm that calls Client4.acceptInviteRemoteCluster', async () => {
-            const accepted = {remote_id: 'rc-1', display_name: 'Acme'} as RemoteCluster;
+            const accepted = TestHelper.getRemoteClusterMock({remote_id: 'rc-1', display_name: 'Acme'});
             jest.spyOn(Client4, 'acceptInviteRemoteCluster').mockResolvedValue(accepted);
 
             const {result} = renderHookWithContext(() => useRemoteClusterAcceptInvite());
@@ -156,7 +157,7 @@ describe('modal_utils', () => {
 
     describe('useSharedChannelsRemove', () => {
         it('opens the shared-channels-remove modal', async () => {
-            jest.spyOn(Client4, 'sharedChannelRemoteUninvite').mockResolvedValue({} as any);
+            jest.spyOn(Client4, 'sharedChannelRemoteUninvite').mockResolvedValue({status: 'OK'});
 
             const {result} = renderHookWithContext(() => useSharedChannelsRemove('rc-1'));
 
@@ -187,7 +188,7 @@ describe('modal_utils', () => {
 
         it('onConfirm aggregates per-channel results and errors', async () => {
             const spy = jest.spyOn(Client4, 'sharedChannelRemoteInvite').
-                mockResolvedValueOnce({status: 'OK'} as any).
+                mockResolvedValueOnce({status: 'OK'}).
                 mockRejectedValueOnce({server_error_id: 'oops'});
 
             const {result} = renderHookWithContext(() => useSharedChannelsAdd('rc-1'));

@@ -4,16 +4,15 @@
 import {waitFor} from '@testing-library/react';
 import React from 'react';
 
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
-
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import SecureConnectionCreateInviteModal from './secure_connection_create_invite_modal';
 
-const remoteCluster = {
+const remoteCluster = TestHelper.getRemoteClusterMock({
     remote_id: 'rc-1',
     display_name: 'Acme',
-} as RemoteCluster;
+});
 
 const shareResult = {
     remoteCluster,

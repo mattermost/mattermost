@@ -9,6 +9,7 @@ import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import SecureConnections from './secure_connections';
 
@@ -21,8 +22,8 @@ jest.mock('./modals/modal_utils', () => ({
 }));
 
 const sampleClusters: RemoteCluster[] = [
-    {remote_id: 'rc-1', display_name: 'Acme', name: 'acme', site_url: 'https://acme', last_ping_at: 0} as RemoteCluster,
-    {remote_id: 'rc-2', display_name: 'Beta', name: 'beta', site_url: 'https://beta', last_ping_at: 0} as RemoteCluster,
+    TestHelper.getRemoteClusterMock({remote_id: 'rc-1', display_name: 'Acme', name: 'acme', site_url: 'https://acme', last_ping_at: 0}),
+    TestHelper.getRemoteClusterMock({remote_id: 'rc-2', display_name: 'Beta', name: 'beta', site_url: 'https://beta', last_ping_at: 0}),
 ];
 
 describe('SecureConnections', () => {

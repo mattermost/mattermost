@@ -5,7 +5,6 @@ import {waitFor} from '@testing-library/react';
 import React from 'react';
 
 import {ClientError} from '@mattermost/client';
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -26,10 +25,10 @@ jest.mock('../team_selector', () => {
     };
 });
 
-const remoteCluster = {
+const remoteCluster = TestHelper.getRemoteClusterMock({
     remote_id: 'rc-1',
     display_name: 'Acme',
-} as RemoteCluster;
+});
 
 const baseState = {
     entities: {

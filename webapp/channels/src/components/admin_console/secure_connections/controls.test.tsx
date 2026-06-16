@@ -3,23 +3,22 @@
 
 import React from 'react';
 
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
-
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import {ConnectionStatusLabel, FormField, ModalFieldset} from './controls';
 
-const baseRC = {
+const baseRC = TestHelper.getRemoteClusterMock({
     remote_id: 'rc-1',
     name: 'acme',
     display_name: 'Acme',
     site_url: 'https://siteurl',
     last_ping_at: 0,
-} as RemoteCluster;
+});
 
 describe('ConnectionStatusLabel', () => {
     it('renders "Connection Pending" when site_url is pending', () => {
-        const rc = {...baseRC, site_url: 'pending_https://siteurl'} as RemoteCluster;
+        const rc = {...baseRC, site_url: 'pending_https://siteurl'};
 
         renderWithContext(<ConnectionStatusLabel rc={rc}/>);
 
@@ -27,26 +26,44 @@ describe('ConnectionStatusLabel', () => {
     });
 
     it('renders "Connected" when confirmed and last_ping_at is recent', () => {
-        const rc = {...baseRC, last_ping_at: Date.now() - 5_000} as RemoteCluster;
+        const rc = {...baseRC, last_ping_at: Date.now() - 5_000};
 
         renderWithContext(<ConnectionStatusLabel rc={rc}/>);
 
         expect(screen.getByText('Connected')).toBeInTheDocument();
     });
 
-    it('renders "Offline" when confirmed but last_ping_at is stale', () => {
+    it('renders "Offline" with a last-ping tooltip when confirmed but last_ping_at is stale', async () => {
+        jest.useFakeTimers();
         const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
-        const rc = {...baseRC, last_ping_at: tenMinutesAgo} as RemoteCluster;
+        const rc = {...baseRC, last_ping_at: tenMinutesAgo};
 
         renderWithContext(<ConnectionStatusLabel rc={rc}/>);
 
         expect(screen.getByText('Offline')).toBeInTheDocument();
+
+        await userEvent.hover(screen.getByText('Offline'), {advanceTimers: jest.advanceTimersByTime});
+
+        await waitFor(() => {
+            expect(screen.getByText(/Last ping:/)).toBeInTheDocument();
+        });
+
+        jest.useRealTimers();
     });
 
-    it('renders "Offline" with no tooltip wrapper when last_ping_at is 0', () => {
+    it('renders "Offline" with no tooltip wrapper when last_ping_at is 0', async () => {
+        jest.useFakeTimers();
+
         renderWithContext(<ConnectionStatusLabel rc={baseRC}/>);
 
         expect(screen.getByText('Offline')).toBeInTheDocument();
+
+        await userEvent.hover(screen.getByText('Offline'), {advanceTimers: jest.advanceTimersByTime});
+        jest.advanceTimersByTime(1000);
+
+        expect(screen.queryByText(/Last ping:/)).not.toBeInTheDocument();
+
+        jest.useRealTimers();
     });
 });
 

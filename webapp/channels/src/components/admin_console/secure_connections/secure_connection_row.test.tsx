@@ -4,9 +4,8 @@
 import {waitFor} from '@testing-library/react';
 import React from 'react';
 
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
-
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import SecureConnectionRow from './secure_connection_row';
 
@@ -20,18 +19,18 @@ const {useRemoteClusterDelete, useRemoteClusterCreateInvite} = jest.requireMock(
 const promptDelete = jest.fn();
 const promptCreateInvite = jest.fn();
 
-const confirmedRC = {
+const confirmedRC = TestHelper.getRemoteClusterMock({
     remote_id: 'rc-1',
     display_name: 'Acme',
     name: 'acme',
     site_url: 'https://siteurl',
     last_ping_at: 0,
-} as RemoteCluster;
+});
 
 const pendingRC = {
     ...confirmedRC,
     site_url: 'pending_https://siteurl',
-} as RemoteCluster;
+};
 
 describe('SecureConnectionRow', () => {
     beforeEach(() => {
@@ -81,6 +80,25 @@ describe('SecureConnectionRow', () => {
         await user.click(screen.getByLabelText(/Connection options for/));
 
         expect(screen.getByRole('menuitem', {name: 'Generate invitation code'})).toBeInTheDocument();
+    });
+
+    it('clicking "Generate invitation code" opens the create-invite prompt', async () => {
+        const user = userEvent.setup();
+
+        renderWithContext(
+            <SecureConnectionRow
+                remoteCluster={pendingRC}
+                onDeleteSuccess={jest.fn()}
+                disabled={false}
+            />,
+        );
+
+        await user.click(screen.getByLabelText(/Connection options for/));
+        await user.click(screen.getByRole('menuitem', {name: 'Generate invitation code'}));
+
+        await waitFor(() => {
+            expect(promptCreateInvite).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('hides "Generate invitation code" when the connection is confirmed', async () => {
@@ -156,8 +174,6 @@ describe('SecureConnectionRow', () => {
         await waitFor(() => {
             expect(promptDelete).toHaveBeenCalledTimes(1);
         });
-        await Promise.resolve();
-        await Promise.resolve();
         expect(onDeleteSuccess).not.toHaveBeenCalled();
     });
 

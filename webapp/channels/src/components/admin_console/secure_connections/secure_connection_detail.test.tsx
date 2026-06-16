@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {waitFor} from '@testing-library/react';
+import {createMemoryHistory} from 'history';
 import React from 'react';
 import {Route} from 'react-router-dom';
-
-import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -14,10 +13,32 @@ import {TestHelper} from 'utils/test_helper';
 
 import SecureConnectionDetail from './secure_connection_detail';
 
+const mockPromptCreate = jest.fn();
+const mockHistoryReplace = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useHistory: () => ({replace: mockHistoryReplace, push: jest.fn()}),
+}));
+
 jest.mock('./chat.svg', () => () => <svg data-testid='chat-svg'/>);
 
+jest.mock('./team_selector', () => {
+    return function MockTeamSelector(props: {testId: string; onChange: (teamId: string) => void}) {
+        return (
+            <button
+                type='button'
+                data-testid={props.testId}
+                onClick={() => props.onChange('team-1')}
+            >
+                {'select team'}
+            </button>
+        );
+    };
+});
+
 jest.mock('./modals/modal_utils', () => ({
-    useRemoteClusterCreate: () => ({promptCreate: jest.fn().mockResolvedValue(undefined), saving: false}),
+    useRemoteClusterCreate: () => ({promptCreate: mockPromptCreate, saving: false}),
     useSharedChannelsAdd: () => ({promptAdd: jest.fn().mockResolvedValue(undefined)}),
     useSharedChannelsRemove: () => ({promptRemove: jest.fn().mockResolvedValue(undefined)}),
 }));
@@ -39,14 +60,14 @@ const baseState = {
     },
 };
 
-const remoteCluster: RemoteCluster = {
+const remoteCluster = TestHelper.getRemoteClusterMock({
     remote_id: 'rc-1',
     display_name: 'Acme',
     name: 'acme',
     site_url: 'https://acme.example.com',
     last_ping_at: Date.now() - 5_000,
     default_team_id: 'team-1',
-} as RemoteCluster;
+});
 
 function renderAtPath(path: string, state: any = baseState) {
     return renderWithContext(
@@ -54,7 +75,7 @@ function renderAtPath(path: string, state: any = baseState) {
             <SecureConnectionDetail disabled={false}/>
         </Route>,
         state,
-        {history: require('history').createMemoryHistory({initialEntries: [path]})},
+        {history: createMemoryHistory({initialEntries: [path]})},
     );
 }
 
@@ -65,6 +86,9 @@ describe('SecureConnectionDetail', () => {
     beforeEach(() => {
         getRemoteCluster = jest.spyOn(Client4, 'getRemoteCluster').mockResolvedValue(remoteCluster);
         getSharedChannelRemotes = jest.spyOn(Client4, 'getSharedChannelRemotes').mockResolvedValue([]);
+        mockPromptCreate.mockReset();
+        mockPromptCreate.mockResolvedValue(undefined);
+        mockHistoryReplace.mockClear();
     });
 
     afterEach(() => {
@@ -148,5 +172,30 @@ describe('SecureConnectionDetail', () => {
             expect(screen.getByTestId('chat-svg')).toBeInTheDocument();
         });
         expect(getSharedChannelRemotes).toHaveBeenCalled();
+    });
+
+    it('navigates to the new connection edit page after a successful create', async () => {
+        const user = userEvent.setup();
+        const created = TestHelper.getRemoteClusterMock({remote_id: 'rc-new', display_name: 'New Org', default_team_id: 'team-1'});
+        mockPromptCreate.mockResolvedValueOnce(created);
+
+        renderAtPath('/admin_console/site_config/secure_connections/create');
+
+        await user.type(screen.getByTestId('organization-name-input'), 'New Org');
+        await user.click(screen.getByTestId('destination-team-input'));
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+        });
+        await user.click(screen.getByRole('button', {name: 'Save'}));
+
+        await waitFor(() => {
+            expect(mockPromptCreate).toHaveBeenCalledWith({display_name: 'New Org', default_team_id: 'team-1'});
+        });
+        await waitFor(() => {
+            expect(mockHistoryReplace).toHaveBeenCalledWith(expect.objectContaining({
+                pathname: '/admin_console/site_config/secure_connections/rc-new',
+            }));
+        });
     });
 });
