@@ -87,11 +87,10 @@ func collectMigrations(files []string) map[string]migration {
 }
 
 // compareMigrations returns a violation for every branch migration that shares
-// a version or a name with a master migration but does not match it exactly.
-// Newly added migrations (version and name both absent from master) are
-// ignored, as are migrations that are identical to master. A migration whose
-// version and name both change at once is indistinguishable from a brand new
-// migration and is therefore not flagged.
+// a version or a name with a master migration but does not match it exactly,
+// and for every master migration that is absent from the branch by both version
+// and name. Newly added migrations (version and name both absent from master) are
+// ignored, as are migrations that are identical to master.
 func compareMigrations(masterFiles, branchFiles []string) []violation {
 	master := collectMigrations(masterFiles)
 
@@ -126,6 +125,30 @@ func compareMigrations(masterFiles, branchFiles []string) []violation {
 				),
 			})
 		}
+	}
+
+	branch := collectMigrations(branchFiles)
+	branchByVersion := make(map[string]migration, len(branch))
+	branchByName := make(map[string]migration, len(branch))
+	for _, m := range branch {
+		branchByVersion[m.driver+"/"+m.version] = m
+		branchByName[m.driver+"/"+m.name] = m
+	}
+
+	for _, m := range master {
+		if _, ok := branchByVersion[m.driver+"/"+m.version]; ok {
+			continue
+		}
+		if _, ok := branchByName[m.driver+"/"+m.name]; ok {
+			continue
+		}
+		violations = append(violations, violation{
+			driver: m.driver,
+			message: fmt.Sprintf(
+				"migration %s (%s) exists on master but is missing from the branch; deleting or fully replacing a shipped migration breaks upgrades. Add a new migration instead.",
+				m.version, m.name,
+			),
+		})
 	}
 
 	sort.Slice(violations, func(i, j int) bool {

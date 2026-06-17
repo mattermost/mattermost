@@ -122,24 +122,35 @@ func TestCompareMigrations(t *testing.T) {
 
 	t.Run("empty inputs produce no violation", func(t *testing.T) {
 		require.Empty(t, compareMigrations(nil, nil))
-		require.Empty(t, compareMigrations(migrationPair("000001_a"), nil))
 		require.Empty(t, compareMigrations(nil, migrationPair("000001_a")))
 	})
 
-	t.Run("deleted migration is not flagged", func(t *testing.T) {
+	t.Run("master migration with empty branch is flagged", func(t *testing.T) {
+		violations := compareMigrations(migrationPair("000001_a"), nil)
+		require.Len(t, violations, 1)
+		require.Contains(t, violations[0].message, "missing from the branch")
+	})
+
+	t.Run("deleted migration is flagged", func(t *testing.T) {
 		master := append(migrationPair("000001_a"), migrationPair("000002_b")...)
 		branch := migrationPair("000001_a")
 
-		require.Empty(t, compareMigrations(master, branch))
+		violations := compareMigrations(master, branch)
+		require.Len(t, violations, 1)
+		require.Equal(t, "postgres", violations[0].driver)
+		require.Contains(t, violations[0].message, "000002")
+		require.Contains(t, violations[0].message, "missing from the branch")
 	})
 
-	t.Run("simultaneous rename and renumber is treated as new", func(t *testing.T) {
-		// Both version and name change, so the migration cannot be matched back
-		// to master and is indistinguishable from a brand new one.
+	t.Run("simultaneous rename and renumber is flagged as missing", func(t *testing.T) {
 		master := migrationPair("000010_add_index")
 		branch := migrationPair("000011_add_index_v2")
 
-		require.Empty(t, compareMigrations(master, branch))
+		violations := compareMigrations(master, branch)
+		require.Len(t, violations, 1)
+		require.Contains(t, violations[0].message, "000010")
+		require.Contains(t, violations[0].message, "add_index")
+		require.Contains(t, violations[0].message, "missing from the branch")
 	})
 
 	t.Run("renamed migration at same version is flagged", func(t *testing.T) {
