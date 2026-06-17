@@ -213,6 +213,13 @@ jobs:
             git diff
             exit 1
           fi
+      - name: Check for renumbered or renamed migrations
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --no-tags --depth=1 origin "${MM_MIGRATION_CHECK_BASE_REF#origin/}"
+          make check-migration-changes
+        env:
+          MM_MIGRATION_CHECK_BASE_REF: origin/${{ github.base_ref || 'master' }}
   check-email-templates:
     name: Generate email templates
     needs: go
