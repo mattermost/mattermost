@@ -2287,6 +2287,36 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	})
 }
 
+func TestInviteGuestsToChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	t.Run("it returns error for deactivated user without sending guest invite email", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+		})
+
+		appErr = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
+			Emails:   []string{th.BasicUser2.Email},
+			Channels: []string{th.BasicChannel.Id},
+		}, th.BasicUser.Id, false)
+
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.team.invite_members.account_deactivated.app_error", appErr.Id)
+		emailServiceMock.AssertNotCalled(t, "SendGuestInviteEmails", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	})
+}
+
 func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
