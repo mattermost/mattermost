@@ -219,7 +219,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "${MM_MIGRATION_CHECK_BASE_REF#origin/}"
           make check-migration-changes
         env:
-          MM_MIGRATION_CHECK_BASE_REF: origin/${{ github.base_ref || 'master' }}
+          MM_MIGRATION_CHECK_BASE_REF: origin/${{ github.base_ref || github.ref_name || 'master' }}
   check-email-templates:
     name: Generate email templates
     needs: go
