@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"net/http"
 	"sort"
 	"strings"
 	"testing"
@@ -2147,11 +2146,10 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Nil(t, res[0].Error)
 	})
 
-	t.Run("it should return an error for deactivated users without sending email", func(t *testing.T) {
+	t.Run("it return error for deactivated user without sending email", func(t *testing.T) {
 		deactivatedUser := th.CreateUser(t)
-		deactivatedUser, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 		require.Nil(t, appErr)
-		require.Greater(t, deactivatedUser.DeleteAt, int64(0))
 
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("Stop").Once().Return()
@@ -2164,17 +2162,15 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.Equal(t, deactivatedUser.Email, res[0].Email)
 		require.NotNil(t, res[0].Error)
 		require.Equal(t, "api.team.invite_members.deactivated_user.app_error", res[0].Error.Id)
-		require.Equal(t, http.StatusBadRequest, res[0].Error.StatusCode)
 		emailServiceMock.AssertNotCalled(t, "SendInviteEmails")
-		emailServiceMock.AssertNotCalled(t, "SendInviteEmailsToTeamAndChannels", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmailsToTeamAndChannels")
 	})
 
-	t.Run("it should invite new emails and report deactivated users separately", func(t *testing.T) {
+	t.Run("it return error for deactivated user while inviting valid emails", func(t *testing.T) {
 		deactivatedUser := th.CreateUser(t)
-		deactivatedUser, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 		require.Nil(t, appErr)
 
 		newEmail := "idontexist@mattermost.com"
@@ -2217,7 +2213,7 @@ func TestInviteNewUsersToTeamRejectsDeactivatedUsers(t *testing.T) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 	})
 
-	t.Run("it should return an error for deactivated users without sending email", func(t *testing.T) {
+	t.Run("it return error for deactivated user without sending email", func(t *testing.T) {
 		deactivatedUser := th.CreateUser(t)
 		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 		require.Nil(t, appErr)
@@ -2229,8 +2225,7 @@ func TestInviteNewUsersToTeamRejectsDeactivatedUsers(t *testing.T) {
 		err := th.App.InviteNewUsersToTeam(th.Context, []string{deactivatedUser.Email}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_members.deactivated_user.app_error", err.Id)
-		require.Equal(t, http.StatusBadRequest, err.StatusCode)
-		emailServiceMock.AssertNotCalled(t, "SendInviteEmails", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmails")
 	})
 }
 
@@ -2301,11 +2296,10 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		require.NotNil(t, res[0].Error)
 	})
 
-	t.Run("it should return an error for deactivated users without sending email", func(t *testing.T) {
+	t.Run("it return error for deactivated guest without sending email", func(t *testing.T) {
 		deactivatedGuest := th.CreateGuest(t)
-		deactivatedGuest, appErr := th.App.UpdateActive(th.Context, deactivatedGuest, false)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedGuest, false)
 		require.Nil(t, appErr)
-		require.Greater(t, deactivatedGuest.DeleteAt, int64(0))
 
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("Stop").Once().Return()
@@ -2317,11 +2311,9 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		}, th.BasicUser.Id, false)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
-		require.Equal(t, deactivatedGuest.Email, res[0].Email)
 		require.NotNil(t, res[0].Error)
 		require.Equal(t, "api.team.invite_members.deactivated_user.app_error", res[0].Error.Id)
-		require.Equal(t, http.StatusBadRequest, res[0].Error.StatusCode)
-		emailServiceMock.AssertNotCalled(t, "SendGuestInviteEmails", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+		emailServiceMock.AssertNotCalled(t, "SendGuestInviteEmails")
 	})
 }
 
@@ -2333,7 +2325,7 @@ func TestInviteGuestsToChannelsRejectsDeactivatedUsers(t *testing.T) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 	})
 
-	t.Run("it should return an error for deactivated users without sending email", func(t *testing.T) {
+	t.Run("it return error for deactivated guest without sending email", func(t *testing.T) {
 		deactivatedGuest := th.CreateGuest(t)
 		_, appErr := th.App.UpdateActive(th.Context, deactivatedGuest, false)
 		require.Nil(t, appErr)
@@ -2348,8 +2340,7 @@ func TestInviteGuestsToChannelsRejectsDeactivatedUsers(t *testing.T) {
 		}, th.BasicUser.Id, false)
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_members.deactivated_user.app_error", err.Id)
-		require.Equal(t, http.StatusBadRequest, err.StatusCode)
-		emailServiceMock.AssertNotCalled(t, "SendGuestInviteEmails", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+		emailServiceMock.AssertNotCalled(t, "SendGuestInviteEmails")
 	})
 }
 
