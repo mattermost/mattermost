@@ -7400,10 +7400,6 @@
     "translation": "Не вдалося завантажити файл. Неправильний ідентифікатор каналу: {{.channelId}}"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Налаштування файлового сховища містять незаповнені значення."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "Канал, вказаний у запиті, не належить користувачеві"
   },

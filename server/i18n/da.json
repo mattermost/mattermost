@@ -2593,10 +2593,6 @@
     "translation": "Den konfigurerede bucket eller container eksisterer ikke. Verificer din fillagerkonfiguration og tilladelser."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Fillagringsindstillinger har uindstillede værdier."
-  },
-  {
     "id": "api.file.upload_file.abac_denied.app_error",
     "translation": "Du har ikke den nødvendige adgang til at uploade filer til denne kanal."
   },
@@ -6221,10 +6217,6 @@
     "translation": "Sletning af indlæg er ufuldstændig. Gennemgå fejlloggen og eskaler til en systemadministrator for manuel afhjælpning."
   },
   {
-    "id": "app.data_spillage.report.marshal_comment.app_error",
-    "translation": "Der opstod en fejl under marshaling af kommentaren til rapporten over markerede indlæg."
-  },
-  {
     "id": "app.data_spillage.report.post_id",
     "translation": "Indlægs-ID:"
   },
@@ -7709,10 +7701,6 @@
     "translation": "Kunne ikke forespørge på udtryk."
   },
   {
-    "id": "app.pap.save_policy.advanced_expression_blocked",
-    "translation": "Dette regeludtryk kan ikke redigeres sikkert, mens begrænsede værdier er til stede."
-  },
-  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Kunne ikke gemme adgangskontrolpolitik."
   },
@@ -7725,10 +7713,6 @@
     "translation": "Du kan ikke fjerne en betingelse, der indeholder attributværdier, du ikke har tilladelse til at se."
   },
   {
-    "id": "app.pap.save_policy.masked_rule_deleted",
-    "translation": "Du kan ikke fjerne en regel, der indeholder attributværdier, du ikke har tilladelse til at se."
-  },
-  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "En politik med dette navn findes allerede. Vælg venligst et andet navn."
   },
@@ -7739,10 +7723,6 @@
   {
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "Du opfylder ikke en eller flere betingelser i denne politik."
-  },
-  {
-    "id": "app.pap.save_policy.user_session_unsupported.app_error",
-    "translation": "Sessionsattributter understøttes ikke til politiksimulering."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -7799,10 +7779,6 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Kunne ikke opdatere aktiv status for adgangskontrolpolitikker."
-  },
-  {
-    "id": "app.pap.validate_expression_values.app_error",
-    "translation": "Kunne ikke validere politikudtrykkets værdier."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",

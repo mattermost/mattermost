@@ -8202,10 +8202,6 @@
     "translation": "E-mail instellingen heeft niet-ingestelde waarden."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Instellingen voor bestandsopslag heeft niet-ingestelde waarden."
-  },
-  {
     "id": "model.member.is_valid.emails.app_error",
     "translation": "E-maillijst is leeg"
   },

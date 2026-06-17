@@ -8182,10 +8182,6 @@
     "translation": "参数 getThreadsForUser 的 OnlyThreads 和 OnlyTotals 互斥"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "文件存储设置尚未配置。"
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "邮件设置尚未配置。"
   },
@@ -13046,10 +13042,6 @@
     "translation": "无法关闭已标记帖子报告文件。"
   },
   {
-    "id": "app.data_spillage.report.marshal_comment.app_error",
-    "translation": "封送已标记帖子报告的评论时出错。"
-  },
-  {
     "id": "app.data_spillage.report.sync.app_error",
     "translation": "无法将已标记帖子报告文件同步到磁盘。"
   },
@@ -13106,10 +13098,6 @@
     "translation": "无法合并策略表达式。"
   },
   {
-    "id": "app.pap.save_policy.advanced_expression_blocked",
-    "translation": "存在受限值时，无法安全编辑此规则表达式。"
-  },
-  {
     "id": "app.pap.save_policy.invalid_value",
     "translation": "值无效。"
   },
@@ -13118,20 +13106,12 @@
     "translation": "你不能移除包含你无权查看的属性值的条件。"
   },
   {
-    "id": "app.pap.save_policy.masked_rule_deleted",
-    "translation": "你不能移除包含你无权查看的属性值的规则。"
-  },
-  {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
     "translation": "权限规则名称在策略中必须唯一。"
   },
   {
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "你不满足此策略中的一个或多个条件。"
-  },
-  {
-    "id": "app.pap.save_policy.user_session_unsupported.app_error",
-    "translation": "策略模拟不支持会话属性。"
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
@@ -13176,10 +13156,6 @@
   {
     "id": "app.pap.simulate.unsupported_type",
     "translation": "模拟器不支持策略类型“{{.Type}}”。"
-  },
-  {
-    "id": "app.pap.validate_expression_values.app_error",
-    "translation": "无法验证策略表达式值。"
   },
   {
     "id": "app.plugin.guard_hook_failed.app_error",
