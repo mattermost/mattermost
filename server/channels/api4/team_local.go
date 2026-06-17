@@ -144,7 +144,10 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			if !isEmailAddressAllowed(emailAddr, allowedDomains) {
 				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": emailAddr}, "", http.StatusBadRequest)
 				errList = append(errList, model.EmailInviteWithErrorToString(invite))
-			} else if existingUser, _ := c.App.GetUserByEmail(emailAddr); existingUser != nil && existingUser.DeleteAt != 0 {
+			} else if deactivated, userErr := c.App.IsDeactivatedUserEmail(emailAddr); userErr != nil {
+				invite.Error = userErr
+				errList = append(errList, model.EmailInviteWithErrorToString(invite))
+			} else if deactivated {
 				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": emailAddr}, "", http.StatusBadRequest)
 				errList = append(errList, model.EmailInviteWithErrorToString(invite))
 			} else {
@@ -201,7 +204,12 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 
 		var deactivatedEmailList []string
 		for _, emailAddr := range emailList {
-			if existingUser, _ := c.App.GetUserByEmail(emailAddr); existingUser != nil && existingUser.DeleteAt != 0 {
+			deactivated, userErr := c.App.IsDeactivatedUserEmail(emailAddr)
+			if userErr != nil {
+				c.Err = userErr
+				return
+			}
+			if deactivated {
 				deactivatedEmailList = append(deactivatedEmailList, emailAddr)
 			}
 		}
