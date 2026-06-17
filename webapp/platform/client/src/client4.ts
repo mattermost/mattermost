@@ -2005,7 +2005,7 @@ export default class Client4 {
     patchChannelJoinRequest = (channelId: string, requestId: string, patch: ChannelJoinRequestPatch) => {
         return this.doFetch<ChannelJoinRequest>(
             `${this.getChannelJoinRequestsRoute(channelId)}/${requestId}`,
-            {method: 'patch', body: JSON.stringify(patch)},
+            {method: 'PATCH', body: JSON.stringify(patch)},
         );
     };
 

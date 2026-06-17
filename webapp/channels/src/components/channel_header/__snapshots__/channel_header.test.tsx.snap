@@ -205,10 +205,14 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -299,10 +303,14 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -393,10 +401,14 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -487,10 +499,14 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -581,10 +597,14 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -685,10 +705,14 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -779,10 +803,14 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -1060,10 +1088,14 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -1154,10 +1186,14 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -1248,10 +1284,14 @@ exports[`components/ChannelHeader should render properly when populated with cha
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -1342,10 +1382,14 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"
@@ -1436,10 +1480,14 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                 class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
                 id="member_rhs"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-account-outline channel-header__members"
-                />
+                <span
+                  class="channel-header__members-icon-wrapper"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-account-outline channel-header__members"
+                  />
+                </span>
                 <span
                   class="icon__text"
                   id="channelMemberCountText"

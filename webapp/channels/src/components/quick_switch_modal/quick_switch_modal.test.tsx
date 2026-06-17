@@ -28,6 +28,7 @@ describe('components/QuickSwitchModal', () => {
                 return Promise.resolve({error});
             }),
             closeRightHandSide: jest.fn(),
+            openRequestJoinModal: jest.fn(),
         },
     };
 

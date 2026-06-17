@@ -101,7 +101,7 @@ describe('joinRequests reducer', () => {
             type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
             data: approved,
         });
-        expect(next.byChannel.channel1[0].status).toBe('approved');
+        expect(next.byChannel.channel1).toHaveLength(0);
         expect(next.myPendingByChannel.channel1).toBeUndefined();
         expect(next.countsByChannel.channel1).toBe(0);
         expect(next.myList[0].status).toBe('approved');
