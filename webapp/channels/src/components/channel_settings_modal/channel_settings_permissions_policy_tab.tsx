@@ -639,6 +639,7 @@ function ChannelSettingsPermissionsPolicyTab({
                     />
                 </h3>
                 <Button
+                    size='sm'
                     className='ChannelSettingsModal__permissionsPolicyAddRule'
                     onClick={startNew}
                     disabled={!attributesLoaded}
@@ -659,12 +660,8 @@ function ChannelSettingsPermissionsPolicyTab({
                 <SectionNotice
                     type='info'
                     title={formatMessage({
-                        id: 'channel_settings.permissions_policy.notice.title',
-                        defaultMessage: 'If several rules cover the same permission, matching any one of them is enough.',
-                    })}
-                    text={formatMessage({
-                        id: 'channel_settings.permissions_policy.notice.text',
-                        defaultMessage: 'System and team permission policies may also apply, and these rules can only narrow the access they allow.',
+                        id: 'channel_settings.permissions_policy.notice',
+                        defaultMessage: 'If several rules cover the same permission, matching any one of them is enough. System and team permission policies may also apply, and these rules can only narrow the access they allow.',
                     })}
                 />
             </div>
