@@ -4265,6 +4265,33 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}, "override restricted domains")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "" })
+		th.BasicTeam.AllowedDomains = ""
+		_, appErr := th.App.UpdateTeam(th.BasicTeam)
+		require.Nil(t, appErr)
+
+		deactivatedUser := th.CreateUser(t)
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		validEmail := th.GenerateTestEmail()
+
+		invitesWithErrors, _, err := client.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, []string{deactivatedUser.Email, validEmail})
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 2)
+		require.Equal(t, deactivatedUser.Email, invitesWithErrors[0].Email)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Equal(t, "api.team.invite_members.deactivated_email.app_error", invitesWithErrors[0].Error.Id)
+		require.Equal(t, validEmail, invitesWithErrors[1].Email)
+		require.Nil(t, invitesWithErrors[1].Error)
+
+		resp, err := client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, []string{deactivatedUser.Email})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.team.invite_members.deactivated_email.app_error")
+	}, "deactivated users")
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.BasicTeam.AllowedDomains = "common.com"
 		_, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nilf(t, appErr, "%v, Should update the team", appErr)
