@@ -23,4 +23,4 @@ const connector = connect(mapStateToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connect(mapStateToProps)(MobileSidebarRight);
+export default connector(MobileSidebarRight);

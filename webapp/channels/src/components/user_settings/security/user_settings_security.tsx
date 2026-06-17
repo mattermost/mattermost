@@ -44,7 +44,7 @@ type Actions = {
     updateUserPassword: (
         userId: string,
         currentPassword: string,
-        newPassword: string
+        newPassword: string,
     ) => Promise<ActionResult>;
     getAuthorizedOAuthApps: () => Promise<ActionResult>;
     deauthorizeOAuthApp: (clientId: string) => Promise<ActionResult>;
