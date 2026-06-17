@@ -805,6 +805,38 @@ func TestGetTeamLoad(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
+	t.Run("deleted team gets 403", func(t *testing.T) {
+		deletedTeam, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Deleted Team",
+			Name:        model.NewRandomTeamName(),
+			Type:        model.TeamOpen,
+			Email:       th.BasicUser.Email,
+		})
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, deletedTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+		appErr = th.App.SoftDeleteTeam(deletedTeam.Id)
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(deletedTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("removed membership gets 403", func(t *testing.T) {
+		otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, otherTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		// Remove the user — soft-deletes the TeamMember row.
+		appErr = th.App.RemoveUserFromTeam(th.Context, otherTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(otherTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
 	t.Run("invalid since param returns 400", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id, "since=notanumber"), "")
 		require.Error(t, err)

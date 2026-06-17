@@ -22,10 +22,22 @@ import (
 // was mutated after the client's cursor (sidebarVersion > since). The client does not
 // need to send a separate sidebar_version parameter — the since cursor is sufficient.
 func (a *App) GetTeamLoad(rctx request.CTX, userID, teamID string, since int64) (*model.TeamLoadResponse, *model.AppError) {
-	// Verify the user is a member of the requested team.
-	_, appErr := a.GetTeamMember(rctx, teamID, userID)
+	// Verify the team exists and has not been deleted.
+	team, appErr := a.GetTeam(teamID)
+	if appErr != nil {
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.team_not_found.app_error", nil, "", http.StatusForbidden).Wrap(appErr)
+	}
+	if team.DeleteAt > 0 {
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.team_deleted.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Verify the user is an active member of the team.
+	member, appErr := a.GetTeamMember(rctx, teamID, userID)
 	if appErr != nil {
 		return nil, model.NewAppError("GetTeamLoad", "app.team_load.not_member.app_error", nil, "", http.StatusForbidden).Wrap(appErr)
+	}
+	if member.DeleteAt > 0 {
+		return nil, model.NewAppError("GetTeamLoad", "app.team_load.membership_deleted.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// -----------------------------------------------------------------------
