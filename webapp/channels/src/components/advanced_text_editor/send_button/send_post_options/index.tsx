@@ -11,11 +11,10 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {openModal} from 'actions/views/modals';
 
-import {isDmScheduleRedesign} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+import {isOneToOneDmChannel} from 'components/advanced_text_editor/send_button/schedule_message_utils';
 import ScheduleRecipientTimezoneCheckbox from 'components/advanced_text_editor/send_button/schedule_recipient_timezone_checkbox';
-import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
-import DmMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/dm_menu_options';
 import RecentUsedCustomDate from 'components/advanced_text_editor/send_button/send_post_options/recent_used_custom_date';
+import ScheduleMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/schedule_menu_options';
 import {useScheduleRecipientInfo} from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 
@@ -36,7 +35,7 @@ type Props = {
 export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
+    const isDmChannel = useSelector((state: GlobalState) => isOneToOneDmChannel(state, channelId));
     const {userCurrentTimezone, recipientTimezoneString, teammateDisplayName} = useScheduleRecipientInfo(channelId);
     const [useRecipientTimezone, setUseRecipientTimezone] = useState(true);
 
@@ -117,33 +116,29 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 }
             />
 
-            {isDmRedesign && (
-                <ScheduleRecipientTimezoneCheckbox
-                    checked={useRecipientTimezone}
-                    recipientTimezone={recipientTimezoneString}
-                    onChange={setUseRecipientTimezone}
-                    className='dm-schedule-timezone-checkbox'
-                />
+            {isDmChannel && (
+                <>
+                    <ScheduleRecipientTimezoneCheckbox
+                        checked={useRecipientTimezone}
+                        recipientTimezone={recipientTimezoneString}
+                        onChange={setUseRecipientTimezone}
+                        variant='menu'
+                    />
+                    <Menu.Separator/>
+                </>
             )}
 
-            {isDmRedesign ? (
-                <DmMenuOptions
-                    handleOnSelect={handleOnSelect}
-                    channelId={channelId}
-                    useRecipientTimezone={useRecipientTimezone}
-                />
-            ) : (
-                <CoreMenuOptions
-                    handleOnSelect={handleOnSelect}
-                    channelId={channelId}
-                />
-            )}
+            <ScheduleMenuOptions
+                handleOnSelect={handleOnSelect}
+                channelId={channelId}
+                useRecipientTimezone={useRecipientTimezone}
+            />
 
             <RecentUsedCustomDate
                 handleOnSelect={handleOnSelect}
                 userCurrentTimezone={userCurrentTimezone}
                 channelId={channelId}
-                isDmRedesign={isDmRedesign}
+                showRecipientTimezoneLabels={isDmChannel}
                 recipientTimezoneString={recipientTimezoneString}
                 useRecipientTimezone={useRecipientTimezone}
                 recipientDisplayName={teammateDisplayName}

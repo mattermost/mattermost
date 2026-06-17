@@ -18,10 +18,10 @@ import {
     getToday9amTimestamp,
     getTomorrow9amTimestamp,
     hasRecipientTimezone,
-    isDmScheduleRedesign,
+    isOneToOneDmChannel,
     reinterpretWallClock,
     shouldShowToday9amPreset,
-} from './schedule_message_dm_utils';
+} from './schedule_message_utils';
 
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getDirectChannel: jest.fn(),
@@ -41,7 +41,7 @@ const mockedGetCurrentUserId = jest.mocked(getCurrentUserId);
 const mockedGetUser = jest.mocked(getUser);
 const mockedGenerateCurrentTimezoneLabel = jest.mocked(generateCurrentTimezoneLabel);
 
-describe('schedule_message_dm_utils', () => {
+describe('schedule_message_utils', () => {
     describe('hasRecipientTimezone', () => {
         it('returns false when timezone is missing', () => {
             expect(hasRecipientTimezone({} as never)).toBe(false);
@@ -224,7 +224,7 @@ describe('schedule_message_dm_utils', () => {
         });
     });
 
-    describe('isDmScheduleRedesign', () => {
+    describe('isOneToOneDmChannel', () => {
         const state = {} as GlobalState;
         const channelId = 'dm_channel_id';
 
@@ -235,7 +235,7 @@ describe('schedule_message_dm_utils', () => {
         it('returns false for non-DM channels', () => {
             mockedGetDirectChannel.mockReturnValue(undefined);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+            expect(isOneToOneDmChannel(state, channelId)).toBe(false);
         });
 
         it('returns false for self-DM', () => {
@@ -245,7 +245,7 @@ describe('schedule_message_dm_utils', () => {
                 type: 'D',
             } as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+            expect(isOneToOneDmChannel(state, channelId)).toBe(false);
         });
 
         it('returns false for bot DMs', () => {
@@ -264,7 +264,7 @@ describe('schedule_message_dm_utils', () => {
                 },
             } as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(false);
+            expect(isOneToOneDmChannel(state, channelId)).toBe(false);
         });
 
         it('returns true when teammate profile is not loaded yet', () => {
@@ -275,7 +275,7 @@ describe('schedule_message_dm_utils', () => {
             } as never);
             mockedGetUser.mockReturnValue(undefined as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(true);
+            expect(isOneToOneDmChannel(state, channelId)).toBe(true);
         });
 
         it('returns true for 1:1 DM with a human teammate', () => {
@@ -289,7 +289,7 @@ describe('schedule_message_dm_utils', () => {
                 is_bot: false,
             } as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(true);
+            expect(isOneToOneDmChannel(state, channelId)).toBe(true);
         });
 
         it('returns true for 1:1 DM when teammate timezone object has empty zone strings', () => {
@@ -308,7 +308,7 @@ describe('schedule_message_dm_utils', () => {
                 },
             } as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(true);
+            expect(isOneToOneDmChannel(state, channelId)).toBe(true);
         });
 
         it('returns true for 1:1 DM with known recipient timezone', () => {
@@ -327,7 +327,7 @@ describe('schedule_message_dm_utils', () => {
                 },
             } as never);
 
-            expect(isDmScheduleRedesign(state, channelId)).toBe(true);
+            expect(isOneToOneDmChannel(state, channelId)).toBe(true);
         });
     });
 });

@@ -83,14 +83,14 @@ describe('CoreMenuOptions Component', () => {
     function renderComponent(
         state = initialState,
         handleOnSelectOverride = handleOnSelect,
-        options: {isDmRedesign?: boolean; recipientTimezoneString?: string} = {},
+        options: {showRecipientTimezoneLabels?: boolean; recipientTimezoneString?: string} = {},
     ) {
         renderWithContext(
             <RecentUsedCustomDate
                 handleOnSelect={handleOnSelectOverride}
                 userCurrentTimezone={userCurrentTimezone}
                 channelId='channelId'
-                isDmRedesign={options.isDmRedesign}
+                showRecipientTimezoneLabels={options.showRecipientTimezoneLabels}
                 recipientTimezoneString={options.recipientTimezoneString}
             />,
             state,
@@ -279,7 +279,7 @@ describe('CoreMenuOptions Component', () => {
         expect(screen.getByText(new RegExp(`${monthDay} at`))).toBeInTheDocument();
     });
 
-    it('should render DM redesign labels when isDmRedesign is true', () => {
+    it('should render recipient timezone labels when showRecipientTimezoneLabels is true', () => {
         const recentTimestamp = DateTime.now().plus({days: 7}).toMillis();
 
         const recentlyUsedCustomDateVal = {
@@ -290,7 +290,7 @@ describe('CoreMenuOptions Component', () => {
         const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
 
         renderComponent(state, handleOnSelect, {
-            isDmRedesign: true,
+            showRecipientTimezoneLabels: true,
             recipientTimezoneString: 'Europe/London',
         });
 

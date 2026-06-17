@@ -125,7 +125,7 @@ export function reinterpretWallClock(dateTime: Moment, newTimezone: string): Mom
     }, newTimezone);
 }
 
-export function isDmScheduleRedesign(state: GlobalState, channelId: string): boolean {
+export function isOneToOneDmChannel(state: GlobalState, channelId: string): boolean {
     const channel = getDirectChannel(state, channelId);
     if (!channel) {
         return false;

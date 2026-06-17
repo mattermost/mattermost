@@ -1,8 +1,11 @@
 .ScheduleRecipientTimezoneCheckbox {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
     gap: 8px;
+
+    &--menu {
+        padding: 0 20px 8px;
+    }
 
     &__input {
         margin: 0;
@@ -13,8 +16,17 @@
         margin: 0;
         color: var(--center-channel-color);
         cursor: pointer;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 400;
-        line-height: 20px;
+        line-height: 16px;
+    }
+
+    &--modal {
+        padding: 0;
+
+        .mm-modal-generic-section-item__fieldset-checkbox {
+            font-size: 12px;
+            line-height: 16px;
+        }
     }
 }

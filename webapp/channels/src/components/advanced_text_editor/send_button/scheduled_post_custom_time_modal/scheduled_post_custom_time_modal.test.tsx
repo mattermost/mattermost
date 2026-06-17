@@ -5,9 +5,9 @@ import moment from 'moment-timezone';
 import React from 'react';
 
 import {
-    isDmScheduleRedesign,
+    isOneToOneDmChannel,
     reinterpretWallClock,
-} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+} from 'components/advanced_text_editor/send_button/schedule_message_utils';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -16,13 +16,13 @@ import ScheduledPostCustomTimeModal from './scheduled_post_custom_time_modal';
 
 jest.mock('components/date_time_picker_modal/date_time_picker_modal', () => {
     return function MockDateTimePickerModal({
-        bodyPrefix,
+        subheading,
         bodySuffix,
         footerContent,
         errorText,
         timezone,
     }: {
-        bodyPrefix?: React.ReactNode;
+        subheading?: React.ReactNode;
         bodySuffix?: React.ReactNode;
         footerContent?: React.ReactNode;
         errorText?: string;
@@ -30,8 +30,8 @@ jest.mock('components/date_time_picker_modal/date_time_picker_modal', () => {
     }) {
         return (
             <div data-testid='date-time-picker-modal'>
+                <div data-testid='modal-subheading'>{subheading}</div>
                 <div data-testid='active-timezone'>{timezone}</div>
-                {bodyPrefix}
                 {bodySuffix}
                 {footerContent}
                 {errorText && <div data-testid='modal-error'>{errorText}</div>}
@@ -40,11 +40,11 @@ jest.mock('components/date_time_picker_modal/date_time_picker_modal', () => {
     };
 });
 
-jest.mock('components/advanced_text_editor/send_button/schedule_message_dm_utils', () => {
-    const actual = jest.requireActual('components/advanced_text_editor/send_button/schedule_message_dm_utils');
+jest.mock('components/advanced_text_editor/send_button/schedule_message_utils', () => {
+    const actual = jest.requireActual('components/advanced_text_editor/send_button/schedule_message_utils');
     return {
         ...actual,
-        isDmScheduleRedesign: jest.fn(),
+        isOneToOneDmChannel: jest.fn(),
         reinterpretWallClock: jest.fn(actual.reinterpretWallClock),
     };
 });
@@ -53,12 +53,13 @@ jest.mock('components/advanced_text_editor/use_post_box_indicator');
 jest.mock('mattermost-redux/selectors/entities/timezone', () => ({
     generateCurrentTimezoneLabel: jest.fn(() => 'Eastern Time'),
     getCurrentTimezone: jest.fn(() => 'America/New_York'),
+    getCurrentTimezoneFull: jest.fn(() => 'America/New_York'),
 }));
 jest.mock('mattermost-redux/actions/preferences', () => ({
     savePreferences: jest.fn(() => ({type: 'MOCK_SAVE_PREFERENCES'})),
 }));
 
-const mockedIsDmScheduleRedesign = jest.mocked(isDmScheduleRedesign);
+const mockedIsOneToOneDmChannel = jest.mocked(isOneToOneDmChannel);
 const mockedReinterpretWallClock = jest.mocked(reinterpretWallClock);
 const mockedUseTimePostBoxIndicator = jest.mocked(useTimePostBoxIndicator);
 
@@ -83,17 +84,17 @@ const defaultHookValue = {
     teammateId: 'user2',
 };
 
-describe('ScheduledPostCustomTimeModal DM redesign', () => {
+describe('ScheduledPostCustomTimeModal one-to-one DM recipient timezone', () => {
     const onExited = jest.fn();
     const onConfirm = jest.fn().mockResolvedValue({});
 
     beforeEach(() => {
         onExited.mockReset();
         onConfirm.mockReset().mockResolvedValue({});
-        mockedIsDmScheduleRedesign.mockReturnValue(true);
+        mockedIsOneToOneDmChannel.mockReturnValue(true);
         mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue);
         mockedReinterpretWallClock.mockImplementation(
-            jest.requireActual('components/advanced_text_editor/send_button/schedule_message_dm_utils').reinterpretWallClock,
+            jest.requireActual('components/advanced_text_editor/send_button/schedule_message_utils').reinterpretWallClock,
         );
     });
 
@@ -109,10 +110,12 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
         );
     }
 
-    it('renders DM layout with checkbox, conversion line, and footer actions', () => {
+    it('renders DM layout with checkbox in subheading, conversion line, and footer actions', () => {
         renderModal();
 
-        expect(screen.getByRole('checkbox', {name: /Use recipient's timezone/})).toBeInTheDocument();
+        expect(screen.getByTestId('modal-subheading')).toContainElement(
+            screen.getByRole('checkbox', {name: /Use recipient's timezone/}),
+        );
         expect(screen.getByText(/your time/)).toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Remove schedule'})).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Cancel'})).toBeInTheDocument();
@@ -125,7 +128,7 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
         renderModal({onRemoveSchedule});
 
         expect(screen.getByRole('button', {name: 'Remove schedule'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Remove schedule'})).toHaveClass('scheduled_post_dm_custom_time_modal__remove');
+        expect(screen.getByRole('button', {name: 'Remove schedule'})).toHaveClass('scheduled_post_custom_time_modal__remove');
     });
 
     it('calls reinterpretWallClock when recipient timezone checkbox is toggled', async () => {
@@ -182,14 +185,14 @@ describe('ScheduledPostCustomTimeModal DM redesign', () => {
     });
 });
 
-describe('ScheduledPostCustomTimeModal legacy layout', () => {
+describe('ScheduledPostCustomTimeModal channel layout', () => {
     const onExited = jest.fn();
     const onConfirm = jest.fn().mockResolvedValue({});
 
     beforeEach(() => {
         onExited.mockReset();
         onConfirm.mockReset().mockResolvedValue({});
-        mockedIsDmScheduleRedesign.mockReturnValue(false);
+        mockedIsOneToOneDmChannel.mockReturnValue(false);
         mockedUseTimePostBoxIndicator.mockReturnValue(defaultHookValue);
     });
 
@@ -211,7 +214,7 @@ describe('ScheduledPostCustomTimeModal legacy layout', () => {
     });
 
     it('shows DM checkbox when rescheduling a DM scheduled post', () => {
-        mockedIsDmScheduleRedesign.mockReturnValue(true);
+        mockedIsOneToOneDmChannel.mockReturnValue(true);
 
         renderWithContext(
             <ScheduledPostCustomTimeModal

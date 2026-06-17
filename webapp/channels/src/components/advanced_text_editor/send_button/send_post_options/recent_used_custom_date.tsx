@@ -16,7 +16,7 @@ import {
     getToday9amTimestamp,
     getTomorrow9amTimestamp,
     shouldShowToday9amPreset,
-} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+} from 'components/advanced_text_editor/send_button/schedule_message_utils';
 import * as Menu from 'components/menu';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 
@@ -26,7 +26,7 @@ type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     userCurrentTimezone: string;
     channelId: string;
-    isDmRedesign?: boolean;
+    showRecipientTimezoneLabels?: boolean;
     recipientTimezoneString?: string;
     useRecipientTimezone?: boolean;
     recipientDisplayName?: string;
@@ -83,7 +83,7 @@ function getDateOption(now: DateTime, timestamp: number | undefined, userCurrent
 function RecentUsedCustomDate({
     handleOnSelect,
     userCurrentTimezone,
-    isDmRedesign,
+    showRecipientTimezoneLabels,
     recipientTimezoneString,
     useRecipientTimezone = true,
     recipientDisplayName = '',
@@ -101,20 +101,20 @@ function RecentUsedCustomDate({
         return {};
     }, [recentlyUsedCustomDate]);
 
-    const activeTimezone = isDmRedesign && recipientTimezoneString && useRecipientTimezone ?
+    const activeTimezone = showRecipientTimezoneLabels && recipientTimezoneString && useRecipientTimezone ?
         recipientTimezoneString :
         userCurrentTimezone;
 
     const conversionTimezone = useMemo(() => {
-        if (!isDmRedesign || !recipientTimezoneString || useRecipientTimezone) {
+        if (!showRecipientTimezoneLabels || !recipientTimezoneString || useRecipientTimezone) {
             return userCurrentTimezone;
         }
 
         return recipientTimezoneString;
-    }, [isDmRedesign, recipientTimezoneString, useRecipientTimezone, userCurrentTimezone]);
+    }, [showRecipientTimezoneLabels, recipientTimezoneString, useRecipientTimezone, userCurrentTimezone]);
 
     const excludedTimestamps = useMemo(() => {
-        if (isDmRedesign && recipientTimezoneString) {
+        if (showRecipientTimezoneLabels && recipientTimezoneString) {
             const timestamps = [
                 getTomorrow9amTimestamp(activeTimezone),
                 getNextMonday9amTimestamp(activeTimezone),
@@ -131,7 +131,7 @@ function RecentUsedCustomDate({
             getTomorrow9amTimestamp(userCurrentTimezone),
             getNextMonday9amTimestamp(userCurrentTimezone),
         ];
-    }, [activeTimezone, isDmRedesign, recipientTimezoneString, userCurrentTimezone]);
+    }, [activeTimezone, showRecipientTimezoneLabels, recipientTimezoneString, userCurrentTimezone]);
 
     const handleRecentlyUsedCustomTime = useCallback(
         (e: React.UIEvent) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!),
@@ -146,7 +146,7 @@ function RecentUsedCustomDate({
 
     const dateOption = getDateOption(now, recentlyUsedCustomDateVal.timestamp, activeTimezone);
 
-    if (isDmRedesign) {
+    if (showRecipientTimezoneLabels) {
         const timeOnly = (
             <Timestamp
                 ranges={DATE_RANGES}
@@ -187,7 +187,7 @@ function RecentUsedCustomDate({
                         <>
                             <span>
                                 <FormattedMessage
-                                    id='create_post_button.option.schedule_message.options.recently_used_dm.primary'
+                                    id='create_post_button.option.schedule_message.options.recently_used_recipient_timezone.primary'
                                     defaultMessage='{day} at {time}'
                                     values={{
                                         day: dayLabel,
@@ -195,7 +195,7 @@ function RecentUsedCustomDate({
                                     }}
                                 />
                             </span>
-                            <span className='secondary-label'>
+                            <span>
                                 {useRecipientTimezone ? (
                                     <FormattedMessage
                                         id='create_post_button.option.schedule_message.options.conversion_your_time'
@@ -215,7 +215,6 @@ function RecentUsedCustomDate({
                             </span>
                         </>
                     }
-                    className='core-menu-options dm-menu-options'
                 />
             </>
         );

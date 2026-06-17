@@ -17,12 +17,11 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {
     getDefaultScheduleDateTime,
-    isDmScheduleRedesign,
+    isOneToOneDmChannel,
     reinterpretWallClock,
     useRecipientTimezoneToPerspective,
-} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+} from 'components/advanced_text_editor/send_button/schedule_message_utils';
 import ScheduleRecipientTimezoneCheckbox from 'components/advanced_text_editor/send_button/schedule_recipient_timezone_checkbox';
-import {DMUserTimezone} from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
 import ScheduleTimezoneConversionLine from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_timezone_conversion_line';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
@@ -31,7 +30,7 @@ import {scheduledPosts} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import './scheduled_post_dm_custom_time_modal.scss';
+import './scheduled_post_custom_time_modal.scss';
 
 const SCHEDULED_POST_CUSTOM_TIME_INTERVAL = 15; // minutes
 
@@ -57,7 +56,7 @@ export default function ScheduledPostCustomTimeModal({
     const userTimezone = useSelector(getCurrentTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
-    const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
+    const isDmChannel = useSelector((state: GlobalState) => isOneToOneDmChannel(state, channelId));
     const {
         teammateDisplayName,
         recipientTimezoneString,
@@ -65,18 +64,18 @@ export default function ScheduledPostCustomTimeModal({
 
     const [useRecipientTimezone, setUseRecipientTimezone] = useState(initialUseRecipientTimezone);
     const perspective = useRecipientTimezoneToPerspective(useRecipientTimezone);
-    const useCustomFooter = isDmRedesign || Boolean(onRemoveSchedule);
+    const useCustomFooter = isDmChannel || Boolean(onRemoveSchedule);
 
     const activeTimezone = useMemo(() => {
-        if (!isDmRedesign) {
+        if (!isDmChannel) {
             return userTimezone;
         }
         return useRecipientTimezone ? recipientTimezoneString : userTimezone;
-    }, [isDmRedesign, recipientTimezoneString, useRecipientTimezone, userTimezone]);
+    }, [isDmChannel, recipientTimezoneString, useRecipientTimezone, userTimezone]);
 
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
-            if (isDmRedesign) {
+            if (isDmChannel) {
                 const activeTz = initialUseRecipientTimezone ? recipientTimezoneString : userTimezone;
                 return reinterpretWallClock(initialTime, activeTz);
             }
@@ -84,7 +83,7 @@ export default function ScheduledPostCustomTimeModal({
             return initialTime;
         }
 
-        if (isDmRedesign) {
+        if (isDmChannel) {
             return getDefaultScheduleDateTime(perspective, userTimezone, recipientTimezoneString);
         }
 
@@ -146,16 +145,16 @@ export default function ScheduledPostCustomTimeModal({
 
     const timePickerInterval = useSelector(testingEnabled) ? 1 : SCHEDULED_POST_CUSTOM_TIME_INTERVAL;
 
-    const bodyPrefix = isDmRedesign ? (
+    const subheading = isDmChannel ? (
         <ScheduleRecipientTimezoneCheckbox
             checked={useRecipientTimezone}
             recipientTimezone={recipientTimezoneString}
             onChange={handleUseRecipientTimezoneChange}
-            className='scheduled_post_dm_custom_time_modal__timezone-checkbox'
+            variant='modal'
         />
-    ) : undefined;
+    ) : userTimezoneLabel;
 
-    const bodySuffix = isDmRedesign ? (
+    const bodySuffix = isDmChannel ? (
         <ScheduleTimezoneConversionLine
             selectedDateTime={selectedDateTime}
             useRecipientTimezone={useRecipientTimezone}
@@ -163,12 +162,7 @@ export default function ScheduledPostCustomTimeModal({
             senderTimezone={userTimezone}
             recipientTimezone={recipientTimezoneString}
         />
-    ) : (
-        <DMUserTimezone
-            channelId={channelId}
-            selectedTime={selectedDateTime?.toDate()}
-        />
-    );
+    ) : undefined;
 
     const footerContent = useMemo(() => {
         if (!useCustomFooter) {
@@ -176,13 +170,13 @@ export default function ScheduledPostCustomTimeModal({
         }
 
         return (
-            <footer className='scheduled_post_dm_custom_time_modal__footer'>
+            <footer className='scheduled_post_custom_time_modal__footer'>
                 {onRemoveSchedule && (
                     <Button
                         type='button'
                         emphasis='tertiary'
                         variant='destructive'
-                        className='scheduled_post_dm_custom_time_modal__remove'
+                        className='scheduled_post_custom_time_modal__remove'
                         onClick={handleRemoveSchedule}
                     >
                         <FormattedMessage
@@ -191,7 +185,7 @@ export default function ScheduledPostCustomTimeModal({
                         />
                     </Button>
                 )}
-                <div className='scheduled_post_dm_custom_time_modal__footer-actions'>
+                <div className='scheduled_post_custom_time_modal__footer-actions'>
                     <Button
                         type='button'
                         emphasis='tertiary'
@@ -220,7 +214,7 @@ export default function ScheduledPostCustomTimeModal({
     return (
         <DateTimePickerModal
             className={classNames('scheduled_post_custom_time_modal', {
-                scheduled_post_dm_custom_time_modal: useCustomFooter,
+                'scheduled_post_custom_time_modal--custom-footer': useCustomFooter,
             })}
             initialTime={selectedDateTime}
             header={
@@ -229,7 +223,7 @@ export default function ScheduledPostCustomTimeModal({
                     defaultMessage='Schedule message'
                 />
             }
-            subheading={isDmRedesign ? undefined : userTimezoneLabel}
+            subheading={subheading}
             confirmButtonText={useCustomFooter ? undefined : (
                 <FormattedMessage
                     id='schedule_post.custom_time_modal.confirm_button_text'
@@ -246,13 +240,12 @@ export default function ScheduledPostCustomTimeModal({
             onExited={onExited}
             onConfirm={handleOnConfirm}
             onChange={setSelectedDateTime}
-            bodyPrefix={bodyPrefix}
             bodySuffix={bodySuffix}
             relativeDate={true}
             onCancel={useCustomFooter ? undefined : onExited}
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
-            timezone={isDmRedesign ? activeTimezone : undefined}
+            timezone={isDmChannel ? activeTimezone : undefined}
             footerContent={footerContent}
         />
     );
