@@ -136,16 +136,19 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	if r.URL.Query().Get("graceful") != "" {
 		var invitesWithErrors []*model.EmailInviteWithError
 		var goodEmails, errList []string
-		for _, email := range emailList {
+		for _, emailAddr := range emailList {
 			invite := &model.EmailInviteWithError{
-				Email: email,
+				Email: emailAddr,
 				Error: nil,
 			}
-			if !isEmailAddressAllowed(email, allowedDomains) {
-				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+			if !isEmailAddressAllowed(emailAddr, allowedDomains) {
+				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": emailAddr}, "", http.StatusBadRequest)
+				errList = append(errList, model.EmailInviteWithErrorToString(invite))
+			} else if existingUser, _ := c.App.GetUserByEmail(emailAddr); existingUser != nil && existingUser.DeleteAt != 0 {
+				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": emailAddr}, "", http.StatusBadRequest)
 				errList = append(errList, model.EmailInviteWithErrorToString(invite))
 			} else {
-				goodEmails = append(goodEmails, email)
+				goodEmails = append(goodEmails, emailAddr)
 			}
 			invitesWithErrors = append(invitesWithErrors, invite)
 		}
@@ -185,9 +188,9 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		var invalidEmailList []string
 
-		for _, email := range emailList {
-			if !isEmailAddressAllowed(email, allowedDomains) {
-				invalidEmailList = append(invalidEmailList, email)
+		for _, emailAddr := range emailList {
+			if !isEmailAddressAllowed(emailAddr, allowedDomains) {
+				invalidEmailList = append(invalidEmailList, emailAddr)
 			}
 		}
 		if len(invalidEmailList) > 0 {
@@ -195,6 +198,19 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
+
+		var deactivatedEmailList []string
+		for _, emailAddr := range emailList {
+			if existingUser, _ := c.App.GetUserByEmail(emailAddr); existingUser != nil && existingUser.DeleteAt != 0 {
+				deactivatedEmailList = append(deactivatedEmailList, emailAddr)
+			}
+		}
+		if len(deactivatedEmailList) > 0 {
+			s := strings.Join(deactivatedEmailList, ", ")
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+			return
+		}
+
 		err := c.App.Srv().EmailService.SendInviteEmails(c.AppContext, team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
 		if err != nil {
 			switch {

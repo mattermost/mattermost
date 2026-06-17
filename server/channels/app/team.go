@@ -1540,6 +1540,8 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 		}
 		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+		} else if existingUser, _ := a.GetUserByEmail(email); existingUser != nil && existingUser.DeleteAt != 0 {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
 		}
@@ -1690,6 +1692,8 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		}
 		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+		} else if existingUser, _ := a.GetUserByEmail(email); existingUser != nil && existingUser.DeleteAt != 0 {
+			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
 		}
@@ -1758,6 +1762,18 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
+	var deactivatedEmailList []string
+	for _, email := range emailList {
+		if existingUser, _ := a.GetUserByEmail(email); existingUser != nil && existingUser.DeleteAt != 0 {
+			deactivatedEmailList = append(deactivatedEmailList, email)
+		}
+	}
+
+	if len(deactivatedEmailList) > 0 {
+		s := strings.Join(deactivatedEmailList, ", ")
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 	eErr := a.Srv().EmailService.SendInviteEmails(rctx, team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL(), nil, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
 	if eErr != nil {
@@ -1794,6 +1810,18 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 	if len(invalidEmailList) > 0 {
 		s := strings.Join(invalidEmailList, ", ")
 		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	var deactivatedEmailList []string
+	for _, email := range guestsInvite.Emails {
+		if existingUser, _ := a.GetUserByEmail(email); existingUser != nil && existingUser.DeleteAt != 0 {
+			deactivatedEmailList = append(deactivatedEmailList, email)
+		}
+	}
+
+	if len(deactivatedEmailList) > 0 {
+		s := strings.Join(deactivatedEmailList, ", ")
+		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay

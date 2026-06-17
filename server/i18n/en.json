@@ -3851,6 +3851,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "The account associated with {{.Addresses}} has been deactivated. Please contact your System Administrator for details."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
