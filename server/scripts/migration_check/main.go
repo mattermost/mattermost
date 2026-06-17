@@ -178,7 +178,7 @@ func branchMigrationFiles(root string) ([]string, error) {
 
 func splitLines(s string) []string {
 	var lines []string
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		if strings.TrimSpace(line) != "" {
 			lines = append(lines, line)
 		}
