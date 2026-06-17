@@ -3851,6 +3851,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.invite_members.deactivated_user.app_error",
+    "translation": "This email belongs to a deactivated account and cannot be invited."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },

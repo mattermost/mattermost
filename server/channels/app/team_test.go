@@ -2090,6 +2090,38 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.NotNil(t, res[0].Error)
 	})
 
+	t.Run("it should assign an error to deactivated user emails without sending invites", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		validEmail := "idontexist@mattermost.com"
+		deactivatedUser := th.CreateUser(t)
+		require.Nil(t, th.App.UpdateUserActive(th.Context, deactivatedUser.Id, false))
+
+		memberInvite := &model.MemberInvite{
+			Emails: []string{validEmail, deactivatedUser.Email},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			[]string{validEmail},
+			"",
+			mock.Anything,
+			true,
+			false,
+			false,
+		).Once().Return(nil)
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.Nil(t, res[0].Error)
+		require.NotNil(t, res[1].Error)
+		require.Equal(t, "api.team.invite_members.deactivated_user.app_error", res[1].Error.Id)
+	})
+
 	t.Run("it return list of email with no error when inviting to team and channels using memberInvite struct", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		memberInvite := &model.MemberInvite{
