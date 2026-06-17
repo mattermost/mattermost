@@ -15,7 +15,7 @@ type Props = {
     recipientName: string;
     senderTimezone: string;
     recipientTimezone: string;
-}
+};
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

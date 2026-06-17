@@ -23,7 +23,7 @@ type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
     useRecipientTimezone?: boolean;
-}
+};
 
 const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
 
@@ -61,7 +61,7 @@ type DmSchedulePresetsProps = {
     recipientTimezoneString: string;
     teammateDisplayName: string;
     useRecipientTimezone: boolean;
-}
+};
 
 function DmSchedulePresets({
     handleOnSelect,
@@ -235,7 +235,7 @@ function DmSchedulePresets({
 type ChannelSchedulePresetsProps = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     userCurrentTimezone: string;
-}
+};
 
 function ChannelSchedulePresets({handleOnSelect, userCurrentTimezone}: ChannelSchedulePresetsProps) {
     const now = DateTime.now().setZone(userCurrentTimezone);

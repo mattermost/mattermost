@@ -41,7 +41,7 @@ type Props = {
     initialTime?: Moment;
     useRecipientTimezone?: boolean;
     onRemoveSchedule?: () => void | Promise<{error?: string} | void>;
-}
+};
 
 export default function ScheduledPostCustomTimeModal({
     channelId,

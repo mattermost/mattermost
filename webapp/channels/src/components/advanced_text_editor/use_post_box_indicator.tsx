@@ -125,7 +125,7 @@ function useTimePostBoxIndicator(channelId: string) {
 }
 
 export function useScheduleRecipientInfo(channelId: string) {
-    const getDisplayName = useMemo(makeGetDisplayName, []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
 
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));

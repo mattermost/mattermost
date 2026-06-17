@@ -29,7 +29,7 @@ type Props = {
     recipientTimezoneString?: string;
     useRecipientTimezone?: boolean;
     recipientDisplayName?: string;
-}
+};
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

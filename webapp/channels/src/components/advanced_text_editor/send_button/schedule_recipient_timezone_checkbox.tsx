@@ -15,7 +15,7 @@ type Props = {
     onChange: (checked: boolean) => void;
     className?: string;
     variant?: 'menu' | 'modal';
-}
+};
 
 export default function ScheduleRecipientTimezoneCheckbox({
     checked,
