@@ -30,7 +30,7 @@ describe('TeamAccessControl', () => {
             />,
         );
 
-        expect(screen.getByText('+ Add policy')).toBeInTheDocument();
+        expect(screen.getByText('Link to a policy')).toBeInTheDocument();
         expect(screen.queryByLabelText('Remove policy')).not.toBeInTheDocument();
     });
 

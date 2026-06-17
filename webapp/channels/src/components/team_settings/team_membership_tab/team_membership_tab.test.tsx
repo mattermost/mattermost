@@ -206,8 +206,11 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
 
-        // Simulate expression change
+        // Simulate expression change (enables autoAdd checkbox)
         await userEvent.click(screen.getByTestId('table-editor-change'));
+
+        // Enable auto-add so the sync job fires on rules change
+        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
 
         // Trigger save
         await userEvent.click(screen.getByText('Save'));
