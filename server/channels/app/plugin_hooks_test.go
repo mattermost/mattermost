@@ -1929,6 +1929,93 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 	})
 }
 
+func TestHookMessagesWillBeConsumedWithContext(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setupPlugin := func(t *testing.T, th *TestHelper) {
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LogDebug", "message").Return(nil)
+
+		// The plugin records whether it received a non-nil context to confirm the context is
+		// threaded all the way through to the hook.
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessagesWillBeConsumedWithContext(c *plugin.Context, posts []*model.Post) []*model.Post {
+				prefix := "mwbcwc_plugin:"
+				if c == nil {
+					prefix = "nilctx:"
+				}
+				for _, post := range posts {
+					post.Message = prefix + post.Message
+				}
+				return posts
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		t.Cleanup(tearDown)
+	}
+
+	t.Run("feature flag disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ConsumePostHook = false
+		}).InitBasic(t)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "message", post.Message)
+	})
+
+	t.Run("feature flag enabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ConsumePostHook = true
+		}).InitBasic(t)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "mwbcwc_plugin:message", post.Message)
+	})
+}
+
 func TestUpdatePostFiresConsumeHook(t *testing.T) {
 	mainHelper.Parallel(t)
 
