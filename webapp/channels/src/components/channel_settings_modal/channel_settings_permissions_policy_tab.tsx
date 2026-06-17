@@ -84,7 +84,7 @@ const roleMessages = defineMessages({
     },
 });
 
-const tableRoleMessages = defineMessages({
+const tableRoleMessages: Record<string, MessageDescriptor> = defineMessages({
     [ACCESS_CONTROL_CHANNEL_ROLE_GUEST]: {
         id: 'channel_settings.permissions_policy.table.role.channel_guest',
         defaultMessage: 'Channel guests',
