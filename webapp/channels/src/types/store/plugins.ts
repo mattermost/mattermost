@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
+import type {IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {WebSocketClient} from '@mattermost/client';
@@ -72,6 +73,11 @@ export type PluginsState = {
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
+        ChannelComposerBanner: ChannelComposerBannerComponent[];
+        ChannelIntro: ChannelIntroRegistration[];
+        PostHeader: PostHeaderComponent[];
+        ComposerPlaceholder: ComposerPlaceholderRegistration[];
+        ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -427,10 +433,35 @@ export type ChannelIconOverrideRegistration = PluginComponent & {
     iconName: IconGlyphTypes;
 };
 
+export type ChannelComposerBannerComponent = PluginComponent & {
+    component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ChannelIntroRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<{channel: Channel}>;
+};
+
+export type PostHeaderComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {post: Post}>;
+};
+
+export type ComposerPlaceholderRegistration = PluginComponent & {
+    transform: (placeholder: string, channel: Channel, state: GlobalState, intl: IntlShape) => string;
+};
+
+export type ProductSwitcherMenuItemRegistration = PluginComponent & {
+    text: string;
+    icon: IconGlyphTypes | React.ReactNode;
+    action: () => void;
+    isHidden?: (state: GlobalState) => boolean;
+};
+
 export type ChannelTypeOptionComponent = PluginComponent & {
     label: PluggableText;
     description: PluggableText;
     icon: React.ReactNode;
+    createButtonText?: PluggableText;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;

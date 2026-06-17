@@ -27,8 +27,10 @@ import {
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
+import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
 import store from 'stores/redux_store';
 
+import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/composer_placeholder';
 import {compassIconForName} from 'components/channel_type_icon';
 import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
@@ -73,6 +75,9 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
+    ChannelIntroRegistration,
+    ComposerPlaceholderRegistration,
+    ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1328,6 +1333,7 @@ export default class PluginRegistry {
         'isAvailable',
         'extraContent',
         'onCreate',
+        'createButtonText',
     ], ({
         label,
         description,
@@ -1335,6 +1341,7 @@ export default class PluginRegistry {
         isAvailable,
         extraContent,
         onCreate,
+        createButtonText,
     }: {
         label: ReactResolvable;
         description: ReactResolvable;
@@ -1342,6 +1349,7 @@ export default class PluginRegistry {
         isAvailable: ChannelTypeOptionComponent['isAvailable'];
         extraContent?: ChannelTypeOptionComponent['extraContent'];
         onCreate: ChannelTypeOptionComponent['onCreate'];
+        createButtonText?: ReactResolvable;
     }) => {
         const id = generateId();
         dispatchPluginComponentWithData('ChannelTypeOption', {
@@ -1353,6 +1361,7 @@ export default class PluginRegistry {
             isAvailable,
             extraContent,
             onCreate,
+            createButtonText: createButtonText === undefined ? undefined : resolveReactElement(createButtonText),
         });
 
         return id;
@@ -1393,6 +1402,116 @@ export default class PluginRegistry {
             pluginId: this.id,
             matcher,
             iconName,
+        });
+        return id;
+    });
+
+    /**
+     * Register a component rendered above the message input in both the center-channel composer
+     * and the thread/RHS composer. Receives {channel}; return null when nothing should show.
+     * Multiple registrations stack. Cleaned up automatically when the plugin is removed.
+     */
+    registerChannelComposerBannerComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('ChannelComposerBanner', this.id, component);
+    });
+
+    /**
+     * Register a component that replaces the descriptive body (icon, title, creation info, and
+     * description) of a standard public/private channel's intro for channels the matcher selects.
+     * The channel's action buttons (favorite, add members, set header, notification preferences,
+     * and plugin intro buttons) remain rendered by the server. The matcher receives the full Redux
+     * state so it can read plugin-owned slices (e.g. state['plugins-<id>']). First registration
+     * whose matcher returns true wins (alphabetical pluginId, then insertion order); the rest are
+     * ignored for that channel. Cleaned up automatically when the plugin is removed.
+     */
+    registerChannelIntro = reArg(['matcher', 'component'], ({matcher, component}: {
+        matcher: ChannelIntroRegistration['matcher'];
+        component: ChannelIntroRegistration['component'];
+    }) => {
+        clearLoggedChannelIntroErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
+        return id;
+    });
+
+    /**
+     * Register a React component rendered in the header of every post, after the timestamp and
+     * alongside any other registered post-header components. The component receives the post as a
+     * prop and should return null for posts it has nothing to show for (e.g., read its own
+     * plugin-scoped Redux state to decide).
+     *
+     * The component is suppressed on consecutive posts where the server hides the post timestamp.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerPostHeaderComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('PostHeader', this.id, component);
+    });
+
+    /**
+     * Register a transform applied to the composer placeholder for the current channel.
+     *
+     * `transform` receives (placeholder, channel, state, intl) and returns the placeholder to show —
+     * append to it, replace it, or return it unchanged for channels the plugin doesn't act on. `state`
+     * is the full Redux state, so plugins can read state['plugins-<pluginId>'] slices to decide; use
+     * intl.formatMessage() for i18n. Transforms chain: across plugins they run in pluginId alphabetical
+     * order, within one plugin in registration order, each receiving the previous result.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     */
+    registerComposerPlaceholder = reArg(['transform'], ({transform}: {
+        transform: ComposerPlaceholderRegistration['transform'];
+    }) => {
+        clearComposerPlaceholderErrors(this.id);
+        const id = generateId();
+        dispatchPluginComponentWithData('ComposerPlaceholder', {
+            id,
+            pluginId: this.id,
+            transform,
+        });
+        return id;
+    });
+
+    /**
+     * Register a clickable menu item in the product-switcher dropdown.
+     *
+     * Use this instead of `registerProduct` when your plugin only needs a menu entry point
+     * (e.g., opens a modal or navigates to a route) and does not need full product routing or
+     * header components.
+     *
+     * `isHidden` receives the full Redux `GlobalState` — do not project or narrow the state
+     * type. This lets plugins read `state['plugins-<pluginId>']` to gate visibility on plugin-owned
+     * data. Return `true` to hide the item. If `isHidden` is omitted the item is always visible.
+     *
+     * `action` is called when the user clicks the item. It typically dispatches a route push or
+     * opens a modal. The menu will close automatically after `action` is invoked.
+     *
+     * Items from multiple plugins are sorted alphabetically by `pluginId` in the menu.
+     * Cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerProductSwitcherMenuItem = reArg(['text', 'icon', 'action', 'isHidden'], ({
+        text,
+        icon,
+        action,
+        isHidden,
+    }: {
+        text: ProductSwitcherMenuItemRegistration['text'];
+        icon: ReactResolvable;
+        action: ProductSwitcherMenuItemRegistration['action'];
+        isHidden?: ProductSwitcherMenuItemRegistration['isHidden'];
+    }) => {
+        const id = generateId();
+        dispatchPluginComponentWithData('ProductSwitcherMenuItem', {
+            id,
+            pluginId: this.id,
+            text,
+            icon: resolveReactElement(icon),
+            action,
+            isHidden,
         });
         return id;
     });

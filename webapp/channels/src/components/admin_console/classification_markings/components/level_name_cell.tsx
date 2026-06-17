@@ -12,9 +12,10 @@ type LevelNameCellProps = {
     updateLevel: (id: string, updates: Partial<ClassificationLevel>) => void;
     label: string;
     disabled?: boolean;
+    autoFocus?: boolean;
 };
 
-export default function LevelNameCell({value, id, updateLevel, label, disabled}: LevelNameCellProps) {
+export default function LevelNameCell({value, id, updateLevel, label, disabled, autoFocus}: LevelNameCellProps) {
     const [localValue, setLocalValue] = useState(value);
 
     useEffect(() => {
@@ -28,6 +29,12 @@ export default function LevelNameCell({value, id, updateLevel, label, disabled}:
             $strong={true}
             value={localValue}
             readOnly={disabled}
+            autoFocus={autoFocus}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                if (autoFocus) {
+                    e.target.select();
+                }
+            }}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocalValue(e.target.value)}
             onBlur={() => {
                 if (localValue !== value) {

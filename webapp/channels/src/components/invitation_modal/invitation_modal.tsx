@@ -61,7 +61,7 @@ export type Props = {
         sendMembersInvites: (
             teamId: string,
             users: UserProfile[],
-            emails: string[]
+            emails: string[],
         ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvitesToChannels: (
             teamId: string,
@@ -448,7 +448,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
         try {
             this.debouncedSearchProfiles(term, callback);
-        } catch (error) {
+        } catch {
             callback([]);
         }
     };

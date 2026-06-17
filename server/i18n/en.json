@@ -2313,6 +2313,10 @@
     "translation": "Unable to seek to file start."
   },
   {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Unable to create emoji. Animated GIF must have at most {{.MaxFrames}} frames."
+  },
+  {
     "id": "api.encoding_error",
     "translation": "Encountered an error encoding JSON for the API response"
   },
@@ -7749,6 +7753,10 @@
     "translation": "Could not get team members to remove."
   },
   {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Could not determine masked values for policy expression."
+  },
+  {
     "id": "app.pap.hydrate_actions.app_error",
     "translation": "Could not load the action set declared by the channel's access control policy."
   },
@@ -7761,8 +7769,12 @@
     "translation": "Access control service is not ready."
   },
   {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Could not mask policy expression."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
-    "translation": "Could not merge policy expression."
+    "translation": "Could not merge policy expression with stored masked values."
   },
   {
     "id": "app.pap.missing_attribute.app_error",
@@ -7786,11 +7798,23 @@
   },
   {
     "id": "app.pap.save_policy.invalid_value",
-    "translation": "Invalid value."
+    "translation": "The policy expression contains a value that is not permitted."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "A condition containing masked values was deleted. Please reload the policy and try again."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Could not initialise attribute resolver for policy save."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7837,6 +7861,10 @@
     "translation": "At least one user is required for simulation."
   },
   {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Could not initialise attribute resolver for policy simulation."
+  },
+  {
     "id": "app.pap.simulate.too_many_users",
     "translation": "Too many users requested. Maximum allowed is {{.Max}}."
   },
@@ -7859,10 +7887,6 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
-  },
-  {
-    "id": "app.pap.validate_expression_values.app_error",
-    "translation": "Could not validate policy expression values."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -11505,6 +11529,10 @@
   {
     "id": "model.config.is_valid.azure_custom_endpoint.app_error",
     "translation": "{{.Setting}} must be set when the corresponding AzureCloud value is 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Invalid value {{.Value}} for {{.Setting}}. The Azure storage account name must be 3 to 24 characters long and contain only lowercase letters and numbers."
   },
   {
     "id": "model.config.is_valid.azure_timeout.app_error",

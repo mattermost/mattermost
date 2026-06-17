@@ -319,5 +319,8 @@ export const useLatest = <TArgs extends unknown[], TResult>(func: (signal: Abort
                 func(currentRequest.controller.signal, ...args).then(resolve, reject);
             }, opts?.delay || TYPING_DELAY_MS);
         });
+
+        // These types are complicated and make it hard to memoize this correctly.
+        // eslint-disable-next-line react-hooks/use-memo
     }, [start, cancel, ...deps]);
 };

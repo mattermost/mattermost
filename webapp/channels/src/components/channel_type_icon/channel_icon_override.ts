@@ -5,24 +5,18 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getChannelIconClassName} from 'utils/channel_utils';
+import {createPluginErrorLog} from 'utils/plugin_error_log';
 
 import type {GlobalState} from 'types/store';
 
-// Tracks plugin ids that have already logged a matcher error to avoid spamming the console.
-const loggedMatcherErrors = new Set<string>();
+const matcherErrorLog = createPluginErrorLog('ChannelIconOverride');
 
 /**
  * Clears the per-pluginId log-once tracker for matcher errors.
  * No-arg form clears all entries; with-arg form clears one plugin's entry.
  * Called on each new registration so that re-registering a plugin starts fresh.
  */
-export function clearLoggedMatcherErrors(pluginId?: string): void {
-    if (pluginId === undefined) {
-        loggedMatcherErrors.clear();
-    } else {
-        loggedMatcherErrors.delete(pluginId);
-    }
-}
+export const clearLoggedMatcherErrors = matcherErrorLog.clear;
 
 /**
  * Returns the IconGlyphTypes name of the first matching plugin override, or null.
@@ -46,14 +40,7 @@ export function getChannelIconOverrideForChannel(
                 return entry.iconName;
             }
         } catch (err) {
-            if (!loggedMatcherErrors.has(entry.pluginId)) {
-                loggedMatcherErrors.add(entry.pluginId);
-                // eslint-disable-next-line no-console
-                console.error(
-                    `ChannelIconOverride: matcher for plugin '${entry.pluginId}' threw — treating as no-match.`,
-                    err,
-                );
-            }
+            matcherErrorLog.logOnce(entry.pluginId, err);
         }
     }
     return null;

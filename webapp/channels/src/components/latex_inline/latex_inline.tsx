@@ -32,25 +32,18 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
         );
     }
 
+    const katexOptions: KatexOptions = {
+        throwOnError: false,
+        displayMode: false,
+        maxSize: 200,
+        maxExpand: 100,
+        fleqn: true,
+    };
+
+    let html;
     try {
-        const katexOptions: KatexOptions = {
-            throwOnError: false,
-            displayMode: false,
-            maxSize: 200,
-            maxExpand: 100,
-            fleqn: true,
-        };
-
-        const html = katex.renderToString(content, katexOptions);
-
-        return (
-            <span
-                className='post-body--code inline-tex'
-                data-testid='latex-enabled'
-                dangerouslySetInnerHTML={{__html: html}}
-            />
-        );
-    } catch (e) {
+        html = katex.renderToString(content, katexOptions);
+    } catch {
         return (
             <span
                 className='post-body--code inline-tex'
@@ -63,6 +56,14 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
             </span>
         );
     }
+
+    return (
+        <span
+            className='post-body--code inline-tex'
+            data-testid='latex-enabled'
+            dangerouslySetInnerHTML={{__html: html}}
+        />
+    );
 };
 
 export default React.memo(LatexInline);
