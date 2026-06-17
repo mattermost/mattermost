@@ -2146,14 +2146,18 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Nil(t, res[0].Error)
 	})
 
-	t.Run("it rejects deactivated accounts and only invites the remaining emails", func(t *testing.T) {
+	t.Run("it rejects deactivated accounts while still inviting valid and active existing emails", func(t *testing.T) {
 		deactivatedUser := th.CreateUser(t)
 		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 		require.Nil(t, appErr)
 
+		// An existing, still-active account must not be rejected.
+		activeUser := th.CreateUser(t)
+
 		validEmail := "idontexist@mattermost.com"
+		goodEmails := []string{validEmail, activeUser.Email}
 		memberInvite := &model.MemberInvite{
-			Emails: []string{deactivatedUser.Email, validEmail},
+			Emails: []string{deactivatedUser.Email, validEmail, activeUser.Email},
 		}
 
 		emailServiceMock := emailmocks.ServiceInterface{}
@@ -2162,7 +2166,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
-			[]string{validEmail},
+			goodEmails,
 			"",
 			mock.Anything,
 			true,
@@ -2174,7 +2178,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
-		require.Len(t, res, 2)
+		require.Len(t, res, 3)
 
 		require.Equal(t, deactivatedUser.Email, res[0].Email)
 		require.NotNil(t, res[0].Error)
@@ -2182,6 +2186,23 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 
 		require.Equal(t, validEmail, res[1].Email)
 		require.Nil(t, res[1].Error)
+
+		require.Equal(t, activeUser.Email, res[2].Email)
+		require.Nil(t, res[2].Error)
+
+		// The deactivated email must be filtered out of the actual send.
+		emailServiceMock.AssertCalled(t, "SendInviteEmails",
+			mock.Anything,
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			goodEmails,
+			"",
+			mock.Anything,
+			true,
+			false,
+			false,
+		)
 	})
 }
 

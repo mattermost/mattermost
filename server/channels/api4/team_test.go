@@ -4289,6 +4289,17 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.team.invite_members.deactivated_email.app_error")
+
+		// A non-graceful list mixing valid and multiple deactivated emails
+		// must be rejected as a whole.
+		secondDeactivatedUser := th.CreateUser(t)
+		_, appErr = th.App.UpdateActive(th.Context, secondDeactivatedUser, false)
+		require.Nil(t, appErr)
+
+		resp, err = client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, []string{th.GenerateTestEmail(), deactivatedUser.Email, secondDeactivatedUser.Email})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.team.invite_members.deactivated_email.app_error")
 	}, "deactivated users")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
