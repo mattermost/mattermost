@@ -220,7 +220,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 attributes = result as UserPropertyField[];
             }
             this.setState({userAttributes: attributes, attributesLoaded: true});
-        } catch (error) {
+        } catch {
             this.setState({userAttributes: [], attributesLoaded: true});
         }
     };

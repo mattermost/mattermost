@@ -398,7 +398,7 @@ func TestSessionHasPermissionToTeamSyncJob(t *testing.T) {
 		hasPermission, permissionRequired = th.App.SessionHasPermissionToReadJob(regularSession, model.JobTypeAccessControlTeamSync)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
-		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
 	})
 
 	t.Run("only system admin can manage team sync job", func(t *testing.T) {

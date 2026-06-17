@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {ChannelType} from '@mattermost/types/channels';
-
 import ExternalLink from 'components/external_link';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
@@ -72,14 +70,14 @@ const OpenInvite = ({isPublic, isGroupConstrained, policyEnforced, policyIsActiv
         </p>
     ) : null;
 
-    const handleChange = (selected: ChannelType) => {
+    const handleChange = (selected: string) => {
         onChange(selected === Constants.OPEN_CHANNEL);
     };
 
     const selectorContent = (
         <div className='TeamAccessTab__discoverabilitySelector'>
             <PublicPrivateSelector
-                selected={isPublic ? Constants.OPEN_CHANNEL as ChannelType : Constants.PRIVATE_CHANNEL as ChannelType}
+                selected={isPublic ? Constants.OPEN_CHANNEL : Constants.PRIVATE_CHANNEL}
                 publicButtonProps={{
                     title: formatMessage({
                         id: 'team_settings.discoverability.public_title',
