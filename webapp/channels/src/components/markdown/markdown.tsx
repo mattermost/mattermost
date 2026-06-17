@@ -76,7 +76,7 @@ export type OwnProps = {
      * Defaults to false.
      */
     allowInlineActions?: boolean;
-}
+};
 
 function Markdown({
     options = {},

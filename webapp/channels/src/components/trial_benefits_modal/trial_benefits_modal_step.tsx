@@ -18,7 +18,7 @@ export type TrialBenefitsModalStepProps = {
     pageURL?: string;
     isCloud?: boolean;
     onClose?: () => void;
-}
+};
 
 const TrialBenefitsModalStep = (
     {

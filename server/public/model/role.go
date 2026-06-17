@@ -428,6 +428,19 @@ type Role struct {
 	SchemeId      *string  `json:"scheme_id"`
 }
 
+func (r *Role) Clone() *Role {
+	rCopy := *r
+	if r.Permissions != nil {
+		rCopy.Permissions = make([]string, len(r.Permissions))
+		copy(rCopy.Permissions, r.Permissions)
+	}
+	if r.SchemeId != nil {
+		schemeId := *r.SchemeId
+		rCopy.SchemeId = &schemeId
+	}
+	return &rCopy
+}
+
 func (r *Role) Auditable() map[string]any {
 	return map[string]any{
 		"id":             r.Id,
@@ -802,6 +815,16 @@ func (r *Role) IsValidWithoutId() error {
 		return fmt.Errorf("role description exceeds maximum length of %d", RoleDescriptionMaxLength)
 	}
 
+	if unknown := r.UnknownPermissions(); len(unknown) > 0 {
+		return fmt.Errorf("unknown permissions: %s", strings.Join(unknown, ", "))
+	}
+
+	return nil
+}
+
+// UnknownPermissions returns the permissions on the role that are not present in
+// AllPermissions or DeprecatedPermissions (see MM-68830).
+func (r *Role) UnknownPermissions() []string {
 	check := func(perms []*Permission, permission string) bool {
 		for _, p := range perms {
 			if permission == p.Id {
@@ -810,13 +833,14 @@ func (r *Role) IsValidWithoutId() error {
 		}
 		return false
 	}
+
+	var unknown []string
 	for _, permission := range r.Permissions {
 		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) {
-			return fmt.Errorf("unknown permission %q", permission)
+			unknown = append(unknown, permission)
 		}
 	}
-
-	return nil
+	return unknown
 }
 
 func CleanRoleNames(roleNames []string) ([]string, bool) {

@@ -33,7 +33,7 @@ type CustomMenuProps = {
     //  A bsRole prop is required by React Bootstrap's Dropdown
     // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
-}
+};
 
 export const maxComponentsBeforeDropdown = 15;
 
@@ -74,7 +74,7 @@ type CustomToggleProps = {
     //  A bsRole prop is required by React Bootstrap's Dropdown
     // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
-}
+};
 
 class CustomToggle extends React.PureComponent<CustomToggleProps> {
     handleClick = (e: React.MouseEvent) => {
@@ -118,11 +118,11 @@ type ChannelHeaderPlugProps = {
         postEphemeralCallResponseForChannel: PostEphemeralCallResponseForChannel;
         openAppsModal: OpenAppsModal;
     };
-}
+};
 
 type ChannelHeaderPlugState = {
     dropdownOpen: boolean;
-}
+};
 
 class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, ChannelHeaderPlugState> {
     public static defaultProps: Partial<ChannelHeaderPlugProps> = {

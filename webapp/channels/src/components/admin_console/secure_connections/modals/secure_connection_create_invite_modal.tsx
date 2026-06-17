@@ -20,7 +20,7 @@ type Props = {
     onConfirm: () => Promise<{remoteCluster: RemoteCluster; share: {invite: string; password: string}} | undefined>;
     onCancel?: () => void;
     onExited: () => void;
-}
+};
 
 const noop = () => {};
 

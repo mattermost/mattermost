@@ -6,7 +6,7 @@ type Options = {
     leave?: (event: CustomEvent) => void;
     over?: (event: CustomEvent) => void;
     drop?: (event: CustomEvent) => void;
-}
+};
 
 export default function dragster(query: string, options: Options) {
     const preventDefault = (e: Event) => {

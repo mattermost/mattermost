@@ -14,11 +14,11 @@ type ShortcutKeyDescriptor = string | MessageDescriptor;
 export type ShortcutDefinition = {
     default: ShortcutKeyDescriptor[];
     mac?: ShortcutKeyDescriptor[];
-}
+};
 
 type Props = {
     shortcut: ShortcutDefinition;
-}
+};
 
 function TooltipShortcut(props: Props) {
     let shortcut = props.shortcut.default;

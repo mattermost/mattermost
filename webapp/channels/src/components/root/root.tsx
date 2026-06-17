@@ -81,7 +81,7 @@ const Help = makeAsyncComponent('Help', lazy(() => import('components/help')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
-export type Props = PropsFromRedux & RouteComponentProps
+export type Props = PropsFromRedux & RouteComponentProps;
 
 interface State {
     shouldMountAppRoutes?: boolean;

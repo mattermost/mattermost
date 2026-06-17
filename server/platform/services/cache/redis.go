@@ -79,13 +79,15 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 		valueString = rueidis.BinaryString(buf)
 	}
 
-	return r.client.Do(context.Background(),
-		r.client.B().Set().
-			Key(r.name+":"+key).
-			Value(valueString).
-			Ex(ttl).
-			Build(),
-	).Error()
+	setValue := r.client.B().Set().
+		Key(r.name + ":" + key).
+		Value(valueString)
+
+	if ttl > 0 {
+		setValue.Ex(ttl)
+	}
+
+	return r.client.Do(context.Background(), setValue.Build()).Error()
 }
 
 // Increment increments the value of the key by the value.

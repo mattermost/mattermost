@@ -17,7 +17,7 @@ type Props = {
     disabled?: boolean;
     sibling?: React.ReactNode;
     iconClassName?: string;
-}
+};
 export const MenuItemActionImpl = ({
     onClick,
     text,

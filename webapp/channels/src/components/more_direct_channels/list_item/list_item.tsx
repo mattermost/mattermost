@@ -35,7 +35,7 @@ export type Props = {
     isSelected: boolean;
     add: (value: OptionValue) => void;
     select: (value: OptionValue) => void;
-}
+};
 
 const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>) => {
     const {

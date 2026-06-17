@@ -95,7 +95,9 @@ test(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to show translation indicator (only visible with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -106,7 +108,9 @@ test(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Post Spanish message that's long enough for reliable detection
         await posterClient.createPost({
@@ -205,7 +209,9 @@ test(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to show translation indicator (only visible with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -216,7 +222,9 @@ test(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Re-apply config immediately before posting so the server translates this message.
         // A concurrent initSetup() can reset AutoTranslationSettings.Enable to false.

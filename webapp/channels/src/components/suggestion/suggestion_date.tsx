@@ -11,7 +11,7 @@ import {hasResults} from './suggestion_results';
 type SuggestionItem = {
     date: string;
     label: string;
-}
+};
 
 type Props = {
     onCompleteWord: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
@@ -19,7 +19,7 @@ type Props = {
     results: SuggestionResults<SuggestionItem>;
     preventClose: () => void;
     handleEscape: () => void;
-}
+};
 
 const SuggestionDate = ({
     results,

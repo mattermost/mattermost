@@ -34,7 +34,7 @@ export interface Props extends PropsFromRedux, WrappedComponentProps {
 type State = {
     showOrder: boolean;
     teamsOrder: Team[];
-}
+};
 
 export class TeamSidebar extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -129,7 +129,10 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        this.props.actions.getTeams(0, 200);
+        // for_directory: the "join another team" indicator is a discovery surface,
+        // so policy-governed teams the user can't join are hidden here too — even
+        // for admins, who are otherwise exempt on the System Console listing.
+        this.props.actions.getTeams(0, 200, false, false, true);
         document.addEventListener('keydown', this.handleKeyDown);
         document.addEventListener('keyup', this.handleKeyUp);
     }
