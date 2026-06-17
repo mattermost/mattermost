@@ -40,7 +40,7 @@ type Props = {
     results: SuggestionResults;
     onSearch: (searchType: string, searchTeam: string, searchTerms: string) => void;
     onSuggestionSelected: (value: string, matchedPretext: string) => void;
-}
+};
 
 const SearchSuggestions = ({
     id,

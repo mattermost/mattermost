@@ -22,7 +22,7 @@ type Props = {
     newType: string | null;
     email: string;
     siteName?: string;
-}
+};
 
 const EmailToOAuth = (props: Props) => {
     const {formatMessage} = useIntl();

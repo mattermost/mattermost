@@ -16,7 +16,7 @@ type Props = {
     onExited: () => void;
     onConfirm: () => void;
     saving?: boolean;
-}
+};
 
 export default function TeamPolicyConfirmationModal({channelsAffected, publicChannelsAffected = 0, privateChannelsAffected = 0, onExited, onConfirm, saving}: Props) {
     const {formatMessage} = useIntl();

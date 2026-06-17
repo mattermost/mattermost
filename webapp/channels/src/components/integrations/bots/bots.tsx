@@ -99,11 +99,11 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 export default class Bots extends React.PureComponent<Props, State> {
     public constructor(props: Props) {

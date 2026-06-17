@@ -15,7 +15,7 @@ type Props = {
     teammateDisplayName: string;
     location: string;
     postId: string;
-}
+};
 
 export default function PostBoxIndicator({channelId, teammateDisplayName, location, postId}: Props) {
     const {

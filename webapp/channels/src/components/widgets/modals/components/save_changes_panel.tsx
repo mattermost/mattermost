@@ -24,7 +24,7 @@ type Props = {
     customSavedMessage?: string;
     saveButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
-}
+};
 function SaveChangesPanel({
     handleSubmit,
     handleCancel,

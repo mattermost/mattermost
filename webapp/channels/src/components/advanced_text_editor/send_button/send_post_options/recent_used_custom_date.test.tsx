@@ -89,7 +89,6 @@ describe('CoreMenuOptions Component', () => {
             <RecentUsedCustomDate
                 handleOnSelect={handleOnSelectOverride}
                 userCurrentTimezone={userCurrentTimezone}
-                channelId='channelId'
                 showRecipientTimezoneLabels={options.showRecipientTimezoneLabels}
                 recipientTimezoneString={options.recipientTimezoneString}
             />,

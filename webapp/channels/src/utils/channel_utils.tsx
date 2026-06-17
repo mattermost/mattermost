@@ -62,7 +62,7 @@ export function findNextUnreadChannelId(curChannelId: string, allChannelIds: str
 }
 
 export function isArchivedChannel(channel?: Channel) {
-    return Boolean(channel && channel.delete_at !== 0);
+    return Boolean(channel?.delete_at);
 }
 
 /**
@@ -104,6 +104,34 @@ export function getChannelIconComponent(channel?: Channel) {
     }
 
     return GlobeIcon;
+}
+
+/**
+ * Returns the appropriate channel icon CSS class name based on channel state and type.
+ * Handles archived channels (with lock for private), private channels, and public channels.
+ * If channel is undefined, returns 'icon-globe' (matching getChannelIconComponent(undefined) behavior).
+ *
+ * @param channel - The channel object
+ * @returns The appropriate icon class name
+ */
+export function getChannelIconClassName(channel?: Channel): string {
+    if (isArchivedChannel(channel)) {
+        return getArchiveIconClassName(channel?.type);
+    }
+
+    if (channel?.type === Constants.DM_CHANNEL) {
+        return 'icon-account-outline';
+    }
+
+    if (channel?.type === Constants.GM_CHANNEL) {
+        return 'icon-account-multiple-outline';
+    }
+
+    if (channel?.type === Constants.PRIVATE_CHANNEL) {
+        return 'icon-lock-outline';
+    }
+
+    return 'icon-globe';
 }
 
 type JoinPrivateChannelPromptResult = {

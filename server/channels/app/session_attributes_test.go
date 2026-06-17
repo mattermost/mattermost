@@ -303,7 +303,7 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		require.Nil(t, appErr)
 		rctx := th.Context.WithSession(session)
 
-		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
 		r.Header.Set(model.SessionAttributeHeaderClientAttributes, encodeClientSessionAttributesHeader(t, map[string]any{
 			model.SessionAttributesPropertyFieldNetworkInterfaceType: "not-a-valid-option",
 			model.SessionAttributesPropertyFieldOSPlatform:           "linux",

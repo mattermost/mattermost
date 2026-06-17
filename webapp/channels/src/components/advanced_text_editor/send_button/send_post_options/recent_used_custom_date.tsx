@@ -25,7 +25,6 @@ import {scheduledPosts} from 'utils/constants';
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     userCurrentTimezone: string;
-    channelId: string;
     showRecipientTimezoneLabels?: boolean;
     recipientTimezoneString?: string;
     useRecipientTimezone?: boolean;
@@ -94,7 +93,7 @@ function RecentUsedCustomDate({
         if (recentlyUsedCustomDate) {
             try {
                 return JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
-            } catch (e) {
+            } catch {
                 return {};
             }
         }

@@ -36,7 +36,6 @@ import {
     UserTypes,
     RoleTypes,
     GeneralTypes,
-    AdminTypes,
     IntegrationTypes,
     PreferenceTypes,
     AppsTypes,
@@ -561,6 +560,10 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
+    case WebSocketEvents.TeamAccessControlUpdated:
+        dispatch(handleTeamAccessControlUpdatedEvent(msg));
+        break;
+
     case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
@@ -625,10 +628,6 @@ export function handleEvent(msg: WebSocketMessage) {
         handleLicenseChanged(msg);
         break;
 
-    case WebSocketEvents.PluginStatusesChanged:
-        handlePluginStatusesChangedEvent(msg);
-        break;
-
     case WebSocketEvents.OpenDialog:
         handleOpenDialogEvent(msg);
         break;
@@ -680,8 +679,8 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(
             handlePropertyFieldCreatedOrUpdated(
                 msg as
-                    | WebSocketMessages.PropertyFieldCreated
-                    | WebSocketMessages.PropertyFieldUpdated,
+                    WebSocketMessages.PropertyFieldCreated |
+                    WebSocketMessages.PropertyFieldUpdated,
             ),
         );
         break;
@@ -885,6 +884,20 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // consumers (e.g. the channel invite modal banner) refetch the
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+    };
+}
+
+export function handleTeamAccessControlUpdatedEvent(msg: WebSocketMessages.TeamAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.team) {
+            return;
+        }
+
+        const team = JSON.parse(msg.data.team) as Team;
+
+        // Refresh the team record so consumers see the latest policy_enforced
+        // flag (and any other access-control-derived fields).
+        doDispatch({type: TeamTypes.RECEIVED_TEAM, data: team});
     };
 }
 
@@ -1327,8 +1340,8 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
 
 function handlePropertyFieldCreatedOrUpdated(
     msg:
-    | WebSocketMessages.PropertyFieldCreated
-    | WebSocketMessages.PropertyFieldUpdated,
+    | WebSocketMessages.PropertyFieldCreated |
+    WebSocketMessages.PropertyFieldUpdated,
 ): ThunkActionFunc<void> {
     return (doDispatch) => {
         let field;
@@ -1733,10 +1746,6 @@ function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
-}
-
-function handlePluginStatusesChangedEvent(msg: WebSocketMessages.PluginStatusesChanged) {
-    store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
 function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
