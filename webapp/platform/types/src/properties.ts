@@ -9,7 +9,8 @@ export type FieldType = (
     'multiselect' |
     'date' |
     'user' |
-    'multiuser'
+    'multiuser' |
+    'rank'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
@@ -83,7 +84,7 @@ export type SelectPropertyField = PropertyField & {
 };
 
 export const supportsOptions = (field: PropertyField) => {
-    return field.type === 'select' || field.type === 'multiselect';
+    return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
 // PSA v2 state types

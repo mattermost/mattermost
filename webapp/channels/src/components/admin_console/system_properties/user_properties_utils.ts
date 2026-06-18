@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import type {FieldValueType, FieldVisibility} from '@mattermost/types/properties';
+import {supportsOptions, type FieldValueType, type FieldVisibility} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
 import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
@@ -178,7 +178,7 @@ export const useUserPropertyFields = () => {
                     }
                 }
 
-                if (field.type === 'select' || field.type === 'multiselect') {
+                if (supportsOptions(field)) {
                     const options = field.attrs?.options;
                     if (!options?.length) {
                         acc[field.id] = {attrs: ValidationWarningOptionsRequired};
