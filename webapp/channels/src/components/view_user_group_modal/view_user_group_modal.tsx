@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState, useEffect, useCallback} from 'react';
+import React, {useRef, useState, useEffect, useCallback, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
@@ -41,7 +41,7 @@ export type Props = {
         setModalSearchTerm: (term: string) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupModal: React.FC<Props> = ({
     onExited,
@@ -88,8 +88,8 @@ const ViewUserGroupModal: React.FC<Props> = ({
         actions.setModalSearchTerm(term);
     }, [actions]);
 
-    const getGroupMembers = useCallback(
-        debounce(
+    const getGroupMembers = useMemo(
+        () => debounce(
             async () => {
                 const newPage = page + 1;
                 setPage(newPage);

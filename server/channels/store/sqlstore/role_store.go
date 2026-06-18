@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -99,10 +100,59 @@ func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 	return &s
 }
 
-func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
+func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
+	return s.save(role, false)
+}
+
+// SavePreservingUnknownPermissions behaves like Save but tolerates and persists
+// permissions this server build does not recognize. See the RoleStore interface
+// and MM-68830 for the downgrade scenario this protects against.
+func (s *SqlRoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
+	return s.save(role, true)
+}
+
+// validateForSave validates the role before it is persisted. When
+// preserveUnknownPermissions is true, permissions unknown to this server build are
+// logged and excluded from the validation (but left untouched on the role so they
+// are still persisted), rather than causing the save to fail.
+func (s *SqlRoleStore) validateForSave(role *model.Role, preserveUnknownPermissions bool) error {
+	roleToValidate := role
+
+	if preserveUnknownPermissions {
+		if unknown := role.UnknownPermissions(); len(unknown) > 0 {
+			s.Logger().Warn(
+				"Preserving role permissions not recognized by this server version (server likely downgraded from a newer release)",
+				mlog.String("role", role.Name),
+				mlog.Array("permissions", unknown),
+			)
+
+			unknownSet := make(map[string]bool, len(unknown))
+			for _, permission := range unknown {
+				unknownSet[permission] = true
+			}
+			known := make([]string, 0, len(role.Permissions))
+			for _, permission := range role.Permissions {
+				if !unknownSet[permission] {
+					known = append(known, permission)
+				}
+			}
+
+			roleCopy := role.Clone()
+			roleCopy.Permissions = known
+			roleToValidate = roleCopy
+		}
+	}
+
+	if err := roleToValidate.IsValidWithoutId(); err != nil {
+		return store.NewErrInvalidInput("Role", "<any>", err.Error())
+	}
+	return nil
+}
+
+func (s *SqlRoleStore) save(role *model.Role, preserveUnknownPermissions bool) (*model.Role, error) {
 	// Check the role is valid before proceeding.
-	if err = role.IsValidWithoutId(); err != nil {
-		return nil, store.NewErrInvalidInput("Role", "<any>", err.Error())
+	if err := s.validateForSave(role, preserveUnknownPermissions); err != nil {
+		return nil, err
 	}
 
 	if role.Id == "" {

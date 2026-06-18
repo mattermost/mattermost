@@ -22,13 +22,13 @@ type Props = {
         schema_version: string;
     }>;
     reload: (e: MouseEvent<HTMLButtonElement>) => void;
-}
+};
 
 type Style = {
     clusterTable: CSSProperties;
     clusterCell: CSSProperties;
     warning: CSSProperties;
-}
+};
 
 export default class ClusterTable extends PureComponent<Props> {
     render() {

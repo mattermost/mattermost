@@ -29,7 +29,7 @@ export type OwnProps = {
     preventClickAction?: boolean;
     previewFooterMessage?: string;
     usePostAsSource?: boolean;
-}
+};
 
 function makeMapStateToProps() {
     const getChannel = makeGetChannel();

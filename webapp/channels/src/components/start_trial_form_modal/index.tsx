@@ -41,7 +41,7 @@ enum TrialLoadStatus {
     NotStarted = 'NOT_STARTED',
     Started = 'STARTED',
     Success = 'SUCCESS',
-    Failed = 'FAILED'
+    Failed = 'FAILED',
 }
 
 defineMessages({
@@ -82,7 +82,7 @@ export enum OrgSize {
 
 type Props = {
     onClose?: () => void;
-}
+};
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);

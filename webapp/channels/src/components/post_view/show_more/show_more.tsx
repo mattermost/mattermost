@@ -19,12 +19,12 @@ type Props = {
     compactDisplay: boolean;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number;
-}
+};
 
 type State = {
     isCollapsed: boolean;
     isOverflow: boolean;
-}
+};
 
 export default class ShowMore extends React.PureComponent<Props, State> {
     private maxHeight: number;

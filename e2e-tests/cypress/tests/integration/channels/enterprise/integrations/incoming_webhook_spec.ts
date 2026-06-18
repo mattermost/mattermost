@@ -14,7 +14,6 @@ import {enableElasticSearch} from '../elasticsearch_autocomplete/helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Incoming webhook', () => {
     let testTeam: Cypress.Team;
     let testChannel: Cypress.Channel;

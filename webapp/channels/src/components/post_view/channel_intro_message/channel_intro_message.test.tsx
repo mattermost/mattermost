@@ -3,8 +3,20 @@
 
 import React from 'react';
 
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
+jest.mock('@mattermost/compass-icons/components', () => ({
+    ...jest.requireActual('@mattermost/compass-icons/components'),
+    GlobeIcon: () => <span data-testid='default-globe-icon'/>,
+    LockOutlineIcon: () => <span data-testid='default-lock-icon'/>,
+}));
+
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {compassIconForName} from 'components/channel_type_icon';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
@@ -279,6 +291,178 @@ describe('components/post_view/ChannelIntroMessages', () => {
             );
             screen.getByText('This is the start of off-topic, a channel for non-work-related conversations.');
             expect(screen.getByText('This is the start of off-topic, a channel for non-work-related conversations.')).toHaveClass('channel-intro__text');
+        });
+    });
+
+    describe('ChannelIntro body override', () => {
+        const privateChannel = {
+            ...channel,
+            type: Constants.PRIVATE_CHANNEL as ChannelType,
+        };
+
+        const makeStateWithIntroReg = (regs: any[]) => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    channels: {channel_id: privateChannel},
+                },
+            },
+            plugins: {
+                components: {
+                    ChannelIntro: regs,
+                },
+            },
+        } as any);
+
+        test('matching ChannelIntro registration — override body renders, action buttons still render', () => {
+            const state = makeStateWithIntroReg([{
+                id: 'intro-reg-1',
+                pluginId: 'test-plugin',
+                matcher: () => true,
+                component: () => <div data-testid='intro-override-body'/>,
+            }]);
+
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    channel={privateChannel}
+                />,
+                state,
+            );
+
+            // Override body is present
+            expect(screen.getByTestId('intro-override-body')).toBeInTheDocument();
+
+            // Default body title is absent (it was replaced)
+            expect(screen.queryByText('test channel')).not.toBeInTheDocument();
+
+            // Action buttons row is still rendered by the server — Favorite button is always shown
+            expect(screen.getByLabelText('Favorite')).toBeInTheDocument();
+        });
+
+        test('no matching registration — default body renders', () => {
+            const state = makeStateWithIntroReg([{
+                id: 'intro-reg-1',
+                pluginId: 'test-plugin',
+                matcher: () => false,
+                component: () => <div data-testid='intro-override-body'/>,
+            }]);
+
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    channel={privateChannel}
+                />,
+                state,
+            );
+
+            // Default body title is present
+            expect(screen.getByText('test channel')).toBeInTheDocument();
+
+            // Override body is absent
+            expect(screen.queryByTestId('intro-override-body')).not.toBeInTheDocument();
+        });
+
+        test('DM channel — ChannelIntro registration does not affect DM intro (non-standard channel)', () => {
+            const dmChannel = {
+                ...channel,
+                type: Constants.DM_CHANNEL as ChannelType,
+            };
+            const state = makeStateWithIntroReg([{
+                id: 'intro-reg-1',
+                pluginId: 'test-plugin',
+                matcher: () => true,
+                component: () => <div data-testid='intro-override-body'/>,
+            }]);
+
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    channel={dmChannel}
+                />,
+                state,
+            );
+
+            // DM intro renders its own layout — override body should not appear
+            expect(screen.queryByTestId('intro-override-body')).not.toBeInTheDocument();
+
+            // DM text is present
+            expect(screen.getByText('This is the start of your direct message history with this teammate.', {exact: false})).toBeInTheDocument();
+        });
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        test('renders override SVG icon with size prop when plugin matcher matches', () => {
+            const StubIcon = ({size}: {size?: number}) => (
+                <span
+                    data-testid='stub-override-icon'
+                    data-size={size}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const stateWithOverride = {
+                ...initialState,
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(
+                <ChannelIntroMessage {...baseProps}/>,
+                stateWithOverride,
+            );
+
+            const icon = screen.getByTestId('stub-override-icon');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveAttribute('data-size', '14');
+
+            // Default icons are absent when override wins
+            expect(screen.queryByTestId('default-globe-icon')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('default-lock-icon')).not.toBeInTheDocument();
+        });
+
+        test('renders default SVG icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const stateWithNoMatch = {
+                ...initialState,
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(
+                <ChannelIntroMessage {...baseProps}/>,
+                stateWithNoMatch,
+            );
+
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+
+            // Default globe icon rendered for the open channel fallback
+            expect(screen.getByTestId('default-globe-icon')).toBeInTheDocument();
         });
     });
 });

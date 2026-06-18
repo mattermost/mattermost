@@ -1297,11 +1297,22 @@ func testGetSingleSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	// GetUsersForUser only returns rows whose remote cluster still exists and
+	// is not deleted, so point the rows at a live remote.
+	liveRemote := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		SiteURL:   "http://example.com",
+		CreatorId: model.NewId(),
+		Name:      "live-remote",
+	}
+	_, err := ss.RemoteCluster().Save(liveRemote)
+	require.NoError(t, err, "couldn't save remote cluster", err)
+
 	userId := model.NewId()
 	for range 10 {
 		scUser := &model.SharedChannelUser{
 			UserId:    userId,
-			RemoteId:  model.NewId(),
+			RemoteId:  liveRemote.RemoteId,
 			ChannelId: model.NewId(),
 		}
 		_, err := ss.SharedChannel().SaveUser(scUser)
@@ -1320,6 +1331,53 @@ func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		scus, err := ss.SharedChannel().GetUsersForUser(model.NewId())
 		require.NoError(t, err, "should not error when not found")
 		require.Empty(t, scus, "should be empty")
+	})
+
+	t.Run("Excludes rows for deleted or missing remote clusters", func(t *testing.T) {
+		deletedRemote := &model.RemoteCluster{
+			RemoteId:  model.NewId(),
+			SiteURL:   "http://example.com",
+			CreatorId: model.NewId(),
+			Name:      "deleted-remote",
+		}
+		_, err := ss.RemoteCluster().Save(deletedRemote)
+		require.NoError(t, err)
+
+		mixedUserId := model.NewId()
+		// Two rows for the live remote: these should be returned.
+		for range 2 {
+			_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+				UserId:    mixedUserId,
+				RemoteId:  liveRemote.RemoteId,
+				ChannelId: model.NewId(),
+			})
+			require.NoError(t, err)
+		}
+		// One row for a soft-deleted remote: should be excluded.
+		_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+			UserId:    mixedUserId,
+			RemoteId:  deletedRemote.RemoteId,
+			ChannelId: model.NewId(),
+		})
+		require.NoError(t, err)
+		// One row for a remote that never existed: should be excluded.
+		_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+			UserId:    mixedUserId,
+			RemoteId:  model.NewId(),
+			ChannelId: model.NewId(),
+		})
+		require.NoError(t, err)
+
+		deleted, err := ss.RemoteCluster().Delete(deletedRemote.RemoteId)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		scus, err := ss.SharedChannel().GetUsersForUser(mixedUserId)
+		require.NoError(t, err)
+		require.Len(t, scus, 2, "should only return rows pointing at the live remote")
+		for _, scu := range scus {
+			require.Equal(t, liveRemote.RemoteId, scu.RemoteId)
+		}
 	})
 }
 

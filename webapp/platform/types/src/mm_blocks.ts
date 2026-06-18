@@ -145,11 +145,11 @@ export type MmContainerBackground = 'none' | 'gray';
 
 /** Preset left accent bar colors (theme-aligned). */
 export type MmContainerAccentSemantic =
-    | 'default'
-    | 'primary'
-    | 'good'
-    | 'warning'
-    | 'danger';
+    | 'default' |
+    'primary' |
+    'good' |
+    'warning' |
+    'danger';
 
 export type MmContainerBlock = {
     type: 'container';
@@ -189,12 +189,12 @@ export type MmCollapsibleBlock = {
 };
 
 export type MmBlock =
-    | MmTextBlock
-    | MmImageBlock
-    | MmDividerBlock
-    | MmButtonBlock
-    | MmStaticSelectBlock
-    | MmColumnSetBlock
-    | MmColumnBlock
-    | MmContainerBlock
-    | MmCollapsibleBlock;
+    | MmTextBlock |
+    MmImageBlock |
+    MmDividerBlock |
+    MmButtonBlock |
+    MmStaticSelectBlock |
+    MmColumnSetBlock |
+    MmColumnBlock |
+    MmContainerBlock |
+    MmCollapsibleBlock;

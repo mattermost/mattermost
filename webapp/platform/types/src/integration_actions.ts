@@ -87,11 +87,11 @@ function isPostActionOption(v: unknown): v is PostActionOption {
 
 /** `integration_format` on the do-post-action API body — identifies which format originally had the action. */
 export type PostActionIntegrationFormat =
-    | 'attachment'
-    | 'apps_binding'
-    | 'block'
-    | 'card'
-    | 'mm_block';
+    | 'attachment' |
+    'apps_binding' |
+    'block' |
+    'card' |
+    'mm_block';
 
 export type PostActionResponse = {
     status: string;

@@ -35,7 +35,7 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //   - trims whitespace on string attrs
 //   - applies the visibility default when unset
 //   - clears attrs that don't apply to the field type (options on non-select,
-//     ldap/saml on non-text or admin-managed fields)
+//     ldap/saml on non-text fields)
 //   - auto-assigns IDs to options that lack one and validates option shape
 //   - validates visibility, value_type, managed, display_name, and sort_order
 //   - validates property values for text fields against value_type
@@ -92,9 +92,8 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		field.Attrs[model.PropertyFieldAttrVisibility] = model.PropertyFieldVisibilityWhenSet
 	}
 
-	// Type-based attr clearing: select-shaped fields keep options, only text
-	// supports external sync, and admin-managed fields can never be synced
-	// (mutual exclusivity).
+	// Type-based attr clearing: select-shaped fields keep options and only
+	// text fields support external sync.
 	isSelect := field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect
 	isText := field.Type == model.PropertyFieldTypeText
 	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
@@ -102,7 +101,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if !isSelect {
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
 	}
-	if !isText || managed == "admin" {
+	if !isText {
 		delete(field.Attrs, model.PropertyFieldAttrLDAP)
 		delete(field.Attrs, model.PropertyFieldAttrSAML)
 	}

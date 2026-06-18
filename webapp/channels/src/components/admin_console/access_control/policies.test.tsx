@@ -260,4 +260,92 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(screen.getByText('Name')).toBeInTheDocument();
         expect(screen.getByText('Applies to')).toBeInTheDocument();
     });
+
+    test('Applies to renders both channel and team counts', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: ['c1', 'c2', 'c3', 't1', 't2'], channel_count: 3, team_count: 2},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        // The channel and team counts render as sibling text nodes in one cell,
+        // so assert on the cell's combined text rather than a single element.
+        const cell = document.getElementById('customAppliedTo-policy1')!;
+        expect(cell).toHaveTextContent('3 channels');
+        expect(cell).toHaveTextContent('2 teams');
+    });
+
+    test('Applies to omits the team side when team_count is zero', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: ['c1', 'c2'], channel_count: 2, team_count: 0},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        // Scope to the policy's "Applies to" cell — the page text elsewhere contains
+        // the word "team", so a global matcher false-positives.
+        const cell = document.getElementById('customAppliedTo-policy1')!;
+        expect(cell).toHaveTextContent('2 channels');
+        expect(cell).not.toHaveTextContent('team');
+    });
+
+    test('Applies to omits the channel side when channel_count is zero', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: ['t1', 't2', 't3'], channel_count: 0, team_count: 3},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        // Scope to the policy's "Applies to" cell — the page description text
+        // also contains the word "channels", so a global matcher false-positives.
+        const cell = document.getElementById('customAppliedTo-policy1')!;
+        expect(cell).toHaveTextContent('3 teams');
+        expect(cell).not.toHaveTextContent('channel');
+    });
+
+    test('Applies to shows None when both counts are zero', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'policy1',
+                    name: 'Policy 1',
+                    props: {child_ids: [], channel_count: 0, team_count: 0},
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('None')).toBeInTheDocument();
+    });
 });

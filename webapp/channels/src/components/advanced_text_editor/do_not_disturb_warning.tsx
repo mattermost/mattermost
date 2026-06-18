@@ -23,7 +23,7 @@ const Icon = styled.i`
 
 type Props = {
     displayName: string;
-}
+};
 
 const DoNotDisturbWarning = ({displayName}: Props) => {
     return (

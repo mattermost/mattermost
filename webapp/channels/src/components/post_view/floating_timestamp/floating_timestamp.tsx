@@ -15,7 +15,7 @@ type Props = {
     createAt: Date | number;
     toastPresent: boolean;
     isRhsPost?: boolean;
-}
+};
 
 const FloatingTimestamp = ({createAt, isScrolling, isRhsPost, toastPresent}: Props) => {
     if (createAt === 0) {

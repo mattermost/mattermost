@@ -19,12 +19,12 @@ type PlanLabelProps = {
     firstSvg: JSX.Element;
     secondSvg?: JSX.Element;
     renderLastDaysOnTrial?: boolean;
-}
+};
 
 type StyledProps = {
     bgColor?: string;
     color?: string;
-}
+};
 
 const StyledPlanLabel = styled.div<StyledProps>`
 background-color: ${(props) => props.bgColor};

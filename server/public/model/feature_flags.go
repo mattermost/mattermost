@@ -151,6 +151,9 @@ type FeatureFlags struct {
 	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
 	MobileEphemeralMode bool
 
+	// Requires AttributeBasedAccessControl to also be enabled.
+	TeamMembershipAccessControl bool
+
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
 }
@@ -183,6 +186,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = false
 	f.PermissionPolicies = false
+	f.TeamMembershipAccessControl = false
 	f.ChannelPermissionPolicies = false
 	f.PolicySimulation = false
 	f.ContentFlagging = true
@@ -205,7 +209,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
-	f.CJKSearch = false
+	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
 

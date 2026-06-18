@@ -944,6 +944,50 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/teams/{team_id}/access_control/policy":
+    get:
+      tags:
+        - teams
+      summary: Get the access control policy for a team
+      description: |
+        Get the attribute-based access control policy assigned to a team, along
+        with whether the team currently enforces a membership policy. `policy` is
+        null when no policy is assigned or attribute-based access control is not
+        available on the server.
+        ##### Permissions
+        Must have the `manage_system` permission or the `manage_team_access_rules`
+        permission for the team.
+      operationId: GetTeamAccessControlPolicy
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team access control policy retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policy:
+                    nullable: true
+                    allOf:
+                      - $ref: "#/components/schemas/AccessControlPolicy"
+                  enforced:
+                    type: boolean
+                    description: Whether the team currently enforces a membership access control policy.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   "/api/v4/teams/{team_id}/regenerate_invite_id":
     post:
       tags:

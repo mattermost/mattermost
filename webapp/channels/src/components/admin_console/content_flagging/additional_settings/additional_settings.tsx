@@ -28,12 +28,12 @@ type Props = {
     onChange: SystemConsoleCustomSettingChangeHandler;
     value: ContentFlaggingAdditionalSettings;
     disabled?: boolean;
-}
+};
 
 export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value, disabled = false}: Props) {
     const [additionalSettings, setAdditionalSettings] = React.useState<ContentFlaggingAdditionalSettings>(value as ContentFlaggingAdditionalSettings);
 
-    const handleReasonsChange = useCallback((newValues: OnChangeValue<{ value: string }, true>) => {
+    const handleReasonsChange = useCallback((newValues: OnChangeValue<{value: string}, true>) => {
         const updatedSettings: ContentFlaggingAdditionalSettings = {
             ...additionalSettings,
             Reasons: newValues.map((v) => v.value),

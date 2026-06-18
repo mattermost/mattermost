@@ -13,8 +13,13 @@ type TeamSearch struct {
 	PolicyID                 *string `json:"policy_id,omitempty"`
 	ExcludePolicyConstrained *bool   `json:"exclude_policy_constrained,omitempty"`
 	IncludePolicyID          *bool   `json:"-"`
-	IncludeDeleted           *bool   `json:"-"`
-	TeamType                 *string `json:"-"`
+	// IncludePolicyEnforced widens a public/private listing to also return teams
+	// governed by an access control policy, regardless of their open-invite
+	// setting. Server-controlled (never decoded from a request) so a caller can't
+	// surface governed teams it isn't entitled to see.
+	IncludePolicyEnforced *bool   `json:"-"`
+	IncludeDeleted        *bool   `json:"-"`
+	TeamType              *string `json:"-"`
 }
 
 func (t *TeamSearch) IsPaginated() bool {

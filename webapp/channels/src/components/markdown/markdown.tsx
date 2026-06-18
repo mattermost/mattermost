@@ -86,7 +86,7 @@ export type OwnProps = {
 
     /** integration_format for doPostActionWithCookie when mmBlocksActionCookie is set. */
     integrationFormat?: PostActionIntegrationFormat;
-}
+};
 
 function Markdown({
     options = {},

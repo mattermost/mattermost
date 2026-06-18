@@ -26,15 +26,15 @@ export type BlockPath = PathSegment[];
 export type AddBlockTarget = 'sibling' | 'child';
 
 export type BlockTypeId =
-    | 'text'
-    | 'divider'
-    | 'button'
-    | 'static_select'
-    | 'image'
-    | 'column'
-    | 'column_set'
-    | 'container'
-    | 'collapsible';
+    | 'text' |
+    'divider' |
+    'button' |
+    'static_select' |
+    'image' |
+    'column' |
+    'column_set' |
+    'container' |
+    'collapsible';
 
 export type PropertyFieldType = 'string' | 'number' | 'boolean' | 'enum' | 'json';
 
