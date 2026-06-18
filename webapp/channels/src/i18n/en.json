@@ -625,7 +625,7 @@
   "admin.billing.subscriptions.billing_summary.noBillingHistory.link": "See how billing works",
   "admin.billing.subscriptions.billing_summary.noBillingHistory.title": "No billing history yet",
   "admin.billing.subscriptions.billing_summary.upcomingInvoice.has_more_line_items": "And {count} more items",
-  "admin.board_attributes.add_property": "Add attribute",
+  "admin.board_attributes.add_attribute": "Add attribute",
   "admin.board_attributes.delete_modal.confirm": "Are you sure you want to delete this board attribute? This cannot be undone.",
   "admin.board_attributes.delete_modal.title": "Delete board attribute",
   "admin.board_attributes.dot_menu.delete": "Delete attribute",

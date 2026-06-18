@@ -11,6 +11,11 @@ export type BoardsColorToken = typeof BOARDS_COLOR_TOKEN_NAMES[number];
 
 export type BoardsPropertyFieldGroupID = 'boards';
 
+// Wire coordinates that address a board property field on the property API.
+export const BOARDS_PROPERTY_GROUP_NAME: BoardsPropertyFieldGroupID = 'boards';
+export const BOARDS_PROPERTY_OBJECT_TYPE = 'post';
+export const BOARDS_PROPERTY_TARGET_TYPE = 'system';
+
 export type BoardsPropertyFieldOption = Omit<PropertyFieldOption, 'color'> & {
     color?: BoardsColorToken;
 };

@@ -21,7 +21,7 @@ import {
     normalizeColor,
 } from 'utils/board_property_colors';
 
-import {ValidationWarningOptionsUnique, isOptionNameTaken, newPendingId} from './board_attributes_utils';
+import {ValidationWarningOptionsUnique, canEditFieldOptions, isOptionNameTaken, newPendingId} from './board_attributes_utils';
 import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
 import {useBoardOptionsDnd} from './hooks/use_board_options_dnd';
 
@@ -40,11 +40,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     const {formatMessage} = useIntl();
     const containerRef = useRef<HTMLDivElement | null>(null);
 
-    const isEditable =
-        supportsOptions(field) &&
-        field.type !== 'user' &&
-        field.type !== 'multiuser' &&
-        !field.protected;
+    const isEditable = canEditFieldOptions(field);
 
     const options = field.attrs?.options ?? [];
 
@@ -60,7 +56,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 
     useBoardOptionsDnd({fieldId: field.id, options, setOptions, enabled: isEditable});
 
-    if (!supportsOptions(field) || field.type === 'user' || field.type === 'multiuser') {
+    if (!supportsOptions(field)) {
         return (
             <EmptyValues>
                 {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}

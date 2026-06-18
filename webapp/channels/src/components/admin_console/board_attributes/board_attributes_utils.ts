@@ -8,7 +8,8 @@ import {useMemo} from 'react';
 import type {ClientError} from '@mattermost/client';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
-import type {BoardsPropertyField, BoardsPropertyFieldGroupID, BoardsPropertyFieldPatch} from '@mattermost/types/properties_board';
+import type {BoardsPropertyField, BoardsPropertyFieldPatch} from '@mattermost/types/properties_board';
+import {BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, BOARDS_PROPERTY_TARGET_TYPE} from '@mattermost/types/properties_board';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
 import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -22,15 +23,20 @@ import {useThing, usePendingThing, BatchProcessingError} from '../system_propert
 
 export type BoardPropertyFields = IDMappedCollection<BoardsPropertyField>;
 
-export const BOARDS_GROUP_NAME = 'boards' satisfies BoardsPropertyFieldGroupID;
-export const OBJECT_TYPE_POST = 'post';
-export const TARGET_TYPE_SYSTEM = 'system';
+// A field can't be edited once it's a protected (system) field or pending deletion.
+export const isPropertyDisabled = (field: BoardsPropertyField): boolean =>
+    Boolean(field.protected) || field.delete_at !== 0;
+
+// Options are editable only on option-bearing types (supportsOptions already
+// excludes user/multiuser) that aren't protected system fields.
+export const canEditFieldOptions = (field: BoardsPropertyField): boolean =>
+    supportsOptions(field) && !field.protected;
 
 export const useBoardPropertyFields = () => {
     // current fields
     const [fieldCollection, readIO] = useThing<BoardPropertyFields>(useMemo(() => ({
         get: async () => {
-            const data = await Client4.getPropertyFields(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, TARGET_TYPE_SYSTEM);
+            const data = await Client4.getPropertyFields(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, BOARDS_PROPERTY_TARGET_TYPE);
 
             // Protected (system) fields render first, then custom fields ordered by sort_order.
             const sorted = (data as BoardsPropertyField[]).sort((a, b) => {
@@ -87,7 +93,7 @@ export const useBoardPropertyFields = () => {
                 if (isProtected) {
                     return undefined;
                 }
-                return Client4.deletePropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, id).
+                return Client4.deletePropertyField(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, id).
                     then(() => {
                         // data:deleted
                         Reflect.deleteProperty(next.data, id);
@@ -115,7 +121,7 @@ export const useBoardPropertyFields = () => {
                     attrs: stripIrrelevantOptions(stripPendingFromAttrs(attrs), type),
                 };
 
-                return Client4.patchPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, id, patch as Partial<PropertyField> & Record<string, unknown>).
+                return Client4.patchPropertyField(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, id, patch as Partial<PropertyField> & Record<string, unknown>).
                     then((nextItem) => {
                         // data:updated
                         next.data[id] = nextItem as BoardsPropertyField;
@@ -129,11 +135,11 @@ export const useBoardPropertyFields = () => {
             await Promise.all(process.create.map(async (pendingItem) => {
                 const {id, name, type, attrs} = pendingItem;
 
-                return Client4.createPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, {
+                return Client4.createPropertyField(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, {
                     name,
                     type,
                     attrs: stripIrrelevantOptions(stripPendingFromAttrs(attrs), type),
-                    target_type: TARGET_TYPE_SYSTEM,
+                    target_type: BOARDS_PROPERTY_TARGET_TYPE,
                     target_id: '',
                 }).
                     then((newItem) => {
@@ -434,8 +440,8 @@ export const newPendingBoardField = (patch: BoardsPropertyFieldPatch & Pick<Boar
     return {
         type: 'text',
         ...patch,
-        group_id: BOARDS_GROUP_NAME satisfies BoardsPropertyFieldGroupID,
-        object_type: OBJECT_TYPE_POST,
+        group_id: BOARDS_PROPERTY_GROUP_NAME,
+        object_type: BOARDS_PROPERTY_OBJECT_TYPE,
         id: newPendingId(),
         create_at: 0,
         delete_at: 0,
@@ -443,7 +449,7 @@ export const newPendingBoardField = (patch: BoardsPropertyFieldPatch & Pick<Boar
         created_by: '',
         updated_by: '',
         target_id: '',
-        target_type: TARGET_TYPE_SYSTEM,
+        target_type: BOARDS_PROPERTY_TARGET_TYPE,
         attrs: {
             sort_order: 0,
             ...attrs,

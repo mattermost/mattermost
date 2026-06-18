@@ -12,9 +12,10 @@ import {AccountOutlineIcon, CalendarOutlineIcon, CheckIcon, ChevronDownCircleOut
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType} from '@mattermost/types/properties';
 import type {BoardsPropertyField} from '@mattermost/types/properties_board';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
+
+import {isPropertyDisabled} from './board_attributes_utils';
 
 import '../system_properties/user_properties_type_menu.scss';
 
@@ -47,7 +48,7 @@ const SelectType = (props: Props) => {
     }, [props.field]);
     const CurrentTypeIcon = currentTypeDescriptor.icon;
 
-    const isDisabled = props.field.protected || props.field.delete_at !== 0;
+    const isDisabled = isPropertyDisabled(props.field);
 
     return (
         <Menu.Container
@@ -125,16 +126,16 @@ const getTypeDescriptor = (field: BoardsPropertyField): TypeDescriptor => {
     return TYPE_DESCRIPTOR.text;
 };
 
-type TypeID = 'text' | 'select' | 'multiselect' | 'date' | 'user';
-
+// Selectable types are sourced from FieldType; TYPE_DESCRIPTOR below is the
+// allow-list of what the menu actually offers (e.g. multiuser is omitted).
 type TypeDescriptor = {
-    id: TypeID;
+    id: FieldType;
     fieldType: FieldType;
     icon: ComponentType<IconProps>;
     label: MessageDescriptor;
 };
 
-const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
+const TYPE_DESCRIPTOR = {
     text: {
         id: 'text',
         fieldType: 'text',
@@ -180,7 +181,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
             defaultMessage: 'User',
         }),
     },
-} as const;
+} as const satisfies Record<string, TypeDescriptor>;
 
 const menuInputContainerStyles = css`
     padding: 0 12px;

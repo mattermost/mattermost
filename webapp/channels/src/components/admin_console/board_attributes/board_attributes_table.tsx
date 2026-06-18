@@ -26,6 +26,7 @@ import {DangerText, BorderlessInput, LinkButton} from '../system_properties/cont
 import type {SectionHook} from '../system_properties/section_utils';
 
 import './board_attributes_drag_preview.scss';
+import './board_attributes_table.scss';
 
 const MAX_BOARD_ATTRIBUTES = 20;
 
@@ -73,7 +74,7 @@ export const useBoardAttributesTable = (): SectionHook => {
                 <LinkButton onClick={create}>
                     <PlusIcon size={16}/>
                     <FormattedMessage
-                        id='admin.board_attributes.add_property'
+                        id='admin.board_attributes.add_attribute'
                         defaultMessage='Add attribute'
                     />
                 </LinkButton>
@@ -280,65 +281,11 @@ export function BoardAttributesTable({
     });
 
     return (
-        <TableWrapper>
+        <div className='BoardAttributesTable'>
             <AdminConsoleListTable<BoardsPropertyField> table={table}/>
-        </TableWrapper>
+        </div>
     );
 }
-
-const TableWrapper = styled.div`
-    table.adminConsoleListTable {
-
-        td, th {
-            &:after, &:before {
-                display: none;
-            }
-        }
-
-        thead {
-            border-top: none;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-            tr {
-                th.pinned {
-                    background: rgba(var(--center-channel-color-rgb), 0.04);
-                    padding-block-end: 8px;
-                    padding-block-start: 8px;
-                }
-            }
-        }
-
-        tbody {
-            tr {
-                border-top: none;
-                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-                border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
-                td {
-                    padding-block-end: 0;
-                    padding-block-start: 0;
-
-                    &:not(:first-child):not(:last-child) {
-                        padding-inline-end: 0;
-                        padding-inline-start: 0;
-                    }
-
-                    &:last-child {
-                        padding-inline-end: 12px;
-                    }
-                    &.pinned {
-                        background: none;
-                    }
-                }
-            }
-        }
-
-        tfoot {
-            border-top: none;
-        }
-    }
-    .adminConsoleListTableContainer {
-        padding: 2px 0px;
-    }
-`;
 
 const ColHeaderLeft = styled.div`
     display: inline-block;
