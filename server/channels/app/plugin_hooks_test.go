@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -2939,7 +2940,7 @@ func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessa
 	}, 30*time.Second, 100*time.Millisecond)
 }
 
-func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string) {
+func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string, requiredHooks ...string) {
 	t.Helper()
 
 	assert.Eventually(t, func() bool {
@@ -2947,14 +2948,29 @@ func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string) {
 		if env == nil || !env.IsActive(pluginID) {
 			return false
 		}
-		_, err := env.HooksForPlugin(pluginID)
-		return err == nil
+		hooks, err := env.HooksForPlugin(pluginID)
+		if err != nil {
+			return false
+		}
+		if len(requiredHooks) == 0 {
+			return true
+		}
+		implemented, err := hooks.Implemented()
+		if err != nil {
+			return false
+		}
+		for _, requiredHook := range requiredHooks {
+			if !slices.Contains(implemented, requiredHook) {
+				return false
+			}
+		}
+		return true
 	}, 10*time.Second, 50*time.Millisecond, "plugin %q failed to become ready for hooks", pluginID)
 }
 
 func TestUserHasJoinedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	getPluginCode := func(postUserID string) string {
+	getPluginCode := func() string {
 		return `
 			package main
 
@@ -2963,10 +2979,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 				"github.com/mattermost/mattermost/server/public/plugin"
 				"github.com/mattermost/mattermost/server/public/model"
-			)
-
-			const (
-				postUserID = "` + postUserID + `"
 			)
 
 			type MyPlugin struct {
@@ -2980,7 +2992,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 				}
 
 				_, appErr := p.API.CreatePost(&model.Post{
-					UserId: postUserID,
+					UserId: channelMember.UserId,
 					ChannelId: channelMember.ChannelId,
 					Message: message,
 				})
@@ -3020,8 +3032,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		pluginID, pluginManifest := newPluginFixture()
 
 		// Setup plugin after creating the channel
-		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
+		assertPluginReadyForHooks(t, th, pluginID, "UserHasJoinedChannel")
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user2.Id,
@@ -3053,8 +3065,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		pluginID, pluginManifest := newPluginFixture()
 
 		// Setup plugin after creating the channel
-		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
+		assertPluginReadyForHooks(t, th, pluginID, "UserHasJoinedChannel")
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user1.Id,
@@ -3072,7 +3084,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		pluginID, pluginManifest := newPluginFixture()
 
 		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(th.BasicUser.Id), pluginManifest, pluginID, th.App, th.Context)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
 		assertPluginReadyForHooks(t, th, pluginID)
 
 		user1 := th.CreateUser(t)
@@ -3112,7 +3124,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		pluginID, pluginManifest := newPluginFixture()
 
 		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
 		assertPluginReadyForHooks(t, th, pluginID)
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
@@ -3146,7 +3158,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		pluginID, pluginManifest := newPluginFixture()
 
 		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
 		assertPluginReadyForHooks(t, th, pluginID)
 
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
