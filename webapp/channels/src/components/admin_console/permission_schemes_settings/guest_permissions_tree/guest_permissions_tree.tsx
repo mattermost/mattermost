@@ -14,7 +14,6 @@ import {isMinimumProfessionalLicense} from 'utils/license_utils';
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
 import PermissionGroup from '../permission_group';
-import type {Permissions as PermissionsType} from '../permissions_tree/types';
 
 type Props = {
     license: ClientLicense;
@@ -28,7 +27,7 @@ type Props = {
 };
 
 const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, parentRole, selected, role = {permissions: []}}: Props) => {
-    const setPermissions = () => {
+    const permissions = useMemo(() => {
         const defaultPermissions = [
             Permissions.CREATE_PRIVATE_CHANNEL,
             Permissions.EDIT_POST,
@@ -65,10 +64,9 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
             }
             return permission;
         });
-    };
+    }, [license]);
 
     const [editTimeLimitModalIsVisible, setEditTimeLimitModalIsVisible] = React.useState(false);
-    const permissions = useMemo<PermissionsType>(setPermissions, [license]);
 
     const openPostTimeLimitModal = useCallback(() => {
         setEditTimeLimitModalIsVisible(true);

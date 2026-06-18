@@ -197,9 +197,9 @@ export default function ChannelMembersRHS({
         actions.setChannelMembersRhsSearchTerm(terms);
     };
 
-    const doSearch = useCallback(debounce(async (terms: string) => {
+    const doSearch = useMemo(() => debounce(async (terms: string) => {
         await actions.searchProfilesAndChannelMembers(terms, {in_team_id: channel.team_id, in_channel_id: channel.id});
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers]);
+    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers, channel]);
 
     useEffect(() => {
         if (searchTerms) {

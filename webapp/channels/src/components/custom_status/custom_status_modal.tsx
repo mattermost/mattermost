@@ -111,7 +111,7 @@ const defaultCustomStatusSuggestions: DefaultUserCustomStatus[] = [
 
 const defaultDuration = TODAY;
 const CustomStatusModal: React.FC<Props> = (props: Props) => {
-    const getCustomStatus = useMemo(makeGetCustomStatus, []);
+    const getCustomStatus = useMemo(() => makeGetCustomStatus(), []);
     const dispatch = useDispatch();
     const currentCustomStatus = useSelector(getCustomStatus);
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, currentCustomStatus));

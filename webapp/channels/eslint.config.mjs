@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineConfig, globalIgnores} from 'eslint/config';
 import formatjsPlugin from 'eslint-plugin-formatjs';
 import noOnlyTestsPlugin from 'eslint-plugin-no-only-tests';
 
 import eslintPlugin from '@mattermost/eslint-plugin';
 
-export default [
+export default defineConfig([
     ...eslintPlugin.configs.react,
+    globalIgnores(['./dist']),
     {
         plugins: {
             formatjs: formatjsPlugin,
@@ -83,4 +85,4 @@ export default [
             },
         },
     },
-];
+]);

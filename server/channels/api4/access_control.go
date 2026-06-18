@@ -399,6 +399,43 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// validateTeamIdsExist returns a 400 if any entry is not a well-formed, existing
+// team id. GetTeams silently drops unknown ids (partial list) or returns 404 (all
+// invalid), so the handler must confirm existence itself to reject bad input here.
+func validateTeamIdsExist(c *Context, teamIDs []string) *model.AppError {
+	if len(teamIDs) == 0 {
+		return nil
+	}
+
+	for _, teamID := range teamIDs {
+		if !model.IsValidId(teamID) {
+			return model.NewAppError("validateTeamIdsExist", "api.context.invalid_body_param.app_error", map[string]any{"Name": "team_ids"}, "", http.StatusBadRequest)
+		}
+	}
+
+	// One batch lookup instead of a GetTeam per id. GetTeams returns 404 only when
+	// every id is unknown (treated as a bad request here) and otherwise drops
+	// unknown ids from a partial list, so confirm each requested id is present.
+	teams, appErr := c.App.GetTeams(teamIDs)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return model.NewAppError("validateTeamIdsExist", "api.context.invalid_body_param.app_error", map[string]any{"Name": "team_ids"}, "", http.StatusBadRequest)
+		}
+		return appErr
+	}
+
+	found := make(map[string]bool, len(teams))
+	for _, team := range teams {
+		found[team.Id] = true
+	}
+	for _, teamID := range teamIDs {
+		if !found[teamID] {
+			return model.NewAppError("validateTeamIdsExist", "api.context.invalid_body_param.app_error", map[string]any{"Name": "team_ids"}, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 // teamAdminCELContextOK reports whether the session may use the delegated
 // team-admin shortcut for CEL tooling: valid team_id, ManageTeamAccessRules on
 // that team, and when a channel_id is supplied it must resolve to a channel in
@@ -855,6 +892,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var assignments struct {
 		ChannelIds []string `json:"channel_ids"`
 		TeamID     string   `json:"team_id"`
+		TeamIds    []string `json:"team_ids"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&assignments)
@@ -863,7 +901,23 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Team-resource assignment ships behind its own dark-launch flag. Reject it
+	// outright when team membership ABAC is not fully enabled so inert team child
+	// policy rows can't be created and later go live when the flag is flipped on.
+	if len(assignments.TeamIds) != 0 && !c.App.TeamMembershipAccessControlEnabled() {
+		c.Err = model.NewAppError("assignAccessPolicy", "api.access_control_policy.team_membership.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+
+	// Assigning a parent policy to a team resource is a system-level operation —
+	// distinct from the team-admin channel_ids+team_id path below.
+	if len(assignments.TeamIds) != 0 && !hasSystemPermission {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
 	if !hasSystemPermission {
 		if assignments.TeamID == "" || !model.IsValidId(assignments.TeamID) {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -893,10 +947,28 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventAssignAccessPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", assignments.TeamID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
+	model.AddEventParameterToAuditRec(auditRec, "team_ids", assignments.TeamIds)
+
+	// The app layer's GetTeams silently drops unknown IDs from a partial list and
+	// returns 404 for an all-invalid one, so neither surfaces a usable 400. Validate
+	// existence here so any unknown team_ids entry is rejected as a bad request.
+	if appErr := validateTeamIdsExist(c, assignments.TeamIds); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	if len(assignments.ChannelIds) != 0 {
 		_, appErr := c.App.AssignAccessControlPolicyToChannels(c.AppContext, policyID, assignments.ChannelIds)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	if len(assignments.TeamIds) != 0 {
+		_, appErr := c.App.AssignAccessControlPolicyToTeams(c.AppContext, policyID, assignments.TeamIds)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -922,6 +994,7 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var assignments struct {
 		ChannelIds []string `json:"channel_ids"`
 		TeamID     string   `json:"team_id"`
+		TeamIds    []string `json:"team_ids"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&assignments)
@@ -930,7 +1003,20 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Mirror the assign path: team-resource unassignment is gated by the same
+	// dark-launch flag so the feature can be rolled back cleanly.
+	if len(assignments.TeamIds) != 0 && !c.App.TeamMembershipAccessControlEnabled() {
+		c.Err = model.NewAppError("unassignAccessPolicy", "api.access_control_policy.team_membership.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+
+	if len(assignments.TeamIds) != 0 && !hasSystemPermission {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
 	if !hasSystemPermission {
 		if assignments.TeamID == "" || !model.IsValidId(assignments.TeamID) {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -949,12 +1035,23 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
+		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUnassignAccessPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", assignments.TeamID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
+	model.AddEventParameterToAuditRec(auditRec, "team_ids", assignments.TeamIds)
+
+	if appErr := validateTeamIdsExist(c, assignments.TeamIds); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	// Pre-flight: ensure scope is set before removing channels. This handles
 	// pre-scope policies (created before the scope field existed) by capturing
@@ -968,6 +1065,13 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(assignments.ChannelIds) != 0 {
 		appErr := c.App.UnassignPoliciesFromChannels(c.AppContext, policyID, assignments.ChannelIds)
 		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	if len(assignments.TeamIds) != 0 {
+		if appErr := c.App.UnassignPoliciesFromTeams(c.AppContext, policyID, assignments.TeamIds); appErr != nil {
 			c.Err = appErr
 			return
 		}
