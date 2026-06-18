@@ -107,17 +107,17 @@ func migrationPair(stem string) []string {
 
 func TestCompareMigrations(t *testing.T) {
 	t.Run("identical migrations produce no violation", func(t *testing.T) {
-		master := append(migrationPair("000001_create_teams"), migrationPair("000002_create_members")...)
+		base := append(migrationPair("000001_create_teams"), migrationPair("000002_create_members")...)
 		branch := append(migrationPair("000001_create_teams"), migrationPair("000002_create_members")...)
 
-		require.Empty(t, compareMigrations(master, branch))
+		require.Empty(t, compareMigrations(base, branch))
 	})
 
 	t.Run("newly added migration is ignored", func(t *testing.T) {
-		master := migrationPair("000001_create_teams")
+		base := migrationPair("000001_create_teams")
 		branch := append(migrationPair("000001_create_teams"), migrationPair("000002_brand_new")...)
 
-		require.Empty(t, compareMigrations(master, branch))
+		require.Empty(t, compareMigrations(base, branch))
 	})
 
 	t.Run("empty inputs produce no violation", func(t *testing.T) {
@@ -125,17 +125,17 @@ func TestCompareMigrations(t *testing.T) {
 		require.Empty(t, compareMigrations(nil, migrationPair("000001_a")))
 	})
 
-	t.Run("master migration with empty branch is flagged", func(t *testing.T) {
+	t.Run("base branch migration with empty branch is flagged", func(t *testing.T) {
 		violations := compareMigrations(migrationPair("000001_a"), nil)
 		require.Len(t, violations, 1)
 		require.Contains(t, violations[0].message, "missing from the branch")
 	})
 
 	t.Run("deleted migration is flagged", func(t *testing.T) {
-		master := append(migrationPair("000001_a"), migrationPair("000002_b")...)
+		base := append(migrationPair("000001_a"), migrationPair("000002_b")...)
 		branch := migrationPair("000001_a")
 
-		violations := compareMigrations(master, branch)
+		violations := compareMigrations(base, branch)
 		require.Len(t, violations, 1)
 		require.Equal(t, "postgres", violations[0].driver)
 		require.Contains(t, violations[0].message, "000002")
@@ -143,10 +143,10 @@ func TestCompareMigrations(t *testing.T) {
 	})
 
 	t.Run("simultaneous rename and renumber is flagged as missing", func(t *testing.T) {
-		master := migrationPair("000010_add_index")
+		base := migrationPair("000010_add_index")
 		branch := migrationPair("000011_add_index_v2")
 
-		violations := compareMigrations(master, branch)
+		violations := compareMigrations(base, branch)
 		require.Len(t, violations, 1)
 		require.Contains(t, violations[0].message, "000010")
 		require.Contains(t, violations[0].message, "add_index")
@@ -154,10 +154,10 @@ func TestCompareMigrations(t *testing.T) {
 	})
 
 	t.Run("renamed migration at same version is flagged", func(t *testing.T) {
-		master := migrationPair("000001_create_teams")
+		base := migrationPair("000001_create_teams")
 		branch := migrationPair("000001_create_teams_renamed")
 
-		violations := compareMigrations(master, branch)
+		violations := compareMigrations(base, branch)
 		require.Len(t, violations, 1)
 		require.Equal(t, "postgres", violations[0].driver)
 		require.Contains(t, violations[0].message, "000001")
@@ -165,13 +165,33 @@ func TestCompareMigrations(t *testing.T) {
 		require.Contains(t, violations[0].message, "create_teams")
 	})
 
+	t.Run("renamed migration does not hide missing migration with same name", func(t *testing.T) {
+		base := append(migrationPair("000194_foo"), migrationPair("000195_bar")...)
+		branch := migrationPair("000194_bar")
+
+		violations := compareMigrations(base, branch)
+		require.Len(t, violations, 2)
+
+		var sawRename, sawMissing bool
+		for _, v := range violations {
+			if v.driver == "postgres" && strings.Contains(v.message, "000194") && strings.Contains(v.message, "named") {
+				sawRename = true
+			}
+			if v.driver == "postgres" && strings.Contains(v.message, "000195") && strings.Contains(v.message, "missing from the branch") {
+				sawMissing = true
+			}
+		}
+		require.True(t, sawRename, "expected a rename violation for version 000194")
+		require.True(t, sawMissing, "expected a missing violation for version 000195")
+	})
+
 	t.Run("renumbered migration is flagged", func(t *testing.T) {
-		// master: 000010_add_index. branch moved it to 000011_add_index
+		// base branch: 000010_add_index. branch moved it to 000011_add_index
 		// (and 000010 now holds an unrelated, brand new migration).
-		master := migrationPair("000010_add_index")
+		base := migrationPair("000010_add_index")
 		branch := append(migrationPair("000010_something_else"), migrationPair("000011_add_index")...)
 
-		violations := compareMigrations(master, branch)
+		violations := compareMigrations(base, branch)
 		// Two issues: name "add_index" moved to a new number, and version
 		// 000010 now points at a different name.
 		require.Len(t, violations, 2)
@@ -190,12 +210,12 @@ func TestCompareMigrations(t *testing.T) {
 	})
 
 	t.Run("renumber to a fresh number is flagged via name match", func(t *testing.T) {
-		// master: 000010_add_index is the latest migration. branch bumps it to
-		// 000050_add_index, a number that does not exist on master.
-		master := migrationPair("000010_add_index")
+		// base branch: 000010_add_index is the latest migration. branch bumps it
+		// to 000050_add_index, a number that does not exist on the base branch.
+		base := migrationPair("000010_add_index")
 		branch := migrationPair("000050_add_index")
 
-		violations := compareMigrations(master, branch)
+		violations := compareMigrations(base, branch)
 		require.Len(t, violations, 1)
 		require.Contains(t, violations[0].message, "add_index")
 		require.Contains(t, violations[0].message, "000050")
@@ -203,7 +223,7 @@ func TestCompareMigrations(t *testing.T) {
 	})
 
 	t.Run("violations are reported per driver", func(t *testing.T) {
-		master := []string{
+		base := []string{
 			"server/channels/db/migrations/postgres/000001_a.up.sql",
 			"server/channels/db/migrations/mysql/000001_a.up.sql",
 		}
@@ -212,13 +232,13 @@ func TestCompareMigrations(t *testing.T) {
 			"server/channels/db/migrations/mysql/000001_a.up.sql",
 		}
 
-		violations := compareMigrations(master, branch)
+		violations := compareMigrations(base, branch)
 		require.Len(t, violations, 1)
 		require.Equal(t, "postgres", violations[0].driver)
 	})
 
 	t.Run("violations are sorted deterministically by driver", func(t *testing.T) {
-		master := []string{
+		base := []string{
 			"server/channels/db/migrations/postgres/000001_a.up.sql",
 			"server/channels/db/migrations/mysql/000001_a.up.sql",
 		}
@@ -227,7 +247,7 @@ func TestCompareMigrations(t *testing.T) {
 			"server/channels/db/migrations/mysql/000001_a_renamed.up.sql",
 		}
 
-		violations := compareMigrations(master, branch)
+		violations := compareMigrations(base, branch)
 		require.Len(t, violations, 2)
 		require.Equal(t, "mysql", violations[0].driver)
 		require.Equal(t, "postgres", violations[1].driver)

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Command migration_check verifies that database migrations which already exist
-// on the base branch (master) are not renumbered or renamed in the current
+// on the base branch are not renumbered or renamed in the current
 // branch. Backporting or rebasing can accidentally change the sequence number
 // or description of an already-shipped migration, which corrupts the upgrade
 // path for existing installations. Brand new migrations are ignored.
@@ -34,7 +34,8 @@ type migration struct {
 	name    string
 }
 
-// violation describes a migration whose version or name diverged from master.
+// violation describes a migration whose version or name diverged from the base
+// branch.
 type violation struct {
 	driver  string
 	message string
@@ -87,65 +88,66 @@ func collectMigrations(files []string) map[string]migration {
 }
 
 // compareMigrations returns a violation for every branch migration that shares
-// a version or a name with a master migration but does not match it exactly,
-// and for every master migration that is absent from the branch by both version
-// and name. Newly added migrations (version and name both absent from master) are
-// ignored, as are migrations that are identical to master.
-func compareMigrations(masterFiles, branchFiles []string) []violation {
-	master := collectMigrations(masterFiles)
+// a version or a name with a base branch migration but does not match it exactly,
+// and for every base branch migration that is absent from the branch. Newly
+// added migrations (version and name both absent from the base branch) are
+// ignored, as are migrations that are identical to the base branch.
+func compareMigrations(baseFiles, branchFiles []string) []violation {
+	base := collectMigrations(baseFiles)
 
-	// Index master migrations by driver+version and driver+name for lookups in
-	// both directions.
-	masterByVersion := make(map[string]migration)
-	masterByName := make(map[string]migration)
-	for _, m := range master {
-		masterByVersion[m.driver+"/"+m.version] = m
-		masterByName[m.driver+"/"+m.name] = m
+	// Index base branch migrations by driver+version and driver+name for lookups
+	// in both directions.
+	baseByVersion := make(map[string]migration)
+	baseByName := make(map[string]migration)
+	for _, m := range base {
+		baseByVersion[m.driver+"/"+m.version] = m
+		baseByName[m.driver+"/"+m.name] = m
 	}
 
 	var violations []violation
+	reportedBaseChanges := make(map[string]bool)
 	for _, b := range collectMigrations(branchFiles) {
-		if m, ok := masterByVersion[b.driver+"/"+b.version]; ok && m.name != b.name {
+		if m, ok := baseByVersion[b.driver+"/"+b.version]; ok && m.name != b.name {
 			violations = append(violations, violation{
 				driver: b.driver,
 				message: fmt.Sprintf(
-					"migration %s is named %q but master has it named %q; renaming an existing migration breaks upgrades. Add a new migration instead.",
+					"migration %s is named %q but the base branch has it named %q; renaming an existing migration breaks upgrades. Add a new migration instead.",
 					b.version, b.name, m.name,
 				),
 			})
+			reportedBaseChanges[m.driver+"/"+m.version] = true
 			continue
 		}
 
-		if m, ok := masterByName[b.driver+"/"+b.name]; ok && m.version != b.version {
+		if m, ok := baseByName[b.driver+"/"+b.name]; ok && m.version != b.version {
 			violations = append(violations, violation{
 				driver: b.driver,
 				message: fmt.Sprintf(
-					"migration %q is numbered %s but master has it numbered %s; renumbering an existing migration breaks upgrades. Add a new migration instead.",
+					"migration %q is numbered %s but the base branch has it numbered %s; renumbering an existing migration breaks upgrades. Add a new migration instead.",
 					b.name, b.version, m.version,
 				),
 			})
+			reportedBaseChanges[m.driver+"/"+m.version] = true
 		}
 	}
 
 	branch := collectMigrations(branchFiles)
-	branchByVersion := make(map[string]migration, len(branch))
-	branchByName := make(map[string]migration, len(branch))
+	branchByExact := make(map[string]migration, len(branch))
 	for _, m := range branch {
-		branchByVersion[m.driver+"/"+m.version] = m
-		branchByName[m.driver+"/"+m.name] = m
+		branchByExact[m.driver+"/"+m.version+"/"+m.name] = m
 	}
 
-	for _, m := range master {
-		if _, ok := branchByVersion[m.driver+"/"+m.version]; ok {
+	for _, m := range base {
+		if _, ok := branchByExact[m.driver+"/"+m.version+"/"+m.name]; ok {
 			continue
 		}
-		if _, ok := branchByName[m.driver+"/"+m.name]; ok {
+		if reportedBaseChanges[m.driver+"/"+m.version] {
 			continue
 		}
 		violations = append(violations, violation{
 			driver: m.driver,
 			message: fmt.Sprintf(
-				"migration %s (%s) exists on master but is missing from the branch; deleting or fully replacing a shipped migration breaks upgrades. Add a new migration instead.",
+				"migration %s (%s) exists on the base branch but is missing from the branch; deleting or fully replacing a shipped migration breaks upgrades. Add a new migration instead.",
 				m.version, m.name,
 			),
 		})
@@ -170,8 +172,8 @@ func repoRoot() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-// masterMigrationFiles lists the migration files tracked at baseRef.
-func masterMigrationFiles(root, baseRef string) ([]string, error) {
+// baseMigrationFiles lists the migration files tracked at baseRef.
+func baseMigrationFiles(root, baseRef string) ([]string, error) {
 	cmd := exec.Command("git", "-C", root, "ls-tree", "-r", "--name-only", baseRef, "--", migrationsRelDir)
 	out, err := cmd.Output()
 	if err != nil {
@@ -221,7 +223,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	masterFiles, err := masterMigrationFiles(root, baseRef)
+	baseFiles, err := baseMigrationFiles(root, baseRef)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
@@ -233,14 +235,14 @@ func main() {
 		os.Exit(2)
 	}
 
-	violations := compareMigrations(masterFiles, branchFiles)
+	violations := compareMigrations(baseFiles, branchFiles)
 	if len(violations) > 0 {
-		fmt.Fprintf(os.Stderr, "Found %d migration(s) that changed relative to %s:\n", len(violations), baseRef)
+		fmt.Fprintf(os.Stderr, "Found %d migration(s) that changed relative to base branch %s:\n", len(violations), baseRef)
 		for _, v := range violations {
 			fmt.Fprintf(os.Stderr, "  - [%s] %s\n", v.driver, v.message)
 		}
 		os.Exit(1)
 	}
 
-	fmt.Printf("All existing migrations match %s.\n", baseRef)
+	fmt.Printf("All existing migrations match base branch %s.\n", baseRef)
 }
