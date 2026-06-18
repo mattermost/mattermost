@@ -3260,6 +3260,13 @@ export default class Client4 {
         );
     };
 
+    executeDialogAction = (url: string, context?: Record<string, string>, channelId?: string, teamId?: string) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getBaseRoute()}/actions/dialogs/execute`,
+            {method: 'post', body: JSON.stringify({url, context, channel_id: channelId, team_id: teamId})},
+        );
+    };
+
     lookupInteractiveDialog = (data: DialogSubmission) => {
         return this.doFetch<{items: Array<{text: string; value: string}>}>(
             `${this.getBaseRoute()}/actions/dialogs/lookup`,

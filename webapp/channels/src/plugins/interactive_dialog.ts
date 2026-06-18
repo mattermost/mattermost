@@ -10,10 +10,32 @@ import DialogRouter from 'components/dialog_router';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
+export const MAX_OPEN_DIALOGS = 3;
+
+export function getOpenDialogCount(state: GlobalState): number {
+    const modals = state.views.modals?.modalState ?? {};
+    return Object.keys(modals).filter(
+        (id) => id.startsWith(ModalIdentifiers.INTERACTIVE_DIALOG),
+    ).length;
+}
+
 export function openInteractiveDialog(dialog: any): void {
+    // Store the dialog before the cap check so the store.subscribe fallback below
+    // can still find it once dialogTriggerId updates. Only the modal open is gated
+    // by the concurrent-dialog cap.
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
+    if (getOpenDialogCount(store.getState()) >= MAX_OPEN_DIALOGS) {
+        // eslint-disable-next-line no-console
+        console.warn('Maximum number of open dialogs reached');
+        return;
+    }
+
+    const triggerId = dialog?.trigger_id;
+    const modalId = triggerId ? `${ModalIdentifiers.INTERACTIVE_DIALOG}_${triggerId}` : ModalIdentifiers.INTERACTIVE_DIALOG;
+    store.dispatch(openModal({modalId, dialogType: DialogRouter}));
 }
 
 // This code is problematic for a couple of different reasons:
@@ -39,5 +61,12 @@ store.subscribe(() => {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
+    if (getOpenDialogCount(state) >= MAX_OPEN_DIALOGS) {
+        // eslint-disable-next-line no-console
+        console.warn('Maximum number of open dialogs reached');
+        return;
+    }
+
+    const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${currentTriggerId}`;
+    store.dispatch(openModal({modalId, dialogType: DialogRouter}));
 });

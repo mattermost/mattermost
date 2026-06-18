@@ -492,6 +492,10 @@ export type AppField = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    // Action button props
+    action_button_url?: string;
+    action_button_context?: Record<string, string>;
 };
 
 /**

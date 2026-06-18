@@ -42,4 +42,5 @@ export const AppFieldTypes: {[name: string]: AppFieldType} = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    ACTION_BUTTON: 'action_button',
 };

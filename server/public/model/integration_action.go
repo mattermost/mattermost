@@ -399,6 +399,9 @@ type DialogElement struct {
 	// Deprecated: Use DateTimeConfig.TimeInterval instead. Kept for backward compatibility;
 	// if DateTimeConfig is provided, its TimeInterval takes precedence.
 	TimeInterval int `json:"time_interval,omitempty"`
+
+	// Action button configuration (type "action_button")
+	ActionButton *DialogActionButton `json:"action_button,omitempty"`
 }
 
 // EffectiveDateTimeConfig returns the resolved date/datetime configuration by
@@ -427,6 +430,11 @@ func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
 		cfg.ManualTimeEntry = e.DateTimeConfig.ManualTimeEntry || e.DateTimeConfig.AllowManualTimeEntry
 	}
 	return cfg
+}
+
+type DialogActionButton struct {
+	URL     string            `json:"url"`
+	Context map[string]string `json:"context,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -461,6 +469,13 @@ type SubmitDialogResponse struct {
 	Errors map[string]string `json:"errors,omitempty"`
 	Type   string            `json:"type,omitempty"`
 	Form   *Dialog           `json:"form,omitempty"`
+}
+
+type ExecuteDialogActionRequest struct {
+	URL       string            `json:"url"`
+	Context   map[string]string `json:"context,omitempty"`
+	ChannelId string            `json:"channel_id"`
+	TeamId    string            `json:"team_id"`
 }
 
 func (r *SubmitDialogResponse) IsValid() error {
@@ -744,6 +759,15 @@ func (e *DialogElement) IsValid() error {
 			} else if 1440%timeInterval != 0 {
 				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
 			}
+		}
+
+	case "action_button":
+		if e.ActionButton == nil {
+			multiErr = multierror.Append(multiErr, errors.New("action_button element requires action_button configuration"))
+		} else if e.ActionButton.URL == "" {
+			multiErr = multierror.Append(multiErr, errors.New("action_button requires a non-empty URL"))
+		} else if !IsValidLookupURL(e.ActionButton.URL) {
+			multiErr = multierror.Append(multiErr, errors.Wrap(errors.New("invalid URL"), "invalid action_button URL"))
 		}
 
 	default:

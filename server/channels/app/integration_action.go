@@ -671,6 +671,79 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	return &response, nil
 }
 
+func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.ExecuteDialogActionRequest) (string, *model.AppError) {
+	if !model.IsValidLookupURL(req.URL) {
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, "invalid URL", http.StatusBadRequest)
+	}
+
+	if err := model.ValidateActionQuery(req.Context); err != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	ctx := make(map[string]any, len(req.Context))
+	for k, v := range req.Context {
+		ctx[k] = v
+	}
+
+	upstreamRequest := &model.PostActionIntegrationRequest{
+		Type:      "dialog_action",
+		UserId:    userID,
+		ChannelId: req.ChannelId,
+		TeamId:    req.TeamId,
+		Context:   ctx,
+	}
+
+	user, userErr := a.Srv().Store().User().Get(context.Background(), userID)
+	if userErr != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(userErr)
+	}
+	upstreamRequest.UserName = user.Username
+
+	channel, channelErr := a.GetChannel(rctx, req.ChannelId)
+	if channelErr != nil {
+		return "", channelErr
+	}
+	upstreamRequest.ChannelName = channel.Name
+
+	if req.TeamId != "" {
+		team, teamErr := a.Srv().Store().Team().Get(req.TeamId)
+		if teamErr != nil {
+			return "", model.NewAppError("ExecuteDialogAction", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(teamErr)
+		}
+		upstreamRequest.TeamName = team.Name
+	}
+
+	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
+	if appErr != nil {
+		return "", appErr
+	}
+
+	requestJSON, err := json.Marshal(upstreamRequest)
+	if err != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("ExecuteDialogAction POST request, through DoActionRequest",
+		mlog.String("url", req.URL),
+		mlog.String("user_id", userID),
+		mlog.String("channel_id", req.ChannelId),
+		mlog.String("team_id", req.TeamId),
+	)
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(rctx.WithContext(timeoutCtx), req.URL, requestJSON)
+	if appErr != nil {
+		return "", appErr
+	}
+	defer resp.Body.Close()
+
+	// Drain response body to allow HTTP connection reuse
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
+
+	return clientTriggerId, nil
+}
+
 func (a *App) LookupInteractiveDialog(rctx request.CTX, request model.SubmitDialogRequest) (*model.LookupDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""

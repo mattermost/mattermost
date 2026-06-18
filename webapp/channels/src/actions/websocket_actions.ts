@@ -169,6 +169,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
+import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'plugins/interactive_dialog';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
@@ -1752,6 +1753,10 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     const data = (msg.data && msg.data.dialog);
     const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
+    // Store the dialog before the trigger-id guard. The WS open_dialog event can
+    // arrive before the command/action response has set dialogTriggerId; storing
+    // the dialog now lets the store.subscribe fallback in interactive_dialog.ts
+    // open it once the trigger id lands. Skipping this dispatch loses the dialog.
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
     const currentTriggerId = getState().entities.integrations.dialogTriggerId;
@@ -1760,7 +1765,14 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
+    if (getOpenDialogCount(getState()) >= MAX_OPEN_DIALOGS) {
+        // eslint-disable-next-line no-console
+        console.warn('Maximum number of open dialogs reached');
+        return;
+    }
+
+    const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${dialog.trigger_id}`;
+    store.dispatch(openModal({modalId, dialogType: DialogRouter}));
 }
 
 function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {
