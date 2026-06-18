@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -4999,6 +5000,56 @@ func TestMaskPolicyExpressions_FailClosedUsesDenyAllSentinel(t *testing.T) {
 		assert.Equal(t, "", policy.Rules[0].Expression, "empty expression must stay empty")
 		assert.Equal(t, "true", policy.Rules[1].Expression, "open-access rule must stay \"true\"")
 	})
+}
+
+func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	userField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	nonUserObjectTypes := []string{
+		model.PropertyFieldObjectTypeTemplate,
+		model.PropertyFieldObjectTypeSystem,
+		model.PropertyFieldObjectTypeChannel,
+	}
+	for _, ot := range nonUserObjectTypes {
+		f := &model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: ot,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		_, err := th.App.Srv().Store().PropertyField().Create(f)
+		require.NoError(t, err)
+	}
+
+	fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, strings.Repeat("0", 26), 100, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	for _, f := range fields {
+		assert.Equal(t, model.PropertyFieldObjectTypeUser, f.ObjectType,
+			"autocomplete must only return user fields, got ObjectType=%q for field %s", f.ObjectType, f.ID)
+	}
+
+	fieldIDs := make([]string, len(fields))
+	for i, f := range fields {
+		fieldIDs[i] = f.ID
+	}
+	assert.Contains(t, fieldIDs, userField.ID, "user CPA field must appear in autocomplete results")
 }
 
 // Verify that the team join path (channelID="") produces a subject with no
