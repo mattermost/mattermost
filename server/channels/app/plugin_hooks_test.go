@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -2959,14 +2960,7 @@ func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string, re
 			return false
 		}
 		for _, requiredHook := range requiredHooks {
-			found := false
-			for _, hookName := range implemented {
-				if hookName == requiredHook {
-					found = true
-					break
-				}
-			}
-			if !found {
+			if !slices.Contains(implemented, requiredHook) {
 				return false
 			}
 		}
