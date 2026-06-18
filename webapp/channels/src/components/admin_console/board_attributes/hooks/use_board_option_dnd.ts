@@ -8,6 +8,8 @@ import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {useEffect, useState} from 'react';
 
+import {useLatest} from 'hooks/useLatest';
+
 type UseBoardOptionDndOptions = {
     fieldId: string;
     optionKey: string;
@@ -34,6 +36,9 @@ export function useBoardOptionDnd({
 }: UseBoardOptionDndOptions): UseBoardOptionDndResult {
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
 
+    // Read via ref so the ghost reflects the option's latest state without re-registering.
+    const getDragPreviewRef = useLatest(getDragPreview);
+
     useEffect(() => {
         if (!chipElement || !dropZoneElement) {
             return undefined;
@@ -48,7 +53,7 @@ export function useBoardOptionDnd({
                     setCustomNativeDragPreview({
                         nativeSetDragImage,
                         render: ({container}) => {
-                            container.appendChild(getDragPreview());
+                            container.appendChild(getDragPreviewRef.current());
                         },
                     });
                 },
@@ -69,11 +74,7 @@ export function useBoardOptionDnd({
             }),
         );
 
-    // `getDragPreview` is intentionally omitted: callers pass a fresh closure
-    // every render, and re-registering the draggable/dropTarget on every
-    // render would tear down PDND state mid-interaction. The closure is
-    // captured once on registration, which is fine because the preview is
-    // generated lazily at drag-start.
+    // getDragPreview read via ref (above); re-registering would tear down PDND state mid-drag.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chipElement, dropZoneElement, fieldId, optionKey]);
 
