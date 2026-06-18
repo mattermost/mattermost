@@ -14,6 +14,7 @@ import type {Command, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/
 import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Reaction} from '@mattermost/types/reactions';
+import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {Role} from '@mattermost/types/roles';
 import type {Session} from '@mattermost/types/sessions';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -242,6 +243,25 @@ export class TestHelper {
             scheme_user: true,
         };
         return Object.assign({}, defaultMembership, override);
+    }
+
+    public static getRemoteClusterMock(override?: Partial<RemoteCluster>): RemoteCluster {
+        const defaultRemoteCluster: RemoteCluster = {
+            remote_id: 'remote_id',
+            remote_team_id: 'remote_team_id',
+            name: 'remote_name',
+            display_name: 'Remote Name',
+            site_url: 'https://example.com',
+            create_at: 0,
+            delete_at: 0,
+            last_ping_at: 0,
+            topics: '',
+            creator_id: 'creator_id',
+            plugin_id: '',
+            options: 0,
+            default_team_id: 'team_id',
+        };
+        return Object.assign({}, defaultRemoteCluster, override);
     }
 
     public static getRoleMock(override: Partial<Role> = {}): Role {

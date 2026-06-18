@@ -14,13 +14,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// TestMigration000197 exercises the select→rank conversion for the built-in
+// TestMigration000198 exercises the select→rank conversion for the built-in
 // classification fields: the type flip, the position-derived (1-based) rank
 // backfill, the empty/absent-options guards, and the down round-trip. It also
 // verifies that fields which merely share a name — wrong object type, wrong
 // group, or an unrelated name — are left untouched, since the migration matches
 // each (Name, ObjectType) pair explicitly within the access_control group.
-func TestMigration000197(t *testing.T) {
+func TestMigration000198(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -34,8 +34,8 @@ func TestMigration000197(t *testing.T) {
 
 	master := store.GetMaster()
 
-	upSQL := readMigrationSQL(t, "000197_convert_classification_fields_to_rank.up.sql")
-	downSQL := readMigrationSQL(t, "000197_convert_classification_fields_to_rank.down.sql")
+	upSQL := readMigrationSQL(t, "000198_convert_classification_fields_to_rank.up.sql")
+	downSQL := readMigrationSQL(t, "000198_convert_classification_fields_to_rank.down.sql")
 
 	// The migration resolves the group by name, so the field rows must hang off
 	// an 'access_control' group.

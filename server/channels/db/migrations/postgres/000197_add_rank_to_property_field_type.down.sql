@@ -7,9 +7,9 @@
 -- The AttributeView materialized view reads PropertyFields.Type, so Postgres
 -- refuses to rebuild the enum on that column while the view exists ("cannot
 -- alter type of a column used by a view or rule"). Drop the view before the
--- ALTER and recreate it afterwards. At this point in the down sequence 000197's
+-- ALTER and recreate it afterwards. At this point in the down sequence 000198's
 -- down has already restored the no-rank view definition, so we recreate that
--- same definition (kept in sync with 000177 / 000197 down).
+-- same definition (kept in sync with 000177 / 000198 down).
 
 UPDATE PropertyFields SET Type = 'select' WHERE Type = 'rank';
 
@@ -31,7 +31,7 @@ ALTER TABLE PropertyFields
 
 DROP TYPE property_field_type_old;
 
--- Recreate the no-rank AttributeView (matches 000177 / 000197 down).
+-- Recreate the no-rank AttributeView (matches 000177 / 000198 down).
 CREATE MATERIALIZED VIEW IF NOT EXISTS AttributeView AS
 SELECT
     pv.GroupID,

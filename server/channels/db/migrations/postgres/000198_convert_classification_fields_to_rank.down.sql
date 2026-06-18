@@ -2,7 +2,7 @@
 -- back to 'select'. Master's 'select' representation never stored a rank (the
 -- option struct had no rank field, so it was dropped on save), so removing the
 -- key restores the prior on-disk shape rather than leaving a stray rank behind.
--- 000196's down migration has already restored the distinct names by the time
+-- 000197's down migration has already restored the distinct names by the time
 -- this runs, so match on the original names.
 UPDATE PropertyFields pf
 SET Attrs = jsonb_set(
