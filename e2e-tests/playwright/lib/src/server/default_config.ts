@@ -133,6 +133,7 @@ const defaultServerConfig: AdminConfig = {
         EnableMultifactorAuthentication: false,
         EnforceMultifactorAuthentication: false,
         EnableUserAccessTokens: false,
+        MaximumPersonalAccessTokenLifetimeDays: 0,
         AllowCorsFrom: '',
         CorsExposedHeaders: '',
         CorsAllowCredentials: false,
