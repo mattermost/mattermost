@@ -916,10 +916,12 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 	// key without an outer .(map[string]any) assertion per element.
 	encoded, err := json.Marshal(rawOptions)
 	if err != nil {
+		mlog.Warn("Skipping boards Status colour merge: failed to marshal existing options", mlog.Err(err))
 		return attrs
 	}
 	var options []map[string]any
 	if err := json.Unmarshal(encoded, &options); err != nil {
+		mlog.Warn("Skipping boards Status colour merge: failed to unmarshal existing options", mlog.Err(err))
 		return attrs
 	}
 
