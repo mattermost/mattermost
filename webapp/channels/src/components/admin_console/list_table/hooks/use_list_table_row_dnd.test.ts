@@ -267,4 +267,34 @@ describe('useListTableRowDnd', () => {
 
         expect(mockSetCustomNativeDragPreviewSpy).not.toHaveBeenCalled();
     });
+
+    test('ghost reads the latest getDragPreview after a re-render without re-registering (regression: stale preview on a renamed new row)', () => {
+        const stalePreview = document.createElement('div');
+        stalePreview.textContent = 'Text';
+        const latestPreview = document.createElement('div');
+        latestPreview.textContent = 'Priority';
+
+        // Stable deps; only the preview closure changes (a renamed new row).
+        const rowElement = makeRow();
+        let getDragPreview = () => stalePreview;
+
+        const {rerender} = renderHookWithContext(() => useListTableRowDnd({
+            ...baseOptions,
+            rowElement,
+            handleElement: null,
+            getDragPreview,
+        }));
+
+        getDragPreview = () => latestPreview;
+        rerender();
+
+        expect(mockDraggableRegistrations).toHaveLength(1);
+
+        const container = document.createElement('div');
+        mockSetCustomNativeDragPreviewSpy.mockImplementationOnce(({render}: {render: (a: {container: HTMLElement}) => void}) => render({container}));
+        mockDraggableRegistrations[0].onGenerateDragPreview({nativeSetDragImage: jest.fn()});
+
+        // Without the ref this would be the captured 'Text' preview.
+        expect(container.textContent).toBe('Priority');
+    });
 });

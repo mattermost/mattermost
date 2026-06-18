@@ -8,6 +8,8 @@ import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {useEffect, useState} from 'react';
 
+import {useLatest} from 'hooks/useLatest';
+
 type UseListTableRowDndOptions = {
     dragKind: string;
     rowId: string;
@@ -22,10 +24,7 @@ type UseListTableRowDndResult = {
     closestEdge: Edge | null;
 };
 
-/**
- * Wires PDND draggable + dropTarget onto a single table row element.
- * Returns the closest edge during an active drag so the caller can render a DropIndicator.
- */
+// Wires PDND draggable + dropTarget onto a table row; returns the active drop edge.
 export function useListTableRowDnd({
     dragKind,
     rowId,
@@ -36,6 +35,9 @@ export function useListTableRowDnd({
     getDragPreview,
 }: UseListTableRowDndOptions): UseListTableRowDndResult {
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+
+    // Read via ref so the ghost reflects the row's latest name without re-registering.
+    const getDragPreviewRef = useLatest(getDragPreview);
 
     useEffect(() => {
         if (!rowElement || !enabled) {
@@ -48,7 +50,7 @@ export function useListTableRowDnd({
                 dragHandle: handleElement ?? undefined,
                 getInitialData: () => ({kind: dragKind, rowId, rowIndex}),
                 onGenerateDragPreview: ({nativeSetDragImage}) => {
-                    const previewEl = getDragPreview?.();
+                    const previewEl = getDragPreviewRef.current?.();
                     if (!previewEl) {
                         return;
                     }
@@ -76,11 +78,7 @@ export function useListTableRowDnd({
             }),
         );
 
-    // `getDragPreview` is intentionally omitted: callers pass a fresh closure
-    // every render, and re-registering the draggable/dropTarget on every
-    // render would tear down PDND state mid-interaction. The closure is
-    // captured once on registration, which is fine because the preview is
-    // generated lazily at drag-start.
+    // getDragPreview read via ref (above); re-registering would tear down PDND state mid-drag.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rowElement, handleElement, enabled, dragKind, rowId, rowIndex]);
 
