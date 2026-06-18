@@ -5,7 +5,7 @@ import React from 'react';
 
 import {act, render, screen, userEvent} from 'tests/react_testing_utils';
 
-import AutocompleteSelector from './autocomplete_selector';
+import AutocompleteSelector, {getSuggestionListPosition} from './autocomplete_selector';
 
 let mockOnItemSelected: ((selected: any) => void) | undefined;
 let mockListPosition: string | undefined;
@@ -187,5 +187,52 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
         await userEvent.click(input);
 
         expect(mockListPosition).toBeUndefined();
+    });
+});
+
+describe('getSuggestionListPosition', () => {
+    const originalInnerHeight = window.innerHeight;
+
+    afterEach(() => {
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: originalInnerHeight});
+    });
+
+    function mockViewportHeight(height: number) {
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: height});
+    }
+
+    function mockInput(top: number, bottom: number) {
+        return {
+            getBoundingClientRect: () => ({
+                top,
+                bottom,
+                left: 0,
+                right: 0,
+                width: 0,
+                height: bottom - top,
+                x: 0,
+                y: top,
+                toJSON: () => ({}),
+            }),
+        } as HTMLElement;
+    }
+
+    test('opens downward when there is more space below', () => {
+        mockViewportHeight(800);
+        expect(getSuggestionListPosition(mockInput(40, 80))).toBe('bottom');
+    });
+
+    test('opens upward when there is more space above', () => {
+        mockViewportHeight(800);
+        expect(getSuggestionListPosition(mockInput(600, 640))).toBe('top');
+    });
+
+    test('prefers top when space above and below is equal', () => {
+        mockViewportHeight(800);
+        expect(getSuggestionListPosition(mockInput(380, 420))).toBe('top');
+    });
+
+    test('defaults to top when input has no bounding rect', () => {
+        expect(getSuggestionListPosition({} as HTMLElement)).toBe('top');
     });
 });

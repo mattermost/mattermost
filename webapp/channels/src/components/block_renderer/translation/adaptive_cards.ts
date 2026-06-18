@@ -7,11 +7,11 @@ import type {
     MmBlock,
     MmButtonStyle,
     MmColumnBlock,
-    MmColumnSetBlock,
     MmContainerBlock,
     MmImageBlock,
     MmImageSize,
 } from '@mattermost/types/mm_blocks';
+import {ensureString} from '@mattermost/types/utilities';
 
 export function translateAdaptiveCards(cards: unknown[]): MmBlock[] {
     const result: MmBlock[] = [];
@@ -45,7 +45,7 @@ export function translateAdaptiveCards(cards: unknown[]): MmBlock[] {
 
 function translateAdaptiveCardItem(
     item: unknown,
-): MmBlock | MmBlock[] | null {
+): MmBlock | null {
     if (typeof item !== 'object' || item === null) {
         return null;
     }
@@ -56,8 +56,8 @@ function translateAdaptiveCardItem(
         if (typeof i.text !== 'string' || !i.text) {
             return null;
         }
-        const acSize = typeof i.size === 'string' ? i.size : '';
-        const size = acSize === 'Small' || acSize === 'small' ? 'small' as const : undefined;
+        const acSize = ensureString(i.size);
+        const size = acSize === 'Small' ? 'small' as const : undefined;
         return {
             type: 'text',
             text: i.text,
@@ -85,7 +85,7 @@ function translateAdaptiveCardItem(
         if (!Array.isArray(i.columns)) {
             return null;
         }
-        const columns: MmBlock[] = [];
+        const columns: MmColumnBlock[] = [];
         for (const col of i.columns) {
             if (typeof col !== 'object' || col === null) {
                 continue;
@@ -106,13 +106,13 @@ function translateAdaptiveCardItem(
         if (columns.length === 0) {
             return null;
         }
-        return {type: 'column_set', columns: columns as MmColumnBlock[]} as MmColumnSetBlock;
+        return {type: 'column_set', columns};
     }
     case 'Image': {
         if (typeof i.url !== 'string' || !i.url) {
             return null;
         }
-        const altText = typeof i.altText === 'string' ? i.altText : '';
+        const altText = ensureString(i.altText);
         const size = mapAdaptiveCardImageSize(i.size);
         const maxWidth = parseAdaptiveCardPixelDimension(i.width);
         const maxHeight = parseAdaptiveCardPixelDimension(i.height);
@@ -152,12 +152,12 @@ function translateAdaptiveCardActions(actions: unknown[]) {
         }
         const ac = action as Record<string, unknown>;
         if (ac.type === 'Action.Submit') {
-            const title = typeof ac.title === 'string' ? ac.title : '';
+            const title = ensureString(ac.title);
             if (!title) {
                 continue;
             }
-            const actionId = typeof ac.id === 'string' ? ac.id : '';
-            const rawStyle = typeof ac.style === 'string' ? ac.style : undefined;
+            const actionId = ensureString(ac.id);
+            const rawStyle = ensureString(ac.style);
             const style = adaptiveCardStyleToMm(rawStyle);
             result.content.push({
                 type: 'button',
@@ -188,19 +188,19 @@ function mapAdaptiveCardImageSize(v: unknown): MmImageSize | undefined {
     if (typeof v !== 'string') {
         return undefined;
     }
-    const byName: Record<string, MmImageSize> = {
+    const byName = {
         Auto: 'auto',
-        auto: 'auto',
         Small: 'small',
-        small: 'small',
         Medium: 'medium',
-        medium: 'medium',
         Large: 'large',
-        large: 'large',
         Stretch: 'stretch',
-        stretch: 'stretch',
-    };
-    return byName[v];
+    } as const;
+
+    if (!Object.hasOwn(byName, v)) {
+        return undefined;
+    }
+
+    return byName[v as keyof typeof byName];
 }
 
 function parseAdaptiveCardPixelDimension(v: unknown): number | undefined {
@@ -229,10 +229,15 @@ function mapAdaptiveCardHorizontalAlignment(v: unknown): 'left' | 'center' | 'ri
     if (typeof v !== 'string') {
         return undefined;
     }
-    const byName: Record<string, 'left' | 'center' | 'right'> = {
+    const byName = {
         Left: 'left',
         Center: 'center',
         Right: 'right',
-    };
-    return byName[v];
+    } as const;
+
+    if (!Object.hasOwn(byName, v)) {
+        return undefined;
+    }
+
+    return byName[v as keyof typeof byName];
 }

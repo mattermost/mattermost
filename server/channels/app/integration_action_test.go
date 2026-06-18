@@ -2364,7 +2364,7 @@ func TestDoPluginRequest(t *testing.T) {
 	})
 }
 
-func TestDoPostActionIntegrationContextCollision(t *testing.T) {
+func TestDoPostActionIntegrationFormatCollision(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 

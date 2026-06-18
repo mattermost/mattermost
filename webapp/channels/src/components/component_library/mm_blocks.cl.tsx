@@ -6,6 +6,8 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
+import type {IntlShape} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {type MmBlock} from '@mattermost/types/mm_blocks';
 
@@ -121,7 +123,7 @@ function normalizeAdaptiveCardsPayload(parsed: unknown): unknown[] | null {
     return null;
 }
 
-function parsePayload(text: string, mode: InputMode): ParseResult {
+function parsePayload(text: string, mode: InputMode, intl: IntlShape): ParseResult {
     const json = tryParseJson(text);
     if (!json.ok) {
         return json;
@@ -139,7 +141,7 @@ function parsePayload(text: string, mode: InputMode): ParseResult {
         if (!Array.isArray(parsed)) {
             return {ok: false, error: 'Expected a JSON array of attachment objects (same as props.attachments).'};
         }
-        return {ok: true, blocks: translateAttachments(parsed)};
+        return {ok: true, blocks: translateAttachments(parsed, intl)};
     }
 
     if (mode === 'block_kit') {
@@ -166,6 +168,7 @@ function parsePayload(text: string, mode: InputMode): ParseResult {
 const MmBlocksComponentLibrary = ({
     backgroundClass,
 }: Props) => {
+    const intl = useIntl();
     const [inputMode, setInputMode] = useState<InputMode>('mm_blocks');
     const [drafts, setDrafts] = useState<Record<InputMode, string>>(() => ({...INITIAL_DRAFTS}));
     const [selectedBlockPath, setSelectedBlockPath] = useState<BlockPath | null>(null);
@@ -173,7 +176,7 @@ const MmBlocksComponentLibrary = ({
 
     const jsonText = drafts[inputMode];
 
-    const parsed = useMemo(() => parsePayload(jsonText, inputMode), [jsonText, inputMode]);
+    const parsed = useMemo(() => parsePayload(jsonText, inputMode, intl), [jsonText, inputMode]);
 
     const showMmBlocksEditor = inputMode === 'mm_blocks' && parsed.ok;
 

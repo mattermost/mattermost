@@ -64,60 +64,70 @@ Array [
 exports[`translatePostProps complex payloads translates rich Block Kit (accessory, fields, image, select) 1`] = `
 Array [
   Object {
-    "columns": Array [
+    "content": Array [
       Object {
-        "items": Array [
+        "columns": Array [
           Object {
-            "text": "Section with accessory",
-            "type": "text",
+            "items": Array [
+              Object {
+                "text": "Section with accessory",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          Object {
+            "items": Array [
+              Object {
+                "action_id": "accessory_btn",
+                "style": "primary",
+                "text": "Accessory",
+                "type": "button",
+              },
+            ],
+            "type": "column",
+            "width": "auto",
           },
         ],
-        "type": "column",
-        "width": "stretch",
-      },
-      Object {
-        "items": Array [
-          Object {
-            "action_id": "accessory_btn",
-            "style": "primary",
-            "text": "Accessory",
-            "type": "button",
-          },
-        ],
-        "type": "column",
-        "width": "auto",
-      },
-    ],
-    "type": "column_set",
-  },
-  Object {
-    "columns": Array [
-      Object {
-        "items": Array [
-          Object {
-            "text": "*Field A*",
-            "type": "text",
-          },
-        ],
-        "type": "column",
-        "width": "stretch",
-      },
-      Object {
-        "items": Array [
-          Object {
-            "text": "Field B",
-            "type": "text",
-          },
-        ],
-        "type": "column",
-        "width": "stretch",
+        "type": "column_set",
       },
     ],
-    "type": "column_set",
+    "type": "container",
   },
   Object {
-    "text": "Field C alone",
-    "type": "text",
+    "content": Array [
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
+                "text": "*Field A*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          Object {
+            "items": Array [
+              Object {
+                "text": "Field B",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+      Object {
+        "text": "Field C alone",
+        "type": "text",
+      },
+    ],
+    "type": "container",
   },
   Object {
     "alt_text": "diagram",
@@ -208,10 +218,14 @@ Array [
                   Object {
                     "columns": Array [
                       Object {
+                        "gap": "none",
                         "items": Array [
                           Object {
-                            "text": "**Severity:**  
-High",
+                            "text": "**Severity:**",
+                            "type": "text",
+                          },
+                          Object {
+                            "text": "High",
                             "type": "text",
                           },
                         ],
@@ -219,10 +233,14 @@ High",
                         "width": "stretch",
                       },
                       Object {
+                        "gap": "none",
                         "items": Array [
                           Object {
-                            "text": "**Region:**  
-EU",
+                            "text": "**Region:**",
+                            "type": "text",
+                          },
+                          Object {
+                            "text": "EU",
                             "type": "text",
                           },
                         ],
@@ -233,9 +251,19 @@ EU",
                     "type": "column_set",
                   },
                   Object {
-                    "text": "**Details:**  
-Longer explanation spanning lines",
-                    "type": "text",
+                    "content": Array [
+                      Object {
+                        "text": "**Details:**",
+                        "type": "text",
+                      },
+                      Object {
+                        "text": "Longer explanation spanning lines",
+                        "type": "text",
+                      },
+                    ],
+                    "flow": "vertical",
+                    "gap": "none",
+                    "type": "container",
                   },
                 ],
                 "flow": "vertical",
@@ -286,17 +314,17 @@ Longer explanation spanning lines",
         "content": Array [
           Object {
             "action_id": "ack",
-            "cookie": undefined,
+            "cookie": "",
             "disabled": undefined,
             "style": "primary",
             "text": "Acknowledge",
-            "tooltip": undefined,
+            "tooltip": "",
             "type": "button",
           },
           Object {
             "action_id": "assignee",
-            "cookie": undefined,
-            "data_source": undefined,
+            "cookie": "",
+            "data_source": "",
             "disabled": undefined,
             "initial_option": "alice",
             "options": Array [
@@ -314,10 +342,10 @@ Longer explanation spanning lines",
           },
           Object {
             "action_id": "users",
-            "cookie": undefined,
+            "cookie": "",
             "data_source": "users",
             "disabled": undefined,
-            "initial_option": undefined,
+            "initial_option": "",
             "options": undefined,
             "placeholder": "User",
             "type": "static_select",
@@ -331,7 +359,7 @@ Longer explanation spanning lines",
     "type": "container",
   },
   Object {
-    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "accent_color": undefined,
     "border": true,
     "content": Array [
       Object {
@@ -439,8 +467,13 @@ Array [
 exports[`translatePostProps format priority prefers blocks over cards and attachments when mm_blocks is absent 1`] = `
 Array [
   Object {
-    "text": "*Hello* from Block Kit",
-    "type": "text",
+    "content": Array [
+      Object {
+        "text": "*Hello* from Block Kit",
+        "type": "text",
+      },
+    ],
+    "type": "container",
   },
   Object {
     "type": "divider",
@@ -488,7 +521,7 @@ Array [
 exports[`translatePostProps malformed inputs falls through when mm_blocks is not an array and uses attachments 1`] = `
 Array [
   Object {
-    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "accent_color": undefined,
     "border": true,
     "content": Array [
       Object {
@@ -513,8 +546,13 @@ Array [
 exports[`translatePostProps malformed inputs skips invalid Block Kit blocks and keeps valid sections 1`] = `
 Array [
   Object {
-    "text": "Kept section",
-    "type": "text",
+    "content": Array [
+      Object {
+        "text": "Kept section",
+        "type": "text",
+      },
+    ],
+    "type": "container",
   },
 ]
 `;
@@ -522,7 +560,7 @@ Array [
 exports[`translatePostProps malformed inputs skips invalid attachment entries and keeps partial attachment content 1`] = `
 Array [
   Object {
-    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "accent_color": undefined,
     "border": true,
     "content": Array [
       Object {
@@ -533,10 +571,10 @@ Array [
         "content": Array [
           Object {
             "action_id": "ok_select",
-            "cookie": undefined,
-            "data_source": undefined,
+            "cookie": "",
+            "data_source": "",
             "disabled": undefined,
-            "initial_option": undefined,
+            "initial_option": "",
             "options": Array [
               Object {
                 "text": "Good",
@@ -570,7 +608,7 @@ Array [
 exports[`translatePostProps malformed inputs treats non-array interactive props as absent for format detection 1`] = `
 Array [
   Object {
-    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "accent_color": undefined,
     "border": true,
     "content": Array [
       Object {
@@ -596,8 +634,13 @@ Array [
 exports[`translatePostProps simple payloads translates Block Kit blocks 1`] = `
 Array [
   Object {
-    "text": "*Hello* from Block Kit",
-    "type": "text",
+    "content": Array [
+      Object {
+        "text": "*Hello* from Block Kit",
+        "type": "text",
+      },
+    ],
+    "type": "container",
   },
   Object {
     "type": "divider",

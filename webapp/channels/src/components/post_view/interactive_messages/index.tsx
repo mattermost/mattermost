@@ -29,7 +29,7 @@ type Props = {
 
 const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
     const dispatch = useDispatch();
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
     const [actionError, setActionError] = useState<string | null>(null);
 
     const postProps = post.props as Record<string, unknown> | undefined;
@@ -38,7 +38,7 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
     const integrationFormat = getPostInteractiveIntegrationFormat(postProps ?? {});
 
     const handleAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
-        const actionFailedMessage = formatMessage({
+        const actionFailedMessage = intl.formatMessage({
             id: 'post.message_attachment.action_failed',
             defaultMessage: 'Action failed to execute',
         });
@@ -68,9 +68,9 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
             const message = error instanceof Error ? error.message : undefined;
             setActionError(message ?? actionFailedMessage);
         }
-    }, [dispatch, post.id, integrationFormat, mmBlocksActionCookie, formatMessage]);
+    }, [dispatch, post.id, integrationFormat, mmBlocksActionCookie, intl]);
 
-    const blocks = translatePostProps(post.props as Record<string, unknown>);
+    const blocks = translatePostProps(post.props as Record<string, unknown>, intl);
     if (!blocks || blocks.length === 0) {
         return null;
     }

@@ -476,7 +476,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 // Integration action `update` payloads deserialize as a partial Post (often create_at=0).
 // Thread RHS order uses create_at via comparePosts; zero makes the ephemeral sort as oldest (above the root).
 // Ephemeral updates may omit user_id; keep the displayed author from the post already in state.
-function restoreEphemeralIdentityFieldsForEdit(incoming: Post, stored: Post): Post {
+function maintainEphemeralPostFields(incoming: Post, stored: Post): Post {
     const out: Post = {...incoming};
     if (!out.create_at && stored.create_at) {
         out.create_at = stored.create_at;
@@ -490,18 +490,18 @@ function restoreEphemeralIdentityFieldsForEdit(incoming: Post, stored: Post): Po
     return out;
 }
 
-function handlePostReceived(nextState: any, rawPost: Post, nestedPermalinkLevel?: number) {
+function handlePostReceived(nextState: any, receivedPost: Post, nestedPermalinkLevel?: number) {
     let currentState = nextState;
 
     // Check if post already exists in state or if nested permalink
-    if (!shouldUpdatePost(rawPost, currentState[rawPost.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
+    if (!shouldUpdatePost(receivedPost, currentState[receivedPost.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
         return currentState;
     }
 
-    const storedPost = currentState[rawPost.id];
-    let post = rawPost;
+    const storedPost = currentState[receivedPost.id];
+    let post = receivedPost;
     if (storedPost && isPostEphemeral(storedPost)) {
-        post = restoreEphemeralIdentityFieldsForEdit(rawPost, storedPost);
+        post = maintainEphemeralPostFields(receivedPost, storedPost);
     }
 
     // If post is a permalink and not nested (it links directly to the original message),

@@ -83,7 +83,7 @@ func (a *App) resolvePostActionSetup(
 	legacyCookie *model.PostActionCookie,
 	mmBlocksCookie *model.MmBlocksActionCookie,
 	clientQuery map[string]string,
-	integrationContext string,
+	integrationFormat string,
 ) (*postActionSetup, string, *model.AppError) {
 	upstreamRequest := &model.PostActionIntegrationRequest{
 		UserId: userID,
@@ -106,7 +106,7 @@ func (a *App) resolvePostActionSetup(
 		return nil, "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(chResult.NErr)
 	}
 
-	setup, gotoURL, appErr := a.resolvePostActionSetupFromPost(post, chResult.Data, actionID, clientQuery, integrationContext, upstreamRequest)
+	setup, gotoURL, appErr := a.resolvePostActionSetupFromPost(post, chResult.Data, actionID, clientQuery, integrationFormat, upstreamRequest)
 	return a.finishPostActionSetup(setup, gotoURL, appErr, userChan)
 }
 
@@ -328,12 +328,12 @@ func (a *App) resolvePostActionSetupFromPost(
 	channel *model.Channel,
 	actionID string,
 	clientQuery map[string]string,
-	integrationContext string,
+	integrationFormat string,
 	upstreamRequest *model.PostActionIntegrationRequest,
 ) (*postActionSetup, string, *model.AppError) {
 	fillUpstreamChannel(upstreamRequest, channel, post.ChannelId)
 
-	switch model.NormalizePostActionIntegrationFormat(integrationContext) {
+	switch model.NormalizePostActionIntegrationFormat(integrationFormat) {
 	case model.PostActionIntegrationFormatMmBlock,
 		model.PostActionIntegrationFormatBlock,
 		model.PostActionIntegrationFormatCard:
@@ -391,7 +391,7 @@ func (a *App) resolvePostActionSetupFromPost(
 		}, "", nil
 	}
 
-	return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("integration_context=%s", integrationContext), http.StatusBadRequest)
+	return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("integration_context=%s", integrationFormat), http.StatusBadRequest)
 }
 
 func fillUpstreamChannel(req *model.PostActionIntegrationRequest, channel *model.Channel, channelID string) {

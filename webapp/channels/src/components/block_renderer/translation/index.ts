@@ -9,6 +9,8 @@
 //
 // The server stores all formats as opaque data; all translation is client-side.
 
+import type {IntlShape} from 'react-intl';
+
 import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import type {MmBlock} from '@mattermost/types/mm_blocks';
 
@@ -39,7 +41,7 @@ export function hasInteractiveMessageProps(props: Record<string, unknown> | unde
  * Detects the format present in the post props and returns normalised `MmBlock[]`,
  * or null if no supported interactive content is found.
  */
-export function translatePostProps(props: Record<string, unknown>): MmBlock[] | null {
+export function translatePostProps(props: Record<string, unknown>, intl: IntlShape): MmBlock[] | null {
     if (Array.isArray(props.mm_blocks) && props.mm_blocks.length > 0) {
         return translateMMBlocks(props.mm_blocks);
     }
@@ -50,7 +52,7 @@ export function translatePostProps(props: Record<string, unknown>): MmBlock[] | 
         return translateAdaptiveCards(props.cards);
     }
     if (Array.isArray(props.attachments) && props.attachments.length > 0) {
-        return translateAttachments(props.attachments);
+        return translateAttachments(props.attachments, intl);
     }
     return null;
 }

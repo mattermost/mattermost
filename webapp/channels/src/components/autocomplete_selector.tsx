@@ -10,9 +10,6 @@ import SuggestionBox from 'components/suggestion/suggestion_box';
 import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-import {getSuggestionListPosition} from 'utils/suggestion_list_position';
-import type {AutocompleteListPosition, SuggestionListPosition} from 'utils/suggestion_list_position';
-
 import type ModalSuggestionList from './suggestion/modal_suggestion_list';
 import type Provider from './suggestion/provider';
 
@@ -202,4 +199,20 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             </div>
         );
     }
+}
+
+type SuggestionListPosition = 'top' | 'bottom';
+
+type AutocompleteListPosition = SuggestionListPosition | 'auto';
+
+/** Open the suggestion list toward the side of the viewport with more room. */
+export function getSuggestionListPosition(input: HTMLElement): SuggestionListPosition {
+    if (typeof input?.getBoundingClientRect !== 'function') {
+        return 'top';
+    }
+
+    const {top, bottom} = input.getBoundingClientRect();
+    const spaceAbove = Math.max(0, top);
+    const spaceBelow = Math.max(0, window.innerHeight - bottom);
+    return spaceBelow > spaceAbove ? 'bottom' : 'top';
 }

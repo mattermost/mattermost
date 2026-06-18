@@ -22,6 +22,7 @@ import type {
     MmStaticSelectOption,
     MmTextBlock,
 } from '@mattermost/types/mm_blocks';
+import {ensureString} from '@mattermost/types/utilities';
 
 import {parseMmButtonStyle} from '../utils/button';
 
@@ -201,8 +202,9 @@ function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | nul
     if (!keysAreSubset(raw, BUTTON_KEYS)) {
         return null;
     }
-    if (typeof raw.text !== 'string' || raw.text.trim() === '' ||
-        typeof raw.action_id !== 'string' || raw.action_id.trim() === '') {
+    const text = ensureString(raw.text);
+    const actionId = ensureString(raw.action_id);
+    if (!text.trim() || !actionId.trim()) {
         return null;
     }
     const styleRaw = raw.style;
@@ -244,8 +246,8 @@ function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | nul
     }
     const out: MmButtonBlock = {
         type: 'button',
-        text: raw.text,
-        action_id: raw.action_id,
+        text,
+        action_id: actionId,
     };
     if (style && style !== 'default') {
         out.style = style;
@@ -269,8 +271,9 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
     if (!keysAreSubset(raw, STATIC_SELECT_KEYS)) {
         return null;
     }
-    if (typeof raw.action_id !== 'string' || raw.action_id.trim() === '' ||
-        typeof raw.placeholder !== 'string' || raw.placeholder.trim() === '') {
+    const actionId = ensureString(raw.action_id);
+    const placeholder = ensureString(raw.placeholder);
+    if (!actionId.trim() || !placeholder.trim()) {
         return null;
     }
     let options: MmStaticSelectOption[] | undefined;
@@ -319,8 +322,8 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
     }
     const out: MmStaticSelectBlock = {
         type: 'static_select',
-        action_id: raw.action_id,
-        placeholder: raw.placeholder,
+        action_id: actionId,
+        placeholder,
     };
     if (options) {
         out.options = options;

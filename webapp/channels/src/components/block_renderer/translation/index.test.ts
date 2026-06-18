@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {IntlShape} from 'react-intl';
+
 import {
     ADAPTIVE_CARDS_COMPLEX,
     ADAPTIVE_CARDS_SIMPLE,
@@ -18,6 +20,10 @@ import {
 } from './test_fixtures';
 
 import {getPostInteractiveIntegrationFormat, hasInteractiveMessageProps, translatePostProps} from './index';
+
+const mockIntl = {
+    formatMessage: jest.fn((descriptor) => descriptor.defaultMessage),
+} as unknown as IntlShape;
 
 describe('hasInteractiveMessageProps', () => {
     it('returns false for missing or empty interactive props', () => {
@@ -42,8 +48,8 @@ describe('hasInteractiveMessageProps', () => {
 describe('translatePostProps', () => {
     describe('empty and missing content', () => {
         it('returns null when props have no interactive content', () => {
-            expect(translatePostProps({})).toBeNull();
-            expect(translatePostProps({message: 'plain post'})).toBeNull();
+            expect(translatePostProps({}, mockIntl)).toBeNull();
+            expect(translatePostProps({message: 'plain post'}, mockIntl)).toBeNull();
         });
 
         it('returns null when interactive arrays are empty', () => {
@@ -52,7 +58,7 @@ describe('translatePostProps', () => {
                 blocks: [],
                 cards: [],
                 attachments: [],
-            })).toBeNull();
+            }, mockIntl)).toBeNull();
         });
     });
 
@@ -63,7 +69,7 @@ describe('translatePostProps', () => {
                 blocks: [...BLOCK_KIT_SIMPLE],
                 cards: [...ADAPTIVE_CARDS_SIMPLE],
                 attachments: [...ATTACHMENTS_SIMPLE],
-            })).toMatchSnapshot();
+            }, mockIntl)).toMatchSnapshot();
         });
 
         it('prefers blocks over cards and attachments when mm_blocks is absent', () => {
@@ -71,50 +77,50 @@ describe('translatePostProps', () => {
                 blocks: [...BLOCK_KIT_SIMPLE],
                 cards: [...ADAPTIVE_CARDS_SIMPLE],
                 attachments: [...ATTACHMENTS_SIMPLE],
-            })).toMatchSnapshot();
+            }, mockIntl)).toMatchSnapshot();
         });
 
         it('prefers cards over attachments when mm_blocks and blocks are absent', () => {
             expect(translatePostProps({
                 cards: [...ADAPTIVE_CARDS_SIMPLE],
                 attachments: [...ATTACHMENTS_SIMPLE],
-            })).toMatchSnapshot();
+            }, mockIntl)).toMatchSnapshot();
         });
     });
 
     describe('simple payloads', () => {
         it('translates native mm_blocks', () => {
-            expect(translatePostProps({mm_blocks: [...MM_BLOCKS_SIMPLE]})).toMatchSnapshot();
+            expect(translatePostProps({mm_blocks: [...MM_BLOCKS_SIMPLE]}, mockIntl)).toMatchSnapshot();
         });
 
         it('translates Block Kit blocks', () => {
-            expect(translatePostProps({blocks: [...BLOCK_KIT_SIMPLE]})).toMatchSnapshot();
+            expect(translatePostProps({blocks: [...BLOCK_KIT_SIMPLE]}, mockIntl)).toMatchSnapshot();
         });
 
         it('translates Adaptive Cards', () => {
-            expect(translatePostProps({cards: [...ADAPTIVE_CARDS_SIMPLE]})).toMatchSnapshot();
+            expect(translatePostProps({cards: [...ADAPTIVE_CARDS_SIMPLE]}, mockIntl)).toMatchSnapshot();
         });
 
         it('translates legacy attachments', () => {
-            expect(translatePostProps({attachments: [...ATTACHMENTS_SIMPLE]})).toMatchSnapshot();
+            expect(translatePostProps({attachments: [...ATTACHMENTS_SIMPLE]}, mockIntl)).toMatchSnapshot();
         });
     });
 
     describe('complex payloads', () => {
         it('translates rich mm_blocks (container, column_set, collapsible, select)', () => {
-            expect(translatePostProps({mm_blocks: [...MM_BLOCKS_COMPLEX]})).toMatchSnapshot();
+            expect(translatePostProps({mm_blocks: [...MM_BLOCKS_COMPLEX]}, mockIntl)).toMatchSnapshot();
         });
 
         it('translates rich attachments (fields, media, footer, actions, multiple cards)', () => {
-            expect(translatePostProps({attachments: [...ATTACHMENTS_COMPLEX]})).toMatchSnapshot();
+            expect(translatePostProps({attachments: [...ATTACHMENTS_COMPLEX]}, mockIntl)).toMatchSnapshot();
         });
 
         it('translates rich Block Kit (accessory, fields, image, select)', () => {
-            expect(translatePostProps({blocks: [...BLOCK_KIT_COMPLEX]})).toMatchSnapshot();
+            expect(translatePostProps({blocks: [...BLOCK_KIT_COMPLEX]}, mockIntl)).toMatchSnapshot();
         });
 
         it('translates rich Adaptive Cards (columns, image, action set)', () => {
-            expect(translatePostProps({cards: [...ADAPTIVE_CARDS_COMPLEX]})).toMatchSnapshot();
+            expect(translatePostProps({cards: [...ADAPTIVE_CARDS_COMPLEX]}, mockIntl)).toMatchSnapshot();
         });
     });
 
@@ -123,40 +129,40 @@ describe('translatePostProps', () => {
             expect(translatePostProps({
                 mm_blocks: 'not-an-array' as unknown,
                 attachments: [{text: 'fallback attachment'}],
-            })).toMatchSnapshot();
+            }, mockIntl)).toMatchSnapshot();
         });
 
         it('does not fall through when mm_blocks is a non-empty array but every entry is invalid', () => {
-            const result = translatePostProps({mm_blocks: [...MALFORMED_MM_BLOCKS_ONLY_INVALID]});
+            const result = translatePostProps({mm_blocks: [...MALFORMED_MM_BLOCKS_ONLY_INVALID]}, mockIntl);
             expect(result).toEqual([]);
             expect(translatePostProps({
                 mm_blocks: [...MALFORMED_MM_BLOCKS_ONLY_INVALID],
                 attachments: [{text: 'ignored because mm_blocks length > 0'}],
-            })).toEqual([]);
+            }, mockIntl)).toEqual([]);
         });
 
         it('keeps valid mm_blocks and drops invalid siblings', () => {
-            expect(translatePostProps({mm_blocks: [...MALFORMED_MM_BLOCKS_MIXED]})).toMatchSnapshot();
+            expect(translatePostProps({mm_blocks: [...MALFORMED_MM_BLOCKS_MIXED]}, mockIntl)).toMatchSnapshot();
         });
 
         it('skips invalid attachment entries and keeps partial attachment content', () => {
-            expect(translatePostProps({attachments: [...MALFORMED_ATTACHMENTS]})).toMatchSnapshot();
+            expect(translatePostProps({attachments: [...MALFORMED_ATTACHMENTS]}, mockIntl)).toMatchSnapshot();
         });
 
         it('returns empty array when every attachment entry is unusable', () => {
-            expect(translatePostProps({attachments: [null, {}, 'x']})).toEqual([]);
+            expect(translatePostProps({attachments: [null, {}, 'x']}, mockIntl)).toEqual([]);
         });
 
         it('skips invalid Block Kit blocks and keeps valid sections', () => {
-            expect(translatePostProps({blocks: [...MALFORMED_BLOCK_KIT]})).toMatchSnapshot();
+            expect(translatePostProps({blocks: [...MALFORMED_BLOCK_KIT]}, mockIntl)).toMatchSnapshot();
         });
 
         it('skips non-AdaptiveCard entries and partial invalid card bodies', () => {
-            expect(translatePostProps({cards: [...MALFORMED_ADAPTIVE_CARDS]})).toMatchSnapshot();
+            expect(translatePostProps({cards: [...MALFORMED_ADAPTIVE_CARDS]}, mockIntl)).toMatchSnapshot();
         });
 
         it('returns empty array when cards array has no translatable AdaptiveCard', () => {
-            expect(translatePostProps({cards: [null, {type: 'NotACard'}]})).toEqual([]);
+            expect(translatePostProps({cards: [null, {type: 'NotACard'}]}, mockIntl)).toEqual([]);
         });
 
         it('treats non-array interactive props as absent for format detection', () => {
@@ -165,7 +171,7 @@ describe('translatePostProps', () => {
                 blocks: null as unknown,
                 cards: undefined,
                 attachments: [{text: 'uses attachments'}],
-            })).toMatchSnapshot();
+            }, mockIntl)).toMatchSnapshot();
         });
     });
 });
@@ -200,7 +206,7 @@ describe('getPostInteractiveIntegrationFormat', () => {
         };
 
         expect(getPostInteractiveIntegrationFormat(allFormats)).toBe('mm_block');
-        expect(translatePostProps(allFormats)).not.toBeNull();
+        expect(translatePostProps(allFormats, mockIntl)).not.toBeNull();
 
         const withoutMmBlocks = {
             blocks: [...BLOCK_KIT_SIMPLE],

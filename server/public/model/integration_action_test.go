@@ -1712,7 +1712,7 @@ func TestPost_PostActionPreserveState(t *testing.T) {
 	})
 }
 
-func TestNormalizePostActionIntegrationContext(t *testing.T) {
+func TestNormalizePostActionIntegrationFormat(t *testing.T) {
 	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat(""))
 	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("  "))
 	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("ATTACHMENT"))

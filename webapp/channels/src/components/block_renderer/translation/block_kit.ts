@@ -10,6 +10,7 @@ import type {
     MmImageSize,
     MmStaticSelectOption,
 } from '@mattermost/types/mm_blocks';
+import {ensureString} from '@mattermost/types/utilities';
 
 import {parseMmButtonStyle} from '../utils/button';
 
@@ -30,8 +31,8 @@ export function translateBlockKit(blocks: unknown[]): MmBlock[] {
 
 function translateBlockKitBlock(
     block: unknown,
-): MmBlock | MmBlock[] | null {
-    if (typeof block !== 'object' || block === null) {
+): MmBlock | null {
+    if (typeof block !== 'object' || !block) {
         return null;
     }
     const b = block as Record<string, unknown>;
@@ -41,17 +42,18 @@ function translateBlockKitBlock(
         return translateBlockKitSection(b);
     }
     case 'header': {
-        const plain = extractBlockKitPlainText(b.text);
+        const plain = extractBlockKitTextContent(b.text);
         if (!plain) {
             return null;
         }
         return {type: 'text', text: `# ${plain}`};
     }
     case 'markdown': {
-        if (typeof b.text !== 'string' || !b.text.trim()) {
+        const text = ensureString(b.text);
+        if (!text.trim()) {
             return null;
         }
-        return {type: 'text', text: b.text};
+        return {type: 'text', text};
     }
     case 'divider':
         return {type: 'divider'};
@@ -68,44 +70,57 @@ function translateBlockKitBlock(
 
 function translateBlockKitSection(
     b: Record<string, unknown>,
-): MmBlock | MmBlock[] {
+): MmContainerBlock | null {
     const textContent = extractBlockKitTextContent(b.text);
-    const accessory = b.accessory as Record<string, unknown> | undefined;
+    const accessory = b.accessory;
     const fieldBlocks = sectionFieldsToMmBlocks(b.fields);
 
-    let main: MmBlock | null = null;
+    if (!textContent && !fieldBlocks.length) {
+        return null;
+    }
 
-    if (accessory && textContent !== null) {
-        const textColumn: MmColumnBlock = {
+    const content: MmBlock[] = [];
+
+    let accessoryColumn;
+    if (accessory) {
+        const accessoryBlock = translateBlockKitAccessory(accessory);
+        if (accessoryBlock) {
+            accessoryColumn = {
+                type: 'column' as const,
+                width: 'auto' as const,
+                items: [accessoryBlock],
+            };
+        }
+    }
+
+    if (accessoryColumn) {
+        const mainColumn: MmColumnBlock = {
             type: 'column',
             width: 'stretch',
-            items: [{type: 'text', text: textContent}],
+            items: [],
         };
-        const accessoryBlock = translateBlockKitAccessory(accessory);
-        const accessoryColumn: MmColumnBlock = {
-            type: 'column',
-            width: 'auto',
-            items: accessoryBlock ? [accessoryBlock] : [],
-        };
-        if (accessoryColumn.items.length === 0) {
-            main = {type: 'text', text: textContent};
-        } else {
-            main = {type: 'column_set', columns: [textColumn, accessoryColumn]};
+        if (textContent) {
+            mainColumn.items.push({type: 'text', text: textContent});
         }
-    } else if (textContent !== null) {
-        main = {type: 'text', text: textContent};
+        mainColumn.items.push(...fieldBlocks);
+        if (mainColumn.items.length > 0) {
+            content.push({type: 'column_set', columns: [mainColumn, accessoryColumn]});
+        }
+    } else {
+        if (textContent) {
+            content.push({type: 'text', text: textContent});
+        }
+        content.push(...fieldBlocks);
     }
 
-    if (main && fieldBlocks.length > 0) {
-        return [main, ...fieldBlocks];
+    if (content.length === 0) {
+        return null;
     }
-    if (main) {
-        return main;
-    }
-    if (fieldBlocks.length > 0) {
-        return fieldBlocks;
-    }
-    return [];
+
+    return {
+        type: 'container',
+        content,
+    };
 }
 
 /**
@@ -119,7 +134,7 @@ function sectionFieldsToMmBlocks(fields: unknown): MmBlock[] {
     const texts: string[] = [];
     for (const field of fields) {
         const content = extractBlockKitTextContent(field);
-        if (content !== null) {
+        if (content) {
             texts.push(content);
         }
     }
@@ -129,9 +144,7 @@ function sectionFieldsToMmBlocks(fields: unknown): MmBlock[] {
     const out: MmBlock[] = [];
     let pending: string | null = null;
     for (const content of texts) {
-        if (pending === null) {
-            pending = content;
-        } else {
+        if (pending) {
             const left: MmColumnBlock = {
                 type: 'column',
                 width: 'stretch',
@@ -144,9 +157,11 @@ function sectionFieldsToMmBlocks(fields: unknown): MmBlock[] {
             };
             out.push({type: 'column_set', columns: [left, right]});
             pending = null;
+        } else {
+            pending = content;
         }
     }
-    if (pending !== null) {
+    if (pending) {
         out.push({
             type: 'text',
             text: pending,
@@ -156,22 +171,27 @@ function sectionFieldsToMmBlocks(fields: unknown): MmBlock[] {
 }
 
 function translateBlockKitAccessory(
-    accessory: Record<string, unknown>,
+    accessory: unknown,
 ): MmBlock | null {
-    if (accessory.type === 'button') {
-        const text = extractBlockKitPlainText(accessory.text);
-        if (!text || typeof accessory.action_id !== 'string' || !accessory.action_id) {
+    if (typeof accessory !== 'object' || !accessory) {
+        return null;
+    }
+    const a = accessory as Record<string, unknown>;
+    if (a.type === 'button') {
+        const text = extractBlockKitTextContent(a.text);
+        const actionId = ensureString(a.action_id);
+        if (!text || !actionId) {
             return null;
         }
         return {
             type: 'button',
-            action_id: accessory.action_id,
+            action_id: actionId,
             text,
-            style: parseMmButtonStyle(typeof accessory.style === 'string' ? accessory.style : undefined),
+            style: parseMmButtonStyle(ensureString(a.style)),
         };
     }
-    if (accessory.type === 'image') {
-        return translateBlockKitImagePayload(accessory, 'small');
+    if (a.type === 'image') {
+        return translateBlockKitImagePayload(a, 'small');
     }
     return null;
 }
@@ -181,12 +201,12 @@ function translateBlockKitImagePayload(
     payload: Record<string, unknown>,
     size: MmImageSize,
 ): MmBlock | null {
-    const imageUrl = typeof payload.image_url === 'string' ? payload.image_url : '';
-    const altText = typeof payload.alt_text === 'string' ? payload.alt_text : '';
+    const imageUrl = ensureString(payload.image_url);
+    const altText = ensureString(payload.alt_text);
     if (!imageUrl || !altText) {
         return null;
     }
-    const title = extractBlockKitPlainText(payload.title) ?? undefined;
+    const title = extractBlockKitTextContent(payload.title) || undefined;
     return {
         type: 'image',
         url: imageUrl,
@@ -205,25 +225,27 @@ function translateBlockKitActionRows(elements: unknown): MmContainerBlock | null
         flow: 'horizontal',
         content: [],
     };
-    for (const el of elements) {
-        if (typeof el !== 'object' || el === null) {
+    for (const el of elements as unknown[]) {
+        if (typeof el !== 'object' || !el) {
             continue;
         }
         const e = el as Record<string, unknown>;
         if (e.type === 'button') {
-            const text = extractBlockKitPlainText(e.text);
-            if (!text || typeof e.action_id !== 'string' || !e.action_id) {
+            const text = extractBlockKitTextContent(e.text);
+            const actionId = ensureString(e.action_id);
+            if (!text || !actionId) {
                 continue;
             }
             result.content.push({
                 type: 'button',
-                action_id: e.action_id,
+                action_id: actionId,
                 text,
-                style: parseMmButtonStyle(typeof e.style === 'string' ? e.style : undefined),
+                style: parseMmButtonStyle(ensureString(e.style)),
             });
         } else if (e.type === 'static_select') {
-            const placeholder = extractBlockKitPlainText(e.placeholder);
-            if (!placeholder || typeof e.action_id !== 'string' || !e.action_id) {
+            const placeholder = extractBlockKitTextContent(e.placeholder);
+            const actionId = ensureString(e.action_id);
+            if (!placeholder || !actionId) {
                 continue;
             }
             const options = translateBlockKitSelectOptions(e.options);
@@ -232,7 +254,7 @@ function translateBlockKitActionRows(elements: unknown): MmContainerBlock | null
             }
             result.content.push({
                 type: 'static_select',
-                action_id: e.action_id,
+                action_id: actionId,
                 placeholder,
                 options,
             });
@@ -250,39 +272,27 @@ function translateBlockKitSelectOptions(options: unknown): MmStaticSelectOption[
     }
     const result: MmStaticSelectOption[] = [];
     for (const opt of options) {
-        if (typeof opt !== 'object' || opt === null) {
+        if (typeof opt !== 'object' || !opt) {
             continue;
         }
         const o = opt as Record<string, unknown>;
-        const text = extractBlockKitPlainText(o.text);
-        if (text && typeof o.value === 'string' && o.value) {
-            result.push({text, value: o.value});
+        const text = extractBlockKitTextContent(o.text);
+        const value = ensureString(o.value);
+        if (text && value) {
+            result.push({text, value});
         }
     }
     return result;
 }
 
-function extractBlockKitTextContent(textObj: unknown): string | null {
-    if (typeof textObj !== 'object' || textObj === null) {
-        return null;
+function extractBlockKitTextContent(textObj: unknown): string {
+    if (typeof textObj !== 'object' || !textObj) {
+        return '';
     }
     const t = textObj as Record<string, unknown>;
-    if (typeof t.text === 'string' && t.text) {
-        return t.text;
+    const text = ensureString(t.text);
+    if (text) {
+        return text;
     }
-    return null;
-}
-
-function extractBlockKitPlainText(textObj: unknown): string | null {
-    if (typeof textObj === 'string') {
-        return textObj || null;
-    }
-    if (typeof textObj !== 'object' || textObj === null) {
-        return null;
-    }
-    const t = textObj as Record<string, unknown>;
-    if (typeof t.text === 'string' && t.text) {
-        return t.text;
-    }
-    return null;
+    return '';
 }

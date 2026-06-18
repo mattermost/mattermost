@@ -239,7 +239,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         let mergedImgStyle: CSSProperties | undefined = this.props.style;
         if (conditionalSVGStyleAttribute) {
-            mergedImgStyle = {...this.props.style, ...conditionalSVGStyleAttribute};
+            mergedImgStyle = {...conditionalSVGStyleAttribute, ...this.props.style};
         }
 
         const image = (
