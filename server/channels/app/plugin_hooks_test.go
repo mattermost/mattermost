@@ -2939,7 +2939,7 @@ func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessa
 	}, 30*time.Second, 100*time.Millisecond)
 }
 
-func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string) {
+func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string, requiredHooks ...string) {
 	t.Helper()
 
 	assert.Eventually(t, func() bool {
@@ -2947,8 +2947,30 @@ func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string) {
 		if env == nil || !env.IsActive(pluginID) {
 			return false
 		}
-		_, err := env.HooksForPlugin(pluginID)
-		return err == nil
+		hooks, err := env.HooksForPlugin(pluginID)
+		if err != nil {
+			return false
+		}
+		if len(requiredHooks) == 0 {
+			return true
+		}
+		implemented, err := hooks.Implemented()
+		if err != nil {
+			return false
+		}
+		for _, requiredHook := range requiredHooks {
+			found := false
+			for _, hookName := range implemented {
+				if hookName == requiredHook {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return false
+			}
+		}
+		return true
 	}, 10*time.Second, 50*time.Millisecond, "plugin %q failed to become ready for hooks", pluginID)
 }
 
@@ -3013,7 +3035,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 			TeamId:    th.BasicTeam.Id,
 			Name:      "test_channel_" + model.NewId(),
 			Type:      model.ChannelTypeOpen,
-		}, false)
+		}, true)
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
@@ -3021,7 +3043,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
+		assertPluginReadyForHooks(t, th, pluginID, "UserHasJoinedChannel")
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user2.Id,
@@ -3046,7 +3068,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 			TeamId:    th.BasicTeam.Id,
 			Name:      "test_channel_" + model.NewId(),
 			Type:      model.ChannelTypeOpen,
-		}, false)
+		}, true)
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
@@ -3054,7 +3076,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(user1.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
+		assertPluginReadyForHooks(t, th, pluginID, "UserHasJoinedChannel")
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user1.Id,
