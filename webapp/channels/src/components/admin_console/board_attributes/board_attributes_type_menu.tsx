@@ -12,6 +12,7 @@ import {AccountOutlineIcon, CalendarOutlineIcon, CheckIcon, ChevronDownCircleOut
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType} from '@mattermost/types/properties';
 import type {BoardsPropertyField} from '@mattermost/types/properties_board';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
 
@@ -126,16 +127,19 @@ const getTypeDescriptor = (field: BoardsPropertyField): TypeDescriptor => {
     return TYPE_DESCRIPTOR.text;
 };
 
-// Selectable types are sourced from FieldType; TYPE_DESCRIPTOR below is the
-// allow-list of what the menu actually offers (e.g. multiuser is omitted).
+// The property types Integrated Boards supports. Enumerated explicitly (a
+// deliberate subset of FieldType) so the IDMappedObjects typing on
+// TYPE_DESCRIPTOR forces a descriptor entry for each supported type.
+type TypeID = 'text' | 'select' | 'multiselect' | 'date' | 'user';
+
 type TypeDescriptor = {
-    id: FieldType;
+    id: TypeID;
     fieldType: FieldType;
     icon: ComponentType<IconProps>;
     label: MessageDescriptor;
 };
 
-const TYPE_DESCRIPTOR = {
+const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
     text: {
         id: 'text',
         fieldType: 'text',
@@ -181,7 +185,7 @@ const TYPE_DESCRIPTOR = {
             defaultMessage: 'User',
         }),
     },
-} as const satisfies Record<string, TypeDescriptor>;
+} as const;
 
 const menuInputContainerStyles = css`
     padding: 0 12px;
