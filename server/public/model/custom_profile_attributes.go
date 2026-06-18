@@ -100,6 +100,7 @@ type CustomProfileAttributesSelectOption struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Color string `json:"color"`
+	Rank  *int   `json:"rank,omitempty"`
 }
 
 func (c CustomProfileAttributesSelectOption) GetID() string {
@@ -133,6 +134,12 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 
 	if c.Color != "" && len(c.Color) > CPAOptionColorMaxLength {
 		return fmt.Errorf("color is too long, max length is %d", CPAOptionColorMaxLength)
+	}
+
+	// Rank is optional (select/multiselect options carry none), but when present
+	// it must be a positive integer, matching the field-level option validation.
+	if c.Rank != nil && *c.Rank <= 0 {
+		return fmt.Errorf("rank must be a positive integer, got %d", *c.Rank)
 	}
 
 	return nil
