@@ -24,7 +24,7 @@ export type Props = {
 type LinkParams = {
     postId: string;
     teamName: string;
-}
+};
 
 const getTeamAndPostIdFromLink = (link: string) => {
     const match = matchPath<LinkParams>(link, {path: '/:teamName/pl/:postId'});

@@ -17,8 +17,15 @@ import {Constants} from 'utils/constants';
 
 import './public-private-selector.scss';
 
+export type PluginOptionButtonProps = {
+    id: string;
+    label: React.ReactNode;
+    description: React.ReactNode;
+    icon: React.ReactNode;
+};
+
 type BigButtonSelectorProps = {
-    id: ChannelType;
+    id: string;
     title: string | React.ReactNode;
     description: string | React.ReactNode;
     iconSVG: (props: React.HTMLAttributes<HTMLSpanElement>) => JSX.Element;
@@ -29,7 +36,7 @@ type BigButtonSelectorProps = {
     selected?: boolean;
     disabled?: boolean;
     locked?: boolean;
-    onClick: (id: ChannelType) => void;
+    onClick: (id: string) => void;
 };
 
 const BigButtonSelector = ({
@@ -100,11 +107,12 @@ type ButtonSelectorProps = {
 };
 
 type PublicPrivateSelectorProps = {
-    selected: ChannelType;
+    selected: string;
     className?: string;
     publicButtonProps?: ButtonSelectorProps;
     privateButtonProps?: ButtonSelectorProps;
-    onChange: (selected: ChannelType) => void;
+    pluginOptions?: PluginOptionButtonProps[];
+    onChange: (selected: string) => void;
 };
 
 const PublicPrivateSelector = ({
@@ -130,6 +138,7 @@ const PublicPrivateSelector = ({
         disabled: disabledPrivate,
         locked: lockedPrivate,
     } = {} as ButtonSelectorProps,
+    pluginOptions,
     onChange,
 }: PublicPrivateSelectorProps) => {
     const {formatMessage} = useIntl();
@@ -138,7 +147,7 @@ const PublicPrivateSelector = ({
     const canSelectPrivate = !disabledPrivate && !lockedPrivate;
 
     const handleOnClick = useCallback(
-        (selection: ChannelType) => {
+        (selection: string) => {
             if (
                 selection === selected ||
                 (selection === Constants.OPEN_CHANNEL && !canSelectPublic) ||
@@ -182,6 +191,19 @@ const PublicPrivateSelector = ({
                 locked={lockedPrivate}
                 onClick={handleOnClick}
             />
+            {pluginOptions?.map((option) => (
+                <BigButtonSelector
+                    key={option.id}
+                    id={option.id}
+                    title={option.label}
+                    description={option.description}
+                    iconSVG={({className: cls}) => <span className={cls}>{option.icon}</span>}
+                    selected={selected === option.id}
+                    disabled={false}
+                    locked={false}
+                    onClick={handleOnClick}
+                />
+            ))}
         </div>
     );
 };

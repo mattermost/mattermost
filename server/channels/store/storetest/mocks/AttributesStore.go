@@ -75,6 +75,36 @@ func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID strin
 	return r0, r1
 }
 
+// GetTeamMembersToRemove provides a mock function with given fields: rctx, teamID, opts
+func (_m *AttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	ret := _m.Called(rctx, teamID, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamMembersToRemove")
+	}
+
+	var r0 []*model.TeamMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) ([]*model.TeamMember, error)); ok {
+		return rf(rctx, teamID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.SubjectSearchOptions) []*model.TeamMember); ok {
+		r0 = rf(rctx, teamID, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.SubjectSearchOptions) error); ok {
+		r1 = rf(rctx, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RefreshAttributes provides a mock function with no fields
 func (_m *AttributesStore) RefreshAttributes() error {
 	ret := _m.Called()

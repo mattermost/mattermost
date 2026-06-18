@@ -25,8 +25,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/sas"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
 	"github.com/google/uuid"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -41,11 +44,22 @@ const azureBlockSize = 4 * 1024 * 1024
 // service principal, workload identity, or az login - whichever the host
 // environment provides).
 type AzureFileBackend struct {
-	client     *azblob.Client
-	container  string
-	pathPrefix string
-	timeout    time.Duration
+	client *azblob.Client
+	// sharedKey holds the account credential when authMode is shared key, and is
+	// nil under default credential. GeneratePublicLink needs it to sign a Service
+	// SAS by hand, since GetSASURL does not allow to change the ContentDisposition
+	// if not at the blob level, and the parsing it does of the URL to retrieve
+	// container and blob names does not support custom endpoints.
+	sharedKey      *azblob.SharedKeyCredential
+	authMode       string
+	container      string
+	pathPrefix     string
+	timeout        time.Duration
+	presignExpires time.Duration
+	ssl            bool
 }
+
+var _ FileBackendWithLinkGenerator = (*AzureFileBackend)(nil)
 
 func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error) {
 	if err := settings.CheckMandatoryAzureFields(); err != nil {
@@ -62,23 +76,7 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		return nil, err
 	}
 
-	var clientOptions *azblob.ClientOptions
-	if settings.SkipVerify {
-		// Mirror the S3 backend: when the admin opts into skipping TLS
-		// verification, plumb a custom transport into the SDK so the toggle
-		// actually takes effect for Azure too.
-		clientOptions = &azblob.ClientOptions{
-			ClientOptions: azcore.ClientOptions{
-				Transport: &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-					},
-				},
-			},
-		}
-	}
-
-	client, err := newAzureClient(settings, serviceURL, clientOptions)
+	client, sharedKey, err := newAzureClient(settings, serviceURL, buildAzureClientOptions(settings))
 	if err != nil {
 		return nil, err
 	}
@@ -96,10 +94,14 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 	}
 
 	return &AzureFileBackend{
-		client:     client,
-		container:  settings.AzureContainer,
-		pathPrefix: settings.AzurePathPrefix,
-		timeout:    timeout,
+		client:         client,
+		sharedKey:      sharedKey,
+		authMode:       settings.AzureAuthMode,
+		container:      settings.AzureContainer,
+		pathPrefix:     settings.AzurePathPrefix,
+		timeout:        timeout,
+		presignExpires: time.Duration(settings.AzurePresignExpiresSeconds) * time.Second,
+		ssl:            settings.AzureSSL,
 	}, nil
 }
 
@@ -112,31 +114,69 @@ func (b *AzureFileBackend) DriverName() string {
 // uses NewClient with DefaultAzureCredential, which discovers managed
 // identity, workload identity, service principal env vars, and az login in
 // that order at runtime.
-func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptions *azblob.ClientOptions) (*azblob.Client, error) {
+//
+// The shared-key credential is returned alongside the client when shared-key
+// auth is in use, so callers (GeneratePublicLink in particular) can sign
+// Service SAS tokens without round-tripping to Entra ID. It is nil in the
+// default-credential path; that path obtains a user-delegation credential
+// lazily at link-generation time.
+func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptions *azblob.ClientOptions) (*azblob.Client, *azblob.SharedKeyCredential, error) {
 	switch settings.AzureAuthMode {
 	case model.AzureAuthModeDefaultCredential:
 		cred, err := azidentity.NewDefaultAzureCredential(nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create azure default credential: %w", err)
+			return nil, nil, fmt.Errorf("failed to create azure default credential: %w", err)
 		}
 		client, err := azblob.NewClient(serviceURL, cred, clientOptions)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create azure blob client: %w", err)
+			return nil, nil, fmt.Errorf("failed to create azure blob client: %w", err)
 		}
-		return client, nil
+		return client, nil, nil
 	case model.AzureAuthModeSharedKey:
 		cred, err := azblob.NewSharedKeyCredential(settings.AzureStorageAccount, settings.AzureAccessKey)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create azure shared key credential: %w", err)
+			return nil, nil, fmt.Errorf("failed to create azure shared key credential: %w", err)
 		}
 		client, err := azblob.NewClientWithSharedKeyCredential(serviceURL, cred, clientOptions)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create azure blob client: %w", err)
+			return nil, nil, fmt.Errorf("failed to create azure blob client: %w", err)
 		}
-		return client, nil
+		return client, cred, nil
 	default:
-		return nil, fmt.Errorf("unknown azure auth mode %q", settings.AzureAuthMode)
+		return nil, nil, fmt.Errorf("unknown azure auth mode %q", settings.AzureAuthMode)
 	}
+}
+
+// buildAzureClientOptions selects the HTTP transport for the Azure SDK. The
+// custom cloud routes requests through httpservice's transport, honoring
+// AllowedUntrustedInternalConnections. The commercial and government clouds use
+// a fixed Azure host (which may resolve to a private address under Private
+// Link), so they keep the SDK default transport and only override it to honor
+// SkipVerify, mirroring the S3 backend.
+func buildAzureClientOptions(settings FileBackendSettings) *azblob.ClientOptions {
+	if settings.AzureCloud == model.AzureCloudCustom {
+		return &azblob.ClientOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: &http.Client{
+					Transport: httpservice.NewTransportForInternalConnections(settings.SkipVerify, settings.AllowedUntrustedInternalConnections),
+				},
+			},
+		}
+	}
+
+	if settings.SkipVerify {
+		return &azblob.ClientOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+					},
+				},
+			},
+		}
+	}
+
+	return nil
 }
 
 // buildAzureServiceURL renders the Blob service URL that the SDK signs
@@ -158,8 +198,14 @@ func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptio
 func buildAzureServiceURL(cloud, scheme, account, endpoint string) (string, error) {
 	switch cloud {
 	case model.AzureCloudCommercial, "":
+		if !model.IsValidAzureStorageAccountName(account) {
+			return "", fmt.Errorf("invalid azure storage account name %q", account)
+		}
 		return fmt.Sprintf("%s://%s.blob.core.windows.net/", scheme, account), nil
 	case model.AzureCloudGovernment:
+		if !model.IsValidAzureStorageAccountName(account) {
+			return "", fmt.Errorf("invalid azure storage account name %q", account)
+		}
 		return fmt.Sprintf("%s://%s.blob.core.usgovcloudapi.net/", scheme, account), nil
 	case model.AzureCloudCustom:
 		if endpoint == "" {
@@ -511,6 +557,81 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 		return 0, fmt.Errorf("unable to commit block list for %q: %w", p, err)
 	}
 	return total, nil
+}
+
+// GeneratePublicLink returns a time-limited, read-only URL to the blob at path
+// using a Shared Access Signature. The SAS is auth-mode aware:
+//
+//   - shared-key auth signs a Service SAS in-process with the stored
+//     SharedKeyCredential.
+//   - default-credential auth fetches a user-delegation key from Entra ID
+//     (one round trip per call) and signs a user-delegation SAS with it.
+//
+// This is intended for the export-download flow (App.GeneratePresignURLForExport
+// and the /exportlink slash command). End users never reach this code path.
+func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
+	if b.presignExpires <= 0 {
+		return "", 0, errors.New("azure presign expiration is not configured")
+	}
+
+	prefixed := b.prefix(path)
+
+	// Back-date the start by a small fixed amount to absorb minor clock skew
+	// between this host and Azure, matching the azure-sdk-for-go SAS examples:
+	// https://github.com/Azure/azure-sdk-for-go/blob/65c3b792856d9ad7ce0b59c127ce299358e41a01/sdk/storage/azblob/sas/examples_test.go#L71
+	// https://github.com/Azure/azure-sdk-for-go/blob/65c3b792856d9ad7ce0b59c127ce299358e41a01/sdk/storage/azblob/service/examples_test.go#L315
+	const clockSkew = 10 * time.Second
+	start := time.Now().UTC().Add(-clockSkew)
+	expiry := start.Add(b.presignExpires)
+
+	protocol := sas.ProtocolHTTPSandHTTP
+	if b.ssl {
+		protocol = sas.ProtocolHTTPS
+	}
+
+	values := sas.BlobSignatureValues{
+		Protocol:      protocol,
+		StartTime:     start,
+		ExpiryTime:    expiry,
+		Permissions:   (&sas.BlobPermissions{Read: true}).String(),
+		ContainerName: b.container,
+		BlobName:      prefixed,
+		// Request browsers to download the file instead of rendering it
+		ContentDisposition: "attachment",
+	}
+
+	var (
+		qps sas.QueryParameters
+		err error
+	)
+	switch b.authMode {
+	case model.AzureAuthModeSharedKey:
+		if b.sharedKey == nil {
+			return "", 0, errors.New("shared key credential is unavailable")
+		}
+		qps, err = values.SignWithSharedKey(b.sharedKey)
+		if err != nil {
+			return "", 0, fmt.Errorf("unable to sign service SAS for %q: %w", path, err)
+		}
+	case model.AzureAuthModeDefaultCredential:
+		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel()
+		udc, udcErr := b.client.ServiceClient().GetUserDelegationCredential(ctx, service.KeyInfo{
+			Start:  new(start.Format(sas.TimeFormat)),
+			Expiry: new(expiry.Format(sas.TimeFormat)),
+		}, nil)
+		if udcErr != nil {
+			return "", 0, fmt.Errorf("unable to obtain user delegation key for %q: %w", path, udcErr)
+		}
+		qps, err = values.SignWithUserDelegation(udc)
+		if err != nil {
+			return "", 0, fmt.Errorf("unable to sign user-delegation SAS for %q: %w", path, err)
+		}
+	default:
+		return "", 0, fmt.Errorf("unknown azure auth mode %q", b.authMode)
+	}
+
+	return b.newBlobClient(path).URL() + "?" + qps.Encode(), b.presignExpires, nil
 }
 
 func (b *AzureFileBackend) RemoveFile(p string) error {

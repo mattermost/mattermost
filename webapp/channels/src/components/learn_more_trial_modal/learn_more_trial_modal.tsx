@@ -26,7 +26,7 @@ import StartTrialBtn from './start_trial_btn';
 type Props = {
     onClose?: () => void;
     onExited: () => void;
-}
+};
 
 const LearnMoreTrialModal = (
     {

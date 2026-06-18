@@ -40,7 +40,7 @@ export class TestConfig {
         this.pushNotificationServer = process.env.PW_PUSH_NOTIFICATION_SERVER || 'https://push-test.mattermost.com';
         this.resetBeforeTest = parseBool(process.env.PW_RESET_BEFORE_TEST, false);
         // CI
-        this.isCI = !!process.env.CI;
+        this.isCI = Boolean(process.env.CI);
         // Playwright
         this.headless = parseBool(process.env.PW_HEADLESS, true);
         this.slowMo = parseNumber(process.env.PW_SLOWMO, 0);

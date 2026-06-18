@@ -34,7 +34,7 @@ type Props = PreparingWorkspacePageProps & {
     inferredProtocol: 'http' | 'https' | null;
     isSelfHosted: boolean;
     show: boolean;
-}
+};
 
 const InviteMembers = (props: Props) => {
     const [email, setEmail] = useState('');

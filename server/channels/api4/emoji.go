@@ -48,8 +48,14 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, app.MaxEmojiFileSize)
 	if err := r.ParseMultipartForm(app.MaxEmojiFileSize); err != nil {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.create.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	if imageFiles := r.MultipartForm.File["image"]; len(imageFiles) > 0 && imageFiles[0].Size > app.MaxEmojiFileSize {
+		c.Err = model.NewAppError("createEmoji", "api.emoji.create.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 

@@ -13,7 +13,6 @@ import {verifyPostNextToNewMessageSeparator, switchToChannel} from './helpers';
 
 import {beRead, beUnread} from '@/support/assertions';
 
-
 describe('channel unread posts', () => {
     let testUser;
     let otherUser;

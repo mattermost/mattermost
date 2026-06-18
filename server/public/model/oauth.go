@@ -24,8 +24,9 @@ const (
 // the audience claim against the customer's tenant-specific IntuneScope, ensuring proper
 // tenant isolation.
 type IntuneLoginRequest struct {
-	AccessToken string `json:"access_token"`
-	DeviceId    string `json:"device_id"`
+	AccessToken  string `json:"access_token"`
+	DeviceId     string `json:"device_id"`
+	VoIPDeviceId string `json:"voip_device_id,omitempty"`
 }
 
 type OAuthApp struct {

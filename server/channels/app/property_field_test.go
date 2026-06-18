@@ -628,6 +628,82 @@ func TestDeletePropertyField(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldCacheInvalidation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	newField := func(groupID, name string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+	}
+
+	t.Run("create invalidates the cached group listing", func(t *testing.T) {
+		groupID := registerTestPropertyGroup(t, th)
+
+		_, appErr := th.App.CreatePropertyField(th.Context, newField(groupID, "First Field"), false, "")
+		require.Nil(t, appErr)
+
+		// Populate the cache for this group.
+		fields, appErr := th.App.GetPropertyFieldsForGroup(th.Context, groupID)
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		_, appErr = th.App.CreatePropertyField(th.Context, newField(groupID, "Second Field"), false, "")
+		require.Nil(t, appErr)
+
+		// A stale cache would still return a single field here.
+		fields, appErr = th.App.GetPropertyFieldsForGroup(th.Context, groupID)
+		require.Nil(t, appErr)
+		assert.Len(t, fields, 2)
+	})
+
+	t.Run("update invalidates the cached group listing", func(t *testing.T) {
+		groupID := registerTestPropertyGroup(t, th)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, newField(groupID, "Original Name"), false, "")
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.GetPropertyFieldsForGroup(th.Context, groupID)
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+		require.Equal(t, "Original Name", fields[0].Name)
+
+		created.Name = "Updated Name"
+		_, _, appErr = th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+
+		// A stale cache would still return the original name here.
+		fields, appErr = th.App.GetPropertyFieldsForGroup(th.Context, groupID)
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+		assert.Equal(t, "Updated Name", fields[0].Name)
+	})
+
+	t.Run("delete invalidates the cached group listing", func(t *testing.T) {
+		groupID := registerTestPropertyGroup(t, th)
+
+		created, appErr := th.App.CreatePropertyField(th.Context, newField(groupID, "Field to Delete"), false, "")
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.GetPropertyFieldsForGroup(th.Context, groupID)
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		appErr = th.App.DeletePropertyField(th.Context, groupID, created.ID, false, "")
+		require.Nil(t, appErr)
+
+		// A stale cache would still return the deleted field here.
+		fields, appErr = th.App.GetPropertyFieldsForGroup(th.Context, groupID)
+		require.Nil(t, appErr)
+		assert.Empty(t, fields)
+	})
+}
+
 func TestPropertyFieldBroadcastParams(t *testing.T) {
 	rctx := request.TestContext(t)
 

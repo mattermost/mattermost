@@ -24,7 +24,7 @@ type Props = {
     siteName?: string;
     brandImageUrl?: string;
     enableCustomBrand: boolean;
-}
+};
 
 type State = {
     rememberChecked: boolean;
@@ -33,7 +33,7 @@ type State = {
     nativeLocation: string;
     brandImageError: boolean;
     navigating: boolean;
-}
+};
 
 function safeRedirect(path: string) {
     const url = new URL(path);
@@ -54,7 +54,7 @@ function safeRedirect(path: string) {
     try {
         // Attempt to construct URL from hash (handles both absolute and relative URLs)
         redirectUrl = new URL(hash, baseUrl);
-    } catch (e) {
+    } catch {
         // Invalid hash, return safe default
         return baseUrl.href;
     }

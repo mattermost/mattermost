@@ -200,6 +200,42 @@ Object {
             >
               <h4
                 class="section-min__title"
+                id="channelMentionAutoFollowTitle"
+              >
+                Auto-follow threads on channel-wide mentions
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+                class="color--link style--none section-min__edit"
+                id="channelMentionAutoFollowEdit"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="channelMentionAutoFollowDesc"
+            >
+              On
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="section-min__header"
+            >
+              <h4
+                class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
                 Keywords that trigger notifications
@@ -498,6 +534,42 @@ Object {
             id="emailDesc"
           >
             Email notifications are not enabled
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channelMentionAutoFollowTitle"
+            >
+              Auto-follow threads on channel-wide mentions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+              class="color--link style--none section-min__edit"
+              id="channelMentionAutoFollowEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channelMentionAutoFollowDesc"
+          >
+            On
           </div>
         </div>
         <div
@@ -888,6 +960,42 @@ Object {
             >
               <h4
                 class="section-min__title"
+                id="channelMentionAutoFollowTitle"
+              >
+                Auto-follow threads on channel-wide mentions
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+                class="color--link style--none section-min__edit"
+                id="channelMentionAutoFollowEdit"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="channelMentionAutoFollowDesc"
+            >
+              On
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="section-min__header"
+            >
+              <h4
+                class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
                 Keywords that trigger notifications
@@ -1188,6 +1296,42 @@ Object {
             id="emailDesc"
           >
             Email notifications are not enabled
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channelMentionAutoFollowTitle"
+            >
+              Auto-follow threads on channel-wide mentions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+              class="color--link style--none section-min__edit"
+              id="channelMentionAutoFollowEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channelMentionAutoFollowDesc"
+          >
+            On
           </div>
         </div>
         <div
@@ -1580,6 +1724,42 @@ Object {
             >
               <h4
                 class="section-min__title"
+                id="channelMentionAutoFollowTitle"
+              >
+                Auto-follow threads on channel-wide mentions
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+                class="color--link style--none section-min__edit"
+                id="channelMentionAutoFollowEdit"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="channelMentionAutoFollowDesc"
+            >
+              On
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="section-min__header"
+            >
+              <h4
+                class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
                 Keywords that trigger notifications
@@ -1842,6 +2022,42 @@ Object {
             id="emailDesc"
           >
             Email notifications are not enabled
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channelMentionAutoFollowTitle"
+            >
+              Auto-follow threads on channel-wide mentions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+              class="color--link style--none section-min__edit"
+              id="channelMentionAutoFollowEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channelMentionAutoFollowDesc"
+          >
+            On
           </div>
         </div>
         <div

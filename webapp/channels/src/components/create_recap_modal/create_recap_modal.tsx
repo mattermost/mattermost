@@ -115,7 +115,7 @@ const CreateRecapModal = ({onExited}: Props) => {
             await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
             onExited();
             history.push(`${url}/recaps`);
-        } catch (err) {
+        } catch {
             setError(formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
             setIsSubmitting(false);
         }
