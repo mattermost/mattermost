@@ -135,7 +135,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                             threads: inlineComments as Post[],
                         };
                     }
-                } catch (error) {
+                } catch {
                     // Skip pages that fail to fetch
                 }
                 return null;

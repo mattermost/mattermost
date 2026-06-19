@@ -340,7 +340,7 @@ export async function cleanupOrphanedTestResources(): Promise<void> {
                         // eslint-disable-next-line no-await-in-loop
                         await Client4.deleteChannel(channel.id);
                         orphanedCount.channels++;
-                    } catch (error) {
+                    } catch {
                         console.warn(`[Cleanup] Failed to delete orphaned channel ${channel.name}`);
                     }
                 }
@@ -369,7 +369,7 @@ export async function waitForServer(maxAttempts = 5, delayMs = 1000): Promise<bo
             if (ping.status === 'OK') {
                 return true;
             }
-        } catch (error) {
+        } catch {
             if (i < maxAttempts - 1) {
                 // eslint-disable-next-line no-await-in-loop
                 await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -383,7 +383,7 @@ export async function isServerAvailable(): Promise<boolean> {
     try {
         const ping = await Client4.ping(false);
         return ping.status === 'OK';
-    } catch (error) {
+    } catch {
         return false;
     }
 }

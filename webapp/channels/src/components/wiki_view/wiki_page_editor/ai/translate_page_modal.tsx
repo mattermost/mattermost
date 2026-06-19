@@ -48,7 +48,7 @@ const TranslatePageModal = ({
         try {
             await onTranslate(selectedLanguage);
             onClose();
-        } catch (err) {
+        } catch {
             setError(formatMessage({
                 id: 'translate_page_modal.error.translation_failed',
                 defaultMessage: 'Translation failed. Please try again.',

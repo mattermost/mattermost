@@ -10,9 +10,9 @@ import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 import type {GlobalState} from 'types/store';
 
 export function makeGetFilteredPostIdsForWikiThread(): (
-state: GlobalState,
-pageId: string,
-focusedInlineCommentId: string | null
+    state: GlobalState,
+    pageId: string,
+    focusedInlineCommentId: string | null,
 ) => string[] {
     return createIdsSelector(
         'makeGetFilteredPostIdsForWikiThread',
@@ -106,9 +106,9 @@ export function getPageCommentResolutionInfo(post: Post): {
 }
 
 export function makeGetFilteredCommentsByResolution(): (
-state: GlobalState,
-pageId: string,
-showResolved: boolean
+    state: GlobalState,
+    pageId: string,
+    showResolved: boolean,
 ) => string[] {
     return createIdsSelector(
         'makeGetFilteredCommentsByResolution',

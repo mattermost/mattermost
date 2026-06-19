@@ -73,7 +73,7 @@ const PageDestinationModal = ({
                 if (!cancelled) {
                     setAllPages(pages);
                 }
-            } catch (error) {
+            } catch {
                 if (!cancelled) {
                     setAllPages([]);
                 }

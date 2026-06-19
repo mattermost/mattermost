@@ -25,7 +25,7 @@ export function extractHeadingsFromContent(content: string): Heading[] {
             const headings = extractHeadingsFromTipTapJSON(doc);
             return headings;
         }
-    } catch (e) {
+    } catch {
         // Not JSON, fallback to markdown
     }
 

@@ -98,7 +98,7 @@ const WikiExportSettings: React.FC<Props> = (props: Props) => {
                 f.endsWith('.jsonl') || f.endsWith('.zip'),
             );
             setAvailableImports(wikiImports);
-        } catch (err) {
+        } catch {
             // Failed to load imports - leave empty
             setAvailableImports([]);
         } finally {

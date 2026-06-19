@@ -619,7 +619,7 @@ test(
         //   DOM presence is the right check for this test's intent.
         await expect(
             page
-                .locator('.ThreadItem .icon-file-document-outline, ' + '.ThreadItem [data-testid="wiki-thread-icon"]')
+                .locator('.ThreadItem .icon-file-document-outline, .ThreadItem [data-testid="wiki-thread-icon"]')
                 .first(),
         ).toBeAttached({timeout: ELEMENT_TIMEOUT});
     },

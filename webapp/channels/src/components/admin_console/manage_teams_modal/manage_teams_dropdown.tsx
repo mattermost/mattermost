@@ -19,7 +19,7 @@ type Props = {
     teamMember: TeamMembership;
     onError: (error: JSX.Element) => void;
     onMemberChange: (teamId: string) => void;
-    updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean,) => Promise<ActionResult>;
+    updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
     handleRemoveUserFromTeam: (teamId: string) => void;
 };
 

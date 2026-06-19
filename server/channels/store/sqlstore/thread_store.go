@@ -69,6 +69,17 @@ type SqlThreadStore struct {
 func (s *SqlThreadStore) ClearCaches() {
 }
 
+// channelMembershipPredicate filters out ThreadMemberships whose user is no
+// longer a member of the thread's channel. DM/GM threads have an empty
+// ThreadTeamId and are exempt because their access is intrinsic to the
+// channel members.
+func channelMembershipPredicate() sq.Sqlizer {
+	return sq.Or{
+		sq.Eq{"Threads.ThreadTeamId": ""},
+		sq.Expr("EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.ChannelId = Threads.ChannelId AND ChannelMembers.UserId = ThreadMemberships.UserId)"),
+	}
+}
+
 func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	s := SqlThreadStore{
 		SqlStore: sqlStore,
@@ -132,7 +143,8 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
 		}).
-		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads})
+		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads}).
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -199,7 +211,8 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
-		})
+		}).
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -235,15 +248,13 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 		From("ThreadMemberships").
 		Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
 			"PostsPriority.Priority":      model.PostPriorityUrgent,
-		})
-
-	if teamId != "" || !opts.Deleted {
-		query = query.Join("Threads ON Threads.PostId = ThreadMemberships.PostId")
-	}
+		}).
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -300,7 +311,8 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Eq{"ThreadMemberships.Following": true}).
-		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads})
+		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads}).
+		Where(channelMembershipPredicate())
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -407,6 +419,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 		sq.Eq{"ThreadMemberships.Following": true},
 		sq.Eq{"Threads.ThreadTeamId": teamIDs},
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
+		channelMembershipPredicate(),
 	}
 
 	var eg errgroup.Group

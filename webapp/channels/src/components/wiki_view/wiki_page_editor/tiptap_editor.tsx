@@ -366,7 +366,7 @@ const getInitialContent = (content: string | Record<string, any>) => {
     try {
         const parsed = JSON.parse(content);
         return sanitizeContent(parsed);
-    } catch (e) {
+    } catch {
         return {
             type: 'doc',
             content: [

@@ -490,7 +490,7 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
     // * Verify draft node is indented (indicating child relationship)
     const draftPaddingLeft = await childDraftNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
     const parentPaddingLeft = await updatedParentNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
-    expect(parseInt(draftPaddingLeft)).toBeGreaterThan(parseInt(parentPaddingLeft));
+    expect(parseInt(draftPaddingLeft, 10)).toBeGreaterThan(parseInt(parentPaddingLeft, 10));
 });
 
 /**
@@ -772,7 +772,7 @@ test(
             (el) => window.getComputedStyle(el).paddingLeft,
         );
         const childPadding = await childDraftNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
-        expect(parseInt(childPadding)).toBeGreaterThan(parseInt(parentPadding));
+        expect(parseInt(childPadding, 10)).toBeGreaterThan(parseInt(parentPadding, 10));
 
         // # Click on parent draft to edit it
         await parentDraftNodeAfterChildCreate.click();
@@ -825,7 +825,7 @@ test(
         const childAfterPublishPadding = await childDraftAfterPublish.evaluate(
             (el) => window.getComputedStyle(el).paddingLeft,
         );
-        expect(parseInt(childAfterPublishPadding)).toBeGreaterThan(parseInt(publishedParentPadding));
+        expect(parseInt(childAfterPublishPadding, 10)).toBeGreaterThan(parseInt(publishedParentPadding, 10));
 
         // * Verify there's only ONE parent node (no duplicate published + draft nodes)
         const allParentNodes = hierarchyPanel

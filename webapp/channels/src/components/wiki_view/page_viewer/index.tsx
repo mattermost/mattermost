@@ -79,7 +79,7 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         }
         try {
             return JSON.parse(message);
-        } catch (e) {
+        } catch {
             return {
                 type: 'doc',
                 content: [{type: 'paragraph', content: [{type: 'text', text: message}]}],

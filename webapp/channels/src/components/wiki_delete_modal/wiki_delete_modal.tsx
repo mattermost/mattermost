@@ -35,7 +35,7 @@ function WikiDeleteModal({
         try {
             await onConfirm();
             dispatch(closeModal(ModalIdentifiers.WIKI_DELETE));
-        } catch (error) {
+        } catch {
             setIsDeleting(false);
         }
     }, [onConfirm, dispatch]);

@@ -104,7 +104,7 @@ test.skip('makes page a child via drag-drop', {tag: '@pages'}, async ({pw, share
     });
 
     // Child should have 20px more padding than initial sibling padding (one level deeper)
-    expect(parseInt(childPadding)).toBeGreaterThan(parseInt(initialSiblingPadding));
+    expect(parseInt(childPadding, 10)).toBeGreaterThan(parseInt(initialSiblingPadding, 10));
 });
 
 /**
@@ -152,7 +152,7 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
     });
 
     // * Verify child is indented more than parent
-    expect(parseInt(initialChildPadding)).toBeGreaterThan(parseInt(parentPadding));
+    expect(parseInt(initialChildPadding, 10)).toBeGreaterThan(parseInt(parentPadding, 10));
 
     // # Perform drag-and-drop to move child BETWEEN root pages
     // Get the root page 2 node position

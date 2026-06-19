@@ -768,11 +768,11 @@ export async function waitForWikiViewLoad(page: Page, timeout = WIKI_VIEW_TIMEOU
 
     // Collect browser console errors and page errors for diagnostics.
     // Stored on the Page object so we only attach listeners once per page.
-    type DiagPage = Page & {__wikiViewDiag?: {consoleErrors: string[]; pageErrors: string[]}};
+    type DiagPage = Page & {wikiViewDiag?: {consoleErrors: string[]; pageErrors: string[]}};
     const diagPage = page as DiagPage;
-    if (!diagPage.__wikiViewDiag) {
+    if (!diagPage.wikiViewDiag) {
         const diag = {consoleErrors: [] as string[], pageErrors: [] as string[]};
-        diagPage.__wikiViewDiag = diag;
+        diagPage.wikiViewDiag = diag;
         page.on('console', (msg) => {
             if (msg.type() === 'error') {
                 if (diag.consoleErrors.length >= 50) {
@@ -860,7 +860,7 @@ export async function waitForWikiViewLoad(page: Page, timeout = WIKI_VIEW_TIMEOU
             .catch(() => '<unavailable>');
         const tabPanelHtmlTrimmed = tabPanelHtml.slice(0, 2000);
 
-        const diag = diagPage.__wikiViewDiag ?? {consoleErrors: [], pageErrors: []};
+        const diag = diagPage.wikiViewDiag ?? {consoleErrors: [], pageErrors: []};
         const recentConsoleErrors = diag.consoleErrors.slice(-10).join(' | ');
         const recentPageErrors = diag.pageErrors.slice(-5).join(' | ');
 
@@ -1940,10 +1940,10 @@ export async function verifyWikiDeleted(page: Page, channelName: string) {
     const errorLocator = page.locator("text=/not found|error|doesn't exist/i");
     const isRedirected = page.url().includes(`/channels/${channelName}`) || !page.url().includes('/wiki/');
 
-    if (!isRedirected) {
-        await expect(errorLocator).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    } else {
+    if (isRedirected) {
         expect(isRedirected).toBeTruthy();
+    } else {
+        await expect(errorLocator).toBeVisible({timeout: ELEMENT_TIMEOUT});
     }
 }
 
@@ -2850,7 +2850,7 @@ export async function toggleCommentResolution(page: Page, rhs: Locator): Promise
     // Find the Resolve/Unresolve menu item
     // The menu item has id="resolve_comment_{postId}" or id="unresolve_comment_{postId}"
     const resolveMenuItem = page
-        .locator('[id*="resolve_comment"], ' + '[id*="unresolve_comment"], ' + '[data-testid*="resolve_comment"]')
+        .locator('[id*="resolve_comment"], [id*="unresolve_comment"], [data-testid*="resolve_comment"]')
         .or(page.getByRole('menuitem', {name: /Resolve|Unresolve/i}))
         .first();
     await expect(resolveMenuItem).toBeVisible({timeout: ELEMENT_TIMEOUT});

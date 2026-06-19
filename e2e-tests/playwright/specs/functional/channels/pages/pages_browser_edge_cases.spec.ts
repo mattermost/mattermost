@@ -154,7 +154,9 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
 
     // # Scroll down
     const pageContent = getPageViewerContent(page);
-    await pageContent.evaluate((el) => (el.scrollTop = 1000));
+    await pageContent.evaluate((el) => {
+        el.scrollTop = 1000;
+    });
 
     // Verify we scrolled
     const scrollTopBefore = await pageContent.evaluate((el) => el.scrollTop);

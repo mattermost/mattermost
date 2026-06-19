@@ -41,7 +41,7 @@ export async function fetchMissingPagePosts(threads: UserThreadWithPost[], dispa
                 data: {page: {...post, update_at: 0}, wikiId},
             });
         });
-    } catch (error) {
+    } catch {
         // Failed to fetch page posts
     }
 }

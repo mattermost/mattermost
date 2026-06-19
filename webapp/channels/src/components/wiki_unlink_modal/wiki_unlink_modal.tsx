@@ -46,7 +46,7 @@ function WikiUnlinkModal({
             }
             setIsUnlinking(false);
             dispatch(closeModal(ModalIdentifiers.WIKI_UNLINK));
-        } catch (error) {
+        } catch {
             if (!isMounted()) {
                 return;
             }

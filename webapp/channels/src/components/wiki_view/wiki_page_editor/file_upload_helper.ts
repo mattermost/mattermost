@@ -256,9 +256,9 @@ export function validateMultipleFiles(
     currentFileCount: number,
     intl: IntlShape,
 ): {
-        validFiles: File[];
-        errors: string[];
-    } {
+    validFiles: File[];
+    errors: string[];
+} {
     const uploadsRemaining = Math.max(0, maxFileCount - currentFileCount);
     const validFiles: File[] = [];
     const tooLargeFiles: File[] = [];

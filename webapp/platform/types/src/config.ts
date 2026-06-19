@@ -113,6 +113,7 @@ export type ClientConfig = {
     EnableTutorial: string;
     EnableOnboardingFlow: string;
     EnableUserAccessTokens: string;
+    MaximumPersonalAccessTokenLifetimeDays: string;
     EnableUserCreation: string;
     EnableUserDeactivation: string;
     EnableUserTypingMessages: string;
@@ -128,12 +129,14 @@ export type ClientConfig = {
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
+    FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
+    FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
 
@@ -365,6 +368,7 @@ export type ServiceSettings = {
     EnableMultifactorAuthentication: boolean;
     EnforceMultifactorAuthentication: boolean;
     EnableUserAccessTokens: boolean;
+    MaximumPersonalAccessTokenLifetimeDays: number;
     AllowCorsFrom: string;
     CorsExposedHeaders: string;
     CorsAllowCredentials: boolean;

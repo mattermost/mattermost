@@ -53,7 +53,7 @@ function ChannelFilesContent({channelId}: Props) {
                     if (results && results.data && typeof results.data === 'object' && results.data !== null && 'file_infos' in results.data) {
                         setFileResults(results.data.file_infos as Record<string, FileSearchResultItem>);
                     }
-                } catch (error) {
+                } catch {
                     // Failed to fetch channel files - reset to empty state
                     setFileResults({});
                 } finally {

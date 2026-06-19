@@ -418,10 +418,10 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
     const isRedirected = page.url().includes('/channels/' + channel.name) || !page.url().includes('/wiki/');
 
     // Either we see an error message or we're redirected away from wiki
-    if (!isRedirected) {
-        await expect(errorLocator).toBeVisible({timeout: EDITOR_LOAD_WAIT});
-    } else {
+    if (isRedirected) {
         expect(isRedirected).toBeTruthy();
+    } else {
+        await expect(errorLocator).toBeVisible({timeout: EDITOR_LOAD_WAIT});
     }
 });
 

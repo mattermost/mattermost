@@ -47,7 +47,7 @@ export default function MessageWithAdditionalContent({
 
         try {
             plainText = extractPlaintextFromTipTapJSON(post.message) ?? '';
-        } catch (error) {
+        } catch {
             plainText = '';
         }
 

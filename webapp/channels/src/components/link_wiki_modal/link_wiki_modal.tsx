@@ -144,7 +144,7 @@ function LinkWikiModal({
             }
             setIsLinking(false);
             dispatch(closeModal(ModalIdentifiers.WIKI_LINK));
-        } catch (error) {
+        } catch {
             if (!isMounted()) {
                 return;
             }

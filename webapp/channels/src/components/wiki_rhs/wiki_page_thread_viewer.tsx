@@ -116,7 +116,7 @@ const WikiPageThreadViewer = (props: Props) => {
                     }
                     const comments = (result as ActionResult<Post[]>).data || [];
                     setPageComments(comments);
-                } catch (error) {
+                } catch {
                     if (!cancelled) {
                         setPageComments([]);
                     }

@@ -222,10 +222,7 @@ test(
         const currentUrl = user2Page.url();
         const isStillOnPage = currentUrl.includes(createdPage.id);
 
-        if (!isStillOnPage) {
-            // Successfully redirected away from deleted page
-            expect(isStillOnPage).toBe(false);
-        } else {
+        if (isStillOnPage) {
             // May show error message or notification on the page
             // Look for common error indicators
             const errorIndicators = [
@@ -246,6 +243,9 @@ test(
             // At minimum, content should be gone or error shown
             const contentGone = !(await pageViewer.isVisible({timeout: EDITOR_LOAD_WAIT}).catch(() => true));
             expect(errorFound || contentGone).toBe(true);
+        } else {
+            // Successfully redirected away from deleted page
+            expect(isStillOnPage).toBe(false);
         }
 
         await user2Page.close();

@@ -99,7 +99,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
             });
 
             setInlineComments(inline);
-        } catch (error) {
+        } catch {
             setInlineComments([]);
         }
     };

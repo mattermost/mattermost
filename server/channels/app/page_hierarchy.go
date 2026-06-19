@@ -37,7 +37,7 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 
 	a.EnrichPagesWithProperties(rctx, postList)
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -51,7 +51,7 @@ func (a *App) GetPageAncestors(rctx request.CTX, postID string) (*model.PostList
 
 	a.EnrichPagesWithProperties(rctx, postList)
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -71,7 +71,7 @@ func (a *App) GetPageDescendants(rctx request.CTX, postID string) (*model.PostLi
 
 	a.EnrichPagesWithProperties(rctx, postList)
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -85,7 +85,7 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string, offset, limit 
 	}
 
 	a.EnrichPagesWithProperties(rctx, postList)
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
