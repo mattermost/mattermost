@@ -50,7 +50,7 @@ server.post('/post_oauth_message', postOAuthMessage);
 server.listen(port, (err) => {
     if (err) {
         console.error(err);
-        process.exit(1);
+        throw err;
     }
     console.log(`Webhook test server listening on port ${port}!`);
 });
@@ -213,9 +213,9 @@ function postMmBlocksIntegrationUpdate(req, res) {
 
 /** Echoes URL query parameters Mattermost merged onto the integration request (action query + block query). */
 function postMmBlocksIntegrationEchoQuery(req, res) {
-    const entries = Object.keys(req.query || {})
-        .sort()
-        .map((k) => `${k}=${String(req.query[k])}`);
+    const entries = Object.keys(req.query || {}).
+        sort().
+        map((k) => `${k}=${String(req.query[k])}`);
     const summary = entries.join('&');
 
     res.setHeader('Content-Type', 'application/json');
