@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
@@ -895,12 +896,7 @@ func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 }
 
 func isBuiltInRole(roleName string) bool {
-	for _, builtInRoleID := range BuiltInSchemeManagedRoleIDs {
-		if roleName == builtInRoleID {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(BuiltInSchemeManagedRoleIDs, roleName)
 }
 
 func MakeDefaultRoles() map[string]*Role {
