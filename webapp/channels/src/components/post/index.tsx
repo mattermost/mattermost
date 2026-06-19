@@ -6,6 +6,7 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
@@ -39,6 +40,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
+import {isPageInlineComment, isPagePost} from 'utils/page_utils';
 import {isPopoutWindow} from 'utils/popouts/popout_windows';
 import {areConsecutivePostsBySameUser, canDeletePost, getPostTranslation, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
@@ -65,6 +67,11 @@ function isFirstReply(post: Post, previousPost?: Post | null): boolean {
         }
 
         // The previous post is not a real post
+        return true;
+    }
+
+    // Inline comments don't have root_id but should still show "Commented on" context
+    if (isPageInlineComment(post)) {
         return true;
     }
 
@@ -124,9 +131,23 @@ function makeMapStateToProps() {
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
         const permissionPoliciesEnabled = isPermissionPoliciesEnabled(state);
-        const channel = state.entities.channels.channels[post.channel_id];
+        let channel = state.entities.channels.channels[post.channel_id];
         if (!channel) {
-            return null;
+            if (!isPagePost(post)) {
+                return null;
+            }
+
+            // Page search results reference the wiki's backing channel, which is intentionally
+            // not loaded into client state (see getMissingChannelsFromPosts). Synthesize a minimal
+            // placeholder so the page still renders as a search result.
+            channel = {
+                id: post.channel_id,
+                team_id: getCurrentTeam(state)?.id ?? '',
+                type: General.OPEN_CHANNEL,
+                display_name: '',
+                name: '',
+                delete_at: 0,
+            } as Channel;
         }
         const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
 
@@ -155,7 +176,7 @@ function makeMapStateToProps() {
 
         const currentTeam = getCurrentTeam(state);
         const team = getTeam(state, channel.team_id);
-        let teamName = currentTeam?.name;
+        let teamName = team?.name || currentTeam?.name;
         let teamDisplayName;
 
         const memberships = getTeamMemberships(state);

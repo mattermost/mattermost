@@ -661,6 +661,43 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 	})
 }
 
+func TestSearchFilesIncludesPageAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.EnableSearching = false
+	})
+
+	searchTerm := "pageattach" + model.NewId()[:8]
+
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "File Page", "", "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	// A wiki-page attachment is uploaded with an empty PostId; the page claims it by setting
+	// PageId. ChannelId is one the searching user is a member of so the channel-scope
+	// permission filter admits the result.
+	fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+		CreatorId: th.BasicUser.Id,
+		PostId:    "",
+		ChannelId: th.BasicChannel.Id,
+		Name:      searchTerm,
+		Path:      searchTerm,
+		Extension: "jpg",
+		MimeType:  "image/jpeg",
+	})
+	require.NoError(t, err)
+
+	_, err = th.App.Srv().Store().Page().UpdatePageFileIds(page.Id, "", model.StringArray{fileInfo.Id})
+	require.NoError(t, err)
+
+	results, _, appErr := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 20)
+	require.Nil(t, appErr)
+	require.NotNil(t, results)
+	require.Contains(t, results.FileInfos, fileInfo.Id, "a page-owned file (empty PostId, PageId set) must be returned by file search")
+}
+
 func TestExtractContentFromFileInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 	app := &App{}

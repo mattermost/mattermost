@@ -6,7 +6,6 @@ package oauthgitlab
 import (
 	"bytes"
 	"encoding/json"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -20,7 +19,7 @@ import (
 func TestGitLabUserFromJSON(t *testing.T) {
 	rctx := request.TestContext(t)
 	glu := GitLabUser{
-		Id:       12345,
+		Id:       "12345",
 		Username: "testuser",
 		Login:    "testlogin",
 		Email:    "test@example.com",
@@ -36,7 +35,7 @@ func TestGitLabUserFromJSON(t *testing.T) {
 		userJSON, err := provider.GetUserFromJSON(rctx, bytes.NewReader(b), nil, nil)
 		require.NoError(t, err)
 		// We get AuthData via GetUserFromJSON which calls userFromGitLabUser which calls getAuthData
-		require.Equal(t, strconv.FormatInt(glu.Id, 10), *userJSON.AuthData)
+		require.Equal(t, string(glu.Id), *userJSON.AuthData)
 
 		// Check GetAuthDataFromJSON indirectly by ensuring GetUserFromJSON worked,
 		// as GetAuthDataFromJSON is not directly exported or used elsewhere in a testable way without duplicating logic.
@@ -47,7 +46,7 @@ func TestGitLabUserFromJSON(t *testing.T) {
 		// GetUserFromJSON should return an error because IsValid fails on the empty user
 		_, err := provider.GetUserFromJSON(rctx, strings.NewReader("{}"), nil, nil)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "user id can't be 0")
+		assert.Contains(t, err.Error(), "user id can't be empty")
 	})
 
 	t.Run("invalid json", func(t *testing.T) {
@@ -63,9 +62,9 @@ func TestGitLabUserIsValid(t *testing.T) {
 		isValid     bool
 		expectedErr string
 	}{
-		{"valid user", GitLabUser{Id: 1, Email: "test@example.com"}, true, ""},
-		{"zero id", GitLabUser{Id: 0, Email: "test@example.com"}, false, "user id can't be 0"},
-		{"empty email", GitLabUser{Id: 1, Email: ""}, false, "user e-mail should not be empty"},
+		{"valid user", GitLabUser{Id: "1", Email: "test@example.com"}, true, ""},
+		{"zero id", GitLabUser{Id: "", Email: "test@example.com"}, false, "user id can't be empty"},
+		{"empty email", GitLabUser{Id: "1", Email: ""}, false, "user e-mail should not be empty"},
 	}
 
 	for _, tc := range testCases {
@@ -82,7 +81,7 @@ func TestGitLabUserIsValid(t *testing.T) {
 }
 
 func TestGitLabUserGetAuthData(t *testing.T) {
-	glu := GitLabUser{Id: 98765}
+	glu := GitLabUser{Id: "98765"}
 	assert.Equal(t, "98765", glu.getAuthData())
 }
 
@@ -102,7 +101,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username from PreferredUsername when UsePreferredUsername=true",
 			gitlabUser: GitLabUser{
-				Id:                1,
+				Id:                "1",
 				Username:          "gitlab.user",
 				Login:             "gitlab.login",
 				Email:             "test@example.com",
@@ -119,7 +118,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username from Username when UsePreferredUsername=false even if PreferredUsername exists",
 			gitlabUser: GitLabUser{
-				Id:                2,
+				Id:                "2",
 				Username:          "gitlab.user",
 				Login:             "gitlab.login",
 				Email:             "test2@example.com",
@@ -136,7 +135,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username from Username when PreferredUsername is empty and UsePreferredUsername=true",
 			gitlabUser: GitLabUser{
-				Id:                3,
+				Id:                "3",
 				Username:          "gitlab.user.only",
 				Login:             "gitlab.login",
 				Email:             "test3@example.com",
@@ -153,7 +152,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username from PreferredUsername when Username is empty and UsePreferredUsername=true",
 			gitlabUser: GitLabUser{
-				Id:                5,
+				Id:                "5",
 				Username:          "",
 				Login:             "gitlab.login.only",
 				Email:             "test5@example.com",
@@ -170,7 +169,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username from Login when Username is empty and UsePreferredUsername=false, even if PreferredUsername exists",
 			gitlabUser: GitLabUser{
-				Id:                6,
+				Id:                "6",
 				Username:          "",
 				Login:             "gitlab.login.only.again",
 				Email:             "test6@example.com",
@@ -187,7 +186,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username from Login when Username and PreferredUsername are empty and UsePreferredUsername=true",
 			gitlabUser: GitLabUser{
-				Id:                7,
+				Id:                "7",
 				Username:          "",
 				Login:             "the.login",
 				Email:             "test7@example.com",
@@ -204,7 +203,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Name splitting: single name",
 			gitlabUser: GitLabUser{
-				Id:       9,
+				Id:       "9",
 				Username: "testuser9",
 				Email:    "test9@example.com",
 				Name:     "Mononym",
@@ -219,7 +218,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Name splitting: multiple last names",
 			gitlabUser: GitLabUser{
-				Id:       10,
+				Id:       "10",
 				Username: "testuser10",
 				Email:    "test10@example.com",
 				Name:     "First Middle Van Der Lastname",
@@ -234,7 +233,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Email lowercasing",
 			gitlabUser: GitLabUser{
-				Id:       11,
+				Id:       "11",
 				Username: "testuser11",
 				Email:    "TEST11@EXAMPLE.COM",
 				Name:     "Test User",
@@ -249,7 +248,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username needing cleaning when UsePreferredUsername=true",
 			gitlabUser: GitLabUser{
-				Id:                12,
+				Id:                "12",
 				Username:          "gitlab.user",
 				Login:             "gitlab.login",
 				Email:             "test12@example.com",
@@ -266,7 +265,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Username needing cleaning when UsePreferredUsername=false",
 			gitlabUser: GitLabUser{
-				Id:                13,
+				Id:                "13",
 				Username:          "gitlab@@user!!",
 				Login:             "gitlab.login",
 				Email:             "test13@example.com",
@@ -283,7 +282,7 @@ func TestUserFromGitLabUser(t *testing.T) {
 		{
 			description: "Login needing cleaning when UsePreferredUsername=false and Username is empty",
 			gitlabUser: GitLabUser{
-				Id:                14,
+				Id:                "14",
 				Username:          "",
 				Login:             "gitlab@@login!!",
 				Email:             "test14@example.com",

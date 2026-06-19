@@ -4,6 +4,10 @@
 $sidebarHeightTransitionDuration: 0.18s;
 $sidebarOpacityAnimationDuration: 0.15s;
 
+body.lhs-desktop-collapsed #SidebarContainer {
+    display: none;
+}
+
 #SidebarContainer {
     position: relative;
     z-index: 16;

@@ -28,6 +28,7 @@ import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMembershi
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
+import {clearOptimisticMutations} from 'actions/pages';
 import {handleNewPost} from 'actions/post_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
@@ -273,6 +274,8 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
     if (userAction) {
         LocalStorageStore.setWasLoggedIn(false);
     }
+
+    clearOptimisticMutations();
 
     dispatch(logout()).then(() => {
         if (shouldSignalLogout) {

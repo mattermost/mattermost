@@ -12,10 +12,18 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// resolveValueBroadcastParams accepts either a PropertyFieldObjectType* or PropertyValueTargetType*
+// string — both constant sets share the same string values ("post", "page", etc.) intentionally.
 func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID string) (teamID, channelID string, err *model.AppError) {
 	switch objectType {
 	case model.PropertyFieldObjectTypePost:
 		post, appErr := a.GetSinglePost(rctx, targetID, false)
+		if appErr != nil {
+			return "", "", appErr
+		}
+		return "", post.ChannelId, nil
+	case model.PropertyFieldObjectTypePage:
+		post, appErr := a.GetPage(rctx, targetID)
 		if appErr != nil {
 			return "", "", appErr
 		}

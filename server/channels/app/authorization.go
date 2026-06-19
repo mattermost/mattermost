@@ -105,7 +105,12 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 
 	channel, appErr := a.GetChannel(rctx, channelID)
 	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-		return false, false
+		// App.GetChannel excludes wiki backing channels (type 'W'); fall back
+		// so wiki page/draft permission checks can resolve against the backing channel.
+		channel, appErr = a.GetWikiBackingChannel(rctx, channelID)
+		if appErr != nil {
+			return false, false
+		}
 	} else if appErr != nil {
 		rctx.Logger().Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(appErr))
 		return false, false
@@ -126,6 +131,8 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 				return true, isMember
 			}
 		}
+	} else {
+		rctx.Logger().Warn("Failed to get channel members", mlog.Err(err))
 	}
 
 	if a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
@@ -133,6 +140,12 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 	}
 
 	if channel.TeamId != "" {
+		if channel.IsWikiBacking() {
+			// Wiki backing channels are excluded from GetAllChannelMembersForUser, so the
+			// standard role-based fallback would grant access to all team members. Use
+			// direct membership + role check instead.
+			return a.hasPermissionToWikiBackingChannel(rctx, session, channelID, permission)
+		}
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission), isMember
 	}
 
@@ -234,6 +247,12 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 		// Original implementation (SessionHasPermissionToChannelByPost) still checks for
 		// general permissions even if the channel is not found, and some tests rely on this behavior.
 		return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
+	}
+
+	// Wiki backing channels have their own permission model accessed through wiki APIs;
+	// the generic post permission path must not authorize reads against them.
+	if channel.Type == model.ChannelTypeWiki {
+		return false, false
 	}
 
 	return a.SessionHasPermissionToReadChannel(rctx, session, channel)
@@ -472,6 +491,11 @@ func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channe
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionReadPublicChannel), false
 	}
 
+	if channel.IsWikiBacking() {
+		_, err := a.GetChannelMember(rctx, channel.Id, userID)
+		return err == nil, err == nil
+	}
+
 	return false, false
 }
 
@@ -675,6 +699,19 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 		}
 		ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionManageChannelRoles)
 		return ok
+	case model.PropertyFieldObjectTypePage:
+		page, appErr := a.GetPage(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up page for property value admin check",
+				mlog.String("page_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		ok, _ := a.HasPermissionToChannel(rctx, userID, page.ChannelId, model.PermissionManageChannelRoles)
+		return ok
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,
 		model.PropertyFieldObjectTypeTemplate:
@@ -707,6 +744,19 @@ func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, 
 			return false
 		}
 		ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionReadChannel)
+		return ok
+	case model.PropertyFieldObjectTypePage:
+		page, appErr := a.GetPage(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up page for property value scope check",
+				mlog.String("page_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		ok, _ := a.HasPermissionToChannel(rctx, userID, page.ChannelId, model.PermissionReadChannel)
 		return ok
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,

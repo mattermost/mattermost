@@ -24,6 +24,7 @@ export function fetchPropertyFields(
     return async (dispatch) => {
         let fields: PropertyField[] = [];
         const maxItems = 500;
+        const perPage = 60;
         let fetched = 0;
         let cursorId: string | undefined;
         let cursorCreateAt: number | undefined;
@@ -35,15 +36,17 @@ export function fetchPropertyFields(
                 objectType,
                 targetType,
                 targetId,
-                {cursorId, cursorCreateAt},
+                {cursorId, cursorCreateAt, perPage},
             );
             fields = fields.concat(page);
+            fetched += page.length;
 
-            if (page.length === 0) {
+            // A page smaller than perPage means we've reached the last page;
+            // no need for an extra round-trip to confirm with an empty response.
+            if (page.length < perPage) {
                 break;
             }
 
-            fetched += page.length;
             const last = page[page.length - 1];
             cursorId = last.id;
             cursorCreateAt = last.create_at;

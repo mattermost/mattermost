@@ -35,6 +35,7 @@ const ActionsMenuButton = React.forwardRef<HTMLButtonElement, ActionsMenuButtonP
                 key='more-actions-button'
                 ref={ref}
                 id={buttonId}
+                data-testid='ai-actions-menu'
                 aria-label={formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
                 className={classNames('post-menu__item', {
                     'post-menu__item--active': isMenuOpen,

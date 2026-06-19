@@ -29,6 +29,20 @@ export function cleanUpUrlable(input: string): string {
     return cleaned;
 }
 
+export function getWikiUrl(teamName: string, wikiId: string, pageId?: string, isDraft?: boolean): string {
+    let url = `/${teamName}/wiki/${wikiId}`;
+
+    if (pageId) {
+        url = isDraft ? `${url}/drafts/${pageId}` : `${url}/${pageId}`;
+    }
+
+    return url;
+}
+
+export function getTeamNameFromPath(pathname: string): string {
+    return pathname.split('/')[1];
+}
+
 export function getShortenedURL(url = '', getLength = 27): string {
     if (url.length > 35) {
         const subLength = getLength - 14;
@@ -77,6 +91,10 @@ export function getRelativeChannelURL(teamName: string, channelName: string): st
 }
 
 export function isUrlSafe(url: string): boolean {
+    if (!url) {
+        return false;
+    }
+
     let unescaped: string;
 
     try {

@@ -32,6 +32,12 @@ export default function withErrorBoundary<P>(component: React.ComponentType<P>, 
             };
         }
 
+        componentDidCatch(error: Error, info: React.ErrorInfo) {
+            // Intentional: surface full component stack in browser console so E2E tests can diagnose which component threw.
+            // eslint-disable-next-line no-console
+            console.error('[ErrorBoundary]', displayName, 'threw:', error.message, '\nComponent stack:', info.componentStack, '\nError stack:', error.stack);
+        }
+
         clearError = (e: React.MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();

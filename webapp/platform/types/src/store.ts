@@ -18,7 +18,7 @@ import type {HostedCustomerState} from './hosted_customer';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
-import type {PostsState} from './posts';
+import type {Post, PostsState} from './posts';
 import type {PreferenceType} from './preferences';
 import type {PropertiesState} from './properties';
 import type {Recap} from './recaps';
@@ -27,6 +27,7 @@ import type {
     FilesRequestsStatuses, GeneralRequestsStatuses,
     PostsRequestsStatuses, RolesRequestsStatuses,
     TeamsRequestsStatuses, UsersRequestsStatuses,
+    WikiRequestsStatuses,
 } from './requests';
 import type {Role} from './roles';
 import type {ScheduledPostsState} from './schedule_post';
@@ -37,6 +38,7 @@ import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
 import type {UsersState} from './users';
+import type {Page, WikisState} from './wikis';
 
 export type GlobalState = {
     entities: {
@@ -102,6 +104,23 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
+        pages: {
+            byId: Record<string, Page>;
+            byWiki: Record<string, string[]>;
+            lastPagesInvalidated: Record<string, number>;
+            lastDraftsInvalidated: Record<string, number>;
+            publishedDraftTimestamps: Record<string, number>;
+            deletedDraftTimestamps: Record<string, number>;
+            commentsById: Record<string, Post>;
+            commentsByPageId: Record<string, string[]>;
+        };
+        wikis: WikisState;
+        activeEditors: {
+            byPageId: Record<string, Record<string, {
+                userId: string;
+                lastActivity: number;
+            }>>;
+        };
         properties: PropertiesState;
     };
     errors: any[];
@@ -114,6 +133,7 @@ export type GlobalState = {
         admin: AdminRequestsStatuses;
         files: FilesRequestsStatuses;
         roles: RolesRequestsStatuses;
+        wiki: WikiRequestsStatuses;
     };
     websocket: {
         connected: boolean;

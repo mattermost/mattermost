@@ -154,6 +154,41 @@ describe('posts', () => {
         });
     }
 
+    describe('NON_POST_TYPES filtering (pages)', () => {
+        for (const actionType of [PostTypes.RECEIVED_POST, PostTypes.RECEIVED_NEW_POST]) {
+            it(`should drop page-typed data for ${actionType}`, () => {
+                const state = deepFreeze({
+                    post1: {id: 'post1'},
+                });
+
+                const nextState = reducers.handlePosts(state, {
+                    type: actionType,
+                    data: {id: 'page1', type: 'page', message: 'P'},
+                });
+
+                expect(nextState).toBe(state);
+            });
+        }
+
+        it('should filter page-typed entries out of RECEIVED_POSTS bulk dispatch', () => {
+            const state = deepFreeze({});
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {
+                    order: ['post1', 'page1'],
+                    posts: {
+                        post1: {id: 'post1', type: ''},
+                        page1: {id: 'page1', type: 'page'},
+                    },
+                },
+            });
+
+            expect(nextState).toEqual({post1: {id: 'post1', type: ''}});
+            expect(nextState).not.toHaveProperty('page1');
+        });
+    });
+
     describe('received multiple posts', () => {
         it('should do nothing when post list is empty', () => {
             const state = deepFreeze({

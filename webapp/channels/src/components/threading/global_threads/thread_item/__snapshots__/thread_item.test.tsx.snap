@@ -46,6 +46,7 @@ exports[`components/threading/global_threads/thread_item should report total num
       <div
         class="preview"
         dir="auto"
+        style="height: auto; max-height: none;"
       >
         <span>
           test msg
@@ -130,6 +131,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       <div
         class="preview"
         dir="auto"
+        style="height: auto; max-height: none;"
       >
         <span>
           test msg
@@ -212,6 +214,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       <div
         class="preview"
         dir="auto"
+        style="height: auto; max-height: none;"
       >
         <span>
           test msg

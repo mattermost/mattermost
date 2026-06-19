@@ -50,7 +50,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, rctx, ss) })
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, rctx, ss) })
 	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, rctx, ss) })
-	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, rctx, ss) })
+	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, rctx, ss, s) })
 	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, rctx, ss) })
 	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, rctx, ss) })
 	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, rctx, ss) })
@@ -72,6 +72,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
+	t.Run("PageExclusion", func(t *testing.T) { TestPostStorePageExclusion(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3460,7 +3461,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	require.Len(t, r4.Order, 3, "should have 3 posts")
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4198,7 +4199,7 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 	require.Len(t, r, 0, "Expected 0 post in results. Got %v", len(r))
 }
 
-func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
@@ -4907,7 +4908,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	assert.Equal(t, p1.Message, r1[0].Message)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -4970,7 +4971,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	assert.Equal(t, 1, len(r1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -5046,7 +5047,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	assert.ElementsMatch(t, postIds[:100], exportedPostIds)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 }
 
 func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -518,3 +518,40 @@ const (
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 )
+
+// Wiki Links
+const (
+	AuditEventLinkWikiToChannel     = "linkWikiToChannel"     // link wiki to a channel
+	AuditEventUnlinkWikiFromChannel = "unlinkWikiFromChannel" // unlink wiki from a channel
+)
+
+// Wiki / Pages
+const (
+	AuditEventCreateWiki = "createWiki" // create wiki
+	AuditEventUpdateWiki = "updateWiki" // update wiki properties
+	AuditEventDeleteWiki = "deleteWiki" // delete wiki
+
+	AuditEventCreatePage       = "createPage"       // create page
+	AuditEventUpdatePage       = "updatePage"       // update page content/title
+	AuditEventDeletePage       = "deletePage"       // delete page
+	AuditEventRestorePage      = "restorePage"      // restore previously deleted page
+	AuditEventMovePage         = "movePage"         // move page within hierarchy
+	AuditEventMovePageToWiki   = "movePageToWiki"   // move page across wikis
+	AuditEventDuplicatePage    = "duplicatePage"    // duplicate page
+	AuditEventUpdatePageStatus = "updatePageStatus" // update page workflow status
+
+	AuditEventExtractPageImageText  = "extractPageImageText"  // run AI image extraction on a page
+	AuditEventSummarizeThreadToPage = "summarizeThreadToPage" // run AI thread summarization to a page
+
+	AuditEventCreatePageDraft  = "createPageDraft"  // create page draft
+	AuditEventSavePageDraft    = "savePageDraft"    // upsert page draft
+	AuditEventDeletePageDraft  = "deletePageDraft"  // delete page draft
+	AuditEventMovePageDraft    = "movePageDraft"    // move page draft in hierarchy
+	AuditEventPublishPageDraft = "publishPageDraft" // publish page draft
+
+	AuditEventCreatePageComment      = "createPageComment"      // create page comment
+	AuditEventCreatePageCommentReply = "createPageCommentReply" // create reply to a page comment
+	AuditEventResolvePageComment     = "resolvePageComment"     // resolve page comment
+	AuditEventUnresolvePageComment   = "unresolvePageComment"   // unresolve page comment
+	AuditEventDeletePageComment      = "deletePageComment"      // delete page comment
+)

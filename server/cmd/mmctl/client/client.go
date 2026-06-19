@@ -177,4 +177,12 @@ type Client interface {
 	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	GetPostsForReporting(ctx context.Context, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error)
+
+	// Wiki/Pages methods
+	GetWikisForChannel(ctx context.Context, channelID string) ([]*model.Wiki, *model.Response, error)
+	GetChannelPages(ctx context.Context, channelID string) ([]*model.Page, *model.Response, error)
+	GetChannelPagesWithContent(ctx context.Context, channelID string, includeContent bool) ([]*model.Page, *model.Response, error)
+	GetPage(ctx context.Context, wikiID, pageID string) (*model.Page, *model.Response, error)
+	UpdatePage(ctx context.Context, wikiID, pageID, title, content, searchText string, baseEditAt int64) (*model.Page, *model.Response, error)
+	GetPageComments(ctx context.Context, wikiID, pageID string) ([]*model.Post, *model.Response, error)
 }

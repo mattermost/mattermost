@@ -336,6 +336,25 @@
     }
 }
 
+.search-item__page-indicator {
+    display: flex;
+    align-items: center;
+    padding: 4px 16px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+
+    i {
+        font-size: 14px;
+    }
+
+    span {
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+}
+
 .col__controls {
     position: absolute;
     top: -9px;

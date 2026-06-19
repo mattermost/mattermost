@@ -1,0 +1,712 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {expect, test} from './pages_test_fixture';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createChildPageThroughContextMenu,
+    createTestChannel,
+    buildWikiPageUrl,
+    getHierarchyPanel,
+    getPageViewerContent,
+    getBreadcrumb,
+    getBreadcrumbWikiName,
+    getBreadcrumbLinks,
+    deletePageThroughUI,
+    SHORT_WAIT,
+    ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
+    WEBSOCKET_WAIT,
+    PAGE_LOAD_TIMEOUT,
+    uniqueName,
+    loginAndNavigateToChannel,
+} from './test_helpers';
+
+/**
+ * @objective Verify breadcrumb navigation displays correct page hierarchy
+ */
+test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, uniqueName('Breadcrumb Wiki'));
+
+    // # Create page hierarchy: Grandparent -> Parent -> Child through UI
+    const grandparent = await createPageThroughUI(page, 'Grandparent Page', 'Grandparent content');
+
+    const parent = await createChildPageThroughContextMenu(page, grandparent.id!, 'Parent Page', 'Parent content');
+
+    await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
+
+    // * Verify breadcrumb shows full hierarchy
+    const breadcrumb = getBreadcrumb(page);
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const breadcrumbText = await breadcrumb.textContent();
+
+    // * Verify all ancestors in correct order
+    expect(breadcrumbText).toContain('Grandparent Page');
+    expect(breadcrumbText).toContain('Parent Page');
+    expect(breadcrumbText).toContain('Child Page');
+
+    // * Verify order is correct (Grandparent before Parent before Child)
+    const grandparentIndex = breadcrumbText!.indexOf('Grandparent Page');
+    const parentIndex = breadcrumbText!.indexOf('Parent Page');
+    const childIndex = breadcrumbText!.indexOf('Child Page');
+
+    expect(grandparentIndex).toBeLessThan(parentIndex);
+    expect(parentIndex).toBeLessThan(childIndex);
+
+    // # Click grandparent in breadcrumb
+    const grandparentLink = getBreadcrumbLinks(page).filter({hasText: 'Grandparent Page'}).first();
+    await expect(grandparentLink).toBeVisible();
+    await grandparentLink.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify navigated to grandparent page
+    const currentUrl = page.url();
+    expect(currentUrl).toContain(grandparent.id);
+});
+
+/**
+ * @objective Verify breadcrumb navigation displays correctly through full UI flow
+ */
+test('displays page breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    const wikiName = uniqueName('Breadcrumb Wiki');
+    await createWikiThroughUI(page, wikiName);
+
+    // # Create parent and child pages through UI
+    const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
+    await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
+
+    // * Verify breadcrumb is visible
+    const breadcrumb = getBreadcrumb(page);
+    await expect(breadcrumb).toBeVisible();
+
+    // * Verify breadcrumb contains wiki title
+    await expect(breadcrumb).toContainText(wikiName);
+
+    // * Verify breadcrumb contains parent page
+    await expect(breadcrumb).toContainText('Parent Page');
+
+    // * Verify breadcrumb contains current page
+    await expect(breadcrumb).toContainText('Child Page');
+});
+
+/**
+ * @objective Verify clicking breadcrumb links navigates to correct pages through full UI flow
+ */
+test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    const wikiName = uniqueName('Nav Wiki');
+    await createWikiThroughUI(page, wikiName);
+
+    // # Create parent and child pages through UI
+    const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
+    await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
+
+    // # Click parent page link in breadcrumb
+    const breadcrumb = getBreadcrumb(page);
+    const parentLink = breadcrumb.getByRole('link', {name: 'Parent Page'});
+    await parentLink.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify navigated to parent page
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent).toContainText('Parent content', {timeout: PAGE_LOAD_TIMEOUT});
+
+    // * Verify wiki name is displayed in breadcrumb but not clickable
+    const wikiNameElement = getBreadcrumbWikiName(page);
+    await expect(wikiNameElement).toBeVisible();
+    await expect(wikiNameElement).toContainText(wikiName);
+});
+
+/**
+ * @objective Verify breadcrumb navigation shows correct path for draft
+ */
+test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and parent page through UI
+    await createWikiThroughUI(page, uniqueName('Breadcrumb Wiki'));
+    const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
+
+    // # Create child page draft via context menu
+    await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Draft', 'Child content');
+
+    // * Verify breadcrumb shows parent → draft
+    // Wait for draft to be fully saved and breadcrumb to update
+    await expect(async () => {
+        const breadcrumb = getBreadcrumb(page);
+        const breadcrumbText = await breadcrumb.textContent();
+        expect(breadcrumbText).toContain('Parent Page');
+        expect(breadcrumbText).toMatch(/Child Draft|Untitled/);
+    }).toPass({timeout: HIERARCHY_TIMEOUT});
+});
+
+/**
+ * @objective Verify URL routing correctly navigates to pages
+ */
+test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, uniqueName('URL Routing Wiki'));
+    const testPage = await createPageThroughUI(page, 'URL Test Page', 'URL routing test content');
+
+    // * Verify correct page is displayed
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageContent).toContainText('URL routing test content');
+
+    // * Verify URL is correct
+    const currentUrl = page.url();
+    expect(currentUrl).toContain(wiki.id);
+    expect(currentUrl).toContain(testPage.id);
+
+    // * Verify page title is displayed
+    const pageTitle = page.locator('[data-testid="page-viewer-title"]');
+    await expect(pageTitle).toBeVisible();
+    await expect(pageTitle).toContainText('URL Test Page');
+});
+
+/**
+ * @objective Verify deep links to specific pages work correctly
+ */
+test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, uniqueName('Deep Link Wiki'));
+    const deepLinkPage = await createPageThroughUI(page, 'Deep Link Page', 'Deep link test content');
+
+    // # Construct deep link URL using helper
+    const deepLinkUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, deepLinkPage.id);
+
+    // # Open deep link (simulating external link)
+    await page.goto(deepLinkUrl);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify page loaded correctly
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageContent).toContainText('Deep link test content');
+
+    // * Verify URL matches deep link
+    const currentUrl = page.url();
+    expect(currentUrl).toContain(deepLinkPage.id);
+
+    // * Verify page is accessible (not showing error)
+    const errorMessage = page.locator('text=/error|not found|access denied/i').first();
+    await expect(errorMessage).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+});
+
+/**
+ * @objective Verify browser back/forward navigation works correctly
+ */
+test('maintains page state with browser back and forward buttons', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and 3 pages through UI
+    await createWikiThroughUI(page, uniqueName('Navigation Wiki'));
+    const page1 = await createPageThroughUI(page, 'First Page', 'First page content');
+    const page2 = await createPageThroughUI(page, 'Second Page', 'Second page content');
+    await createPageThroughUI(page, 'Third Page', 'Third page content');
+
+    // # Navigate to page1 using hierarchy panel
+    const hierarchyPanel = getHierarchyPanel(page);
+    const page1Node = hierarchyPanel.getByText('First Page', {exact: true}).first();
+    await page1Node.click();
+
+    // * Verify page1 content
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageContent).toContainText('First page content');
+
+    // # Navigate to page2 using hierarchy panel
+    const page2Node = hierarchyPanel.getByText('Second Page', {exact: true}).first();
+    await page2Node.click();
+
+    // * Verify page2 content
+    await expect(pageContent).toContainText('Second page content', {timeout: ELEMENT_TIMEOUT});
+
+    // # Navigate to page3 using hierarchy panel
+    const page3Node = hierarchyPanel.getByText('Third Page', {exact: true}).first();
+    await page3Node.click();
+
+    // * Verify page3 content
+    await expect(pageContent).toContainText('Third page content', {timeout: ELEMENT_TIMEOUT});
+
+    // # Click browser back button
+    await page.goBack();
+
+    // * Verify back to page2
+    let currentUrl = page.url();
+    expect(currentUrl).toContain(page2.id);
+    await expect(pageContent).toContainText('Second page content', {timeout: ELEMENT_TIMEOUT});
+
+    // # Click browser back button again
+    await page.goBack();
+
+    // * Verify back to page1
+    currentUrl = page.url();
+    expect(currentUrl).toContain(page1.id);
+    await expect(pageContent).toContainText('First page content', {timeout: ELEMENT_TIMEOUT});
+
+    // # Click browser forward button
+    await page.goForward();
+
+    // * Verify forward to page2
+    currentUrl = page.url();
+    expect(currentUrl).toContain(page2.id);
+    await expect(pageContent).toContainText('Second page content', {timeout: ELEMENT_TIMEOUT});
+});
+
+/**
+ * @objective Verify 404 handling for non-existent pages
+ */
+test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, uniqueName('404 Test Wiki'));
+
+    // # Navigate to non-existent page ID
+    const nonExistentPageId = 'nonexistent123456789';
+    await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, nonExistentPageId, channel.id));
+    await page.waitForLoadState('networkidle');
+
+    // * Verify either error message shown OR redirected away from nonexistent page
+    const errorMessage = page.locator('text=/not found|page.*not.*exist|404/i').first();
+    const currentUrl = page.url();
+
+    const isRedirected = !currentUrl.includes(nonExistentPageId);
+
+    // If not redirected, we expect an error message.
+    if (!isRedirected) {
+        await expect(errorMessage).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    }
+});
+
+/**
+ * @objective Verify page refresh preserves current page state
+ */
+test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, uniqueName('Refresh Test Wiki'));
+
+    // # Create page with simple content
+    await createPageThroughUI(page, 'Refresh Test Page', 'Content that should persist after refresh');
+
+    // * Verify page was created and is visible
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('Content that should persist after refresh');
+
+    // # Get current URL before refresh
+    const urlBeforeRefresh = page.url();
+
+    // # Refresh page
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify URL unchanged after refresh
+    const urlAfterRefresh = page.url();
+    expect(urlAfterRefresh).toBe(urlBeforeRefresh);
+
+    // * Verify page content persists after refresh
+    await expect(pageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+    await expect(pageContent).toContainText('Content that should persist after refresh');
+
+    // * Verify page title persists after refresh
+    const pageTitle = page.locator('[data-testid="page-viewer-title"]').first();
+    await expect(pageTitle).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageTitle).toContainText('Refresh Test Page');
+});
+
+/**
+ * @objective Verify fullscreen mode allows toggling and viewing comments
+ */
+test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, uniqueName('Fullscreen Wiki'));
+
+    // # Create page with content
+    await createPageThroughUI(page, 'Fullscreen Test Page', 'This is fullscreen test content');
+
+    // * Verify page is visible
+    const pageContent = getPageViewerContent(page);
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageContent).toContainText('This is fullscreen test content');
+
+    // * Verify hierarchy panel is visible initially
+    const hierarchyPanel = getHierarchyPanel(page);
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click fullscreen button
+    const fullscreenButton = page.locator('[data-testid="wiki-page-fullscreen-button"]');
+    await expect(fullscreenButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await fullscreenButton.click();
+
+    // * Hierarchy panel is hidden in fullscreen — the hamburger button replaces it
+    await expect(hierarchyPanel).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+
+    // * Verify body has fullscreen-mode class
+    await expect(async () => {
+        const bodyClassList = await page.evaluate(() => document.body.className);
+        expect(bodyClassList).toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
+
+    // * Verify page content is still visible
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('This is fullscreen test content');
+
+    // # Toggle comments in fullscreen mode
+    const toggleCommentsButton = page.locator('[data-testid="wiki-page-toggle-comments"]');
+    await expect(toggleCommentsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await toggleCommentsButton.click();
+
+    // * Verify RHS (comments panel) is visible
+    const rhs = page.locator('#sidebar-right, .sidebar-right').first();
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify RHS is positioned correctly in fullscreen
+    await expect(async () => {
+        const rhsBox = await rhs.boundingBox();
+        expect(rhsBox).not.toBeNull();
+        if (rhsBox) {
+            expect(rhsBox.x).toBeGreaterThan(0);
+        }
+    }).toPass({timeout: SHORT_WAIT});
+
+    // # Exit fullscreen using button
+    await fullscreenButton.click();
+
+    // * Verify hierarchy panel is visible again
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify body no longer has fullscreen-mode class
+    await expect(async () => {
+        const bodyClassListAfter = await page.evaluate(() => document.body.className);
+        expect(bodyClassListAfter).not.toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
+
+    // # Test Escape key to exit fullscreen
+    await fullscreenButton.click();
+
+    // * Verify in fullscreen mode
+    await expect(async () => {
+        const bodyClassListFullscreen = await page.evaluate(() => document.body.className);
+        expect(bodyClassListFullscreen).toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
+
+    // # Press Escape key
+    await page.keyboard.press('Escape');
+
+    // * Verify exited fullscreen
+    await expect(async () => {
+        const bodyClassListEscaped = await page.evaluate(() => document.body.className);
+        expect(bodyClassListEscaped).not.toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
+});
+
+/**
+ * @objective Verify clicking page link in Messages channel shows error after page is deleted
+ *
+ * When a page is created/updated, a system notification post appears in the Messages channel
+ * with a link to the page. If the page is deleted, clicking that link should show an error
+ * or redirect, not open the deleted page.
+ */
+test(
+    'shows error when clicking link to deleted page in Messages channel',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki and page through UI
+        await createWikiThroughUI(page, uniqueName('Link Test Wiki'));
+        const pageTitle = 'Page To Delete For Link Test';
+        await createPageThroughUI(page, pageTitle, 'Content for link test');
+
+        // # Navigate to Messages tab to see the system notification post
+        await page.getByRole('tab', {name: 'Messages'}).click();
+        await page.waitForLoadState('networkidle');
+
+        // * Verify the system post about page creation appears in the channel
+        // Message format: "@username created Page Title in the Wiki Name wiki tab"
+        const channelFeed = page.locator('#postListContent');
+        await expect(channelFeed).toContainText(`created ${pageTitle}`, {timeout: HIERARCHY_TIMEOUT});
+
+        // # Find the link to the page in the system notification post
+        const pageLink = channelFeed.locator(`a:has-text("${pageTitle}")`).first();
+        await expect(pageLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Get the page link URL for later verification
+        const pageLinkHref = await pageLink.getAttribute('href');
+        expect(pageLinkHref).toBeTruthy();
+
+        // # Navigate back to wiki page directly via URL to reach the specific page
+        await page.goto(pageLinkHref!);
+        await page.waitForLoadState('networkidle');
+
+        // # Wait for hierarchy panel to load
+        const hierarchyPanel = getHierarchyPanel(page);
+        await expect(hierarchyPanel).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+        // # Delete the page through UI
+        await deletePageThroughUI(page, pageTitle);
+
+        // * Verify page no longer appears in hierarchy
+        await expect(hierarchyPanel).not.toContainText(pageTitle, {timeout: WEBSOCKET_WAIT});
+
+        // # Navigate back to Messages tab
+        await page.getByRole('tab', {name: 'Messages'}).click();
+        await page.waitForLoadState('networkidle');
+
+        // # Click the link to the deleted page in the system notification post
+        const pageLinkAfterDelete = channelFeed.locator(`a:has-text("${pageTitle}")`).first();
+        await expect(pageLinkAfterDelete).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await pageLinkAfterDelete.click();
+        await page.waitForLoadState('networkidle');
+
+        // * Verify either:
+        // 1. Error message shown (page not found, deleted, etc.), OR
+        // 2. Redirected away from the deleted page URL, OR
+        // 3. Not showing the deleted page content
+        const currentUrl = page.url();
+        const errorMessage = page.locator('text=/not found|page.*not.*exist|deleted|404|error/i').first();
+        const deletedPageContent = page.locator('text="Content for link test"').first();
+
+        // The page should NOT display the deleted content
+        const showsDeletedContent = await deletedPageContent.isVisible().catch(() => false);
+        const showsError = await errorMessage.isVisible().catch(() => false);
+        const wasRedirected = pageLinkHref && !currentUrl.includes(pageLinkHref.split('/').pop()!);
+
+        // At least one of these conditions should be true:
+        // - Shows an error message
+        // - Was redirected away from the deleted page
+        // - Does NOT show the deleted page content
+        const handledCorrectly = showsError || wasRedirected || !showsDeletedContent;
+
+        expect(handledCorrectly).toBe(true);
+
+        // If the deleted content is somehow visible, fail with a descriptive message
+        if (showsDeletedContent) {
+            throw new Error(
+                `Bug: Clicking link to deleted page "${pageTitle}" still shows the deleted page content. ` +
+                    'Expected: error message, redirect, or empty state. ' +
+                    `URL: ${currentUrl}`,
+            );
+        }
+    },
+);
+
+/**
+ * @objective Verify a wiki page can be deep-linked without a ?from= channel param.
+ * Regression guard for the scenario where the URL used to embed channelId and a
+ * deep link with no ?from= could force the sidebar onto the page's internal
+ * backing channel (which the user may not be a member of).
+ */
+test('deep-links to a wiki page with no ?from= param', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Deep Link Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki + page through UI so Redux + server state match a real session
+    const wiki = await createWikiThroughUI(page, uniqueName('Deep Link Wiki'));
+    const rootPage = await createPageThroughUI(page, 'Deep Link Page', 'Deep-linked content');
+
+    // # Hard-navigate to the page URL without ?from= (simulates opening a shared link)
+    const deepLinkUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, rootPage.id!);
+    await page.goto(deepLinkUrl);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify the page content loads
+    const viewer = getPageViewerContent(page);
+    await expect(viewer).toContainText('Deep-linked content', {timeout: PAGE_LOAD_TIMEOUT});
+
+    // * Verify URL did NOT get a ?from= silently appended (no channel was force-selected)
+    await expect(page).toHaveURL(new RegExp(`/${team.name}/wiki/${wiki.id}/${rootPage.id}$`));
+});
+
+/**
+ * @objective Bug A2: Verify a control exists to reopen the hierarchy panel in fullscreen mode
+ *
+ * The desired behavior: when fullscreen hides the hierarchy panel, a hamburger/toggle button
+ * should appear so the user can reopen the panel. Currently the button is absent because
+ * wiki_view.tsx:543 does not account for the fullscreen case.
+ *
+ * Fix: change the render condition from `isPanesPanelCollapsed && wikiId` to
+ * `(isPanesPanelCollapsed || isFullscreen) && wikiId` in wiki_view.tsx:543.
+ */
+test('shows hamburger button to reopen tree in fullscreen mode', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and page through UI
+    await createWikiThroughUI(page, uniqueName('Fullscreen Hamburger Wiki'));
+    await createPageThroughUI(page, 'Hamburger Test Page', 'Hamburger test content');
+
+    // # Enter fullscreen
+    const fullscreenButton = page.locator('[data-testid="wiki-page-fullscreen-button"]');
+    await expect(fullscreenButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await fullscreenButton.click();
+
+    // * Verify in fullscreen mode
+    await expect(async () => {
+        const bodyClassList = await page.evaluate(() => document.body.className);
+        expect(bodyClassList).toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
+
+    // * Verify hierarchy panel is hidden in fullscreen (current bug state)
+    const hierarchyPanel = getHierarchyPanel(page);
+    await expect(hierarchyPanel).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+
+    // * Verify a control exists to reopen the hierarchy panel
+    const reopenControl = page.locator('[data-testid="wiki-view-hamburger-button"]').first();
+    await expect(reopenControl).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click the reopen control
+    await reopenControl.click();
+
+    // * Verify hierarchy panel becomes visible after clicking the reopen control
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
+});
+
+/**
+ * @objective Bug A13: Verify that a copied page link navigates to the page, not the channel.
+ *
+ * NOTE: This test will fail until wiki_view.tsx replaces `currentTeam?.name || 'team'` with
+ * `getTeamNameFromPath(location.pathname)`. Currently the copied link may contain the literal
+ * string "team" instead of the actual team name, routing to the channel view instead.
+ */
+test('copied page link navigates to the page not the channel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and page through UI
+    await createWikiThroughUI(page, uniqueName('Copy Link Wiki'));
+    await createPageThroughUI(page, 'Copy Link Page', 'Copy link page content');
+
+    // # Grant clipboard permissions so we can read the copied URL
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    // # Open the page actions menu (3-dot / copy link button)
+    const actionsMenu = page.locator('[data-testid="wiki-page-more-actions"]').first();
+    await expect(actionsMenu).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await actionsMenu.click();
+
+    // # Click the "Copy link" menu item
+    const copyLinkItem = page.locator('[data-testid="page-context-menu-copy-link"]').first();
+    await expect(copyLinkItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await copyLinkItem.click();
+
+    // # Poll the clipboard — copyToClipboard() does not await the
+    // navigator.clipboard.writeText() promise, so the value can lag the click.
+    let copiedUrl = '';
+    await expect
+        .poll(
+            async () => {
+                copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
+                return copiedUrl;
+            },
+            {timeout: ELEMENT_TIMEOUT, message: 'clipboard never received the copied page link'},
+        )
+        .toContain('/wiki/');
+
+    // # Navigate to the copied URL
+    await page.goto(copiedUrl);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify the URL still points at a wiki page
+    expect(page.url()).toContain('/wiki/');
+
+    // * Verify the page content is visible
+    const viewer = getPageViewerContent(page);
+    await expect(viewer).toContainText('Copy link page content', {timeout: PAGE_LOAD_TIMEOUT});
+});
+
+/**
+ * @objective Bug B12: Verify Ctrl+\ (Cmd+\ on Mac) collapses and expands the LHS sidebar
+ * from within the wiki view without being swallowed by the TipTap editor's keydown handler.
+ */
+test(
+    'ctrl+backslash collapses and expands LHS sidebar from within wiki view',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Create a channel and wiki
+        const channelName = uniqueName('sidebar-toggle');
+        const channel = await createTestChannel(adminClient, team.id, channelName);
+
+        const {page: browserPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        const wikiName = uniqueName('sidebar-wiki');
+        await createWikiThroughUI(browserPage, wikiName);
+
+        const pageName = uniqueName('sidebar-page');
+        await createPageThroughUI(browserPage, pageName, 'Sidebar toggle page content');
+
+        // * Assert the LHS sidebar is initially visible
+        const lhsSidebar = browserPage.locator('#SidebarContainer, .sidebar--left, [data-testid="lhs"]').first();
+        await expect(lhsSidebar).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Click inside the wiki editor/viewer area to focus within wiki view
+        const wikiArea = getPageViewerContent(browserPage);
+        await wikiArea.click();
+
+        // # Press Ctrl+\ (Cmd+\ on Mac) to collapse the LHS sidebar
+        const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+        await browserPage.keyboard.press(`${modifier}+\\`);
+        await browserPage.waitForTimeout(SHORT_WAIT);
+
+        // * Assert the LHS sidebar is collapsed (not visible)
+        await expect(lhsSidebar).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Press Ctrl+\ again to expand the LHS sidebar
+        await browserPage.keyboard.press(`${modifier}+\\`);
+        await browserPage.waitForTimeout(SHORT_WAIT);
+
+        // * Assert the LHS sidebar is visible again
+        await expect(lhsSidebar).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    },
+);

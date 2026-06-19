@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -125,15 +124,10 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 		extractContent := job.Data["extract_content"] == "true"
 
-		numWorkers := runtime.NumCPU()
-		if workersStr, ok := job.Data["workers"]; ok {
-			if n, err := strconv.Atoi(workersStr); err == nil && n > 0 {
-				numWorkers = n
-			}
-		}
-
 		// do the actual import.
-		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir)
+		// Using 1 worker to avoid race conditions with thread creation for page comments
+		// TODO: Fix properly by handling thread creation race conditions in CreatePageComment
+		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, 1, model.ExportDataDir)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr

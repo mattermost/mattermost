@@ -127,6 +127,16 @@ var PermissionAddBookmarkPrivateChannel *Permission
 var PermissionEditBookmarkPrivateChannel *Permission
 var PermissionDeleteBookmarkPrivateChannel *Permission
 var PermissionOrderBookmarkPrivateChannel *Permission
+var PermissionCreatePage *Permission
+var PermissionReadPage *Permission
+var PermissionEditPage *Permission
+var PermissionEditOwnPage *Permission
+var PermissionDeleteOwnPage *Permission
+var PermissionDeletePage *Permission
+var PermissionCommentPage *Permission
+var PermissionReadWiki *Permission
+var PermissionDeleteWiki *Permission
+var PermissionAdminWiki *Permission
 var PermissionReadOtherUsersTeams *Permission
 var PermissionEditBrand *Permission
 var PermissionManageSharedChannels *Permission
@@ -181,6 +191,8 @@ var PermissionManagePublicChannelBanner *Permission
 var PermissionManagePrivateChannelBanner *Permission
 var PermissionManageChannelAccessRules *Permission
 var PermissionEditFileAttachment *Permission
+var PermissionCreateWiki *Permission
+var PermissionManageWiki *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -1358,6 +1370,72 @@ func initializePermissions() {
 		"",
 		PermissionScopeChannel,
 	}
+	PermissionCreatePage = &Permission{
+		"create_page",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionReadPage = &Permission{
+		"read_page",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionEditPage = &Permission{
+		"edit_page",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionEditOwnPage = &Permission{
+		"edit_own_page",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionDeleteOwnPage = &Permission{
+		"delete_own_page",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionDeletePage = &Permission{
+		"delete_page",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionCommentPage = &Permission{
+		"comment_page",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionReadWiki = &Permission{
+		"read_wiki",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionDeleteWiki = &Permission{
+		"delete_wiki",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	// PermissionAdminWiki is the wiki-and-pages ACL admin override.
+	// Grants authority to edit the wiki's access list and override per-page
+	// restrictions within that wiki. Mirrors Confluence "Space Admin": one
+	// capability spans both ACL layers because they are the same authority
+	// concept applied at two granularities. Do not introduce a separate
+	// admin_page perm — it would always be granted in lock-step with this one.
+	PermissionAdminWiki = &Permission{
+		"admin_wiki",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
 
 	PermissionManagePublicChannelBanner = &Permission{
 		"manage_public_channel_banner",
@@ -1385,6 +1463,18 @@ func initializePermissions() {
 		"",
 		"",
 		PermissionScopeChannel,
+	}
+	PermissionCreateWiki = &Permission{
+		"create_wiki",
+		"",
+		"",
+		PermissionScopeTeam,
+	}
+	PermissionManageWiki = &Permission{
+		"manage_wiki",
+		"",
+		"",
+		PermissionScopeTeam,
 	}
 
 	PermissionReadOtherUsersTeams = &Permission{
@@ -2600,6 +2690,18 @@ func initializePermissions() {
 		PermissionInviteGuest,
 		PermissionPublicPlaybookCreate,
 		PermissionPrivatePlaybookCreate,
+		PermissionCreateWiki,
+		PermissionManageWiki,
+		PermissionReadWiki,
+		PermissionDeleteWiki,
+		PermissionAdminWiki,
+		PermissionCreatePage,
+		PermissionReadPage,
+		PermissionEditPage,
+		PermissionEditOwnPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
+		PermissionCommentPage,
 	}
 
 	ChannelScopedPermissions := []*Permission{

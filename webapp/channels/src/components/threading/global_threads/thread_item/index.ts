@@ -22,21 +22,25 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const {threadId} = ownProps;
 
+        // Thread roots are always posts (a wiki page-comment thread is rooted on the comment
+        // post, never on the page — a page is not a post and cannot anchor a thread).
         const post = getPost(state, threadId);
+        const thread = getThread(state, threadId);
 
         if (!post) {
             return {};
         }
 
+        const channelId = post.channel_id;
         return {
             post,
-            channel: getChannel(state, post.channel_id),
+            channel: getChannel(state, channelId),
             currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
             displayName: getDisplayName(state, post.user_id, true),
             postsInThread: getPostsForThread(state, post.id),
-            thread: getThread(state, threadId),
+            thread,
             isPostPriorityEnabled: isPostPriorityEnabled(state),
-            isChannelAutotranslated: isMyChannelAutotranslated(state, post.channel_id),
+            isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
         };
     };
 }

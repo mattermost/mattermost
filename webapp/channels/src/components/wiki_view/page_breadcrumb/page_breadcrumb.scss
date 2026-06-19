@@ -1,0 +1,124 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageBreadcrumb {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+
+    &__list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        white-space: nowrap; 
+
+        &:before {
+            position: relative;
+            left: -6px;
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            content: ' / ';
+            font-size: 14px;
+            user-select: none;
+        }
+
+        &:first-child {
+            &:before {
+                content: none;
+            }
+        }
+    }
+
+    .PageBreadcrumb__item--current,
+    a.PageBreadcrumb__link {
+        overflow: hidden;
+        max-width: 300px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-overflow: ellipsis;
+        transition: background 0.15s ease;
+    }
+
+    a.PageBreadcrumb__link {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        text-decoration: none;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:focus {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        &:active {
+            color: var(--link-color);
+        }
+
+        // Explicitly prevent any pseudo-elements from being added
+        &::before,
+        &::after {
+            display: none !important;
+            content: none !important;
+        }
+    }
+
+    // Loading skeleton
+    &__skeleton {
+        display: flex;
+        height: 20px;
+        align-items: center;
+    }
+
+    &__skeleton-segment {
+        height: 16px;
+        border-radius: 4px;
+        animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+
+        &--short {
+            width: 60px;
+        }
+
+        &--medium {
+            width: 100px;
+        }
+
+        &--long {
+            width: 140px;
+        }
+    }
+}
+
+@keyframes skeleton-pulse {
+    from {
+        opacity: 0.4;
+    }
+    to {
+        opacity: 0.7;
+    }
+}
+
+// Basic mobile responsive
+@media screen and (max-width: 768px) {
+    .PageBreadcrumb {
+        &__list {
+            font-size: 13px;
+        }
+
+        &__link,
+        &__current {
+            max-width: 150px;
+        }
+    }
+}

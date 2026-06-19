@@ -68,6 +68,7 @@ type ChannelMember struct {
 	SchemeAdmin             bool      `json:"scheme_admin"`
 	ExplicitRoles           string    `json:"explicit_roles"`
 	AutoTranslationDisabled bool      `json:"autotranslation_disabled"`
+	SourceId                string    `json:"source_id,omitempty"`
 }
 
 func (o *ChannelMember) Auditable() map[string]any {
@@ -88,6 +89,10 @@ func (o *ChannelMember) Auditable() map[string]any {
 		"scheme_admin":         o.SchemeAdmin,
 		"explicit_roles":       o.ExplicitRoles,
 	}
+}
+
+func (o *ChannelMember) IsSynthetic() bool {
+	return o.SourceId != ""
 }
 
 // SanitizeForCurrentUser sanitizes channel member data based on whether

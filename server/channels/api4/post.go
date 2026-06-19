@@ -52,6 +52,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
+
 	api.BaseRoutes.Post.Handle("/reveal", api.APISessionRequired(revealPost)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/burn", api.APISessionRequired(burnPost)).Methods(http.MethodDelete)
 }
@@ -87,6 +88,13 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 
 	postCardTypeCheckWithContext(where, c, post.Type)
 	if c.Err != nil {
+		return
+	}
+
+	// Pages must be created via the wiki API (POST /wikis/{wiki_id}/pages), not via the
+	// generic posts endpoint.  Reject any attempt to smuggle a page through createPost.
+	if app.IsPagePost(post) {
+		c.Err = model.NewAppError(where, "api.post.not_a_post.app_error", nil, "use POST /wikis/{wiki_id}/pages", http.StatusBadRequest)
 		return
 	}
 
@@ -613,6 +621,16 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	postsList, firstInaccessiblePostTime, appErr := c.App.GetPostsByIds(postIDs)
 	if appErr != nil {
+		// GetPostsByIds returns ErrNotFound (→ 404) when zero accessible posts are found —
+		// either all IDs were wiki-filtered or none existed. Both cases are valid empty-list
+		// responses for a "give me what you can access" endpoint: return 200 + [].
+		if appErr.StatusCode == http.StatusNotFound && appErr.Id == "app.post.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "0")
+			if err := json.NewEncoder(w).Encode([]*model.Post{}); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			return
+		}
 		c.Err = appErr
 		return
 	}
@@ -641,6 +659,10 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		hasPermission, isMemberForCurrentPost := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 		if !hasPermission {
+			continue
+		}
+
+		if app.IsPagePost(post) {
 			continue
 		}
 
@@ -674,7 +696,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return
 	}
 
@@ -737,13 +759,48 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
 	if appErr != nil {
-		c.Err = appErr
-		return
+		// GetSinglePost rejects wiki post types (page, page_comment, page_mention) with a 404.
+		// Page comments are deletable through this endpoint, so reload via the wiki-aware getter
+		// and let the switch below route the post by type.
+		wikiPost, wikiErr := c.App.GetPageCommentPost(c.AppContext, c.Params.PostId, includeDeleted)
+		if wikiErr != nil {
+			// A real failure (e.g. a database error) must surface on its own; only a not-found
+			// means the id is neither a regular post nor a wiki post, in which case the original
+			// GetSinglePost 404 is the correct response.
+			if wikiErr.StatusCode != http.StatusNotFound {
+				c.Err = wikiErr
+			} else {
+				c.Err = appErr
+			}
+			return
+		}
+		if !model.IsWikiPostType(wikiPost.Type) {
+			c.Err = appErr
+			return
+		}
+		post = wikiPost
 	}
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
 	switch {
+	case app.IsPagePost(post):
+		c.Err = model.NewAppError("deletePost", "api.post.not_a_post.app_error", nil, "use DELETE /wikis/{wiki_id}/pages/{page_id}", http.StatusNotFound)
+		return
+	case post.Type == model.PostTypePageMention:
+		c.Err = model.NewAppError("deletePost", "api.post.not_a_post.app_error", nil, "use wiki API for page_mention operations", http.StatusNotFound)
+		return
+	case app.IsPageComment(post):
+		if !c.CheckPageCommentPermission(post, app.PageCommentOperationDelete) {
+			return
+		}
+		if delErr := c.App.DeletePageComment(c.AppContext, post, nil, nil); delErr != nil {
+			c.Err = delErr
+			return
+		}
+		auditRec.Success()
+		ReturnStatusOK(w)
+		return
 	case c.AppContext.Session().UserId == post.UserId:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
 			c.SetPermissionError(model.PermissionDeletePost)
@@ -1058,7 +1115,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return
 	}
 
@@ -1178,7 +1235,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return
 	}
 
@@ -1215,7 +1272,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostPatch) bool {
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.SetPostNotFoundError()
+		return false
+	}
+	if app.IsPagePost(originalPost) {
+		c.SetPostNotFoundError()
 		return false
 	}
 	auditRec.AddEventPriorState(originalPost)
@@ -1266,7 +1327,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostNotFoundError()
 		return
 	}
 
@@ -1291,7 +1352,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostNotFoundError()
 		return
 	}
 
@@ -1322,9 +1383,10 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 
 	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.Err = err
 		return
 	}
+
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
@@ -1402,7 +1464,7 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPostNotFoundError()
 		return
 	}
 
@@ -1441,13 +1503,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
-	}
-
-	_, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
-	if err != nil {
-		c.Err = err
+		c.SetPostNotFoundError()
 		return
 	}
 
@@ -1546,15 +1602,15 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId)
-	if !ok {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
-	}
-
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId)
+	if !ok {
+		c.SetPostNotFoundError()
 		return
 	}
 
@@ -1710,6 +1766,33 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
+	// Check if the target post is a page first. GetSinglePost filters out wiki post
+	// types (PostTypePage), so version history items — which share the same type —
+	// would be rejected. We detect pages via GetPage on the current post ID instead.
+	currentPage, pageErr := c.App.GetPage(c.AppContext, c.Params.PostId)
+	if pageErr == nil {
+		// Pages enforce edit permission via the page permission system, not
+		// post-author equality (so any channel member with edit can restore).
+		if !c.CheckPagePermission(currentPage, app.PageOperationEdit) {
+			return
+		}
+		updatedPost, _, restoreErr := c.App.RestorePostVersion(c.AppContext, c.AppContext.Session().UserId, c.Params.PostId, restoreVersionId)
+		if restoreErr != nil {
+			c.Err = restoreErr
+			return
+		}
+		auditRec.Success()
+		auditRec.AddEventResultState(updatedPost)
+		if err := updatedPost.EncodeJSON(w); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+	if pageErr.StatusCode != http.StatusNotFound {
+		c.Err = pageErr
+		return
+	}
 
 	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)
 	if err != nil {

@@ -80,6 +80,16 @@ export type Props = {
     dataTestId?: string;
 
     /**
+     * Optionally set a test ID for the confirm button
+     */
+    confirmButtonTestId?: string;
+
+    /**
+     * Optionally set a test ID for the cancel button
+     */
+    cancelButtonTestId?: string;
+
+    /**
      * Whether to delay activating the focus trap.
      *
      * This is useful for modals with dynamic content that might not be fully
@@ -135,6 +145,8 @@ export const GenericModal: React.FC<Props> = ({
     appendedContent,
     headerButton,
     dataTestId,
+    confirmButtonTestId,
+    cancelButtonTestId,
     delayFocusTrap,
     isStacked = false,
 }) => {
@@ -221,6 +233,7 @@ export const GenericModal: React.FC<Props> = ({
                 })}
                 onClick={handleConfirmCallback}
                 disabled={isConfirmDisabled}
+                data-testid={confirmButtonTestId}
             >
                 {confirmButtonTextContent}
             </Button>
@@ -244,6 +257,7 @@ export const GenericModal: React.FC<Props> = ({
                 type='button'
                 emphasis='tertiary'
                 onClick={handleCancelCallback}
+                data-testid={cancelButtonTestId}
             >
                 {cancelButtonTextContent}
             </Button>

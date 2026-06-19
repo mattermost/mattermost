@@ -361,6 +361,25 @@ func (th *SearchTestHelper) createPost(userID, channelID, message, hashtags, pos
 	return th.Store.Post().Save(th.Context, postModel)
 }
 
+// createWikiPage creates a live Pages-table row in the given channel. searchText is the
+// full-text-indexed content (Title + SearchText are what wiki search matches). wikiID may be
+// empty for a synthetic wiki, or a real wiki id for the wiki: modifier tests.
+func (th *SearchTestHelper) createWikiPage(channelID, wikiID, title, searchText string) (*model.Page, error) {
+	if wikiID == "" {
+		wikiID = model.NewId()
+	}
+	page := &model.Page{
+		WikiId:     wikiID,
+		ChannelId:  channelID,
+		Type:       model.PageTypePage,
+		Title:      title,
+		Body:       searchText,
+		SearchText: searchText,
+		UserId:     th.User.Id,
+	}
+	return th.Store.Page().CreatePage(th.Context, page)
+}
+
 func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, channelID, name, content, extension, mimeType string, createAt, size int64) *model.FileInfo {
 	return &model.FileInfo{
 		CreatorId: creatorID,

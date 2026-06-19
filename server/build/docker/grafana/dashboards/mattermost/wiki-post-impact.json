@@ -1,0 +1,311 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false },
+        "content": "# Post Operations Impact Analysis\n\nComparing post performance **before** (baseline) vs **after** (with wiki load).\n\n- **Blue lines**: Baseline period (shifted forward to overlay)\n- **Orange lines**: Wiki test period\n\n**Key Question**: Does wiki/pages functionality degrade normal post operations?",
+        "mode": "markdown"
+      },
+      "type": "text"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 2 },
+      "id": 101,
+      "panels": [],
+      "title": "📊 HTTP Layer - Overall Impact",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Latency (seconds)", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "s"
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 3 },
+      "id": 1,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_api_time_bucket[1m] offset 619s)) by (le))", "legendFormat": "P99 Baseline (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_api_time_bucket[1m])) by (le))", "legendFormat": "P99 Wiki Test", "range": true, "refId": "B" }
+      ],
+      "title": "HTTP Request Latency P99",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Requests/sec", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "reqps"
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 3 },
+      "id": 2,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "sum(rate(mattermost_http_requests_total[1m] offset 619s))", "legendFormat": "Baseline Requests/sec (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "sum(rate(mattermost_http_requests_total[1m]))", "legendFormat": "Wiki Requests/sec", "range": true, "refId": "B" }
+      ],
+      "title": "HTTP Request Throughput",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 },
+      "id": 102,
+      "panels": [],
+      "title": "🗄️ PostStore - Core Operations (Before vs After)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Latency (seconds)", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "s" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 3,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.Save\"}[1m] offset 619s)) by (le))", "legendFormat": "P99 Baseline (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.Save\"}[1m])) by (le))", "legendFormat": "P99 Wiki Test", "range": true, "refId": "B" }
+      ],
+      "title": "PostStore.Save Latency P99",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Latency (seconds)", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "s" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 4,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.Get\"}[1m] offset 619s)) by (le))", "legendFormat": "P99 Baseline (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.Get\"}[1m])) by (le))", "legendFormat": "P99 Wiki Test", "range": true, "refId": "B" }
+      ],
+      "title": "PostStore.Get Latency P99",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Latency (seconds)", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "s" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "id": 5,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.GetSingle\"}[1m] offset 619s)) by (le))", "legendFormat": "P99 Baseline (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.GetSingle\"}[1m])) by (le))", "legendFormat": "P99 Wiki Test", "range": true, "refId": "B" }
+      ],
+      "title": "PostStore.GetSingle Latency P99",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Latency (seconds)", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "s" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "id": 6,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.GetPosts\"}[1m] offset 619s)) by (le))", "legendFormat": "P99 Baseline (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.GetPosts\"}[1m])) by (le))", "legendFormat": "P99 Wiki Test", "range": true, "refId": "B" }
+      ],
+      "title": "PostStore.GetPosts Latency P99",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "id": 103,
+      "panels": [],
+      "title": "📈 PostStore - Operations Rate (Before vs After)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Operations/sec", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "ops" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 29 },
+      "id": 7,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "sum(rate(mattermost_db_store_time_count{method=\"PostStore.Save\"}[1m] offset 619s))", "legendFormat": "Baseline Save/sec (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "sum(rate(mattermost_db_store_time_count{method=\"PostStore.Save\"}[1m]))", "legendFormat": "Wiki Save/sec", "range": true, "refId": "B" }
+      ],
+      "title": "PostStore.Save Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Operations/sec", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "ops" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 29 },
+      "id": 8,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "sum(rate(mattermost_db_store_time_count{method=~\"PostStore.Get.*\"}[1m] offset 619s))", "legendFormat": "Baseline Get*/sec (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "sum(rate(mattermost_db_store_time_count{method=~\"PostStore.Get.*\"}[1m]))", "legendFormat": "Wiki Get*/sec", "range": true, "refId": "B" }
+      ],
+      "title": "PostStore.Get* Rate (All Get Operations)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 },
+      "id": 104,
+      "panels": [],
+      "title": "🔍 Search & Channel Operations (Before vs After)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Latency (seconds)", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "s" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 38 },
+      "id": 9,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.SearchPostsForUser\"}[1m] offset 619s)) by (le))", "legendFormat": "P99 Baseline (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=\"PostStore.SearchPostsForUser\"}[1m])) by (le))", "legendFormat": "P99 Wiki Test", "range": true, "refId": "B" }
+      ],
+      "title": "PostStore.SearchPostsForUser Latency P99",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Latency (seconds)", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "s" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 38 },
+      "id": 10,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=~\"ChannelStore.*\"}[1m] offset 619s)) by (le))", "legendFormat": "P99 Baseline (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "histogram_quantile(0.99, sum(rate(mattermost_db_store_time_bucket{method=~\"ChannelStore.*\"}[1m])) by (le))", "legendFormat": "P99 Wiki Test", "range": true, "refId": "B" }
+      ],
+      "title": "ChannelStore Operations Latency P99 (All)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 },
+      "id": 105,
+      "panels": [],
+      "title": "💾 System Resources (Before vs After)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Goroutines", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "short" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 47 },
+      "id": 11,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "go_goroutines{job=\"mattermost\"} offset 619s", "legendFormat": "Baseline Goroutines (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "go_goroutines{job=\"mattermost\"}", "legendFormat": "Wiki Goroutines", "range": true, "refId": "B" }
+      ],
+      "title": "Go Goroutines",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Memory", "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "bytes" },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*Baseline.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*Wiki.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 47 },
+      "id": 12,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "go_memstats_alloc_bytes{job=\"mattermost\"} offset 619s", "legendFormat": "Baseline Heap Alloc (shifted)", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "editorMode": "code", "expr": "go_memstats_alloc_bytes{job=\"mattermost\"}", "legendFormat": "Wiki Heap Alloc", "range": true, "refId": "B" }
+      ],
+      "title": "Go Memory (Heap Alloc)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["mattermost", "wiki", "pages", "post-impact", "load-test", "comparison"],
+  "templating": { "list": [] },
+  "time": { "from": "2025-12-11T15:08:28Z", "to": "2025-12-11T15:28:53Z" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Wiki Load Test - Post Impact (Before vs After)",
+  "uid": "wiki-post-impact",
+  "version": 1,
+  "weekStart": ""
+}

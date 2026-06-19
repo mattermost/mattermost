@@ -1,0 +1,571 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import type {AnyAction} from 'redux';
+import {batchActions} from 'redux-batched-actions';
+
+import type {Post} from '@mattermost/types/posts';
+import type {BreadcrumbPath, Page, Wiki} from '@mattermost/types/wikis';
+
+import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import {PagePropsKeys} from 'mattermost-redux/constants/pages';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+
+import {logError, LogErrorBarMode} from './errors';
+import {forceLogoutIfNecessary} from './helpers';
+
+// Local type definition (matches types/store/pages.ts)
+// Cannot import from webapp due to mattermost-redux import restrictions
+type InlineAnchor = {
+    anchor_id: string;
+    text: string;
+};
+
+// Wiki CRUD Operations
+
+export function getWiki(wikiId: string): ActionFuncAsync<Wiki> {
+    return async (dispatch, getState) => {
+        try {
+            const wiki = await Client4.getWiki(wikiId);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_WIKI,
+                data: wiki,
+            });
+
+            return {data: wiki};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function getChannelWikis(channelId: string): ActionFuncAsync<Wiki[]> {
+    return async (dispatch, getState) => {
+        try {
+            const wikis = await Client4.getChannelWikis(channelId);
+
+            if (wikis && wikis.length > 0) {
+                dispatch({
+                    type: WikiTypes.RECEIVED_WIKIS,
+                    data: wikis,
+                });
+            }
+
+            return {data: wikis};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function createWiki(teamId: string, channelId: string, title: string): ActionFuncAsync<Wiki> {
+    return async (dispatch, getState) => {
+        let wiki: Wiki | undefined;
+        try {
+            wiki = await Client4.createWiki({
+                team_id: teamId,
+                title,
+            });
+
+            let link;
+            try {
+                link = await Client4.linkWikiToChannel(channelId, wiki.id);
+            } catch (linkError) {
+                try {
+                    await Client4.deleteWiki(wiki.id);
+                } catch {
+                    // best-effort cleanup; ignore secondary failure
+                }
+                throw linkError;
+            }
+
+            dispatch(batchActions([
+                {
+                    type: WikiTypes.RECEIVED_WIKI,
+                    data: wiki,
+                },
+                {
+                    type: WikiTypes.RECEIVED_WIKI_LINK,
+                    data: {channelId, link, wikiId: wiki.id},
+                },
+            ]));
+
+            return {data: wiki};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            return {error};
+        }
+    };
+}
+
+export function updateWiki(wiki: Wiki): ActionFuncAsync<Wiki> {
+    return async (dispatch, getState) => {
+        try {
+            const updatedWiki = await Client4.updateWiki(wiki);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_WIKI,
+                data: updatedWiki,
+            });
+
+            return {data: updatedWiki};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function deleteWiki(wikiId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.deleteWiki(wikiId);
+
+            dispatch({
+                type: WikiTypes.DELETED_WIKI,
+                data: {wikiId},
+            });
+
+            return {data: true};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            return {error};
+        }
+    };
+}
+
+// Page Operations
+
+export function getPages(wikiId: string, page: number, perPage: number): ActionFuncAsync<Page[]> {
+    return async (dispatch, getState) => {
+        dispatch({type: WikiTypes.GET_PAGES_REQUEST, data: {wikiId}});
+
+        try {
+            const pages = await Client4.getPages(wikiId, page, perPage);
+
+            // RECEIVED_PAGES is the single "pages loaded" signal: it populates
+            // entities.pages (byId + byWiki) AND clears the loading flag in
+            // requests/wiki.ts. Always dispatch so byWiki[wikiId] is populated
+            // even for empty wikis — otherwise arePagesLoaded stays false and
+            // callers refetch in a loop. The reducer preserves any non-empty
+            // message already in state so list endpoints (which return pages
+            // without TipTap content) don't clobber it.
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {wikiId, pages: pages || []},
+            });
+
+            return {data: pages};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: WikiTypes.GET_PAGES_FAILURE, data: {wikiId, error}});
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function getChannelPages(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            const pages: Page[] = await Client4.getChannelPages(channelId);
+
+            // Group by wikiId so the reducer sees one RECEIVED_PAGES per wiki
+            // instead of N individual RECEIVED_PAGE actions (one re-render each).
+            const pagesByWiki: Record<string, Page[]> = {};
+            for (const page of pages) {
+                const wikiId = page.wiki_id;
+                if (wikiId) {
+                    if (!pagesByWiki[wikiId]) {
+                        pagesByWiki[wikiId] = [];
+                    }
+                    pagesByWiki[wikiId].push(page);
+                } else {
+                    // Channel pages should always carry wiki_id; log so a server-side
+                    // schema regression doesn't silently orphan pages in byId.
+                    // eslint-disable-next-line no-console
+                    console.warn('getChannelPages: page missing wiki_id', page.id);
+                }
+            }
+            const groupActions: AnyAction[] = Object.entries(pagesByWiki).map(([wikiId, wikiPages]) => ({
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {wikiId, pages: wikiPages},
+            }));
+            if (groupActions.length > 0) {
+                dispatch(batchActions(groupActions));
+            }
+
+            return {data: pages};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function getPage(wikiId: string, pageId: string): ActionFuncAsync<Page> {
+    return async (dispatch, getState) => {
+        try {
+            const data = await Client4.getPage(wikiId, pageId);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId},
+            });
+
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function getChannelDefaultWikiPage(channelId: string): ActionFuncAsync<Page> {
+    return async (dispatch, getState) => {
+        try {
+            const data = await Client4.getChannelDefaultWikiPage(channelId);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId: data.wiki_id},
+            });
+
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function deletePage(wikiId: string, pageId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.deletePage(wikiId, pageId);
+
+            dispatch(batchActions([
+                {type: WikiTypes.DELETED_PAGE, data: {id: pageId, wikiId}},
+                {type: PostActionTypes.POST_REMOVED, data: {id: pageId, root_id: ''}},
+            ]));
+
+            return {data: true};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// movePageParent changes the parent of a page without reordering.
+// Use movePageInHierarchy from actions/pages.ts for drag-and-drop with optimistic updates.
+export function movePageParent(wikiId: string, pageId: string, newParentId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.movePage(wikiId, pageId, newParentId);
+            const updatedPage = await Client4.getPage(wikiId, pageId);
+            dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page: updatedPage, wikiId}});
+            return {data: true};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function movePageToWiki(sourceWikiId: string, pageId: string, targetWikiId: string, parentPageId?: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
+            const updatedPage = await Client4.getPage(targetWikiId, pageId);
+            dispatch({type: WikiTypes.REMOVED_PAGE_FROM_WIKI, data: {pageId, wikiId: sourceWikiId}});
+            dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page: updatedPage, wikiId: targetWikiId}});
+            return {data: true};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function duplicatePage(wikiId: string, pageId: string, targetWikiId?: string, parentPageId?: string): ActionFuncAsync<Page> {
+    return async (dispatch, getState) => {
+        try {
+            const duplicatedPage = await Client4.duplicatePage(wikiId, pageId, targetWikiId || wikiId, parentPageId);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: duplicatedPage, wikiId: targetWikiId || wikiId},
+            });
+
+            return {data: duplicatedPage};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            return {error};
+        }
+    };
+}
+
+// Page Comments
+
+export function getPageComments(wikiId: string, pageId: string): ActionFuncAsync<Post[]> {
+    return async (dispatch, getState) => {
+        try {
+            const comments = await Client4.getPageComments(wikiId, pageId);
+
+            if (comments && comments.length > 0) {
+                const postsById = comments.reduce((acc: Record<string, Post>, comment: Post) => {
+                    acc[comment.id] = comment;
+                    return acc;
+                }, {});
+
+                dispatch({
+                    type: PostActionTypes.RECEIVED_POSTS,
+                    data: {
+                        posts: postsById,
+                    },
+                });
+            }
+
+            return {data: comments};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function createPageComment(wikiId: string, pageId: string, message: string, inlineAnchor?: InlineAnchor): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        if (!message || message.trim() === '') {
+            const err = new Error('Comment message cannot be empty');
+            dispatch(logError(err));
+            return {error: err};
+        }
+
+        try {
+            const comment = await Client4.createPageComment(wikiId, pageId, message, inlineAnchor);
+            return {data: comment};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function createPageCommentReply(wikiId: string, pageId: string, parentCommentId: string, message: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        if (!message || message.trim() === '') {
+            const err = new Error('Reply message cannot be empty');
+            dispatch(logError(err));
+            return {error: err};
+        }
+
+        try {
+            const reply = await Client4.createPageCommentReply(wikiId, pageId, parentCommentId, message);
+            return {data: reply};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function resolvePageComment(wikiId: string, pageId: string, commentId: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const resolvedComment = await Client4.resolvePageComment(wikiId, pageId, commentId);
+
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data: resolvedComment,
+            });
+
+            return {data: resolvedComment};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function unresolvePageComment(wikiId: string, pageId: string, commentId: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const unresolvedComment = await Client4.unresolvePageComment(wikiId, pageId, commentId);
+
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data: unresolvedComment,
+            });
+
+            return {data: unresolvedComment};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// Page Breadcrumb
+
+export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsync<BreadcrumbPath> {
+    return async (dispatch, getState) => {
+        try {
+            const breadcrumb = await Client4.getPageBreadcrumb(wikiId, pageId);
+            return {data: breadcrumb};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// Page Status
+
+export function updatePageStatus(postId: string, status: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            const state = getState();
+            const post = state.entities.pages.byId[postId];
+            const wikiId = post?.wiki_id;
+            if (!wikiId) {
+                return {error: new Error('updatePageStatus: missing wikiId for page ' + postId)};
+            }
+            await Client4.updatePageStatus(wikiId, postId, status);
+
+            const updatedPost = {
+                ...post,
+                properties: {
+                    ...(post?.properties ?? {}),
+                    [PagePropsKeys.PAGE_STATUS]: status,
+                },
+            };
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: updatedPost, wikiId},
+            });
+
+            return {data: true};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// Page Version History
+
+export function getPageVersionHistory(wikiId: string, pageId: string): ActionFuncAsync<Page[]> {
+    return async (dispatch, getState) => {
+        try {
+            const versionHistory = await Client4.getPageVersionHistory(wikiId, pageId);
+            return {data: versionHistory};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// Page Draft Operations
+
+export function savePageDraft(
+    wikiId: string,
+    pageId: string,
+    content: string,
+    title?: string,
+    lastUpdateAt?: number,
+    additionalProps?: Record<string, unknown>,
+): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            const serverDraft = await Client4.savePageDraft(wikiId, pageId, content, title, lastUpdateAt, additionalProps);
+            return {data: serverDraft};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function getPageDraftsForWiki(wikiId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            const drafts = await Client4.getPageDraftsForWiki(wikiId);
+            return {data: drafts};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function deletePageDraft(wikiId: string, pageId: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.deletePageDraft(wikiId, pageId);
+            return {data: true};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function publishPageDraft(
+    wikiId: string,
+    pageId: string,
+    pageParentId: string,
+    title: string,
+    searchText?: string,
+    message?: string,
+    pageStatus?: string,
+    force?: boolean,
+    baselineEditAt?: number,
+): ActionFuncAsync<Page> {
+    return async (dispatch, getState) => {
+        try {
+            const data = await Client4.publishPageDraft(wikiId, pageId, pageParentId, title, searchText, message, pageStatus, force, baselineEditAt);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId},
+            });
+
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            return {error};
+        }
+    };
+}

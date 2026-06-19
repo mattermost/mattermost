@@ -11,7 +11,7 @@ import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {Draft} from '@mattermost/types/drafts';
+import type {Draft, PageDraft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
 import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
@@ -24,6 +24,7 @@ import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
+import type {Page} from '@mattermost/types/wikis';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
@@ -44,6 +45,7 @@ import {
     PropertyTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
+    WikiTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -115,6 +117,7 @@ import {
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
+import {getPageById, getPageCommentById} from 'mattermost-redux/selectors/entities/pages';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -140,17 +143,21 @@ import {
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
+import {transformPageServerDraft} from 'actions/page_drafts';
+import {fetchPage, fetchWiki} from 'actions/pages';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
-import {setGlobalItem} from 'actions/storage';
+import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
-import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
+import {setGlobalDraft, setGlobalDraftSource, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
+import {fetchWikiBundle} from 'actions/wiki_actions';
 import {getCurrentLocale} from 'selectors/i18n';
+import {makePageDraftKey} from 'selectors/page_drafts';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
@@ -168,12 +175,14 @@ import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
+import {handleActiveEditorDraftUpdated, handleActiveEditorDraftDeleted, handleActiveEditorStopped} from 'hooks/useActiveEditors';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import {isEnterpriseLicense} from 'utils/license_utils';
+import {getPageReceiveActions, isHiddenFeedPost, isPagePost} from 'utils/page_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
@@ -366,6 +375,20 @@ export function reconnect() {
 
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());
+    }
+
+    // Trigger pages reload for current wiki after reconnect
+    // This acts as a safety net for any events missed during disconnect
+    if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+        const currentPath = window.location.pathname;
+        const wikiMatch = currentPath.match(/\/wiki\/([^/]+)/);
+
+        if (wikiMatch && wikiMatch[1]) {
+            const wikiId = wikiMatch[1];
+
+            // Force reload to ensure we have latest data after reconnect
+            dispatch(fetchWikiBundle(wikiId));
+        }
     }
 
     // Manifest may have changed; tell the Desktop App to re-fetch it.
@@ -734,6 +757,93 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.DraftDeleted:
         dispatch(handleDeleteDraftEvent(msg));
         break;
+    case SocketEvents.PAGE_DRAFT_UPDATED: {
+        dispatch(handleUpsertDraftEvent(msg));
+
+        // Handle active editors notification for page drafts
+        const draftData = msg.data as {page_id?: string; user_id?: string; timestamp?: number};
+        if (draftData.page_id && draftData.user_id) {
+            dispatch(handleActiveEditorDraftUpdated(draftData.page_id, draftData.user_id, draftData.timestamp ?? Date.now()));
+        }
+        break;
+    }
+    case SocketEvents.PAGE_DRAFT_DELETED: {
+        // Handle active editors notification when page draft is deleted
+        const deletedDraftData = msg.data as {page_id?: string; user_id?: string; deleted_at?: number};
+        if (deletedDraftData.page_id && deletedDraftData.user_id) {
+            dispatch(handleActiveEditorDraftDeleted(deletedDraftData.page_id, deletedDraftData.user_id));
+
+            // Record deletion timestamp ONLY for current user's drafts (HA race condition fix)
+            // We only want to prevent the current user's deleted draft from reappearing due to stale refetch.
+            // Other users' draft deletions should not affect our local draft filtering.
+            const currentUserId = getCurrentUserId(getState());
+            if (deletedDraftData.user_id === currentUserId) {
+                dispatch({
+                    type: WikiTypes.DRAFT_DELETION_RECORDED,
+                    data: {
+                        draftId: deletedDraftData.page_id,
+                        deletedAt: deletedDraftData.deleted_at || Date.now(),
+                    },
+                });
+            }
+        }
+        break;
+    }
+    case SocketEvents.PAGE_EDITOR_STOPPED: {
+        // Handle active editors notification when user stops editing
+        const editorData = msg.data as {page_id?: string; user_id?: string};
+        if (editorData.page_id && editorData.user_id) {
+            dispatch(handleActiveEditorStopped(editorData.page_id, editorData.user_id));
+        }
+        break;
+    }
+    case SocketEvents.PAGE_PUBLISHED:
+        handlePagePublishedEvent(msg);
+        break;
+    case SocketEvents.PAGE_DELETED:
+        handlePageDeletedEvent(msg);
+        break;
+    case SocketEvents.PAGE_TITLE_UPDATED:
+        handlePageTitleUpdatedEvent(msg);
+        break;
+    case SocketEvents.PAGE_MOVED:
+        // Fire-and-forget async handler; log rejections so they don't surface as
+        // unhandled promise rejection warnings.
+        handlePageMovedEvent(msg).catch((err) => dispatch(logError(err)));
+        break;
+    case SocketEvents.PAGE_COMMENT_CREATED:
+        handlePageCommentCreatedEvent(msg);
+        break;
+    case SocketEvents.PAGE_COMMENT_RESOLVED:
+        handlePageCommentResolvedEvent(msg);
+        break;
+    case SocketEvents.PAGE_COMMENT_UNRESOLVED:
+        handlePageCommentUnresolvedEvent(msg);
+        break;
+    case SocketEvents.PAGE_COMMENT_DELETED:
+        handlePageCommentDeletedEvent(msg);
+        break;
+    case SocketEvents.WIKI_CREATED:
+        handleWikiCreatedEvent(msg);
+        break;
+    case SocketEvents.WIKI_UPDATED:
+        handleWikiUpdatedEvent(msg);
+        break;
+    case SocketEvents.WIKI_MOVED:
+        handleWikiMovedEvent(msg);
+        break;
+    case SocketEvents.WIKI_DELETED:
+        handleWikiDeletedEvent(msg);
+        break;
+    case SocketEvents.PAGE_EDITED:
+        handlePageEditedEvent(msg);
+        break;
+    case SocketEvents.WIKI_LINKED:
+        handleWikiLinkedEvent(msg).catch((err) => dispatch(logError(err)));
+        break;
+    case SocketEvents.WIKI_UNLINKED:
+        handleWikiUnlinkedEvent(msg);
+        break;
     case WebSocketEvents.ScheduledPostCreated:
         dispatch(handleCreateScheduledPostEvent(msg));
         break;
@@ -966,8 +1076,14 @@ export function handleNewPostEvent(msg: WebSocketMessages.Posted | WebSocketMess
             console.log('handleNewPostEvent - new post received', post);
         }
 
-        myDispatch(handleNewPost(post, msg));
+        if (!isHiddenFeedPost(post)) {
+            myDispatch(handleNewPost(post, msg));
+        }
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+        // Handle page-specific store updates (wiki pages store)
+        const pageActions = getPageReceiveActions(post);
+        pageActions.forEach((action) => myDispatch(action));
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -1006,12 +1122,18 @@ export function handleNewPostEvents(queue: Array<WebSocketMessages.Posted | WebS
 
         // Receive the posts as one continuous block since they were received within a short period
         const crtEnabled = isCollapsedThreadsEnabled(myGetState());
-        const actions = posts.map((post) => receivedNewPost(post, crtEnabled));
+        const regularPosts = posts.filter((post) => !isHiddenFeedPost(post));
+        const actions = regularPosts.map((post) => receivedNewPost(post, crtEnabled));
         myDispatch(batchActions(actions));
 
         // Load the posts' threads
         myDispatch(getPostThreads(posts));
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts(posts));
+
+        posts.filter(isPagePost).forEach((post) => {
+            const pageActions = getPageReceiveActions(post);
+            pageActions.forEach((action) => myDispatch(action));
+        });
     };
 }
 
@@ -1024,10 +1146,16 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
         console.log('handlePostEditEvent - post edit received', post);
     }
 
-    const crtEnabled = isCollapsedThreadsEnabled(getState());
-    dispatch(receivedPost(post, crtEnabled));
-
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+    if (!isHiddenFeedPost(post)) {
+        const crtEnabled = isCollapsedThreadsEnabled(getState());
+        dispatch(receivedPost(post, crtEnabled));
+    }
+
+    // Handle page-specific store updates (wiki pages store)
+    const pageActions = getPageReceiveActions(post);
+    pageActions.forEach((action) => dispatch(action));
 
     // This is to handle the case for Data Spillage handling. When a hidden flagged post is restored,
     // this ensures the post is made visible if a) lies within the boundaries of loaded post blocks,
@@ -1119,6 +1247,502 @@ export function handlePostUnreadEvent(msg: WebSocketMessages.PostUnread) {
             },
         },
     );
+}
+
+interface PageEditedEventData {
+    post: string;
+    wiki_id?: string;
+}
+
+export function handlePageEditedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as PageEditedEventData;
+    if (!eventData.post) {
+        return;
+    }
+    let page;
+    try {
+        page = JSON.parse(eventData.post);
+    } catch {
+        return;
+    }
+
+    const wikiId = eventData.wiki_id;
+    if (!wikiId) {
+        return;
+    }
+
+    dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page, wikiId}});
+}
+
+interface PagePublishedEventData {
+    page: string;
+    page_id: string;
+    wiki_id: string;
+    source_wiki_id?: string;
+    user_id: string;
+}
+
+export function handlePagePublishedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as PagePublishedEventData;
+    if (!eventData.page) {
+        return;
+    }
+    let page;
+    try {
+        page = JSON.parse(eventData.page);
+    } catch {
+        return;
+    }
+    const pageId = eventData.page_id;
+    const wikiId = eventData.wiki_id;
+    const sourceWikiId = eventData.source_wiki_id;
+    const publishingUserId = eventData.user_id;
+
+    const state = getState();
+    const currentUserId = getCurrentUserId(state);
+    const isCurrentUserPublishing = currentUserId === publishingUserId;
+
+    // When the current user is publishing, the local `publishPageDraft` thunk inserts an
+    // optimistic `pending-*` entry in entities.pages.byWiki. If this WS echo arrives before
+    // the thunk's success dispatch, the bare RECEIVED_PAGE would leave the pending entry
+    // stranded. Locate any pending entry so the byWiki reducer can replace it in-place.
+    //
+    // Safety guard: only swap when there's exactly one pending entry in this wiki. With
+    // two concurrent publishes the WS echo cannot tell which pending id it corresponds to;
+    // picking the first would cross-wire the two drafts. In that case fall through and
+    // let the publishing thunk's own success dispatch (which knows its pendingPageId) do
+    // the swap, followed by INVALIDATE_PAGES to reconcile.
+    let pendingPageId: string | undefined;
+    if (isCurrentUserPublishing) {
+        const currentPageIds = state.entities.pages.byWiki?.[wikiId] || [];
+        const pendingIds = currentPageIds.filter((id) => id.startsWith('pending-'));
+        if (pendingIds.length === 1) {
+            pendingPageId = pendingIds[0];
+        } else if (pendingIds.length > 1) {
+            // eslint-disable-next-line no-console
+            console.warn('handlePagePublishedEvent: multiple pending pages; skipping swap', wikiId, pendingIds);
+        }
+    }
+
+    // Dispatch actions individually instead of batching to ensure subscribers are notified
+    dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page, wikiId, pendingPageId}});
+
+    // If this page was moved from another wiki, remove it from the source wiki
+    if (sourceWikiId && sourceWikiId !== wikiId) {
+        dispatch({type: WikiTypes.REMOVED_PAGE_FROM_WIKI, data: {pageId: page.id, wikiId: sourceWikiId}});
+    }
+
+    // Only delete draft if the CURRENT USER published this page.
+    // If another user published, keep the current user's draft (they may have unsaved changes).
+    if (isCurrentUserPublishing) {
+        const draftKey = makePageDraftKey(wikiId, pageId, currentUserId);
+
+        // Remove draft from local storage AND mark as published for filtering
+        dispatch(removeGlobalItem(draftKey));
+        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: pageId, wikiId, userId: currentUserId, publishedAt: page.update_at}});
+    }
+}
+
+interface PageDeletedEventData {
+    page_id: string;
+    wiki_id: string;
+}
+
+export function handlePageDeletedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as PageDeletedEventData;
+    const pageId = eventData.page_id;
+    const wikiId = eventData.wiki_id;
+
+    dispatch(batchActions([
+        {type: WikiTypes.DELETED_PAGE, data: {id: pageId, wikiId}},
+        {type: PostTypes.POST_REMOVED, data: {id: pageId, root_id: ''}},
+    ]));
+}
+
+interface PageTitleUpdatedEventData {
+    page_id: string;
+    title: string;
+    wiki_id: string;
+    update_at: number;
+}
+
+export function handlePageTitleUpdatedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as PageTitleUpdatedEventData;
+    const pageId = eventData.page_id;
+    const title = eventData.title;
+    const wikiId = eventData.wiki_id;
+    const updateAt = eventData.update_at;
+
+    const state = getState();
+    const existingPage = getPageById(state, pageId);
+
+    if (!existingPage) {
+        return;
+    }
+
+    const updatedPage = {
+        ...existingPage,
+        title,
+        update_at: updateAt,
+    };
+
+    dispatch({
+        type: WikiTypes.RECEIVED_PAGE,
+        data: {page: updatedPage, wikiId},
+    });
+}
+
+interface PageMovedEventData {
+    page_id: string;
+    new_parent_id: string;
+    old_parent_id?: string;
+    wiki_id: string;
+    source_wiki_id?: string;
+    update_at: number;
+    siblings?: string; // JSON-encoded PostList with updated sort orders
+}
+
+export async function handlePageMovedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as PageMovedEventData;
+    const pageId = eventData.page_id;
+    const newParentId = eventData.new_parent_id;
+    const wikiId = eventData.wiki_id;
+    const sourceWikiId = eventData.source_wiki_id;
+    const updateAt = eventData.update_at;
+    const siblingsJson = eventData.siblings;
+
+    const state = getState();
+    let existingPage = getPageById(state, pageId);
+
+    if (!existingPage) {
+        const result = await dispatch(fetchPage(pageId, wikiId));
+        if (result.error || !result.data) {
+            return;
+        }
+        existingPage = result.data;
+    }
+
+    const updatedPage = {
+        ...existingPage,
+        parent_id: newParentId,
+        update_at: updateAt,
+    };
+
+    const actions: MMReduxAction[] = [
+        {
+            type: WikiTypes.RECEIVED_PAGE,
+            data: {page: updatedPage, wikiId},
+        },
+    ];
+
+    // If siblings with updated sort orders are included, update them in Redux
+    // This ensures all clients have consistent page ordering after drag-drop
+    if (siblingsJson) {
+        try {
+            const siblings = JSON.parse(siblingsJson) as Page[];
+            if (Array.isArray(siblings)) {
+                for (const sibling of siblings) {
+                    // Skip the moved page - already added above with parent update
+                    if (sibling.id !== pageId) {
+                        actions.push({
+                            type: WikiTypes.RECEIVED_PAGE,
+                            data: {page: sibling, wikiId},
+                        });
+                    }
+                }
+            }
+        } catch {
+            // Invalid JSON - continue without siblings update
+        }
+    }
+
+    if (sourceWikiId && sourceWikiId !== wikiId) {
+        actions.push({
+            type: WikiTypes.REMOVED_PAGE_FROM_WIKI,
+            data: {pageId, wikiId: sourceWikiId},
+        });
+    }
+
+    dispatch(batchActions(actions));
+}
+
+function handlePageCommentCreatedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as {comment: string; comment_id: string; page_id: string};
+    if (!eventData.comment) {
+        return;
+    }
+    let comment: Post;
+    try {
+        comment = JSON.parse(eventData.comment) as Post;
+    } catch (e) {
+        dispatch(logError(e));
+        return;
+    }
+
+    // Page comments arrive on a domain-specific PAGE_COMMENT_CREATED event and must
+    // not flow through the generic Posted pipeline. handleNewPost would call
+    // getMyChannelMember(post.channel_id) — the wiki backing channel — and trigger
+    // sendDesktopNotification with a backing-channel URL, leaking the substrate.
+    const crtEnabled = isCollapsedThreadsEnabled(getState());
+
+    // Dual-dispatch: wiki store for wiki RHS isolation, posts store for channel feed
+    dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment}});
+    dispatch(receivedNewPost(comment, crtEnabled));
+
+    dispatch(batchFetchStatusesProfilesGroupsFromPosts([comment]));
+
+    // Handle page-specific store updates (wiki pages store)
+    const pageActions = getPageReceiveActions(comment);
+    pageActions.forEach((action) => dispatch(action));
+}
+
+export function handlePageCommentResolvedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as {comment_id: string; page_id: string; resolved_at: number; resolved_by: string};
+    const commentId = eventData.comment_id;
+
+    const state = getState();
+    const comment = getPageCommentById(state, commentId);
+    if (comment) {
+        const updated = {
+            ...comment,
+            props: {
+                ...comment.props,
+                comment_resolved: true,
+                resolved_at: eventData.resolved_at,
+                resolved_by: eventData.resolved_by,
+            },
+        };
+        dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment: updated}});
+        dispatch(receivedPost(updated as Post, false));
+    }
+}
+
+export function handlePageCommentUnresolvedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as {comment_id: string; page_id: string};
+    const commentId = eventData.comment_id;
+
+    const state = getState();
+    const comment = getPageCommentById(state, commentId);
+    if (comment) {
+        const props = {...(comment.props ?? {})};
+        delete props.comment_resolved;
+        delete props.resolved_at;
+        delete props.resolved_by;
+        const updated = {...comment, props};
+        dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment: updated}});
+        dispatch(receivedPost(updated as Post, false));
+    }
+}
+
+function handlePageCommentDeletedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as {comment_id: string; page_id: string};
+    const commentId = eventData.comment_id;
+    const pageId = eventData.page_id;
+
+    const comment = getPageCommentById(getState(), commentId);
+    if (comment) {
+        dispatch(postDeleted(comment));
+    }
+    dispatch({type: WikiTypes.DELETED_PAGE_COMMENT, data: {commentId, pageId}});
+}
+
+interface WikiCreatedEventData {
+    wiki_id: string;
+    source_channel_id?: string;
+    team_id: string;
+    creator_id: string;
+    title: string;
+    description: string;
+    create_at: number;
+    update_at: number;
+    sort_order: number;
+}
+
+export function handleWikiCreatedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as WikiCreatedEventData;
+    const wiki = {
+        id: eventData.wiki_id,
+        title: eventData.title,
+        description: eventData.description,
+        props: {},
+        create_at: eventData.create_at,
+        update_at: eventData.update_at,
+        delete_at: 0,
+        sort_order: eventData.sort_order,
+    };
+
+    // The server fans out wiki_created to every linked source channel; the
+    // event's source_channel_id is the channel context for THIS broadcast,
+    // not a property of the wiki itself. Synthesize a ChannelMemberLink for it
+    // so selectors that read linksByChannel see the relationship immediately
+    // without a separate wiki_linked event.
+    if (eventData.source_channel_id) {
+        dispatch({
+            type: WikiTypes.RECEIVED_WIKI_LINK,
+            data: {
+                channelId: eventData.source_channel_id,
+                link: {
+                    source_id: eventData.source_channel_id,
+                    wiki_id: eventData.wiki_id,
+                    create_at: eventData.create_at,
+                },
+                wikiId: eventData.wiki_id,
+            },
+        });
+    }
+
+    dispatch({
+        type: WikiTypes.RECEIVED_WIKI,
+        data: wiki,
+    });
+}
+
+interface WikiUpdatedEventData {
+    wiki_id: string;
+    title: string;
+    description: string;
+    update_at: number;
+}
+
+export function handleWikiUpdatedEvent(msg: WebSocketMessage) {
+    const eventData = msg.data as WikiUpdatedEventData;
+    const wikiId = eventData.wiki_id;
+    const title = eventData.title;
+    const description = eventData.description;
+    const updateAt = eventData.update_at;
+
+    const wiki = {
+        id: wikiId,
+        title,
+        description,
+        update_at: updateAt,
+    };
+
+    dispatch({
+        type: WikiTypes.RECEIVED_WIKI,
+        data: wiki,
+    });
+}
+
+interface WikiMovedEventData {
+    wiki_id: string;
+    action: 'removed' | 'added';
+    source_channel_id: string;
+    target_channel_id: string;
+    title: string;
+    description: string;
+    create_at: number;
+    update_at: number;
+    sort_order: number;
+}
+
+export function handleWikiMovedEvent(msg: WebSocketMessage) {
+    if (!msg.data) {
+        return;
+    }
+
+    const data = msg.data as WikiMovedEventData;
+    const wikiId = data.wiki_id;
+    const action = data.action;
+    const sourceChannelId = data.source_channel_id;
+
+    if (action === 'removed') {
+        dispatch({
+            type: WikiTypes.REMOVED_WIKI_LINK,
+            data: {channelId: sourceChannelId, wikiId},
+        });
+    } else if (action === 'added') {
+        const wiki = {
+            id: wikiId,
+            title: data.title,
+            description: data.description,
+            props: {},
+            create_at: data.create_at,
+            update_at: data.update_at,
+            delete_at: 0,
+            sort_order: data.sort_order,
+        };
+
+        dispatch(batchActions([
+            {
+                type: WikiTypes.RECEIVED_WIKI,
+                data: wiki,
+            },
+            {
+                type: WikiTypes.RECEIVED_WIKI_LINK,
+                data: {
+                    channelId: data.target_channel_id,
+                    link: {source_id: data.target_channel_id, wiki_id: wikiId, create_at: data.create_at},
+                    wikiId,
+                },
+            },
+        ]));
+    }
+}
+
+interface WikiDeletedEventData {
+    wiki_id: string;
+}
+
+export function handleWikiDeletedEvent(msg: WebSocketMessage) {
+    if (!msg.data) {
+        return;
+    }
+
+    const data = msg.data as WikiDeletedEventData;
+    const wikiId = data.wiki_id;
+
+    dispatch({
+        type: WikiTypes.DELETED_WIKI,
+        data: {wikiId},
+    });
+}
+
+interface ChannelMemberLinkEventData {
+    wiki_id: string;
+    source_channel_id: string;
+    create_at: number;
+}
+
+export async function handleWikiLinkedEvent(msg: WebSocketMessage) {
+    if (!msg.data) {
+        return;
+    }
+
+    const data = msg.data as ChannelMemberLinkEventData;
+    const {wiki_id: wikiId, source_channel_id: sourceChannelId} = data;
+
+    // Fetch wiki metadata first so the link dispatch renders a tab with title
+    // instead of a placeholder. Awaiting also makes ordering deterministic.
+    // fetchWiki already logs errors internally; we always dispatch the link
+    // event regardless so the UI reflects the real server state.
+    await dispatch(fetchWiki(wikiId));
+
+    dispatch({
+        type: WikiTypes.RECEIVED_WIKI_LINK,
+        data: {
+            channelId: sourceChannelId,
+            link: {source_id: sourceChannelId, wiki_id: wikiId, create_at: data.create_at},
+            wikiId,
+        },
+    });
+}
+
+export function handleWikiUnlinkedEvent(msg: WebSocketMessage) {
+    if (!msg.data) {
+        return;
+    }
+
+    const data = msg.data as ChannelMemberLinkEventData;
+    const {wiki_id: wikiId, source_channel_id: sourceChannelId} = data;
+
+    dispatch({
+        type: WikiTypes.REMOVED_WIKI_LINK,
+        data: {
+            channelId: sourceChannelId,
+            wikiId,
+        },
+    });
 }
 
 async function handleTeamAddedEvent(msg: WebSocketMessages.UserAddedToTeam) {
@@ -2126,13 +2750,76 @@ function handlePostAcknowledgementRemoved(msg: WebSocketMessages.PostAcknowledge
     };
 }
 
-function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft): ThunkActionFunc<void> {
-    return async (doDispatch) => {
-        const draft = JSON.parse(msg.data.draft) as Draft;
-        const {key, value} = transformServerDraft(draft);
-        value.show = true;
+function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft | WebSocketMessage): ThunkActionFunc<void> {
+    return async (doDispatch, doGetState) => {
+        // page_draft_updated is broadcast as metadata-only (page_id, user_id, timestamp) by
+        // BroadcastPageDraftUpdated; draft content is intentionally never broadcast to other
+        // users. Active-editors notification is dispatched separately at the WS case site,
+        // so when there's no `draft` payload there is nothing to do here.
+        const draftData = (msg.data as {draft?: string}).draft;
+        if (!draftData) {
+            return;
+        }
+        const rawDraft = JSON.parse(draftData);
 
-        doDispatch(setGlobalDraft(key, value, true));
+        // Check if this is a page draft (has wiki_id field)
+        // Page drafts have a different structure than channel drafts
+        if (rawDraft.wiki_id && rawDraft.page_id) {
+            const pageDraft = rawDraft as PageDraft;
+            const pageId = pageDraft.page_id;
+
+            // Check if the page has already been published
+            // This prevents race condition where a page_draft_updated event arrives after the page was published
+            const state = doGetState();
+
+            // Check if this draft was recently published
+            // This prevents stale PAGE_DRAFT_UPDATED events from re-adding drafts in HA environments
+            // IMPORTANT: If the draft exists in publishedDraftTimestamps, it means it was published.
+            // We should ignore ALL incoming draft events for this ID, regardless of timestamps,
+            // because the draft should no longer exist - it has been converted to a page.
+            const publishedAt = state.entities.pages.publishedDraftTimestamps[pageId];
+            if (publishedAt) {
+                // Draft was published - ignore any incoming draft events for this ID
+                // This handles HA race conditions where draft events arrive after publish
+                return;
+            }
+
+            // Handle page draft
+            const transformedDraft = transformPageServerDraft(pageDraft, pageDraft.wiki_id, pageDraft.page_id, pageDraft.user_id);
+            transformedDraft.value.show = true;
+
+            // Update active editors for this page. The server emits only
+            // `page_draft_updated` for both creates and mutations, so every
+            // event here is treated as an update.
+            const userId = pageDraft.user_id;
+            const timestamp = pageDraft.update_at;
+
+            // Skip WS events for the current user's own drafts (same pattern as publishedDraftTimestamps guard).
+            // The savePageDraft thunk already applies both the local update and server response,
+            // so the WS echo is redundant. Applying it can cause races: e.g. when renaming
+            // while an autosave is in-flight, the autosave's WS event overwrites the new title.
+            const currentUserId = getCurrentUserId(state);
+            if (userId === currentUserId) {
+                doDispatch(handleActiveEditorDraftUpdated(pageId, userId, timestamp));
+                return;
+            }
+
+            // Dispatch draft actions (other users' drafts only)
+            doDispatch(batchActions([
+                setGlobalItem(transformedDraft.key, transformedDraft.value),
+                setGlobalDraftSource(transformedDraft.key, true),
+            ]));
+
+            // Dispatch active editor action separately (it's a thunk)
+            doDispatch(handleActiveEditorDraftUpdated(pageId, userId, timestamp));
+        } else {
+            // Handle channel draft
+            const channelDraft = rawDraft as Draft;
+            const {key, value} = transformServerDraft(channelDraft);
+            value.show = true;
+
+            doDispatch(setGlobalDraft(key, value, true));
+        }
     };
 }
 
@@ -2178,9 +2865,20 @@ function handleDeleteScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): T
     };
 }
 
-function handleDeleteDraftEvent(msg: WebSocketMessages.PostDraft): ThunkActionFunc<void> {
+function handleDeleteDraftEvent(msg: WebSocketMessages.PostDraft | WebSocketMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const draft = JSON.parse(msg.data.draft) as Draft;
+        const draftData = (msg.data as {draft: string}).draft;
+        const draft = JSON.parse(draftData) as Draft;
+
+        // Check if this is a page draft
+        if (draft.wiki_id && draft.page_id) {
+            const pageId = draft.page_id;
+            const userId = draft.user_id;
+
+            // Remove editor from active editors list
+            doDispatch(handleActiveEditorDraftDeleted(pageId, userId));
+        }
+
         const {key} = transformServerDraft(draft);
 
         doDispatch(setGlobalItem(key, {

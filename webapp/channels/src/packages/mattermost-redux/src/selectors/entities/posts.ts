@@ -17,8 +17,9 @@ import type {
     RelationOneToOne,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
+import type {Page} from '@mattermost/types/wikis';
 
-import {General, Posts, Preferences} from 'mattermost-redux/constants';
+import {General, Posts, PostTypes, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentChannelId, getCurrentUser} from 'mattermost-redux/selectors/entities/common';
@@ -245,8 +246,14 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
         'makeGetPostsForThread',
         getAllPosts,
         getCurrentUser,
-        (state: GlobalState, rootId: string) => state.entities.posts.postsInThread[rootId],
-        (state: GlobalState, rootId: string) => state.entities.posts.posts[rootId],
+        (state: GlobalState, rootId: string) => {
+            const postsForThread = state.entities.posts.postsInThread[rootId];
+            return postsForThread;
+        },
+        (state: GlobalState, rootId: string) => {
+            const rootPost = state.entities.posts.posts[rootId];
+            return rootPost;
+        },
         shouldShowJoinLeaveMessages,
         (posts, currentUser, postsForThread, rootPost, showJoinLeave) => {
             const thread: Post[] = [];
@@ -329,17 +336,52 @@ export function makeGetCommentCountForPost(): (state: GlobalState, post: Post) =
     );
 }
 
+// Pages are excluded from the posts store (entities.posts.posts) and live in entities.pages.byId
+// in the Page shape, which has no `message`/`channel_id`. The search result components are Post-based,
+// so map a Page back to a Post-shaped object (Body->message, title/wiki_id/search_text in props) before
+// handing it to them. channel_id is left empty: the wiki backing channel is intentionally not loaded
+// client-side (see getMissingChannelsFromPosts), and the post connector synthesizes a placeholder.
+function pageToSearchResultPost(page: Page): Post {
+    return {
+        id: page.id,
+        create_at: page.create_at,
+        update_at: page.update_at,
+        edit_at: page.edit_at,
+        delete_at: page.delete_at,
+        is_pinned: false,
+        user_id: page.user_id,
+        channel_id: '',
+        root_id: '',
+        original_id: page.original_id,
+        message: page.body || '',
+        type: PostTypes.PAGE,
+        props: {title: page.title, wiki_id: page.wiki_id, search_text: page.search_text},
+        content_text: page.search_text,
+        hashtags: '',
+        pending_post_id: '',
+        reply_count: 0,
+        metadata: {} as Post['metadata'],
+    } as Post;
+}
+
 export const getSearchResults: (state: GlobalState) => Post[] = createSelector(
     'getSearchResults',
     getAllPosts,
     (state: GlobalState) => state.entities.search.results,
-    (posts, postIds) => {
+    (state: GlobalState) => state.entities.pages.byId,
+    (posts, postIds, pagesById) => {
         if (!postIds) {
             return [];
         }
 
-        // Filter out posts that may no longer exist
-        return postIds.map((id) => posts[id]).filter((post) => post);
+        // Filter out posts that may no longer exist; pages live in entities.pages.byId
+        return postIds.map((id) => {
+            if (posts[id]) {
+                return posts[id];
+            }
+            const page = pagesById[id];
+            return page ? pageToSearchResultPost(page) : undefined;
+        }).filter(Boolean) as Post[];
     },
 );
 

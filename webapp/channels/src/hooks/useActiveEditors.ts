@@ -1,0 +1,98 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {useEffect, useRef} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {UserProfile} from '@mattermost/types/users';
+
+import {getActiveEditorsWithProfiles} from 'mattermost-redux/selectors/entities/active_editors';
+
+import {
+    fetchActiveEditors,
+    handleDraftUpdated,
+    handleDraftDeleted,
+    removeStaleEditors,
+} from 'actions/active_editors';
+
+import type {ActionFunc, GlobalState} from 'types/store';
+
+export type ActiveEditorWithUser = {
+    userId: string;
+    lastActivity: number;
+    user: UserProfile;
+};
+
+/**
+ * Hook to get active editors for a page.
+ * Fetches initial state and subscribes to WebSocket events via cleanup.
+ *
+ * @param wikiId - The wiki ID containing the page
+ * @param pageId - The page ID to track editors for
+ * @returns Array of active editors with user profiles
+ */
+export function useActiveEditors(wikiId: string, pageId: string): ActiveEditorWithUser[] {
+    const dispatch = useDispatch();
+    const editors = useSelector((state: GlobalState) => getActiveEditorsWithProfiles(state, pageId));
+    const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (!pageId || !wikiId) {
+            return undefined;
+        }
+
+        let cancelled = false;
+        const controller = new AbortController();
+
+        // Fetch initial active editors, ignoring the response if pageId changed.
+        // Redux state is keyed by pageId so stale responses for old pageIds are harmless,
+        // but skipping the dispatch avoids unnecessary Redux updates after unmount.
+        Promise.resolve(dispatch(fetchActiveEditors(wikiId, pageId))).then(() => {
+            // Intentionally empty: we use `cancelled` only to guard future work,
+            // not to undo the dispatched action.
+        }).catch(() => {
+            // Errors are handled inside fetchActiveEditors via logError dispatch.
+        });
+
+        cleanupIntervalRef.current = setInterval(() => {
+            if (!cancelled) {
+                dispatch(removeStaleEditors(pageId));
+            }
+        }, 60000);
+
+        return () => {
+            cancelled = true;
+            controller.abort();
+            if (cleanupIntervalRef.current) {
+                clearInterval(cleanupIntervalRef.current);
+            }
+        };
+    }, [pageId, wikiId, dispatch]);
+
+    return editors;
+}
+
+/**
+ * WebSocket event handlers (called from global WebSocket handler)
+ */
+export function handleActiveEditorDraftUpdated(pageId: string, userId: string, timestamp: number): ActionFunc {
+    return (dispatch) => {
+        dispatch(handleDraftUpdated(pageId, userId, timestamp));
+        return {data: true};
+    };
+}
+
+export function handleActiveEditorDraftDeleted(pageId: string, userId: string): ActionFunc {
+    return (dispatch) => {
+        dispatch(handleDraftDeleted(pageId, userId));
+        return {data: true};
+    };
+}
+
+export function handleActiveEditorStopped(pageId: string, userId: string): ActionFunc {
+    return (dispatch) => {
+        // Same behavior as draft deleted - remove user from active editors
+        dispatch(handleDraftDeleted(pageId, userId));
+        return {data: true};
+    };
+}

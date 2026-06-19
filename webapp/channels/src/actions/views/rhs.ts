@@ -18,11 +18,14 @@ import {
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
+import {fetchPage} from 'actions/pages';
+import {getPageDraft} from 'selectors/page_drafts';
 import {
     getSearchType,
     getSearchTerms,
@@ -32,10 +35,11 @@ import {
     getPreviousRhsState,
     getSearchTeam,
 } from 'selectors/rhs';
+import {getSelectedPageId} from 'selectors/wiki_rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {ActionTypes, RHSStates, Constants, WikiRhsTypes} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
@@ -486,6 +490,71 @@ export function showChannelInfo(channelId: string) {
         type: ActionTypes.UPDATE_RHS_STATE,
         channelId,
         state: RHSStates.CHANNEL_INFO,
+    };
+}
+
+export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommentId?: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        // Fetch the page and its thread to ensure they're in Redux
+        const state = getState();
+        let page = getPageById(state, pageId);
+
+        // Treat empty-string wikiId as absent — callers often pass `wikiId || ''` when unknown.
+        const normalizedWikiId = wikiId || undefined;
+        const fetchWikiId = normalizedWikiId || page?.wiki_id;
+
+        if (!page) {
+            // Check if this is a draft before trying to fetch as a post
+            const isDraft = fetchWikiId ? getPageDraft(state, fetchWikiId, pageId) : null;
+
+            if (!isDraft && fetchWikiId) {
+                // Not a draft - fetch the page if not in Redux. Use fetchPage (dispatches
+                // RECEIVED_PAGE) because getPostThread dispatches RECEIVED_POSTS which the
+                // NON_POST_TYPES guard in the posts reducer now filters out for page-typed posts.
+                const result = await dispatch(fetchPage(pageId, fetchWikiId));
+                if ('error' in result && result.error) {
+                    return {error: result.error};
+                }
+                page = getPageById(getState(), pageId);
+            } else if (!isDraft && !fetchWikiId) {
+                // eslint-disable-next-line no-console
+                console.warn('openWikiRhs: pageId provided without wikiId and page not in Redux', pageId);
+            }
+
+            // If it's a draft, we don't need to fetch it as a post
+        }
+
+        // If caller didn't supply wikiId, derive it from the page so SET_WIKI_ID
+        // still fires and downstream RHS selectors have the wiki context.
+        const effectiveWikiId = normalizedWikiId ?? page?.wiki_id;
+
+        const currentRhsState = getRhsState(getState());
+        const currentPageId = getSelectedPageId(getState());
+
+        // Always dispatch if pageId changed, even if already in WIKI state
+        // This ensures RHS updates when navigating between pages
+        if (currentRhsState !== RHSStates.WIKI || currentPageId !== pageId) {
+            dispatch({
+                type: ActionTypes.UPDATE_RHS_STATE,
+                pageId,
+                state: RHSStates.WIKI,
+            });
+        }
+
+        if (effectiveWikiId) {
+            dispatch({
+                type: WikiRhsTypes.SET_WIKI_ID,
+                wikiId: effectiveWikiId,
+            });
+        }
+
+        // Set focused inline comment ID (null if not provided)
+        dispatch({
+            type: WikiRhsTypes.SET_FOCUSED_INLINE_COMMENT_ID,
+            commentId: focusedInlineCommentId || null,
+        });
+
+        return {data: true};
     };
 }
 

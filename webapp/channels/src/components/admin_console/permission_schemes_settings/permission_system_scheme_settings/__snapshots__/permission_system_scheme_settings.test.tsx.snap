@@ -1502,6 +1502,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="all_users-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2067,6 +2192,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               Allow users to create posts.
                             </span>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -3090,6 +3340,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -4105,6 +4480,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             class="permission-description"
                           >
                             Delete custom groups.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
                           </span>
                         </div>
                       </div>
@@ -5486,6 +5986,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="all_users-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -6051,6 +6676,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               Allow users to create posts.
                             </span>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -7074,6 +7824,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -8089,6 +8964,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             class="permission-description"
                           >
                             Delete custom groups.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
                           </span>
                         </div>
                       </div>
@@ -9471,6 +10471,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="all_users-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -10036,6 +11161,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               Allow users to create posts.
                             </span>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -11059,6 +12309,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -12074,6 +13449,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             class="permission-description"
                           >
                             Delete custom groups.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
                           </span>
                         </div>
                       </div>
@@ -13455,6 +14955,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="all_users-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -14020,6 +15645,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               Allow users to create posts.
                             </span>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -15043,6 +16793,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -16058,6 +17933,131 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             class="permission-description"
                           >
                             Delete custom groups.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-pages"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-pages-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Manage Pages
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Create, view, edit and delete pages.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-create_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-create_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Create Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to create pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-read_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-read_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            View Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to view pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-edit_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-edit_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to edit pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_own_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_own_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Own Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete their own pages.
+                          </span>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-pages-delete_page"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-pages-delete_page-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Delete Others' Pages
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to delete any page.
                           </span>
                         </div>
                       </div>

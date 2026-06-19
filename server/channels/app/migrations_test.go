@@ -9,8 +9,63 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestDoSetupPageProperties(t *testing.T) {
+	t.Run("should register property group and fields with correct PSAv2 attributes", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, "pages")
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, "pages", group.Name)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		fieldsByName := map[string]*model.PropertyField{}
+		for _, f := range fields {
+			fieldsByName[f.Name] = f
+		}
+
+		statusField, ok := fieldsByName["status"]
+		require.True(t, ok, "status property field must exist")
+		assert.Equal(t, model.PropertyFieldObjectTypePage, statusField.ObjectType)
+		assert.Equal(t, string(model.PropertyFieldTargetLevelSystem), statusField.TargetType)
+		assert.True(t, statusField.Protected)
+		require.NotNil(t, statusField.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *statusField.PermissionField)
+
+		data, sysErr := th.Store.System().GetByName(pagePropertiesSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, pageMigrationVersion, data.Value)
+	})
+
+	t.Run("the migration is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		_, err := th.Store.System().PermanentDeleteByName(pagePropertiesSetupDoneKey)
+		require.NoError(t, err)
+
+		err = th.Server.doSetupPageProperties()
+		require.NoError(t, err)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, "pages")
+		require.Nil(t, appErr)
+		require.Equal(t, "pages", group.Name)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		data, sysErr := th.Store.System().GetByName(pagePropertiesSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, pageMigrationVersion, data.Value)
+	})
+}
 
 func TestDoSetupManagedCategoryProperties(t *testing.T) {
 	t.Run("should register the property group and field on fresh install", func(t *testing.T) {

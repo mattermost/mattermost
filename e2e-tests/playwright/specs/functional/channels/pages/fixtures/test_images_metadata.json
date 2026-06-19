@@ -1,0 +1,30 @@
+{
+    "description": "Test images for Image AI E2E testing",
+    "generatedAt": "2026-01-14T13:16:29.124Z",
+    "images": [
+        {
+            "name": "whiteboard_meeting_notes",
+            "filename": "whiteboard_meeting_notes.png",
+            "description": "Whiteboard with meeting notes",
+            "expectedText": "Meeting Notes\n- Review Q4 goals\n- Discuss budget\n- Team updates"
+        },
+        {
+            "name": "handwritten_todo_list",
+            "filename": "handwritten_todo_list.png",
+            "description": "Handwritten todo list on paper",
+            "expectedText": "To Do Today\n☐ Write documentation\n☐ Fix bug #123\n☑ Code review\n☐ Deploy to staging"
+        },
+        {
+            "name": "simple_diagram",
+            "filename": "simple_diagram.png",
+            "description": "Simple diagram with labels",
+            "expectedText": "System Architecture\nClient → API → Database\nCache layer for performance"
+        },
+        {
+            "name": "quick_notes",
+            "filename": "quick_notes.png",
+            "description": "Quick handwritten notes",
+            "expectedText": "Ideas:\n- New feature brainstorm\n- User feedback integration\n- Performance improvements"
+        }
+    ]
+}

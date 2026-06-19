@@ -8,30 +8,35 @@ import (
 )
 
 // DefaultPropertyFieldPermissionLevel returns the permission level that
-// nil-fill / non-admin-pin should use for this field. Templates and system
-// fields default to sysadmin (templates define the schema linked fields
-// inherit; system fields attach to the Mattermost instance and only an
-// administrator should write them). Other object types default to member.
+// nil-fill / non-admin-pin should use for this field. Templates, system,
+// and page fields default to sysadmin (templates define the schema linked
+// fields inherit; system fields attach to the Mattermost instance; page
+// fields are system-scoped — only an administrator should write them).
+// Other object types default to member.
 func DefaultPropertyFieldPermissionLevel(field *model.PropertyField) model.PermissionLevel {
 	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
-		field.ObjectType == model.PropertyFieldObjectTypeSystem {
+		field.ObjectType == model.PropertyFieldObjectTypeSystem ||
+		field.ObjectType == model.PropertyFieldObjectTypePage {
 		return model.PermissionLevelSysadmin
 	}
 	return model.PermissionLevelMember
 }
 
-// CanonicalizeSystemObjectField forces a system-object field to its only
-// valid shape: TargetType="system", TargetID="", and all three Permission*
-// pinned to sysadmin. A system field's TargetType makes member-level scope
-// checks resolve to "any authenticated user" (see hasPropertyFieldScopeAccess
-// in app/authorization.go), so honouring a member-level permission would
-// expose the field's definition, options, and values to every logged-in user.
+// CanonicalizeSystemObjectField forces a system-scoped field (system or page
+// object type) to its only valid shape: TargetType="system", TargetID="",
+// and all three Permission* pinned to sysadmin. A system-scoped field's
+// TargetType makes member-level scope checks resolve to "any authenticated
+// user" (see hasPropertyFieldScopeAccess in app/authorization.go), so
+// honouring a member-level permission would expose the field's definition,
+// options, and values to every logged-in user.
 //
 // Idempotent. Safe to call from both the API handler (before scope check)
 // and from inside App.CreatePropertyField (defense in depth, covers
 // plugin/internal callers).
 func CanonicalizeSystemObjectField(field *model.PropertyField) {
-	if field == nil || field.ObjectType != model.PropertyFieldObjectTypeSystem {
+	if field == nil ||
+		(field.ObjectType != model.PropertyFieldObjectTypeSystem &&
+			field.ObjectType != model.PropertyFieldObjectTypePage) {
 		return
 	}
 	field.TargetType = string(model.PropertyFieldTargetLevelSystem)

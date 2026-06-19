@@ -29,6 +29,9 @@ func (s SearchPostStore) indexPost(rctx request.CTX, post *model.Post) {
 				if post.Type == model.PostTypeCard {
 					return
 				}
+				if post.Type == model.PostTypePage || post.Type == model.PostTypePageComment || post.Type == model.PostTypePageMention {
+					return
+				}
 				channel, chanErr := s.rootStore.Channel().Get(post.ChannelId, true)
 				if chanErr != nil {
 					rctx.Logger().Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id), mlog.Err(chanErr))

@@ -57,6 +57,9 @@ type FileInfo struct {
 	Id        string `json:"id" xml:"Id"`
 	CreatorId string `json:"user_id" xml:"CreatorId"`
 	PostId    string `json:"post_id,omitempty" xml:"PostId,omitempty"`
+	// PageId is set when the file is owned by a wiki page (Pages table) instead of a post.
+	// A file has at most one owner: PostId xor PageId (both empty = uploaded-but-unattached).
+	PageId string `json:"page_id,omitempty" xml:"PageId,omitempty"`
 	// ChannelId is the denormalized value from the corresponding post. Note that this value is
 	// potentially distinct from the ChannelId provided when the file is first uploaded and
 	// used to organize the directories in the file store, since in theory that same file
@@ -86,6 +89,7 @@ func (fi *FileInfo) Auditable() map[string]any {
 		"id":         fi.Id,
 		"creator_id": fi.CreatorId,
 		"post_id":    fi.PostId,
+		"page_id":    fi.PageId,
 		"channel_id": fi.ChannelId,
 		"create_at":  fi.CreateAt,
 		"update_at":  fi.UpdateAt,
@@ -125,6 +129,16 @@ func (fi *FileInfo) IsValid() *AppError {
 
 	if fi.PostId != "" && !IsValidId(fi.PostId) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
+	}
+
+	if fi.PageId != "" && !IsValidId(fi.PageId) {
+		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.page_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
+	}
+
+	// A file has at most one owner. Both empty is allowed (uploaded-but-unattached,
+	// a documented transient state); both set is invalid.
+	if fi.PostId != "" && fi.PageId != "" {
+		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.owner_xor.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
 	if fi.CreateAt == 0 {

@@ -47,21 +47,13 @@ const ConvertAndRemoveConfirmModal = ({
     toPublic,
     removeAmount,
 }: Props) => {
-    const titleMessage = toPublic ?
-        messages.toPublicTitle :
-        messages.toPrivateTitle;
+    const titleMessage = toPublic ? messages.toPublicTitle : messages.toPrivateTitle;
 
-    const convertMessage = toPublic ?
-        messages.toPublicMessage :
-        messages.toPrivateMessage;
+    const convertMessage = toPublic ? messages.toPublicMessage : messages.toPrivateMessage;
 
-    const convertMessageSecondLine = toPublic ?
-        messages.toPublicMessageSecondLine :
-        messages.toPrivateMessageSecondLine;
+    const convertMessageSecondLine = toPublic ? messages.toPublicMessageSecondLine : messages.toPrivateMessageSecondLine;
 
-    const confirmMessage = toPublic ?
-        messages.toPublicConfirm :
-        messages.toPrivateConfirm;
+    const confirmMessage = toPublic ? messages.toPublicConfirm : messages.toPrivateConfirm;
 
     const title = (
         <FormattedMessage

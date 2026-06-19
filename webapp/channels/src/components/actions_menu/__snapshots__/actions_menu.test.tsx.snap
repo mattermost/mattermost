@@ -11,6 +11,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
       aria-haspopup="true"
       aria-label="actions"
       class="post-menu__item post-menu__item--active"
+      data-testid="ai-actions-menu"
       id="center_actions_button_post_id_1"
       type="button"
     >
@@ -60,6 +61,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
       aria-haspopup="true"
       aria-label="actions"
       class="post-menu__item post-menu__item--active"
+      data-testid="ai-actions-menu"
       id="center_actions_button_post_id_1"
       type="button"
     >
@@ -142,6 +144,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     aria-haspopup="true"
     aria-label="actions"
     class="post-menu__item post-menu__item--active"
+    data-testid="ai-actions-menu"
     id="center_actions_button_post_id_1"
     type="button"
   >

@@ -170,7 +170,7 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 	}
 
 	for _, post := range syncMsg.Posts {
-		if post.Type == model.PostTypeCard {
+		if post.Type == model.PostTypeCard || post.Type == model.PostTypePage || post.Type == model.PostTypePageComment || post.Type == model.PostTypePageMention {
 			continue
 		}
 
