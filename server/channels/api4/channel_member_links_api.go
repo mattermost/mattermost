@@ -12,17 +12,17 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
-func (api *API) InitWikiLinks() {
-	api.BaseRoutes.WikiLinks.Handle("", api.APISessionRequired(linkWikiToChannel)).Methods(http.MethodPost)
-	api.BaseRoutes.WikiLinks.Handle("", api.APISessionRequired(getWikiLinksForChannel)).Methods(http.MethodGet)
-	api.BaseRoutes.WikiLink.Handle("", api.APISessionRequired(unlinkWikiFromChannel)).Methods(http.MethodDelete)
-	api.BaseRoutes.Wiki.Handle("/links", api.APISessionRequired(getWikiLinksByWiki)).Methods(http.MethodGet)
+func (api *API) InitChannelMemberLinks() {
+	api.BaseRoutes.ChannelMemberLinks.Handle("", api.APISessionRequired(linkWikiToChannel)).Methods(http.MethodPost)
+	api.BaseRoutes.ChannelMemberLinks.Handle("", api.APISessionRequired(getChannelMemberLinksForChannel)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelMemberLink.Handle("", api.APISessionRequired(unlinkWikiFromChannel)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/channel_member_links", api.APISessionRequired(getChannelMemberLinksByWiki)).Methods(http.MethodGet)
 }
 
-// checkWikiLinkBookmarkPermission checks that the session has the appropriate bookmark permission
+// checkChannelMemberLinkBookmarkPermission checks that the session has the appropriate bookmark permission
 // on the channel for wiki link/unlink operations. Wiki link/unlink use bookmark permissions as
 // the authorization gate to avoid proliferating new permissions.
-func checkWikiLinkBookmarkPermission(c *Context, channel *model.Channel, publicPerm, privatePerm *model.Permission, caller string) bool {
+func checkChannelMemberLinkBookmarkPermission(c *Context, channel *model.Channel, publicPerm, privatePerm *model.Permission, caller string) bool {
 	session := c.AppContext.Session()
 	switch channel.Type {
 	case model.ChannelTypeOpen:
@@ -53,14 +53,14 @@ func checkWikiSameTeam(c *Context, wiki *model.Wiki, channel *model.Channel, cal
 	return true
 }
 
-func resolveAndAuthorizeWikiLink(c *Context, channelId, wikiId string, publicPerm, privatePerm *model.Permission, caller string) (*model.Channel, *model.Wiki, bool) {
+func resolveAndAuthorizeChannelMemberLink(c *Context, channelId, wikiId string, publicPerm, privatePerm *model.Permission, caller string) (*model.Channel, *model.Wiki, bool) {
 	channel, appErr := c.App.GetChannel(c.AppContext, channelId)
 	if appErr != nil {
 		c.Err = appErr
 		return nil, nil, false
 	}
 
-	if !checkWikiLinkBookmarkPermission(c, channel, publicPerm, privatePerm, caller) {
+	if !checkChannelMemberLinkBookmarkPermission(c, channel, publicPerm, privatePerm, caller) {
 		return nil, nil, false
 	}
 
@@ -114,7 +114,7 @@ func linkWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("wiki_id", req.WikiId)
 
-	_, wiki, ok := resolveAndAuthorizeWikiLink(c, c.Params.ChannelId, req.WikiId, model.PermissionAddBookmarkPublicChannel, model.PermissionAddBookmarkPrivateChannel, "linkWikiToChannel")
+	_, wiki, ok := resolveAndAuthorizeChannelMemberLink(c, c.Params.ChannelId, req.WikiId, model.PermissionAddBookmarkPublicChannel, model.PermissionAddBookmarkPrivateChannel, "linkWikiToChannel")
 	if !ok {
 		return
 	}
@@ -135,7 +135,7 @@ func linkWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getWikiLinksForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+func getChannelMemberLinksForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -152,7 +152,7 @@ func getWikiLinksForChannel(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	links, appErr := c.App.GetWikiLinksForChannel(c.AppContext, c.Params.ChannelId)
+	links, appErr := c.App.GetChannelMemberLinksForChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -163,7 +163,7 @@ func getWikiLinksForChannel(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// getWikiLinksByWiki returns all WikiLinks pointing to the wiki's backing channel.
+// getChannelMemberLinksByWiki returns all ChannelMemberLinks pointing to the wiki's backing channel.
 // The client uses this to populate linksByChannel for ALL source channels that link
 // to the wiki, so that permission checks (canEdit) and sidebar resolution work
 // after a fresh page load on a deep wiki URL — without depending on a ?from= URL
@@ -171,7 +171,7 @@ func getWikiLinksForChannel(c *Context, w http.ResponseWriter, r *http.Request) 
 //
 // Auth: same as getWiki — user must have read access to the wiki. The links payload
 // itself is not sensitive once the user can read the wiki.
-func getWikiLinksByWiki(c *Context, w http.ResponseWriter, r *http.Request) {
+func getChannelMemberLinksByWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	if c.Err != nil {
 		return
@@ -184,13 +184,13 @@ func getWikiLinksByWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Team-only wikis (no backing channel) have no links.
 	if wiki.ChannelId == "" {
-		if err := json.NewEncoder(w).Encode([]*model.WikiLink{}); err != nil {
+		if err := json.NewEncoder(w).Encode([]*model.ChannelMemberLink{}); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
 
-	links, appErr := c.App.GetWikiLinksByDestination(c.AppContext, wiki.ChannelId)
+	links, appErr := c.App.GetChannelMemberLinksByDestination(c.AppContext, wiki.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -219,7 +219,7 @@ func getWikiLinksByWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Filter links and stamp WikiId; only expose source channels the caller can read.
-	filtered := make([]*model.WikiLink, 0, len(links))
+	filtered := make([]*model.ChannelMemberLink, 0, len(links))
 	for _, link := range links {
 		if readable[link.SourceId] {
 			link.WikiId = wiki.Id
@@ -244,7 +244,7 @@ func unlinkWikiFromChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel_id", c.Params.ChannelId)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 
-	_, wiki, ok := resolveAndAuthorizeWikiLink(c, c.Params.ChannelId, c.Params.WikiId, model.PermissionDeleteBookmarkPublicChannel, model.PermissionDeleteBookmarkPrivateChannel, "unlinkWikiFromChannel")
+	_, wiki, ok := resolveAndAuthorizeChannelMemberLink(c, c.Params.ChannelId, c.Params.WikiId, model.PermissionDeleteBookmarkPublicChannel, model.PermissionDeleteBookmarkPrivateChannel, "unlinkWikiFromChannel")
 	if !ok {
 		return
 	}

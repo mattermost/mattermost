@@ -16,7 +16,7 @@ const (
 	MaxLinkedSourcesPerDestination = 200
 )
 
-type WikiLink struct {
+type ChannelMemberLink struct {
 	SourceId      string `json:"source_id"`
 	DestinationId string `json:"-"`
 	WikiId        string `json:"wiki_id"`
@@ -24,13 +24,13 @@ type WikiLink struct {
 	CreatorId     string `json:"creator_id,omitempty"`
 }
 
-func (l *WikiLink) PreSave() {
+func (l *ChannelMemberLink) PreSave() {
 	if l.CreateAt == 0 {
 		l.CreateAt = GetMillis()
 	}
 }
 
-func (l *WikiLink) Auditable() map[string]any {
+func (l *ChannelMemberLink) Auditable() map[string]any {
 	return map[string]any{
 		"source_id":      l.SourceId,
 		"destination_id": l.DestinationId,
@@ -40,21 +40,21 @@ func (l *WikiLink) Auditable() map[string]any {
 	}
 }
 
-func (l *WikiLink) IsValid() *AppError {
+func (l *ChannelMemberLink) IsValid() *AppError {
 	if !IsValidId(l.SourceId) {
-		return NewAppError("WikiLink.IsValid", "model.wiki_link.is_valid.source_id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ChannelMemberLink.IsValid", "model.wiki_link.is_valid.source_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(l.DestinationId) {
-		return NewAppError("WikiLink.IsValid", "model.wiki_link.is_valid.destination_id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ChannelMemberLink.IsValid", "model.wiki_link.is_valid.destination_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if l.CreatorId != "" && !IsValidId(l.CreatorId) {
-		return NewAppError("WikiLink.IsValid", "model.wiki_link.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ChannelMemberLink.IsValid", "model.wiki_link.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if l.SourceId == l.DestinationId {
-		return NewAppError("WikiLink.IsValid", "model.wiki_link.is_valid.self_link.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ChannelMemberLink.IsValid", "model.wiki_link.is_valid.self_link.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

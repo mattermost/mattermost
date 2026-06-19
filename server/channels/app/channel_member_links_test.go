@@ -11,14 +11,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupWikiLinksTest(t *testing.T) *TestHelper {
+func setupChannelMemberLinksTest(t *testing.T) *TestHelper {
 	return Setup(t).InitBasic(t)
 }
 
 func TestLinkWikiToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("success: links wiki to a separate public channel", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -42,7 +42,7 @@ func TestLinkWikiToChannel(t *testing.T) {
 	})
 
 	t.Run("wiki not found", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		targetChannel := th.CreateChannel(t, th.BasicTeam)
@@ -52,7 +52,7 @@ func TestLinkWikiToChannel(t *testing.T) {
 	})
 
 	t.Run("channel not found", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -68,7 +68,7 @@ func TestLinkWikiToChannel(t *testing.T) {
 	})
 
 	t.Run("DM channel returns StatusBadRequest", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -88,7 +88,7 @@ func TestLinkWikiToChannel(t *testing.T) {
 	})
 
 	t.Run("wiki channel type returns StatusBadRequest", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki1 := &model.Wiki{
@@ -114,7 +114,7 @@ func TestLinkWikiToChannel(t *testing.T) {
 	})
 
 	t.Run("cross-team returns StatusBadRequest", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -138,7 +138,7 @@ func TestLinkWikiToChannel(t *testing.T) {
 func TestUnlinkWikiFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("success: link then unlink", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -160,7 +160,7 @@ func TestUnlinkWikiFromChannel(t *testing.T) {
 	})
 
 	t.Run("link not found returns StatusNotFound", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -180,10 +180,10 @@ func TestUnlinkWikiFromChannel(t *testing.T) {
 	})
 }
 
-func TestGetWikiLinksForChannel(t *testing.T) {
+func TestGetChannelMemberLinksForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("returns links for channel with 2 wikis linked", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki1 := &model.Wiki{
@@ -210,7 +210,7 @@ func TestGetWikiLinksForChannel(t *testing.T) {
 		_, err = th.App.LinkWikiToChannel(th.Context, createdWiki2.Id, targetChannel.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		links, appErr := th.App.GetWikiLinksForChannel(th.Context, targetChannel.Id)
+		links, appErr := th.App.GetChannelMemberLinksForChannel(th.Context, targetChannel.Id)
 		require.Nil(t, appErr)
 		require.Len(t, links, 2)
 
@@ -224,12 +224,12 @@ func TestGetWikiLinksForChannel(t *testing.T) {
 	})
 
 	t.Run("returns empty slice when no links exist", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		channel := th.CreateChannel(t, th.BasicTeam)
 
-		links, appErr := th.App.GetWikiLinksForChannel(th.Context, channel.Id)
+		links, appErr := th.App.GetChannelMemberLinksForChannel(th.Context, channel.Id)
 		require.Nil(t, appErr)
 		require.Empty(t, links)
 	})
@@ -238,7 +238,7 @@ func TestGetWikiLinksForChannel(t *testing.T) {
 func TestGetWikisLinkedToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("returns wiki objects for channel with 2 wikis linked", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		wiki1 := &model.Wiki{
@@ -278,7 +278,7 @@ func TestGetWikisLinkedToChannel(t *testing.T) {
 	})
 
 	t.Run("returns empty slice when no wikis linked", func(t *testing.T) {
-		th := setupWikiLinksTest(t)
+		th := setupChannelMemberLinksTest(t)
 		th.SetupPagePermissions()
 
 		channel := th.CreateChannel(t, th.BasicTeam)

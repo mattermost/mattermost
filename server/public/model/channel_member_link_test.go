@@ -10,48 +10,48 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWikiLinkIsValid(t *testing.T) {
+func TestChannelMemberLinkIsValid(t *testing.T) {
 	src := NewId()
 	dst := NewId()
 
 	cases := []struct {
 		name    string
-		link    WikiLink
+		link    ChannelMemberLink
 		wantErr string
 	}{
 		{
 			name:    "valid with creator",
-			link:    WikiLink{SourceId: src, DestinationId: dst, CreatorId: NewId()},
+			link:    ChannelMemberLink{SourceId: src, DestinationId: dst, CreatorId: NewId()},
 			wantErr: "",
 		},
 		{
 			name:    "valid without creator",
-			link:    WikiLink{SourceId: src, DestinationId: dst},
+			link:    ChannelMemberLink{SourceId: src, DestinationId: dst},
 			wantErr: "",
 		},
 		{
 			name:    "invalid source id",
-			link:    WikiLink{SourceId: "not-an-id", DestinationId: dst},
+			link:    ChannelMemberLink{SourceId: "not-an-id", DestinationId: dst},
 			wantErr: "model.wiki_link.is_valid.source_id.app_error",
 		},
 		{
 			name:    "empty source id",
-			link:    WikiLink{SourceId: "", DestinationId: dst},
+			link:    ChannelMemberLink{SourceId: "", DestinationId: dst},
 			wantErr: "model.wiki_link.is_valid.source_id.app_error",
 		},
 		{
 			name:    "invalid destination id",
-			link:    WikiLink{SourceId: src, DestinationId: "bad"},
+			link:    ChannelMemberLink{SourceId: src, DestinationId: "bad"},
 			wantErr: "model.wiki_link.is_valid.destination_id.app_error",
 		},
 		{
 			name:    "invalid creator id",
-			link:    WikiLink{SourceId: src, DestinationId: dst, CreatorId: "bad"},
+			link:    ChannelMemberLink{SourceId: src, DestinationId: dst, CreatorId: "bad"},
 			wantErr: "model.wiki_link.is_valid.creator_id.app_error",
 		},
 		{
 			name:    "self link rejected",
-			link:    WikiLink{SourceId: src, DestinationId: src},
+			link:    ChannelMemberLink{SourceId: src, DestinationId: src},
 			wantErr: "model.wiki_link.is_valid.self_link.app_error",
 		},
 	}
@@ -69,19 +69,19 @@ func TestWikiLinkIsValid(t *testing.T) {
 	}
 }
 
-func TestWikiLinkPreSave(t *testing.T) {
-	l := &WikiLink{SourceId: NewId(), DestinationId: NewId()}
+func TestChannelMemberLinkPreSave(t *testing.T) {
+	l := &ChannelMemberLink{SourceId: NewId(), DestinationId: NewId()}
 	l.PreSave()
 	assert.NotZero(t, l.CreateAt)
 
 	existing := GetMillis() - 1000
-	l2 := &WikiLink{SourceId: NewId(), DestinationId: NewId(), CreateAt: existing}
+	l2 := &ChannelMemberLink{SourceId: NewId(), DestinationId: NewId(), CreateAt: existing}
 	l2.PreSave()
 	assert.Equal(t, existing, l2.CreateAt, "PreSave should not overwrite non-zero CreateAt")
 }
 
-func TestWikiLinkAuditable(t *testing.T) {
-	l := &WikiLink{
+func TestChannelMemberLinkAuditable(t *testing.T) {
+	l := &ChannelMemberLink{
 		SourceId:      "src",
 		DestinationId: "dst",
 		CreateAt:      42,

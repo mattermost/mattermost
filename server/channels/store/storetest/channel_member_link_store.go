@@ -15,33 +15,33 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestWikiLinkStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Run("SaveWikiLink", func(t *testing.T) { testSaveWikiLink(t, rctx, ss) })
-	t.Run("GetWikiLink", func(t *testing.T) { testGetWikiLink(t, rctx, ss) })
+func TestChannelMemberLinkStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("SaveChannelMemberLink", func(t *testing.T) { testSaveChannelMemberLink(t, rctx, ss) })
+	t.Run("GetChannelMemberLink", func(t *testing.T) { testGetChannelMemberLink(t, rctx, ss) })
 	t.Run("GetBySource", func(t *testing.T) { testGetBySource(t, rctx, ss) })
 	t.Run("GetByDestination", func(t *testing.T) { testGetByDestination(t, rctx, ss) })
-	t.Run("DeleteWikiLink", func(t *testing.T) { testDeleteWikiLink(t, rctx, ss) })
+	t.Run("DeleteChannelMemberLink", func(t *testing.T) { testDeleteChannelMemberLink(t, rctx, ss) })
 	t.Run("DeleteByDestination", func(t *testing.T) { testDeleteByDestination(t, rctx, ss) })
 	t.Run("SaveAndPropagateMembers", func(t *testing.T) { testSaveAndPropagateMembers(t, rctx, ss, s) })
 	t.Run("DeleteAndCleanupMembers", func(t *testing.T) { testDeleteAndCleanupMembers(t, rctx, ss, s) })
 
 	t.Cleanup(func() {
-		_, _ = s.GetMaster().Exec("DELETE FROM WikiLinks")
+		_, _ = s.GetMaster().Exec("DELETE FROM ChannelMemberLinks")
 	})
 }
 
-func testSaveWikiLink(t *testing.T, rctx request.CTX, ss store.Store) {
+func testSaveChannelMemberLink(t *testing.T, rctx request.CTX, ss store.Store) {
 	sourceID := model.NewId()
 	destinationID := model.NewId()
 
 	t.Run("save valid link", func(t *testing.T) {
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceID,
 			DestinationId: destinationID,
 			CreatorId:     model.NewId(),
 		}
 
-		saved, err := ss.WikiLink().Save(link)
+		saved, err := ss.ChannelMemberLink().Save(link)
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		assert.Equal(t, sourceID, saved.SourceId)
@@ -51,62 +51,62 @@ func testSaveWikiLink(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("save duplicate", func(t *testing.T) {
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceID,
 			DestinationId: destinationID,
 		}
 
-		_, err := ss.WikiLink().Save(link)
+		_, err := ss.ChannelMemberLink().Save(link)
 		assert.Error(t, err)
 	})
 
 	t.Run("save invalid source_id", func(t *testing.T) {
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      "invalid",
 			DestinationId: model.NewId(),
 		}
 
-		_, err := ss.WikiLink().Save(link)
+		_, err := ss.ChannelMemberLink().Save(link)
 		assert.Error(t, err)
 	})
 
 	t.Run("save invalid destination_id", func(t *testing.T) {
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      model.NewId(),
 			DestinationId: "invalid",
 		}
 
-		_, err := ss.WikiLink().Save(link)
+		_, err := ss.ChannelMemberLink().Save(link)
 		assert.Error(t, err)
 	})
 
 	t.Run("save self-link", func(t *testing.T) {
 		selfID := model.NewId()
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      selfID,
 			DestinationId: selfID,
 		}
 
-		_, err := ss.WikiLink().Save(link)
+		_, err := ss.ChannelMemberLink().Save(link)
 		assert.Error(t, err)
 	})
 }
 
-func testGetWikiLink(t *testing.T, rctx request.CTX, ss store.Store) {
+func testGetChannelMemberLink(t *testing.T, rctx request.CTX, ss store.Store) {
 	sourceID := model.NewId()
 	destinationID := model.NewId()
 	creatorID := model.NewId()
 
-	link := &model.WikiLink{
+	link := &model.ChannelMemberLink{
 		SourceId:      sourceID,
 		DestinationId: destinationID,
 		CreatorId:     creatorID,
 	}
-	_, err := ss.WikiLink().Save(link)
+	_, err := ss.ChannelMemberLink().Save(link)
 	require.NoError(t, err)
 
 	t.Run("get existing", func(t *testing.T) {
-		retrieved, getErr := ss.WikiLink().Get(sourceID, destinationID)
+		retrieved, getErr := ss.ChannelMemberLink().Get(sourceID, destinationID)
 		require.NoError(t, getErr)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, sourceID, retrieved.SourceId)
@@ -116,7 +116,7 @@ func testGetWikiLink(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("get non-existent", func(t *testing.T) {
-		_, getErr := ss.WikiLink().Get(model.NewId(), model.NewId())
+		_, getErr := ss.ChannelMemberLink().Get(model.NewId(), model.NewId())
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -131,36 +131,36 @@ func testGetBySource(t *testing.T, rctx request.CTX, ss store.Store) {
 	dest3 := model.NewId()
 
 	creatorId := model.NewId()
-	link1 := &model.WikiLink{
+	link1 := &model.ChannelMemberLink{
 		SourceId:      sourceID,
 		DestinationId: dest1,
 		CreatorId:     creatorId,
 	}
-	_, err := ss.WikiLink().Save(link1)
+	_, err := ss.ChannelMemberLink().Save(link1)
 	require.NoError(t, err)
 
 	time.Sleep(2 * time.Millisecond)
 
-	link2 := &model.WikiLink{
+	link2 := &model.ChannelMemberLink{
 		SourceId:      sourceID,
 		DestinationId: dest2,
 		CreatorId:     creatorId,
 	}
-	_, err = ss.WikiLink().Save(link2)
+	_, err = ss.ChannelMemberLink().Save(link2)
 	require.NoError(t, err)
 
 	time.Sleep(2 * time.Millisecond)
 
-	link3 := &model.WikiLink{
+	link3 := &model.ChannelMemberLink{
 		SourceId:      sourceID,
 		DestinationId: dest3,
 		CreatorId:     creatorId,
 	}
-	_, err = ss.WikiLink().Save(link3)
+	_, err = ss.ChannelMemberLink().Save(link3)
 	require.NoError(t, err)
 
 	t.Run("returns all 3 ordered by CreateAt", func(t *testing.T) {
-		links, getErr := ss.WikiLink().GetBySource(sourceID)
+		links, getErr := ss.ChannelMemberLink().GetBySource(sourceID)
 		require.NoError(t, getErr)
 		require.Len(t, links, 3)
 
@@ -170,7 +170,7 @@ func testGetBySource(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("no links returns empty slice", func(t *testing.T) {
-		links, getErr := ss.WikiLink().GetBySource(model.NewId())
+		links, getErr := ss.ChannelMemberLink().GetBySource(model.NewId())
 		require.NoError(t, getErr)
 		assert.Empty(t, links)
 	})
@@ -184,36 +184,36 @@ func testGetByDestination(t *testing.T, rctx request.CTX, ss store.Store) {
 	src2 := model.NewId()
 	src3 := model.NewId()
 
-	link1 := &model.WikiLink{
+	link1 := &model.ChannelMemberLink{
 		SourceId:      src1,
 		DestinationId: destinationID,
 		CreatorId:     creatorId,
 	}
-	_, err := ss.WikiLink().Save(link1)
+	_, err := ss.ChannelMemberLink().Save(link1)
 	require.NoError(t, err)
 
 	time.Sleep(2 * time.Millisecond)
 
-	link2 := &model.WikiLink{
+	link2 := &model.ChannelMemberLink{
 		SourceId:      src2,
 		DestinationId: destinationID,
 		CreatorId:     creatorId,
 	}
-	_, err = ss.WikiLink().Save(link2)
+	_, err = ss.ChannelMemberLink().Save(link2)
 	require.NoError(t, err)
 
 	time.Sleep(2 * time.Millisecond)
 
-	link3 := &model.WikiLink{
+	link3 := &model.ChannelMemberLink{
 		SourceId:      src3,
 		DestinationId: destinationID,
 		CreatorId:     creatorId,
 	}
-	_, err = ss.WikiLink().Save(link3)
+	_, err = ss.ChannelMemberLink().Save(link3)
 	require.NoError(t, err)
 
 	t.Run("returns all 3 ordered by CreateAt", func(t *testing.T) {
-		links, getErr := ss.WikiLink().GetByDestination(destinationID)
+		links, getErr := ss.ChannelMemberLink().GetByDestination(destinationID)
 		require.NoError(t, getErr)
 		require.Len(t, links, 3)
 
@@ -223,36 +223,36 @@ func testGetByDestination(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("no links returns empty slice", func(t *testing.T) {
-		links, getErr := ss.WikiLink().GetByDestination(model.NewId())
+		links, getErr := ss.ChannelMemberLink().GetByDestination(model.NewId())
 		require.NoError(t, getErr)
 		assert.Empty(t, links)
 	})
 }
 
-func testDeleteWikiLink(t *testing.T, rctx request.CTX, ss store.Store) {
+func testDeleteChannelMemberLink(t *testing.T, rctx request.CTX, ss store.Store) {
 	sourceID := model.NewId()
 	destinationID := model.NewId()
 
-	link := &model.WikiLink{
+	link := &model.ChannelMemberLink{
 		SourceId:      sourceID,
 		DestinationId: destinationID,
 		CreatorId:     model.NewId(),
 	}
-	_, err := ss.WikiLink().Save(link)
+	_, err := ss.ChannelMemberLink().Save(link)
 	require.NoError(t, err)
 
 	t.Run("delete existing", func(t *testing.T) {
-		deleteErr := ss.WikiLink().Delete(sourceID, destinationID)
+		deleteErr := ss.ChannelMemberLink().Delete(sourceID, destinationID)
 		require.NoError(t, deleteErr)
 
-		_, getErr := ss.WikiLink().Get(sourceID, destinationID)
+		_, getErr := ss.ChannelMemberLink().Get(sourceID, destinationID)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
 	})
 
 	t.Run("delete non-existent", func(t *testing.T) {
-		deleteErr := ss.WikiLink().Delete(model.NewId(), model.NewId())
+		deleteErr := ss.ChannelMemberLink().Delete(model.NewId(), model.NewId())
 		assert.Error(t, deleteErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, deleteErr, &nfErr)
@@ -263,30 +263,30 @@ func testDeleteByDestination(t *testing.T, rctx request.CTX, ss store.Store) {
 	destinationID := model.NewId()
 
 	for range 3 {
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      model.NewId(),
 			DestinationId: destinationID,
 			CreatorId:     model.NewId(),
 		}
-		_, err := ss.WikiLink().Save(link)
+		_, err := ss.ChannelMemberLink().Save(link)
 		require.NoError(t, err)
 	}
 
 	t.Run("multiple links to same dest all deleted", func(t *testing.T) {
-		links, getErr := ss.WikiLink().GetByDestination(destinationID)
+		links, getErr := ss.ChannelMemberLink().GetByDestination(destinationID)
 		require.NoError(t, getErr)
 		require.Len(t, links, 3)
 
-		deleteErr := ss.WikiLink().DeleteByDestination(destinationID)
+		deleteErr := ss.ChannelMemberLink().DeleteByDestination(destinationID)
 		require.NoError(t, deleteErr)
 
-		links, getErr = ss.WikiLink().GetByDestination(destinationID)
+		links, getErr = ss.ChannelMemberLink().GetByDestination(destinationID)
 		require.NoError(t, getErr)
 		assert.Empty(t, links)
 	})
 
 	t.Run("no matching links no error", func(t *testing.T) {
-		deleteErr := ss.WikiLink().DeleteByDestination(model.NewId())
+		deleteErr := ss.ChannelMemberLink().DeleteByDestination(model.NewId())
 		assert.NoError(t, deleteErr)
 	})
 }
@@ -351,20 +351,20 @@ func testSaveAndPropagateMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user2.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceChannel.Id,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
 
-		saved, saveErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		saved, saveErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, saveErr)
 		require.NotNil(t, saved)
 		assert.Equal(t, sourceChannel.Id, saved.SourceId)
 		assert.Equal(t, destChannel.Id, saved.DestinationId)
 
 		// Verify the link was saved
-		retrieved, getErr := ss.WikiLink().Get(sourceChannel.Id, destChannel.Id)
+		retrieved, getErr := ss.ChannelMemberLink().Get(sourceChannel.Id, destChannel.Id)
 		require.NoError(t, getErr)
 		require.NotNil(t, retrieved)
 
@@ -386,13 +386,13 @@ func testSaveAndPropagateMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
 		addChannelMemberForLinkTest(t, rctx, ss, destChannel.Id, user1.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceChannel.Id,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
 
-		saved, saveErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		saved, saveErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, saveErr)
 		require.NotNil(t, saved)
 
@@ -406,18 +406,18 @@ func testSaveAndPropagateMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
 		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceChannel.Id,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
 
-		saved, saveErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		saved, saveErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, saveErr)
 		require.NotNil(t, saved)
 
 		// Link should be saved
-		retrieved, getErr := ss.WikiLink().Get(sourceChannel.Id, destChannel.Id)
+		retrieved, getErr := ss.ChannelMemberLink().Get(sourceChannel.Id, destChannel.Id)
 		require.NoError(t, getErr)
 		require.NotNil(t, retrieved)
 	})
@@ -426,13 +426,13 @@ func testSaveAndPropagateMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
 		sourceID := model.NewId()
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceID,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
 
-		_, saveErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, "invalid", false)
+		_, saveErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, "invalid", false)
 		assert.Error(t, saveErr)
 		var inputErr *store.ErrInvalidInput
 		assert.ErrorAs(t, saveErr, &inputErr)
@@ -461,12 +461,12 @@ func testDeleteAndCleanupMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user2.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceChannel.Id,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
-		_, saveErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		_, saveErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, saveErr)
 
 		// Verify synthetic members exist
@@ -476,11 +476,11 @@ func testDeleteAndCleanupMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		require.NoError(t, mErr)
 
 		// Delete the link and cleanup
-		deleteErr := ss.WikiLink().DeleteAndCleanupMembers(rctx, sourceChannel.Id, destChannel.Id)
+		deleteErr := ss.ChannelMemberLink().DeleteAndCleanupMembers(rctx, sourceChannel.Id, destChannel.Id)
 		require.NoError(t, deleteErr)
 
 		// Link should be gone
-		_, getErr := ss.WikiLink().Get(sourceChannel.Id, destChannel.Id)
+		_, getErr := ss.ChannelMemberLink().Get(sourceChannel.Id, destChannel.Id)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -505,16 +505,16 @@ func testDeleteAndCleanupMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		// syntheticUser is a member of source and will be propagated
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, syntheticUser.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId:      sourceChannel.Id,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
-		_, saveErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		_, saveErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, saveErr)
 
 		// Delete link and cleanup
-		deleteErr := ss.WikiLink().DeleteAndCleanupMembers(rctx, sourceChannel.Id, destChannel.Id)
+		deleteErr := ss.ChannelMemberLink().DeleteAndCleanupMembers(rctx, sourceChannel.Id, destChannel.Id)
 		require.NoError(t, deleteErr)
 
 		// Direct member should still be present
@@ -539,21 +539,21 @@ func testDeleteAndCleanupMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		addChannelMemberForLinkTest(t, rctx, ss, source2.Id, sharedUser.Id)
 
 		// Link source1 -> dest (propagates sharedUser with SourceId=source1)
-		link1 := &model.WikiLink{
+		link1 := &model.ChannelMemberLink{
 			SourceId:      source1.Id,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
-		_, saveErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
+		_, saveErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
 		require.NoError(t, saveErr)
 
 		// Link source2 -> dest (sharedUser already in dest, not duplicated)
-		link2 := &model.WikiLink{
+		link2 := &model.ChannelMemberLink{
 			SourceId:      source2.Id,
 			DestinationId: destChannel.Id,
 			CreatorId:     creatorID,
 		}
-		_, saveErr = ss.WikiLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
+		_, saveErr = ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
 		require.NoError(t, saveErr)
 
 		// Verify sharedUser is in dest with SourceId=source1 (first link that propagated)
@@ -562,7 +562,7 @@ func testDeleteAndCleanupMembers(t *testing.T, rctx request.CTX, ss store.Store,
 		assert.Equal(t, source1.Id, m.SourceId)
 
 		// Delete link1 (source1 -> dest)
-		deleteErr := ss.WikiLink().DeleteAndCleanupMembers(rctx, source1.Id, destChannel.Id)
+		deleteErr := ss.ChannelMemberLink().DeleteAndCleanupMembers(rctx, source1.Id, destChannel.Id)
 		require.NoError(t, deleteErr)
 
 		// sharedUser should still be in dest because source2 link still exists
@@ -572,7 +572,7 @@ func testDeleteAndCleanupMembers(t *testing.T, rctx request.CTX, ss store.Store,
 	})
 
 	t.Run("non-existent link returns not found error", func(t *testing.T) {
-		deleteErr := ss.WikiLink().DeleteAndCleanupMembers(rctx, model.NewId(), model.NewId())
+		deleteErr := ss.ChannelMemberLink().DeleteAndCleanupMembers(rctx, model.NewId(), model.NewId())
 		assert.Error(t, deleteErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, deleteErr, &nfErr)

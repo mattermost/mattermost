@@ -15,22 +15,22 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-type SqlWikiLinkStore struct {
+type SqlChannelMemberLinkStore struct {
 	*SqlStore
 }
 
-func newSqlWikiLinkStore(sqlStore *SqlStore) store.WikiLinkStore {
-	return &SqlWikiLinkStore{SqlStore: sqlStore}
+func newSqlChannelMemberLinkStore(sqlStore *SqlStore) store.ChannelMemberLinkStore {
+	return &SqlChannelMemberLinkStore{SqlStore: sqlStore}
 }
 
-func (s *SqlWikiLinkStore) prepareSaveLink(link *model.WikiLink) (string, []any, error) {
+func (s *SqlChannelMemberLinkStore) prepareSaveLink(link *model.ChannelMemberLink) (string, []any, error) {
 	link.PreSave()
 	if vErr := link.IsValid(); vErr != nil {
-		return "", nil, store.NewErrInvalidInput("WikiLink", "link", vErr.Error())
+		return "", nil, store.NewErrInvalidInput("ChannelMemberLink", "link", vErr.Error())
 	}
 
 	query, args, err := s.getQueryBuilder().
-		Insert("WikiLinks").
+		Insert("ChannelMemberLinks").
 		Columns("SourceId", "DestinationId", "CreateAt", "CreatorId").
 		Values(link.SourceId, link.DestinationId, link.CreateAt, link.CreatorId).
 		ToSql()
@@ -40,14 +40,14 @@ func (s *SqlWikiLinkStore) prepareSaveLink(link *model.WikiLink) (string, []any,
 	return query, args, nil
 }
 
-func (s *SqlWikiLinkStore) handleSaveLinkError(err error, link *model.WikiLink) error {
-	if IsUniqueConstraintError(err, []string{"wikilinks_pkey", "PRIMARY"}) {
-		return store.NewErrConflict("WikiLink", err, "source_id="+link.SourceId+",destination_id="+link.DestinationId)
+func (s *SqlChannelMemberLinkStore) handleSaveLinkError(err error, link *model.ChannelMemberLink) error {
+	if IsUniqueConstraintError(err, []string{"channelmemberlinks_pkey", "PRIMARY"}) {
+		return store.NewErrConflict("ChannelMemberLink", err, "source_id="+link.SourceId+",destination_id="+link.DestinationId)
 	}
-	return errors.Wrap(err, "failed to save WikiLink")
+	return errors.Wrap(err, "failed to save ChannelMemberLink")
 }
 
-func (s *SqlWikiLinkStore) Save(link *model.WikiLink) (*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) Save(link *model.ChannelMemberLink) (*model.ChannelMemberLink, error) {
 	query, args, err := s.prepareSaveLink(link)
 	if err != nil {
 		return nil, err
@@ -60,18 +60,18 @@ func (s *SqlWikiLinkStore) Save(link *model.WikiLink) (*model.WikiLink, error) {
 	return link, nil
 }
 
-func (s *SqlWikiLinkStore) Get(sourceId, destinationId string) (*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) Get(sourceId, destinationId string) (*model.ChannelMemberLink, error) {
 	if !model.IsValidId(sourceId) {
-		return nil, store.NewErrInvalidInput("WikiLink", "sourceId", sourceId)
+		return nil, store.NewErrInvalidInput("ChannelMemberLink", "sourceId", sourceId)
 	}
 	if !model.IsValidId(destinationId) {
-		return nil, store.NewErrInvalidInput("WikiLink", "destinationId", destinationId)
+		return nil, store.NewErrInvalidInput("ChannelMemberLink", "destinationId", destinationId)
 	}
 
-	var link model.WikiLink
+	var link model.ChannelMemberLink
 	builder := s.getQueryBuilder().
 		Select("SourceId", "DestinationId", "CreateAt", "CreatorId").
-		From("WikiLinks").
+		From("ChannelMemberLinks").
 		Where(sq.Eq{
 			"SourceId":      sourceId,
 			"DestinationId": destinationId,
@@ -79,33 +79,33 @@ func (s *SqlWikiLinkStore) Get(sourceId, destinationId string) (*model.WikiLink,
 
 	if err := s.GetMaster().GetBuilder(&link, builder); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("WikiLink", sourceId+"/"+destinationId)
+			return nil, store.NewErrNotFound("ChannelMemberLink", sourceId+"/"+destinationId)
 		}
-		return nil, errors.Wrap(err, "failed to get WikiLink")
+		return nil, errors.Wrap(err, "failed to get ChannelMemberLink")
 	}
 
 	return &link, nil
 }
 
-// selectWikiLinksBuilder returns the base SELECT for WikiLinks rows.
+// selectChannelMemberLinksBuilder returns the base SELECT for ChannelMemberLinks rows.
 // Callers add Where + Limit and pick the executor (Replica vs Master).
-func (s *SqlWikiLinkStore) selectWikiLinksBuilder() sq.SelectBuilder {
+func (s *SqlChannelMemberLinkStore) selectChannelMemberLinksBuilder() sq.SelectBuilder {
 	return s.getQueryBuilder().
 		Select("SourceId", "DestinationId", "CreateAt", "CreatorId").
-		From("WikiLinks").
+		From("ChannelMemberLinks").
 		OrderBy("CreateAt ASC")
 }
 
-func (s *SqlWikiLinkStore) getBySource(sourceId string, fromMaster bool) ([]*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) getBySource(sourceId string, fromMaster bool) ([]*model.ChannelMemberLink, error) {
 	if !model.IsValidId(sourceId) {
-		return nil, store.NewErrInvalidInput("WikiLink", "sourceId", sourceId)
+		return nil, store.NewErrInvalidInput("ChannelMemberLink", "sourceId", sourceId)
 	}
 
 	// Hard cap result set at the documented maximum. Enforcement of the cap
 	// on writes happens in SaveAndPropagateMembers; this Limit is only a
 	// defensive bound on runaway reads.
-	links := make([]*model.WikiLink, 0)
-	builder := s.selectWikiLinksBuilder().
+	links := make([]*model.ChannelMemberLink, 0)
+	builder := s.selectChannelMemberLinksBuilder().
 		Where(sq.Eq{"SourceId": sourceId}).
 		Limit(uint64(model.MaxLinkedWikisPerChannel))
 
@@ -114,46 +114,46 @@ func (s *SqlWikiLinkStore) getBySource(sourceId string, fromMaster bool) ([]*mod
 		db = s.GetMaster()
 	}
 	if err := db.SelectBuilder(&links, builder); err != nil {
-		return nil, errors.Wrap(err, "failed to get WikiLinks by source")
+		return nil, errors.Wrap(err, "failed to get ChannelMemberLinks by source")
 	}
 
 	return links, nil
 }
 
-func (s *SqlWikiLinkStore) GetBySource(sourceId string) ([]*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) GetBySource(sourceId string) ([]*model.ChannelMemberLink, error) {
 	return s.getBySource(sourceId, false)
 }
 
 // GetBySourceMaster reads from the primary DB node. Use immediately after a
 // write that may not yet be visible on replicas.
-func (s *SqlWikiLinkStore) GetBySourceMaster(sourceId string) ([]*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) GetBySourceMaster(sourceId string) ([]*model.ChannelMemberLink, error) {
 	return s.getBySource(sourceId, true)
 }
 
-func (s *SqlWikiLinkStore) GetBySources(sourceIds []string) ([]*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) GetBySources(sourceIds []string) ([]*model.ChannelMemberLink, error) {
 	if len(sourceIds) == 0 {
-		return []*model.WikiLink{}, nil
+		return []*model.ChannelMemberLink{}, nil
 	}
 
 	for _, id := range sourceIds {
 		if !model.IsValidId(id) {
-			return nil, store.NewErrInvalidInput("WikiLink", "sourceId", id)
+			return nil, store.NewErrInvalidInput("ChannelMemberLink", "sourceId", id)
 		}
 	}
 
 	const batchSize = 100
-	links := make([]*model.WikiLink, 0)
+	links := make([]*model.ChannelMemberLink, 0)
 
 	for i := 0; i < len(sourceIds); i += batchSize {
 		end := min(i+batchSize, len(sourceIds))
 		batch := sourceIds[i:end]
 
-		builder := s.selectWikiLinksBuilder().
+		builder := s.selectChannelMemberLinksBuilder().
 			Where(sq.Eq{"SourceId": batch})
 
-		var batchLinks []*model.WikiLink
+		var batchLinks []*model.ChannelMemberLink
 		if err := s.GetReplica().SelectBuilder(&batchLinks, builder); err != nil {
-			return nil, errors.Wrap(err, "failed to get WikiLinks by sources")
+			return nil, errors.Wrap(err, "failed to get ChannelMemberLinks by sources")
 		}
 		links = append(links, batchLinks...)
 	}
@@ -161,57 +161,57 @@ func (s *SqlWikiLinkStore) GetBySources(sourceIds []string) ([]*model.WikiLink, 
 	return links, nil
 }
 
-func (s *SqlWikiLinkStore) GetByDestination(destinationId string) ([]*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) GetByDestination(destinationId string) ([]*model.ChannelMemberLink, error) {
 	if !model.IsValidId(destinationId) {
-		return nil, store.NewErrInvalidInput("WikiLink", "destinationId", destinationId)
+		return nil, store.NewErrInvalidInput("ChannelMemberLink", "destinationId", destinationId)
 	}
 
-	links := make([]*model.WikiLink, 0)
-	builder := s.selectWikiLinksBuilder().
+	links := make([]*model.ChannelMemberLink, 0)
+	builder := s.selectChannelMemberLinksBuilder().
 		Where(sq.Eq{"DestinationId": destinationId}).
 		Limit(uint64(model.MaxLinkedSourcesPerDestination))
 
 	if err := s.GetReplica().SelectBuilder(&links, builder); err != nil {
-		return nil, errors.Wrap(err, "failed to get WikiLinks by destination")
+		return nil, errors.Wrap(err, "failed to get ChannelMemberLinks by destination")
 	}
 
 	return links, nil
 }
 
-// GetByWiki returns the WikiLinks pointing at the wiki identified by wikiId.
+// GetByWiki returns the ChannelMemberLinks pointing at the wiki identified by wikiId.
 // Resolves wikiId → backing-channel-id via the Wikis table so callers do not
 // need to know the storage detail that DestinationId is the backing channel.
-func (s *SqlWikiLinkStore) GetByWiki(wikiId string) ([]*model.WikiLink, error) {
+func (s *SqlChannelMemberLinkStore) GetByWiki(wikiId string) ([]*model.ChannelMemberLink, error) {
 	if !model.IsValidId(wikiId) {
-		return nil, store.NewErrInvalidInput("WikiLink", "wikiId", wikiId)
+		return nil, store.NewErrInvalidInput("ChannelMemberLink", "wikiId", wikiId)
 	}
 
-	links := make([]*model.WikiLink, 0)
+	links := make([]*model.ChannelMemberLink, 0)
 	builder := s.getQueryBuilder().
 		Select("wl.SourceId", "wl.DestinationId", "wl.CreateAt", "wl.CreatorId").
-		From("WikiLinks wl").
+		From("ChannelMemberLinks wl").
 		Join("Wikis w ON w.ChannelId = wl.DestinationId").
 		Where(sq.Eq{"w.Id": wikiId}).
 		OrderBy("wl.CreateAt ASC").
 		Limit(uint64(model.MaxLinkedSourcesPerDestination))
 
 	if err := s.GetReplica().SelectBuilder(&links, builder); err != nil {
-		return nil, errors.Wrap(err, "failed to get WikiLinks by wiki")
+		return nil, errors.Wrap(err, "failed to get ChannelMemberLinks by wiki")
 	}
 
 	return links, nil
 }
 
-func (s *SqlWikiLinkStore) Delete(sourceId, destinationId string) error {
+func (s *SqlChannelMemberLinkStore) Delete(sourceId, destinationId string) error {
 	if !model.IsValidId(sourceId) {
-		return store.NewErrInvalidInput("WikiLink", "sourceId", sourceId)
+		return store.NewErrInvalidInput("ChannelMemberLink", "sourceId", sourceId)
 	}
 	if !model.IsValidId(destinationId) {
-		return store.NewErrInvalidInput("WikiLink", "destinationId", destinationId)
+		return store.NewErrInvalidInput("ChannelMemberLink", "destinationId", destinationId)
 	}
 
 	builder := s.getQueryBuilder().
-		Delete("WikiLinks").
+		Delete("ChannelMemberLinks").
 		Where(sq.Eq{
 			"SourceId":      sourceId,
 			"DestinationId": destinationId,
@@ -219,7 +219,7 @@ func (s *SqlWikiLinkStore) Delete(sourceId, destinationId string) error {
 
 	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete WikiLink")
+		return errors.Wrap(err, "failed to delete ChannelMemberLink")
 	}
 
 	count, err := result.RowsAffected()
@@ -228,7 +228,7 @@ func (s *SqlWikiLinkStore) Delete(sourceId, destinationId string) error {
 	}
 
 	if count == 0 {
-		return store.NewErrNotFound("WikiLink", sourceId+"/"+destinationId)
+		return store.NewErrNotFound("ChannelMemberLink", sourceId+"/"+destinationId)
 	}
 
 	return nil
@@ -239,9 +239,9 @@ func (s *SqlWikiLinkStore) Delete(sourceId, destinationId string) error {
 // manually deleting links to avoid leaving orphaned ChannelMembers rows.
 // Both deletes run in a single transaction so a partial failure cannot leave the DB with
 // link rows whose synthetic members were already removed.
-func (s *SqlWikiLinkStore) DeleteByDestination(destinationId string) (err error) {
+func (s *SqlChannelMemberLinkStore) DeleteByDestination(destinationId string) (err error) {
 	if !model.IsValidId(destinationId) {
-		return store.NewErrInvalidInput("WikiLink", "destinationId", destinationId)
+		return store.NewErrInvalidInput("ChannelMemberLink", "destinationId", destinationId)
 	}
 
 	transaction, err := s.GetMaster().Begin()
@@ -263,10 +263,10 @@ func (s *SqlWikiLinkStore) DeleteByDestination(destinationId string) (err error)
 	}
 
 	linkBuilder := s.getQueryBuilder().
-		Delete("WikiLinks").
+		Delete("ChannelMemberLinks").
 		Where(sq.Eq{"DestinationId": destinationId})
 	if _, err = transaction.ExecBuilder(linkBuilder); err != nil {
-		return errors.Wrap(err, "failed to delete WikiLinks by destination")
+		return errors.Wrap(err, "failed to delete ChannelMemberLinks by destination")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -276,9 +276,9 @@ func (s *SqlWikiLinkStore) DeleteByDestination(destinationId string) (err error)
 	return nil
 }
 
-func (s *SqlWikiLinkStore) SaveAndPropagateMembers(rctx request.CTX, link *model.WikiLink, sourceChannelId string, propagateAdmin bool) (_ *model.WikiLink, err error) {
+func (s *SqlChannelMemberLinkStore) SaveAndPropagateMembers(rctx request.CTX, link *model.ChannelMemberLink, sourceChannelId string, propagateAdmin bool) (_ *model.ChannelMemberLink, err error) {
 	if !model.IsValidId(sourceChannelId) {
-		return nil, store.NewErrInvalidInput("WikiLink", "sourceChannelId", sourceChannelId)
+		return nil, store.NewErrInvalidInput("ChannelMemberLink", "sourceChannelId", sourceChannelId)
 	}
 
 	insertQuery, args, prepErr := s.prepareSaveLink(link)
@@ -307,6 +307,15 @@ func (s *SqlWikiLinkStore) SaveAndPropagateMembers(rctx request.CTX, link *model
 		return nil, errors.Wrap(err, "failed to acquire advisory lock")
 	}
 
+	// Serialize against a concurrent unlink (DeleteAndCleanupMembers) on the same destination,
+	// which locks these rows FOR UPDATE before reassigning/deleting synthetic members. The
+	// advisory lock above is keyed on the (source, destination) pair and does not exclude a
+	// row-lock holder, so without this an in-flight unlink could run its reassign-or-delete pass
+	// without seeing the link being added and strip synthetic members this link should retain.
+	if _, err = transaction.Exec(`SELECT 1 FROM ChannelMemberLinks WHERE DestinationId = $1 FOR UPDATE`, link.DestinationId); err != nil {
+		return nil, errors.Wrap(err, "failed to lock channel member links for destination")
+	}
+
 	// Enforce both max-links caps within the transaction in a single round-trip.
 	// Raw SQL: squirrel does not support this inside an already-bound sqlx
 	// transaction without losing the advisory-lock scope.
@@ -317,16 +326,16 @@ func (s *SqlWikiLinkStore) SaveAndPropagateMembers(rctx request.CTX, link *model
 	const countQuery = `SELECT
 		COUNT(*) FILTER (WHERE SourceId = $1) AS source_count,
 		COUNT(*) FILTER (WHERE DestinationId = $2) AS dest_count
-	FROM WikiLinks WHERE SourceId = $1 OR DestinationId = $2`
+	FROM ChannelMemberLinks WHERE SourceId = $1 OR DestinationId = $2`
 	if err = transaction.Get(&counts, countQuery, link.SourceId, link.DestinationId); err != nil {
 		return nil, errors.Wrap(err, "failed to count existing links")
 	}
 	if counts.SourceCount >= model.MaxLinkedWikisPerChannel {
-		err = store.NewErrInvalidInput("WikiLink", "source_link_count", "max links per source reached")
+		err = store.NewErrInvalidInput("ChannelMemberLink", "source_link_count", "max links per source reached")
 		return nil, err
 	}
 	if counts.DestCount >= model.MaxLinkedSourcesPerDestination {
-		err = store.NewErrInvalidInput("WikiLink", "dest_link_count", "max sources per destination reached")
+		err = store.NewErrInvalidInput("ChannelMemberLink", "dest_link_count", "max sources per destination reached")
 		return nil, err
 	}
 
@@ -371,12 +380,12 @@ func (s *SqlWikiLinkStore) SaveAndPropagateMembers(rctx request.CTX, link *model
 	return link, nil
 }
 
-func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, destinationId string) (err error) {
+func (s *SqlChannelMemberLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, destinationId string) (err error) {
 	if !model.IsValidId(sourceId) {
-		return store.NewErrInvalidInput("WikiLink", "sourceId", sourceId)
+		return store.NewErrInvalidInput("ChannelMemberLink", "sourceId", sourceId)
 	}
 	if !model.IsValidId(destinationId) {
-		return store.NewErrInvalidInput("WikiLink", "destinationId", destinationId)
+		return store.NewErrInvalidInput("ChannelMemberLink", "destinationId", destinationId)
 	}
 
 	transaction, err := s.GetMaster().Begin()
@@ -391,11 +400,11 @@ func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, d
 	// NOWAIT surfaces the lock contention immediately as an error instead of blocking
 	// indefinitely — callers can retry rather than queue behind a long-running transaction.
 	// Raw SQL: see comment in SaveAndPropagateMembers for justification.
-	lockQuery := `SELECT SourceId FROM WikiLinks WHERE DestinationId = $1 FOR UPDATE NOWAIT`
+	lockQuery := `SELECT SourceId FROM ChannelMemberLinks WHERE DestinationId = $1 FOR UPDATE NOWAIT`
 	if _, err = transaction.Exec(lockQuery, destinationId); err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code == "55P03" {
-			return store.NewErrConflict("WikiLink", err, "lock not available")
+			return store.NewErrConflict("ChannelMemberLink", err, "lock not available")
 		}
 		return errors.Wrap(err, "failed to lock channel member links for destination")
 	}
@@ -409,7 +418,7 @@ func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, d
 	// to an alternative source atomically.
 	updateQuery := `
 		UPDATE ChannelMembers SET SourceId = COALESCE((
-			SELECT cml.SourceId FROM WikiLinks cml
+			SELECT cml.SourceId FROM ChannelMemberLinks cml
 			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = ChannelMembers.UserId
 			WHERE cml.DestinationId = $1
 			AND cml.SourceId != $2
@@ -419,7 +428,7 @@ func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, d
 		), SourceId)
 		WHERE ChannelId = $1 AND SourceId = $2
 		AND EXISTS (
-			SELECT 1 FROM WikiLinks cml
+			SELECT 1 FROM ChannelMemberLinks cml
 			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = ChannelMembers.UserId
 			WHERE cml.DestinationId = $1 AND cml.SourceId != $2
 			AND (cm2.SourceId IS NULL OR cm2.SourceId = '')
@@ -440,7 +449,7 @@ func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, d
 
 	// Step 3: Delete the link record
 	deleteLinkQuery, args, qErr := s.getQueryBuilder().
-		Delete("WikiLinks").
+		Delete("ChannelMemberLinks").
 		Where(sq.Eq{
 			"SourceId":      sourceId,
 			"DestinationId": destinationId,
@@ -452,7 +461,7 @@ func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, d
 
 	result, err := transaction.Exec(deleteLinkQuery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete WikiLink")
+		return errors.Wrap(err, "failed to delete ChannelMemberLink")
 	}
 
 	count, err := result.RowsAffected()
@@ -460,7 +469,7 @@ func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, d
 		return errors.Wrap(err, "failed to get rows affected")
 	}
 	if count == 0 {
-		err = store.NewErrNotFound("WikiLink", sourceId+"/"+destinationId)
+		err = store.NewErrNotFound("ChannelMemberLink", sourceId+"/"+destinationId)
 		return err
 	}
 

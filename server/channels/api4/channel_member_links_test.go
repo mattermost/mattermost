@@ -33,13 +33,13 @@ func TestLinkWikiToChannelAPI(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		targetChannel := th.CreatePublicChannel(t)
 
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, model.BuildResponse(httpResp))
 
-		var link model.WikiLink
+		var link model.ChannelMemberLink
 		err = json.NewDecoder(httpResp.Body).Decode(&link)
 		require.NoError(t, err)
 		require.Equal(t, targetChannel.Id, link.SourceId)
@@ -49,7 +49,7 @@ func TestLinkWikiToChannelAPI(t *testing.T) {
 	t.Run("duplicate link returns conflict", func(t *testing.T) {
 		targetChannel := th.CreatePublicChannel(t)
 
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
@@ -77,7 +77,7 @@ func TestLinkWikiToChannelAPI(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 		httpResp, err := client2.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
@@ -87,7 +87,7 @@ func TestLinkWikiToChannelAPI(t *testing.T) {
 	t.Run("invalid wiki_id", func(t *testing.T) {
 		targetChannel := th.CreatePublicChannel(t)
 
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"not-valid"}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
@@ -110,7 +110,7 @@ func TestLinkWikiToChannelAPI(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
-		url := "/channels/" + privateChannel.Id + "/wikilinks"
+		url := "/channels/" + privateChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 		httpResp, err := client2.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
@@ -118,7 +118,7 @@ func TestLinkWikiToChannelAPI(t *testing.T) {
 	})
 }
 
-func TestGetWikiLinksForChannelAPI(t *testing.T) {
+func TestGetChannelMemberLinksForChannelAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -141,12 +141,12 @@ func TestGetWikiLinksForChannelAPI(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("success", func(t *testing.T) {
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		var links []*model.WikiLink
+		var links []*model.ChannelMemberLink
 		err = json.NewDecoder(httpResp.Body).Decode(&links)
 		require.NoError(t, err)
 		require.Len(t, links, 1)
@@ -164,14 +164,14 @@ func TestGetWikiLinksForChannelAPI(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
-		url := "/channels/" + privateChannel.Id + "/wikilinks"
+		url := "/channels/" + privateChannel.Id + "/channel_member_links"
 		httpResp, err := client2.DoAPIGet(context.Background(), url, "")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
 	})
 }
 
-func TestGetWikiLinksByWikiAPI(t *testing.T) {
+func TestGetChannelMemberLinksByWikiAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -193,12 +193,12 @@ func TestGetWikiLinksByWikiAPI(t *testing.T) {
 		_, appErr := th.App.LinkWikiToChannel(th.Context, wiki.Id, readableChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		url := "/wikis/" + wiki.Id + "/links"
+		url := "/wikis/" + wiki.Id + "/channel_member_links"
 		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		var links []*model.WikiLink
+		var links []*model.ChannelMemberLink
 		err = json.NewDecoder(httpResp.Body).Decode(&links)
 		require.NoError(t, err)
 		require.Len(t, links, 1)
@@ -222,12 +222,12 @@ func TestGetWikiLinksByWikiAPI(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
-		url := "/wikis/" + w.Id + "/links"
+		url := "/wikis/" + w.Id + "/channel_member_links"
 		httpResp, err := client2.DoAPIGet(context.Background(), url, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		var links []*model.WikiLink
+		var links []*model.ChannelMemberLink
 		err = json.NewDecoder(httpResp.Body).Decode(&links)
 		require.NoError(t, err)
 		require.Empty(t, links, "private channel should be filtered out for non-member")
@@ -240,7 +240,7 @@ func TestGetWikiLinksByWikiAPI(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), otherTeamUser.Username, otherTeamUser.Password)
 		require.NoError(t, lErr)
 
-		url := "/wikis/" + wiki.Id + "/links"
+		url := "/wikis/" + wiki.Id + "/channel_member_links"
 		httpResp, err := client2.DoAPIGet(context.Background(), url, "")
 		require.Error(t, err)
 		// GetWikiForRead returns 403 for users outside the team.
@@ -248,7 +248,7 @@ func TestGetWikiLinksByWikiAPI(t *testing.T) {
 	})
 
 	t.Run("non-existent wiki returns 404", func(t *testing.T) {
-		url := "/wikis/" + model.NewId() + "/links"
+		url := "/wikis/" + model.NewId() + "/channel_member_links"
 		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, model.BuildResponse(httpResp))
@@ -259,12 +259,12 @@ func TestGetWikiLinksByWikiAPI(t *testing.T) {
 		emptyWiki, appErr := th.App.CreateWiki(th.Context, emptyWiki, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		url := "/wikis/" + emptyWiki.Id + "/links"
+		url := "/wikis/" + emptyWiki.Id + "/channel_member_links"
 		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		var links []*model.WikiLink
+		var links []*model.ChannelMemberLink
 		err = json.NewDecoder(httpResp.Body).Decode(&links)
 		require.NoError(t, err)
 		require.Empty(t, links)
@@ -294,7 +294,7 @@ func TestUnlinkWikiFromChannelAPI(t *testing.T) {
 		_, appErr = th.App.LinkWikiToChannel(th.Context, wiki.Id, targetChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		url := "/channels/" + targetChannel.Id + "/wikilinks/" + wiki.Id
+		url := "/channels/" + targetChannel.Id + "/channel_member_links/" + wiki.Id
 		httpResp, err := th.Client.DoAPIDelete(context.Background(), url)
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
@@ -326,7 +326,7 @@ func TestUnlinkWikiFromChannelAPI(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
-		url := "/channels/" + targetChannel.Id + "/wikilinks/" + wiki.Id
+		url := "/channels/" + targetChannel.Id + "/channel_member_links/" + wiki.Id
 		httpResp, err := client2.DoAPIDelete(context.Background(), url)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
@@ -358,7 +358,7 @@ func TestUnlinkWikiFromChannelAPI(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
-		url := "/channels/" + privateChannel.Id + "/wikilinks/" + wiki.Id
+		url := "/channels/" + privateChannel.Id + "/channel_member_links/" + wiki.Id
 		httpResp, err := client2.DoAPIDelete(context.Background(), url)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
@@ -367,7 +367,7 @@ func TestUnlinkWikiFromChannelAPI(t *testing.T) {
 	t.Run("wiki not found", func(t *testing.T) {
 		targetChannel := th.CreatePublicChannel(t)
 
-		url := "/channels/" + targetChannel.Id + "/wikilinks/" + model.NewId()
+		url := "/channels/" + targetChannel.Id + "/channel_member_links/" + model.NewId()
 		httpResp, err := th.Client.DoAPIDelete(context.Background(), url)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, model.BuildResponse(httpResp))

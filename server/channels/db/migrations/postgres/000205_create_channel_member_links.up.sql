@@ -3,8 +3,8 @@
 -- all FK-less for operational reasons: multi-shard/multi-region tolerance,
 -- schema-evolution flexibility, and historical integer-vs-varchar id
 -- compatibility). Integrity is enforced at the app layer via
--- cleanupWikiLinksForSourceChannel/DeleteByDestination on channel delete paths.
-CREATE TABLE IF NOT EXISTS WikiLinks (
+-- cleanupChannelMemberLinksForSourceChannel/DeleteByDestination on channel delete paths.
+CREATE TABLE IF NOT EXISTS ChannelMemberLinks (
     SourceId      varchar(26) NOT NULL,
     DestinationId varchar(26) NOT NULL,
     CreateAt      bigint NOT NULL,
