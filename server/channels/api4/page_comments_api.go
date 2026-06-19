@@ -182,17 +182,6 @@ func validateInlinePageComment(c *Context, commentId, pageId, handlerName string
 		return nil
 	}
 
-	if !app.IsPageComment(comment) {
-		c.Err = model.NewAppError(
-			handlerName,
-			"api.wiki.comment.not_comment.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-		return nil
-	}
-
 	commentPageId, _ := comment.GetProps()[model.PagePropsPageID].(string)
 	if commentPageId != pageId {
 		c.Err = model.NewAppError(
@@ -351,11 +340,6 @@ func deletePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if comment.DeleteAt != 0 {
 		c.Err = model.NewAppError("deletePageComment", "api.wiki.comment.deleted.app_error", nil, "", http.StatusNotFound)
-		return
-	}
-
-	if !app.IsPageComment(comment) {
-		c.Err = model.NewAppError("deletePageComment", "api.wiki.comment.not_comment.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 

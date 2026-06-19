@@ -1656,13 +1656,6 @@ type API interface {
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 
-	// LinkPageToFirstWiki links a page to the first wiki in the given channel.
-	// If no wiki exists, an error is returned.
-	//
-	// @tag Wiki
-	// Minimum server version: 10.10
-	LinkPageToFirstWiki(pageID, channelID string) *model.AppError
-
 	// GetFirstWikiForChannel retrieves the ID of the first wiki in the given channel.
 	// If no wiki exists, an error is returned.
 	//
@@ -1672,11 +1665,11 @@ type API interface {
 
 	// CreateWikiPage creates a new wiki page with the given title and content on behalf of the specified user.
 	// The userID parameter specifies which user is creating the page (for permission checks and attribution).
-	// Returns the created page post.
+	// Returns the created page.
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError)
+	CreateWikiPage(wikiID, title, content, userID string) (*model.Page, *model.AppError)
 
 	// GetWiki retrieves a wiki by its ID.
 	// Returns the wiki or an error if not found.
@@ -1686,25 +1679,25 @@ type API interface {
 	GetWiki(wikiID string) (*model.Wiki, *model.AppError)
 
 	// GetPage retrieves a page by its ID without content.
-	// Returns the page post or an error if not found.
+	// Returns the page or an error if not found.
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	GetPage(pageID string) (*model.Post, *model.AppError)
+	GetPage(pageID string) (*model.Page, *model.AppError)
 
 	// GetPageWithContent retrieves a page by its ID with full content.
-	// Returns the page post with content populated or an error if not found.
+	// Returns the page with content populated or an error if not found.
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	GetPageWithContent(pageID string) (*model.Post, *model.AppError)
+	GetPageWithContent(pageID string) (*model.Page, *model.AppError)
 
 	// GetWikiPages retrieves pages for a wiki with pagination.
 	// Uses standard MM pagination (page, perPage).
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	GetWikiPages(wikiID string, page, perPage int) ([]*model.Post, *model.AppError)
+	GetWikiPages(wikiID string, page, perPage int) ([]*model.Page, *model.AppError)
 
 	// UpdateWikiPage updates an existing wiki page with optimistic locking.
 	// The baseEditAt parameter must match the page's current EditAt to prevent overwriting concurrent edits.
@@ -1712,7 +1705,7 @@ type API interface {
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Post, *model.AppError)
+	UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Page, *model.AppError)
 
 	// DeleteWikiPage soft-deletes a wiki page.
 	// The page can be restored later.
@@ -1723,24 +1716,24 @@ type API interface {
 
 	// MoveWikiPage moves a page to a new parent within the same wiki.
 	// Set newParentID to nil to move to root level.
-	// Returns the updated page with new hierarchy.
+	// Returns the updated pages with new hierarchy.
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError)
+	MoveWikiPage(pageID string, newParentID *string, wikiID string) ([]*model.Page, *model.AppError)
 
 	// GetPageChildren retrieves immediate children of a page with pagination.
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	GetPageChildren(pageID string, page, perPage int) (*model.PostList, *model.AppError)
+	GetPageChildren(pageID string, page, perPage int) ([]*model.Page, *model.AppError)
 
 	// GetPageAncestors retrieves all ancestors of a page (parent, grandparent, etc.).
 	// Returns pages ordered from immediate parent to root.
 	//
 	// @tag Wiki
 	// Minimum server version: 10.10
-	GetPageAncestors(pageID string) (*model.PostList, *model.AppError)
+	GetPageAncestors(pageID string) ([]*model.Page, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

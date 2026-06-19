@@ -65,7 +65,7 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 
 	// Resolve source channel IDs to wiki backing channel IDs.
 	// The caller typically provides source channel IDs, but wikis live in
-	// independent backing channels linked via WikiLinks.
+	// independent backing channels linked via ChannelMemberLinks.
 	channelIds = a.resolveToBackingChannelIds(rctx, channelIds)
 
 	totalWikis := 0
@@ -251,9 +251,9 @@ func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.Wi
 
 // buildPageAttachments builds attachment data for a page's files
 func (a *App) buildPageAttachments(pageID string) ([]imports.AttachmentImportData, *model.AppError) {
-	infos, nErr := a.Srv().Store().FileInfo().GetForPost(pageID, false, false, false)
+	infos, nErr := a.Srv().Store().FileInfo().GetForPage(pageID)
 	if nErr != nil {
-		return nil, model.NewAppError("buildPageAttachments", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return nil, model.NewAppError("buildPageAttachments", "app.file_info.get_for_page.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	attachments := make([]imports.AttachmentImportData, 0, len(infos))

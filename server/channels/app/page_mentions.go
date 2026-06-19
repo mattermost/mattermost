@@ -72,39 +72,14 @@ func (a *App) extractMentionsFromNodes(rctx request.CTX, nodes []json.RawMessage
 	}
 }
 
-// getPreviouslyNotifiedMentions retrieves the list of users who were previously notified
-func getPreviouslyNotifiedMentions(page *model.Post) []string {
-	if page.Props == nil {
-		return []string{}
-	}
-
-	notifiedInterface, exists := page.Props["notified_mentions"]
-	if !exists {
-		return []string{}
-	}
-
-	switch notified := notifiedInterface.(type) {
-	case []any:
-		result := make([]string, 0, len(notified))
-		for _, id := range notified {
-			if userID, ok := id.(string); ok {
-				result = append(result, userID)
-			}
-		}
-		return result
-	case []string:
-		return notified
-	default:
-		return []string{}
-	}
+// getPreviouslyNotifiedMentions retrieves the list of users who were previously notified.
+// Pages no longer carry a Props blob, so mention deduplication is not yet implemented.
+func getPreviouslyNotifiedMentions(_ *model.Page) []string {
+	return []string{}
 }
 
-// setNotifiedMentions updates the page props with the current list of notified users
-func setNotifiedMentions(page *model.Post, userIDs []string) {
-	if page.Props == nil {
-		page.Props = make(model.StringInterface)
-	}
-	page.Props["notified_mentions"] = userIDs
+// setNotifiedMentions is a no-op for Pages (no Props blob to persist the set).
+func setNotifiedMentions(_ *model.Page, _ []string) {
 }
 
 // CalculateMentionDelta returns users who should be newly notified
@@ -126,7 +101,7 @@ func (a *App) CalculateMentionDelta(currentMentions, previouslyNotified []string
 
 // handlePageMentions extracts mentions from page content and sends notifications.
 // Accepts channel as parameter to avoid redundant DB fetches when channel is already available.
-func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channel *model.Channel, content, authorUserID string) {
+func (a *App) handlePageMentions(rctx request.CTX, page *model.Page, channel *model.Channel, content, authorUserID string) {
 	rctx.Logger().Debug("handlePageMentions called",
 		mlog.String("page_id", page.Id),
 		mlog.String("channel_id", channel.Id),
@@ -164,28 +139,16 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channel *mo
 		return
 	}
 
-	// Get wikiId from page Props if available
-	wikiId, _ := page.Props[model.PagePropsWikiID].(string)
-	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, newMentions, content, wikiId)
+	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, newMentions, content, page.WikiId)
 
-	// Best-effort TOCTOU: two concurrent edits can each read the same notified_mentions
-	// set and clobber the other's update. A full fix requires an atomic read-modify-write
-	// at the store level; the duplicate-notification risk is accepted for now.
-	updatedPage := page.Clone()
-	setNotifiedMentions(updatedPage, currentMentions)
-
-	if _, updateErr := a.Srv().Store().Post().Update(rctx, updatedPage, page.Clone()); updateErr != nil {
-		rctx.Logger().Warn("Failed to update page props with notified mentions",
-			mlog.String("page_id", page.Id),
-			mlog.Err(updateErr))
-	} else {
-		a.invalidateCacheForChannelPosts(page.ChannelId)
-	}
+	// setNotifiedMentions is a no-op for Pages (no Props blob); mention deduplication
+	// will be addressed in a follow-up.
+	setNotifiedMentions(page, currentMentions)
 }
 
 // sendPageMentionNotifications sends notifications for page mentions.
-// wikiId is optional - if empty, it will be fetched from the page's property values.
-func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string, content string, wikiId string) {
+// wikiId is optional - if empty, it will be fetched from the page's WikiId column.
+func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Page, channel *model.Channel, authorUserID string, mentionedUserIDs []string, content string, wikiId string) {
 	if len(mentionedUserIDs) == 0 {
 		rctx.Logger().Debug("No mentions in page", mlog.String("page_id", page.Id))
 		return
@@ -207,7 +170,17 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 		return
 	}
 
-	if _, err := a.SendNotifications(rctx, page, team, channel, user, nil, true, mentionedUserIDs); err != nil {
+	// Build a synthetic post for SendNotifications (which operates on *model.Post).
+	syntheticPost := &model.Post{
+		Id:        page.Id,
+		UserId:    page.UserId,
+		ChannelId: page.ChannelId,
+		Message:   page.Title,
+		Type:      model.PostTypePage,
+		CreateAt:  page.CreateAt,
+		UpdateAt:  page.UpdateAt,
+	}
+	if _, err := a.SendNotifications(rctx, syntheticPost, team, channel, user, nil, true, mentionedUserIDs); err != nil {
 		rctx.Logger().Warn("Failed to send mention notifications for page",
 			mlog.String("page_id", page.Id),
 			mlog.Err(err))
@@ -269,7 +242,7 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 		mentionedUsersMap[u.Id] = u
 	}
 
-	pageTitle := page.GetProp("title")
+	pageTitle := page.Title
 	if pageTitle == "" {
 		pageTitle = "Untitled"
 	}

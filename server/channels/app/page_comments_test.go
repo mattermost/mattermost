@@ -186,7 +186,7 @@ func TestTransformPageCommentReply(t *testing.T) {
 
 		transformed := th.App.TransformPageCommentReply(th.Context, replyPost, parentComment)
 		require.True(t, transformed)
-		require.Equal(t, page.Id, replyPost.RootId)
+		require.Equal(t, parentComment.Id, replyPost.RootId)
 	})
 }
 
@@ -226,7 +226,7 @@ func TestPageCommentMentionTriggersThreadNotification(t *testing.T) {
 	comment, appErr := th.App.CreatePageComment(rctx, page.Id, mentionMsg, nil, "", nil, nil)
 	require.Nil(t, appErr)
 	require.NotNil(t, comment)
-	require.Equal(t, page.Id, comment.RootId, "top-level page comment must use page ID as root_id")
+	require.Empty(t, comment.RootId, "top-level page comment must have empty RootId (page is not a Post)")
 
 	// A15 assertion 1: the mentioned user has a ThreadMembership keyed by the page post.
 	t.Skip("A15 not yet implemented")

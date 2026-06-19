@@ -759,23 +759,23 @@ func (_m *API) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserA
 }
 
 // CreateWikiPage provides a mock function with given fields: wikiID, title, content, userID
-func (_m *API) CreateWikiPage(wikiID string, title string, content string, userID string) (*model.Post, *model.AppError) {
+func (_m *API) CreateWikiPage(wikiID string, title string, content string, userID string) (*model.Page, *model.AppError) {
 	ret := _m.Called(wikiID, title, content, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateWikiPage")
 	}
 
-	var r0 *model.Post
+	var r0 *model.Page
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.Post, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.Page, *model.AppError)); ok {
 		return rf(wikiID, title, content, userID)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.Post); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.Page); ok {
 		r0 = rf(wikiID, title, content, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
+			r0 = ret.Get(0).(*model.Page)
 		}
 	}
 
@@ -2132,198 +2132,6 @@ func (_m *API) GetFirstWikiForChannel(channelID string) (string, *model.AppError
 	return r0, r1
 }
 
-// GetPage provides a mock function with given fields: pageID
-func (_m *API) GetPage(pageID string) (*model.Post, *model.AppError) {
-	ret := _m.Called(pageID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPage")
-	}
-
-	var r0 *model.Post
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.Post, *model.AppError)); ok {
-		return rf(pageID)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.Post); ok {
-		r0 = rf(pageID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(pageID)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetPageAncestors provides a mock function with given fields: pageID
-func (_m *API) GetPageAncestors(pageID string) (*model.PostList, *model.AppError) {
-	ret := _m.Called(pageID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPageAncestors")
-	}
-
-	var r0 *model.PostList
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.PostList, *model.AppError)); ok {
-		return rf(pageID)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.PostList); ok {
-		r0 = rf(pageID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(pageID)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetPageChildren provides a mock function with given fields: pageID, page, perPage
-func (_m *API) GetPageChildren(pageID string, page int, perPage int) (*model.PostList, *model.AppError) {
-	ret := _m.Called(pageID, page, perPage)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPageChildren")
-	}
-
-	var r0 *model.PostList
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int, int) (*model.PostList, *model.AppError)); ok {
-		return rf(pageID, page, perPage)
-	}
-	if rf, ok := ret.Get(0).(func(string, int, int) *model.PostList); ok {
-		r0 = rf(pageID, page, perPage)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(pageID, page, perPage)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetPageWithContent provides a mock function with given fields: pageID
-func (_m *API) GetPageWithContent(pageID string) (*model.Post, *model.AppError) {
-	ret := _m.Called(pageID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPageWithContent")
-	}
-
-	var r0 *model.Post
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.Post, *model.AppError)); ok {
-		return rf(pageID)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.Post); ok {
-		r0 = rf(pageID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(pageID)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetWiki provides a mock function with given fields: wikiID
-func (_m *API) GetWiki(wikiID string) (*model.Wiki, *model.AppError) {
-	ret := _m.Called(wikiID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetWiki")
-	}
-
-	var r0 *model.Wiki
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.Wiki, *model.AppError)); ok {
-		return rf(wikiID)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.Wiki); ok {
-		r0 = rf(wikiID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Wiki)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(wikiID)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetWikiPages provides a mock function with given fields: wikiID, page, perPage
-func (_m *API) GetWikiPages(wikiID string, page int, perPage int) ([]*model.Post, *model.AppError) {
-	ret := _m.Called(wikiID, page, perPage)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetWikiPages")
-	}
-
-	var r0 []*model.Post
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.Post, *model.AppError)); ok {
-		return rf(wikiID, page, perPage)
-	}
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Post); ok {
-		r0 = rf(wikiID, page, perPage)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Post)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(wikiID, page, perPage)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetGroup provides a mock function with given fields: groupId
 func (_m *API) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	ret := _m.Called(groupId)
@@ -2719,6 +2527,134 @@ func (_m *API) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(appID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPage provides a mock function with given fields: pageID
+func (_m *API) GetPage(pageID string) (*model.Page, *model.AppError) {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPage")
+	}
+
+	var r0 *model.Page
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Page, *model.AppError)); ok {
+		return rf(pageID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Page); ok {
+		r0 = rf(pageID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Page)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(pageID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPageAncestors provides a mock function with given fields: pageID
+func (_m *API) GetPageAncestors(pageID string) ([]*model.Page, *model.AppError) {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageAncestors")
+	}
+
+	var r0 []*model.Page
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]*model.Page, *model.AppError)); ok {
+		return rf(pageID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.Page); ok {
+		r0 = rf(pageID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Page)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(pageID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPageChildren provides a mock function with given fields: pageID, page, perPage
+func (_m *API) GetPageChildren(pageID string, page int, perPage int) ([]*model.Page, *model.AppError) {
+	ret := _m.Called(pageID, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageChildren")
+	}
+
+	var r0 []*model.Page
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.Page, *model.AppError)); ok {
+		return rf(pageID, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Page); ok {
+		r0 = rf(pageID, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Page)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(pageID, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPageWithContent provides a mock function with given fields: pageID
+func (_m *API) GetPageWithContent(pageID string) (*model.Page, *model.AppError) {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageWithContent")
+	}
+
+	var r0 *model.Page
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Page, *model.AppError)); ok {
+		return rf(pageID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Page); ok {
+		r0 = rf(pageID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Page)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(pageID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -4148,6 +4084,70 @@ func (_m *API) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.Us
 	return r0, r1
 }
 
+// GetWiki provides a mock function with given fields: wikiID
+func (_m *API) GetWiki(wikiID string) (*model.Wiki, *model.AppError) {
+	ret := _m.Called(wikiID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWiki")
+	}
+
+	var r0 *model.Wiki
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Wiki, *model.AppError)); ok {
+		return rf(wikiID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Wiki); ok {
+		r0 = rf(wikiID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Wiki)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(wikiID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetWikiPages provides a mock function with given fields: wikiID, page, perPage
+func (_m *API) GetWikiPages(wikiID string, page int, perPage int) ([]*model.Page, *model.AppError) {
+	ret := _m.Called(wikiID, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWikiPages")
+	}
+
+	var r0 []*model.Page
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.Page, *model.AppError)); ok {
+		return rf(wikiID, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Page); ok {
+		r0 = rf(wikiID, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Page)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(wikiID, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // HasPermissionTo provides a mock function with given fields: userID, permission
 func (_m *API) HasPermissionTo(userID string, permission *model.Permission) bool {
 	ret := _m.Called(userID, permission)
@@ -4504,58 +4504,6 @@ func (_m *API) KVSetWithOptions(key string, value []byte, options model.PluginKV
 	return r0, r1
 }
 
-// LinkPageToFirstWiki provides a mock function with given fields: pageID, channelID
-func (_m *API) LinkPageToFirstWiki(pageID string, channelID string) *model.AppError {
-	ret := _m.Called(pageID, channelID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for LinkPageToFirstWiki")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
-		r0 = rf(pageID, channelID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
-// MoveWikiPage provides a mock function with given fields: pageID, newParentID, wikiID
-func (_m *API) MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError) {
-	ret := _m.Called(pageID, newParentID, wikiID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MoveWikiPage")
-	}
-
-	var r0 *model.PostList
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, *string, string) (*model.PostList, *model.AppError)); ok {
-		return rf(pageID, newParentID, wikiID)
-	}
-	if rf, ok := ret.Get(0).(func(string, *string, string) *model.PostList); ok {
-		r0 = rf(pageID, newParentID, wikiID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *string, string) *model.AppError); ok {
-		r1 = rf(pageID, newParentID, wikiID)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // ListBuiltInCommands provides a mock function with no fields
 func (_m *API) ListBuiltInCommands() ([]*model.Command, error) {
 	ret := _m.Called()
@@ -4734,6 +4682,38 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_ca = append(_ca, msg)
 	_ca = append(_ca, keyValuePairs...)
 	_m.Called(_ca...)
+}
+
+// MoveWikiPage provides a mock function with given fields: pageID, newParentID, wikiID
+func (_m *API) MoveWikiPage(pageID string, newParentID *string, wikiID string) ([]*model.Page, *model.AppError) {
+	ret := _m.Called(pageID, newParentID, wikiID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MoveWikiPage")
+	}
+
+	var r0 []*model.Page
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, *string, string) ([]*model.Page, *model.AppError)); ok {
+		return rf(pageID, newParentID, wikiID)
+	}
+	if rf, ok := ret.Get(0).(func(string, *string, string) []*model.Page); ok {
+		r0 = rf(pageID, newParentID, wikiID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Page)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *string, string) *model.AppError); ok {
+		r1 = rf(pageID, newParentID, wikiID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // OpenInteractiveDialog provides a mock function with given fields: dialog
@@ -6662,23 +6642,23 @@ func (_m *API) UpdateUserStatus(userID string, status string) (*model.Status, *m
 }
 
 // UpdateWikiPage provides a mock function with given fields: pageID, wikiID, title, content, baseEditAt
-func (_m *API) UpdateWikiPage(pageID string, wikiID string, title string, content string, baseEditAt int64) (*model.Post, *model.AppError) {
+func (_m *API) UpdateWikiPage(pageID string, wikiID string, title string, content string, baseEditAt int64) (*model.Page, *model.AppError) {
 	ret := _m.Called(pageID, wikiID, title, content, baseEditAt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateWikiPage")
 	}
 
-	var r0 *model.Post
+	var r0 *model.Page
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string, string, int64) (*model.Post, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string, string, int64) (*model.Page, *model.AppError)); ok {
 		return rf(pageID, wikiID, title, content, baseEditAt)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, string, int64) *model.Post); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string, string, int64) *model.Page); ok {
 		r0 = rf(pageID, wikiID, title, content, baseEditAt)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
+			r0 = ret.Get(0).(*model.Page)
 		}
 	}
 

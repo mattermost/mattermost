@@ -76,7 +76,7 @@ func TestHandlePageUpdateNotification(t *testing.T) {
 	})
 
 	t.Run("handle notification for page without wiki - no panic", func(t *testing.T) {
-		orphanPage := &model.Post{
+		orphanPage := &model.Page{
 			Id:        model.NewId(),
 			ChannelId: model.NewId(),
 			Type:      model.PostTypePage,

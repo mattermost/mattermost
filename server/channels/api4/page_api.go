@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -108,7 +109,7 @@ func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.EnrichPageWithProperties(c.AppContext, page)
-	status, _ := page.GetProps()[model.PagePropsPageStatus].(string)
+	status, _ := page.Properties[model.PagePropsPageStatus].(string)
 
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": status}); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -170,6 +171,34 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(page); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getPageFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	_, _, channel, ok := c.GetPageForRead()
+	if !ok {
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	infos, appErr := c.App.GetPageFiles(c.AppContext, c.Params.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(infos); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -404,7 +433,7 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(updatedPage)
 	auditRec.AddEventObjectType("page")
 
-	w.Header().Set(model.HeaderEtagServer, updatedPage.Etag())
+	w.Header().Set(model.HeaderEtagServer, fmt.Sprintf("%v.%v", updatedPage.Id, updatedPage.UpdateAt))
 	if err := json.NewEncoder(w).Encode(updatedPage); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -432,7 +461,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postList, hasPartialContent, appErr := c.App.GetPagesForChannel(c.AppContext, c.Params.ChannelId, c.Params.Page, c.Params.PerPage, includeContent)
+	pages, hasPartialContent, appErr := c.App.GetPagesForChannel(c.AppContext, c.Params.ChannelId, c.Params.Page, c.Params.PerPage, includeContent)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -441,14 +470,7 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Mattermost-Partial-Content", "true")
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
-	clientPostList, _, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if err := clientPostList.EncodeJSON(w); err != nil {
+	if err := json.NewEncoder(w).Encode(pages); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

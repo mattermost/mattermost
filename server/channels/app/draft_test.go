@@ -464,9 +464,9 @@ func TestPublishPageDraft(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 		assert.NotNil(t, publishedPage)
-		assert.JSONEq(t, content, publishedPage.Message)
-		assert.Equal(t, title, publishedPage.Props["title"])
-		assert.Equal(t, model.PostTypePage, publishedPage.Type)
+		assert.JSONEq(t, content, publishedPage.Body)
+		assert.Equal(t, title, publishedPage.Title)
+		assert.Equal(t, model.PageTypePage, publishedPage.Type)
 		assert.Equal(t, createdWiki.ChannelId, publishedPage.ChannelId)
 
 		_, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId, false)
@@ -494,13 +494,13 @@ func TestPublishPageDraft(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.NotNil(t, updatedPage)
 		assert.Equal(t, originalPage.Id, updatedPage.Id)
-		assert.JSONEq(t, newContent, updatedPage.Message)
-		assert.Equal(t, newTitle, updatedPage.Props["title"])
+		assert.JSONEq(t, newContent, updatedPage.Body)
+		assert.Equal(t, newTitle, updatedPage.Title)
 
 		retrievedPage, getErr := th.App.GetPageWithContent(th.Context, originalPage.Id)
 		require.Nil(t, getErr)
-		assert.JSONEq(t, newContent, retrievedPage.Message)
-		assert.Equal(t, newTitle, retrievedPage.Props["title"])
+		assert.JSONEq(t, newContent, retrievedPage.Body)
+		assert.Equal(t, newTitle, retrievedPage.Title)
 	})
 
 	t.Run("multiple autosaves update draft content", func(t *testing.T) {
@@ -535,7 +535,7 @@ func TestPublishPageDraft(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 		assert.Equal(t, originalPage.Id, publishedPage.Id)
-		assert.JSONEq(t, finalContent, publishedPage.Message)
+		assert.JSONEq(t, finalContent, publishedPage.Body)
 	})
 
 	t.Run("publish non-existent draft fails", func(t *testing.T) {
@@ -566,16 +566,16 @@ func TestPublishPageDraft(t *testing.T) {
 		require.Nil(t, appErr, "PublishPageDraft should not cause infinite recursion")
 		assert.NotNil(t, publishedPage)
 
-		assert.JSONEq(t, content, publishedPage.Message, "Page content should match draft")
-		assert.Equal(t, title, publishedPage.Props["title"], "Page title should match draft")
-		assert.Equal(t, model.PostTypePage, publishedPage.Type, "Post type should be PostTypePage")
+		assert.JSONEq(t, content, publishedPage.Body, "Page content should match draft")
+		assert.Equal(t, title, publishedPage.Title, "Page title should match draft")
+		assert.Equal(t, model.PageTypePage, publishedPage.Type, "Page type should be PageTypePage")
 		assert.Equal(t, createdWiki.ChannelId, publishedPage.ChannelId, "Page should be in wiki's backing channel")
 		assert.Equal(t, user.Id, publishedPage.UserId, "Page should be created by correct user")
 
 		retrievedPage, getErr := th.App.GetPageWithContent(th.Context, publishedPage.Id)
 		require.Nil(t, getErr)
-		assert.Equal(t, model.PostTypePage, retrievedPage.Type)
-		assert.JSONEq(t, content, retrievedPage.Message)
+		assert.Equal(t, model.PageTypePage, retrievedPage.Type)
+		assert.JSONEq(t, content, retrievedPage.Body)
 	})
 
 	t.Run("publish parent draft updates child draft references", func(t *testing.T) {
@@ -626,7 +626,7 @@ func TestPublishPageDraft(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 		require.NotNil(t, publishedChild)
-		assert.Equal(t, publishedParent.Id, publishedChild.PageParentId, "Published child page should have correct parent")
+		assert.Equal(t, publishedParent.Id, publishedChild.ParentId, "Published child page should have correct parent")
 	})
 
 	t.Run("handles malformed TipTap JSON gracefully", func(t *testing.T) {
@@ -655,14 +655,14 @@ func TestPublishPageDraft(t *testing.T) {
 		require.NotNil(t, publishedPage)
 
 		// * Verify page was created with the malformed content
-		assert.Equal(t, title, publishedPage.Props["title"])
-		assert.Equal(t, model.PostTypePage, publishedPage.Type)
-		assert.JSONEq(t, malformedContent, publishedPage.Message, "Malformed content should be stored as-is")
+		assert.Equal(t, title, publishedPage.Title)
+		assert.Equal(t, model.PageTypePage, publishedPage.Type)
+		assert.JSONEq(t, malformedContent, publishedPage.Body, "Malformed content should be stored as-is")
 
 		// * Verify page can be retrieved
 		retrievedPage, getErr := th.App.GetPageWithContent(th.Context, publishedPage.Id)
 		require.Nil(t, getErr, "Should be able to retrieve page with malformed content")
-		assert.JSONEq(t, malformedContent, retrievedPage.Message)
+		assert.JSONEq(t, malformedContent, retrievedPage.Body)
 	})
 }
 
@@ -742,7 +742,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 			Title:  title,
 		})
 		require.Nil(t, publishErr, "Should be able to publish draft for new page")
-		require.Equal(t, title, publishedPage.Props["title"])
+		require.Equal(t, title, publishedPage.Title)
 	})
 
 	t.Run("all user drafts deleted when page deleted", func(t *testing.T) {

@@ -366,15 +366,17 @@ func (a *App) validateCircularReference(rctx request.CTX, pageId, parentId strin
 		return err
 	}
 
-	if _, exists := ancestors.Posts[pageId]; exists {
-		return model.NewAppError("validateCircularReference", "app.page.publish.circular_reference.app_error",
-			nil, "pageId="+pageId+", parentId="+parentId, http.StatusBadRequest)
+	for _, a := range ancestors {
+		if a.Id == pageId {
+			return model.NewAppError("validateCircularReference", "app.page.publish.circular_reference.app_error",
+				nil, "pageId="+pageId+", parentId="+parentId, http.StatusBadRequest)
+		}
 	}
 
 	return nil
 }
 
-func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *model.PageDraft) *model.AppError {
+func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Page, draft *model.PageDraft) *model.AppError {
 	rawStatus, exists := draft.Props[model.PagePropsPageStatus]
 	if !exists {
 		return nil
@@ -402,7 +404,7 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 	return nil
 }
 
-func (a *App) updatePageFromDraft(rctx request.CTX, page *model.Post, wikiId, parentId, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) updatePageFromDraft(rctx request.CTX, page *model.Page, wikiId, parentId, title, content, searchText string, baseEditAt int64, force bool) (*model.Page, *model.AppError) {
 	rctx.Logger().Debug("Updating existing page from draft",
 		mlog.String("page_id", page.Id),
 		mlog.String("wiki_id", wikiId),
@@ -412,32 +414,32 @@ func (a *App) updatePageFromDraft(rctx request.CTX, page *model.Post, wikiId, pa
 		return nil, circErr
 	}
 
-	updatedPost, err := a.UpdatePageWithOptimisticLocking(rctx, page, title, content, searchText, baseEditAt, force, nil)
+	updatedPage, err := a.UpdatePageWithOptimisticLocking(rctx, page, title, content, searchText, baseEditAt, force, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	if parentId != page.PageParentId {
+	if parentId != page.ParentId {
 		if _, parentErr := a.MovePage(rctx, page.Id, &parentId, wikiId, nil); parentErr != nil {
 			return nil, parentErr
 		}
 		// GetPage always reads from master — see its implementation.
-		updatedPost, err = a.GetPage(rctx, page.Id)
+		updatedPage, err = a.GetPage(rctx, page.Id)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return updatedPost, nil
+	return updatedPage, nil
 }
 
-func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, existingPage *model.Post, wikiId, parentId, title, searchText, message, userId string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, existingPage *model.Page, wikiId, parentId, title, searchText, message, userId string, baseEditAt int64, force bool) (*model.Page, *model.AppError) {
 	content, err := a.resolveDraftContent(draft, message)
 	if err != nil {
 		return nil, err
 	}
 
-	var page *model.Post
+	var page *model.Page
 	if existingPage != nil {
 		page, err = a.updatePageFromDraft(rctx, existingPage, wikiId, parentId, title, content, searchText, baseEditAt, force)
 	} else {
@@ -460,21 +462,21 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, existin
 	}
 
 	// Set content on the returned page to avoid extra DB fetch in caller.
-	page.Message = content
+	page.Body = content
 
 	return page, nil
 }
 
 // publishToLinkedSourceChannels publishes a WebSocket message to all source channels
-// linked to the given wiki via WikiLinks. Wiki backing channels (ChannelTypeWiki)
+// linked to the given wiki via ChannelMemberLinks. Wiki backing channels (ChannelTypeWiki)
 // are excluded from GetAllChannelMembersForUser, so events broadcast to a backing
 // channel are silently dropped by the WS hub. If no links exist, falls back to
 // broadcasting directly to the wiki's backing channel (Mode A — standalone wiki).
 // Wikis are addressed by wikiId here so callers don't need to thread
-// the backing channel id; the WikiLink schema's join key is resolved via
-// WikiLinkStore.GetByWiki (a single SQL JOIN through the Wikis table).
+// the backing channel id; the ChannelMemberLink schema's join key is resolved via
+// ChannelMemberLinkStore.GetByWiki (a single SQL JOIN through the Wikis table).
 func (a *App) publishToLinkedSourceChannels(wikiId string, message *model.WebSocketEvent) {
-	links, err := a.Srv().Store().WikiLink().GetByWiki(wikiId)
+	links, err := a.Srv().Store().ChannelMemberLink().GetByWiki(wikiId)
 	if err != nil {
 		a.Log().Warn("Failed to fetch wiki links for broadcast", mlog.Err(err))
 		return
@@ -501,8 +503,8 @@ func (a *App) publishToLinkedSourceChannels(wikiId string, message *model.WebSoc
 	}
 }
 
-func (a *App) BroadcastPagePublished(page *model.Post, wikiId, draftId, userId string) {
-	pageJSON, jsonErr := page.ToJSON()
+func (a *App) BroadcastPagePublished(page *model.Page, wikiId, draftId, userId string) {
+	pageJSON, jsonErr := marshalPageToJSON(page)
 	if jsonErr != nil {
 		a.Log().Warn("Failed to encode page to JSON", mlog.Err(jsonErr))
 		return
@@ -538,8 +540,8 @@ func (a *App) BroadcastPageTitleUpdated(pageId, title, wikiId string, updateAt i
 
 // PageMovedBroadcastOptions contains optional parameters for BroadcastPageMoved.
 type PageMovedBroadcastOptions struct {
-	SourceWikiId string          // Set when page is moved between wikis
-	Siblings     *model.PostList // Updated siblings with new sort orders (for reorder broadcasts)
+	SourceWikiId string        // Set when page is moved between wikis
+	Siblings     []*model.Page // Updated siblings with new sort orders (for reorder broadcasts)
 }
 
 // BroadcastPageMoved broadcasts a page hierarchy change to source channels linked to the wiki.
@@ -557,9 +559,9 @@ func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId string
 		if opt.SourceWikiId != "" && opt.SourceWikiId != wikiId {
 			message.Add("source_wiki_id", opt.SourceWikiId)
 		}
-		if opt.Siblings != nil && len(opt.Siblings.Posts) > 0 {
+		if len(opt.Siblings) > 0 {
 			// Include updated siblings so all clients can sync sort orders
-			if siblingsJSON, err := opt.Siblings.ToJSON(); err != nil {
+			if siblingsJSON, err := marshalPageSliceToJSON(opt.Siblings); err != nil {
 				a.Log().Warn("Failed to serialize siblings for page_moved broadcast; sort orders may be stale",
 					mlog.String("page_id", pageId), mlog.Err(err))
 			} else {
@@ -574,15 +576,15 @@ func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId string
 // BroadcastWikiCreated broadcasts new wiki creation to all clients with access to the
 // linked source channels. The wiki backing channel (ChannelTypeWiki) is excluded from
 // GetAllChannelMembersForUser, so events broadcast there are silently dropped — we
-// deliver only to source channels linked via WikiLinks.
+// deliver only to source channels linked via ChannelMemberLinks.
 // If knownLinks is non-nil it is used directly to fan out, avoiding a replica read that
 // may lag behind the master in HA deployments. Pass nil to fall back to a
 // GetByDestination store query.
-func (a *App) BroadcastWikiCreated(wiki *model.Wiki, knownLinks []*model.WikiLink) {
+func (a *App) BroadcastWikiCreated(wiki *model.Wiki, knownLinks []*model.ChannelMemberLink) {
 	links := knownLinks
 	if links == nil {
 		var linksErr error
-		links, linksErr = a.Srv().Store().WikiLink().GetByDestination(wiki.ChannelId)
+		links, linksErr = a.Srv().Store().ChannelMemberLink().GetByDestination(wiki.ChannelId)
 		if linksErr != nil {
 			a.Log().Warn("Failed to fetch wiki links for broadcast on wiki creation", mlog.Err(linksErr))
 		}
@@ -610,7 +612,7 @@ func (a *App) BroadcastWikiCreated(wiki *model.Wiki, knownLinks []*model.WikiLin
 // the linked source channels. Backing channel broadcasts are intentionally omitted —
 // see BroadcastWikiCreated for rationale.
 func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
-	links, linksErr := a.Srv().Store().WikiLink().GetByDestination(wiki.ChannelId)
+	links, linksErr := a.Srv().Store().ChannelMemberLink().GetByDestination(wiki.ChannelId)
 	if linksErr != nil {
 		a.Log().Warn("Failed to fetch wiki links for broadcast on wiki update", mlog.Err(linksErr))
 		return
@@ -664,7 +666,7 @@ func (a *App) BroadcastWikiMoved(wiki *model.Wiki, sourceChannelId, targetChanne
 }
 
 // BroadcastWikiDeleted broadcasts wiki deletion to all clients with access to the channel.
-func (a *App) BroadcastWikiDeleted(wiki *model.Wiki, links []*model.WikiLink) {
+func (a *App) BroadcastWikiDeleted(wiki *model.Wiki, links []*model.ChannelMemberLink) {
 	for _, link := range links {
 		msg := model.NewWebSocketEvent(model.WebsocketEventWikiDeleted, "", link.SourceId, "", nil, "")
 		msg.Add("wiki_id", wiki.Id)
@@ -686,7 +688,7 @@ func (a *App) BroadcastWikiDeleted(wiki *model.Wiki, links []*model.WikiLink) {
 // read_wiki via role grants. Members not found in the team (or whose role lacks read_wiki)
 // are added to OmitUsers on the channel-scoped broadcast so the hub filters them out.
 func (a *App) publishDraftEventToWikiAuthorizedUsers(rctx request.CTX, wiki *model.Wiki, message *model.WebSocketEvent) {
-	links, err := a.Srv().Store().WikiLink().GetByWiki(wiki.Id)
+	links, err := a.Srv().Store().ChannelMemberLink().GetByWiki(wiki.Id)
 	if err != nil {
 		a.Log().Warn("Failed to fetch wiki links for draft broadcast", mlog.Err(err))
 		return
@@ -782,7 +784,7 @@ func (a *App) BroadcastPageEditorStopped(rctx request.CTX, wiki *model.Wiki, pag
 
 // PublishPageDraft publishes a draft as a page.
 // Uses PublishPageDraftOptions to consolidate the many parameters into a structured options object.
-func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.PublishPageDraftOptions) (*model.Post, *model.AppError) {
+func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.PublishPageDraftOptions) (*model.Page, *model.AppError) {
 	if err := opts.IsValid(); err != nil {
 		return nil, err
 	}
@@ -816,8 +818,8 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 	var originalParentId string
 	var originalStatus string
 	if !isNewPage {
-		originalParentId = existingPage.PageParentId
-		originalMessage = existingPage.Message
+		originalParentId = existingPage.ParentId
+		originalMessage = existingPage.Body
 		if s, sErr := a.GetPageStatus(rctx, opts.PageId); sErr == nil {
 			originalStatus = s
 		} else {

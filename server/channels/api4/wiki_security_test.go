@@ -448,7 +448,7 @@ func TestDraftOwnership(t *testing.T) {
 	})
 }
 
-func TestWikiLinksUnauthenticated(t *testing.T) {
+func TestChannelMemberLinksUnauthenticated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -474,7 +474,7 @@ func TestWikiLinksUnauthenticated(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("link requires auth", func(t *testing.T) {
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
@@ -482,21 +482,21 @@ func TestWikiLinksUnauthenticated(t *testing.T) {
 	})
 
 	t.Run("list requires auth", func(t *testing.T) {
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, model.BuildResponse(httpResp))
 	})
 
 	t.Run("unlink requires auth", func(t *testing.T) {
-		url := "/channels/" + targetChannel.Id + "/wikilinks/" + wiki.Id
+		url := "/channels/" + targetChannel.Id + "/channel_member_links/" + wiki.Id
 		httpResp, err := th.Client.DoAPIDelete(context.Background(), url)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, model.BuildResponse(httpResp))
 	})
 }
 
-func TestWikiLinksRequireBookmarkPermission(t *testing.T) {
+func TestChannelMemberLinksRequireBookmarkPermission(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -532,7 +532,7 @@ func TestWikiLinksRequireBookmarkPermission(t *testing.T) {
 	require.NoError(t, lErr)
 
 	t.Run("link forbidden without bookmark permission", func(t *testing.T) {
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 		httpResp, err := client2.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
@@ -544,14 +544,14 @@ func TestWikiLinksRequireBookmarkPermission(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("unlink forbidden without bookmark permission", func(t *testing.T) {
-		url := "/channels/" + targetChannel.Id + "/wikilinks/" + wiki.Id
+		url := "/channels/" + targetChannel.Id + "/channel_member_links/" + wiki.Id
 		httpResp, err := client2.DoAPIDelete(context.Background(), url)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
 	})
 }
 
-func TestWikiLinksRequireWikiModifyPermission(t *testing.T) {
+func TestChannelMemberLinksRequireWikiModifyPermission(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -590,7 +590,7 @@ func TestWikiLinksRequireWikiModifyPermission(t *testing.T) {
 		// team member from linking are Phase 2. Keep the test scaffold so the
 		// gap is visible; reactivate when Phase 2 ACLs land.
 		t.Skip("requires Phase 2 per-wiki ACLs; see plans/wiki-page-permissions-confluence.md")
-		url := "/channels/" + targetChannel.Id + "/wikilinks"
+		url := "/channels/" + targetChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 		httpResp, err := client2.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
@@ -598,7 +598,7 @@ func TestWikiLinksRequireWikiModifyPermission(t *testing.T) {
 	})
 }
 
-func TestWikiLinksRejectCrossTeam(t *testing.T) {
+func TestChannelMemberLinksRejectCrossTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -621,7 +621,7 @@ func TestWikiLinksRejectCrossTeam(t *testing.T) {
 	otherChannel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, otherTeam.Id)
 
 	t.Run("link to cross-team channel returns 404", func(t *testing.T) {
-		url := "/channels/" + otherChannel.Id + "/wikilinks"
+		url := "/channels/" + otherChannel.Id + "/channel_member_links"
 		payload := `{"wiki_id":"` + wiki.Id + `"}`
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, payload)
 		require.Error(t, err)
@@ -699,7 +699,7 @@ func TestPageCommentsSecurityAndValidation(t *testing.T) {
 			ChannelId: wiki.ChannelId,
 			UserId:    th.BasicUser.Id,
 			Message:   "Inline comment for unresolve test",
-			RootId:    page.Id,
+			RootId:    "",
 			Type:      model.PostTypePageComment,
 			Props: model.StringInterface{
 				model.PagePropsWikiID:      wiki.Id,
@@ -734,7 +734,7 @@ func TestPageCommentsSecurityAndValidation(t *testing.T) {
 			ChannelId: wiki.ChannelId,
 			UserId:    th.BasicUser.Id,
 			Message:   "Inline comment for third-party test",
-			RootId:    page.Id,
+			RootId:    "",
 			Type:      model.PostTypePageComment,
 			Props: model.StringInterface{
 				model.PagePropsWikiID:      wiki.Id,
@@ -772,7 +772,7 @@ func TestPageCommentsSecurityAndValidation(t *testing.T) {
 			ChannelId: wiki.ChannelId,
 			UserId:    th.BasicUser.Id,
 			Message:   "Already unresolved comment",
-			RootId:    page.Id,
+			RootId:    "",
 			Type:      model.PostTypePageComment,
 			Props: model.StringInterface{
 				model.PagePropsWikiID:      wiki.Id,

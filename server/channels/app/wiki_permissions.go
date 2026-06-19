@@ -38,7 +38,7 @@ func isWikiManagementPerm(perm *model.Permission) bool {
 // SessionHasPagePermission resolves a page-scoped permission for a session.
 // Delegates to SessionHasWikiPermission. The _own_ variants (edit_own_page,
 // delete_own_page) additionally require page authorship.
-func (a *App) SessionHasPagePermission(session model.Session, wiki *model.Wiki, page *model.Post, perm *model.Permission) bool {
+func (a *App) SessionHasPagePermission(session model.Session, wiki *model.Wiki, page *model.Page, perm *model.Permission) bool {
 	if perm == nil {
 		return false
 	}

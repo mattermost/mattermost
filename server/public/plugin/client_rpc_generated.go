@@ -9137,35 +9137,6 @@ func (s *apiRPCServer) DeletePropertyValuesForField(args *Z_DeletePropertyValues
 	return nil
 }
 
-type Z_LinkPageToFirstWikiArgs struct {
-	A string
-	B string
-}
-
-type Z_LinkPageToFirstWikiReturns struct {
-	A *model.AppError
-}
-
-func (g *apiRPCClient) LinkPageToFirstWiki(pageID, channelID string) *model.AppError {
-	_args := &Z_LinkPageToFirstWikiArgs{pageID, channelID}
-	_returns := &Z_LinkPageToFirstWikiReturns{}
-	if err := g.client.Call("Plugin.LinkPageToFirstWiki", _args, _returns); err != nil {
-		log.Printf("RPC call to LinkPageToFirstWiki API failed: %s", err.Error())
-	}
-	return _returns.A
-}
-
-func (s *apiRPCServer) LinkPageToFirstWiki(args *Z_LinkPageToFirstWikiArgs, returns *Z_LinkPageToFirstWikiReturns) error {
-	if hook, ok := s.impl.(interface {
-		LinkPageToFirstWiki(pageID, channelID string) *model.AppError
-	}); ok {
-		returns.A = hook.LinkPageToFirstWiki(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API LinkPageToFirstWiki called but not implemented."))
-	}
-	return nil
-}
-
 type Z_GetFirstWikiForChannelArgs struct {
 	A string
 }
@@ -9203,11 +9174,11 @@ type Z_CreateWikiPageArgs struct {
 }
 
 type Z_CreateWikiPageReturns struct {
-	A *model.Post
+	A *model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError) {
+func (g *apiRPCClient) CreateWikiPage(wikiID, title, content, userID string) (*model.Page, *model.AppError) {
 	_args := &Z_CreateWikiPageArgs{wikiID, title, content, userID}
 	_returns := &Z_CreateWikiPageReturns{}
 	if err := g.client.Call("Plugin.CreateWikiPage", _args, _returns); err != nil {
@@ -9218,7 +9189,7 @@ func (g *apiRPCClient) CreateWikiPage(wikiID, title, content, userID string) (*m
 
 func (s *apiRPCServer) CreateWikiPage(args *Z_CreateWikiPageArgs, returns *Z_CreateWikiPageReturns) error {
 	if hook, ok := s.impl.(interface {
-		CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError)
+		CreateWikiPage(wikiID, title, content, userID string) (*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateWikiPage(args.A, args.B, args.C, args.D)
 	} else {
@@ -9265,11 +9236,11 @@ type Z_GetPageArgs struct {
 }
 
 type Z_GetPageReturns struct {
-	A *model.Post
+	A *model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPage(pageID string) (*model.Post, *model.AppError) {
+func (g *apiRPCClient) GetPage(pageID string) (*model.Page, *model.AppError) {
 	_args := &Z_GetPageArgs{pageID}
 	_returns := &Z_GetPageReturns{}
 	if err := g.client.Call("Plugin.GetPage", _args, _returns); err != nil {
@@ -9280,7 +9251,7 @@ func (g *apiRPCClient) GetPage(pageID string) (*model.Post, *model.AppError) {
 
 func (s *apiRPCServer) GetPage(args *Z_GetPageArgs, returns *Z_GetPageReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPage(pageID string) (*model.Post, *model.AppError)
+		GetPage(pageID string) (*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPage(args.A)
 	} else {
@@ -9296,11 +9267,11 @@ type Z_GetPageWithContentArgs struct {
 }
 
 type Z_GetPageWithContentReturns struct {
-	A *model.Post
+	A *model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPageWithContent(pageID string) (*model.Post, *model.AppError) {
+func (g *apiRPCClient) GetPageWithContent(pageID string) (*model.Page, *model.AppError) {
 	_args := &Z_GetPageWithContentArgs{pageID}
 	_returns := &Z_GetPageWithContentReturns{}
 	if err := g.client.Call("Plugin.GetPageWithContent", _args, _returns); err != nil {
@@ -9311,7 +9282,7 @@ func (g *apiRPCClient) GetPageWithContent(pageID string) (*model.Post, *model.Ap
 
 func (s *apiRPCServer) GetPageWithContent(args *Z_GetPageWithContentArgs, returns *Z_GetPageWithContentReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPageWithContent(pageID string) (*model.Post, *model.AppError)
+		GetPageWithContent(pageID string) (*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPageWithContent(args.A)
 	} else {
@@ -9329,11 +9300,11 @@ type Z_GetWikiPagesArgs struct {
 }
 
 type Z_GetWikiPagesReturns struct {
-	A []*model.Post
+	A []*model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetWikiPages(wikiID string, page, perPage int) ([]*model.Post, *model.AppError) {
+func (g *apiRPCClient) GetWikiPages(wikiID string, page, perPage int) ([]*model.Page, *model.AppError) {
 	_args := &Z_GetWikiPagesArgs{wikiID, page, perPage}
 	_returns := &Z_GetWikiPagesReturns{}
 	if err := g.client.Call("Plugin.GetWikiPages", _args, _returns); err != nil {
@@ -9344,7 +9315,7 @@ func (g *apiRPCClient) GetWikiPages(wikiID string, page, perPage int) ([]*model.
 
 func (s *apiRPCServer) GetWikiPages(args *Z_GetWikiPagesArgs, returns *Z_GetWikiPagesReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetWikiPages(wikiID string, page, perPage int) ([]*model.Post, *model.AppError)
+		GetWikiPages(wikiID string, page, perPage int) ([]*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetWikiPages(args.A, args.B, args.C)
 	} else {
@@ -9364,11 +9335,11 @@ type Z_UpdateWikiPageArgs struct {
 }
 
 type Z_UpdateWikiPageReturns struct {
-	A *model.Post
+	A *model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Post, *model.AppError) {
+func (g *apiRPCClient) UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Page, *model.AppError) {
 	_args := &Z_UpdateWikiPageArgs{pageID, wikiID, title, content, baseEditAt}
 	_returns := &Z_UpdateWikiPageReturns{}
 	if err := g.client.Call("Plugin.UpdateWikiPage", _args, _returns); err != nil {
@@ -9379,7 +9350,7 @@ func (g *apiRPCClient) UpdateWikiPage(pageID, wikiID, title, content string, bas
 
 func (s *apiRPCServer) UpdateWikiPage(args *Z_UpdateWikiPageArgs, returns *Z_UpdateWikiPageReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Post, *model.AppError)
+		UpdateWikiPage(pageID, wikiID, title, content string, baseEditAt int64) (*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateWikiPage(args.A, args.B, args.C, args.D, args.E)
 	} else {
@@ -9428,11 +9399,11 @@ type Z_MoveWikiPageArgs struct {
 }
 
 type Z_MoveWikiPageReturns struct {
-	A *model.PostList
+	A []*model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) MoveWikiPage(pageID string, newParentID *string, wikiID string) ([]*model.Page, *model.AppError) {
 	_args := &Z_MoveWikiPageArgs{pageID, newParentID, wikiID}
 	_returns := &Z_MoveWikiPageReturns{}
 	if err := g.client.Call("Plugin.MoveWikiPage", _args, _returns); err != nil {
@@ -9443,7 +9414,7 @@ func (g *apiRPCClient) MoveWikiPage(pageID string, newParentID *string, wikiID s
 
 func (s *apiRPCServer) MoveWikiPage(args *Z_MoveWikiPageArgs, returns *Z_MoveWikiPageReturns) error {
 	if hook, ok := s.impl.(interface {
-		MoveWikiPage(pageID string, newParentID *string, wikiID string) (*model.PostList, *model.AppError)
+		MoveWikiPage(pageID string, newParentID *string, wikiID string) ([]*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.MoveWikiPage(args.A, args.B, args.C)
 	} else {
@@ -9461,11 +9432,11 @@ type Z_GetPageChildrenArgs struct {
 }
 
 type Z_GetPageChildrenReturns struct {
-	A *model.PostList
+	A []*model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPageChildren(pageID string, page, perPage int) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) GetPageChildren(pageID string, page, perPage int) ([]*model.Page, *model.AppError) {
 	_args := &Z_GetPageChildrenArgs{pageID, page, perPage}
 	_returns := &Z_GetPageChildrenReturns{}
 	if err := g.client.Call("Plugin.GetPageChildren", _args, _returns); err != nil {
@@ -9476,7 +9447,7 @@ func (g *apiRPCClient) GetPageChildren(pageID string, page, perPage int) (*model
 
 func (s *apiRPCServer) GetPageChildren(args *Z_GetPageChildrenArgs, returns *Z_GetPageChildrenReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPageChildren(pageID string, page, perPage int) (*model.PostList, *model.AppError)
+		GetPageChildren(pageID string, page, perPage int) ([]*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPageChildren(args.A, args.B, args.C)
 	} else {
@@ -9492,11 +9463,11 @@ type Z_GetPageAncestorsArgs struct {
 }
 
 type Z_GetPageAncestorsReturns struct {
-	A *model.PostList
+	A []*model.Page
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPageAncestors(pageID string) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) GetPageAncestors(pageID string) ([]*model.Page, *model.AppError) {
 	_args := &Z_GetPageAncestorsArgs{pageID}
 	_returns := &Z_GetPageAncestorsReturns{}
 	if err := g.client.Call("Plugin.GetPageAncestors", _args, _returns); err != nil {
@@ -9507,7 +9478,7 @@ func (g *apiRPCClient) GetPageAncestors(pageID string) (*model.PostList, *model.
 
 func (s *apiRPCServer) GetPageAncestors(args *Z_GetPageAncestorsArgs, returns *Z_GetPageAncestorsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPageAncestors(pageID string) (*model.PostList, *model.AppError)
+		GetPageAncestors(pageID string) ([]*model.Page, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPageAncestors(args.A)
 	} else {

@@ -203,29 +203,28 @@ func wikiVerifyCmdF(c client.Client, command *cobra.Command, args []string) erro
 	printer.Print(fmt.Sprintf("  Channel: %s", channelName))
 
 	// Get pages with content in a single batch request (avoids N+1 API calls)
-	postList, _, err := c.GetChannelPagesWithContent(ctx, channel.Id, true)
+	pages, _, err := c.GetChannelPagesWithContent(ctx, channel.Id, true)
 	if err != nil {
 		report.FailureReasons = append(report.FailureReasons, fmt.Sprintf("failed to count pages: %v", err))
 		report.Passed = false
 	} else {
-		report.Actual.Pages = len(postList.Posts)
+		report.Actual.Pages = len(pages)
 	}
 
 	// Count comments and attachments across all pages
-	if postList != nil {
+	if pages != nil {
 		totalComments := 0
 		totalAttachments := 0
-		for _, post := range postList.Posts {
+		for _, page := range pages {
 			// Count attachments from import_file_mappings prop (set during import)
-			// Note: post.FileIds may not be populated by the batch API
-			if fileMappings, ok := post.GetProp("import_file_mappings").(map[string]any); ok {
+			if fileMappings, ok := page.Properties["import_file_mappings"].(map[string]any); ok {
 				totalAttachments += len(fileMappings)
 			}
 
 			// Count comments (N+1 queries - optimization would require batch API)
-			comments, _, cerr := c.GetPageComments(ctx, wikiID, post.Id)
+			comments, _, cerr := c.GetPageComments(ctx, wikiID, page.Id)
 			if cerr != nil {
-				printer.Print(fmt.Sprintf("  Warning: failed to get comments for page %s: %v", post.Id, cerr))
+				printer.Print(fmt.Sprintf("  Warning: failed to get comments for page %s: %v", page.Id, cerr))
 				continue
 			}
 			totalComments += len(comments)
@@ -257,21 +256,19 @@ func wikiVerifyCmdF(c client.Client, command *cobra.Command, args []string) erro
 	report.CountsMatch = countsMatch
 
 	// Verify hierarchy (check for orphaned pages)
-	// Note: Page hierarchy is stored in Post.PageParentId field, not in props
-	if postList != nil {
+	if pages != nil {
 		pageIDs := make(map[string]bool)
-		for id := range postList.Posts {
-			pageIDs[id] = true
+		for _, p := range pages {
+			pageIDs[p.Id] = true
 		}
 
 		var orphaned []string
-		for _, post := range postList.Posts {
-			// Use PageParentId field (not props) for hierarchy
-			if post.PageParentId != "" {
-				if !pageIDs[post.PageParentId] {
-					title, _ := post.GetProp("title").(string)
+		for _, p := range pages {
+			if p.ParentId != "" {
+				if !pageIDs[p.ParentId] {
+					title := p.Title
 					if title == "" {
-						title = post.Id
+						title = p.Id
 					}
 					orphaned = append(orphaned, title)
 				}
@@ -287,19 +284,19 @@ func wikiVerifyCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	// Check for unresolved link placeholders (content already loaded in batch)
-	if postList != nil {
+	if pages != nil {
 		var brokenLinks []BrokenLink
-		for _, post := range postList.Posts {
-			content := post.Message
+		for _, p := range pages {
+			content := p.Body
 			if content == "" {
 				continue
 			}
 
 			unresolved := extractUnresolvedPlaceholders(content)
-			importSourceId, _ := post.GetProp("import_source_id").(string)
-			title, _ := post.GetProp("title").(string)
+			importSourceId, _ := p.Properties["import_source_id"].(string)
+			title := p.Title
 			if title == "" {
-				title = post.Id
+				title = p.Id
 			}
 
 			for _, placeholder := range unresolved {
@@ -391,7 +388,7 @@ func wikiResolveLinksCmdF(c client.Client, command *cobra.Command, args []string
 	}
 
 	// Get all pages with content in a single batch request (avoids N+1 API calls)
-	postList, _, err := c.GetChannelPagesWithContent(ctx, channel.Id, true)
+	resolvePages, _, err := c.GetChannelPagesWithContent(ctx, channel.Id, true)
 	if err != nil {
 		return fmt.Errorf("failed to get channel pages: %w", err)
 	}
@@ -408,10 +405,10 @@ func wikiResolveLinksCmdF(c client.Client, command *cobra.Command, args []string
 		return errors.New("SiteURL is not configured on the server; cannot generate valid page links")
 	}
 
-	for _, post := range postList.Posts {
+	for _, rp := range resolvePages {
 		result.PagesScanned++
 
-		content := post.Message
+		content := rp.Body
 		if content == "" {
 			continue
 		}
@@ -420,10 +417,10 @@ func wikiResolveLinksCmdF(c client.Client, command *cobra.Command, args []string
 			continue
 		}
 
-		// Get page title from props (used for logging/display only)
-		displayTitle, _ := post.GetProp("title").(string)
+		// Get page title (used for logging/display only)
+		displayTitle := rp.Title
 		if displayTitle == "" {
-			displayTitle = post.Id
+			displayTitle = rp.Id
 		}
 
 		// Resolve placeholders (both page links and file links)
@@ -436,7 +433,7 @@ func wikiResolveLinksCmdF(c client.Client, command *cobra.Command, args []string
 			for _, ph := range unresolved {
 				result.UnresolvedDetails = append(result.UnresolvedDetails, UnresolvedLinkDetail{
 					PageTitle:   displayTitle,
-					PageID:      post.Id,
+					PageID:      rp.Id,
 					Placeholder: ph,
 				})
 			}
@@ -451,22 +448,22 @@ func wikiResolveLinksCmdF(c client.Client, command *cobra.Command, args []string
 
 		if !dryRun {
 			// Fetch the page to get its actual title (avoid clobbering with fallback)
-			existingPage, _, gerr := c.GetPage(ctx, wikiID, post.Id)
+			existingPage, _, gerr := c.GetPage(ctx, wikiID, rp.Id)
 			if gerr != nil {
-				return fmt.Errorf("failed to get page %s for title: %w", post.Id, gerr)
+				return fmt.Errorf("failed to get page %s for title: %w", rp.Id, gerr)
 			}
 
 			// Use actual page title from the fetched page
-			actualTitle, _ := existingPage.GetProp("title").(string)
+			actualTitle := existingPage.Title
 			if actualTitle == "" {
 				// Fall back to displayTitle only if fetched page also has no title
 				actualTitle = displayTitle
 			}
 
 			// Update page content with preserved title (baseEditAt=0 skips optimistic locking)
-			_, _, uerr := c.UpdatePage(ctx, wikiID, post.Id, actualTitle, resolved, "", 0)
+			_, _, uerr := c.UpdatePage(ctx, wikiID, rp.Id, actualTitle, resolved, "", 0)
 			if uerr != nil {
-				return fmt.Errorf("failed to update page %s: %w", post.Id, uerr)
+				return fmt.Errorf("failed to update page %s: %w", rp.Id, uerr)
 			}
 		}
 		result.PagesUpdated++
@@ -508,34 +505,34 @@ func loadManifest(path string) (*Manifest, error) {
 func buildPageMappings(ctx context.Context, c client.Client, channelID string) (map[string]string, error) {
 	pageIDMapping := make(map[string]string) // confluence_id -> mattermost_id
 
-	postList, _, err := c.GetChannelPages(ctx, channelID)
+	mappingPages, _, err := c.GetChannelPages(ctx, channelID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get channel pages: %w", err)
 	}
 
-	for _, post := range postList.Posts {
-		// Extract import_source_id from Props
-		if importSourceId, ok := post.GetProp("import_source_id").(string); ok && importSourceId != "" {
-			pageIDMapping[importSourceId] = post.Id
+	for _, p := range mappingPages {
+		// Extract import_source_id from Properties
+		if importSourceId, ok := p.Properties["import_source_id"].(string); ok && importSourceId != "" {
+			pageIDMapping[importSourceId] = p.Id
 		}
 	}
 
 	return pageIDMapping, nil
 }
 
-// buildFileMappings extracts file import_source_id -> Mattermost file ID mappings from page props.
-// During import, attachments with import_source_id are stored in page props as "import_file_mappings".
+// buildFileMappings extracts file import_source_id -> Mattermost file ID mappings from page properties.
+// During import, attachments with import_source_id are stored in page properties as "import_file_mappings".
 func buildFileMappings(ctx context.Context, c client.Client, channelID string) (map[string]string, error) {
 	fileIDMapping := make(map[string]string) // confluence_file_id -> mattermost_file_id
 
-	postList, _, err := c.GetChannelPages(ctx, channelID)
+	fileMappingPages, _, err := c.GetChannelPages(ctx, channelID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get channel pages: %w", err)
 	}
 
-	for _, post := range postList.Posts {
-		// Extract import_file_mappings from Props
-		if fileMappings, ok := post.GetProp("import_file_mappings").(map[string]any); ok {
+	for _, p := range fileMappingPages {
+		// Extract import_file_mappings from Properties
+		if fileMappings, ok := p.Properties["import_file_mappings"].(map[string]any); ok {
 			for sourceID, fileID := range fileMappings {
 				if fileIDStr, ok := fileID.(string); ok && fileIDStr != "" {
 					fileIDMapping[sourceID] = fileIDStr

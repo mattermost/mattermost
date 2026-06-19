@@ -2211,7 +2211,9 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, ch
 		Where(sq.Eq{
 			"ChannelMembers.ChannelId": channelIDs,
 			"ChannelMembers.UserId":    userID,
-		})
+		}).
+		// Wiki backing channels are internal and carry no chat read-state.
+		Where(sq.NotEq{"Channels.Type": model.ChannelTypeWiki})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -2284,7 +2286,9 @@ func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, 
 		Where(sq.Eq{
 			"Channels.TeamId":       teamID,
 			"ChannelMembers.UserId": userID,
-		})
+		}).
+		// Wiki backing channels are internal and carry no chat read-state.
+		Where(sq.NotEq{"Channels.Type": model.ChannelTypeWiki})
 
 	var channels []struct {
 		Id            string
@@ -4581,8 +4585,8 @@ func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) 
 // Note: Uses raw SQL with Postgres-specific $N params. The INSERT...SELECT with
 // correlated subquery is too complex for squirrel query builder.
 //
-// Locking: acquires WikiLinks WHERE DestinationId FOR UPDATE (destination-first).
-// This is different from SaveMemberAndPropagateLinked which acquires WikiLinks WHERE
+// Locking: acquires ChannelMemberLinks WHERE DestinationId FOR UPDATE (destination-first).
+// This is different from SaveMemberAndPropagateLinked which acquires ChannelMemberLinks WHERE
 // SourceId FOR UPDATE (source-first). Do NOT call this inside a transaction that also
 // calls SaveMemberAndPropagateLinked for the same wiki — the different acquisition
 // order can deadlock. This function is only safe as a standalone operation or within
@@ -4600,7 +4604,7 @@ func (s SqlChannelStore) SaveSyntheticMembers(rctx request.CTX, sourceChannelId,
 
 	// Lock CML rows for the destination channel to prevent concurrent synthetic member writes.
 	// Raw SQL: squirrel does not support FOR UPDATE.
-	cmlLockQuery := `SELECT SourceId FROM WikiLinks WHERE DestinationId = $1 FOR UPDATE`
+	cmlLockQuery := `SELECT SourceId FROM ChannelMemberLinks WHERE DestinationId = $1 FOR UPDATE`
 	if _, err = transaction.Exec(cmlLockQuery, destinationChannelId); err != nil {
 		return errors.Wrap(err, "failed to lock channel member links for destination")
 	}
@@ -4708,8 +4712,8 @@ func (s SqlChannelStore) SaveMemberAndPropagateLinked(rctx request.CTX, member *
 	// deadlock cycle with SaveAndPropagateMembers which locks DestinationId then SourceId.
 	// Raw SQL: squirrel does not support FOR UPDATE with ORDER BY on a locking query.
 	// Capture DestinationIds while we have them — the caller needs them to invalidate
-	// caches and would otherwise have to re-query WikiLinks.
-	cmlLockQuery := `SELECT DestinationId FROM WikiLinks WHERE SourceId = $1 ORDER BY DestinationId FOR UPDATE`
+	// caches and would otherwise have to re-query ChannelMemberLinks.
+	cmlLockQuery := `SELECT DestinationId FROM ChannelMemberLinks WHERE SourceId = $1 ORDER BY DestinationId FOR UPDATE`
 	if err = transaction.Select(&linkedDestinations, cmlLockQuery, member.ChannelId); err != nil {
 		return nil, nil, errors.Wrap(err, "failed to lock channel member links for source")
 	}
@@ -4738,7 +4742,7 @@ func (s SqlChannelStore) SaveMemberAndPropagateLinked(rctx request.CTX, member *
 			UrgentMentionCount, AutoTranslationDisabled, SourceId)
 		SELECT cml.DestinationId, $1::varchar, 'channel_user', 0, 0, 0, 0, 0, $4::jsonb,
 			$2::bigint, $5::boolean, false, $6::boolean, 0, false, $3::varchar
-		FROM WikiLinks cml
+		FROM ChannelMemberLinks cml
 		WHERE cml.SourceId = $3::varchar
 		ON CONFLICT (ChannelId, UserId) DO NOTHING
 	`
@@ -4784,7 +4788,7 @@ func (s SqlChannelStore) RemoveSyntheticMembersForSource(rctx request.CTX, sourc
 	// Lock CML rows for the destination first — must match order in
 	// wiki_link_store.go (SaveAndPropagateMembers, DeleteAndCleanupMembers)
 	// to prevent deadlock.
-	cmlLockQuery := `SELECT SourceId FROM WikiLinks WHERE DestinationId = $1 FOR UPDATE`
+	cmlLockQuery := `SELECT SourceId FROM ChannelMemberLinks WHERE DestinationId = $1 FOR UPDATE`
 	if _, err = transaction.Exec(cmlLockQuery, destinationChannelId); err != nil {
 		return errors.Wrap(err, "failed to lock channel member links for destination")
 	}
@@ -4799,7 +4803,7 @@ func (s SqlChannelStore) RemoveSyntheticMembersForSource(rctx request.CTX, sourc
 	// Step 1: Update synthetic members that have an alternative source
 	updateQuery := `
 		UPDATE ChannelMembers SET SourceId = COALESCE(
-			(SELECT cml.SourceId FROM WikiLinks cml
+			(SELECT cml.SourceId FROM ChannelMemberLinks cml
 			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = ChannelMembers.UserId
 			WHERE cml.DestinationId = $1
 			AND cml.SourceId != $2
@@ -4810,7 +4814,7 @@ func (s SqlChannelStore) RemoveSyntheticMembersForSource(rctx request.CTX, sourc
 		)
 		WHERE ChannelId = $1 AND SourceId = $2
 		AND EXISTS (
-			SELECT 1 FROM WikiLinks cml
+			SELECT 1 FROM ChannelMemberLinks cml
 			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = ChannelMembers.UserId
 			WHERE cml.DestinationId = $1 AND cml.SourceId != $2
 			AND (cm2.SourceId IS NULL OR cm2.SourceId = '')
@@ -4854,7 +4858,7 @@ func (s SqlChannelStore) RemoveSyntheticMemberForUser(rctx request.CTX, userId, 
 	// Lock CML rows for the destination first — must match order in
 	// wiki_link_store.go (SaveAndPropagateMembers, DeleteAndCleanupMembers)
 	// to prevent deadlock.
-	cmlLockQuery := `SELECT SourceId FROM WikiLinks WHERE DestinationId = $1 FOR UPDATE`
+	cmlLockQuery := `SELECT SourceId FROM ChannelMemberLinks WHERE DestinationId = $1 FOR UPDATE`
 	if _, err = transaction.Exec(cmlLockQuery, destinationChannelId); err != nil {
 		return false, errors.Wrap(err, "failed to lock channel member links for destination")
 	}
@@ -4867,7 +4871,7 @@ func (s SqlChannelStore) RemoveSyntheticMemberForUser(rctx request.CTX, userId, 
 	// Step 1: Check if another link grants access; if yes, update SourceId
 	updateQuery := `
 		UPDATE ChannelMembers SET SourceId = (
-			SELECT cml.SourceId FROM WikiLinks cml
+			SELECT cml.SourceId FROM ChannelMemberLinks cml
 			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = $1
 			WHERE cml.DestinationId = $2
 			AND cml.SourceId != $3
@@ -4877,7 +4881,7 @@ func (s SqlChannelStore) RemoveSyntheticMemberForUser(rctx request.CTX, userId, 
 		)
 		WHERE ChannelId = $2 AND UserId = $1 AND SourceId = $3
 		AND EXISTS (
-			SELECT 1 FROM WikiLinks cml
+			SELECT 1 FROM ChannelMemberLinks cml
 			JOIN ChannelMembers cm2 ON cm2.ChannelId = cml.SourceId AND cm2.UserId = $1
 			WHERE cml.DestinationId = $2 AND cml.SourceId != $3
 			AND (cm2.SourceId IS NULL OR cm2.SourceId = '')

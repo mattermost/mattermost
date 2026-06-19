@@ -178,6 +178,22 @@ func TestImportImportWiki(t *testing.T) {
 	})
 }
 
+// findImportedPages returns the live pages in a channel whose Props import_source_id matches.
+// Imported pages live in the Pages table (not Posts); their external identity is tracked in
+// Page.Props["import_source_id"].
+func findImportedPages(t *testing.T, th *TestHelper, channelId, importSourceId string) []*model.Page {
+	t.Helper()
+	all, err := th.App.Srv().Store().Page().GetChannelPages(channelId, 0, 0)
+	require.NoError(t, err)
+	var out []*model.Page
+	for _, p := range all {
+		if p.Props != nil && p.Props["import_source_id"] == importSourceId {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
 func TestImportImportPage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -324,11 +340,9 @@ func TestImportImportPage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify page was created by looking it up via import_source_id (pages live in wiki's backing channel)
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", importSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, importSourceId)
 		require.Len(t, pages, 1)
-		assert.Equal(t, "Imported Page", pages[0].GetProps()["title"])
+		assert.Equal(t, "Imported Page", pages[0].Title)
 	})
 
 	t.Run("idempotent - skips existing page by import_source_id", func(t *testing.T) {
@@ -346,11 +360,9 @@ func TestImportImportPage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Should still have original title (idempotent skip)
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", importSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, importSourceId)
 		require.Len(t, pages, 1)
-		assert.Equal(t, "Imported Page", pages[0].GetProps()["title"])
+		assert.Equal(t, "Imported Page", pages[0].Title)
 	})
 
 	t.Run("creates page with parent hierarchy", func(t *testing.T) {
@@ -382,14 +394,12 @@ func TestImportImportPage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Find child page via import_source_id (pages live in wiki's backing channel)
-		childPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", childImportSourceId)
-		require.NoError(t, err)
+		childPages := findImportedPages(t, th, wiki.ChannelId, childImportSourceId)
 		require.Len(t, childPages, 1)
 
 		childPage := childPages[0]
-		assert.Equal(t, "Child Page With Parent", childPage.GetProps()["title"])
-		assert.NotEmpty(t, childPage.PageParentId)
+		assert.Equal(t, "Child Page With Parent", childPage.Title)
+		assert.NotEmpty(t, childPage.ParentId)
 	})
 }
 
@@ -566,42 +576,33 @@ func TestImportUpdatePostPropsFromImport(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
-	// Create wiki and page for testing
-	wiki := &model.Wiki{
-		Title: "Test Wiki",
-	}
-	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, appErr)
-
-	validContent := `{"type":"doc","content":[]}`
+	// updatePostPropsFromImport operates on comment posts (*model.Post), not pages.
+	// Use a basic channel post for these tests.
 
 	t.Run("nil props does nothing", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Test Page", validContent, th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
+		post := th.CreatePost(t, th.BasicChannel)
 
-		appErr = th.App.updatePostPropsFromImport(th.Context, page, nil)
+		appErr := th.App.updatePostPropsFromImport(th.Context, post, nil)
 		require.Nil(t, appErr)
 	})
 
 	t.Run("sets allowed import_source_id prop", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Test Page 2", validContent, th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
+		post := th.CreatePost(t, th.BasicChannel)
 
 		importSourceId := "valid-import-id-123"
 		props := model.StringInterface{"import_source_id": importSourceId}
 
-		appErr = th.App.updatePostPropsFromImport(th.Context, page, &props)
+		appErr := th.App.updatePostPropsFromImport(th.Context, post, &props)
 		require.Nil(t, appErr)
 
 		// Verify the prop was set
-		updatedPage, err := th.App.Srv().Store().Post().GetSingle(th.Context, page.Id, false)
+		updatedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 		require.NoError(t, err)
-		assert.Equal(t, importSourceId, updatedPage.GetProps()["import_source_id"])
+		assert.Equal(t, importSourceId, updatedPost.GetProps()["import_source_id"])
 	})
 
 	t.Run("ignores disallowed props", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Test Page 3", validContent, th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
+		post := th.CreatePost(t, th.BasicChannel)
 
 		// Try to set disallowed props
 		props := model.StringInterface{
@@ -611,52 +612,50 @@ func TestImportUpdatePostPropsFromImport(t *testing.T) {
 			"malicious_prop":    "bad-value",
 		}
 
-		appErr = th.App.updatePostPropsFromImport(th.Context, page, &props)
+		appErr := th.App.updatePostPropsFromImport(th.Context, post, &props)
 		require.Nil(t, appErr)
 
 		// Verify only import_source_id was set
-		updatedPage, err := th.App.Srv().Store().Post().GetSingle(th.Context, page.Id, false)
+		updatedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 		require.NoError(t, err)
-		assert.Equal(t, "valid-id", updatedPage.GetProps()["import_source_id"])
-		assert.Nil(t, updatedPage.GetProps()["from_bot"])
-		assert.Nil(t, updatedPage.GetProps()["override_username"])
-		assert.Nil(t, updatedPage.GetProps()["malicious_prop"])
+		assert.Equal(t, "valid-id", updatedPost.GetProps()["import_source_id"])
+		assert.Nil(t, updatedPost.GetProps()["from_bot"])
+		assert.Nil(t, updatedPost.GetProps()["override_username"])
+		assert.Nil(t, updatedPost.GetProps()["malicious_prop"])
 	})
 
 	t.Run("ignores non-string import_source_id", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Test Page 4", validContent, th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
+		post := th.CreatePost(t, th.BasicChannel)
 
 		// Try to set import_source_id with non-string value
 		props := model.StringInterface{
 			"import_source_id": 12345, // int, not string
 		}
 
-		appErr = th.App.updatePostPropsFromImport(th.Context, page, &props)
+		appErr := th.App.updatePostPropsFromImport(th.Context, post, &props)
 		require.Nil(t, appErr)
 
 		// Verify import_source_id was NOT set
-		updatedPage, err := th.App.Srv().Store().Post().GetSingle(th.Context, page.Id, false)
+		updatedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 		require.NoError(t, err)
-		assert.Nil(t, updatedPage.GetProps()["import_source_id"])
+		assert.Nil(t, updatedPost.GetProps()["import_source_id"])
 	})
 
 	t.Run("ignores empty import_source_id", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Test Page 5", validContent, th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
+		post := th.CreatePost(t, th.BasicChannel)
 
 		// Try to set empty import_source_id
 		props := model.StringInterface{
 			"import_source_id": "",
 		}
 
-		appErr = th.App.updatePostPropsFromImport(th.Context, page, &props)
+		appErr := th.App.updatePostPropsFromImport(th.Context, post, &props)
 		require.Nil(t, appErr)
 
 		// Verify import_source_id was NOT set
-		updatedPage, err := th.App.Srv().Store().Post().GetSingle(th.Context, page.Id, false)
+		updatedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 		require.NoError(t, err)
-		assert.Nil(t, updatedPage.GetProps()["import_source_id"])
+		assert.Nil(t, updatedPost.GetProps()["import_source_id"])
 	})
 }
 
@@ -668,8 +667,6 @@ func TestImportPageWithMissingParent(t *testing.T) {
 	teamName := th.BasicTeam.Name
 	wikiSourceId := th.BasicWiki.Props[model.PostPropsImportSourceId].(string)
 	username := th.BasicUser.Username
-
-	createdWiki := th.BasicWiki
 
 	t.Run("creates page as root when parent not found", func(t *testing.T) {
 		childImportSourceId := "orphan-child-page"
@@ -687,12 +684,10 @@ func TestImportPageWithMissingParent(t *testing.T) {
 		appErr := th.App.importPage(th.Context, childData, false)
 		require.Nil(t, appErr) // Should succeed despite missing parent
 
-		// Verify page was created as root (no PageParentId)
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			createdWiki.ChannelId, model.PostTypePage, "import_source_id", childImportSourceId)
-		require.NoError(t, err)
-		require.Len(t, pages, 1)
-		assert.Empty(t, pages[0].PageParentId) // Created as root
+		// Verify page was created as root (no ParentId)
+		foundPages := findImportedPages(t, th, th.BasicWiki.ChannelId, childImportSourceId)
+		require.Len(t, foundPages, 1)
+		assert.Empty(t, foundPages[0].ParentId) // Created as root
 	})
 }
 
@@ -701,7 +696,8 @@ func TestGetPostsByTypeAndProps(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
-	// Create a page with import_source_id prop
+	// GetPostsByTypeAndProps operates on comment posts. Pages now live in the Pages table.
+	// Create a page_comment post to exercise the store method.
 	wiki := &model.Wiki{
 		Title: "Test Wiki",
 	}
@@ -711,29 +707,35 @@ func TestGetPostsByTypeAndProps(t *testing.T) {
 	page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Test Page", `{"type":"doc","content":[]}`, th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	// Set import_source_id prop
+	// Create a comment post with import_source_id prop
 	importSourceId := "unique-import-id-12345"
-	oldPage := page.Clone()
-	page.AddProp("import_source_id", importSourceId)
-	_, err := th.App.Srv().Store().Post().Update(th.Context, page, oldPage)
-	require.NoError(t, err)
+	comment := &model.Post{
+		ChannelId: wiki.ChannelId,
+		UserId:    th.BasicUser.Id,
+		Type:      model.PostTypePageComment,
+		RootId:    "",
+	}
+	comment.AddProp("page_id", page.Id)
+	comment.AddProp("import_source_id", importSourceId)
+	savedComment, _, appErr2 := th.App.CreatePost(th.Context, comment, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr2)
 
-	t.Run("finds page by import_source_id", func(t *testing.T) {
+	t.Run("finds comment by import_source_id", func(t *testing.T) {
 		posts, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
 			wiki.ChannelId,
-			model.PostTypePage,
+			model.PostTypePageComment,
 			"import_source_id",
 			importSourceId,
 		)
 		require.NoError(t, err)
 		require.Len(t, posts, 1)
-		assert.Equal(t, page.Id, posts[0].Id)
+		assert.Equal(t, savedComment.Id, posts[0].Id)
 	})
 
 	t.Run("returns empty for non-matching import_source_id", func(t *testing.T) {
 		posts, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
 			wiki.ChannelId,
-			model.PostTypePage,
+			model.PostTypePageComment,
 			"import_source_id",
 			"nonexistent-id",
 		)
@@ -744,7 +746,7 @@ func TestGetPostsByTypeAndProps(t *testing.T) {
 	t.Run("returns empty for wrong channel", func(t *testing.T) {
 		posts, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
 			"wrong-channel-id",
-			model.PostTypePage,
+			model.PostTypePageComment,
 			"import_source_id",
 			importSourceId,
 		)
@@ -800,21 +802,19 @@ func TestImportPageWithNestedComments(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify page was created (pages live in wiki's backing channel)
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			createdWiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, createdWiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
 		page := pages[0]
 
 		// Verify comments were created
-		comment1, err := th.App.Srv().Store().Post().GetPostRepliesByTypeAndProps(
-			page.Id, model.PostTypePageComment, "import_source_id", comment1SourceId)
+		comment1, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
+			page.ChannelId, model.PostTypePageComment, "import_source_id", comment1SourceId)
 		require.NoError(t, err)
 		require.Len(t, comment1, 1)
 		assert.Equal(t, "First nested comment", comment1[0].Message)
 
-		comment2, err := th.App.Srv().Store().Post().GetPostRepliesByTypeAndProps(
-			page.Id, model.PostTypePageComment, "import_source_id", comment2SourceId)
+		comment2, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
+			page.ChannelId, model.PostTypePageComment, "import_source_id", comment2SourceId)
 		require.NoError(t, err)
 		require.Len(t, comment2, 1)
 		assert.Equal(t, "Second nested comment", comment2[0].Message)
@@ -915,29 +915,27 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify the page exists (pages live in wiki's backing channel)
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
-		page := pages[0]
 
-		// Verify root comment
-		rootComments, err := th.App.Srv().Store().Post().GetPostRepliesByTypeAndProps(
-			page.Id, model.PostTypePageComment, "import_source_id", rootCommentSourceId)
+		// Verify root comment — a top-level page comment is its own root post (RootId="")
+		// grouped by the page_id prop, not rooted on the page.
+		rootComments, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
+			wiki.ChannelId, model.PostTypePageComment, "import_source_id", rootCommentSourceId)
 		require.NoError(t, err)
 		require.Len(t, rootComments, 1)
 		rootComment := rootComments[0]
 		assert.Equal(t, "This is the root comment", rootComment.Message)
-		assert.Equal(t, page.Id, rootComment.RootId)
+		require.Empty(t, rootComment.RootId)
 
-		// Verify reply comment
-		replyComments, err := th.App.Srv().Store().Post().GetPostRepliesByTypeAndProps(
-			page.Id, model.PostTypePageComment, "import_source_id", replyCommentSourceId)
+		// Verify reply comment — threads under its parent comment.
+		replyComments, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
+			wiki.ChannelId, model.PostTypePageComment, "import_source_id", replyCommentSourceId)
 		require.NoError(t, err)
 		require.Len(t, replyComments, 1)
 		replyComment := replyComments[0]
 		assert.Equal(t, "This is a reply to the root comment", replyComment.Message)
-		assert.Equal(t, page.Id, replyComment.RootId)
+		assert.Equal(t, rootComment.Id, replyComment.RootId)
 	})
 
 	t.Run("reply to nonexistent parent creates root comment", func(t *testing.T) {
@@ -957,18 +955,16 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 		require.Nil(t, appErr) // Should succeed even with missing parent
 
 		// Verify the page (pages live in wiki's backing channel)
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
 		page := pages[0]
 
 		// Verify comment was created as root-level (not reply)
-		comments, err := th.App.Srv().Store().Post().GetPostRepliesByTypeAndProps(
-			page.Id, model.PostTypePageComment, "import_source_id", commentSourceId)
+		comments, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
+			page.ChannelId, model.PostTypePageComment, "import_source_id", commentSourceId)
 		require.NoError(t, err)
 		require.Len(t, comments, 1)
-		assert.Equal(t, page.Id, comments[0].RootId)
+		require.Empty(t, comments[0].RootId, "a reply to a nonexistent parent is created as a root comment")
 	})
 }
 
@@ -1017,24 +1013,22 @@ func TestImportPageWithAttachments(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify page was created
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
 		page := pages[0]
 
 		// Verify file info was created and attached to the page
-		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(page.Id, true, false, true)
+		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPage(page.Id)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 1, "Should have exactly one attachment")
 		assert.Equal(t, "test-attachment.txt", fileInfos[0].Name)
-		assert.Equal(t, page.Id, fileInfos[0].PostId, "FileInfo should be attached to the page")
+		assert.Equal(t, page.Id, fileInfos[0].PageId, "FileInfo should be attached to the page")
 
 		// Verify import_file_mappings prop was set for link resolution
 		// Re-fetch the page to get updated props
-		updatedPage, err := th.App.Srv().Store().Post().GetSingle(th.Context, page.Id, false)
+		updatedPage, err := th.App.Srv().Store().Page().GetPage(th.Context, page.Id, false)
 		require.NoError(t, err)
-		fileMappings, ok := updatedPage.GetProps()["import_file_mappings"].(map[string]any)
+		fileMappings, ok := updatedPage.Props["import_file_mappings"].(map[string]any)
 		if ok {
 			assert.Contains(t, fileMappings, attachmentSourceId)
 		}
@@ -1066,12 +1060,10 @@ func TestImportPageWithAttachments(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify page was created
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
 		// Page should have no attachments since the file didn't exist
-		assert.Empty(t, pages[0].FileIds)
+		assert.Empty(t, pages[0].PendingFileIds)
 	})
 
 	t.Run("resolves CONF_FILE placeholders in page content", func(t *testing.T) {
@@ -1111,14 +1103,12 @@ func TestImportPageWithAttachments(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify page was created
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
 		page := pages[0]
 
 		// Verify file info was created
-		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(page.Id, true, false, true)
+		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPage(page.Id)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 1, "Should have exactly one attachment")
 		fileId := fileInfos[0].Id
@@ -1131,7 +1121,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 		// The content should now have the file URL instead of the placeholder
 		// Check that the placeholder has been replaced with the actual file URL
 		var contentDoc model.TipTapDocument
-		require.NoError(t, json.Unmarshal([]byte(pagePost.Message), &contentDoc))
+		require.NoError(t, json.Unmarshal([]byte(pagePost.Body), &contentDoc))
 		contentNodes := contentDoc.Content
 		require.NotEmpty(t, contentNodes, "Page content should have nodes")
 
@@ -1189,14 +1179,12 @@ func TestImportPageWithAttachments(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify page was created
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
 		page := pages[0]
 
 		// Verify both files were uploaded
-		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(page.Id, true, false, true)
+		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPage(page.Id)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 2, "Should have exactly two attachments")
 
@@ -1206,7 +1194,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 		require.NotNil(t, pagePost2)
 
 		// Serialize to check for placeholder remnants
-		contentStr := pagePost2.Message
+		contentStr := pagePost2.Body
 
 		// Verify no placeholders remain
 		assert.NotContains(t, contentStr, "{{CONF_FILE:", "All placeholders should be resolved")
@@ -1250,14 +1238,12 @@ func TestImportPageWithAttachments(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify page was created
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, pageImportSourceId)
 		require.Len(t, pages, 1)
 		page := pages[0]
 
 		// Get the uploaded file ID
-		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(page.Id, true, false, true)
+		fileInfos, err := th.App.Srv().Store().FileInfo().GetForPage(page.Id)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 1)
 
@@ -1266,7 +1252,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 		require.NoError(t, contentErr)
 		require.NotNil(t, pagePost3)
 
-		contentStr := pagePost3.Message
+		contentStr := pagePost3.Body
 
 		// Known file should be resolved
 		expectedURL := "/api/v4/files/" + fileInfos[0].Id
@@ -1367,35 +1353,29 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		backingChannelId := wikis[0].ChannelId
 
 		// Verify root page (pages live in wiki's backing channel)
-		rootPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			backingChannelId, model.PostTypePage, "import_source_id", rootPageSourceId)
-		require.NoError(t, err)
+		rootPages := findImportedPages(t, th, backingChannelId, rootPageSourceId)
 		require.Len(t, rootPages, 1)
 		rootPage := rootPages[0]
-		assert.Equal(t, "Root Page", rootPage.GetProps()["title"])
-		assert.Empty(t, rootPage.PageParentId)
+		assert.Equal(t, "Root Page", rootPage.Title)
+		assert.Empty(t, rootPage.ParentId)
 
 		// Verify child page hierarchy
-		childPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			backingChannelId, model.PostTypePage, "import_source_id", childPageSourceId)
-		require.NoError(t, err)
+		childPages := findImportedPages(t, th, backingChannelId, childPageSourceId)
 		require.Len(t, childPages, 1)
 		childPage := childPages[0]
-		assert.Equal(t, "Child Page", childPage.GetProps()["title"])
-		assert.Equal(t, rootPage.Id, childPage.PageParentId)
+		assert.Equal(t, "Child Page", childPage.Title)
+		assert.Equal(t, rootPage.Id, childPage.ParentId)
 
 		// Verify grandchild page hierarchy
-		grandchildPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			backingChannelId, model.PostTypePage, "import_source_id", grandchildPageSourceId)
-		require.NoError(t, err)
+		grandchildPages := findImportedPages(t, th, backingChannelId, grandchildPageSourceId)
 		require.Len(t, grandchildPages, 1)
 		grandchildPage := grandchildPages[0]
-		assert.Equal(t, "Grandchild Page", grandchildPage.GetProps()["title"])
-		assert.Equal(t, childPage.Id, grandchildPage.PageParentId)
+		assert.Equal(t, "Grandchild Page", grandchildPage.Title)
+		assert.Equal(t, childPage.Id, grandchildPage.ParentId)
 
 		// Verify comment
-		comments, err := th.App.Srv().Store().Post().GetPostRepliesByTypeAndProps(
-			rootPage.Id, model.PostTypePageComment, "import_source_id", commentSourceId)
+		comments, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
+			rootPage.ChannelId, model.PostTypePageComment, "import_source_id", commentSourceId)
 		require.NoError(t, err)
 		require.Len(t, comments, 1)
 		assert.Equal(t, "Comment on root page", comments[0].Message)
@@ -1437,11 +1417,9 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify still only one page with original title
-		rootPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			backingChannelId, model.PostTypePage, "import_source_id", rootPageSourceId)
-		require.NoError(t, err)
+		rootPages := findImportedPages(t, th, backingChannelId, rootPageSourceId)
 		require.Len(t, rootPages, 1)
-		assert.Equal(t, "Root Page", rootPages[0].GetProps()["title"]) // Original title preserved
+		assert.Equal(t, "Root Page", rootPages[0].Title) // Original title preserved
 	})
 }
 
@@ -1503,15 +1481,13 @@ func TestResolvePageTitlePlaceholders(t *testing.T) {
 		require.Nil(t, resolveErr)
 
 		// Get the source page and verify placeholder was resolved
-		sourcePages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", "source-page-1")
-		require.NoError(t, err)
+		sourcePages := findImportedPages(t, th, wiki.ChannelId, "source-page-1")
 		require.Len(t, sourcePages, 1)
 
 		pagePost, err := th.App.Srv().Store().Page().GetPage(th.Context, sourcePages[0].Id, false)
 		require.NoError(t, err)
 
-		contentStr := pagePost.Message
+		contentStr := pagePost.Body
 
 		// Placeholder should be replaced with URL
 		assert.NotContains(t, contentStr, "{{CONF_PAGE_TITLE:")
@@ -1609,15 +1585,13 @@ func TestResolvePageIDPlaceholders(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the source page and verify placeholder was resolved
-		sourcePages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", "source-page-id")
-		require.NoError(t, err)
+		sourcePages := findImportedPages(t, th, wiki.ChannelId, "source-page-id")
 		require.Len(t, sourcePages, 1)
 
 		pagePost, err := th.App.Srv().Store().Page().GetPage(th.Context, sourcePages[0].Id, false)
 		require.NoError(t, err)
 
-		contentStr := pagePost.Message
+		contentStr := pagePost.Body
 
 		assert.NotContains(t, contentStr, "{{CONF_PAGE_ID:")
 		assert.Contains(t, contentStr, "/wiki/")
@@ -1669,15 +1643,13 @@ func TestCleanupUnresolvedPlaceholders(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the page and verify placeholders were cleaned up
-		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", "cleanup-page")
-		require.NoError(t, err)
+		pages := findImportedPages(t, th, wiki.ChannelId, "cleanup-page")
 		require.Len(t, pages, 1)
 
 		pagePost, err := th.App.Srv().Store().Page().GetPage(th.Context, pages[0].Id, false)
 		require.NoError(t, err)
 
-		contentStr := pagePost.Message
+		contentStr := pagePost.Body
 
 		// Placeholders should be replaced with broken link indicators
 		assert.NotContains(t, contentStr, "{{CONF_PAGE_TITLE:")
@@ -1733,11 +1705,9 @@ func TestRepairOrphanedPageHierarchy(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify child was created as root (orphaned)
-		childPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", "child-orphan")
-		require.NoError(t, err)
+		childPages := findImportedPages(t, th, wiki.ChannelId, "child-orphan")
 		require.Len(t, childPages, 1)
-		assert.Empty(t, childPages[0].PageParentId, "Child should be orphaned (no parent)")
+		assert.Empty(t, childPages[0].ParentId, "Child should be orphaned (no parent)")
 
 		// Now import the parent page
 		parentPageProps := model.StringInterface{"import_source_id": "parent-page-later"}
@@ -1758,16 +1728,12 @@ func TestRepairOrphanedPageHierarchy(t *testing.T) {
 		assert.Equal(t, 1, repaired)
 
 		// Verify child now has parent
-		childPages, err = th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", "child-orphan")
-		require.NoError(t, err)
+		childPages = findImportedPages(t, th, wiki.ChannelId, "child-orphan")
 		require.Len(t, childPages, 1)
 
-		parentPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			wiki.ChannelId, model.PostTypePage, "import_source_id", "parent-page-later")
-		require.NoError(t, err)
+		parentPages := findImportedPages(t, th, wiki.ChannelId, "parent-page-later")
 		require.Len(t, parentPages, 1)
 
-		assert.Equal(t, parentPages[0].Id, childPages[0].PageParentId, "Child should now have parent")
+		assert.Equal(t, parentPages[0].Id, childPages[0].ParentId, "Child should now have parent")
 	})
 }

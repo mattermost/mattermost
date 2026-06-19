@@ -2929,10 +2929,6 @@
     "translation": "An error occurred while downloading the plugin."
   },
   {
-    "id": "api.plugin.link_page_to_wiki.no_wiki",
-    "translation": "No wiki found to link page."
-  },
-  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request."
   },
@@ -5355,10 +5351,6 @@
     "translation": "Cannot modify deleted comment."
   },
   {
-    "id": "api.wiki.comment.not_comment.app_error",
-    "translation": "Post is not a comment."
-  },
-  {
     "id": "api.wiki.comment.not_inline.app_error",
     "translation": "Comment is not an inline comment."
   },
@@ -6909,6 +6901,10 @@
     "translation": "Failed to get count of all files."
   },
   {
+    "id": "app.file_info.get_for_page.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
   },
@@ -7037,8 +7033,8 @@
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
   {
-    "id": "app.import.find_page.error",
-    "translation": "Error finding page by import source ID."
+    "id": "app.import.find_page.lookup_error",
+    "translation": ""
   },
   {
     "id": "app.import.generate_password.app_error",
@@ -8137,10 +8133,6 @@
     "translation": "We encountered an error updating the app."
   },
   {
-    "id": "app.page.attach_files.store_error.app_error",
-    "translation": "Unable to attach files to the page."
-  },
-  {
     "id": "app.page.calculate_depth.ancestors.app_error",
     "translation": "Failed to fetch ancestors for depth calculation."
   },
@@ -8185,6 +8177,10 @@
     "translation": "Page title is too long."
   },
   {
+    "id": "app.page.create.wiki_not_found.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.page.create_comment.empty_message.app_error",
     "translation": "Comment message cannot be empty."
   },
@@ -8195,10 +8191,6 @@
   {
     "id": "app.page.create_comment_reply.page_not_found.app_error",
     "translation": "Page not found for comment reply."
-  },
-  {
-    "id": "app.page.create_comment_reply.parent_not_comment.app_error",
-    "translation": "Parent post is not a comment."
   },
   {
     "id": "app.page.create_comment_reply.parent_not_found.app_error",
@@ -8434,11 +8426,11 @@
   },
   {
     "id": "app.page.patch_props.no_valid_keys.app_error",
-    "translation": "No valid property keys provided."
+    "translation": "No writable property keys were provided."
   },
   {
-    "id": "app.page.patch_props.store_error.app_error",
-    "translation": "Failed to update page properties."
+    "id": "app.page.patch_props.update.app_error",
+    "translation": "Unable to update the page properties."
   },
   {
     "id": "app.page.permanent_delete.app_error",
@@ -8475,10 +8467,6 @@
   {
     "id": "app.page.restore.update_content.app_error",
     "translation": "Unable to update page content during restore."
-  },
-  {
-    "id": "app.page.restore.update_fileids.app_error",
-    "translation": "Unable to update page file IDs during restore."
   },
   {
     "id": "app.page.search_status_values.app_error",
@@ -8567,6 +8555,10 @@
   {
     "id": "app.page_comment.create.wiki_lookup.app_error",
     "translation": "Failed to look up wiki for page comment."
+  },
+  {
+    "id": "app.page_reaction.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete page reactions for user."
   },
   {
     "id": "app.pap.access_control.channel_default",
@@ -10781,14 +10773,6 @@
   {
     "id": "app.webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook."
-  },
-  {
-    "id": "app.wiki.add.channel_mismatch",
-    "translation": "Page channel does not match wiki channel."
-  },
-  {
-    "id": "app.wiki.add.not_a_page",
-    "translation": "Post is not a page."
   },
   {
     "id": "app.wiki.create.channel_id_not_allowed.app_error",
@@ -13435,6 +13419,14 @@
     "translation": "Invalid value for name."
   },
   {
+    "id": "model.file_info.is_valid.owner_xor.app_error",
+    "translation": "A file cannot belong to both a post and a page."
+  },
+  {
+    "id": "model.file_info.is_valid.page_id.app_error",
+    "translation": "Invalid page id for file info."
+  },
+  {
     "id": "model.file_info.is_valid.path.app_error",
     "translation": "Invalid value for path."
   },
@@ -13799,6 +13791,50 @@
     "translation": "Update at must be a valid time."
   },
   {
+    "id": "model.page.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id for page."
+  },
+  {
+    "id": "model.page.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.page.is_valid.id.app_error",
+    "translation": "Invalid page id."
+  },
+  {
+    "id": "model.page.is_valid.original_id.app_error",
+    "translation": "Invalid original id for page."
+  },
+  {
+    "id": "model.page.is_valid.parent_id.app_error",
+    "translation": "Invalid parent id for page."
+  },
+  {
+    "id": "model.page.is_valid.parent_self.app_error",
+    "translation": "A page cannot be its own parent."
+  },
+  {
+    "id": "model.page.is_valid.title.app_error",
+    "translation": "Invalid page title."
+  },
+  {
+    "id": "model.page.is_valid.type.app_error",
+    "translation": "Invalid page type."
+  },
+  {
+    "id": "model.page.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.page.is_valid.user_id.app_error",
+    "translation": "Invalid user id for page."
+  },
+  {
+    "id": "model.page.is_valid.wiki_id.app_error",
+    "translation": "Invalid wiki id for page."
+  },
+  {
     "id": "model.page_draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel ID in page draft."
   },
@@ -13849,6 +13885,22 @@
   {
     "id": "model.page_draft.validate_content.too_large.app_error",
     "translation": "Page draft content exceeds the maximum allowed size."
+  },
+  {
+    "id": "model.page_reaction.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.page_reaction.is_valid.emoji_name.app_error",
+    "translation": "Invalid emoji name for reaction."
+  },
+  {
+    "id": "model.page_reaction.is_valid.page_id.app_error",
+    "translation": "Invalid page id for reaction."
+  },
+  {
+    "id": "model.page_reaction.is_valid.user_id.app_error",
+    "translation": "Invalid user id for reaction."
   },
   {
     "id": "model.plugin_command.error.app_error",

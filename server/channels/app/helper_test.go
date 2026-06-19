@@ -970,7 +970,7 @@ func (th *TestHelper) CreateTestWikiInChannel(tb testing.TB, channel *model.Chan
 }
 
 // CreateTestPage creates a page for testing purposes in the basic channel
-func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Post {
+func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Page {
 	tb.Helper()
 	th.SetupPagePermissions()
 	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, title, "", "", th.BasicUser.Id, "", "")
@@ -980,7 +980,7 @@ func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Post {
 }
 
 // CreateTestPageWithContent creates a page with specific content
-func (th *TestHelper) CreateTestPageWithContent(tb testing.TB, title, content string) *model.Post {
+func (th *TestHelper) CreateTestPageWithContent(tb testing.TB, title, content string) *model.Page {
 	tb.Helper()
 	th.SetupPagePermissions()
 	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, title, "", content, th.BasicUser.Id, "", "")
@@ -990,7 +990,7 @@ func (th *TestHelper) CreateTestPageWithContent(tb testing.TB, title, content st
 }
 
 // CreateTestWikiPage creates a page in a specific wiki
-func (th *TestHelper) CreateTestWikiPage(tb testing.TB, wikiId, title string) *model.Post {
+func (th *TestHelper) CreateTestWikiPage(tb testing.TB, wikiId, title string) *model.Page {
 	tb.Helper()
 	th.SetupPagePermissions()
 	page, err := th.App.CreateWikiPage(th.Context, wikiId, "", title, "", th.BasicUser.Id, "", "")

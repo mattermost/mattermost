@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -103,8 +104,8 @@ func TestCreateWikiWithDefaultPage(t *testing.T) {
 	require.NotEmpty(t, createdWiki.Id)
 
 	t.Run("wiki has no pages initially", func(t *testing.T) {
-		pages, pageErr := th.App.Srv().Store().Wiki().GetPages(createdWiki.Id, 0, 10)
-		require.NoError(t, pageErr)
+		pages, pageErr := th.App.GetWikiPages(th.Context, createdWiki.Id, 0, 10)
+		require.Nil(t, pageErr)
 		require.Len(t, pages, 0, "Wiki should have no pages initially, only a draft")
 	})
 
@@ -139,12 +140,12 @@ func TestCreatePage(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "New Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
-		require.Equal(t, model.PostTypePage, page.Type)
+		require.Equal(t, model.PageTypePage, page.Type)
 		require.Equal(t, createdWiki.ChannelId, page.ChannelId)
-		require.Empty(t, page.PageParentId)
-		require.Equal(t, "New Page", page.Props["title"])
+		require.Empty(t, page.ParentId)
+		require.Equal(t, "New Page", page.Title)
 
-		pages, pageErr := th.App.Srv().Store().Wiki().GetPages(createdWiki.Id, 0, 10)
+		pages, pageErr := th.App.Srv().Store().Page().GetChannelPages(createdWiki.ChannelId, 0, 10)
 		require.NoError(t, pageErr)
 		require.Len(t, pages, 1, "Wiki should have 1 page (default is a draft, not a page)")
 	})
@@ -170,8 +171,8 @@ func TestCreatePage(t *testing.T) {
 		childPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, parentPage.Id, "Child Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, childPage)
-		require.Equal(t, parentPage.Id, childPage.PageParentId, "Child page should reference parent")
-		require.Equal(t, "Child Page", childPage.Props["title"])
+		require.Equal(t, parentPage.Id, childPage.ParentId, "Child page should reference parent")
+		require.Equal(t, "Child Page", childPage.Title)
 	})
 
 	t.Run("fails when parent is not a page", func(t *testing.T) {
@@ -282,7 +283,7 @@ func TestMovePageToWiki(t *testing.T) {
 
 		movedPage, pageErr := th.App.GetPage(th.Context, page.Id)
 		require.Nil(t, pageErr)
-		require.Empty(t, movedPage.PageParentId, "Moved page should become root")
+		require.Empty(t, movedPage.ParentId, "Moved page should become root")
 	})
 
 	t.Run("successfully moves page with children (entire subtree)", func(t *testing.T) {
@@ -343,19 +344,19 @@ func TestMovePageToWiki(t *testing.T) {
 
 		movedParent, pageErr := th.App.GetPage(th.Context, parentPage.Id)
 		require.Nil(t, pageErr)
-		require.Empty(t, movedParent.PageParentId, "Moved parent page should become root")
+		require.Empty(t, movedParent.ParentId, "Moved parent page should become root")
 
 		movedChild1, pageErr := th.App.GetPage(th.Context, childPage1.Id)
 		require.Nil(t, pageErr)
-		require.Equal(t, parentPage.Id, movedChild1.PageParentId, "Child1 should still reference parent")
+		require.Equal(t, parentPage.Id, movedChild1.ParentId, "Child1 should still reference parent")
 
 		movedChild2, pageErr := th.App.GetPage(th.Context, childPage2.Id)
 		require.Nil(t, pageErr)
-		require.Equal(t, parentPage.Id, movedChild2.PageParentId, "Child2 should still reference parent")
+		require.Equal(t, parentPage.Id, movedChild2.ParentId, "Child2 should still reference parent")
 
 		movedGrandchild, pageErr := th.App.GetPage(th.Context, grandchildPage.Id)
 		require.Nil(t, pageErr)
-		require.Equal(t, childPage1.Id, movedGrandchild.PageParentId, "Grandchild should still reference child1")
+		require.Equal(t, childPage1.Id, movedGrandchild.ParentId, "Grandchild should still reference child1")
 	})
 
 	t.Run("fails when page does not exist", func(t *testing.T) {
@@ -513,15 +514,15 @@ func TestDuplicatePage(t *testing.T) {
 		require.NotNil(t, duplicatedPage)
 
 		require.NotEqual(t, page.Id, duplicatedPage.Id, "Duplicated page should have new ID")
-		require.Equal(t, "Copy of Original Page", duplicatedPage.Props["title"], "Should have default duplicate title")
+		require.Equal(t, "Copy of Original Page", duplicatedPage.Title, "Should have default duplicate title")
 		require.Equal(t, createdTargetWiki.ChannelId, duplicatedPage.ChannelId, "Should be in target wiki's channel")
-		require.Empty(t, duplicatedPage.PageParentId, "Should be root level")
+		require.Empty(t, duplicatedPage.ParentId, "Should be root level")
 
 		duplicatedPagePost, contentErr := th.App.Srv().Store().Page().GetPage(th.Context, duplicatedPage.Id, false)
 		require.NoError(t, contentErr)
-		require.NotEmpty(t, duplicatedPagePost.Message, "Content should exist")
-		require.Contains(t, duplicatedPagePost.Message, "Original content", "Content should contain original text")
-		require.Contains(t, duplicatedPagePost.Message, "\"type\":\"doc\"", "Content should be TipTap document")
+		require.NotEmpty(t, duplicatedPagePost.Body, "Content should exist")
+		require.Contains(t, duplicatedPagePost.Body, "Original content", "Content should contain original text")
+		require.Contains(t, duplicatedPagePost.Body, "\"type\":\"doc\"", "Content should be TipTap document")
 
 		targetWikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
 		require.Nil(t, wikiErr)
@@ -553,7 +554,7 @@ func TestDuplicatePage(t *testing.T) {
 		require.NotNil(t, duplicatedPage)
 
 		require.NotEqual(t, page.Id, duplicatedPage.Id)
-		require.Equal(t, "Copy of Page to Duplicate", duplicatedPage.Props["title"])
+		require.Equal(t, "Copy of Page to Duplicate", duplicatedPage.Title)
 
 		wikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
 		require.Nil(t, wikiErr)
@@ -583,7 +584,7 @@ func TestDuplicatePage(t *testing.T) {
 		customTitle := "My Custom Title"
 		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdWiki.Id, nil, &customTitle, th.BasicUser.Id, nil, nil)
 		require.Nil(t, appErr)
-		require.Equal(t, customTitle, duplicatedPage.Props["title"], "Should use custom title")
+		require.Equal(t, customTitle, duplicatedPage.Title, "Should use custom title")
 	})
 
 	t.Run("successfully duplicates page with parent", func(t *testing.T) {
@@ -611,7 +612,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdWiki.Id, nil, nil, th.BasicUser.Id, nil, nil)
 		require.Nil(t, appErr)
-		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId, "Should preserve parent from source page")
+		require.Equal(t, parentPage.Id, duplicatedPage.ParentId, "Should preserve parent from source page")
 	})
 
 	t.Run("fails when source page not found", func(t *testing.T) {
@@ -650,8 +651,8 @@ func TestDuplicatePage(t *testing.T) {
 		require.Contains(t, appErr.Id, "target_wiki_not_found")
 	})
 
-	// Issue #14: DuplicatePage uses DeletePage (soft-delete) for rollback on AddPageToWiki
-	// failure, while CreateWikiPage uses PermanentDeletePage for the same path.
+	// Issue #14: DuplicatePage uses DeletePage (soft-delete) for rollback when the duplicate's
+	// create fails, while CreateWikiPage uses PermanentDeletePage for the same path.
 	//
 	// The bug leaves a soft-deleted orphan row in the DB.  Verifying the orphan requires
 	// querying rows with DeleteAt!=0, which the Page store interface does not expose.
@@ -660,7 +661,7 @@ func TestDuplicatePage(t *testing.T) {
 	//
 	// To expose the bug as a failing assertion, add a GetPage store method that accepts
 	// includeDeleted=true with a channel scan, then assert the orphan count == 0.
-	t.Run("DuplicatePage returns error and leaves no active pages when AddPageToWiki fails", func(t *testing.T) {
+	t.Run("DuplicatePage returns error and leaves no active pages when the target wiki is gone", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
@@ -668,8 +669,8 @@ func TestDuplicatePage(t *testing.T) {
 		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		// Pre-fetch targetWiki + backing channel, then delete the wiki row so
-		// AddPageToWiki fails while the in-memory objects remain valid.
+		// Pre-fetch targetWiki + backing channel, then delete the wiki row so the duplicate's
+		// CreatePage fails while the in-memory objects remain valid.
 		targetWiki := &model.Wiki{Title: "Target Wiki"}
 		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -687,11 +688,11 @@ func TestDuplicatePage(t *testing.T) {
 		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
 		require.Nil(t, appErr)
 
-		// DuplicatePage: CreatePage succeeds, AddPageToWiki fails (wiki row gone).
+		// DuplicatePage: the duplicate's CreatePage fails because the target wiki row is gone.
 		// BUG (#14): rollback calls DeletePage (soft-delete) — orphan row remains in DB.
 		// Fix: call PermanentDeletePage (like CreateWikiPage does) so no row survives.
 		_, appErr = th.App.DuplicatePage(th.Context, page, createdTargetWiki.Id, nil, nil, th.BasicUser.Id, createdTargetWiki, backingChannel)
-		require.NotNil(t, appErr, "DuplicatePage must return an error when AddPageToWiki fails")
+		require.NotNil(t, appErr, "DuplicatePage must return an error when the target wiki is gone")
 
 		// No active page should be visible — this passes for both soft-delete and
 		// permanent-delete, so it does NOT distinguish the bug from the fix.
@@ -699,7 +700,7 @@ func TestDuplicatePage(t *testing.T) {
 		// a store method with includeDeleted support; add it as part of fix #14.
 		activePagesAfter, storeErr := th.App.Srv().Store().Page().GetChannelPages(backingChannel.Id, 0, 0)
 		require.NoError(t, storeErr)
-		require.Empty(t, activePagesAfter.Posts, "no active pages should remain in backing channel after failed DuplicatePage")
+		require.Empty(t, activePagesAfter, "no active pages should remain in backing channel after failed DuplicatePage")
 	})
 
 	t.Run("truncates title when exceeding max length", func(t *testing.T) {
@@ -730,9 +731,7 @@ func TestDuplicatePage(t *testing.T) {
 		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdWiki.Id, nil, nil, th.BasicUser.Id, nil, nil)
 		require.Nil(t, appErr)
 
-		duplicateTitle := duplicatedPage.GetPageTitle()
-		require.LessOrEqual(t, len(duplicateTitle), 255, "Title should not exceed max length")
-		require.True(t, len(duplicateTitle) <= 255)
+		require.LessOrEqual(t, len(duplicatedPage.Title), 255, "Title should not exceed max length")
 	})
 }
 
@@ -1117,10 +1116,11 @@ func TestGetWikiPages(t *testing.T) {
 		require.NotEqual(t, pages[0].Id, pages2[0].Id)
 	})
 
-	t.Run("returns empty list for non-existent wiki", func(t *testing.T) {
+	t.Run("returns not found for non-existent wiki", func(t *testing.T) {
 		pages, appErr := th.App.GetWikiPages(rctx, model.NewId(), 0, 10)
-		require.Nil(t, appErr)
-		require.Empty(t, pages)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.Nil(t, pages)
 	})
 }
 
@@ -1193,42 +1193,6 @@ func TestGetWikiIdForPage(t *testing.T) {
 		wikiId, appErr := th.App.GetWikiIdForPage(rctx, model.NewId())
 		require.NotNil(t, appErr)
 		require.Empty(t, wikiId)
-	})
-}
-
-func TestAddPageToWiki(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	th.SetupPagePermissions()
-
-	rctx := th.CreateSessionContext()
-
-	wiki := &model.Wiki{
-		Title: "Test Wiki",
-	}
-	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, err)
-
-	t.Run("adds page to wiki", func(t *testing.T) {
-		// Create a page in the wiki's backing channel (not the user-facing channel)
-		page, appErr := th.App.CreatePage(th.Context, createdWiki.ChannelId, "Standalone Page", "", "", th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
-
-		appErr = th.App.AddPageToWiki(rctx, page.Id, createdWiki.Id)
-		require.Nil(t, appErr)
-
-		// Verify the page is now associated with the wiki
-		wikiId, appErr := th.App.GetWikiIdForPage(rctx, page.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, createdWiki.Id, wikiId)
-	})
-
-	t.Run("returns error for non-existent wiki", func(t *testing.T) {
-		page, appErr := th.App.CreatePage(th.Context, createdWiki.ChannelId, "Another Page", "", "", th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
-
-		appErr = th.App.AddPageToWiki(rctx, page.Id, model.NewId())
-		require.NotNil(t, appErr)
 	})
 }
 

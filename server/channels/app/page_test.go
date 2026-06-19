@@ -25,7 +25,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.NotNil(t, page)
 		require.Equal(t, model.PostTypePage, page.Type)
 		require.Equal(t, th.BasicWiki.ChannelId, page.ChannelId)
-		require.Equal(t, "Test Page", page.Props["title"])
+		require.Equal(t, "Test Page", page.Title)
 		require.NotEmpty(t, page.Id)
 	})
 
@@ -35,7 +35,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		require.Contains(t, page.Message, "Test content")
+		require.Contains(t, page.Body, "Test content")
 	})
 
 	t.Run("creates child page with parent", func(t *testing.T) {
@@ -45,7 +45,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		childPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child Page", parentPage.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, childPage)
-		require.Equal(t, parentPage.Id, childPage.PageParentId)
+		require.Equal(t, parentPage.Id, childPage.ParentId)
 	})
 
 	t.Run("fails with invalid JSON content", func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, titleWithBIDI, "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
-		require.Equal(t, "TestPageTitle", page.Props["title"], "BIDI characters should be stripped from title")
+		require.Equal(t, "TestPageTitle", page.Title, "BIDI characters should be stripped from title")
 	})
 
 	t.Run("fails with empty title", func(t *testing.T) {
@@ -171,7 +171,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 		// Parse the JSON to verify structure
 		var doc map[string]any
-		parseErr := json.Unmarshal([]byte(page.Message), &doc)
+		parseErr := json.Unmarshal([]byte(page.Body), &doc)
 		require.NoError(t, parseErr)
 		require.Equal(t, "doc", doc["type"])
 
@@ -191,7 +191,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.NotNil(t, page)
 
 		var doc map[string]any
-		parseErr := json.Unmarshal([]byte(page.Message), &doc)
+		parseErr := json.Unmarshal([]byte(page.Body), &doc)
 		require.NoError(t, parseErr)
 
 		content := doc["content"].([]any)
@@ -216,7 +216,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.NotNil(t, page)
 
 		var doc map[string]any
-		parseErr := json.Unmarshal([]byte(page.Message), &doc)
+		parseErr := json.Unmarshal([]byte(page.Body), &doc)
 		require.NoError(t, parseErr)
 
 		content := doc["content"].([]any)
@@ -237,7 +237,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.NotNil(t, page)
 
 		var doc map[string]any
-		parseErr := json.Unmarshal([]byte(page.Message), &doc)
+		parseErr := json.Unmarshal([]byte(page.Body), &doc)
 		require.NoError(t, parseErr)
 
 		content := doc["content"].([]any)
@@ -264,7 +264,7 @@ func TestGetPageWithContent(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, retrievedPage)
 		require.Equal(t, createdPage.Id, retrievedPage.Id)
-		require.Contains(t, retrievedPage.Message, "Test content")
+		require.Contains(t, retrievedPage.Body, "Test content")
 	})
 
 	t.Run("fails for non-existent page", func(t *testing.T) {
@@ -305,8 +305,8 @@ func TestUpdatePage(t *testing.T) {
 		updatedPage, err := th.App.UpdatePage(sessionCtx, page, "Updated Title", newContent, "", nil)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPage)
-		require.Equal(t, "Updated Title", updatedPage.Props["title"])
-		require.Contains(t, updatedPage.Message, "Updated content")
+		require.Equal(t, "Updated Title", updatedPage.Title)
+		require.Contains(t, updatedPage.Body, "Updated content")
 	})
 
 	t.Run("fails with invalid JSON content", func(t *testing.T) {
@@ -341,7 +341,7 @@ func TestUpdatePage(t *testing.T) {
 		updatedPage, err := th.App.UpdatePage(sessionCtx, page, titleWithBIDI, "", "", nil)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPage)
-		require.Equal(t, "UpdatedTitle", updatedPage.Props["title"], "BIDI characters should be stripped from title")
+		require.Equal(t, "UpdatedTitle", updatedPage.Title, "BIDI characters should be stripped from title")
 	})
 }
 
@@ -361,10 +361,10 @@ func TestDeletePage(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
-		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
+		deletedPage, getErr := th.App.Srv().Store().Page().GetPage(th.Context, createdPage.Id, true)
 		require.NoError(t, getErr)
 		require.NotNil(t, deletedPage)
-		require.NotEqual(t, int64(0), deletedPage.DeleteAt, "Post should be soft-deleted")
+		require.NotEqual(t, int64(0), deletedPage.DeleteAt, "Page should be soft-deleted")
 	})
 
 	t.Run("fails for non-existent page", func(t *testing.T) {
@@ -393,15 +393,15 @@ func TestDeletePage(t *testing.T) {
 
 		child1After, err := th.App.GetPage(th.Context, child1.Id)
 		require.Nil(t, err)
-		require.Empty(t, child1After.PageParentId, "Child1 should become root page after parent deletion")
+		require.Empty(t, child1After.ParentId, "Child1 should become root page after parent deletion")
 
 		child2After, err := th.App.GetPage(th.Context, child2.Id)
 		require.Nil(t, err)
-		require.Empty(t, child2After.PageParentId, "Child2 should become root page after parent deletion")
+		require.Empty(t, child2After.ParentId, "Child2 should become root page after parent deletion")
 
 		grandchildAfter, err := th.App.GetPage(th.Context, grandchild.Id)
 		require.Nil(t, err)
-		require.Equal(t, child1.Id, grandchildAfter.PageParentId, "Grandchild should still reference child1 (unaffected)")
+		require.Equal(t, child1.Id, grandchildAfter.ParentId, "Grandchild should still reference child1 (unaffected)")
 	})
 
 	t.Run("deleting middle page reparents direct children to grandparent", func(t *testing.T) {
@@ -421,11 +421,11 @@ func TestDeletePage(t *testing.T) {
 
 		rootAfter, err := th.App.GetPage(th.Context, root.Id)
 		require.Nil(t, err)
-		require.Empty(t, rootAfter.PageParentId, "Root should remain a root page")
+		require.Empty(t, rootAfter.ParentId, "Root should remain a root page")
 
 		leafAfter, err := th.App.GetPage(th.Context, leaf.Id)
 		require.Nil(t, err)
-		require.Equal(t, root.Id, leafAfter.PageParentId, "Leaf should be reparented to root (grandparent)")
+		require.Equal(t, root.Id, leafAfter.ParentId, "Leaf should be reparented to root (grandparent)")
 	})
 
 	t.Run("GetPageChildren fails for deleted parent", func(t *testing.T) {
@@ -445,7 +445,7 @@ func TestDeletePage(t *testing.T) {
 
 		childAfter, err := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, err)
-		require.Empty(t, childAfter.PageParentId, "Child should be reparented to root after parent deletion")
+		require.Empty(t, childAfter.ParentId, "Child should be reparented to root after parent deletion")
 	})
 
 	t.Run("deleting page cleans up thread entries for inline page comments", func(t *testing.T) {
@@ -482,11 +482,12 @@ func TestDeletePage(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, pageToDelete, "")
 		require.Nil(t, err)
 
-		// Verify Thread entry is cleaned up
-		// Note: Thread.Get() returns (nil, nil) when thread doesn't exist
+		// Verify Thread entry is soft-deleted (Threads has ThreadDeleteAt; DeletePage sets it).
+		// Thread.Get() returns non-nil even when soft-deleted; check ThreadDeleteAt != 0.
 		threadAfter, storeErr := th.App.Srv().Store().Thread().Get(comment.Id)
 		require.NoError(t, storeErr)
-		require.Nil(t, threadAfter, "Thread should not exist after page deletion")
+		require.NotNil(t, threadAfter, "Thread row should still exist (soft-deleted)")
+		require.NotZero(t, threadAfter.DeleteAt, "Thread should be soft-deleted (DeleteAt != 0) after page deletion")
 
 		// Verify ThreadMembership is cleaned up
 		// Note: GetMembershipForUser returns ErrNotFound when membership doesn't exist
@@ -514,20 +515,20 @@ func TestRestorePage(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, page, "")
 		require.Nil(t, err)
 
-		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
+		deletedPageCheck, getErr := th.App.Srv().Store().Page().GetPage(th.Context, createdPage.Id, true)
 		require.NoError(t, getErr)
-		require.NotEqual(t, int64(0), deletedPage.DeleteAt, "Post should be soft-deleted")
+		require.NotEqual(t, int64(0), deletedPageCheck.DeleteAt, "Page should be soft-deleted")
 
 		deletedPageWrapper, err := th.App.GetPageWithDeleted(sessionCtx, createdPage.Id)
 		require.Nil(t, err)
 		err = th.App.RestorePage(sessionCtx, deletedPageWrapper)
 		require.Nil(t, err, "RestorePage should not return an error")
 
-		restoredPost, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, false)
-		require.NoError(t, getErr, "Direct store GetSingle should not return an error after restoration")
-		require.NotNil(t, restoredPost, "restoredPost should not be nil")
-		require.Equal(t, int64(0), restoredPost.DeleteAt, "Post should be restored (DeleteAt = 0)")
-		require.JSONEq(t, contentJSON, restoredPost.Message, "Page content should be preserved after restoration")
+		restoredPage, getErr := th.App.Srv().Store().Page().GetPage(th.Context, createdPage.Id, false)
+		require.NoError(t, getErr, "Direct store GetPage should not return an error after restoration")
+		require.NotNil(t, restoredPage, "restoredPage should not be nil")
+		require.Equal(t, int64(0), restoredPage.DeleteAt, "Page should be restored (DeleteAt = 0)")
+		require.JSONEq(t, contentJSON, restoredPage.Body, "Page content should be preserved after restoration")
 	})
 
 	t.Run("cannot get non-existent page for restoration", func(t *testing.T) {
@@ -565,7 +566,7 @@ func TestRestorePage(t *testing.T) {
 
 		childAfterDelete, getErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, getErr)
-		require.Empty(t, childAfterDelete.PageParentId, "child should be reparented to root on parent delete")
+		require.Empty(t, childAfterDelete.ParentId, "child should be reparented to root on parent delete")
 
 		deletedParent, err := th.App.GetPageWithDeleted(sessionCtx, parent.Id)
 		require.Nil(t, err)
@@ -576,7 +577,7 @@ func TestRestorePage(t *testing.T) {
 		// Currently FAILS because RestorePage does not restore child relationships.
 		childAfterRestore, getErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, getErr)
-		require.Equal(t, parent.Id, childAfterRestore.PageParentId,
+		require.Equal(t, parent.Id, childAfterRestore.ParentId,
 			"child must be re-attached to restored parent (fix #3)")
 	})
 
@@ -591,7 +592,7 @@ func TestRestorePage(t *testing.T) {
 		require.Nil(t, setErr)
 
 		th.App.EnrichPageWithProperties(th.Context, page)
-		require.Equal(t, model.PageStatusInProgress, page.Props[model.PagePropsPageStatus],
+		require.Equal(t, model.PageStatusInProgress, page.Properties[model.PagePropsPageStatus],
 			"status should be set before delete")
 
 		pageToDelete, err := th.App.GetPage(sessionCtx, page.Id)
@@ -609,7 +610,7 @@ func TestRestorePage(t *testing.T) {
 		restoredPage, err := th.App.GetPage(sessionCtx, page.Id)
 		require.Nil(t, err)
 		th.App.EnrichPageWithProperties(th.Context, restoredPage)
-		require.Equal(t, model.PageStatusInProgress, restoredPage.Props[model.PagePropsPageStatus],
+		require.Equal(t, model.PageStatusInProgress, restoredPage.Properties[model.PagePropsPageStatus],
 			"status must be preserved through delete+restore cycle (fix #4)")
 	})
 }
@@ -666,9 +667,9 @@ func TestGetPageChildren(t *testing.T) {
 		children, err := th.App.GetPageChildren(sessionCtx, parentPage.Id, model.GetPostsOptions{})
 		require.Nil(t, err)
 		require.NotNil(t, children)
-		require.Len(t, children.Posts, 2)
-		require.Contains(t, children.Posts, child1.Id)
-		require.Contains(t, children.Posts, child2.Id)
+		require.Len(t, children, 2)
+		require.True(t, pageIDsContain(children, child1.Id))
+		require.True(t, pageIDsContain(children, child2.Id))
 	})
 
 	t.Run("returns empty list for page with no children", func(t *testing.T) {
@@ -678,7 +679,7 @@ func TestGetPageChildren(t *testing.T) {
 		children, err := th.App.GetPageChildren(sessionCtx, page.Id, model.GetPostsOptions{})
 		require.Nil(t, err)
 		require.NotNil(t, children)
-		require.Len(t, children.Posts, 0)
+		require.Len(t, children, 0)
 	})
 }
 
@@ -701,9 +702,9 @@ func TestGetPageAncestors(t *testing.T) {
 		ancestors, err := th.App.GetPageAncestors(sessionCtx, child.Id)
 		require.Nil(t, err)
 		require.NotNil(t, ancestors)
-		require.Len(t, ancestors.Posts, 2)
-		require.Contains(t, ancestors.Posts, parent.Id)
-		require.Contains(t, ancestors.Posts, grandparent.Id)
+		require.Len(t, ancestors, 2)
+		require.True(t, pageIDsContain(ancestors, parent.Id))
+		require.True(t, pageIDsContain(ancestors, grandparent.Id))
 	})
 
 	t.Run("returns empty list for root page", func(t *testing.T) {
@@ -713,7 +714,7 @@ func TestGetPageAncestors(t *testing.T) {
 		ancestors, err := th.App.GetPageAncestors(sessionCtx, rootPage.Id)
 		require.Nil(t, err)
 		require.NotNil(t, ancestors)
-		require.Len(t, ancestors.Posts, 0)
+		require.Len(t, ancestors, 0)
 	})
 }
 
@@ -739,10 +740,10 @@ func TestGetPageDescendants(t *testing.T) {
 		descendants, err := th.App.GetPageDescendants(sessionCtx, root.Id)
 		require.Nil(t, err)
 		require.NotNil(t, descendants)
-		require.Len(t, descendants.Posts, 3)
-		require.Contains(t, descendants.Posts, child1.Id)
-		require.Contains(t, descendants.Posts, child2.Id)
-		require.Contains(t, descendants.Posts, grandchild.Id)
+		require.Len(t, descendants, 3)
+		require.True(t, pageIDsContain(descendants, child1.Id))
+		require.True(t, pageIDsContain(descendants, child2.Id))
+		require.True(t, pageIDsContain(descendants, grandchild.Id))
 	})
 }
 
@@ -762,9 +763,9 @@ func TestGetChannelPages(t *testing.T) {
 		pages, err := th.App.GetChannelPages(sessionCtx, th.BasicWiki.ChannelId, 0, 0)
 		require.Nil(t, err)
 		require.NotNil(t, pages)
-		require.GreaterOrEqual(t, len(pages.Posts), 2)
-		require.Contains(t, pages.Posts, page1.Id)
-		require.Contains(t, pages.Posts, page2.Id)
+		require.GreaterOrEqual(t, len(pages), 2)
+		require.True(t, pageIDsContain(pages, page1.Id))
+		require.True(t, pageIDsContain(pages, page2.Id))
 	})
 
 	t.Run("returns empty list for channel with no pages", func(t *testing.T) {
@@ -782,7 +783,7 @@ func TestGetChannelPages(t *testing.T) {
 		pages, err := th.App.GetChannelPages(sessionCtx, emptyChannel.Id, 0, 0)
 		require.Nil(t, err)
 		require.NotNil(t, pages)
-		require.Len(t, pages.Posts, 0)
+		require.Len(t, pages, 0)
 	})
 }
 
@@ -810,9 +811,9 @@ func TestMovePage(t *testing.T) {
 		_, err = th.App.MovePage(sessionCtx, child.Id, &parentId, "", nil)
 		require.Nil(t, err)
 
-		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
+		updatedChild, getErr := th.App.Srv().Store().Page().GetPage(th.Context, child.Id, false)
 		require.NoError(t, getErr)
-		require.Equal(t, newParent.Id, updatedChild.PageParentId)
+		require.Equal(t, newParent.Id, updatedChild.ParentId)
 	})
 
 	t.Run("successfully makes page a root page", func(t *testing.T) {
@@ -826,9 +827,9 @@ func TestMovePage(t *testing.T) {
 		_, err = th.App.MovePage(sessionCtx, child.Id, &emptyParent, "", nil)
 		require.Nil(t, err)
 
-		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
+		updatedChild, getErr := th.App.Srv().Store().Page().GetPage(th.Context, child.Id, false)
 		require.NoError(t, getErr)
-		require.Empty(t, updatedChild.PageParentId)
+		require.Empty(t, updatedChild.ParentId)
 	})
 
 	t.Run("fails when creating circular reference", func(t *testing.T) {
@@ -950,20 +951,20 @@ func TestMovePageWithReorder(t *testing.T) {
 		siblings, appErr := th.App.MovePage(sessionCtx, page1.Id, &emptyParent, wiki.Id, &newIndex)
 		require.Nil(t, appErr)
 		require.NotNil(t, siblings)
-		require.Len(t, siblings.Posts, 3)
+		require.Len(t, siblings, 3)
 
 		// Verify page1 is now at the end based on sort order
 		var sortOrders []struct {
 			title string
 			order int64
 		}
-		for _, p := range siblings.Posts {
+		for _, p := range siblings {
 			sortOrders = append(sortOrders, struct {
 				title string
 				order int64
 			}{
-				title: p.Props["title"].(string),
-				order: p.GetPageSortOrder(),
+				title: p.Title,
+				order: p.SortOrder,
 			})
 		}
 
@@ -981,9 +982,9 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.Equal(t, "Page 1", sortOrders[2].title)
 
 		// Verify parent is still empty (root level)
-		updatedPage1, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, page1.Id, false)
+		updatedPage1, getErr := th.App.Srv().Store().Page().GetPage(th.Context, page1.Id, false)
 		require.NoError(t, getErr)
-		require.Empty(t, updatedPage1.PageParentId)
+		require.Empty(t, updatedPage1.ParentId)
 
 		_ = page2
 		_ = page3
@@ -1010,25 +1011,25 @@ func TestMovePageWithReorder(t *testing.T) {
 		siblings, appErr := th.App.MovePage(sessionCtx, orphan.Id, &parentId, wiki.Id, &newIndex)
 		require.Nil(t, appErr)
 		require.NotNil(t, siblings)
-		require.Len(t, siblings.Posts, 3, "should have 3 children after move")
+		require.Len(t, siblings, 3, "should have 3 children after move")
 
 		// Verify orphan is now a child of parent
-		updatedOrphan, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, orphan.Id, false)
+		updatedOrphan, getErr := th.App.Srv().Store().Page().GetPage(th.Context, orphan.Id, false)
 		require.NoError(t, getErr)
-		require.Equal(t, parent.Id, updatedOrphan.PageParentId)
+		require.Equal(t, parent.Id, updatedOrphan.ParentId)
 
 		// Verify order: child1, orphan, child2
 		var sortOrders []struct {
 			title string
 			order int64
 		}
-		for _, p := range siblings.Posts {
+		for _, p := range siblings {
 			sortOrders = append(sortOrders, struct {
 				title string
 				order int64
 			}{
-				title: p.Props["title"].(string),
-				order: p.GetPageSortOrder(),
+				title: p.Title,
+				order: p.SortOrder,
 			})
 		}
 
@@ -1062,9 +1063,9 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.Nil(t, siblings, "siblings should be nil when newIndex is not provided")
 
 		// Verify parent was changed
-		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, child.Id, false)
+		updatedChild, getErr := th.App.Srv().Store().Page().GetPage(th.Context, child.Id, false)
 		require.NoError(t, getErr)
-		require.Equal(t, parent.Id, updatedChild.PageParentId)
+		require.Equal(t, parent.Id, updatedChild.ParentId)
 	})
 
 	t.Run("promotes child to root and reorders at root level", func(t *testing.T) {
@@ -1087,12 +1088,12 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.NotNil(t, siblings)
 
 		// Verify child is now at root level
-		updatedChild, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, childToPromote.Id, false)
+		updatedChild, getErr := th.App.Srv().Store().Page().GetPage(th.Context, childToPromote.Id, false)
 		require.NoError(t, getErr)
-		require.Empty(t, updatedChild.PageParentId)
+		require.Empty(t, updatedChild.ParentId)
 
 		// Verify it has a sort order
-		require.Greater(t, updatedChild.GetPageSortOrder(), int64(0))
+		require.Greater(t, updatedChild.SortOrder, int64(0))
 
 		_ = root1
 		_ = root2
@@ -1127,7 +1128,7 @@ func TestPageDepthLimit(t *testing.T) {
 
 	t.Run("allows creating pages up to max depth", func(t *testing.T) {
 		var parentID string
-		var lastPage *model.Post
+		var lastPage *model.Page
 
 		// Create PostPageMaxDepth + 1 pages (to reach depth PostPageMaxDepth)
 		// This creates depths 0, 1, 2, ..., PostPageMaxDepth
@@ -1205,7 +1206,7 @@ func TestPageDepthLimit(t *testing.T) {
 
 		updatedChild, err := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, err)
-		require.Equal(t, parent2.Id, updatedChild.PageParentId)
+		require.Equal(t, parent2.Id, updatedChild.ParentId)
 	})
 
 	t.Run("calculatePageDepth returns correct depth", func(t *testing.T) {
@@ -1612,7 +1613,7 @@ func TestCreatePageComment(t *testing.T) {
 
 		require.Equal(t, model.PostTypePageComment, comment.Type)
 		require.Equal(t, page.ChannelId, comment.ChannelId)
-		require.Equal(t, page.Id, comment.RootId)
+		require.Empty(t, comment.RootId, "a top-level page comment is its own root post; it links to the page via the page_id prop, not RootId")
 		require.Equal(t, th.BasicUser.Id, comment.UserId)
 		require.Equal(t, "This is a comment on the page", comment.Message)
 
@@ -1652,8 +1653,8 @@ func TestCreatePageComment(t *testing.T) {
 		require.NotNil(t, comment2)
 
 		require.NotEqual(t, comment1.Id, comment2.Id)
-		require.Equal(t, page.Id, comment1.RootId)
-		require.Equal(t, page.Id, comment2.RootId)
+		require.Empty(t, comment1.RootId, "top-level page comments are root posts")
+		require.Empty(t, comment2.RootId, "top-level page comments are root posts")
 	})
 
 	t.Run("creates comment with inline anchor", func(t *testing.T) {
@@ -1700,7 +1701,7 @@ func TestCreatePageCommentReply(t *testing.T) {
 
 		require.Equal(t, model.PostTypePageComment, reply.Type)
 		require.Equal(t, page.ChannelId, reply.ChannelId)
-		require.Equal(t, page.Id, reply.RootId)
+		require.Equal(t, topLevelComment.Id, reply.RootId, "a reply threads under its parent comment (a root post), not under the page")
 		require.Equal(t, th.BasicUser.Id, reply.UserId)
 		require.Equal(t, "This is a reply", reply.Message)
 
@@ -1731,10 +1732,12 @@ func TestCreatePageCommentReply(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
+		// The parent lookup is scoped to page_comment posts, so a regular post id is
+		// not a page comment and resolves the same as a missing one: parent_not_found.
 		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, regularPost.Id, "Reply to regular post", "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, reply)
-		require.Equal(t, "app.page.create_comment_reply.parent_not_comment.app_error", appErr.Id)
+		require.Equal(t, "app.page.create_comment_reply.parent_not_found.app_error", appErr.Id)
 	})
 
 	t.Run("enforces one-level nesting - cannot reply to a reply", func(t *testing.T) {
@@ -1755,8 +1758,8 @@ func TestCreatePageCommentReply(t *testing.T) {
 		require.Nil(t, appErr)
 
 		require.NotEqual(t, reply1.Id, reply2.Id)
-		require.Equal(t, page.Id, reply1.RootId)
-		require.Equal(t, page.Id, reply2.RootId)
+		require.Equal(t, topLevelComment.Id, reply1.RootId)
+		require.Equal(t, topLevelComment.Id, reply2.RootId)
 		require.Equal(t, topLevelComment.Id, reply1.Props["parent_comment_id"])
 		require.Equal(t, topLevelComment.Id, reply2.Props["parent_comment_id"])
 	})
@@ -2147,24 +2150,24 @@ func TestPageVersionHistory(t *testing.T) {
 		_, err = th.App.UpdatePage(sessionCtx, page, "Version Test Updated", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 2"}]}]}`, "", nil)
 		require.Nil(t, err)
 
-		// Get edit history
-		historyList, histErr := th.App.GetEditHistoryForPost(createdPage.Id)
+		// Get version history
+		historyList, histErr := th.App.GetPageVersionHistory(sessionCtx, createdPage.Id, 0, 10)
 		require.Nil(t, histErr)
 		require.NotNil(t, historyList)
 		require.Len(t, historyList, 1, "Should have 1 historical version")
 
-		// Verify historical Post metadata exists
-		var historicalPost *model.Post
+		// Verify historical Page snapshot exists
+		var historicalPage *model.Page
 		for _, p := range historyList {
 			if p.OriginalId == createdPage.Id && p.DeleteAt > 0 {
-				historicalPost = p
+				historicalPage = p
 				break
 			}
 		}
-		require.NotNil(t, historicalPost, "Historical post should exist")
+		require.NotNil(t, historicalPage, "Historical page snapshot should exist")
 
-		// Verify historical content is stored in Post.Message
-		require.Contains(t, historicalPost.Message, "Version 1", "Historical post Message should contain original text")
+		// Verify historical content is stored in Page.Body
+		require.Contains(t, historicalPage.Body, "Version 1", "Historical page Body should contain original text")
 	})
 
 	t.Run("Non-author can view page history", func(t *testing.T) {
@@ -2194,31 +2197,31 @@ func TestPageVersionHistory(t *testing.T) {
 		require.Nil(t, err)
 
 		// Get historical version
-		historyList, histErr := th.App.GetEditHistoryForPost(createdPage.Id)
+		historyList, histErr := th.App.GetPageVersionHistory(sessionCtx, createdPage.Id, 0, 10)
 		require.Nil(t, histErr)
 		require.Len(t, historyList, 1)
 
-		var historicalPostID string
+		var historicalPageSnap *model.Page
 		for _, p := range historyList {
 			if p.OriginalId == createdPage.Id && p.DeleteAt > 0 {
-				historicalPostID = p.Id
+				historicalPageSnap = p
 				break
 			}
 		}
-		require.NotEmpty(t, historicalPostID)
+		require.NotNil(t, historicalPageSnap)
 
 		// Restore to original version
-		restoredPost, _, restoreErr := th.App.RestorePostVersion(sessionCtx, th.BasicUser.Id, createdPage.Id, historicalPostID)
+		restoredPage, restoreErr := th.App.RestorePageVersion(sessionCtx, th.BasicUser.Id, createdPage.Id, historicalPageSnap.Id, historicalPageSnap)
 		require.Nil(t, restoreErr)
-		require.NotNil(t, restoredPost)
+		require.NotNil(t, restoredPage)
 
 		// Verify title restored
-		require.Equal(t, "Original Title", restoredPost.Props["title"], "Title should be restored")
+		require.Equal(t, "Original Title", restoredPage.Title, "Title should be restored")
 
-		// Verify content restored in Post.Message
-		restoredPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, false)
+		// Verify content restored via Pages store
+		restoredFromStore, getErr := th.App.Srv().Store().Page().GetPage(th.Context, createdPage.Id, false)
 		require.NoError(t, getErr)
-		require.Contains(t, restoredPage.Message, "Original Content", "Content should be restored")
+		require.Contains(t, restoredFromStore.Body, "Original Content", "Content should be restored")
 	})
 }
 
@@ -2242,11 +2245,11 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 
 	require.Nil(t, err)
 	require.NotNil(t, updatedPage)
-	require.Equal(t, "Updated Title", updatedPage.Props["title"])
-	require.JSONEq(t, newContent, updatedPage.Message)
+	require.Equal(t, "Updated Title", updatedPage.Title)
+	require.JSONEq(t, newContent, updatedPage.Body)
 	require.Greater(t, updatedPage.EditAt, baseEditAt)
 
-	require.Contains(t, updatedPage.Message, "Updated content")
+	require.Contains(t, updatedPage.Body, "Updated content")
 }
 
 func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
@@ -2500,7 +2503,7 @@ func TestCreatePageContentValidation(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		require.NoError(t, model.ValidateTipTapDocument(page.Message), "auto-converted content should be valid TipTap JSON")
+		require.NoError(t, model.ValidateTipTapDocument(page.Body), "auto-converted content should be valid TipTap JSON")
 	})
 }
 
@@ -2563,10 +2566,10 @@ func TestCreatePageAttachesFiles(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		// Verify the file's PostId is now set to the page ID
+		// Verify the file's PageId is now set to the page ID
 		updatedFileInfo, storeErr := th.App.Srv().Store().FileInfo().Get(fileInfo.Id)
 		require.NoError(t, storeErr)
-		require.Equal(t, page.Id, updatedFileInfo.PostId, "File should be attached to the page")
+		require.Equal(t, page.Id, updatedFileInfo.PageId, "File should be attached to the page")
 	})
 }
 
@@ -2592,10 +2595,10 @@ func TestUpdatePageAttachesFiles(t *testing.T) {
 		require.Nil(t, updateErr)
 		require.NotNil(t, updatedPage)
 
-		// Verify the file's PostId is now set to the page ID
+		// Verify the file's PageId is now set to the page ID
 		updatedFileInfo, storeErr := th.App.Srv().Store().FileInfo().Get(fileInfo.Id)
 		require.NoError(t, storeErr)
-		require.Equal(t, page.Id, updatedFileInfo.PostId, "File should be attached to the page")
+		require.Equal(t, page.Id, updatedFileInfo.PageId, "File should be attached to the page")
 	})
 }
 
@@ -2621,10 +2624,10 @@ func TestUpdatePageWithOptimisticLockingAttachesFiles(t *testing.T) {
 		require.Nil(t, updateErr)
 		require.NotNil(t, updatedPage)
 
-		// Verify the file's PostId is now set to the page ID
+		// Verify the file's PageId is now set to the page ID
 		updatedFileInfo, storeErr := th.App.Srv().Store().FileInfo().Get(fileInfo.Id)
 		require.NoError(t, storeErr)
-		require.Equal(t, page.Id, updatedFileInfo.PostId, "File should be attached to the page")
+		require.Equal(t, page.Id, updatedFileInfo.PageId, "File should be attached to the page")
 	})
 }
 
@@ -2654,7 +2657,7 @@ func TestVersionHistoryPrunedAtLimit(t *testing.T) {
 		"issue #13 already fixed: history must be pruned to PostEditHistoryLimit=%d", model.PostEditHistoryLimit)
 }
 
-// TestPageMessageContainsTipTapJSON documents issue #12: Post.Message stores raw
+// TestPageMessageContainsTipTapJSON documents issue #12: Page.Body stores raw
 // TipTap JSON rather than plain text, so FTS indexes JSON tokens (type names,
 // attribute keys) instead of readable content.
 // This test passes — it records the current design as a regression guard.
@@ -2667,13 +2670,13 @@ func TestPageMessageContainsTipTapJSON(t *testing.T) {
 	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "JSON Message Page", "", content, th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 
-	// Issue #12: Message IS the raw TipTap JSON blob, not extracted plain text.
-	require.JSONEq(t, content, page.Message,
-		"issue #12 design note: Post.Message holds TipTap JSON — FTS indexes JSON structure, not plain text")
+	// Issue #12: Body IS the raw TipTap JSON blob, not extracted plain text.
+	require.JSONEq(t, content, page.Body,
+		"issue #12 design note: Page.Body holds TipTap JSON — FTS indexes JSON structure, not plain text")
 
 	var raw map[string]any
-	require.NoError(t, json.Unmarshal([]byte(page.Message), &raw),
-		"Post.Message must be valid JSON (TipTap document)")
+	require.NoError(t, json.Unmarshal([]byte(page.Body), &raw),
+		"Page.Body must be valid JSON (TipTap document)")
 }
 
 // TestConcurrentPageCreateSortOrderUnique documents issue #9:
@@ -2693,7 +2696,7 @@ func TestConcurrentPageCreateSortOrderUnique(t *testing.T) {
 
 	const n = 10
 	type result struct {
-		page *model.Post
+		page *model.Page
 		err  *model.AppError
 	}
 	results := make([]result, n)
@@ -2712,7 +2715,7 @@ func TestConcurrentPageCreateSortOrderUnique(t *testing.T) {
 	seen := map[int64]bool{}
 	for _, r := range results {
 		require.Nil(t, r.err, "all concurrent creates must succeed")
-		order := r.page.GetPageSortOrder()
+		order := r.page.SortOrder
 		// Issue #9: duplicate sort orders are possible when goroutines both read
 		// the same max-sibling value before either write commits.
 		require.False(t, seen[order],
@@ -2746,17 +2749,16 @@ func TestGetChannelPagesPaginationCorrectness(t *testing.T) {
 	pages, err := th.App.GetChannelPages(th.Context, wiki.ChannelId, 0, 0)
 	require.Nil(t, err)
 
-	require.GreaterOrEqual(t, len(pages.Posts), total,
+	require.GreaterOrEqual(t, len(pages), total,
 		"issue #7 at scale: GetChannelPages must return all pages; "+
 			"at >10k pages the in-memory sort may be over a truncated set")
 
 	prevOrder := int64(math.MaxInt64)
-	for _, id := range pages.Order {
-		p := pages.Posts[id]
+	for _, p := range pages {
 		if p == nil || p.Type != model.PostTypePage {
 			continue
 		}
-		order := p.GetPageSortOrder()
+		order := p.SortOrder
 		require.LessOrEqual(t, order, prevOrder, "GetChannelPages orders by CreateAt DESC; sort_order values must be non-increasing")
 		prevOrder = order
 	}

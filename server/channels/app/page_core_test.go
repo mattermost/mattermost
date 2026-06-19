@@ -96,8 +96,8 @@ func TestPlainTextConversion(t *testing.T) {
 
 		pageWithContent, appErr := th.App.GetPageWithContent(rctx, page.Id)
 		require.Nil(t, appErr)
-		require.Contains(t, pageWithContent.Message, "type")
-		require.Contains(t, pageWithContent.Message, "doc")
+		require.Contains(t, pageWithContent.Body, "type")
+		require.Contains(t, pageWithContent.Body, "doc")
 	})
 }
 
@@ -211,8 +211,8 @@ func TestGetPageVersionHistory(t *testing.T) {
 
 		// Verify content is loaded (Message field should be populated)
 		for _, historyEntry := range history {
-			require.NotEmpty(t, historyEntry.Message, "Historical entry should have content loaded")
-			require.Contains(t, historyEntry.Message, "type", "Content should be valid TipTap JSON")
+			require.NotEmpty(t, historyEntry.Body, "Historical entry should have content loaded")
+			require.Contains(t, historyEntry.Body, "type", "Content should be valid TipTap JSON")
 		}
 	})
 }
@@ -252,37 +252,51 @@ func TestRestorePageVersion(t *testing.T) {
 		require.NotNil(t, restoredPage)
 
 		// Verify the page title was restored
-		restoredTitle, _ := restoredPage.Props["title"].(string)
-		require.Equal(t, originalTitle, restoredTitle, "Title should be restored to original")
+		require.Equal(t, originalTitle, restoredPage.Title, "Title should be restored to original")
 
 		// Verify the page content was restored
 		pageWithContent, appErr := th.App.GetPageWithContent(rctx, page.Id)
 		require.Nil(t, appErr)
-		require.Contains(t, pageWithContent.Message, "Original content", "Content should be restored to original")
+		require.Contains(t, pageWithContent.Body, "Original content", "Content should be restored to original")
 	})
 
-	t.Run("restores page with different file IDs", func(t *testing.T) {
-		// Create a page
+	t.Run("page-scoped file attachments survive a version restore", func(t *testing.T) {
+		// Files are owned via FileInfo.PageId keyed to the live page, not snapshotted per
+		// version, so restoring an older version reverts content only and leaves attachments intact.
 		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "File Restore Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		// Make an edit
+		fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			PostId:    "",
+			ChannelId: th.BasicWiki.ChannelId,
+			Name:      "attachment.jpg",
+			Path:      "attachment.jpg",
+			Extension: "jpg",
+			MimeType:  "image/jpeg",
+		})
+		require.NoError(t, err)
+		_, err = th.App.Srv().Store().Page().UpdatePageFileIds(page.Id, "", model.StringArray{fileInfo.Id})
+		require.NoError(t, err)
+
+		// Make an edit to produce a version snapshot.
 		_, appErr = th.App.UpdatePage(rctx, page, "Updated Title", "", "", nil)
 		require.Nil(t, appErr)
 
-		// Get version history
 		history, appErr := th.App.GetPageVersionHistory(rctx, page.Id, 0, 10)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, history)
 
-		// Create a mock historical version with different FileIds
 		versionToRestore := history[0]
-		versionToRestore.FileIds = model.StringArray{"file1", "file2"}
-
-		// Restore - this tests the FileIds restoration path
 		restoredPage, appErr := th.App.RestorePageVersion(rctx, th.BasicUser.Id, page.Id, versionToRestore.Id, versionToRestore)
 		require.Nil(t, appErr)
 		require.NotNil(t, restoredPage)
+
+		// The attachment is still owned by the live page after restore.
+		files, appErr := th.App.GetPageFiles(rctx, page.Id)
+		require.Nil(t, appErr)
+		require.Len(t, files, 1)
+		require.Equal(t, fileInfo.Id, files[0].Id)
 	})
 
 	t.Run("returns error for non-existent version", func(t *testing.T) {
@@ -294,10 +308,10 @@ func TestRestorePageVersion(t *testing.T) {
 		_, appErr = th.App.UpdatePage(rctx, page, "Updated", "", "", nil)
 		require.Nil(t, appErr)
 
-		// Create a fake post version that doesn't exist
-		fakeVersion := &model.Post{
+		// Create a fake page version that doesn't exist
+		fakeVersion := &model.Page{
 			Id:    model.NewId(),
-			Props: model.StringInterface{"title": "Fake Title"},
+			Title: "Fake Title",
 		}
 
 		// Try to restore - should still work but with empty content
@@ -325,7 +339,7 @@ func TestRestorePageVersion(t *testing.T) {
 
 		// Get older version (should have "Title Restore Test" or "Second Title")
 		olderVersion := history[len(history)-1]
-		expectedTitle, _ := olderVersion.Props["title"].(string)
+		expectedTitle := olderVersion.Title
 
 		// Restore to older version
 		restoredPage, appErr := th.App.RestorePageVersion(rctx, th.BasicUser.Id, page.Id, olderVersion.Id, olderVersion)
@@ -333,8 +347,7 @@ func TestRestorePageVersion(t *testing.T) {
 		require.NotNil(t, restoredPage)
 
 		// Verify title was restored
-		restoredTitle, _ := restoredPage.Props["title"].(string)
-		require.Equal(t, expectedTitle, restoredTitle, "Title should match the historical version")
+		require.Equal(t, expectedTitle, restoredPage.Title, "Title should match the historical version")
 	})
 }
 
@@ -397,7 +410,7 @@ func TestCreatePageSetsContentText(t *testing.T) {
 	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "My Page", "", contentJSON, th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 	require.NotNil(t, page)
-	require.Equal(t, "searchable text here", page.ContentText)
+	require.Equal(t, "searchable text here", page.SearchText)
 }
 
 func TestUpdatePageSetsContentText(t *testing.T) {
@@ -410,12 +423,12 @@ func TestUpdatePageSetsContentText(t *testing.T) {
 	initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"initial content"}]}]}`
 	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Update Test Page", "", initialContent, th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
-	require.Equal(t, "initial content", page.ContentText)
+	require.Equal(t, "initial content", page.SearchText)
 
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"updated content words"}]}]}`
 	updated, appErr := th.App.UpdatePage(rctx, page, "Update Test Page", newContent, "", nil)
 	require.Nil(t, appErr)
-	require.Equal(t, "updated content words", updated.ContentText)
+	require.Equal(t, "updated content words", updated.SearchText)
 }
 
 func TestPageSearchByContent(t *testing.T) {

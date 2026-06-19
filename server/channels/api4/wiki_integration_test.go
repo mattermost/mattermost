@@ -242,12 +242,12 @@ func TestMultiUserPageEditing(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		assert.Equal(t, parentPage.Id, child1.PageParentId)
-		assert.Equal(t, parentPage.Id, child2.PageParentId)
+		assert.Equal(t, parentPage.Id, child1.ParentId)
+		assert.Equal(t, parentPage.Id, child2.ParentId)
 
 		children, appErr := th.App.GetPageChildren(th.Context, parentPage.Id, model.GetPostsOptions{})
 		require.Nil(t, appErr)
-		require.Len(t, children.Posts, 2)
+		require.Len(t, children, 2)
 	})
 
 	t.Run("user cannot edit another user's draft", func(t *testing.T) {
@@ -353,15 +353,15 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 
 		children, appErr := th.App.GetPageChildren(th.Context, parentPage.Id, model.GetPostsOptions{})
 		require.Nil(t, appErr)
-		assert.Len(t, children.Posts, 2)
+		assert.Len(t, children, 2)
 
 		updatedChild1, appErr := th.App.GetPageWithContent(th.Context, child1.Id)
 		require.Nil(t, appErr)
-		assert.Equal(t, parentPage.Id, updatedChild1.PageParentId)
+		assert.Equal(t, parentPage.Id, updatedChild1.ParentId)
 
 		updatedChild2, appErr := th.App.GetPageWithContent(th.Context, child2.Id)
 		require.Nil(t, appErr)
-		assert.Equal(t, parentPage.Id, updatedChild2.PageParentId)
+		assert.Equal(t, parentPage.Id, updatedChild2.ParentId)
 	})
 
 	t.Run("prevent circular references during concurrent moves", func(t *testing.T) {
@@ -510,7 +510,7 @@ func TestPublishPageDraft_OptimisticLocking_Success(t *testing.T) {
 
 	require.Nil(t, appErr)
 	require.NotNil(t, updatedPage)
-	require.Equal(t, "Updated Title", updatedPage.Props["title"])
+	require.Equal(t, "Updated Title", updatedPage.Title)
 	require.Greater(t, updatedPage.EditAt, baseEditAt)
 }
 

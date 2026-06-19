@@ -795,10 +795,10 @@ func (mr *MockClientMockRecorder) GetChannelMembers(arg0, arg1, arg2, arg3, arg4
 }
 
 // GetChannelPages mocks base method.
-func (m *MockClient) GetChannelPages(arg0 context.Context, arg1 string) (*model.PostList, *model.Response, error) {
+func (m *MockClient) GetChannelPages(arg0 context.Context, arg1 string) ([]*model.Page, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelPages", arg0, arg1)
-	ret0, _ := ret[0].(*model.PostList)
+	ret0, _ := ret[0].([]*model.Page)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -811,10 +811,10 @@ func (mr *MockClientMockRecorder) GetChannelPages(arg0, arg1 interface{}) *gomoc
 }
 
 // GetChannelPagesWithContent mocks base method.
-func (m *MockClient) GetChannelPagesWithContent(arg0 context.Context, arg1 string, arg2 bool) (*model.PostList, *model.Response, error) {
+func (m *MockClient) GetChannelPagesWithContent(arg0 context.Context, arg1 string, arg2 bool) ([]*model.Page, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelPagesWithContent", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*model.PostList)
+	ret0, _ := ret[0].([]*model.Page)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -1197,10 +1197,10 @@ func (mr *MockClientMockRecorder) GetOutgoingWebhooksForTeam(arg0, arg1, arg2, a
 }
 
 // GetPage mocks base method.
-func (m *MockClient) GetPage(arg0 context.Context, arg1, arg2 string) (*model.Post, *model.Response, error) {
+func (m *MockClient) GetPage(arg0 context.Context, arg1, arg2 string) (*model.Page, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPage", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*model.Post)
+	ret0, _ := ret[0].(*model.Page)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2470,10 +2470,10 @@ func (mr *MockClientMockRecorder) UpdateOutgoingWebhook(arg0, arg1 interface{}) 
 }
 
 // UpdatePage mocks base method.
-func (m *MockClient) UpdatePage(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 int64) (*model.Post, *model.Response, error) {
+func (m *MockClient) UpdatePage(arg0 context.Context, arg1, arg2, arg3, arg4, arg5 string, arg6 int64) (*model.Page, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePage", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
-	ret0, _ := ret[0].(*model.Post)
+	ret0, _ := ret[0].(*model.Page)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2

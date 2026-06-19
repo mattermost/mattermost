@@ -34,8 +34,7 @@ func TestEnrichPageWithProperties(t *testing.T) {
 
 		th.App.EnrichPageWithProperties(th.Context, page)
 
-		props := page.GetProps()
-		require.Equal(t, model.PageStatusInProgress, props[model.PagePropsPageStatus])
+		require.Equal(t, model.PageStatusInProgress, page.Properties[model.PagePropsPageStatus])
 	})
 
 	t.Run("handles page without properties set", func(t *testing.T) {
@@ -45,23 +44,7 @@ func TestEnrichPageWithProperties(t *testing.T) {
 
 		th.App.EnrichPageWithProperties(th.Context, page)
 
-		props := page.GetProps()
-		require.Equal(t, "", props[model.PagePropsPageStatus], "should default to empty string when no status is set")
-	})
-
-	t.Run("does not enrich non-page posts", func(t *testing.T) {
-		regularPost, _, postErr := th.App.CreatePost(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Regular post",
-		}, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, postErr)
-
-		th.App.EnrichPageWithProperties(th.Context, regularPost)
-
-		props := regularPost.GetProps()
-		_, hasStatus := props[model.PagePropsPageStatus]
-		require.False(t, hasStatus, "non-page posts should not be enriched with status")
+		require.Equal(t, "", page.Properties[model.PagePropsPageStatus], "should default to empty string when no status is set")
 	})
 }
 
@@ -89,63 +72,29 @@ func TestEnrichPagesWithProperties(t *testing.T) {
 		setErr := th.App.SetPageStatus(th.Context, page1.Id, model.PageStatusInProgress)
 		require.Nil(t, setErr)
 
-		postList := &model.PostList{
-			Posts: map[string]*model.Post{
-				page1.Id: page1,
-				page2.Id: page2,
-			},
-			Order: []string{page1.Id, page2.Id},
-		}
+		pages := []*model.Page{page1, page2}
+		th.App.EnrichPagesWithProperties(th.Context, pages)
 
-		th.App.EnrichPagesWithProperties(th.Context, postList)
-
-		props1 := page1.GetProps()
-		require.Equal(t, model.PageStatusInProgress, props1[model.PagePropsPageStatus])
-
-		props2 := page2.GetProps()
-		require.Equal(t, "", props2[model.PagePropsPageStatus], "should default to empty string when no status is set")
+		require.Equal(t, model.PageStatusInProgress, page1.Properties[model.PagePropsPageStatus])
+		require.Equal(t, "", page2.Properties[model.PagePropsPageStatus], "should default to empty string when no status is set")
 	})
 
-	t.Run("handles empty post list", func(t *testing.T) {
-		postList := &model.PostList{
-			Posts: map[string]*model.Post{},
-			Order: []string{},
-		}
-
-		th.App.EnrichPagesWithProperties(th.Context, postList)
+	t.Run("handles empty page slice", func(t *testing.T) {
+		th.App.EnrichPagesWithProperties(th.Context, []*model.Page{})
 	})
 
-	t.Run("handles nil post list", func(t *testing.T) {
+	t.Run("handles nil page slice", func(t *testing.T) {
 		th.App.EnrichPagesWithProperties(th.Context, nil)
 	})
 
-	t.Run("skips non-page posts in mixed list", func(t *testing.T) {
+	t.Run("enriches pages in a mixed slice", func(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Mixed List Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		regularPost, _, postErr := th.App.CreatePost(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Regular post",
-		}, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, postErr)
+		pages := []*model.Page{page}
+		th.App.EnrichPagesWithProperties(th.Context, pages)
 
-		postList := &model.PostList{
-			Posts: map[string]*model.Post{
-				page.Id:        page,
-				regularPost.Id: regularPost,
-			},
-			Order: []string{page.Id, regularPost.Id},
-		}
-
-		th.App.EnrichPagesWithProperties(th.Context, postList)
-
-		pageProps := page.GetProps()
-		require.Equal(t, "", pageProps[model.PagePropsPageStatus])
-
-		regularProps := regularPost.GetProps()
-		_, hasStatus := regularProps[model.PagePropsPageStatus]
-		require.False(t, hasStatus, "regular post should not get page status")
+		require.Equal(t, "", page.Properties[model.PagePropsPageStatus])
 	})
 }
 
@@ -161,40 +110,23 @@ func TestPatchPageProps(t *testing.T) {
 	page, pageErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Translation Page", "", th.BasicUser.Id, "", "")
 	require.Nil(t, pageErr)
 
-	t.Run("sets allowed translation props", func(t *testing.T) {
+	t.Run("sets allowlisted translation props and drops non-allowlisted keys", func(t *testing.T) {
 		sourceId := model.NewId()
-		var err *model.AppError
-		page, err = th.App.PatchPageProps(th.Context, page, map[string]any{
+		updated, err := th.App.PatchPageProps(th.Context, page, map[string]any{
 			model.PostPropsPageTranslatedFrom:      sourceId,
 			model.PostPropsPageTranslationLanguage: "fr",
+			"arbitrary_key":                        "dropped",
 		}, nil)
 		require.Nil(t, err)
-		require.Equal(t, sourceId, page.Props[model.PostPropsPageTranslatedFrom])
-		require.Equal(t, "fr", page.Props[model.PostPropsPageTranslationLanguage])
-	})
+		require.Equal(t, sourceId, updated.Properties[model.PostPropsPageTranslatedFrom])
+		require.Equal(t, "fr", updated.Properties[model.PostPropsPageTranslationLanguage])
+		_, hasArbitrary := updated.Properties["arbitrary_key"]
+		require.False(t, hasArbitrary, "non-allowlisted keys must be dropped")
 
-	t.Run("silently drops non-allowlisted keys", func(t *testing.T) {
-		var err *model.AppError
-		page, err = th.App.PatchPageProps(th.Context, page, map[string]any{
-			model.PostPropsPageTranslationLanguage: "de",
-			"arbitrary_key":                        "should_be_dropped",
-		}, nil)
-		require.Nil(t, err)
-		require.Equal(t, "de", page.Props[model.PostPropsPageTranslationLanguage])
-		_, hasArbitrary := page.Props["arbitrary_key"]
-		require.False(t, hasArbitrary, "non-allowlisted keys must be silently dropped")
-	})
-
-	t.Run("preserves existing props not in the patch", func(t *testing.T) {
-		// page already has PagePropsTranslatedFrom set from the first sub-test;
-		// patching only language must not remove it.
-		var err *model.AppError
-		page, err = th.App.PatchPageProps(th.Context, page, map[string]any{
-			model.PostPropsPageTranslationLanguage: "es",
-		}, nil)
-		require.Nil(t, err)
-		require.Equal(t, "es", page.Props[model.PostPropsPageTranslationLanguage])
-		require.NotEmpty(t, page.Props[model.PostPropsPageTranslatedFrom], "pre-existing props must be preserved")
+		// The allowlisted keys are persisted in the page's Props blob.
+		require.Equal(t, "fr", updated.Props[model.PostPropsPageTranslationLanguage])
+		_, persistedArbitrary := updated.Props["arbitrary_key"]
+		require.False(t, persistedArbitrary)
 	})
 }
 

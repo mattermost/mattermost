@@ -86,8 +86,8 @@ func TestSessionHasPagePermission(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 	}
 
-	authorPage := &model.Post{Id: model.NewId(), UserId: th.BasicUser.Id}
-	otherPage := &model.Post{Id: model.NewId(), UserId: th.BasicUser2.Id}
+	authorPage := &model.Page{Id: model.NewId(), UserId: th.BasicUser.Id}
+	otherPage := &model.Page{Id: model.NewId(), UserId: th.BasicUser2.Id}
 
 	authorSession := model.Session{
 		UserId: th.BasicUser.Id,

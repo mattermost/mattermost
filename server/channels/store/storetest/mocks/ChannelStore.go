@@ -530,36 +530,6 @@ func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, err
 	return r0, r1
 }
 
-// GetWikiBackingChannel provides a mock function with given fields: id
-func (_m *ChannelStore) GetWikiBackingChannel(id string) (*model.Channel, error) {
-	ret := _m.Called(id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetWikiBackingChannel")
-	}
-
-	var r0 *model.Channel
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.Channel, error)); ok {
-		return rf(id)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
-		r0 = rf(id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Channel)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetAll provides a mock function with given fields: teamID
 func (_m *ChannelStore) GetAll(teamID string) ([]*model.Channel, error) {
 	ret := _m.Called(teamID)
@@ -2360,6 +2330,36 @@ func (_m *ChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID str
 	return r0, r1
 }
 
+// GetWikiBackingChannel provides a mock function with given fields: id
+func (_m *ChannelStore) GetWikiBackingChannel(id string) (*model.Channel, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWikiBackingChannel")
+	}
+
+	var r0 *model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Channel, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupSyncedChannelCount provides a mock function with no fields
 func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	ret := _m.Called()
@@ -2901,36 +2901,6 @@ func (_m *ChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember
 	return r0, r1
 }
 
-// SaveMultipleMembers provides a mock function with given fields: members
-func (_m *ChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
-	ret := _m.Called(members)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SaveMultipleMembers")
-	}
-
-	var r0 []*model.ChannelMember
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) ([]*model.ChannelMember, error)); ok {
-		return rf(members)
-	}
-	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) []*model.ChannelMember); ok {
-		r0 = rf(members)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.ChannelMember)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]*model.ChannelMember) error); ok {
-		r1 = rf(members)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // SaveMemberAndPropagateLinked provides a mock function with given fields: rctx, member
 func (_m *ChannelStore) SaveMemberAndPropagateLinked(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, []string, error) {
 	ret := _m.Called(rctx, member)
@@ -2968,6 +2938,36 @@ func (_m *ChannelStore) SaveMemberAndPropagateLinked(rctx request.CTX, member *m
 	}
 
 	return r0, r1, r2
+}
+
+// SaveMultipleMembers provides a mock function with given fields: members
+func (_m *ChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+	ret := _m.Called(members)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveMultipleMembers")
+	}
+
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) ([]*model.ChannelMember, error)); ok {
+		return rf(members)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) []*model.ChannelMember); ok {
+		r0 = rf(members)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ChannelMember) error); ok {
+		r1 = rf(members)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // SaveSyntheticMembers provides a mock function with given fields: rctx, sourceChannelId, destinationChannelId

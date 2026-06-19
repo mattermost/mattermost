@@ -19,6 +19,13 @@ import (
 // importPageBatchSize is the number of pages fetched per batch during wiki import resolution.
 const importPageBatchSize = 500
 
+// Page.Props keys used to track an imported page's external (e.g. Confluence) identity,
+// enabling idempotent re-import and deferred parent-hierarchy repair.
+const (
+	wikiImportSourceIDProp       = "import_source_id"
+	wikiParentImportSourceIDProp = "parent_import_source_id"
+)
+
 // importWikiLookupBatchSize is the page size used when scanning team wikis to resolve an import_source_id.
 const importWikiLookupBatchSize = 200
 
@@ -264,7 +271,7 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 	backingChannelId := wiki.ChannelId
 
 	// Check for existing page by import_source_id (idempotency)
-	var existingPage *model.Post
+	var existingPage *model.Page
 	if importSourceId != "" {
 		var lookupErr error
 		existingPage, lookupErr = a.getPageByImportSourceId(rctx, backingChannelId, importSourceId)
@@ -288,7 +295,7 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 			}
 			parentId = parentPage.Id
 		} else {
-			// Parent not found yet - store for deferred hierarchy repair
+			// Parent not found yet - deferred hierarchy repair
 			deferredParentSourceId = *data.ParentImportSourceId
 			rctx.Logger().Warn("Parent page not found by import_source_id, will attempt repair later",
 				mlog.String("parent_import_source_id", *data.ParentImportSourceId),
@@ -310,33 +317,28 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 		return appErr
 	}
 
-	if propsErr := a.updatePostPropsFromImport(rctx, page, data.Props); propsErr != nil {
-		return propsErr
+	// Persist import-tracking metadata in the page Props blob: import_source_id for idempotent
+	// re-import lookups, and parent_import_source_id when the parent has not been imported yet
+	// (resolved later by RepairOrphanedPageHierarchy). Pages order by SortOrder, so the source
+	// CreateAt is not needed for ordering.
+	if page.Props == nil {
+		page.Props = model.StringInterface{}
 	}
-
-	// Preserve original CreateAt for page ordering (pages are ordered by CreateAt)
-	if data.CreateAt != nil && *data.CreateAt > 0 && *data.CreateAt != page.CreateAt {
-		page.CreateAt = *data.CreateAt
-		// Use Overwrite to update CreateAt without creating a version history entry
-		if _, err := a.Srv().Store().Post().Overwrite(rctx, page); err != nil {
-			rctx.Logger().Warn("Failed to set CreateAt for imported page",
-				mlog.String("page_id", page.Id),
-				mlog.Millis("create_at", *data.CreateAt),
-				mlog.Err(err),
-			)
-		}
+	if importSourceId != "" {
+		page.Props[wikiImportSourceIDProp] = importSourceId
 	}
-
-	// Store parent_import_source_id for deferred hierarchy repair if parent wasn't found
 	if deferredParentSourceId != "" {
-		oldPage := page.Clone()
-		page.AddProp("parent_import_source_id", deferredParentSourceId)
-		if _, updateErr := a.Srv().Store().Post().Update(rctx, page, oldPage); updateErr != nil {
-			rctx.Logger().Warn("Failed to store parent_import_source_id for deferred repair",
-				mlog.String("page_id", page.Id),
-				mlog.Err(updateErr),
-			)
-		}
+		page.Props[wikiParentImportSourceIDProp] = deferredParentSourceId
+		rctx.Logger().Warn("Parent page not yet imported; recorded parent_import_source_id for deferred hierarchy repair",
+			mlog.String("page_id", page.Id),
+			mlog.String("parent_import_source_id", deferredParentSourceId),
+		)
+	}
+	if _, err := a.Srv().Store().Page().Update(rctx, page); err != nil {
+		rctx.Logger().Warn("Failed to persist import metadata for imported page",
+			mlog.String("page_id", page.Id),
+			mlog.Err(err),
+		)
 	}
 
 	// Import attachments if provided
@@ -346,7 +348,7 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 			mlog.Int("count", len(*data.Attachments)),
 		)
 
-		fileIDs, sourceIDMappings, failedAttachments := a.uploadWikiAttachments(rctx, data.Attachments, page, team.Id)
+		fileIDs, sourceIDMappings, failedAttachments := a.uploadWikiAttachmentsForPage(rctx, data.Attachments, page.Id, page.ChannelId, page.UserId, page.CreateAt, team.Id)
 
 		// Report failed attachments summary
 		if len(failedAttachments) > 0 {
@@ -360,17 +362,17 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 		}
 
 		if len(fileIDs) > 0 {
-			// Update page with file IDs
-			page.FileIds = make([]string, 0, len(fileIDs))
+			// Attach files to the page via PageId column
+			fileIdSlice := make([]string, 0, len(fileIDs))
 			for fileID := range fileIDs {
-				page.FileIds = append(page.FileIds, fileID)
+				fileIdSlice = append(fileIdSlice, fileID)
 			}
-			a.updateFileInfoWithPostId(rctx, page)
-		}
-
-		// Store source ID -> file ID mappings for later link resolution
-		if len(sourceIDMappings) > 0 {
-			page.AddProp(model.PostPropsImportFileMappings, sourceIDMappings)
+			if _, attachErr := a.Srv().Store().Page().UpdatePageFileIds(page.Id, "", fileIdSlice); attachErr != nil {
+				rctx.Logger().Warn("Failed to attach files to imported page",
+					mlog.String("page_id", page.Id),
+					mlog.Err(attachErr),
+				)
+			}
 		}
 
 		// Resolve CONF_FILE placeholders in page content using source ID mappings
@@ -405,7 +407,7 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 // If page is provided, skips the page lookup (used when called from importPage to avoid N+1 queries).
 // Nested comments (page != nil) inherit Team and WikiImportSourceId scope from their parent page,
 // so they bypass the standalone validator (User+Content were already validated by ValidatePageImportData).
-func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImportData, dryRun bool, page *model.Post) *model.AppError {
+func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImportData, dryRun bool, page *model.Page) *model.AppError {
 	if page == nil {
 		if err := imports.ValidatePageCommentImportData(data); err != nil {
 			return err
@@ -461,7 +463,7 @@ func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImpor
 		}
 
 		var appErr *model.AppError
-		page, appErr = a.findPageByImportSourceId(rctx, *data.PageImportSourceId)
+		page, appErr = a.findPageByImportSourceId(rctx, wiki.ChannelId, *data.PageImportSourceId)
 		if appErr != nil {
 			return appErr
 		}
@@ -577,56 +579,46 @@ func getImportSourceId(props *model.StringInterface) string {
 	return ""
 }
 
-// getPageByImportSourceId finds a page by its import_source_id in Props within a channel.
-// Also checks if a page's ID matches the importSourceId (for locally created pages).
-func (a *App) getPageByImportSourceId(rctx request.CTX, channelId, importSourceId string) (*model.Post, error) {
+// getPageByImportSourceId finds a page by its import_source_id within a channel.
+// Since Pages no longer store Props, we look up by page ID directly (the export
+// always uses the page's MM Id as import_source_id when no external source ID exists).
+// For externally-sourced IDs we fall back to a channel-scoped GetPage scan.
+func (a *App) getPageByImportSourceId(rctx request.CTX, channelId, importSourceId string) (*model.Page, error) {
 	if !model.IsValidId(channelId) {
 		return nil, errors.New("invalid channel ID")
 	}
 
-	// First, try to find by import_source_id in Props (for imported pages)
-	posts, err := a.Srv().Store().Post().GetPostsByTypeAndProps(channelId, model.PostTypePage, model.PostPropsImportSourceId, importSourceId)
+	// Check if a page exists with ID matching importSourceId (for locally created pages)
+	if model.IsValidId(importSourceId) {
+		page, err := a.Srv().Store().Page().GetPage(rctx, importSourceId, false)
+		if err == nil && page != nil && page.ChannelId == channelId {
+			return page, nil
+		}
+	}
+
+	// Fallback: scan the channel's pages and match the import_source_id stored in Props
+	// (not ideal for large channels — import of externally-sourced pages is best-effort).
+	pages, err := a.Srv().Store().Page().GetChannelPages(channelId, 0, 0)
 	if err != nil {
 		return nil, err
 	}
-	if len(posts) > 0 {
-		return posts[0], nil
-	}
-
-	// Also check if a page exists with ID matching importSourceId (for locally created pages)
-	// The export uses page.Id as import_source_id when no import_source_id exists
-	if model.IsValidId(importSourceId) {
-		post, err := a.Srv().Store().Post().GetSingle(rctx, importSourceId, false)
-		if err == nil && post != nil && post.Type == model.PostTypePage && post.ChannelId == channelId {
-			return post, nil
+	for _, p := range pages {
+		if p.Props != nil && p.Props[wikiImportSourceIDProp] == importSourceId {
+			return p, nil
 		}
 	}
 
 	return nil, nil
 }
 
-// findPageByImportSourceId finds a page by import_source_id across all channels.
-// This is a more expensive query - search across all pages.
-// Also checks if a page's ID matches the importSourceId (for locally created pages).
-func (a *App) findPageByImportSourceId(rctx request.CTX, importSourceId string) (*model.Post, *model.AppError) {
-	// First, try to find by import_source_id in Props (for imported pages)
-	posts, err := a.Srv().Store().Post().GetPostsByTypeAndPropsGlobal(model.PostTypePage, model.PostPropsImportSourceId, importSourceId)
+// findPageByImportSourceId finds a page by import_source_id (globally, across all pages).
+// Since Pages no longer store Props, we first try a direct ID lookup.
+func (a *App) findPageByImportSourceId(rctx request.CTX, channelId, importSourceId string) (*model.Page, *model.AppError) {
+	page, err := a.getPageByImportSourceId(rctx, channelId, importSourceId)
 	if err != nil {
-		return nil, model.NewAppError("findPageByImportSourceId", "app.import.find_page.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("findPageByImportSourceId", "app.import.find_page.lookup_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if len(posts) > 0 {
-		return posts[0], nil
-	}
-
-	// Also check if a page exists with ID matching importSourceId (for locally created pages)
-	if model.IsValidId(importSourceId) {
-		post, perr := a.Srv().Store().Post().GetSingle(rctx, importSourceId, false)
-		if perr == nil && post != nil && post.Type == model.PostTypePage {
-			return post, nil
-		}
-	}
-
-	return nil, nil
+	return page, nil
 }
 
 // getCommentByImportSourceId finds a comment by its import_source_id for a specific page.
@@ -813,21 +805,82 @@ func (a *App) uploadWikiAttachments(rctx request.CTX, attachments *[]imports.Att
 	return fileIDs, sourceIDMappings, failedAttachments
 }
 
+// uploadWikiAttachmentsForPage imports attachments for a page stored in the Pages table.
+// It uses a synthetic post carrying the page's metadata for the shared importAttachment path.
+// Returns:
+//   - fileIDs: map of Mattermost file IDs that were imported
+//   - sourceIDMappings: map of import_source_id -> Mattermost file ID (for placeholder/link resolution)
+//   - failedAttachments: slice of source IDs for attachments that failed to import
+func (a *App) uploadWikiAttachmentsForPage(rctx request.CTX, attachments *[]imports.AttachmentImportData, pageID, channelID, userID string, createAt int64, teamID string) (map[string]bool, map[string]string, []string) {
+	if attachments == nil {
+		return nil, nil, nil
+	}
+
+	// Build a synthetic post carrying the metadata fields importAttachment needs.
+	syntheticPost := &model.Post{
+		Id:        pageID,
+		ChannelId: channelID,
+		UserId:    userID,
+		CreateAt:  createAt,
+	}
+
+	fileIDs := make(map[string]bool)
+	sourceIDMappings := make(map[string]string)
+	var failedAttachments []string
+
+	for _, attachment := range *attachments {
+		fileInfo, err := a.importAttachment(rctx, &attachment, syntheticPost, teamID, false)
+		if err != nil {
+			var sourceID string
+			if attachment.Props != nil {
+				sourceID, _ = (*attachment.Props)[model.PostPropsImportSourceId].(string)
+			}
+			if sourceID != "" {
+				failedAttachments = append(failedAttachments, sourceID)
+			}
+			if attachment.Path != nil {
+				rctx.Logger().Warn("failed to import wiki attachment for page",
+					mlog.String("path", *attachment.Path),
+					mlog.String("source_id", sourceID),
+					mlog.String("error", err.Error()))
+			} else {
+				rctx.Logger().Warn("failed to import wiki attachment for page; path was nil",
+					mlog.String("source_id", sourceID),
+					mlog.String("error", err.Error()))
+			}
+			continue
+		}
+
+		fileIDs[fileInfo.Id] = true
+
+		if attachment.Props != nil {
+			if sourceID, ok := (*attachment.Props)[model.PostPropsImportSourceId].(string); ok && sourceID != "" {
+				sourceIDMappings[sourceID] = fileInfo.Id
+				rctx.Logger().Debug("Mapped wiki attachment by source_id",
+					mlog.String("source_id", sourceID),
+					mlog.String("file_id", fileInfo.Id),
+				)
+			}
+		}
+	}
+
+	return fileIDs, sourceIDMappings, failedAttachments
+}
+
 // resolveFilePlaceholders replaces {{CONF_FILE:source_id}} placeholders in page content
 // with actual Mattermost file URLs.
 func (a *App) resolveFilePlaceholders(rctx request.CTX, pageId string, sourceIDMappings map[string]string) *model.AppError {
-	// Get current page - content is in Post.Message
 	page, err := a.GetPage(rctx, pageId)
 	if err != nil {
 		return model.NewAppError("resolveFilePlaceholders", "app.import.resolve_placeholders.get_content.error",
 			map[string]any{"PageId": pageId}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if page.Message == "" {
+	if page.Body == "" {
 		return nil
 	}
 
-	originalContentStr := page.Message
+	originalContentStr := page.Body
 	resolvedContentStr := originalContentStr
 
 	// Find all placeholders and replace them
@@ -890,33 +943,31 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, team *model.Team, w
 	backingChannelId := wiki.ChannelId
 
 	// Fetch all pages once (store loads all anyway).
-	postList, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
+	pages, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
 	if appErr != nil {
 		return model.NewAppError("ResolvePageTitlePlaceholders", "app.import.resolve_page_placeholders.get_pages.error",
 			map[string]any{"WikiId": wikiId}, "", http.StatusInternalServerError).Wrap(appErr)
 	}
-	if postList == nil || len(postList.Posts) == 0 {
+	if len(pages) == 0 {
 		return nil
 	}
 
 	// Pass 1: build complete title -> page ID map.
-	titleToPageID := make(map[string]string, len(postList.Posts))
-	for _, pageID := range postList.Order {
-		page := postList.Posts[pageID]
-		if titleStr, ok := page.GetProp("title").(string); ok && titleStr != "" {
-			titleToPageID[strings.ToLower(titleStr)] = page.Id
+	titleToPageID := make(map[string]string, len(pages))
+	for _, page := range pages {
+		if page.Title != "" {
+			titleToPageID[strings.ToLower(page.Title)] = page.Id
 		}
 	}
 
 	// Pass 2: resolve placeholders in every page.
 	totalResolved := 0
-	for _, pageID := range postList.Order {
-		page := postList.Posts[pageID]
-		if page.Message == "" {
+	for _, page := range pages {
+		if page.Body == "" {
 			continue
 		}
 
-		originalContentStr := page.Message
+		originalContentStr := page.Body
 		resolvedContentStr := originalContentStr
 
 		// Find all CONF_PAGE_TITLE placeholders and replace them
@@ -992,20 +1043,24 @@ func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, team *model.Team, wiki
 	backingChannelId := wiki.ChannelId
 
 	// Fetch all pages once (store loads all anyway).
-	postList, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
+	pages, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
 	if appErr != nil {
 		return appErr
 	}
-	if postList == nil || len(postList.Posts) == 0 {
+	if len(pages) == 0 {
 		return nil
 	}
 
-	// Pass 1: build complete import_source_id -> Mattermost page ID map.
-	sourceIDToPageID := make(map[string]string, len(postList.Posts))
-	for _, pageID := range postList.Order {
-		page := postList.Posts[pageID]
-		if sourceID, ok := page.GetProp(model.PostPropsImportSourceId).(string); ok && sourceID != "" {
-			sourceIDToPageID[sourceID] = page.Id
+	// Pass 1: build complete import_source_id -> Mattermost page ID map. The external (e.g.
+	// Confluence) source id is stored in Page.Props["import_source_id"]; a locally-created page
+	// also resolves by its own id.
+	sourceIDToPageID := make(map[string]string, len(pages))
+	for _, page := range pages {
+		sourceIDToPageID[page.Id] = page.Id
+		if page.Props != nil {
+			if isid, _ := page.Props[wikiImportSourceIDProp].(string); isid != "" {
+				sourceIDToPageID[isid] = page.Id
+			}
 		}
 	}
 
@@ -1020,13 +1075,12 @@ func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, team *model.Team, wiki
 
 	// Pass 2: resolve placeholders in every page.
 	totalResolved := 0
-	for _, pageID := range postList.Order {
-		page := postList.Posts[pageID]
-		if page.Message == "" {
+	for _, page := range pages {
+		if page.Body == "" {
 			continue
 		}
 
-		originalContentStr := page.Message
+		originalContentStr := page.Body
 		resolvedContentStr := originalContentStr
 
 		matches := confPageIDPlaceholderRegex.FindAllStringSubmatch(resolvedContentStr, -1)
@@ -1102,26 +1156,25 @@ var (
 func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, wiki *model.Wiki) *model.AppError {
 	backingChannelId := wiki.ChannelId
 
-	// Process each page in batches - content is in Post.Message
+	// Process each page in batches - content is in Page.Body
 	totalCleaned := 0
 	offset := 0
 	for {
-		postList, appErr := a.GetChannelPages(rctx, backingChannelId, offset, importPageBatchSize)
+		batchPages, appErr := a.GetChannelPages(rctx, backingChannelId, offset, importPageBatchSize)
 		if appErr != nil {
 			return appErr
 		}
-		if postList == nil || len(postList.Posts) == 0 {
+		if len(batchPages) == 0 {
 			break
 		}
-		batchSize := len(postList.Posts)
+		batchSize := len(batchPages)
 
-		for _, pageID := range postList.Order {
-			page := postList.Posts[pageID]
-			if page.Message == "" {
+		for _, page := range batchPages {
+			if page.Body == "" {
 				continue
 			}
 
-			originalContentStr := page.Message
+			originalContentStr := page.Body
 			cleanedContentStr := originalContentStr
 			replacementsCount := 0
 
@@ -1211,28 +1264,30 @@ func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, wiki *model.Wiki) 
 func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, wiki *model.Wiki) (int, *model.AppError) {
 	backingChannelId := wiki.ChannelId
 
-	postList, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
+	allPages, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
 	if appErr != nil {
 		return 0, appErr
 	}
 
-	pages := postList.ToSlice()
-	if len(pages) == 0 {
+	if len(allPages) == 0 {
 		return 0, nil
 	}
 
-	// Build in-memory lookup maps from already-fetched data.
-	sourceIdToPage := make(map[string]*model.Post, len(pages))
-	pageById := make(map[string]*model.Post, len(pages))
-	for _, page := range pages {
+	// Build in-memory lookup maps from already-fetched data: by Id, and by the import_source_id
+	// stored in Props (so a child's recorded parent_import_source_id can be resolved to a local
+	// page Id once the parent has been imported).
+	pageById := make(map[string]*model.Page, len(allPages))
+	pageByImportSourceId := make(map[string]*model.Page, len(allPages))
+	for _, page := range allPages {
 		pageById[page.Id] = page
-		if sourceId, ok := page.GetProp(model.PostPropsImportSourceId).(string); ok && sourceId != "" {
-			sourceIdToPage[sourceId] = page
+		if page.Props != nil {
+			if isid, _ := page.Props[wikiImportSourceIDProp].(string); isid != "" {
+				pageByImportSourceId[isid] = page
+			}
 		}
 	}
 
 	// hasAncestorCycle walks the proposed parent chain entirely in memory to detect cycles.
-	// Returns true if assigning parentId as the parent of pageId would create a cycle.
 	hasAncestorCycle := func(pageId, parentId string) bool {
 		visited := make(map[string]bool)
 		current := parentId
@@ -1248,40 +1303,31 @@ func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, wiki *model.Wiki) (i
 			if !ok {
 				break
 			}
-			current = p.PageParentId
+			current = p.ParentId
 		}
 		return false
 	}
 
-	// Collect valid reparentings without any DB calls.
+	// A page imported before its parent has no ParentId but carries the parent's
+	// import_source_id in Props. Resolve those to the now-imported parent's local Id,
+	// skipping any that would introduce a cycle.
 	updates := make(map[string]string)
-	for _, page := range pages {
-		parentSourceId, ok := page.GetProp("parent_import_source_id").(string)
-		if !ok || parentSourceId == "" {
+	for _, page := range allPages {
+		if page.ParentId != "" || page.Props == nil {
 			continue
 		}
-		if page.PageParentId != "" {
+		parentSourceId, _ := page.Props[wikiParentImportSourceIDProp].(string)
+		if parentSourceId == "" {
 			continue
 		}
-
-		parentPage, exists := sourceIdToPage[parentSourceId]
-		if !exists {
-			rctx.Logger().Warn("Parent page not found for orphan repair",
-				mlog.String("page_id", page.Id),
-				mlog.String("parent_import_source_id", parentSourceId),
-			)
+		parent, ok := pageByImportSourceId[parentSourceId]
+		if !ok || parent.Id == page.Id {
 			continue
 		}
-
-		if hasAncestorCycle(page.Id, parentPage.Id) {
-			rctx.Logger().Warn("Skipping cyclic parent assignment during hierarchy repair",
-				mlog.String("page_id", page.Id),
-				mlog.String("proposed_parent_id", parentPage.Id),
-			)
+		if hasAncestorCycle(page.Id, parent.Id) {
 			continue
 		}
-
-		updates[page.Id] = parentPage.Id
+		updates[page.Id] = parent.Id
 	}
 
 	if len(updates) == 0 {

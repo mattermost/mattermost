@@ -8982,13 +8982,13 @@ func testSaveMemberAndPropagateLinked(t *testing.T, rctx request.CTX, ss store.S
 		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
 		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId: sourceChannel.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr := ss.WikiLink().Save(link)
+		_, linkErr := ss.ChannelMemberLink().Save(link)
 		require.NoError(t, linkErr)
 
 		user1 := createUserForLinkTest(t, rctx, ss)
@@ -9049,22 +9049,22 @@ func testSaveMemberAndPropagateLinked(t *testing.T, rctx request.CTX, ss store.S
 		dest1 := createChannelForLinkTest(t, rctx, ss, team.Id)
 		dest2 := createChannelForLinkTest(t, rctx, ss, team.Id)
 
-		link1 := &model.WikiLink{
+		link1 := &model.ChannelMemberLink{
 			SourceId: sourceChannel.Id,
 
 			DestinationId: dest1.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr := ss.WikiLink().Save(link1)
+		_, linkErr := ss.ChannelMemberLink().Save(link1)
 		require.NoError(t, linkErr)
 
-		link2 := &model.WikiLink{
+		link2 := &model.ChannelMemberLink{
 			SourceId: sourceChannel.Id,
 
 			DestinationId: dest2.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr = ss.WikiLink().Save(link2)
+		_, linkErr = ss.ChannelMemberLink().Save(link2)
 		require.NoError(t, linkErr)
 
 		user1 := createUserForLinkTest(t, rctx, ss)
@@ -9107,13 +9107,13 @@ func testRemoveSyntheticMembersForSource(t *testing.T, rctx request.CTX, ss stor
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user2.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId: sourceChannel.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		_, linkErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, linkErr)
 
 		// Verify members exist in dest
@@ -9142,23 +9142,23 @@ func testRemoveSyntheticMembersForSource(t *testing.T, rctx request.CTX, ss stor
 		addChannelMemberForLinkTest(t, rctx, ss, source2.Id, sharedUser.Id)
 
 		// Link source1 -> dest (propagates sharedUser)
-		link1 := &model.WikiLink{
+		link1 := &model.ChannelMemberLink{
 			SourceId: source1.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
+		_, linkErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
 		require.NoError(t, linkErr)
 
 		// Link source2 -> dest (sharedUser already in dest)
-		link2 := &model.WikiLink{
+		link2 := &model.ChannelMemberLink{
 			SourceId: source2.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr = ss.WikiLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
+		_, linkErr = ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
 		require.NoError(t, linkErr)
 
 		// Verify sharedUser has SourceId=source1
@@ -9186,13 +9186,13 @@ func testRemoveSyntheticMembersForSource(t *testing.T, rctx request.CTX, ss stor
 		syntheticUser := createUserForLinkTest(t, rctx, ss)
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, syntheticUser.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId: sourceChannel.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		_, linkErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, linkErr)
 
 		err := ss.Channel().RemoveSyntheticMembersForSource(rctx, sourceChannel.Id, destChannel.Id)
@@ -9238,13 +9238,13 @@ func testRemoveSyntheticMemberForUser(t *testing.T, rctx request.CTX, ss store.S
 		user1 := createUserForLinkTest(t, rctx, ss)
 		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
 
-		link := &model.WikiLink{
+		link := &model.ChannelMemberLink{
 			SourceId: sourceChannel.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		_, linkErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
 		require.NoError(t, linkErr)
 
 		// Verify synthetic member exists
@@ -9270,23 +9270,23 @@ func testRemoveSyntheticMemberForUser(t *testing.T, rctx request.CTX, ss store.S
 		addChannelMemberForLinkTest(t, rctx, ss, source2.Id, user1.Id)
 
 		// Link source1 -> dest (propagates user1)
-		link1 := &model.WikiLink{
+		link1 := &model.ChannelMemberLink{
 			SourceId: source1.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
+		_, linkErr := ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
 		require.NoError(t, linkErr)
 
 		// Link source2 -> dest (user1 already in dest)
-		link2 := &model.WikiLink{
+		link2 := &model.ChannelMemberLink{
 			SourceId: source2.Id,
 
 			DestinationId: destChannel.Id,
 			CreatorId:     model.NewId(),
 		}
-		_, linkErr = ss.WikiLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
+		_, linkErr = ss.ChannelMemberLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
 		require.NoError(t, linkErr)
 
 		deleted, rmErr := ss.Channel().RemoveSyntheticMemberForUser(rctx, user1.Id, source1.Id, destChannel.Id)

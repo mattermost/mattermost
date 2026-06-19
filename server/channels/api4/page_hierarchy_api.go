@@ -78,10 +78,10 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Extract wiki ID from the already-fetched parent page's Props
-		parentWikiId, ok := parentPage.Props[model.PagePropsWikiID].(string)
-		if !ok || parentWikiId == "" {
-			// Fallback: get wiki_id from PropertyValues (source of truth)
+		// Extract wiki ID from the parent page's WikiId column.
+		parentWikiId := parentPage.WikiId
+		if parentWikiId == "" {
+			// Fallback: structural lookup via channel.
 			var wikiErr *model.AppError
 			parentWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, *req.PageParentId)
 			if wikiErr != nil || parentWikiId == "" {

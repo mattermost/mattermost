@@ -11,6 +11,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// findPageByID returns the first *model.Page in pages whose Id matches id, or nil if not found.
+func findPageByID(pages []*model.Page, id string) *model.Page {
+	for _, p := range pages {
+		if p.Id == id {
+			return p
+		}
+	}
+	return nil
+}
+
 func TestGetChannelPages(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -39,11 +49,11 @@ func TestGetChannelPages(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("get channel pages successfully", func(t *testing.T) {
-		postList, resp, err := th.Client.GetChannelPages(context.Background(), th.BasicChannel.Id)
+		pages, resp, err := th.Client.GetChannelPages(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.NotNil(t, postList)
-		require.GreaterOrEqual(t, len(postList.Posts), 2)
+		require.NotNil(t, pages)
+		require.GreaterOrEqual(t, len(pages), 2)
 	})
 
 	t.Run("fail without channel access", func(t *testing.T) {
@@ -64,27 +74,102 @@ func TestGetChannelPages(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("include_content=true returns page content in Message", func(t *testing.T) {
+	t.Run("include_content=true returns page content in Body", func(t *testing.T) {
 		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content for include"}]}]}`
 		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Content Page", content, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		postList, resp, err := th.Client.GetChannelPagesWithContent(context.Background(), th.BasicChannel.Id, true)
+		pages, resp, err := th.Client.GetChannelPagesWithContent(context.Background(), th.BasicChannel.Id, true)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.NotNil(t, postList.Posts[page.Id])
-		require.Contains(t, postList.Posts[page.Id].Message, "Test content for include")
+		found := findPageByID(pages, page.Id)
+		require.NotNil(t, found)
+		require.Contains(t, found.Body, "Test content for include")
 	})
 
-	t.Run("include_content=false strips Message from pages", func(t *testing.T) {
-		postList, resp, err := th.Client.GetChannelPagesWithContent(context.Background(), th.BasicChannel.Id, false)
+	t.Run("include_content=false strips Body from pages", func(t *testing.T) {
+		pages, resp, err := th.Client.GetChannelPagesWithContent(context.Background(), th.BasicChannel.Id, false)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		for _, post := range postList.Posts {
-			if post.Type == model.PostTypePage {
-				require.Empty(t, post.Message)
-			}
+		for _, page := range pages {
+			require.Empty(t, page.Body)
 		}
+	})
+}
+
+func TestGetPageFiles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	scheme := th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage,
+	)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.LinkWikiToChannel(th.Context, wiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Page With Attachment")
+	require.NoError(t, err)
+
+	// Run this before any file is attached so the empty case is exercised first.
+	t.Run("returns empty list for a page with no attachments", func(t *testing.T) {
+		files, resp, err := th.Client.GetPageFiles(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, files)
+	})
+
+	t.Run("returns the page's attachments", func(t *testing.T) {
+		// Page attachments are owned via FileInfo.PageId (set by UpdatePageFileIds), the
+		// read side the page-files endpoint serves.
+		fileInfo, nErr := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			PostId:    "",
+			ChannelId: wiki.ChannelId,
+			Name:      "attachment.txt",
+			Path:      "attachment.txt",
+			Extension: "txt",
+			MimeType:  "text/plain",
+		})
+		require.NoError(t, nErr)
+		_, nErr = th.App.Srv().Store().Page().UpdatePageFileIds(page.Id, "", model.StringArray{fileInfo.Id})
+		require.NoError(t, nErr)
+
+		files, resp, err := th.Client.GetPageFiles(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, files, 1)
+		require.Equal(t, fileInfo.Id, files[0].Id)
+	})
+
+	t.Run("fail for non-existent page", func(t *testing.T) {
+		_, resp, err := th.Client.GetPageFiles(context.Background(), wiki.Id, model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("fail without read permission", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionReadPage.Id, scheme.DefaultTeamUserRole)
+		th.RemovePermissionFromRole(t, model.PermissionReadPage.Id, scheme.DefaultTeamAdminRole)
+		defer th.AddPermissionToRole(t, model.PermissionReadPage.Id, scheme.DefaultTeamUserRole)
+		defer th.AddPermissionToRole(t, model.PermissionReadPage.Id, scheme.DefaultTeamAdminRole)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
+		require.NoError(t, lErr)
+
+		_, resp, err := client2.GetPageFiles(context.Background(), wiki.Id, page.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
@@ -111,7 +196,7 @@ func TestCreatePage(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, page)
 		require.Equal(t, model.PostTypePage, page.Type)
-		require.Equal(t, "New Test Page", page.GetProps()["title"])
+		require.Equal(t, "New Test Page", page.Title)
 	})
 
 	t.Run("create page with parent", func(t *testing.T) {
@@ -121,7 +206,7 @@ func TestCreatePage(t *testing.T) {
 		childPage, resp, err := th.Client.CreatePage(context.Background(), wiki.Id, parentPage.Id, "Child Page")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		require.Equal(t, parentPage.Id, childPage.PageParentId)
+		require.Equal(t, parentPage.Id, childPage.ParentId)
 	})
 
 	t.Run("fail without create permission", func(t *testing.T) {
@@ -173,7 +258,7 @@ func TestUpdatePage(t *testing.T) {
 		updatedPage, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Updated Title", "", "", 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, "Updated Title", updatedPage.GetProps()["title"])
+		require.Equal(t, "Updated Title", updatedPage.Title)
 	})
 
 	t.Run("update page content successfully", func(t *testing.T) {

@@ -13,10 +13,10 @@ const twoHoursInMilliseconds = int64(2 * 60 * 60 * 1000)
 
 // handlePageUpdateNotification handles creating or updating page update notifications.
 // wiki and channel are optional - if provided, avoids DB fetches.
-func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, userId string, wiki *model.Wiki, channel *model.Channel) {
+func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Page, userId string, wiki *model.Wiki, channel *model.Channel) {
 	// Use provided wiki or fetch if not provided
 	if wiki == nil {
-		wikiId, _ := page.Props[model.PagePropsWikiID].(string)
+		wikiId := page.WikiId
 		if wikiId == "" {
 			var err *model.AppError
 			wikiId, err = a.GetWikiIdForPage(rctx, page.Id)
@@ -63,7 +63,7 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 		username = user.Username
 	}
 
-	pageTitle := page.GetPageTitle()
+	pageTitle := page.Title
 
 	// Atomically find and update the existing notification using SELECT FOR UPDATE
 	// to prevent lost updates from concurrent page edits
@@ -87,8 +87,8 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 	}
 }
 
-func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string, username string, updateCount int) {
-	pageTitle := page.GetPageTitle()
+func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Page, wiki *model.Wiki, channel *model.Channel, userId string, username string, updateCount int) {
+	pageTitle := page.Title
 
 	if username == "" {
 		user, userErr := a.GetUser(userId)

@@ -159,14 +159,14 @@ func (a *App) GetTeamWikis(rctx request.CTX, teamId string, page, perPage int) (
 }
 
 // resolveToBackingChannelIds resolves source channel IDs to wiki backing
-// channel IDs via WikiLinks. If a channel has no links (i.e. it is
+// channel IDs via ChannelMemberLinks. If a channel has no links (i.e. it is
 // already a backing channel), it is included as-is.
 func (a *App) resolveToBackingChannelIds(rctx request.CTX, channelIds []string) []string {
 	if len(channelIds) == 0 {
 		return channelIds
 	}
 
-	allLinks, err := a.Srv().Store().WikiLink().GetBySources(channelIds)
+	allLinks, err := a.Srv().Store().ChannelMemberLink().GetBySources(channelIds)
 	if err != nil {
 		rctx.Logger().Warn("Failed to resolve backing channel IDs", mlog.Err(err))
 		return channelIds
@@ -208,7 +208,7 @@ func (a *App) GetWikisForChannel(rctx request.CTX, channelId string, includeDele
 	rctx.Logger().Debug("Getting wikis for channel", mlog.String("channel_id", channelId), mlog.Bool("include_deleted", includeDeleted))
 
 	var wikis []*model.Wiki
-	var links []*model.WikiLink
+	var links []*model.ChannelMemberLink
 	var wg sync.WaitGroup
 	var wikiErr error
 	var linkErr error
@@ -226,7 +226,7 @@ func (a *App) GetWikisForChannel(rctx request.CTX, channelId string, includeDele
 	go func() {
 		defer wg.Done()
 		var err error
-		links, err = a.Srv().Store().WikiLink().GetBySource(channelId)
+		links, err = a.Srv().Store().ChannelMemberLink().GetBySource(channelId)
 		if err != nil {
 			linkErr = err
 		}
@@ -334,10 +334,10 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string, wiki *model.Wi
 		}
 	}
 
-	var links []*model.WikiLink
+	var links []*model.ChannelMemberLink
 	if wiki.ChannelId != "" {
 		var linksErr error
-		links, linksErr = a.Srv().Store().WikiLink().GetByDestination(wiki.ChannelId)
+		links, linksErr = a.Srv().Store().ChannelMemberLink().GetByDestination(wiki.ChannelId)
 		if linksErr != nil {
 			rctx.Logger().Warn("Failed to fetch wiki links for broadcast; wiki_unlinked WebSocket events will not be sent for this wiki's links",
 				mlog.String("wiki_id", wikiId), mlog.Err(linksErr))
@@ -348,7 +348,9 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string, wiki *model.Wi
 	var pageIDs []string
 	if wiki.ChannelId != "" {
 		if pageMeta, metaErr := a.Srv().Store().Page().GetChannelPagesMeta(wiki.ChannelId); metaErr == nil {
-			pageIDs = pageMeta.Order
+			for _, p := range pageMeta {
+				pageIDs = append(pageIDs, p.Id)
+			}
 		} else {
 			rctx.Logger().Warn("Failed to collect page IDs for property cleanup; property values may require manual cleanup",
 				mlog.String("wiki_id", wikiId), mlog.Err(metaErr))
@@ -362,8 +364,8 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string, wiki *model.Wi
 		return model.NewAppError("DeleteWiki", "app.wiki.delete.wiki_record_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Wiki().DeleteAllPagesForWiki(wikiId); err != nil {
-		rctx.Logger().Warn("Failed to delete pages for wiki; pages may require manual cleanup",
+	if err := a.Srv().Store().Wiki().DeleteWikiCascade(wikiId); err != nil {
+		rctx.Logger().Warn("Failed to cascade-delete wiki pages; pages may require manual cleanup",
 			mlog.String("wiki_id", wikiId), mlog.Err(err))
 	}
 
@@ -423,7 +425,7 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string, wiki *model.Wi
 		// Batch broadcast wiki unlinked events
 		now := model.GetMillis()
 		for _, link := range links {
-			a.broadcastWikiLinkEvent(model.WebsocketEventWikiUnlinked, wikiId, link.SourceId, now)
+			a.broadcastChannelMemberLinkEvent(model.WebsocketEventChannelMemberUnlinked, wikiId, link.SourceId, now)
 		}
 	}
 
@@ -432,7 +434,7 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string, wiki *model.Wi
 	return nil
 }
 
-func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) ([]*model.Post, *model.AppError) {
+func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) ([]*model.Page, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -442,74 +444,30 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 
 	rctx.Logger().Debug("Getting wiki pages", mlog.String("wiki_id", wikiId), mlog.Int("offset", offset), mlog.Int("limit", limit))
 
-	pages, err := a.Srv().Store().Wiki().GetPages(wikiId, offset, limit)
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		return nil, wikiErr
+	}
+
+	pages, err := a.Srv().Store().Page().GetChannelPages(wiki.ChannelId, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetWikiPages", "app.wiki.get_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Enrich pages with property values (status, etc.)
-	var postList *model.PostList
-	if len(pages) > 0 {
-		postList = &model.PostList{
-			Posts: make(map[string]*model.Post),
-			Order: make([]string, 0, len(pages)),
-		}
-		for _, page := range pages {
-			postList.Posts[page.Id] = page
-			postList.Order = append(postList.Order, page.Id)
-		}
-		a.EnrichPagesWithProperties(rctx, postList)
-	}
+	a.EnrichPagesWithProperties(rctx, pages)
 
-	if a.Metrics() != nil && postList != nil {
-		maxDepth := a.calculateMaxDepthFromPostList(postList)
+	if a.Metrics() != nil && len(pages) > 0 {
+		maxDepth := a.calculateMaxDepthFromPages(pages)
 		a.Metrics().ObserveWikiHierarchyDepth(float64(maxDepth))
-		a.Metrics().ObserveWikiPagesPerChannel(float64(len(postList.Posts)))
+		a.Metrics().ObserveWikiPagesPerChannel(float64(len(pages)))
 	}
 
 	return pages, nil
 }
 
-// AddPageToWiki validates that a page is in the wiki's backing channel and warms the wiki_id Props cache.
-// The page-wiki association itself is structural: a page belongs to the wiki whose ChannelId matches the page's ChannelId.
-func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
-	post, err := a.GetPage(rctx, pageId)
-	if err != nil {
-		return model.NewAppError("AddPageToWiki", "app.wiki.add.not_a_page", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	pageTitle := post.GetPageTitle()
-
-	rctx.Logger().Debug("Adding page to wiki",
-		mlog.String("page_id", pageId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("page_title", pageTitle),
-		mlog.String("page_parent_id", post.PageParentId))
-
-	wiki, getErr := a.GetWiki(rctx, wikiId)
-	if getErr != nil {
-		return getErr
-	}
-
-	if wiki.ChannelId != post.ChannelId {
-		return model.NewAppError("AddPageToWiki", "app.wiki.add.channel_mismatch", nil, "", http.StatusBadRequest)
-	}
-
-	a.invalidateCacheForChannelPosts(post.ChannelId)
-
-	if err := a.setWikiIdInPostProps(pageId, wikiId); err != nil {
-		rctx.Logger().Warn("Failed to store wiki_id in Post.Props (non-fatal)",
-			mlog.String("page_id", pageId),
-			mlog.String("wiki_id", wikiId),
-			mlog.Err(err))
-	}
-
-	return nil
-}
-
 // DeleteWikiPage deletes a page from a wiki.
 // wiki and channel are optional - if provided, avoids redundant DB fetches.
-func (a *App) DeleteWikiPage(rctx request.CTX, page *model.Post, wikiId string, wiki *model.Wiki, channel *model.Channel) *model.AppError {
+func (a *App) DeleteWikiPage(rctx request.CTX, page *model.Page, wikiId string, wiki *model.Wiki, channel *model.Channel) *model.AppError {
 	pageId := page.Id
 
 	rctx.Logger().Debug("Deleting wiki page", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
@@ -544,22 +502,26 @@ func (a *App) DeleteWikiPage(rctx request.CTX, page *model.Post, wikiId string, 
 }
 
 // MovePageToWiki moves a page to a different wiki (or different parent in same wiki).
-// sourceWikiId is optional - if empty, it will be fetched from the page properties.
+// sourceWikiId is optional - if empty, it will be fetched from the page's WikiId column.
 // sourceWiki and targetWiki are optional - if provided, avoids redundant DB fetches.
-func (a *App) MovePageToWiki(rctx request.CTX, page *model.Post, targetWikiId string, parentPageId *string, sourceWikiId string, sourceWiki, targetWiki *model.Wiki) *model.AppError {
+func (a *App) MovePageToWiki(rctx request.CTX, page *model.Page, targetWikiId string, parentPageId *string, sourceWikiId string, sourceWiki, targetWiki *model.Wiki) *model.AppError {
 	pageId := page.Id
 	post := page
 
-	// Use provided sourceWikiId or fetch if not provided
+	// Use provided sourceWikiId, page.WikiId column, or fetch if not provided
 	if sourceWikiId == "" {
-		var err *model.AppError
-		sourceWikiId, err = a.GetWikiIdForPage(rctx, pageId)
-		if err != nil {
-			statusCode := http.StatusInternalServerError
-			if err.StatusCode == http.StatusNotFound {
-				statusCode = http.StatusNotFound
+		if page.WikiId != "" {
+			sourceWikiId = page.WikiId
+		} else {
+			var err *model.AppError
+			sourceWikiId, err = a.GetWikiIdForPage(rctx, pageId)
+			if err != nil {
+				statusCode := http.StatusInternalServerError
+				if err.StatusCode == http.StatusNotFound {
+					statusCode = http.StatusNotFound
+				}
+				return model.NewAppError("MovePageToWiki", "app.page.move.source_wiki_not_found", nil, "", statusCode).Wrap(err)
 			}
-			return model.NewAppError("MovePageToWiki", "app.page.move.source_wiki_not_found", nil, "", statusCode).Wrap(err)
 		}
 	}
 
@@ -619,7 +581,7 @@ func (a *App) MovePageToWiki(rctx request.CTX, page *model.Post, targetWikiId st
 				"", http.StatusInternalServerError).Wrap(err)
 		}
 
-		for _, descendant := range descendants.Posts {
+		for _, descendant := range descendants {
 			if descendant.Id == *parentPageId {
 				return model.NewAppError("MovePageToWiki", "app.page.move.circular_reference", nil,
 					"", http.StatusBadRequest)
@@ -645,10 +607,9 @@ func (a *App) MovePageToWiki(rctx request.CTX, page *model.Post, targetWikiId st
 		a.invalidateCacheForChannelPosts(targetWiki.ChannelId)
 	}
 
-	pageTitle := post.GetPageTitle()
 	rctx.Logger().Info("Page moved to wiki",
 		mlog.String("page_id", pageId),
-		mlog.String("page_title", pageTitle),
+		mlog.String("page_title", post.Title),
 		mlog.String("source_wiki_id", sourceWikiId),
 		mlog.String("source_wiki_title", sourceWiki.Title),
 		mlog.String("target_wiki_id", targetWikiId),
@@ -661,14 +622,14 @@ func (a *App) MovePageToWiki(rctx request.CTX, page *model.Post, targetWikiId st
 		newParentId = *parentPageId
 	}
 	opts := PageMovedBroadcastOptions{SourceWikiId: sourceWikiId}
-	a.BroadcastPageMoved(pageId, page.PageParentId, newParentId, targetWikiId, post.UpdateAt, opts)
+	a.BroadcastPageMoved(pageId, page.ParentId, newParentId, targetWikiId, post.UpdateAt, opts)
 
 	return nil
 }
 
 // DuplicatePage creates a copy of a page in the target wiki.
 // targetWiki and channel are optional - if provided, avoids redundant DB fetches.
-func (a *App) DuplicatePage(rctx request.CTX, sourcePage *model.Post, targetWikiId string, parentPageId *string, customTitle *string, userId string, targetWiki *model.Wiki, channel *model.Channel) (*model.Post, *model.AppError) {
+func (a *App) DuplicatePage(rctx request.CTX, sourcePage *model.Page, targetWikiId string, parentPageId *string, customTitle *string, userId string, targetWiki *model.Wiki, channel *model.Channel) (*model.Page, *model.AppError) {
 	sourcePageId := sourcePage.Id
 	sourcePost := sourcePage
 
@@ -692,12 +653,11 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePage *model.Post, targetWiki
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.channel_deleted", nil, "", http.StatusBadRequest)
 	}
 
-	originalTitle := sourcePost.GetPageTitle()
 	var duplicateTitle string
 	if customTitle != nil && *customTitle != "" {
 		duplicateTitle = *customTitle
 	} else {
-		duplicateTitle = model.PageDuplicateTitlePrefix + originalTitle
+		duplicateTitle = model.PageDuplicateTitlePrefix + sourcePost.Title
 		if len(duplicateTitle) > model.MaxPageTitleLength {
 			duplicateTitle = duplicateTitle[:model.MaxPageTitleLength-3] + "..."
 		}
@@ -707,21 +667,12 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePage *model.Post, targetWiki
 	if parentPageId != nil {
 		parentId = *parentPageId
 	} else {
-		parentId = sourcePage.PageParentId
+		parentId = sourcePage.ParentId
 	}
 
-	duplicatedPage, createErr := a.CreatePage(rctx, targetWiki.ChannelId, duplicateTitle, parentId, sourcePage.Message, userId, "", "")
+	duplicatedPage, createErr := a.CreatePage(rctx, targetWiki.ChannelId, duplicateTitle, parentId, sourcePage.Body, userId, "", "")
 	if createErr != nil {
 		return nil, createErr
-	}
-
-	if linkErr := a.AddPageToWiki(rctx, duplicatedPage.Id, targetWikiId); linkErr != nil {
-		if delErr := a.PermanentDeletePage(rctx, duplicatedPage); delErr != nil {
-			rctx.Logger().Error("Failed to delete page after AddPageToWiki failed",
-				mlog.String("page_id", duplicatedPage.Id),
-				mlog.Err(delErr))
-		}
-		return nil, linkErr
 	}
 
 	rctx.Logger().Info("Page duplicated",
@@ -781,7 +732,7 @@ func (a *App) sendWikiNotification(rctx request.CTX, params wikiNotificationPara
 	}
 }
 
-func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, backingChannel *model.Channel, userId string, pageTitle string) {
+func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Page, wiki *model.Wiki, backingChannel *model.Channel, userId string, pageTitle string) {
 	params := wikiNotificationParams{
 		postType:    model.PostTypePageAdded,
 		wiki:        wiki,
@@ -795,7 +746,7 @@ func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Post, wiki
 
 	// Send the notification to all source channels linked to the wiki's backing channel,
 	// so it appears in the channels where users see the wiki tab (not the hidden backing channel).
-	links, err := a.Srv().Store().WikiLink().GetByDestination(backingChannel.Id)
+	links, err := a.Srv().Store().ChannelMemberLink().GetByDestination(backingChannel.Id)
 	if err != nil {
 		rctx.Logger().Warn("Skipping page added notification: failed to get linked source channels",
 			mlog.String("backing_channel_id", backingChannel.Id),
@@ -859,18 +810,18 @@ func (a *App) InvalidateCacheForWikiImport(rctx request.CTX, channelIds []string
 }
 
 // onWikiBackingChannelArchived is called when a wiki backing channel is archived.
-// WikiLinks are deleted on archive — the backing channel is no longer accessible so
+// ChannelMemberLinks are deleted on archive — the backing channel is no longer accessible so
 // source channels should not remain linked to it. Restore does not recreate links;
 // callers must re-link manually if desired.
 func (a *App) onWikiBackingChannelArchived(rctx request.CTX, channelID string) {
-	if err := a.Srv().Store().WikiLink().DeleteByDestination(channelID); err != nil {
+	if err := a.Srv().Store().ChannelMemberLink().DeleteByDestination(channelID); err != nil {
 		rctx.Logger().Warn("Failed to clean up wiki links by destination during channel archive",
 			mlog.String("channel_id", channelID), mlog.Err(err))
 	}
 }
 
 // onWikiBackingChannelRestored is called when a wiki backing channel is restored.
-// No-op: WikiLinks are deleted on archive and must be re-created manually.
+// No-op: ChannelMemberLinks are deleted on archive and must be re-created manually.
 func (a *App) onWikiBackingChannelRestored(_ request.CTX, _ string) {}
 
 // hasPermissionToWikiBackingChannel checks if a user has the requested permission on a wiki

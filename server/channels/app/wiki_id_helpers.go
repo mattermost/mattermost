@@ -12,22 +12,22 @@ import (
 )
 
 func (a *App) GetWikiIdForPage(rctx request.CTX, pageId string) (string, *model.AppError) {
-	post, err := a.GetPage(rctx, pageId)
+	page, err := a.GetPage(rctx, pageId)
 	if err != nil {
 		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.page_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	// Fast path: wiki_id cached in Props by setWikiIdInPostProps
-	if wikiId, ok := post.Props[model.PagePropsWikiID].(string); ok && wikiId != "" {
-		return wikiId, nil
+	// Fast path: WikiId is a dedicated column on *model.Page.
+	if page.WikiId != "" {
+		return page.WikiId, nil
 	}
 
-	// Fallback: structural lookup via channel
-	wiki, wikiErr := a.GetWikiByChannelId(rctx, post.ChannelId)
+	// Fallback: structural lookup via channel (covers pages missing WikiId, e.g. imported rows).
+	wiki, wikiErr := a.GetWikiByChannelId(rctx, page.ChannelId)
 	if wikiErr != nil {
 		rctx.Logger().Debug("GetWikiIdForPage: structural wiki lookup failed",
 			mlog.String("page_id", pageId),
-			mlog.String("channel_id", post.ChannelId),
+			mlog.String("channel_id", page.ChannelId),
 			mlog.Err(wikiErr))
 		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.not_found", nil, "", http.StatusNotFound).Wrap(wikiErr)
 	}

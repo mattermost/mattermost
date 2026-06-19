@@ -10,15 +10,6 @@ type WikiService struct {
 	api plugin.API
 }
 
-// LinkPageToFirstWiki links a page to the first wiki in the given channel.
-// If no wiki exists, an error is returned.
-//
-// Minimum server version: 10.5
-func (w *WikiService) LinkPageToFirstWiki(pageID, channelID string) error {
-	appErr := w.api.LinkPageToFirstWiki(pageID, channelID)
-	return normalizeAppErr(appErr)
-}
-
 // GetFirstWikiForChannel retrieves the ID of the first wiki in the given channel.
 // If no wiki exists, an error is returned.
 //
@@ -30,10 +21,10 @@ func (w *WikiService) GetFirstWikiForChannel(channelID string) (string, error) {
 
 // CreatePage creates a new wiki page with the given title and content on behalf of the specified user.
 // The userID parameter specifies which user is creating the page (for permission checks and attribution).
-// Returns the created page post.
+// Returns the created page.
 //
 // Minimum server version: 10.10
-func (w *WikiService) CreatePage(wikiID, title, content, userID string) (*model.Post, error) {
+func (w *WikiService) CreatePage(wikiID, title, content, userID string) (*model.Page, error) {
 	page, appErr := w.api.CreateWikiPage(wikiID, title, content, userID)
 	return page, normalizeAppErr(appErr)
 }

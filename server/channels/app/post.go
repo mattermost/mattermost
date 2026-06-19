@@ -2273,7 +2273,7 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	if hasPagePost(postSearchResults.PostList) {
-		a.EnrichPagesWithProperties(rctx, postSearchResults.PostList)
+		a.EnrichPostListPageProperties(rctx, postSearchResults.PostList)
 	}
 
 	return postSearchResults, allPostHaveMembership, nil

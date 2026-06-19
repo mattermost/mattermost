@@ -969,7 +969,7 @@ func (c *Context) GetWikiForRead() (*model.Wiki, *model.Channel, bool) {
 	return wiki, channel, true
 }
 
-func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
+func (c *Context) ValidatePageBelongsToWiki() (*model.Page, bool) {
 	if c.Err != nil {
 		return nil, false
 	}
@@ -1036,7 +1036,7 @@ func (c *Context) GetRemoteID(r *http.Request) string {
 // GetPageForRead validates a page belongs to the wiki and user has read permission.
 // Returns page, wiki, and channel in a single operation to avoid redundant DB fetches.
 // Use this instead of calling ValidatePageBelongsToWiki() + GetWikiForRead() separately.
-func (c *Context) GetPageForRead() (*model.Post, *model.Wiki, *model.Channel, bool) {
+func (c *Context) GetPageForRead() (*model.Page, *model.Wiki, *model.Channel, bool) {
 	if c.Err != nil {
 		return nil, nil, nil, false
 	}
@@ -1074,7 +1074,7 @@ func (c *Context) GetPageForRead() (*model.Post, *model.Wiki, *model.Channel, bo
 // 3. Checks page-level modify permission for the specified operation
 // 4. Validates page's channel matches wiki's channel
 // Returns wiki, page, channel, and success bool.
-func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *model.Post, *model.Channel, bool) {
+func (c *Context) GetPageForModify(operation app.PageOperation, callerContext string) (*model.Wiki, *model.Page, *model.Channel, bool) {
 	if c.Err != nil {
 		return nil, nil, nil, false
 	}
@@ -1114,7 +1114,7 @@ func (c *Context) GetPageForModify(operation app.PageOperation, callerContext st
 // The wiki argument identifies the wiki the page belongs to and is required.
 // channel may be nil for team-only wikis. DM/Group backing channels enforce
 // channel membership as a separate access gate before the perm check runs.
-func (c *Context) hasPagePermission(channel *model.Channel, wiki *model.Wiki, page *model.Post, operation app.PageOperation) bool {
+func (c *Context) hasPagePermission(channel *model.Channel, wiki *model.Wiki, page *model.Page, operation app.PageOperation) bool {
 	session := c.AppContext.Session()
 
 	// DM/Group wiki backing channels require channel membership in addition to perms.
@@ -1205,7 +1205,7 @@ func getPageCommentPermission(operation app.PageCommentOperation, isAuthor bool)
 // CheckPagePermission checks if the current user can perform an operation on a page.
 // Use this when you have a page but are not going through wiki routes.
 // Sets c.Err and returns false if permission denied.
-func (c *Context) CheckPagePermission(page *model.Post, operation app.PageOperation) bool {
+func (c *Context) CheckPagePermission(page *model.Page, operation app.PageOperation) bool {
 	if c.Err != nil {
 		return false
 	}

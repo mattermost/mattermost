@@ -759,8 +759,26 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
 	if appErr != nil {
-		c.Err = appErr
-		return
+		// GetSinglePost rejects wiki post types (page, page_comment, page_mention) with a 404.
+		// Page comments are deletable through this endpoint, so reload via the wiki-aware getter
+		// and let the switch below route the post by type.
+		wikiPost, wikiErr := c.App.GetPageCommentPost(c.AppContext, c.Params.PostId, includeDeleted)
+		if wikiErr != nil {
+			// A real failure (e.g. a database error) must surface on its own; only a not-found
+			// means the id is neither a regular post nor a wiki post, in which case the original
+			// GetSinglePost 404 is the correct response.
+			if wikiErr.StatusCode != http.StatusNotFound {
+				c.Err = wikiErr
+			} else {
+				c.Err = appErr
+			}
+			return
+		}
+		if !model.IsWikiPostType(wikiPost.Type) {
+			c.Err = appErr
+			return
+		}
+		post = wikiPost
 	}
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")

@@ -461,20 +461,6 @@ func TestCrossChannelAccess(t *testing.T) {
 		require.Equal(t, wiki2.Id, wikis[0].Id)
 	})
 
-	t.Run("cannot attach page from different channel to wiki", func(t *testing.T) {
-		pageInChannel1 := &model.Post{
-			ChannelId: channel1.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Page in channel 1",
-			Type:      model.PostTypePage,
-		}
-		pageInChannel1, _, appErr = th.App.CreatePost(th.Context, pageInChannel1, channel1, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-
-		appErr = th.App.AddPageToWiki(th.Context, pageInChannel1.Id, wiki2.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.wiki.add.channel_mismatch", appErr.Id)
-	})
 }
 
 func TestWikiValidation(t *testing.T) {
@@ -603,19 +589,7 @@ func TestWikiPermissions(t *testing.T) {
 		wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		wikiChannel, chErr := th.App.GetWikiBackingChannel(th.Context, wiki.ChannelId)
-		require.Nil(t, chErr)
-
-		page := &model.Post{
-			ChannelId: wiki.ChannelId,
-			UserId:    th.BasicUser.Id,
-			Message:   "Test Page",
-			Type:      model.PostTypePage,
-		}
-		page, _, appErr = th.App.CreatePost(th.Context, page, wikiChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-
-		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id)
+		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
@@ -721,13 +695,13 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 		require.NotEmpty(t, publishedPage.Id)
-		require.Equal(t, model.PostTypePage, publishedPage.Type)
-		assert.JSONEq(t, updatedDraftMessage, publishedPage.Message)
+		require.Equal(t, model.PageTypePage, publishedPage.Type)
+		assert.JSONEq(t, updatedDraftMessage, publishedPage.Body)
 		// createdWiki.ChannelId is hidden by json:"-"; resolve it server-side.
 		serverWiki, wikiErr := th.App.GetWiki(th.Context, createdWiki.Id)
 		require.Nil(t, wikiErr)
 		require.Equal(t, serverWiki.ChannelId, publishedPage.ChannelId)
-		require.Equal(t, pageTitle, publishedPage.Props["title"])
+		require.Equal(t, pageTitle, publishedPage.Title)
 
 		_, appErr = th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, false)
 		require.NotNil(t, appErr)
@@ -737,7 +711,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, publishedPage.Id, retrievedPage.Id)
-		assert.JSONEq(t, updatedDraftMessage, retrievedPage.Message)
+		assert.JSONEq(t, updatedDraftMessage, retrievedPage.Body)
 		require.Equal(t, model.PostTypePage, retrievedPage.Type)
 
 		pages, resp, err := th.Client.GetPages(context.Background(), createdWiki.Id, 0, 100)
@@ -786,7 +760,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 			Title:    "Child Page",
 		})
 		require.Nil(t, appErr)
-		require.Equal(t, parentPage.Id, childPage.PageParentId)
+		require.Equal(t, parentPage.Id, childPage.ParentId)
 	})
 }
 
@@ -812,7 +786,7 @@ func TestCreatePageViaWikiApi(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotEmpty(t, page.Id)
 		require.Equal(t, model.PostTypePage, page.Type)
-		require.Equal(t, wiki.ChannelId, page.ChannelId)
+		require.Equal(t, wiki.Id, page.WikiId)
 	})
 
 	t.Run("fail without edit wiki permission in private channel", func(t *testing.T) {
@@ -1047,7 +1021,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.NotEmpty(t, comment.Id)
 		require.Equal(t, model.PostTypePageComment, comment.Type, "Comment should have Type='page_comment'")
 		require.Equal(t, createdWiki.ChannelId, comment.ChannelId)
-		require.Equal(t, page.Id, comment.RootId, "Comment RootId should point to page (flat model)")
+		require.Empty(t, comment.RootId, "a top-level page comment is its own root post; it links to the page via the page_id prop, not RootId")
 		require.Equal(t, th.BasicUser.Id, comment.UserId)
 		require.Equal(t, "This is a top-level comment", comment.Message)
 
@@ -1057,7 +1031,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.False(t, hasParentCommentId, "Top-level comment should not have parent_comment_id")
 	})
 
-	t.Run("create reply to comment and verify flat model (RootId = pageId)", func(t *testing.T) {
+	t.Run("create reply to comment and verify it threads under the parent comment", func(t *testing.T) {
 		topLevelComment, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Comment to reply to")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -1068,7 +1042,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.NotEmpty(t, reply.Id)
 		require.Equal(t, model.PostTypePageComment, reply.Type, "Reply should also have Type='page_comment'")
 		require.Equal(t, createdWiki.ChannelId, reply.ChannelId)
-		require.Equal(t, page.Id, reply.RootId, "Reply RootId should point to page, NOT to parent comment (flat model)")
+		require.Equal(t, topLevelComment.Id, reply.RootId, "a reply threads under its parent comment (a root post), not under the page")
 		require.Equal(t, th.BasicUser.Id, reply.UserId)
 
 		require.NotNil(t, reply.Props)
@@ -1280,8 +1254,10 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.Equal(t, th.BasicUser2.Id, comment2.UserId)
 
 		require.NotEqual(t, comment1.Id, comment2.Id, "Comments should have different IDs")
-		require.Equal(t, page.Id, comment1.RootId, "Both comments should reference the same page")
-		require.Equal(t, page.Id, comment2.RootId, "Both comments should reference the same page")
+		require.Empty(t, comment1.RootId, "top-level page comments are root posts")
+		require.Empty(t, comment2.RootId, "top-level page comments are root posts")
+		require.Equal(t, page.Id, comment1.Props[model.PagePropsPageID], "both comments reference the same page via page_id")
+		require.Equal(t, page.Id, comment2.Props[model.PagePropsPageID], "both comments reference the same page via page_id")
 	})
 
 	t.Run("verify GetCommentsForPage returns page + all comments/replies", func(t *testing.T) {
@@ -1305,14 +1281,12 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.NoError(t, appErr)
 		require.NotNil(t, commentsForPage)
 
-		require.Len(t, commentsForPage.Posts, 4, "Should return page + 2 comments + 1 reply = 4 posts")
+		require.Len(t, commentsForPage.Posts, 3, "Should return 2 comments + 1 reply = 3 posts")
 
-		require.Contains(t, commentsForPage.Posts, testPage2.Id, "Should include the page itself")
 		require.Contains(t, commentsForPage.Posts, comment1.Id, "Should include comment1")
 		require.Contains(t, commentsForPage.Posts, comment2.Id, "Should include comment2")
 		require.Contains(t, commentsForPage.Posts, reply.Id, "Should include reply")
 
-		require.Equal(t, model.PostTypePage, commentsForPage.Posts[testPage2.Id].Type)
 		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[comment1.Id].Type)
 		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[comment2.Id].Type)
 		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[reply.Id].Type)
@@ -1852,7 +1826,7 @@ func TestDuplicatePage(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, duplicatedPage)
 		require.NotEqual(t, page.Id, duplicatedPage.Id)
-		require.Equal(t, "Copy of Original Page", duplicatedPage.Props["title"])
+		require.Equal(t, "Copy of Original Page", duplicatedPage.Title)
 
 		duplicatedPageWikiId, appErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
 		require.Nil(t, appErr)
@@ -1884,7 +1858,7 @@ func TestDuplicatePage(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, duplicatedPage)
-		require.Equal(t, customTitle, duplicatedPage.Props["title"])
+		require.Equal(t, customTitle, duplicatedPage.Title)
 	})
 
 	t.Run("successfully duplicate page with parent", func(t *testing.T) {
@@ -1906,7 +1880,7 @@ func TestDuplicatePage(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, duplicatedPage)
-		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId)
+		require.Equal(t, parentPage.Id, duplicatedPage.ParentId)
 	})
 
 	t.Run("fail when user lacks read permission on source page", func(t *testing.T) {
@@ -2128,7 +2102,7 @@ func TestMovePage(t *testing.T) {
 
 		updatedChild, appErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, parent2.Id, updatedChild.PageParentId)
+		require.Equal(t, parent2.Id, updatedChild.ParentId)
 	})
 
 	t.Run("successfully set page to root (empty parent)", func(t *testing.T) {
@@ -2152,7 +2126,7 @@ func TestMovePage(t *testing.T) {
 
 		updatedChild, appErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, "", updatedChild.PageParentId)
+		require.Equal(t, "", updatedChild.ParentId)
 	})
 
 	t.Run("fail with invalid parent ID format", func(t *testing.T) {
@@ -2324,25 +2298,23 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, siblings)
-		require.Len(t, siblings.Posts, 3)
+		require.Len(t, siblings, 3)
 
 		// Verify order: page2, page3, page1 (by sort order)
-		var sortedPosts []*model.Post
-		for _, p := range siblings.Posts {
-			sortedPosts = append(sortedPosts, p)
-		}
-		// Sort by page_sort_order
-		for i := 0; i < len(sortedPosts)-1; i++ {
-			for j := i + 1; j < len(sortedPosts); j++ {
-				if sortedPosts[i].GetPageSortOrder() > sortedPosts[j].GetPageSortOrder() {
-					sortedPosts[i], sortedPosts[j] = sortedPosts[j], sortedPosts[i]
+		sortedPages := make([]*model.Page, len(siblings))
+		copy(sortedPages, siblings)
+		// Sort by sort_order
+		for i := 0; i < len(sortedPages)-1; i++ {
+			for j := i + 1; j < len(sortedPages); j++ {
+				if sortedPages[i].SortOrder > sortedPages[j].SortOrder {
+					sortedPages[i], sortedPages[j] = sortedPages[j], sortedPages[i]
 				}
 			}
 		}
 
-		require.Equal(t, "Page 2", sortedPosts[0].Props["title"])
-		require.Equal(t, "Page 3", sortedPosts[1].Props["title"])
-		require.Equal(t, "Page 1", sortedPosts[2].Props["title"])
+		require.Equal(t, "Page 2", sortedPages[0].Title)
+		require.Equal(t, "Page 3", sortedPages[1].Title)
+		require.Equal(t, "Page 1", sortedPages[2].Title)
 
 		_ = page2
 		_ = page3
@@ -2378,12 +2350,12 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, siblings)
-		require.Len(t, siblings.Posts, 3)
+		require.Len(t, siblings, 3)
 
 		// Verify orphan is now under parent
 		updatedOrphan, appErr := th.App.GetPage(th.Context, orphan.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, parent.Id, updatedOrphan.PageParentId)
+		require.Equal(t, parent.Id, updatedOrphan.ParentId)
 
 		_ = child1
 		_ = child2
@@ -2414,7 +2386,7 @@ func TestMovePageWithReorder(t *testing.T) {
 		// Verify parent changed
 		updatedChild, appErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, parent.Id, updatedChild.PageParentId)
+		require.Equal(t, parent.Id, updatedChild.ParentId)
 	})
 
 	t.Run("fail with negative index", func(t *testing.T) {
@@ -2476,22 +2448,20 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, siblings)
-		require.Len(t, siblings.Posts, 2)
+		require.Len(t, siblings, 2)
 
 		// Verify pageA is at the end (after pageB)
-		var sortedPosts []*model.Post
-		for _, p := range siblings.Posts {
-			sortedPosts = append(sortedPosts, p)
-		}
-		for i := 0; i < len(sortedPosts)-1; i++ {
-			for j := i + 1; j < len(sortedPosts); j++ {
-				if sortedPosts[i].GetPageSortOrder() > sortedPosts[j].GetPageSortOrder() {
-					sortedPosts[i], sortedPosts[j] = sortedPosts[j], sortedPosts[i]
+		sortedPages2 := make([]*model.Page, len(siblings))
+		copy(sortedPages2, siblings)
+		for i := 0; i < len(sortedPages2)-1; i++ {
+			for j := i + 1; j < len(sortedPages2); j++ {
+				if sortedPages2[i].SortOrder > sortedPages2[j].SortOrder {
+					sortedPages2[i], sortedPages2[j] = sortedPages2[j], sortedPages2[i]
 				}
 			}
 		}
-		require.Equal(t, "Page B", sortedPosts[0].Props["title"])
-		require.Equal(t, "Page A", sortedPosts[1].Props["title"])
+		require.Equal(t, "Page B", sortedPages2[0].Title)
+		require.Equal(t, "Page A", sortedPages2[1].Title)
 	})
 }
 
@@ -2681,7 +2651,7 @@ func TestResolvePageComment(t *testing.T) {
 		ChannelId: wiki.ChannelId,
 		UserId:    th.BasicUser.Id,
 		Message:   "Test Comment",
-		RootId:    page.Id,
+		RootId:    "",
 		Type:      model.PostTypePageComment,
 		Props: model.StringInterface{
 			model.PagePropsWikiID:      wiki.Id,
@@ -2730,7 +2700,7 @@ func TestResolvePageComment(t *testing.T) {
 		comment2 := &model.Post{
 			ChannelId: wiki.ChannelId,
 			Message:   "Comment by User2",
-			RootId:    page.Id,
+			RootId:    "",
 			Type:      model.PostTypePageComment,
 			UserId:    th.BasicUser2.Id,
 			Props: model.StringInterface{
@@ -2769,7 +2739,7 @@ func TestResolvePageComment(t *testing.T) {
 			ChannelId: wiki.ChannelId,
 			UserId:    th.BasicUser.Id,
 			Message:   "To be deleted",
-			RootId:    page.Id,
+			RootId:    "",
 			Type:      model.PostTypePageComment,
 			Props: model.StringInterface{
 				model.PagePropsWikiID: wiki.Id,
@@ -2797,10 +2767,12 @@ func TestResolvePageComment(t *testing.T) {
 		regularPost, _, appErr = th.App.CreatePost(th.Context, regularPost, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
+		// The comment lookup is scoped to page_comment posts, so a regular post id is
+		// not found as a comment (404), the same as any non-existent comment id.
 		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + regularPost.Id + "/resolve"
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+		CheckNotFoundStatus(t, model.BuildResponse(httpResp))
 	})
 }
 
@@ -2817,19 +2789,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
-	wikiChannel, appErr := th.App.GetWikiBackingChannel(th.Context, wiki.ChannelId)
-	require.Nil(t, appErr)
-
-	page := &model.Post{
-		ChannelId: wiki.ChannelId,
-		UserId:    th.BasicUser.Id,
-		Message:   "Page content",
-		Type:      model.PostTypePage,
-		Props: model.StringInterface{
-			model.PagePropsWikiID: wiki.Id,
-		},
-	}
-	page, _, appErr = th.App.CreatePost(th.Context, page, wikiChannel, model.CreatePostFlags{})
+	page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Page content", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("get active editors successfully with no editors", func(t *testing.T) {
@@ -3291,8 +3251,8 @@ func TestPatchPagePropsAPI(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, sourceId, updated.Props[model.PostPropsPageTranslatedFrom])
-		require.Equal(t, "fr", updated.Props[model.PostPropsPageTranslationLanguage])
+		require.Equal(t, sourceId, updated.Properties[model.PostPropsPageTranslatedFrom])
+		require.Equal(t, "fr", updated.Properties[model.PostPropsPageTranslationLanguage])
 	})
 
 	t.Run("silently drops non-allowlisted keys", func(t *testing.T) {
@@ -3301,8 +3261,8 @@ func TestPatchPagePropsAPI(t *testing.T) {
 			"arbitrary_key":                        "dropped",
 		})
 		require.NoError(t, err)
-		require.Equal(t, "de", updated.Props[model.PostPropsPageTranslationLanguage])
-		_, hasArbitrary := updated.Props["arbitrary_key"]
+		require.Equal(t, "de", updated.Properties[model.PostPropsPageTranslationLanguage])
+		_, hasArbitrary := updated.Properties["arbitrary_key"]
 		require.False(t, hasArbitrary)
 	})
 

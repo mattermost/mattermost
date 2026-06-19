@@ -14,6 +14,24 @@ import (
 )
 
 func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersionID string) (*model.Post, bool, *model.AppError) {
+	// Check if this is a page restore (page versions live in the Pages table, not Posts).
+	if pageVersion, pageErr := a.Srv().Store().Page().GetPage(rctx, restoreVersionID, true); pageErr == nil && pageVersion != nil {
+		if pageVersion.OriginalId != postID {
+			return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_an_history_item.app_error", nil, "", http.StatusBadRequest)
+		}
+		if pageVersion.DeleteAt == 0 {
+			return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_valid_post_history_item.app_error", nil, "", http.StatusBadRequest)
+		}
+		// API layer has already checked page permissions; no ownership check needed here.
+		_, appErr := a.RestorePageVersion(rctx, userID, postID, restoreVersionID, pageVersion)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+		// Return a minimal synthetic post so the existing API handler can encode a response.
+		return &model.Post{Id: postID}, false, nil
+	}
+
+	// Regular post restoration path.
 	toRestorePostVersion, err := a.Srv().Store().Post().GetSingle(rctx, restoreVersionID, true)
 	if err != nil {
 		var statusCode int
@@ -28,30 +46,18 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, "", statusCode).Wrap(err)
 	}
 
-	// restoreVersionID needs to be an old version of postID
-	// this is only a safeguard and this should never happen in practice.
 	if toRestorePostVersion.OriginalId != postID {
 		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_an_history_item.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// For regular posts, the user needs to be the author.
-	// For pages, API layer already checked page permissions, so skip ownership check.
-	if !IsPagePost(toRestorePostVersion) && toRestorePostVersion.UserId != userID {
+	if toRestorePostVersion.UserId != userID {
 		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_allowed.app_error", nil, "", http.StatusForbidden)
 	}
 
-	// the old version of post needs to be a deleted post
 	if toRestorePostVersion.DeleteAt == 0 {
 		return nil, false, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_valid_post_history_item.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Check if this is a page - pages require special handling for version restore
-	if IsPagePost(toRestorePostVersion) {
-		restoredPost, err := a.RestorePageVersion(rctx, userID, postID, restoreVersionID, toRestorePostVersion)
-		return restoredPost, false, err
-	}
-
-	// Regular post restoration
 	postPatch := &model.PostPatch{
 		Message: &toRestorePostVersion.Message,
 		FileIds: &toRestorePostVersion.FileIds,

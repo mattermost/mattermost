@@ -38,6 +38,64 @@ func TestWikiBulkExportEmptyChannelIds(t *testing.T) {
 	assert.Equal(t, "version", versionLine["type"])
 }
 
+func TestWikiBulkExportPages(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	// A wiki linked to BasicChannel; export is scoped to the source channel and must
+	// resolve to the wiki's backing channel and emit a "page" line per page from the
+	// Pages table (regression guard: the export query previously read the Posts table).
+	wiki := &model.Wiki{TeamId: th.BasicTeam.Id, Title: "Export Wiki"}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.LinkWikiToChannel(th.Context, wiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	page1, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Export Page One", "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+	_, appErr = th.App.CreateWikiPage(th.Context, wiki.Id, "", "Export Page Two", "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	// Attach a file to page1 (owned via FileInfo.PageId) so the attachment export path runs.
+	fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+		CreatorId: th.BasicUser.Id,
+		PostId:    "",
+		ChannelId: wiki.ChannelId,
+		Name:      "export-attachment.txt",
+		Path:      "export-attachment.txt",
+		Extension: "txt",
+		MimeType:  "text/plain",
+	})
+	require.NoError(t, err)
+	_, err = th.App.Srv().Store().Page().UpdatePageFileIds(page1.Id, "", model.StringArray{fileInfo.Id})
+	require.NoError(t, err)
+
+	var buf bytes.Buffer
+	opts := model.WikiBulkExportOpts{
+		ChannelIds:         []string{th.BasicChannel.Id},
+		IncludeAttachments: true,
+	}
+	result, appErr := th.App.WikiBulkExport(th.Context, &buf, nil, opts)
+	require.Nil(t, appErr)
+
+	// Count the "page" lines emitted in the JSONL output.
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	pageCount := 0
+	for _, line := range lines {
+		var entry struct {
+			Type string `json:"type"`
+		}
+		require.NoError(t, json.Unmarshal([]byte(line), &entry))
+		if entry.Type == "page" {
+			pageCount++
+		}
+	}
+	require.Equal(t, 2, pageCount, "both pages should be exported from the Pages table")
+	require.NotEmpty(t, result.Attachments, "page attachment should be collected for export")
+}
+
 func TestWikiBulkExportVersionLine(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 

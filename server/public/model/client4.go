@@ -662,8 +662,8 @@ func (c *Client4) channelWikisRoute(channelId string) clientRoute {
 	return c.channelRoute(channelId).Join("wikis")
 }
 
-func (c *Client4) channelWikiLinksRoute(channelId string) clientRoute {
-	return c.channelRoute(channelId).Join("wikilinks")
+func (c *Client4) channelMemberLinksRoute(channelId string) clientRoute {
+	return c.channelRoute(channelId).Join("channel_member_links")
 }
 
 func (c *Client4) teamWikisRoute(teamId string) clientRoute {
@@ -8191,42 +8191,42 @@ func (c *Client4) DeleteWiki(ctx context.Context, wikiId string) (*Response, err
 }
 
 // LinkWikiToChannel links a wiki to a channel.
-func (c *Client4) LinkWikiToChannel(ctx context.Context, channelId, wikiId string) (*WikiLink, *Response, error) {
+func (c *Client4) LinkWikiToChannel(ctx context.Context, channelId, wikiId string) (*ChannelMemberLink, *Response, error) {
 	payload := map[string]string{"wiki_id": wikiId}
-	r, err := c.doAPIPostJSON(ctx, c.channelWikiLinksRoute(channelId), payload)
+	r, err := c.doAPIPostJSON(ctx, c.channelMemberLinksRoute(channelId), payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*WikiLink](r)
+	return DecodeJSONFromResponse[*ChannelMemberLink](r)
 }
 
-// GetWikiLinksForChannel gets all wiki links for a channel.
-func (c *Client4) GetWikiLinksForChannel(ctx context.Context, channelId string) ([]*WikiLink, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.channelWikiLinksRoute(channelId), "")
+// GetChannelMemberLinksForChannel gets all wiki links for a channel.
+func (c *Client4) GetChannelMemberLinksForChannel(ctx context.Context, channelId string) ([]*ChannelMemberLink, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.channelMemberLinksRoute(channelId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*WikiLink](r)
+	return DecodeJSONFromResponse[[]*ChannelMemberLink](r)
 }
 
-// GetWikiLinks gets all wiki links pointing to a wiki's backing channel.
+// GetChannelMemberLinks gets all wiki links pointing to a wiki's backing channel.
 // Used to populate client-side linksByChannel for any source channel that links
 // to this wiki, so permission checks and sidebar resolution work without
 // depending on a ?from= URL parameter.
-func (c *Client4) GetWikiLinks(ctx context.Context, wikiId string) ([]*WikiLink, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.wikiRoute(wikiId).Join("links"), "")
+func (c *Client4) GetChannelMemberLinks(ctx context.Context, wikiId string) ([]*ChannelMemberLink, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.wikiRoute(wikiId).Join("channel_member_links"), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*WikiLink](r)
+	return DecodeJSONFromResponse[[]*ChannelMemberLink](r)
 }
 
 // UnlinkWikiFromChannel removes a wiki link from a channel.
 func (c *Client4) UnlinkWikiFromChannel(ctx context.Context, channelId, wikiId string) (*Response, error) {
-	r, err := c.doAPIDelete(ctx, c.channelWikiLinksRoute(channelId).Join(wikiId))
+	r, err := c.doAPIDelete(ctx, c.channelMemberLinksRoute(channelId).Join(wikiId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8248,7 +8248,7 @@ func (c *Client4) GetTeamWikis(ctx context.Context, teamId string, page, perPage
 }
 
 // GetPages gets all pages for a wiki with pagination.
-func (c *Client4) GetPages(ctx context.Context, wikiId string, page, perPage int) ([]*Post, *Response, error) {
+func (c *Client4) GetPages(ctx context.Context, wikiId string, page, perPage int) ([]*Page, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
@@ -8257,18 +8257,18 @@ func (c *Client4) GetPages(ctx context.Context, wikiId string, page, perPage int
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Post](r)
+	return DecodeJSONFromResponse[[]*Page](r)
 }
 
 // GetChannelPages gets all pages for a channel.
-func (c *Client4) GetChannelPages(ctx context.Context, channelId string) (*PostList, *Response, error) {
+func (c *Client4) GetChannelPages(ctx context.Context, channelId string) ([]*Page, *Response, error) {
 	return c.GetChannelPagesWithContent(ctx, channelId, false)
 }
 
 // GetChannelPagesWithContent gets all pages for a channel, optionally including full page content.
-// When includeContent is true, each page's Message field will contain the full page content JSON.
+// When includeContent is true, each page's Body field will contain the full page content JSON.
 // This is more efficient than calling GetPage for each page individually.
-func (c *Client4) GetChannelPagesWithContent(ctx context.Context, channelId string, includeContent bool) (*PostList, *Response, error) {
+func (c *Client4) GetChannelPagesWithContent(ctx context.Context, channelId string, includeContent bool) ([]*Page, *Response, error) {
 	route := c.channelRoute(channelId).Join("pages")
 	values := url.Values{}
 	if includeContent {
@@ -8279,11 +8279,11 @@ func (c *Client4) GetChannelPagesWithContent(ctx context.Context, channelId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*PostList](r)
+	return DecodeJSONFromResponse[[]*Page](r)
 }
 
 // CreatePage creates a new page in a wiki.
-func (c *Client4) CreatePage(ctx context.Context, wikiId, pageParentId, title string) (*Post, *Response, error) {
+func (c *Client4) CreatePage(ctx context.Context, wikiId, pageParentId, title string) (*Page, *Response, error) {
 	payload := map[string]string{
 		"title":          title,
 		"page_parent_id": pageParentId,
@@ -8293,17 +8293,27 @@ func (c *Client4) CreatePage(ctx context.Context, wikiId, pageParentId, title st
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Post](r)
+	return DecodeJSONFromResponse[*Page](r)
 }
 
 // GetPage gets a single page from a wiki.
-func (c *Client4) GetPage(ctx context.Context, wikiId, pageId string) (*Post, *Response, error) {
+func (c *Client4) GetPage(ctx context.Context, wikiId, pageId string) (*Page, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.wikiPageRoute(wikiId, pageId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Post](r)
+	return DecodeJSONFromResponse[*Page](r)
+}
+
+// GetPageFiles gets all the file info objects attached to a wiki page.
+func (c *Client4) GetPageFiles(ctx context.Context, wikiId, pageId string) ([]*FileInfo, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.wikiPageRoute(wikiId, pageId).Join("files"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*FileInfo](r)
 }
 
 // DeletePage permanently deletes a page. The page and all its comments are soft-deleted.
@@ -8329,7 +8339,7 @@ func (c *Client4) RestorePage(ctx context.Context, wikiId, pageId string) (*Resp
 // UpdatePage updates a page's title and/or content with optional optimistic locking.
 // If baseEditAt > 0, the server will verify the page hasn't been modified since that timestamp.
 // If the page has been modified since baseEditAt, a 409 Conflict error will be returned.
-func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content, searchText string, baseEditAt int64) (*Post, *Response, error) {
+func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content, searchText string, baseEditAt int64) (*Page, *Response, error) {
 	payload := map[string]any{
 		"title":       title,
 		"content":     content,
@@ -8343,17 +8353,17 @@ func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Post](r)
+	return DecodeJSONFromResponse[*Page](r)
 }
 
 // PatchPageProps updates the allowlisted translation props on a page without modifying content.
-func (c *Client4) PatchPageProps(ctx context.Context, wikiId, pageId string, props StringInterface) (*Post, *Response, error) {
+func (c *Client4) PatchPageProps(ctx context.Context, wikiId, pageId string, props StringInterface) (*Page, *Response, error) {
 	r, err := c.doAPIPatchJSON(ctx, c.wikiPageRoute(wikiId, pageId).Join("props"), map[string]any{"props": props})
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Post](r)
+	return DecodeJSONFromResponse[*Page](r)
 }
 
 // MovePageToWiki moves a page from one wiki to another.
@@ -8370,7 +8380,7 @@ func (c *Client4) MovePageToWiki(ctx context.Context, sourceWikiId, pageId, targ
 }
 
 // DuplicatePage duplicates a page to a target wiki with optional parent and custom title.
-func (c *Client4) DuplicatePage(ctx context.Context, sourceWikiId, pageId, targetWikiId string, parentPageId, customTitle *string) (*Post, *Response, error) {
+func (c *Client4) DuplicatePage(ctx context.Context, sourceWikiId, pageId, targetWikiId string, parentPageId, customTitle *string) (*Page, *Response, error) {
 	payload := map[string]any{
 		"target_wiki_id": targetWikiId,
 	}
@@ -8385,7 +8395,7 @@ func (c *Client4) DuplicatePage(ctx context.Context, sourceWikiId, pageId, targe
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Post](r)
+	return DecodeJSONFromResponse[*Page](r)
 }
 
 // GetPageBreadcrumb retrieves the breadcrumb navigation path for a page.
@@ -8401,7 +8411,7 @@ func (c *Client4) GetPageBreadcrumb(ctx context.Context, wikiId, pageId string) 
 // MovePage moves a page within the hierarchy. Can change parent and/or reorder among siblings.
 // parentId: if non-nil, changes the page's parent (nil = keep current parent, empty string = move to root)
 // siblingIndex: if non-nil, reorders the page to this position among siblings
-func (c *Client4) MovePage(ctx context.Context, wikiId, pageId string, parentId *string, siblingIndex *int64) (*PostList, *Response, error) {
+func (c *Client4) MovePage(ctx context.Context, wikiId, pageId string, parentId *string, siblingIndex *int64) ([]*Page, *Response, error) {
 	payload := map[string]any{}
 	if parentId != nil {
 		payload["page_parent_id"] = *parentId
@@ -8417,11 +8427,11 @@ func (c *Client4) MovePage(ctx context.Context, wikiId, pageId string, parentId 
 
 	// If siblingIndex was provided, response contains siblings; otherwise just status OK
 	if siblingIndex != nil {
-		var postList PostList
-		if err := json.NewDecoder(r.Body).Decode(&postList); err != nil {
+		var pages []*Page
+		if err := json.NewDecoder(r.Body).Decode(&pages); err != nil {
 			return nil, BuildResponse(r), NewAppError("MovePage", "api.unmarshal_error", nil, "", 0).Wrap(err)
 		}
-		return &postList, BuildResponse(r), nil
+		return pages, BuildResponse(r), nil
 	}
 	return nil, BuildResponse(r), nil
 }

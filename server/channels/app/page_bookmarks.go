@@ -12,14 +12,17 @@ import (
 )
 
 // CreateBookmarkFromPage creates a channel bookmark that links to a page.
-func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *model.Post, channelId string, displayName string, emoji string, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *model.Page, channelId string, displayName string, emoji string, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
 	pageId := page.Id
-	post := page
 
-	// Get wikiId from PropertyValues (not from Props)
-	wikiId, wikiErr := a.GetWikiIdForPage(rctx, pageId)
-	if wikiErr != nil {
-		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.page_missing_wiki_id.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
+	// Use WikiId column directly; fall back to structural lookup if empty.
+	wikiId := page.WikiId
+	if wikiId == "" {
+		var wikiErr *model.AppError
+		wikiId, wikiErr = a.GetWikiIdForPage(rctx, pageId)
+		if wikiErr != nil {
+			return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.page_missing_wiki_id.app_error", nil, "", http.StatusBadRequest).Wrap(wikiErr)
+		}
 	}
 	if wikiId == "" {
 		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.page_missing_wiki_id.app_error", nil, "", http.StatusBadRequest)
@@ -38,7 +41,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *model.Post, channel
 
 	// Use page title as display name if not provided
 	if displayName == "" {
-		displayName = post.GetPageTitle()
+		displayName = page.Title
 		if utf8.RuneCountInString(displayName) > model.DisplayNameMaxRunes {
 			displayName = string([]rune(displayName)[:model.DisplayNameMaxRunes])
 		}

@@ -72,7 +72,7 @@ func TestCalculateMaxDepthFromPostList(t *testing.T) {
 		postList, appErr := th.App.GetChannelPages(rctx, th.BasicWiki.ChannelId, 0, 0)
 		require.Nil(t, appErr)
 
-		maxDepth := th.App.calculateMaxDepthFromPostList(postList)
+		maxDepth := th.App.calculateMaxDepthFromPages(postList)
 		// Should have at least depth 2 (root=0, child=1, grandchild=2)
 		require.GreaterOrEqual(t, maxDepth, 2)
 	})
@@ -151,4 +151,14 @@ func TestCalculateSubtreeMaxDepth(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, 0, depth)
 	})
+}
+
+// pageIDsContain reports whether any page in pages has the given id.
+func pageIDsContain(pages []*model.Page, id string) bool {
+	for _, p := range pages {
+		if p.Id == id {
+			return true
+		}
+	}
+	return false
 }

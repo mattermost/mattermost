@@ -483,7 +483,7 @@ func notifyEditorStopped(c *Context, w http.ResponseWriter, r *http.Request) {
 	// stale indicators clear even when the page is gone or never existed
 	// (deleted, moved, or never-published draft). The audience is the linked
 	// source channels of this wiki, resolved by BroadcastPageEditorStopped via
-	// publishDraftEventToWikiAuthorizedUsers → WikiLinkStore.GetByWiki. A forged pageId
+	// publishDraftEventToWikiAuthorizedUsers → ChannelMemberLinkStore.GetByWiki. A forged pageId
 	// is harmless: no client has that key in its map.
 	userId := c.AppContext.Session().UserId
 	c.App.BroadcastPageEditorStopped(c.AppContext, wiki, c.Params.PageId, userId)

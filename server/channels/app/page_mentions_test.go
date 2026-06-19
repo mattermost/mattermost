@@ -11,106 +11,27 @@ import (
 )
 
 func TestGetPreviouslyNotifiedMentions(t *testing.T) {
-	t.Run("empty props returns empty slice", func(t *testing.T) {
-		page := &model.Post{}
+	// Pages no longer carry a Props blob; getPreviouslyNotifiedMentions always
+	// returns an empty slice regardless of input.
+	t.Run("empty page returns empty slice", func(t *testing.T) {
+		page := &model.Page{}
 		result := getPreviouslyNotifiedMentions(page)
 		assert.Empty(t, result)
 	})
 
-	t.Run("nil props returns empty slice", func(t *testing.T) {
-		page := &model.Post{Props: nil}
-		result := getPreviouslyNotifiedMentions(page)
-		assert.Empty(t, result)
-	})
-
-	t.Run("notified_mentions not present returns empty slice", func(t *testing.T) {
-		page := &model.Post{
-			Props: model.StringInterface{
-				"other_prop": "value",
-			},
-		}
-		result := getPreviouslyNotifiedMentions(page)
-		assert.Empty(t, result)
-	})
-
-	t.Run("notified_mentions as []string", func(t *testing.T) {
-		page := &model.Post{
-			Props: model.StringInterface{
-				"notified_mentions": []string{"user1", "user2", "user3"},
-			},
-		}
-		result := getPreviouslyNotifiedMentions(page)
-		assert.ElementsMatch(t, []string{"user1", "user2", "user3"}, result)
-	})
-
-	t.Run("notified_mentions as []any", func(t *testing.T) {
-		page := &model.Post{
-			Props: model.StringInterface{
-				"notified_mentions": []any{"user1", "user2"},
-			},
-		}
-		result := getPreviouslyNotifiedMentions(page)
-		assert.ElementsMatch(t, []string{"user1", "user2"}, result)
-	})
-
-	t.Run("notified_mentions with mixed types filters non-strings", func(t *testing.T) {
-		page := &model.Post{
-			Props: model.StringInterface{
-				"notified_mentions": []any{"user1", 123, "user2", nil},
-			},
-		}
-		result := getPreviouslyNotifiedMentions(page)
-		assert.ElementsMatch(t, []string{"user1", "user2"}, result)
-	})
-
-	t.Run("notified_mentions as invalid type returns empty slice", func(t *testing.T) {
-		page := &model.Post{
-			Props: model.StringInterface{
-				"notified_mentions": "invalid_type",
-			},
-		}
+	t.Run("page always returns empty slice (no Props on Page)", func(t *testing.T) {
+		page := &model.Page{Id: model.NewId()}
 		result := getPreviouslyNotifiedMentions(page)
 		assert.Empty(t, result)
 	})
 }
 
 func TestSetNotifiedMentions(t *testing.T) {
-	t.Run("sets notified_mentions on page with nil props", func(t *testing.T) {
-		page := &model.Post{Props: nil}
+	// setNotifiedMentions is a no-op for Pages (no Props blob); calling it does not panic.
+	t.Run("does not panic on empty page", func(t *testing.T) {
+		page := &model.Page{}
 		setNotifiedMentions(page, []string{"user1", "user2"})
-
-		assert.NotNil(t, page.Props)
-		assert.Equal(t, []string{"user1", "user2"}, page.Props["notified_mentions"])
-	})
-
-	t.Run("sets notified_mentions on page with existing props", func(t *testing.T) {
-		page := &model.Post{
-			Props: model.StringInterface{
-				"other_prop": "value",
-			},
-		}
-		setNotifiedMentions(page, []string{"user1", "user2"})
-
-		assert.Equal(t, []string{"user1", "user2"}, page.Props["notified_mentions"])
-		assert.Equal(t, "value", page.Props["other_prop"])
-	})
-
-	t.Run("overwrites existing notified_mentions", func(t *testing.T) {
-		page := &model.Post{
-			Props: model.StringInterface{
-				"notified_mentions": []string{"old_user"},
-			},
-		}
-		setNotifiedMentions(page, []string{"new_user1", "new_user2"})
-
-		assert.Equal(t, []string{"new_user1", "new_user2"}, page.Props["notified_mentions"])
-	})
-
-	t.Run("sets empty slice", func(t *testing.T) {
-		page := &model.Post{Props: model.StringInterface{}}
-		setNotifiedMentions(page, []string{})
-
-		assert.Equal(t, []string{}, page.Props["notified_mentions"])
+		// no assertion needed: function is a no-op, test guards against panic
 	})
 }
 

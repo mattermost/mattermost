@@ -9,30 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 )
 
-func TestLinkPageToFirstWiki(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		api := plugintest.NewAPI(t)
-		client := NewClient(api, &plugintest.Driver{})
-
-		api.On("LinkPageToFirstWiki", "page1", "channel1").Return(nil)
-
-		err := client.Wiki.LinkPageToFirstWiki("page1", "channel1")
-		require.NoError(t, err)
-	})
-
-	t.Run("failure", func(t *testing.T) {
-		api := plugintest.NewAPI(t)
-		client := NewClient(api, &plugintest.Driver{})
-
-		appErr := newAppError()
-
-		api.On("LinkPageToFirstWiki", "page1", "channel1").Return(appErr)
-
-		err := client.Wiki.LinkPageToFirstWiki("page1", "channel1")
-		require.Equal(t, appErr, err)
-	})
-}
-
 func TestGetFirstWikiForChannel(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := plugintest.NewAPI(t)
@@ -64,13 +40,13 @@ func TestCreatePage(t *testing.T) {
 		api := plugintest.NewAPI(t)
 		client := NewClient(api, &plugintest.Driver{})
 
-		expectedPost := &model.Post{Id: "post1", Message: "Test Page"}
+		expectedPage := &model.Page{Id: "post1", Title: "Test Page"}
 
-		api.On("CreateWikiPage", "wiki1", "Test Page", "content", "user1").Return(expectedPost, nil)
+		api.On("CreateWikiPage", "wiki1", "Test Page", "content", "user1").Return(expectedPage, nil)
 
-		post, err := client.Wiki.CreatePage("wiki1", "Test Page", "content", "user1")
+		page, err := client.Wiki.CreatePage("wiki1", "Test Page", "content", "user1")
 		require.NoError(t, err)
-		require.Equal(t, expectedPost, post)
+		require.Equal(t, expectedPage, page)
 	})
 
 	t.Run("failure", func(t *testing.T) {

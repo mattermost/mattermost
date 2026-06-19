@@ -1796,7 +1796,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 
 	// Clean up wiki links only after the channel archive commits. If the delete
 	// fails, links stay intact so linked-wiki access matches archive state.
-	a.cleanupWikiLinksForSourceChannel(rctx, channel.Id, "channel archive")
+	a.cleanupChannelMemberLinksForSourceChannel(rctx, channel.Id, "channel archive")
 	if channel.IsWikiBacking() {
 		a.onWikiBackingChannelArchived(rctx, channel.Id)
 	}
@@ -3737,11 +3737,11 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 
 	deleteAt := model.GetMillis()
 
-	if err := a.Srv().Store().WikiLink().DeleteByDestination(channel.Id); err != nil {
+	if err := a.Srv().Store().ChannelMemberLink().DeleteByDestination(channel.Id); err != nil {
 		rctx.Logger().Warn("Failed to clean up wiki links by destination during permanent channel delete",
 			mlog.String("channel_id", channel.Id), mlog.Err(err))
 	}
-	a.cleanupWikiLinksForSourceChannel(rctx, channel.Id, "permanent channel delete")
+	a.cleanupChannelMemberLinksForSourceChannel(rctx, channel.Id, "permanent channel delete")
 
 	if nErr := a.Srv().Store().Channel().PermanentDelete(rctx, channel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -4938,21 +4938,21 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 	return nil
 }
 
-// cleanupWikiLinksForSourceChannel removes every wiki link where the given channel is the
+// cleanupChannelMemberLinksForSourceChannel removes every wiki link where the given channel is the
 // source, cleans up synthetic memberships, and broadcasts wiki_unlinked events. Failures
 // are logged and skipped rather than aborting the caller (best-effort): any synthetic
 // memberships that fail to clean up become orphaned (users retain wiki-channel access until
 // the wiki is deleted or the link is manually removed), which is acceptable under
 // soft-delete semantics. The operation label is included in logs to distinguish call sites.
-func (a *App) cleanupWikiLinksForSourceChannel(rctx request.CTX, channelId, operation string) {
-	links, err := a.Srv().Store().WikiLink().GetBySourceMaster(channelId)
+func (a *App) cleanupChannelMemberLinksForSourceChannel(rctx request.CTX, channelId, operation string) {
+	links, err := a.Srv().Store().ChannelMemberLink().GetBySourceMaster(channelId)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get wiki links for channel, skipping link cleanup",
 			mlog.String("channel_id", channelId), mlog.String("operation", operation), mlog.Err(err))
 		return
 	}
 	for _, link := range links {
-		if delErr := a.Srv().Store().WikiLink().DeleteAndCleanupMembers(rctx, link.SourceId, link.DestinationId); delErr != nil {
+		if delErr := a.Srv().Store().ChannelMemberLink().DeleteAndCleanupMembers(rctx, link.SourceId, link.DestinationId); delErr != nil {
 			rctx.Logger().Warn("Failed to clean up wiki link",
 				mlog.String("source_id", link.SourceId), mlog.String("destination_id", link.DestinationId),
 				mlog.String("operation", operation), mlog.Err(delErr))
@@ -4966,7 +4966,7 @@ func (a *App) cleanupWikiLinksForSourceChannel(rctx request.CTX, channelId, oper
 				mlog.String("operation", operation), mlog.Err(wikiErr))
 			continue
 		}
-		a.broadcastWikiLinkEvent(model.WebsocketEventWikiUnlinked, wiki.Id, link.SourceId, model.GetMillis())
+		a.broadcastChannelMemberLinkEvent(model.WebsocketEventChannelMemberUnlinked, wiki.Id, link.SourceId, model.GetMillis())
 	}
 }
 
@@ -5011,7 +5011,7 @@ func (a *App) invalidateLinkedChannelCachesForDestinations(userId string, destin
 }
 
 func (a *App) removeSyntheticMembershipsForUser(rctx request.CTX, userId, sourceChannelId string) {
-	links, err := a.Srv().Store().WikiLink().GetBySourceMaster(sourceChannelId)
+	links, err := a.Srv().Store().ChannelMemberLink().GetBySourceMaster(sourceChannelId)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get channel member links for removal", mlog.Err(err))
 		return

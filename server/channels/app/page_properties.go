@@ -22,34 +22,45 @@ var pageWritableProps = map[string]bool{
 	model.PostPropsPageTranslations:        true,
 }
 
-// PatchPageProps merges the provided props into the page post, keeping only keys
-// that appear in pageWritableProps. The caller is responsible for permission checks.
-func (a *App) PatchPageProps(rctx request.CTX, page *model.Post, props map[string]any, channel *model.Channel) (*model.Post, *model.AppError) {
-	updated := page.Clone()
-	if updated.Props == nil {
-		updated.Props = make(model.StringInterface)
+// PatchPageProps merges the allowlisted writable props (translation metadata) into the page's
+// persisted Props blob. Non-allowlisted keys are silently dropped. The patched keys are surfaced
+// in the returned page's transient Properties so the client sees them in the response.
+func (a *App) PatchPageProps(rctx request.CTX, page *model.Page, props map[string]any, channel *model.Channel) (*model.Page, *model.AppError) {
+	// Clone before mutating so a failed store write never leaves the caller's page
+	// carrying props that were not persisted.
+	updatedInput := page.Clone()
+	if updatedInput.Props == nil {
+		updatedInput.Props = model.StringInterface{}
 	}
-	applied := 0
+	patched := model.StringInterface{}
 	for k, v := range props {
 		if pageWritableProps[k] {
-			updated.Props[k] = v
-			applied++
+			updatedInput.Props[k] = v
+			patched[k] = v
 		}
 	}
-	if applied == 0 {
+
+	if len(patched) == 0 {
 		return nil, model.NewAppError("PatchPageProps", "app.page.patch_props.no_valid_keys.app_error", nil, "no writable prop keys provided", http.StatusBadRequest)
 	}
 
-	result, storeErr := a.Srv().Store().Page().Update(rctx, updated)
-	if storeErr != nil {
+	updated, err := a.Srv().Store().Page().Update(rctx, updatedInput)
+	if err != nil {
 		statusCode := http.StatusInternalServerError
-		if store.IsErrNotFound(storeErr) {
+		if store.IsErrNotFound(err) {
 			statusCode = http.StatusNotFound
 		}
-		return nil, model.NewAppError("PatchPageProps", "app.page.patch_props.store_error.app_error", nil, "", statusCode).Wrap(storeErr)
+		return nil, model.NewAppError("PatchPageProps", "app.page.patch_props.update.app_error", nil, "", statusCode).Wrap(err)
 	}
 
-	return a.finalizePageUpdate(rctx, result, "", "", channel)
+	a.EnrichPageWithProperties(rctx, updated)
+	if updated.Properties == nil {
+		updated.Properties = map[string]any{}
+	}
+	for k, v := range patched {
+		updated.Properties[k] = v
+	}
+	return updated, nil
 }
 
 func (a *App) GetPagePropertyGroup() (*model.PropertyGroup, error) {
@@ -158,28 +169,22 @@ func (a *App) validatePageStatus(field *model.PropertyField, status string) *mod
 	return model.NewAppError("validatePageStatus", "app.page.validate_status.invalid_value", map[string]any{"Status": status}, "", http.StatusBadRequest)
 }
 
-// EnrichPageWithProperties adds property values to page props before returning to client.
-// This is best-effort: errors are logged as warnings and do not fail the call.
-// Set useMaster to true when calling after a write operation to ensure read-after-write consistency in HA.
-func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post, useMaster ...bool) {
-	if !IsPagePost(page) {
+// EnrichPageWithProperties adds property values (page_status) to a Page's transient
+// Properties map before returning to the client. Best-effort: errors are logged and
+// do not fail the call. Pass useMaster=true after a write to ensure read-after-write
+// consistency in HA.
+func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Page, useMaster ...bool) {
+	if page == nil {
 		return
 	}
-
-	postList := &model.PostList{
-		Posts: map[string]*model.Post{page.Id: page},
-		Order: []string{page.Id},
-	}
-
-	a.EnrichPagesWithProperties(rctx, postList, useMaster...)
+	a.EnrichPagesWithProperties(rctx, []*model.Page{page}, useMaster...)
 }
 
-// EnrichPagesWithProperties enriches multiple pages with their property values
-// (page_status) in batched queries to minimize DB trips.
-// This is best-effort: errors are logged as warnings and do not fail the call.
-// Set useMaster to true when calling after a write operation to ensure read-after-write consistency in HA.
-func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostList, useMaster ...bool) {
-	if postList == nil || len(postList.Posts) == 0 {
+// EnrichPagesWithProperties enriches a slice of Pages with their property values
+// (page_status) in batched queries to minimise DB trips. Best-effort: errors are
+// logged and do not fail the call. Pass useMaster=true after a write.
+func (a *App) EnrichPagesWithProperties(rctx request.CTX, pages []*model.Page, useMaster ...bool) {
+	if len(pages) == 0 {
 		return
 	}
 
@@ -189,10 +194,10 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		return
 	}
 
-	pageIds := make([]string, 0, len(postList.Posts))
-	for _, page := range postList.Posts {
-		if IsPagePost(page) {
-			pageIds = append(pageIds, page.Id)
+	pageIds := make([]string, 0, len(pages))
+	for _, p := range pages {
+		if p != nil {
+			pageIds = append(pageIds, p.Id)
 		}
 	}
 
@@ -224,18 +229,82 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		}
 	}
 
-	for _, page := range postList.Posts {
-		if !IsPagePost(page) {
+	for _, p := range pages {
+		if p == nil {
 			continue
 		}
+		if p.Properties == nil {
+			p.Properties = make(map[string]any)
+		}
+		p.Properties[model.PagePropsPageStatus] = statusMap[p.Id]
+		// Surface the allowlisted translation metadata persisted in Props (translated_from,
+		// translation_language, translations) so the client reads it from Properties uniformly.
+		for k := range pageWritableProps {
+			if v, ok := p.Props[k]; ok {
+				p.Properties[k] = v
+			}
+		}
+	}
+}
 
-		props := page.GetProps()
+// EnrichPostListPageProperties enriches page-type posts in a PostList with their
+// property values. This is the Post-search path; pages retrieved via the Pages table
+// use EnrichPagesWithProperties instead.
+func (a *App) EnrichPostListPageProperties(rctx request.CTX, postList *model.PostList, useMaster ...bool) {
+	if postList == nil || len(postList.Posts) == 0 {
+		return
+	}
+
+	statusField, fieldErr := a.GetPagePropertyFieldByName(pagePropertyNameStatus)
+	if fieldErr != nil {
+		rctx.Logger().Warn("EnrichPostListPageProperties: failed to get status field, skipping enrichment", mlog.Err(fieldErr))
+		return
+	}
+
+	pageIds := make([]string, 0, len(postList.Posts))
+	for _, p := range postList.Posts {
+		if IsPagePost(p) {
+			pageIds = append(pageIds, p.Id)
+		}
+	}
+
+	if len(pageIds) == 0 {
+		return
+	}
+
+	shouldUseMaster := len(useMaster) > 0 && useMaster[0]
+
+	statusSearchOpts := model.PropertyValueSearchOpts{
+		TargetIDs:  pageIds,
+		TargetType: model.PropertyValueTargetTypePage,
+		FieldID:    statusField.ID,
+		PerPage:    len(pageIds),
+		UseMaster:  shouldUseMaster,
+	}
+
+	statusValues, err := a.Srv().PropertyService().SearchPropertyValues(rctx, statusField.GroupID, statusSearchOpts)
+	if err != nil {
+		rctx.Logger().Warn("EnrichPostListPageProperties: status search returned error, skipping enrichment", mlog.Err(err))
+		return
+	}
+
+	statusMap := make(map[string]string)
+	for _, value := range statusValues {
+		var status string
+		if jsonErr := json.Unmarshal(value.Value, &status); jsonErr == nil {
+			statusMap[value.TargetID] = status
+		}
+	}
+
+	for _, p := range postList.Posts {
+		if !IsPagePost(p) {
+			continue
+		}
+		props := p.GetProps()
 		if props == nil {
 			props = make(map[string]any)
 		}
-
-		props[model.PagePropsPageStatus] = statusMap[page.Id]
-
-		page.SetProps(props)
+		props[model.PagePropsPageStatus] = statusMap[p.Id]
+		p.SetProps(props)
 	}
 }

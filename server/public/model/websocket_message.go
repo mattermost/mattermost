@@ -99,12 +99,12 @@ const (
 	WebsocketEventWikiUpdated WebsocketEventType = "wiki_updated"
 	WebsocketEventWikiMoved   WebsocketEventType = "wiki_moved"
 	WebsocketEventWikiDeleted WebsocketEventType = "wiki_deleted"
-	// WebsocketEventWikiLinked is sent when a wiki is linked to a source channel.
+	// WebsocketEventChannelMemberLinked is sent when a wiki is linked to a source channel.
 	// Data: {"wiki_id": string, "source_channel_id": string}
-	WebsocketEventWikiLinked WebsocketEventType = "wiki_linked"
-	// WebsocketEventWikiUnlinked is sent when a wiki is unlinked from a source channel.
+	WebsocketEventChannelMemberLinked WebsocketEventType = "wiki_linked"
+	// WebsocketEventChannelMemberUnlinked is sent when a wiki is unlinked from a source channel.
 	// Data: {"wiki_id": string, "source_channel_id": string}
-	WebsocketEventWikiUnlinked                        WebsocketEventType = "wiki_unlinked"
+	WebsocketEventChannelMemberUnlinked               WebsocketEventType = "wiki_unlinked"
 	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"
