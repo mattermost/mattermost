@@ -11,7 +11,7 @@ const LINKED_OBJECT_TYPE = 'system';
 const TARGET_TYPE = 'system';
 const SYSTEM_FIELD_TARGET_ID = ''; // target_type 'system' requires empty target_id on the field
 const CLASSIFICATION_FIELD_NAME = 'classification';
-const LINKED_CLASSIFICATION_FIELD_NAME = 'system_classification';
+const LINKED_CLASSIFICATION_FIELD_NAME = 'classification';
 const DISPLAY_BANNER_TOP = 'display_banner_top';
 const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
@@ -38,7 +38,7 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
     // Delete channel linked fields first (created by channel classification tests).
     try {
         const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', TARGET_TYPE, '');
-        for (const f of channelFields.filter((f) => f.name === 'channel_classification' && f.delete_at === 0)) {
+        for (const f of channelFields.filter((f) => f.name === 'classification' && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, 'channel', f.id);
         }
     } catch {
