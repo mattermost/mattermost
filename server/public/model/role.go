@@ -881,7 +881,7 @@ func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 	}
 
 	for roleName := range strings.FieldsSeq(channelMemberRoles) {
-		if !isBuiltInRole(roleName) {
+		if !slices.Contains(BuiltInSchemeManagedRoleIDs, roleName) {
 			continue
 		}
 		if roleName != ChannelGuestRoleId && roleName != ChannelUserRoleId && roleName != ChannelAdminRoleId {
@@ -890,10 +890,6 @@ func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 	}
 
 	return true
-}
-
-func isBuiltInRole(roleName string) bool {
-	return slices.Contains(BuiltInSchemeManagedRoleIDs, roleName)
 }
 
 func MakeDefaultRoles() map[string]*Role {
