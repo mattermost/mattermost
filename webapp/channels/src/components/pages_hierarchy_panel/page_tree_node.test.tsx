@@ -7,8 +7,6 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {PostTypes} from 'mattermost-redux/constants/posts';
-
 import {renderWithContext} from 'tests/react_testing_utils';
 import {PageDisplayTypes} from 'utils/constants';
 
@@ -28,28 +26,24 @@ describe('components/pages_hierarchy_panel/PageTreeNode', () => {
         children: [],
         page: {
             id: 'page-1',
+            wiki_id: 'wiki-1',
+            parent_id: '',
+            type: 'page',
+            title: 'Test Page',
+            body: 'Test content',
+            search_text: '',
+            user_id: 'user-1',
+            last_modified_by: '',
+            sort_order: 0,
             create_at: 1000,
             update_at: 1000,
-            delete_at: 0,
             edit_at: 0,
-            is_pinned: false,
-            user_id: 'user-1',
-            channel_id: 'wiki-1',
-            root_id: '',
+            delete_at: 0,
             original_id: '',
-            message: 'Test content',
-            type: PostTypes.PAGE,
-            page_parent_id: '',
-            props: {title: 'Test Page'},
-            hashtags: '',
-            pending_post_id: '',
-            reply_count: 0,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
+            has_effective_view_restriction: false,
+            has_local_edit_restriction: false,
+            properties: {},
+            pending_file_ids: [],
         },
     };
 
@@ -146,7 +140,6 @@ describe('components/pages_hierarchy_panel/PageTreeNode', () => {
                 page: {
                     ...mockNode.page,
                     type: PageDisplayTypes.PAGE_DRAFT,
-                    page_parent_id: '',
                 },
             };
             const props = {...baseProps, node: draftNode};
@@ -247,7 +240,6 @@ describe('components/pages_hierarchy_panel/PageTreeNode', () => {
                 page: {
                     ...mockNode.page,
                     type: PageDisplayTypes.PAGE_DRAFT,
-                    page_parent_id: '',
                 },
             };
             const props = {...baseProps, node: draftNode};
@@ -264,7 +256,6 @@ describe('components/pages_hierarchy_panel/PageTreeNode', () => {
                 page: {
                     ...mockNode.page,
                     type: PageDisplayTypes.PAGE_DRAFT,
-                    page_parent_id: '',
                 },
             };
             const props = {...baseProps, node: draftNode};

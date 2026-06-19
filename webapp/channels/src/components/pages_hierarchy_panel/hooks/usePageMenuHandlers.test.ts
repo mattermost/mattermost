@@ -3,7 +3,7 @@
 
 import {renderHook, act} from '@testing-library/react';
 
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -54,67 +54,32 @@ jest.mock('actions/views/modals', () => ({
 }));
 
 describe('usePageMenuHandlers - Rename functionality', () => {
-    const mockPages: Post[] = [
-        {
-            id: 'page1',
-            create_at: 1234567890,
-            update_at: 1234567990,
-            delete_at: 0,
-            edit_at: 0,
-            is_pinned: false,
-            user_id: 'user123',
-            channel_id: 'channel123',
-            root_id: '',
-            original_id: '',
-            message: '',
-            type: '',
-            page_parent_id: '',
-            props: {
-                title: 'Original Page Title',
-            },
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
-        },
-        {
-            id: 'page2',
-            create_at: 1234567890,
-            update_at: 1234567990,
-            delete_at: 0,
-            edit_at: 0,
-            is_pinned: false,
-            user_id: 'user123',
-            channel_id: 'channel123',
-            root_id: '',
-            original_id: '',
-            message: 'Fallback Title',
-            type: '',
-            page_parent_id: '',
-            props: {},
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
-        },
+    const makePage = (overrides: Partial<Page> = {}): Page => ({
+        id: 'page1',
+        wiki_id: 'wiki123',
+        parent_id: '',
+        type: 'page',
+        title: '',
+        body: '',
+        search_text: '',
+        user_id: 'user123',
+        last_modified_by: '',
+        sort_order: 0,
+        create_at: 1234567890,
+        update_at: 1234567990,
+        edit_at: 0,
+        delete_at: 0,
+        original_id: '',
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
+        ...overrides,
+    });
+
+    const mockPages: Page[] = [
+        makePage({id: 'page1', title: 'Original Page Title'}),
+        makePage({id: 'page2', title: ''}),
     ];
 
     const baseProps = {
@@ -178,11 +143,10 @@ describe('usePageMenuHandlers - Rename functionality', () => {
     });
 
     test('should use empty string as title when both props.title and message are missing', () => {
-        const pageWithoutTitle: Post = {
+        const pageWithoutTitle: Page = {
             ...mockPages[0],
             id: 'page3',
-            message: '',
-            props: {},
+            title: '',
         };
         const propsWithUntitledPage = {
             ...baseProps,
@@ -229,37 +193,27 @@ describe('usePageMenuHandlers - Rename functionality', () => {
 });
 
 describe('usePageMenuHandlers - Delete functionality', () => {
-    const mockPages: Post[] = [
+    const mockPages: Page[] = [
         {
             id: 'page1',
+            wiki_id: 'wiki123',
+            parent_id: '',
+            type: 'page',
+            title: 'Page Title',
+            body: '',
+            search_text: '',
+            user_id: 'user123',
+            last_modified_by: '',
+            sort_order: 0,
             create_at: 1234567890,
             update_at: 1234567990,
-            delete_at: 0,
             edit_at: 0,
-            is_pinned: false,
-            user_id: 'user123',
-            channel_id: 'channel123',
-            root_id: '',
+            delete_at: 0,
             original_id: '',
-            message: '',
-            type: '',
-            page_parent_id: '',
-            props: {
-                title: 'Page Title',
-            },
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
+            has_effective_view_restriction: false,
+            has_local_edit_restriction: false,
+            properties: {},
+            pending_file_ids: [],
         },
     ];
 
@@ -335,37 +289,27 @@ describe('usePageMenuHandlers - Create functionality', () => {
     });
 
     test('should open create child modal via modal manager when handleCreateChild is called', () => {
-        const mockPages: Post[] = [
+        const mockPages: Page[] = [
             {
                 id: 'parent-page',
+                wiki_id: 'wiki123',
+                parent_id: '',
+                type: 'page',
+                title: 'Parent Page',
+                body: '',
+                search_text: '',
+                user_id: 'user123',
+                last_modified_by: '',
+                sort_order: 0,
                 create_at: 1234567890,
                 update_at: 1234567990,
-                delete_at: 0,
                 edit_at: 0,
-                is_pinned: false,
-                user_id: 'user123',
-                channel_id: 'channel123',
-                root_id: '',
+                delete_at: 0,
                 original_id: '',
-                message: '',
-                type: '',
-                page_parent_id: '',
-                props: {
-                    title: 'Parent Page',
-                },
-                hashtags: '',
-                filenames: [],
-                file_ids: [],
-                pending_post_id: '',
-                reply_count: 0,
-                last_reply_at: 0,
-                participants: null,
-                metadata: {
-                    embeds: [],
-                    emojis: [],
-                    files: [],
-                    images: {},
-                },
+                has_effective_view_restriction: false,
+                has_local_edit_restriction: false,
+                properties: {},
+                pending_file_ids: [],
             },
         ];
 
@@ -393,37 +337,27 @@ describe('usePageMenuHandlers - Create functionality', () => {
 });
 
 describe('usePageMenuHandlers - Move functionality', () => {
-    const mockPages: Post[] = [
+    const mockPages: Page[] = [
         {
             id: 'page1',
+            wiki_id: 'wiki123',
+            parent_id: '',
+            type: 'page',
+            title: 'Page Title',
+            body: '',
+            search_text: '',
+            user_id: 'user123',
+            last_modified_by: '',
+            sort_order: 0,
             create_at: 1234567890,
             update_at: 1234567990,
-            delete_at: 0,
             edit_at: 0,
-            is_pinned: false,
-            user_id: 'user123',
-            channel_id: 'channel123',
-            root_id: '',
+            delete_at: 0,
             original_id: '',
-            message: '',
-            type: '',
-            page_parent_id: '',
-            props: {
-                title: 'Page Title',
-            },
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
+            has_effective_view_restriction: false,
+            has_local_edit_restriction: false,
+            properties: {},
+            pending_file_ids: [],
         },
     ];
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {savePageDraft} from 'actions/page_drafts';
 import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
@@ -60,17 +60,17 @@ function checkForUnsavedDraft(
 export function openPageInEditMode(
     channelId: string,
     wikiId: string,
-    page: Post,
+    page: Page,
 ): ActionFuncAsync<string> {
     return async (dispatch, getState) => {
         const state = getState();
         const pageId = page.id;
         const pageTitle = getPageTitle(page, 'Untitled page');
-        const pageParentId = page.page_parent_id;
-        const pageStatusFromProps = page.props?.page_status as string | undefined;
+        const pageParentId = page.parent_id;
+        const pageStatusFromProps = page.properties?.page_status as string | undefined;
 
         // Check for unsaved draft before proceeding
-        const unsavedDraftError = checkForUnsavedDraft(state, wikiId, pageId, page.message);
+        const unsavedDraftError = checkForUnsavedDraft(state, wikiId, pageId, page.body);
         if (unsavedDraftError) {
             return unsavedDraftError;
         }
@@ -91,7 +91,7 @@ export function openPageInEditMode(
             channelId,
             wikiId,
             pageId,
-            page.message,
+            page.body,
             pageTitle,
             undefined,
             additionalProps,

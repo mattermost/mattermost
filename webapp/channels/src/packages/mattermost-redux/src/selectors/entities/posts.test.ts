@@ -1577,6 +1577,9 @@ describe('getSearchResults', () => {
                 posts: {
                     posts: {},
                 },
+                pages: {
+                    byId: {},
+                },
                 search: {
                     results: [],
                 },
@@ -1599,6 +1602,9 @@ describe('getSearchResults', () => {
                         post2,
                     },
                 },
+                pages: {
+                    byId: {},
+                },
                 search: {
                     results: ['post1', 'post2'],
                 },
@@ -1619,6 +1625,9 @@ describe('getSearchResults', () => {
                         post1,
                     },
                 },
+                pages: {
+                    byId: {},
+                },
                 search: {
                     results: ['post1', 'non_existent_post', 'another_missing_post'],
                 },
@@ -1636,6 +1645,9 @@ describe('getSearchResults', () => {
                 posts: {
                     posts: {},
                 },
+                pages: {
+                    byId: {},
+                },
                 search: {
                     results: ['non_existent_post1', 'non_existent_post2'],
                 },
@@ -1644,5 +1656,45 @@ describe('getSearchResults', () => {
 
         const results = Selectors.getSearchResults(state);
         expect(results).toEqual([]);
+    });
+
+    it('maps a page search hit (entities.pages.byId) to a Post-shaped result', () => {
+        const page = {
+            id: 'page1',
+            wiki_id: 'wiki1',
+            title: 'My Page',
+            body: '{"type":"doc"}',
+            search_text: 'page body text',
+            user_id: 'user1',
+            create_at: 100,
+            update_at: 200,
+            edit_at: 300,
+            delete_at: 0,
+            original_id: '',
+        };
+
+        const state = {
+            entities: {
+                posts: {
+                    posts: {},
+                },
+                pages: {
+                    byId: {
+                        page1: page,
+                    },
+                },
+                search: {
+                    results: ['page1'],
+                },
+            },
+        } as unknown as GlobalState;
+
+        const results = Selectors.getSearchResults(state);
+        expect(results).toHaveLength(1);
+        const result = results[0];
+        expect(result.id).toBe('page1');
+        expect(result.type).toBe('page');
+        expect(result.message).toBe('{"type":"doc"}');
+        expect(result.props).toEqual({title: 'My Page', wiki_id: 'wiki1', search_text: 'page body text'});
     });
 });

@@ -11,8 +11,6 @@ import {getPageStatusField, getPageStatus, getPage} from 'selectors/pages';
 import {SelectableSelectPropertyRenderer} from 'components/properties_card_view/propertyValueRenderer/select_property_renderer/selectable_select_property_renderer';
 import type {SelectPropertyMetadata} from 'components/properties_card_view/propertyValueRenderer/select_property_renderer/selectable_select_property_renderer';
 
-import {PagePropsKeys} from 'utils/constants';
-
 import type {GlobalState} from 'types/store';
 
 import './page_status_selector.scss';
@@ -30,7 +28,7 @@ const PageStatusSelector = ({pageId, isDraft, draftStatus, onDraftStatusChange}:
 
     const statusField = useSelector((state: GlobalState) => getPageStatusField(state));
     const publishedPageStatus = useSelector((state: GlobalState) => getPageStatus(state, pageId));
-    const pageWikiId = useSelector((state: GlobalState) => getPage(state, pageId)?.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
+    const pageWikiId = useSelector((state: GlobalState) => getPage(state, pageId)?.wiki_id);
 
     // Use draftStatus for drafts, publishedPageStatus for published pages
     const currentStatus = isDraft ? draftStatus : publishedPageStatus;

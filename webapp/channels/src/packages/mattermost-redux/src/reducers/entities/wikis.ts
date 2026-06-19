@@ -3,14 +3,14 @@
 
 import type {AnyAction} from 'redux';
 
-import type {Wiki, WikiLink} from '@mattermost/types/wikis';
+import type {ChannelMemberLink, Wiki} from '@mattermost/types/wikis';
 
 import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 
 type WikisState = {
     byId: Record<string, Wiki>;
     byTeam: Record<string, string[]>;
-    linksByChannel: Record<string, WikiLink[]>;
+    linksByChannel: Record<string, ChannelMemberLink[]>;
 };
 
 const initialState: WikisState = {
@@ -86,15 +86,15 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
         return {byId: nextById, byTeam: nextByTeam, linksByChannel: nextLinksByChannel};
     }
     case WikiTypes.RECEIVED_WIKI_LINKS: {
-        const {channelId, links} = action.data as {channelId: string; links: WikiLink[]};
+        const {channelId, links} = action.data as {channelId: string; links: ChannelMemberLink[]};
         return {
             ...state,
             linksByChannel: {...state.linksByChannel, [channelId]: links},
         };
     }
     case WikiTypes.RECEIVED_WIKI_LINK: {
-        const {channelId, link, wikiId} = action.data as {channelId: string; link: WikiLink; wikiId: string};
-        const storedLink: WikiLink = {...link, wiki_id: wikiId};
+        const {channelId, link, wikiId} = action.data as {channelId: string; link: ChannelMemberLink; wikiId: string};
+        const storedLink: ChannelMemberLink = {...link, wiki_id: wikiId};
         const existingLinks = state.linksByChannel[channelId] || [];
         const alreadyExists = existingLinks.some(
             (l) => l.source_id === storedLink.source_id && l.wiki_id === wikiId,

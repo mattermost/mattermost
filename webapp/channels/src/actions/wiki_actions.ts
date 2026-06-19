@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Wiki, WikiLink} from '@mattermost/types/wikis';
+import type {ChannelMemberLink, Wiki} from '@mattermost/types/wikis';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -62,7 +62,7 @@ export function resetWikiLinksFetchGenerationCounters(): void {
     }
 }
 
-// fetchWikiLinks fetches all WikiLinks pointing to the wiki's backing channel and
+// fetchWikiLinks fetches all ChannelMemberLinks pointing to the wiki's backing channel and
 // merges each one into linksByChannel via the additive RECEIVED_WIKI_LINK action.
 //
 // This is the source of truth for client-side channel resolution and EDIT_PAGE
@@ -74,12 +74,12 @@ export function resetWikiLinksFetchGenerationCounters(): void {
 //
 // Uses additive RECEIVED_WIKI_LINK (not RECEIVED_WIKI_LINKS) so we don't clobber
 // links to OTHER wikis that may already be cached for the same source channel.
-export function fetchWikiLinks(wikiId: string): ActionFuncAsync<WikiLink[]> {
+export function fetchWikiLinks(wikiId: string): ActionFuncAsync<ChannelMemberLink[]> {
     return async (dispatch, getState) => {
         wikiLinksByWikiFetchGeneration[wikiId] = (wikiLinksByWikiFetchGeneration[wikiId] ?? 0) + 1;
         const gen = wikiLinksByWikiFetchGeneration[wikiId];
         try {
-            const links = await Client4.getWikiLinks(wikiId);
+            const links = await Client4.getChannelMemberLinks(wikiId);
 
             if (wikiLinksByWikiFetchGeneration[wikiId] !== gen) {
                 return {data: []};
@@ -101,12 +101,12 @@ export function fetchWikiLinks(wikiId: string): ActionFuncAsync<WikiLink[]> {
     };
 }
 
-export function fetchWikiLinksForChannel(channelId: string): ActionFuncAsync<WikiLink[]> {
+export function fetchWikiLinksForChannel(channelId: string): ActionFuncAsync<ChannelMemberLink[]> {
     return async (dispatch, getState) => {
         wikiLinksFetchGeneration[channelId] = (wikiLinksFetchGeneration[channelId] ?? 0) + 1;
         const gen = wikiLinksFetchGeneration[channelId];
         try {
-            const links = await Client4.getWikiLinksForChannel(channelId);
+            const links = await Client4.getChannelMemberLinksForChannel(channelId);
 
             if (wikiLinksFetchGeneration[channelId] !== gen) {
                 return {data: []};
@@ -126,7 +126,7 @@ export function fetchWikiLinksForChannel(channelId: string): ActionFuncAsync<Wik
     };
 }
 
-export function linkWikiToChannel(channelId: string, wikiId: string): ActionFuncAsync<WikiLink> {
+export function linkWikiToChannel(channelId: string, wikiId: string): ActionFuncAsync<ChannelMemberLink> {
     return async (dispatch, getState) => {
         try {
             const link = await Client4.linkWikiToChannel(channelId, wikiId);

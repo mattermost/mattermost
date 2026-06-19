@@ -33,13 +33,13 @@ describe('components/wiki_view/wiki_page_header/TranslationIndicator', () => {
                     [mockPageId]: {
                         id: mockPageId,
                         type: 'page',
-                        props: overrides?.pageProps || {},
+                        properties: overrides?.pageProps || {},
                     } as any,
                     ...(overrides?.sourcePageProps ? {
                         [mockSourcePageId]: {
                             id: mockSourcePageId,
                             type: 'page',
-                            props: overrides.sourcePageProps,
+                            ...overrides.sourcePageProps,
                         } as any,
                     } : {}),
                 },

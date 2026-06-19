@@ -24,6 +24,7 @@ import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
+import type {Page} from '@mattermost/types/wikis';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
@@ -1381,10 +1382,7 @@ export function handlePageTitleUpdatedEvent(msg: WebSocketMessage) {
 
     const updatedPage = {
         ...existingPage,
-        props: {
-            ...existingPage.props,
-            title,
-        },
+        title,
         update_at: updateAt,
     };
 
@@ -1426,11 +1424,7 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
 
     const updatedPage = {
         ...existingPage,
-        page_parent_id: newParentId,
-        props: {
-            ...existingPage.props,
-            page_parent_id: newParentId,
-        },
+        parent_id: newParentId,
         update_at: updateAt,
     };
 
@@ -1445,14 +1439,14 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
     // This ensures all clients have consistent page ordering after drag-drop
     if (siblingsJson) {
         try {
-            const siblings = JSON.parse(siblingsJson) as {posts?: Record<string, Post>};
-            if (siblings.posts) {
-                for (const post of Object.values(siblings.posts)) {
+            const siblings = JSON.parse(siblingsJson) as Page[];
+            if (Array.isArray(siblings)) {
+                for (const sibling of siblings) {
                     // Skip the moved page - already added above with parent update
-                    if (post.id !== pageId) {
+                    if (sibling.id !== pageId) {
                         actions.push({
                             type: WikiTypes.RECEIVED_PAGE,
-                            data: {page: post, wikiId},
+                            data: {page: sibling, wikiId},
                         });
                     }
                 }
@@ -1579,8 +1573,8 @@ export function handleWikiCreatedEvent(msg: WebSocketMessage) {
 
     // The server fans out wiki_created to every linked source channel; the
     // event's source_channel_id is the channel context for THIS broadcast,
-    // not a property of the wiki itself. Synthesize a WikiLink for it so
-    // selectors that read linksByChannel see the relationship immediately
+    // not a property of the wiki itself. Synthesize a ChannelMemberLink for it
+    // so selectors that read linksByChannel see the relationship immediately
     // without a separate wiki_linked event.
     if (eventData.source_channel_id) {
         dispatch({
@@ -1704,7 +1698,7 @@ export function handleWikiDeletedEvent(msg: WebSocketMessage) {
     });
 }
 
-interface WikiLinkEventData {
+interface ChannelMemberLinkEventData {
     wiki_id: string;
     source_channel_id: string;
     create_at: number;
@@ -1715,7 +1709,7 @@ export async function handleWikiLinkedEvent(msg: WebSocketMessage) {
         return;
     }
 
-    const data = msg.data as WikiLinkEventData;
+    const data = msg.data as ChannelMemberLinkEventData;
     const {wiki_id: wikiId, source_channel_id: sourceChannelId} = data;
 
     // Fetch wiki metadata first so the link dispatch renders a tab with title
@@ -1739,7 +1733,7 @@ export function handleWikiUnlinkedEvent(msg: WebSocketMessage) {
         return;
     }
 
-    const data = msg.data as WikiLinkEventData;
+    const data = msg.data as ChannelMemberLinkEventData;
     const {wiki_id: wikiId, source_channel_id: sourceChannelId} = data;
 
     dispatch({

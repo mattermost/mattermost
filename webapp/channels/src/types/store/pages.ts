@@ -1,21 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
-/**
- * Page is a type alias for Post.
- * Pages are stored as Posts in the backend with type='page'.
- */
-export type Page = Post;
+export type {Page};
 
 /**
  * DraftPage represents a page draft in the hierarchy tree.
- * It's similar to a Post but has a draft-specific type.
+ * It uses Post fields since drafts are still stored as PostDraft (post-shaped).
  */
-export type DraftPage = Omit<Post, 'type' | 'page_parent_id'> & {
+export type DraftPage = {
+    id: string;
     type: 'page_draft';
-    page_parent_id: string;
+    parent_id: string;
+    title: string;
+    body: string;
+    create_at: number;
+    update_at: number;
+    delete_at: number;
+    edit_at: number;
+    sort_order: number;
+    wiki_id: string;
+    user_id: string;
+    last_modified_by: string;
+    search_text: string;
+    original_id: string;
+    has_effective_view_restriction: boolean;
+    has_local_edit_restriction: boolean;
+    properties: Record<string, unknown>;
+    pending_file_ids: string[];
+    state?: 'DELETED';
 };
 
 /**

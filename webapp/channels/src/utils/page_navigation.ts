@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {getHistory} from 'utils/browser_history';
 import {PagePropsKeys} from 'utils/constants';
@@ -12,15 +13,15 @@ export type PageNavigationOptions = {
 };
 
 export function navigateToPageFromPost(
-    pagePost: Post,
+    pagePost: Post | Page,
     teamName: string,
     options?: PageNavigationOptions,
 ): void {
-    if (!pagePost.props?.[PagePropsKeys.WIKI_ID]) {
+    const wikiId = 'wiki_id' in pagePost ? pagePost.wiki_id : (pagePost.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
+    if (!wikiId) {
         return;
     }
 
-    const wikiId = pagePost.props[PagePropsKeys.WIKI_ID] as string;
     const pageId = pagePost.id;
 
     const currentPath = window.location.pathname;

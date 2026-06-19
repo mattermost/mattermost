@@ -9,6 +9,7 @@ import {useDispatch} from 'react-redux';
 import type {WebSocketMessage} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
+import type {Page} from '@mattermost/types/wikis';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -34,7 +35,7 @@ import './wiki_page_thread_viewer.scss';
 export type Props = {
     isCollapsedThreadsEnabled: boolean;
     userThread?: UserThread | null;
-    selected?: Post | FakePost;
+    selected?: Page | FakePost;
     currentUserId: string;
     currentTeamId: string;
     actions: {

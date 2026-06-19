@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {createBookmarkFromPage} from 'actions/channel_bookmarks';
 import type {DraftPage, TreeNode} from 'selectors/pages_hierarchy';
@@ -37,22 +37,22 @@ type Props = {
     onGetPageContent?: () => string;
 
     // From Redux
-    pages: Post[];
+    pages: Page[];
     drafts: PostDraft[];
     loading: boolean;
     expandedNodes: {[pageId: string]: boolean};
     isPanelCollapsed: boolean;
     actions: {
-        fetchPages: (wikiId: string) => Promise<{data?: Post[]; error?: ServerError}>;
+        fetchPages: (wikiId: string) => Promise<{data?: Page[]; error?: ServerError}>;
         fetchPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: ServerError}>;
         removePageDraft: (wikiId: string, draftId: string) => Promise<{data?: boolean; error?: ServerError}>;
         toggleNodeExpanded: (wikiId: string, nodeId: string) => void;
         expandAncestors: (wikiId: string, ancestorIds: string[]) => void;
         createPage: (wikiId: string, title: string, pageParentId?: string) => Promise<{data?: string; error?: ServerError}>;
-        updatePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: ServerError}>;
+        updatePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Page; error?: ServerError}>;
         deletePage: (pageId: string, wikiId: string) => Promise<{data?: boolean; error?: ServerError}>;
         movePageToWiki: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string) => Promise<{data?: boolean; error?: ServerError}>;
-        duplicatePage: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => Promise<{data?: Post; error?: ServerError}>;
+        duplicatePage: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => Promise<{data?: Page; error?: ServerError}>;
         closePagesPanel: () => void;
     };
 };

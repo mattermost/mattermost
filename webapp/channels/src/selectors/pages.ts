@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
 import type {PropertyField, SelectPropertyField} from '@mattermost/types/properties';
-import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
+import type {BreadcrumbPath, Page, Wiki} from '@mattermost/types/wikis';
 
-import {PostTypes} from 'mattermost-redux/constants/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 
 import {PagePropsKeys} from 'utils/constants';
-import {isDraftPageId, getPageTitle} from 'utils/page_utils';
+import {isDraftPageId} from 'utils/page_utils';
 import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -23,12 +21,12 @@ export const getPageAncestors = createSelector(
     (state: GlobalState) => state.entities.pages.byId,
     (_state: GlobalState, pageId: string) => pageId,
     (pages, pageId) => {
-        const ancestors: Post[] = [];
+        const ancestors: Page[] = [];
         let currentPage = pages[pageId];
         const visited = new Set<string>();
 
-        while (currentPage?.page_parent_id) {
-            const parentId = currentPage.page_parent_id;
+        while (currentPage?.parent_id) {
+            const parentId = currentPage.parent_id;
 
             if (visited.has(parentId)) {
                 break;
@@ -59,7 +57,7 @@ export const makeGetPages = () => createSelector(
     (pages, pageIds) => {
         return pageIds.
             map((id) => pages[id]).
-            filter((post): post is Post => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED');
+            filter((page): page is Page => Boolean(page) && (page.type === 'page' || page.type === 'page_folder') && page.state !== 'DELETED');
     },
 );
 
@@ -71,7 +69,7 @@ export const makeGetPublishedPages = () => createSelector(
     (pages, pageIds) => {
         return pageIds.
             map((id) => pages[id]).
-            filter((post): post is Post => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED').
+            filter((page): page is Page => Boolean(page) && (page.type === 'page' || page.type === 'page_folder') && page.state !== 'DELETED').
             filter((page) => !isDraftPageId(page.id));
     },
 );
@@ -103,9 +101,11 @@ export const makeGetChannelPages = () => createSelector(
     'getChannelPages',
     (state: GlobalState) => state.entities.pages.byId,
     (_state: GlobalState, channelId: string) => channelId,
-    (pages, channelId) => {
+    (pages) => {
+        // Channel-scoped filtering: pages no longer have a channel_id field.
+        // Return all pages from byId for now; callers should use wiki-scoped selectors.
         return Object.values(pages).filter(
-            (page): page is Post => Boolean(page) && page.type === PostTypes.PAGE && page.channel_id === channelId,
+            (page): page is Page => Boolean(page) && (page.type === 'page' || page.type === 'page_folder') && page.state !== 'DELETED',
         );
     },
 );
@@ -151,7 +151,7 @@ export const getResolvedChannelId = createSelector(
     },
 );
 
-// A wiki appears in a channel iff there is a WikiLink from that channel to the wiki.
+// A wiki appears in a channel iff there is a ChannelMemberLink from that channel to the wiki.
 // Use makeGetChannelWikis() to get a per-component instance with its own memoization slot.
 export const makeGetChannelWikis = () => createSelector(
     'getChannelWikis',
@@ -199,7 +199,7 @@ export const getPageStatusField = createSelector(
 
 export const getPageStatus = (state: GlobalState, postId: string): string => {
     const page = getPage(state, postId);
-    return (page?.props?.[PagePropsKeys.PAGE_STATUS] as string) || '';
+    return (page?.properties?.[PagePropsKeys.PAGE_STATUS] as string) || '';
 };
 
 export const makeBreadcrumbSelector = () => createSelector(
@@ -226,7 +226,7 @@ export const makeBreadcrumbSelector = () => createSelector(
         for (const ancestor of ancestors) {
             items.push({
                 id: ancestor.id,
-                title: getPageTitle(ancestor),
+                title: ancestor.title || 'Untitled',
                 type: 'page',
                 path: getWikiUrl(teamName, wikiId, ancestor.id),
             });
@@ -236,7 +236,7 @@ export const makeBreadcrumbSelector = () => createSelector(
             items,
             current_page: {
                 id: page.id,
-                title: getPageTitle(page),
+                title: page.title || 'Untitled',
                 type: 'page',
                 path: getWikiUrl(teamName, wikiId, page.id),
             },

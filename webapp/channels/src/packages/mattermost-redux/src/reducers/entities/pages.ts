@@ -5,12 +5,13 @@ import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {SearchTypes, UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {PagePropsKeys} from 'mattermost-redux/constants/pages';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 
-function shouldReplacePage(existing: Post | undefined, incoming: Post, isRevert = false): boolean {
+function shouldReplacePage(existing: Page | undefined, incoming: Page, isRevert = false): boolean {
     if (!existing) {
         return true;
     }
@@ -50,23 +51,66 @@ function shouldReplacePage(existing: Post | undefined, incoming: Post, isRevert 
 }
 
 // When list endpoints (getPages / getChannelPages) return page stubs without the
-// TipTap content, preserve any non-empty message already in state so navigating
+// TipTap content, preserve any non-empty body already in state so navigating
 // away and back doesn't drop loaded content. Used only by RECEIVED_PAGES (bulk
 // list responses); RECEIVED_PAGE trusts the server's per-page response so a
 // deliberate content-clear by the user is not overwritten by stale local state.
-function mergePreservedMessage(existing: Post | undefined, incoming: Post): Post {
+function mergePreservedBody(existing: Page | undefined, incoming: Page): Page {
     if (!existing) {
         return incoming;
     }
-    const incomingHasContent = incoming.message && incoming.message.trim() !== '';
-    const existingHasContent = existing.message && existing.message.trim() !== '';
+    const incomingHasContent = incoming.body && incoming.body.trim() !== '';
+    const existingHasContent = existing.body && existing.body.trim() !== '';
     if (!incomingHasContent && existingHasContent) {
-        return {...incoming, message: existing.message};
+        return {...incoming, body: existing.body};
     }
     return incoming;
 }
 
-function byId(state: Record<string, Post> = {}, action: AnyAction): Record<string, Post> {
+// searchPostToPage maps a Post-shaped page search hit (Body in message, title/wiki_id in
+// props) to the Page shape. It layers over any existing entry so structural fields the
+// search result does not carry (parent_id, sort_order, properties) are preserved.
+function searchPostToPage(post: Post, existing: Page | undefined): Page {
+    const props = post.props ?? {};
+    const defaults: Page = {
+        id: post.id,
+        wiki_id: '',
+        parent_id: '',
+        type: 'page',
+        title: '',
+        body: '',
+        search_text: '',
+        user_id: '',
+        last_modified_by: '',
+        sort_order: 0,
+        create_at: 0,
+        update_at: 0,
+        edit_at: 0,
+        delete_at: 0,
+        original_id: '',
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
+    };
+
+    // Spreading `existing` (possibly undefined) preserves structural fields the search hit lacks.
+    const base: Page = {...defaults, ...existing};
+    return {
+        ...base,
+        id: post.id,
+        type: 'page',
+        user_id: post.user_id || base.user_id,
+        wiki_id: (props.wiki_id as string) || base.wiki_id,
+        title: (props.title as string) || base.title,
+        body: post.message || base.body,
+        create_at: post.create_at || base.create_at,
+        update_at: post.update_at || base.update_at,
+        edit_at: post.edit_at || base.edit_at,
+    };
+}
+
+function byId(state: Record<string, Page> = {}, action: AnyAction): Record<string, Page> {
     switch (action.type) {
     case WikiTypes.RECEIVED_PAGE: {
         const {page, pendingPageId, isRevert} = action.data;
@@ -104,25 +148,33 @@ function byId(state: Record<string, Post> = {}, action: AnyAction): Record<strin
             return state;
         }
         let nextState = state;
-        pages.forEach((page: Post) => {
+        pages.forEach((page: Page) => {
             if (page && page.id && shouldReplacePage(nextState[page.id], page)) {
                 if (nextState === state) {
                     nextState = {...state};
                 }
-                nextState[page.id] = mergePreservedMessage(nextState[page.id], page);
+                nextState[page.id] = mergePreservedBody(nextState[page.id], page);
             }
         });
         return nextState;
     }
     case SearchTypes.RECEIVED_SEARCH_POSTS: {
+        // Page search hits come back Post-shaped (SqlPostStore.search maps Body->Message and
+        // puts title/wiki_id in Props). Normalize each to the Page shape, layered over any
+        // existing entry, so a search never clobbers structural fields (parent_id, sort_order,
+        // properties) that the post-shaped hit does not carry.
         const posts: Record<string, Post> = action.data?.posts ?? {};
         let nextState = state;
         Object.values(posts).forEach((post: Post) => {
-            if (post?.type === PostTypes.PAGE && post.id && shouldReplacePage(nextState[post.id], post)) {
+            if (post?.type !== PostTypes.PAGE || !post.id) {
+                return;
+            }
+            const normalized = searchPostToPage(post, nextState[post.id]);
+            if (shouldReplacePage(nextState[post.id], normalized)) {
                 if (nextState === state) {
                     nextState = {...state};
                 }
-                nextState[post.id] = mergePreservedMessage(nextState[post.id], post);
+                nextState[post.id] = mergePreservedBody(nextState[post.id], normalized);
             }
         });
         return nextState;
@@ -143,7 +195,7 @@ function byId(state: Record<string, Post> = {}, action: AnyAction): Record<strin
         }
         const tombstone = existing ?
             {...existing, state: 'DELETED'} :
-            {id: pageId, state: 'DELETED', type: PostTypes.PAGE} as unknown as Post;
+            {id: pageId, state: 'DELETED', type: 'page'} as unknown as Page;
         return {...state, [pageId]: tombstone};
     }
     case WikiTypes.DELETED_WIKI:
@@ -166,7 +218,7 @@ function byWiki(state: Record<string, string[]> = {}, action: AnyAction): Record
         }
 
         const fetchedPageIds = (pages || []).
-            map((p: Post) => p?.id).
+            map((p: Page) => p?.id).
             filter((id: string | undefined): id is string => Boolean(id));
         const currentPageIds = state[wikiId] || [];
         const fetchedSet = new Set<string>(fetchedPageIds);
@@ -551,7 +603,7 @@ function commentsByPageId(state: Record<string, string[]> = {}, action: AnyActio
 
 const pagesReducer = combineReducers({
 
-    // mapping of page id to Page (Post with type='page')
+    // mapping of page id to Page
     byId,
 
     // mapping of wiki id to array of page ids

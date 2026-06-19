@@ -21,31 +21,20 @@ export function convertDraftToPagePost(draft: PostDraft, untitledText: string = 
         update_at: draft.updateAt || 0,
         delete_at: 0,
         edit_at: 0,
-        is_pinned: false,
         user_id: '',
-        channel_id: draft.channelId,
-        root_id: '',
-        original_id: '',
-        message: draft.message,
+        last_modified_by: '',
+        body: draft.message,
+        title: (draft.props?.title as string | undefined) || untitledText,
         type: PageDisplayTypes.PAGE_DRAFT,
-        page_parent_id: draft.props?.page_parent_id || '',
-        props: {
-            ...draft.props,
-            title: draft.props?.title || untitledText,
-        },
-        hashtags: '',
-        filenames: [],
-        file_ids: [],
-        pending_post_id: '',
-        reply_count: 0,
-        last_reply_at: 0,
-        participants: null,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
+        parent_id: (draft.props?.page_parent_id as string | undefined) || '',
+        wiki_id: (draft.props?.wiki_id as string | undefined) || '',
+        sort_order: 0,
+        search_text: '',
+        original_id: '',
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: draft.props ? {...draft.props} : {},
+        pending_file_ids: draft.file_ids || [],
     };
 }
 
@@ -71,7 +60,7 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
             title,
             page,
             children: [],
-            parentId: page.page_parent_id || null,
+            parentId: page.parent_id || null,
             originalIndex: index, // Preserve input order
         });
     });
@@ -83,7 +72,7 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
             return;
         }
 
-        const parentId = page.page_parent_id;
+        const parentId = page.parent_id;
 
         if (parentId) {
             const parent = nodeMap.get(parentId);
@@ -99,17 +88,11 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
         }
     });
 
-    // Helper to safely extract page_sort_order from props with type validation
+    // Helper to safely extract sort_order from page
     const getPageSortOrder = (page: PageOrDraft): number => {
-        const raw = page.props?.page_sort_order;
+        const raw = page.sort_order;
         if (typeof raw === 'number' && Number.isFinite(raw)) {
             return raw;
-        }
-        if (typeof raw === 'string') {
-            const parsed = parseInt(raw, 10);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
         }
         return 0;
     };
@@ -159,8 +142,8 @@ export function getAncestorIds(pages: PageOrDraft[], pageId: string, pageMap?: M
     const map = pageMap || new Map(pages.map((p) => [p.id, p]));
 
     let currentPage = map.get(pageId);
-    while (currentPage && currentPage.page_parent_id) {
-        const parentId = currentPage.page_parent_id;
+    while (currentPage && currentPage.parent_id) {
+        const parentId = currentPage.parent_id;
         ancestorIds.unshift(parentId);
         currentPage = map.get(parentId);
     }
@@ -177,7 +160,7 @@ export function getDescendantIds(pages: PageOrDraft[], pageId: string): string[]
 
     const findDescendants = (parentId: string) => {
         pages.forEach((page) => {
-            if (page.page_parent_id === parentId) {
+            if (page.parent_id === parentId) {
                 descendantIds.push(page.id);
                 findDescendants(page.id);
             }

@@ -100,7 +100,7 @@ describe('actions/pages - Page Status', () => {
             expect(actions).toHaveLength(1);
             expect(actions[0].type).toBe('RECEIVED_PAGE');
             expect(actions[0].data.page.id).toBe(postId);
-            expect(actions[0].data.page.props.page_status).toBe(status);
+            expect(actions[0].data.page.properties.page_status).toBe(status);
         });
 
         test('should handle error when updating page status fails', async () => {
@@ -135,7 +135,7 @@ describe('actions/pages - Page Status', () => {
 
                 expect(actions).toHaveLength(1);
                 expect(actions[0].type).toBe('RECEIVED_PAGE');
-                expect(actions[0].data.page.props.page_status).toBe(status);
+                expect(actions[0].data.page.properties.page_status).toBe(status);
             }
         });
     });
@@ -168,12 +168,13 @@ describe('actions/pages - Translation Metadata', () => {
             const mockPage = {
                 id: pageId,
                 type: 'page',
-                props: {title: 'Test Page', [PagePropsKeys.WIKI_ID]: wikiId},
+                wiki_id: wikiId,
+                properties: {title: 'Test Page', [PagePropsKeys.WIKI_ID]: wikiId},
             };
             const mockUpdatedPage = {
                 ...mockPage,
-                props: {
-                    ...mockPage.props,
+                properties: {
+                    ...mockPage.properties,
                     [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
                     [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
                 },
@@ -242,13 +243,14 @@ describe('actions/pages - Translation Metadata', () => {
             const mockSourcePage = {
                 id: sourcePageId,
                 type: 'page',
-                props: {title: 'Source Page', [PagePropsKeys.WIKI_ID]: wikiId},
+                wiki_id: wikiId,
+                properties: {title: 'Source Page', [PagePropsKeys.WIKI_ID]: wikiId},
             };
             const expectedTranslations = [{page_id: translatedPageId, language_code: languageCode}];
             const mockUpdatedPage = {
                 ...mockSourcePage,
-                props: {
-                    ...mockSourcePage.props,
+                properties: {
+                    ...mockSourcePage.properties,
                     [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
                 },
             };
@@ -281,7 +283,8 @@ describe('actions/pages - Translation Metadata', () => {
             const mockSourcePage = {
                 id: sourcePageId,
                 type: 'page',
-                props: {
+                wiki_id: wikiId,
+                properties: {
                     title: 'Source Page',
                     [PagePropsKeys.WIKI_ID]: wikiId,
                     [PagePropsKeys.TRANSLATIONS]: existingTranslations,
@@ -293,8 +296,8 @@ describe('actions/pages - Translation Metadata', () => {
             ];
             const mockUpdatedPage = {
                 ...mockSourcePage,
-                props: {
-                    ...mockSourcePage.props,
+                properties: {
+                    ...mockSourcePage.properties,
                     [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
                 },
             };
@@ -326,7 +329,8 @@ describe('actions/pages - Translation Metadata', () => {
             const mockSourcePage = {
                 id: sourcePageId,
                 type: 'page',
-                props: {
+                wiki_id: wikiId,
+                properties: {
                     title: 'Source Page',
                     [PagePropsKeys.WIKI_ID]: wikiId,
                     [PagePropsKeys.TRANSLATIONS]: existingTranslations,
@@ -338,8 +342,8 @@ describe('actions/pages - Translation Metadata', () => {
             ];
             const mockUpdatedPage = {
                 ...mockSourcePage,
-                props: {
-                    ...mockSourcePage.props,
+                properties: {
+                    ...mockSourcePage.properties,
                     [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
                 },
             };
@@ -482,7 +486,7 @@ describe('actions/pages - Page Hierarchy', () => {
                 [siblingId]: mockSibling as any,
             };
 
-            // Server returns PostList with updated page_sort_order values
+            // Server returns the updated siblings as Page[].
             const updatedPageFromServer = {
                 ...mockPage,
                 props: {title: 'Moving Page', page_sort_order: 1000}, // Now first
@@ -493,14 +497,7 @@ describe('actions/pages - Page Hierarchy', () => {
                 props: {title: 'Sibling Page', page_sort_order: 2000}, // Now second
                 update_at: 1234567891,
             };
-            const serverResponse = {
-                order: [pageId, siblingId],
-                posts: {
-                    [pageId]: updatedPageFromServer,
-                    [siblingId]: updatedSiblingFromServer,
-                },
-            };
-            (Client4.movePage as jest.Mock).mockResolvedValue(serverResponse);
+            (Client4.movePage as jest.Mock).mockResolvedValue([updatedPageFromServer, updatedSiblingFromServer]);
 
             await testStore.dispatch(Actions.movePageInHierarchy(pageId, null, wikiId, newIndex));
 

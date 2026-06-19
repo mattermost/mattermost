@@ -237,7 +237,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, teamName, currentPage?.page_parent_id, pagesLoaded, dispatch, allDrafts, wiki, reduxBreadcrumb, untitledText, untitledPageText, fixBreadcrumbPath]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, teamName, currentPage?.parent_id, pagesLoaded, dispatch, allDrafts, wiki, reduxBreadcrumb, untitledText, untitledPageText, fixBreadcrumbPath]);
 
     if (isLoading) {
         return (

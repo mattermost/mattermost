@@ -62,13 +62,13 @@ export function togglePageOutline(pageId: string, pageContent?: string, wikiId?:
             let content = pageContent;
             if (!content) {
                 const page = state.entities.pages.byId[pageId];
-                content = page?.message || '';
+                content = page?.body || '';
 
                 // Only fetch from server if content is completely missing
                 if (!content && wikiId) {
                     const result = await dispatch(fetchPage(pageId, wikiId));
                     if (result.data) {
-                        content = result.data.message || '';
+                        content = result.data.body || '';
                     }
                 }
             }

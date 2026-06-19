@@ -44,7 +44,7 @@ export function usePageCommentSubmit(pageId: string, onSuccess?: () => void): Us
             message,
             fileInfos: [],
             uploadsInProgress: [],
-            channelId: page.channel_id,
+            channelId: '',
             rootId: pageId,
             createAt: 0,
             updateAt: 0,

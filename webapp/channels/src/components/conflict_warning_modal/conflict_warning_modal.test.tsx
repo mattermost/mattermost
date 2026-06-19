@@ -4,42 +4,37 @@
 import {screen, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import ConflictWarningModal from 'components/conflict_warning_modal/conflict_warning_modal';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/ConflictWarningModal', () => {
-    const mockPost: Post = {
+    const mockPage: Page = {
         id: 'post123',
+        wiki_id: 'wiki123',
+        parent_id: '',
+        type: 'page',
+        title: 'Test Page',
+        body: 'Published paragraph A\n\nPublished paragraph B',
+        search_text: '',
+        user_id: 'user123',
+        last_modified_by: 'user123',
+        sort_order: 0,
         create_at: 1234567890,
         update_at: 1234567990,
-        delete_at: 0,
         edit_at: 0,
-        is_pinned: false,
-        user_id: 'user123',
-        channel_id: 'channel123',
-        root_id: '',
+        delete_at: 0,
         original_id: '',
-        message: 'Published paragraph A\n\nPublished paragraph B',
-        type: '',
-        props: {
-            title: 'Test Page',
-        },
-        hashtags: '',
-        pending_post_id: '',
-        reply_count: 0,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
     };
 
     const baseProps = {
-        currentPage: mockPost,
+        currentPage: mockPage,
         draftContent: 'Draft paragraph A\n\nDraft paragraph B',
         onContinueEditing: jest.fn(),
         onOverwrite: jest.fn(),
@@ -116,7 +111,7 @@ describe('components/ConflictWarningModal', () => {
     test('identical draft and published shows inline notice without entering diff-view', () => {
         const identical = {
             ...baseProps,
-            draftContent: mockPost.message,
+            draftContent: mockPage.body,
         };
         renderWithContext(<ConflictWarningModal {...identical}/>, initialState);
         clickConfirm();
@@ -175,8 +170,8 @@ describe('components/ConflictWarningModal', () => {
         const propsWithoutTitle = {
             ...baseProps,
             currentPage: {
-                ...mockPost,
-                props: {},
+                ...mockPage,
+                title: '',
             },
         };
         renderWithContext(<ConflictWarningModal {...propsWithoutTitle}/>, initialState);

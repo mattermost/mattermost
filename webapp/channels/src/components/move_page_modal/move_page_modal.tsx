@@ -4,8 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import type {Post} from '@mattermost/types/posts';
-import type {Wiki} from '@mattermost/types/wikis';
+import type {Page, Wiki} from '@mattermost/types/wikis';
 
 import PageDestinationModal from 'components/page_destination_modal';
 
@@ -14,7 +13,7 @@ type Props = {
     pageTitle: string;
     currentWikiId: string;
     availableWikis: Wiki[];
-    fetchPagesForWiki: (wikiId: string) => Promise<Post[]>;
+    fetchPagesForWiki: (wikiId: string) => Promise<Page[]>;
     hasChildren: boolean;
     onConfirm: (targetWikiId: string, parentPageId?: string) => void;
     onCancel: () => void;

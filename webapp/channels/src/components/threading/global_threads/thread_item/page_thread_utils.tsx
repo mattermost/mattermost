@@ -6,6 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {Posts} from 'mattermost-redux/constants';
 
@@ -29,7 +30,7 @@ type ImageProps = {
 
 export function renderPageCommentPreview(
     post: Post,
-    pagePost: Post,
+    pagePost: Page,
     msgDeleted: string,
     markdownPreviewOptions: MarkdownPreviewOptions,
     mentionsKeys: Array<{key: string}>,

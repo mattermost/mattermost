@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
-import {WikiTypes} from 'mattermost-redux/action_types';
+import {SearchTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 
 import {makeInitialPagesState} from 'tests/helpers/pages_state';
@@ -15,30 +16,26 @@ describe('pages reducer', () => {
 
     const wikiId = 'wiki123';
     const pageId = 'page123';
-    const mockPage: Post = {
+    const mockPage: Page = {
         id: pageId,
+        wiki_id: wikiId,
+        parent_id: '',
+        type: 'page',
+        title: 'Test Page',
+        body: 'Page content',
+        search_text: '',
+        user_id: 'user123',
+        last_modified_by: 'user123',
+        sort_order: 0,
         create_at: 1234567890,
         update_at: 1234567890,
-        delete_at: 0,
         edit_at: 0,
-        is_pinned: false,
-        user_id: 'user123',
-        channel_id: wikiId,
-        root_id: '',
+        delete_at: 0,
         original_id: '',
-        page_parent_id: '',
-        message: 'Page content',
-        type: PostTypes.PAGE,
-        props: {title: 'Test Page'},
-        hashtags: '',
-        pending_post_id: '',
-        reply_count: 0,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
     };
 
     describe('RECEIVED_PAGES', () => {
@@ -64,6 +61,64 @@ describe('pages reducer', () => {
             const nextState = pagesReducer(initialState as any, action);
 
             expect(nextState.byId[pageId]).toEqual(mockPage);
+        });
+    });
+
+    describe('RECEIVED_SEARCH_POSTS', () => {
+        // Page search hits arrive Post-shaped: Body in message, title/wiki_id in props.
+        const searchHit: Post = {
+            id: pageId,
+            type: PostTypes.PAGE,
+            message: 'searched body',
+            user_id: 'user123',
+            create_at: 1234567890,
+            update_at: 1234567899,
+            edit_at: 1234567899,
+            props: {wiki_id: wikiId, title: 'Searched Title'},
+        } as unknown as Post;
+
+        test('normalizes a post-shaped page hit into the Page shape', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                data: {posts: {[pageId]: searchHit}},
+            };
+
+            const nextState = pagesReducer(initialState as any, action);
+
+            expect(nextState.byId[pageId]).toMatchObject({
+                id: pageId,
+                type: 'page',
+                wiki_id: wikiId,
+                title: 'Searched Title',
+                body: 'searched body',
+            });
+        });
+
+        test('does not clobber structural fields of an existing page', () => {
+            const existing = {...mockPage, parent_id: 'parent999', sort_order: 7};
+            const state = {...initialState, byId: {[pageId]: existing}};
+
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                data: {posts: {[pageId]: searchHit}},
+            };
+
+            const nextState = pagesReducer(state as any, action);
+
+            expect(nextState.byId[pageId].parent_id).toBe('parent999');
+            expect(nextState.byId[pageId].sort_order).toBe(7);
+        });
+
+        test('ignores non-page posts', () => {
+            const regularPost = {...searchHit, type: ''} as unknown as Post;
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                data: {posts: {[pageId]: regularPost}},
+            };
+
+            const nextState = pagesReducer(initialState as any, action);
+
+            expect(nextState.byId[pageId]).toBeUndefined();
         });
     });
 
@@ -268,7 +323,7 @@ describe('pages reducer', () => {
 
             const nextState = pagesReducer(initialState as any, action);
 
-            expect(nextState.byId[pageId]).toEqual({id: pageId, state: 'DELETED', type: PostTypes.PAGE});
+            expect(nextState.byId[pageId]).toEqual({id: pageId, state: 'DELETED', type: 'page'});
         });
 
         // Core correctness invariant: once a page is tombstoned, a late-arriving
@@ -288,7 +343,7 @@ describe('pages reducer', () => {
 
             expect(afterDelete.byId[pageId].state).toBe('DELETED');
 
-            const lateArrival: Post = {...mockPage, edit_at: 2000000000, message: 'resurrected'};
+            const lateArrival: Page = {...mockPage, edit_at: 2000000000, body: 'resurrected'};
             const afterLateArrival = pagesReducer(afterDelete, {
                 type: WikiTypes.RECEIVED_PAGE,
                 data: {page: lateArrival, wikiId},
@@ -296,7 +351,7 @@ describe('pages reducer', () => {
 
             // Tombstone must survive — neither state nor content should change.
             expect(afterLateArrival.byId[pageId].state).toBe('DELETED');
-            expect(afterLateArrival.byId[pageId].message).toBe(mockPage.message);
+            expect(afterLateArrival.byId[pageId].body).toBe(mockPage.body);
         });
 
         // Optimistic-delete rollback path: actions/pages.ts deletePage() dispatches
@@ -763,7 +818,7 @@ describe('pages reducer', () => {
 
         test('should not overwrite a fresher existing page (edit_at guard)', () => {
             const fresher = {...mockPage, edit_at: 2000};
-            const stale = {...mockPage, edit_at: 1000, message: 'stale'};
+            const stale = {...mockPage, edit_at: 1000, body: 'stale'};
             const state = {...initialState, byId: {[pageId]: fresher}};
 
             const result = pagesReducer(state, {
@@ -867,13 +922,13 @@ describe('pages reducer', () => {
     describe('shouldReplacePage freshness (edit_at only)', () => {
         test('should accept incoming when both sides lack edit_at', () => {
             const existing = {...mockPage, edit_at: 0, update_at: 9999};
-            const incoming = {...mockPage, edit_at: 0, update_at: 1, message: 'new'};
+            const incoming = {...mockPage, edit_at: 0, update_at: 1, body: 'new'};
             const state = {...initialState, byId: {[pageId]: existing}};
             const result = pagesReducer(state, {
                 type: WikiTypes.RECEIVED_PAGE,
                 data: {page: incoming, wikiId},
             });
-            expect(result.byId[pageId].message).toBe('new');
+            expect(result.byId[pageId].body).toBe('new');
         });
 
         test('should not use update_at fallback when existing has server edit_at', () => {
@@ -881,24 +936,24 @@ describe('pages reducer', () => {
             // Under the old edit_at||update_at rule the reducer would drop the
             // authoritative server response; under the new rule it accepts it.
             const existing = {...mockPage, edit_at: 1000, update_at: 9_999_999_999};
-            const incoming = {...mockPage, edit_at: 2000, update_at: 1, message: 'server'};
+            const incoming = {...mockPage, edit_at: 2000, update_at: 1, body: 'server'};
             const state = {...initialState, byId: {[pageId]: existing}};
             const result = pagesReducer(state, {
                 type: WikiTypes.RECEIVED_PAGE,
                 data: {page: incoming, wikiId},
             });
-            expect(result.byId[pageId].message).toBe('server');
+            expect(result.byId[pageId].body).toBe('server');
         });
 
         test('should accept when existing has no edit_at even if incoming edit_at is lower', () => {
             const existing = {...mockPage, edit_at: 0};
-            const incoming = {...mockPage, edit_at: 1, message: 'new'};
+            const incoming = {...mockPage, edit_at: 1, body: 'new'};
             const state = {...initialState, byId: {[pageId]: existing}};
             const result = pagesReducer(state, {
                 type: WikiTypes.RECEIVED_PAGE,
                 data: {page: incoming, wikiId},
             });
-            expect(result.byId[pageId].message).toBe('new');
+            expect(result.byId[pageId].body).toBe('new');
         });
     });
 
@@ -907,10 +962,10 @@ describe('pages reducer', () => {
             const pending = {...mockPage, id: 'pending-abc', edit_at: 0};
 
             // A WebSocket event already delivered a fresher server version for real-id.
-            const wsDelivered = {...mockPage, id: 'real-id', edit_at: 5000, message: 'from WS'};
+            const wsDelivered = {...mockPage, id: 'real-id', edit_at: 5000, body: 'from WS'};
 
             // The thunk success dispatch then arrives with the stale publish response.
-            const thunkResponse = {...mockPage, id: 'real-id', edit_at: 2000, message: 'from thunk (stale)'};
+            const thunkResponse = {...mockPage, id: 'real-id', edit_at: 2000, body: 'from thunk (stale)'};
             const state = {
                 ...initialState,
                 byId: {[pending.id]: pending, [wsDelivered.id]: wsDelivered},
@@ -923,7 +978,7 @@ describe('pages reducer', () => {
 
             // Pending is cleared, real-id retains the fresher WS entry.
             expect(result.byId[pending.id]).toBeUndefined();
-            expect(result.byId['real-id'].message).toBe('from WS');
+            expect(result.byId['real-id'].body).toBe('from WS');
         });
     });
 
@@ -965,27 +1020,27 @@ describe('pages reducer', () => {
         });
     });
 
-    describe('RECEIVED_PAGES message preservation', () => {
-        test('should keep existing non-empty message when list endpoint returns empty content', () => {
-            const existing = {...mockPage, message: 'loaded content'};
-            const stubFromList = {...mockPage, message: ''};
+    describe('RECEIVED_PAGES body preservation', () => {
+        test('should keep existing non-empty body when list endpoint returns empty content', () => {
+            const existing = {...mockPage, body: 'loaded content'};
+            const stubFromList = {...mockPage, body: ''};
             const state = {...initialState, byId: {[pageId]: existing}};
             const result = pagesReducer(state, {
                 type: WikiTypes.RECEIVED_PAGES,
                 data: {wikiId, pages: [stubFromList]},
             });
-            expect(result.byId[pageId].message).toBe('loaded content');
+            expect(result.byId[pageId].body).toBe('loaded content');
         });
 
-        test('should overwrite with incoming message when incoming has content', () => {
-            const existing = {...mockPage, message: 'old'};
-            const incoming = {...mockPage, message: 'new', edit_at: 9999};
+        test('should overwrite with incoming body when incoming has content', () => {
+            const existing = {...mockPage, body: 'old'};
+            const incoming = {...mockPage, body: 'new', edit_at: 9999};
             const state = {...initialState, byId: {[pageId]: existing}};
             const result = pagesReducer(state, {
                 type: WikiTypes.RECEIVED_PAGES,
                 data: {wikiId, pages: [incoming]},
             });
-            expect(result.byId[pageId].message).toBe('new');
+            expect(result.byId[pageId].body).toBe('new');
         });
     });
 

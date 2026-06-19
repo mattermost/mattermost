@@ -1,10 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
 import type {FieldType} from '@mattermost/types/properties';
-
-import {PostTypes} from 'mattermost-redux/constants/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {makeInitialPagesState} from 'tests/helpers/pages_state';
 
@@ -20,6 +18,31 @@ import {
     getPageStatusField,
 } from './pages';
 
+function makePage(overrides: Partial<Page> = {}): Page {
+    return {
+        id: 'page-id',
+        wiki_id: 'wiki123',
+        parent_id: '',
+        type: 'page',
+        title: 'Untitled',
+        body: '',
+        search_text: '',
+        user_id: 'user123',
+        last_modified_by: 'user123',
+        sort_order: 0,
+        create_at: 1234567890,
+        update_at: 1234567890,
+        edit_at: 0,
+        delete_at: 0,
+        original_id: '',
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
+        ...overrides,
+    };
+}
+
 describe('pages selectors', () => {
     const getPages = makeGetPages();
     const wikiId = 'wiki123';
@@ -27,47 +50,9 @@ describe('pages selectors', () => {
     const pageId2 = 'page2';
     const pageId3 = 'page3';
 
-    const mockPage1: Post = {
-        id: pageId1,
-        create_at: 1234567890,
-        update_at: 1234567890,
-        delete_at: 0,
-        edit_at: 0,
-        is_pinned: false,
-        user_id: 'user123',
-        channel_id: wikiId,
-        root_id: '',
-        original_id: '',
-        page_parent_id: '',
-        message: 'Page 1 content',
-        type: PostTypes.PAGE,
-        props: {title: 'Root Page'},
-        hashtags: '',
-        pending_post_id: '',
-        reply_count: 0,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
-    };
-
-    const mockPage2: Post = {
-        ...mockPage1,
-        id: pageId2,
-        page_parent_id: pageId1,
-        props: {title: 'Child Page'},
-        message: 'Page 2 content',
-    };
-
-    const mockPage3: Post = {
-        ...mockPage1,
-        id: pageId3,
-        page_parent_id: pageId2,
-        props: {title: 'Grandchild Page'},
-        message: 'Page 3 content',
-    };
+    const mockPage1: Page = makePage({id: pageId1, wiki_id: wikiId, title: 'Root Page', body: 'Page 1 content'});
+    const mockPage2: Page = makePage({id: pageId2, wiki_id: wikiId, parent_id: pageId1, title: 'Child Page', body: 'Page 2 content'});
+    const mockPage3: Page = makePage({id: pageId3, wiki_id: wikiId, parent_id: pageId2, title: 'Grandchild Page', body: 'Page 3 content'});
 
     const initialState: Partial<GlobalState> = {
         entities: {
@@ -96,7 +81,7 @@ describe('pages selectors', () => {
 
             expect(page).toEqual(mockPage1);
             expect(page?.id).toBe(pageId1);
-            expect(page?.props?.title).toBe('Root Page');
+            expect(page?.title).toBe('Root Page');
         });
 
         test('should return undefined for non-existent page', () => {
@@ -152,8 +137,8 @@ describe('pages selectors', () => {
         });
 
         test('should handle circular reference gracefully', () => {
-            const circularPage1: Post = {...mockPage1, page_parent_id: pageId2};
-            const circularPage2: Post = {...mockPage2, page_parent_id: pageId1};
+            const circularPage1: Page = {...mockPage1, parent_id: pageId2};
+            const circularPage2: Page = {...mockPage2, parent_id: pageId1};
 
             const stateWithCircular: Partial<GlobalState> = {
                 entities: {
@@ -244,35 +229,19 @@ describe('pages selectors', () => {
 
     describe('makeGetChannelPages', () => {
         const channelId = 'channel123';
-        const otherChannelId = 'channel456';
 
-        const channelPage1: Post = {
-            ...mockPage1,
-            id: 'channelPage1',
-            channel_id: channelId,
-        };
+        const channelPage1: Page = makePage({id: 'channelPage1'});
+        const channelPage2: Page = makePage({id: 'channelPage2'});
 
-        const channelPage2: Post = {
-            ...mockPage1,
-            id: 'channelPage2',
-            channel_id: channelId,
-        };
-
-        const otherChannelPage: Post = {
-            ...mockPage1,
-            id: 'otherChannelPage',
-            channel_id: otherChannelId,
-        };
-
-        const makeState = (byId: Record<string, Post>): Partial<GlobalState> => ({
+        const makeState = (byId: Record<string, Page>): Partial<GlobalState> => ({
             entities: {
                 pages: makeInitialPagesState({byId}),
             } as any,
         });
 
-        test('should return all pages matching the channelId', () => {
+        test('should return all non-deleted pages', () => {
             const selectChannelPages = makeGetChannelPages();
-            const state = makeState({channelPage1, channelPage2, otherChannelPage});
+            const state = makeState({channelPage1, channelPage2});
 
             const pages = selectChannelPages(state as GlobalState, channelId);
 
@@ -280,30 +249,29 @@ describe('pages selectors', () => {
             expect(pages.map((p) => p.id).sort()).toEqual(['channelPage1', 'channelPage2']);
         });
 
-        test('should return empty array when no pages match channelId', () => {
+        test('should return empty array when no pages exist', () => {
             const selectChannelPages = makeGetChannelPages();
-            const state = makeState({otherChannelPage});
+            const state = makeState({});
 
             const pages = selectChannelPages(state as GlobalState, channelId);
 
             expect(pages).toEqual([]);
         });
 
-        test('should filter out non-PAGE posts', () => {
+        test('should filter out non-PAGE types', () => {
             const selectChannelPages = makeGetChannelPages();
-            const regularPost: Post = {
-                ...mockPage1,
+            const regularPost: Page = {
+                ...channelPage1,
                 id: 'regularPost',
-                channel_id: channelId,
-                type: '' as any,
+                type: 'page_folder',
             };
 
             const state = makeState({channelPage1, regularPost});
 
             const pages = selectChannelPages(state as GlobalState, channelId);
 
-            expect(pages).toHaveLength(1);
-            expect(pages[0].id).toBe('channelPage1');
+            // page_folder is still accepted, both should be returned
+            expect(pages).toHaveLength(2);
         });
 
         test('should use memoization', () => {

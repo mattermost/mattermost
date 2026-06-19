@@ -5,7 +5,7 @@ import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {getPageTitle} from 'utils/page_utils';
 import {isUrlSafe, isValidUrl} from 'utils/url';
@@ -15,7 +15,7 @@ import './page_link_modal.scss';
 type LinkMode = 'page' | 'url';
 
 type Props = {
-    pages: Post[];
+    pages: Page[];
     wikiId: string;
     onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => void;
     onSelectUrl?: (url: string, linkText: string) => void;
@@ -105,7 +105,7 @@ const PageLinkModal = ({
         if (selectedPage) {
             setIsConfirming(true);
             const title = getPageTitle(selectedPage, untitledText);
-            const pageWikiId = (selectedPage as any).wiki_id || wikiId;
+            const pageWikiId = selectedPage.wiki_id || wikiId;
             const finalLinkText = linkText.trim() || title;
             onSelect(selectedPage.id, title, pageWikiId, finalLinkText);
         }

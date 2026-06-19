@@ -32,9 +32,9 @@ const TranslationIndicator = ({pageId, onNavigateToPage}: Props) => {
     const page = useSelector((state: GlobalState) => getPageById(state, pageId));
 
     // Get translation metadata
-    const translatedFrom = page?.props?.[PagePropsKeys.TRANSLATED_FROM] as string | undefined;
-    const translationLanguage = page?.props?.[PagePropsKeys.TRANSLATION_LANGUAGE] as string | undefined;
-    const translations = (page?.props?.[PagePropsKeys.TRANSLATIONS] || []) as TranslationReference[];
+    const translatedFrom = page?.properties?.[PagePropsKeys.TRANSLATED_FROM] as string | undefined;
+    const translationLanguage = page?.properties?.[PagePropsKeys.TRANSLATION_LANGUAGE] as string | undefined;
+    const translations = (page?.properties?.[PagePropsKeys.TRANSLATIONS] || []) as TranslationReference[];
 
     // Get source page if this is a translation
     const sourcePage = useSelector((state: GlobalState) =>
@@ -136,7 +136,7 @@ const TranslationIndicator = ({pageId, onNavigateToPage}: Props) => {
                             >
                                 <GlobeIcon size={14}/>
                                 <span>
-                                    {(sourcePage?.props?.title as string) || formatMessage({
+                                    {sourcePage?.title || formatMessage({
                                         id: 'translation_indicator.original',
                                         defaultMessage: 'Original page',
                                     })}

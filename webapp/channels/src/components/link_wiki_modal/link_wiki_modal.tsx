@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {ServerError} from '@mattermost/types/errors';
-import type {Wiki, WikiLink} from '@mattermost/types/wikis';
+import type {ChannelMemberLink, Wiki} from '@mattermost/types/wikis';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -83,7 +83,7 @@ function LinkWikiModal({
             }
             const wikis = 'data' in wikisResult && wikisResult.data ? wikisResult.data : [];
             const freshLinks = ('data' in linksResult && linksResult.data) ? linksResult.data : [];
-            const linkedWikiIds = new Set(freshLinks.map((l: WikiLink) => l.wiki_id));
+            const linkedWikiIds = new Set(freshLinks.map((l: ChannelMemberLink) => l.wiki_id));
             const unlinked = wikis.filter((w: Wiki) => !linkedWikiIds.has(w.id));
             setAvailableWikis(unlinked);
             setIsLoading(false);

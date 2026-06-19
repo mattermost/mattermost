@@ -6,7 +6,7 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
-import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
+import type {BreadcrumbPath, Page, Wiki} from '@mattermost/types/wikis';
 
 import {PostTypes as PostActionTypes, PropertyTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
@@ -14,7 +14,6 @@ import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
-import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {fetchPageDraftsForWiki} from 'actions/page_drafts';
@@ -23,12 +22,11 @@ import {clearOutlineCache} from 'actions/views/pages_hierarchy';
 import {getPageDraft, getUserDraftKeysForPage, makePageDraftKey} from 'selectors/page_drafts';
 
 import {PageConstants, PagePropsKeys} from 'utils/constants';
-import {getPageReceiveActions} from 'utils/page_utils';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {ActionFuncAsync, DispatchFunc, GetStateFunc} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import type {InlineAnchor, Page, TranslationReference} from 'types/store/pages';
+import type {InlineAnchor, TranslationReference} from 'types/store/pages';
 
 /**
  * handleApiError handles the common error handling pattern for API calls.
@@ -91,12 +89,12 @@ export function clearOptimisticMutations(): void {
 // from hierarchy queries. Callers that need the page to land in byWiki must abort
 // rather than dispatch a silent-no-op RECEIVED_PAGE.
 function requireWikiId(
-    page: Post | undefined,
+    page: Page | undefined,
     callerName: string,
     pageId: string,
     dispatch: DispatchFunc,
 ): {wikiId: string} | {error: Error} {
-    const wikiId = page?.props?.[PagePropsKeys.WIKI_ID] as string | undefined;
+    const wikiId = page?.wiki_id;
     if (!wikiId) {
         const err = new Error(`${callerName}: page ${pageId} has no wiki_id`);
         dispatch(logError(err));
@@ -105,19 +103,20 @@ function requireWikiId(
     return {wikiId};
 }
 
-export type {Page, TranslationReference} from 'types/store/pages';
+export type {Page} from '@mattermost/types/wikis';
+export type {TranslationReference} from 'types/store/pages';
 
 export const GET_PAGES_REQUEST = WikiTypes.GET_PAGES_REQUEST;
 export const GET_PAGES_FAILURE = WikiTypes.GET_PAGES_FAILURE;
 
 // Fetch all pages for a wiki (with automatic pagination)
-export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
+export function fetchPages(wikiId: string): ActionFuncAsync<Page[]> {
     return async (dispatch, getState) => {
         dispatch({type: GET_PAGES_REQUEST, data: {wikiId}});
 
         try {
             // Fetch all pages by paginating until we get fewer results than the limit
-            const allPages: Post[] = [];
+            const allPages: Page[] = [];
             let offset = 0;
             const limit = PageConstants.PAGE_FETCH_LIMIT;
             const MAX_FETCH_ITERATIONS = 100;
@@ -162,30 +161,27 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
 // Fetch all pages for a channel
 export function fetchChannelPages(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        let data: {posts?: Record<string, Post>};
+        let pages: Page[];
         try {
-            data = await Client4.getChannelPages(channelId);
+            pages = await Client4.getChannelPages(channelId);
         } catch (error) {
             handleApiError(error, dispatch, getState);
             return {error};
         }
 
-        if (data?.posts) {
-            const pages = Object.values(data.posts);
-            if (pages.length > 0) {
-                // Dispatch without wikiId so byId is populated for cross-wiki link search
-                // but byWiki is NOT updated — preserving the invariant that byWiki is only
-                // populated by explicit per-wiki fetches (fetchPages). Without this, eager
-                // loading of all channel pages would add stale entries to byWiki for wikis
-                // the user hasn't visited, causing cross-test pollution in E2E suites.
-                dispatch({
-                    type: WikiTypes.RECEIVED_PAGES,
-                    data: {pages},
-                });
-            }
+        if (pages && pages.length > 0) {
+            // Dispatch without wikiId so byId is populated for cross-wiki link search
+            // but byWiki is NOT updated — preserving the invariant that byWiki is only
+            // populated by explicit per-wiki fetches (fetchPages). Without this, eager
+            // loading of all channel pages would add stale entries to byWiki for wikis
+            // the user hasn't visited, causing cross-test pollution in E2E suites.
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {pages},
+            });
         }
 
-        return {data};
+        return {data: pages};
     };
 }
 
@@ -279,7 +275,7 @@ export function fetchPage(pageId: string, wikiId: string): ActionFuncAsync<Page>
     return async (dispatch, getState) => {
         let data: Page;
         try {
-            data = await Client4.getPage(wikiId, pageId) as Page;
+            data = await Client4.getPage(wikiId, pageId);
         } catch (error) {
             handleApiError(error, dispatch, getState);
             return {error};
@@ -299,7 +295,7 @@ export function fetchChannelDefaultPage(channelId: string): ActionFuncAsync<Page
     return async (dispatch, getState) => {
         let data: Page;
         try {
-            data = await Client4.getChannelDefaultWikiPage(channelId) as Page;
+            data = await Client4.getChannelDefaultWikiPage(channelId);
         } catch (error) {
             handleApiError(error, dispatch, getState);
             return {error};
@@ -307,7 +303,7 @@ export function fetchChannelDefaultPage(channelId: string): ActionFuncAsync<Page
 
         dispatch({
             type: WikiTypes.RECEIVED_PAGE,
-            data: {page: data, wikiId: data.props?.[PagePropsKeys.WIKI_ID] as string | undefined},
+            data: {page: data, wikiId: data.wiki_id},
         });
 
         return {data};
@@ -334,38 +330,27 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         // Use passed message if provided (latest content from editor), otherwise fall back to draft.message
         const draftMessage = message === undefined ? (draft.message || '') : message;
 
-        // wiki.channel_id is intentionally not exposed by the server (json:"-"),
-        // so the channel id always comes from the draft.
-        const channelId = draft.channelId || '';
-
         const pendingPageId = `pending-${Date.now()}`;
         const optimisticPage: Page = {
             id: pendingPageId,
+            wiki_id: wikiId,
+            parent_id: pageParentId || '',
+            title: draft.props?.[PagePropsKeys.TITLE] as string || title || 'Untitled',
+            body: draftMessage,
+            search_text: '',
+            type: 'page',
+            user_id: state.entities.users.currentUserId || '',
+            last_modified_by: state.entities.users.currentUserId || '',
+            sort_order: 0,
             create_at: Date.now(),
             update_at: Date.now(),
-            delete_at: 0,
             edit_at: 0,
-            is_pinned: false,
-            user_id: state.entities.users.currentUserId || '',
-            channel_id: channelId,
-            root_id: '',
+            delete_at: 0,
             original_id: '',
-            page_parent_id: pageParentId || '',
-            message: draftMessage,
-            type: PostTypes.PAGE,
-            props: {
-                [PagePropsKeys.TITLE]: draft.props?.[PagePropsKeys.TITLE] || title || 'Untitled',
-                [PagePropsKeys.PAGE_PARENT_ID]: pageParentId || '',
-            },
-            hashtags: '',
-            pending_post_id: pendingPageId,
-            reply_count: 0,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
+            has_effective_view_restriction: false,
+            has_local_edit_restriction: false,
+            properties: {},
+            pending_file_ids: [],
         };
 
         // Remove draft from storage
@@ -395,7 +380,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         const finalPageStatus = pageStatus || (draft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined);
 
         try {
-            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baseEditAt) as Page;
+            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baseEditAt);
 
             const actions: AnyAction[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, publishedAt: data.update_at, optimisticId: isFirstTimeDraft ? undefined : pendingPageId}},
@@ -447,7 +432,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             if (error?.status_code === 409 && conflictPageId) {
                 // Fetch the current page to get the latest version
                 try {
-                    const currentPage = await Client4.getPage(wikiId, conflictPageId) as Page;
+                    const currentPage = await Client4.getPage(wikiId, conflictPageId);
                     return {
                         error: {
                             id: 'api.page.publish_draft.conflict',
@@ -500,7 +485,7 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
 
         const optimisticPost = {
             ...originalPost,
-            props: {...originalPost.props, [PagePropsKeys.TITLE]: newTitle},
+            title: newTitle,
             update_at: Date.now(),
         };
 
@@ -516,14 +501,11 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
 
             endOptimistic(pageId, optimisticId);
 
-            const pageActions = getPageReceiveActions(data);
-            if (pageActions.length === 0) {
-                // Server returned something that isn't a page-typed post; the
-                // optimistic entry would remain without a confirming dispatch.
-                dispatch(logError(new Error(`updatePage: server response is not a page-typed post pageId=${pageId} type=${data?.type}`)));
-            } else {
-                pageActions.forEach((action) => dispatch(action));
-            }
+            // Dispatch the updated page directly
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId},
+            });
 
             return {data};
         } catch (error) {
@@ -645,11 +627,7 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
         const parentChanging = newParentId !== null;
         const optimisticPost = {
             ...originalPost,
-            page_parent_id: parentChanging ? (newParentId || '') : originalPost.page_parent_id,
-            props: {
-                ...originalPost.props,
-                ...(parentChanging ? {[PagePropsKeys.PAGE_PARENT_ID]: newParentId || ''} : {}),
-            },
+            parent_id: parentChanging ? (newParentId || '') : originalPost.parent_id,
             update_at: Date.now(),
         };
 
@@ -676,13 +654,13 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
 
             endOptimistic(pageId, optimisticId);
 
-            // If the server returned updated siblings (PostList), update Redux store
-            // This ensures the frontend has the correct page_sort_order values
-            if (response && 'posts' in response && response.posts) {
-                for (const post of Object.values(response.posts)) {
+            // If the server returned updated siblings (Page[]), update Redux store
+            // This ensures the frontend has the correct sort_order values
+            if (Array.isArray(response)) {
+                for (const page of response) {
                     dispatch({
                         type: WikiTypes.RECEIVED_PAGE,
-                        data: {page: post, wikiId},
+                        data: {page, wikiId},
                     });
                 }
             }
@@ -721,13 +699,10 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
         const isCrossWikiMove = sourceWikiId !== targetWikiId;
 
         // Create optimistic update with new parent
-        const optimisticPost: Post = {
+        const optimisticPost: Page = {
             ...originalPost,
-            page_parent_id: parentPageId || '',
-            props: {
-                ...originalPost.props,
-                [PagePropsKeys.PAGE_PARENT_ID]: parentPageId || '',
-            },
+            parent_id: parentPageId || '',
+            wiki_id: targetWikiId,
             update_at: Date.now(),
         };
 
@@ -792,7 +767,7 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
     };
 }
 
-export function duplicatePage(pageId: string, wikiId: string): ActionFuncAsync<Post> {
+export function duplicatePage(pageId: string, wikiId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         try {
             const duplicatedPage = await Client4.duplicatePage(wikiId, pageId, wikiId, undefined);
@@ -985,8 +960,8 @@ export function updatePageStatus(postId: string, status: string, wikiId: string)
                     data: {
                         page: {
                             ...post,
-                            props: {
-                                ...post.props,
+                            properties: {
+                                ...post.properties,
                                 [PagePropsKeys.PAGE_STATUS]: status,
                             },
                         },
@@ -1003,7 +978,7 @@ export function updatePageStatus(postId: string, status: string, wikiId: string)
     };
 }
 
-export function getPageVersionHistory(wikiId: string, pageId: string): ActionFuncAsync<Post[]> {
+export function getPageVersionHistory(wikiId: string, pageId: string): ActionFuncAsync<Page[]> {
     return async (dispatch, getState) => {
         try {
             const versionHistory = await Client4.getPageVersionHistory(wikiId, pageId);
@@ -1038,7 +1013,7 @@ export function setPageTranslationMetadata(
     pageId: string,
     sourcePageId: string,
     languageCode: string,
-): ActionFuncAsync<Post> {
+): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         const state = getState();
         const page = state.entities.pages.byId[pageId];
@@ -1050,10 +1025,10 @@ export function setPageTranslationMetadata(
 
         try {
             const freshPage = getState().entities.pages.byId[pageId];
-            const props = freshPage?.props || {};
+            const existingProperties = freshPage?.properties || {};
 
             const data = await Client4.patchPageProps(wikiId, pageId, {
-                ...props,
+                ...existingProperties,
                 [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
                 [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
             });
@@ -1079,7 +1054,7 @@ export function addPageTranslationReference(
     sourcePageId: string,
     translatedPageId: string,
     languageCode: string,
-): ActionFuncAsync<Post> {
+): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         const state = getState();
         const sourcePage = state.entities.pages.byId[sourcePageId];
@@ -1091,16 +1066,16 @@ export function addPageTranslationReference(
 
         try {
             // NOTE: This function has a read-modify-write race: two concurrent calls for different
-            // languages each read the same existingTranslations array, make separate patchPost calls,
+            // languages each read the same existingTranslations array, make separate patchPage calls,
             // and the last write wins. This should be moved to a dedicated server endpoint that
             // applies the update atomically. For now, concurrent translation creation is rare enough
             // that this is acceptable.
             // Re-read the source page inside the async path so that any WS updates
             // that arrived between the initial snapshot above and the network call
-            // below aren't silently overwritten by a stale props map.
+            // below aren't silently overwritten by a stale properties map.
             const freshSourcePage = getState().entities.pages.byId[sourcePageId];
-            const existingProps = freshSourcePage?.props || {};
-            const existingTranslations = (existingProps[PagePropsKeys.TRANSLATIONS] || []) as TranslationReference[];
+            const existingProperties = freshSourcePage?.properties || {};
+            const existingTranslations = (existingProperties[PagePropsKeys.TRANSLATIONS] || []) as TranslationReference[];
 
             const newTranslationRef: TranslationReference = {
                 page_id: translatedPageId,
@@ -1114,7 +1089,7 @@ export function addPageTranslationReference(
             ];
 
             const data = await Client4.patchPageProps(wikiId, sourcePageId, {
-                ...existingProps,
+                ...existingProperties,
                 [PagePropsKeys.TRANSLATIONS]: updatedTranslations,
             });
 

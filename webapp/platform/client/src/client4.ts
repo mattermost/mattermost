@@ -157,7 +157,7 @@ import type {
     UserCustomStatus,
 } from '@mattermost/types/users';
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
-import type {Wiki, WikiCreate, BreadcrumbPath, WikiLink} from '@mattermost/types/wikis';
+import type {Wiki, WikiCreate, BreadcrumbPath, ChannelMemberLink, Page} from '@mattermost/types/wikis';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -2217,35 +2217,35 @@ export default class Client4 {
     };
 
     linkWikiToChannel = (channelId: string, wikiId: string) => {
-        return this.doFetch<WikiLink>(
-            `${this.getChannelRoute(channelId)}/wikilinks`,
+        return this.doFetch<ChannelMemberLink>(
+            `${this.getChannelRoute(channelId)}/channel_member_links`,
             {method: 'POST', body: JSON.stringify({wiki_id: wikiId})},
         );
     };
 
     unlinkWikiFromChannel = (channelId: string, wikiId: string) => {
         return this.doFetch<StatusOK>(
-            `${this.getChannelRoute(channelId)}/wikilinks/${wikiId}`,
+            `${this.getChannelRoute(channelId)}/channel_member_links/${wikiId}`,
             {method: 'DELETE'},
         );
     };
 
-    getWikiLinksForChannel = (channelId: string) => {
-        return this.doFetch<WikiLink[]>(
-            `${this.getChannelRoute(channelId)}/wikilinks`,
+    getChannelMemberLinksForChannel = (channelId: string) => {
+        return this.doFetch<ChannelMemberLink[]>(
+            `${this.getChannelRoute(channelId)}/channel_member_links`,
             {method: 'GET'},
         );
     };
 
-    getWikiLinks = (wikiId: string) => {
-        return this.doFetch<WikiLink[]>(
-            `${this.getWikiRoute(wikiId)}/links`,
+    getChannelMemberLinks = (wikiId: string) => {
+        return this.doFetch<ChannelMemberLink[]>(
+            `${this.getWikiRoute(wikiId)}/channel_member_links`,
             {method: 'GET'},
         );
     };
 
     getPages = (wikiId: string, page = 0, perPage = 60) => {
-        return this.doFetch<Post[]>(
+        return this.doFetch<Page[]>(
             `${this.getWikiPagesRoute(wikiId)}${buildQueryString({page, per_page: perPage})}`,
             {method: 'GET'},
         );
@@ -2259,14 +2259,14 @@ export default class Client4 {
         if (content) {
             body.content = content;
         }
-        return this.doFetch<Post>(
+        return this.doFetch<Page>(
             `${this.getWikiPagesRoute(wikiId)}`,
             {method: 'POST', body: JSON.stringify(body)},
         );
     };
 
     getPage = (wikiId: string, pageId: string) => {
-        return this.doFetch<Post>(
+        return this.doFetch<Page>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
             {method: 'GET'},
         );
@@ -2275,6 +2275,13 @@ export default class Client4 {
     getPageBreadcrumb = (wikiId: string, pageId: string) => {
         return this.doFetch<BreadcrumbPath>(
             `${this.getWikiPageRoute(wikiId, pageId)}/breadcrumb`,
+            {method: 'GET'},
+        );
+    };
+
+    getPageFiles = (wikiId: string, pageId: string) => {
+        return this.doFetch<FileInfo[]>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/files`,
             {method: 'GET'},
         );
     };
@@ -2294,7 +2301,7 @@ export default class Client4 {
     };
 
     getPageVersionHistory = (wikiId: string, pageId: string) => {
-        return this.doFetch<Post[]>(
+        return this.doFetch<Page[]>(
             `${this.getWikiPageRoute(wikiId, pageId)}/version_history`,
             {method: 'GET'},
         );
@@ -2315,7 +2322,7 @@ export default class Client4 {
     };
 
     getChannelPages = (channelId: string) => {
-        return this.doFetch<PostList>(
+        return this.doFetch<Page[]>(
             `${this.getChannelRoute(channelId)}/pages`,
             {method: 'GET'},
         );
@@ -2355,14 +2362,14 @@ export default class Client4 {
         if (force !== undefined) {
             body.force = force;
         }
-        return this.doFetch<Post>(
+        return this.doFetch<Page>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
             {method: 'PUT', body: JSON.stringify(body)},
         );
     };
 
     patchPageProps = (wikiId: string, pageId: string, props: Record<string, unknown>) => {
-        return this.doFetch<Post>(
+        return this.doFetch<Page>(
             `${this.getWikiPageRoute(wikiId, pageId)}/props`,
             {method: 'PATCH', body: JSON.stringify({props})},
         );
@@ -2380,7 +2387,7 @@ export default class Client4 {
             body.sibling_index = siblingIndex;
         }
 
-        return this.doFetch<StatusOK | PostList>(
+        return this.doFetch<StatusOK | Page[]>(
             `${this.getWikiPageRoute(wikiId, pageId)}/move`,
             {method: 'PUT', body: JSON.stringify(body)},
         );
@@ -2402,7 +2409,7 @@ export default class Client4 {
         if (customTitle) {
             body.title = customTitle;
         }
-        return this.doFetch<Post>(
+        return this.doFetch<Page>(
             `${this.getWikiPageRoute(sourceWikiId, pageId)}/duplicate`,
             {method: 'POST', body: JSON.stringify(body)},
         );
@@ -2410,7 +2417,7 @@ export default class Client4 {
 
     publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, content?: string, pageStatus?: string, force?: boolean, baseEditAt?: number) => {
         const requestBody = {page_parent_id: pageParentId, title, search_text: searchText, content, page_status: pageStatus, force, base_edit_at: baseEditAt};
-        return this.doFetch<Post>(
+        return this.doFetch<Page>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}/publish`,
             {method: 'POST', body: JSON.stringify(requestBody)},
         );

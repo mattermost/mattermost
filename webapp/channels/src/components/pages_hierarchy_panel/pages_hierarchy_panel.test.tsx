@@ -5,10 +5,8 @@ import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
-
-import {PostTypes} from 'mattermost-redux/constants/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -25,37 +23,29 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     const rootPage1Id = 'root-page-1';
     const childPageId = 'child-page-1';
 
-    const createMockPage = (id: string, title: string, parentId?: string): Post => ({
+    const createMockPage = (id: string, title: string, parentId?: string): Page => ({
         id,
-        type: PostTypes.PAGE,
-        channel_id: mockChannelId,
+        wiki_id: mockWikiId,
+        parent_id: parentId || '',
+        type: 'page',
+        title,
+        body: '',
+        search_text: '',
         user_id: mockUserId,
-        page_parent_id: parentId || '',
-        props: {
-            title,
-            wiki_id: mockWikiId,
-        },
+        last_modified_by: '',
+        sort_order: 0,
         create_at: Date.now(),
         update_at: Date.now(),
-        delete_at: 0,
         edit_at: 0,
-        is_pinned: false,
-        root_id: '',
+        delete_at: 0,
         original_id: '',
-        message: '',
-        hashtags: '',
-        file_ids: [],
-        pending_post_id: '',
-        reply_count: 0,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
     });
 
-    const mockPages: Post[] = [
+    const mockPages: Page[] = [
         createMockPage(rootPage1Id, 'Root Page'),
         createMockPage(childPageId, 'Child Page', rootPage1Id),
     ];

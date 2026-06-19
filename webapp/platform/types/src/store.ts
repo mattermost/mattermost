@@ -38,7 +38,7 @@ import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
 import type {UsersState} from './users';
-import type {WikisState} from './wikis';
+import type {Page, WikisState} from './wikis';
 
 export type GlobalState = {
     entities: {
@@ -105,7 +105,7 @@ export type GlobalState = {
         };
         contentFlagging: ContentFlaggingState;
         pages: {
-            byId: Record<string, Post>;
+            byId: Record<string, Page>;
             byWiki: Record<string, string[]>;
             lastPagesInvalidated: Record<string, number>;
             lastDraftsInvalidated: Record<string, number>;

@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {PostTypes} from 'mattermost-redux/constants';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -25,7 +26,7 @@ import {getWikiUrl} from 'utils/url';
 import './page_commented_on.scss';
 
 type Props = {
-    onCommentClick?: (e: React.MouseEvent, pagePost: Post | null) => void;
+    onCommentClick?: (e: React.MouseEvent, pagePost: Page | Post | null) => void;
     rootId: string;
     showUserHeader?: boolean;
 };
@@ -51,18 +52,8 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
 
-        const wikiId = rootPost?.props?.wiki_id as string | undefined;
-
-        const pagePostWithWiki = pagePost && wikiId ? {
-            ...pagePost,
-            props: {
-                ...pagePost.props,
-                wiki_id: wikiId,
-            },
-        } : pagePost;
-
-        if (onCommentClick && pagePostWithWiki) {
-            onCommentClick(e, pagePostWithWiki);
+        if (onCommentClick) {
+            onCommentClick(e, pagePost);
         }
     };
 

@@ -158,8 +158,8 @@ const WikiView = () => {
     const draftParentIdRef = React.useRef<string | undefined>(undefined);
     const draftTitleRef = React.useRef<string | undefined>(undefined);
     React.useEffect(() => {
-        if (currentPage?.page_parent_id) {
-            pageParentIdRef.current = currentPage.page_parent_id;
+        if (currentPage?.parent_id) {
+            pageParentIdRef.current = currentPage.parent_id;
         }
         if (currentDraft?.props?.page_parent_id) {
             draftParentIdRef.current = currentDraft.props.page_parent_id;
@@ -167,7 +167,7 @@ const WikiView = () => {
         if (currentDraft?.props?.title) {
             draftTitleRef.current = currentDraft.props.title;
         }
-    }, [currentPage?.page_parent_id, currentDraft?.props?.page_parent_id, currentDraft?.props?.title]);
+    }, [currentPage?.parent_id, currentDraft?.props?.page_parent_id, currentDraft?.props?.title]);
 
     const getPages = React.useMemo(() => makeGetPages(), []);
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
@@ -193,7 +193,7 @@ const WikiView = () => {
     const onGetPageContent = draftId ? getEditorContent : undefined;
 
     // Channel for sidebar selection. channelId comes from getResolvedChannelId,
-    // which walks WikiLinks for a member-channel match. Lazy-fetch if not in Redux
+    // which walks ChannelMemberLinks for a member-channel match. Lazy-fetch if not in Redux
     // (covers the deep-link case where the channel hasn't been visited this session).
     const currentChannel = useSelector((state: GlobalState) => getChannel(state, channelId));
 
@@ -493,10 +493,10 @@ const WikiView = () => {
     }, [headerProps?.pageId, handleVersionHistory]);
 
     const handleCopyMarkdown = React.useCallback(async () => {
-        const content = isDraft ? currentDraft?.message : currentPage?.message;
-        const title = isDraft ? currentDraft?.props?.title : currentPage?.props?.title;
+        const content = isDraft ? currentDraft?.message : currentPage?.body;
+        const title = isDraft ? currentDraft?.props?.title : currentPage?.title;
         await copyPageAsMarkdown(content, typeof title === 'string' ? title : undefined);
-    }, [isDraft, currentDraft?.message, currentDraft?.props?.title, currentPage?.message, currentPage?.props?.title]);
+    }, [isDraft, currentDraft?.message, currentDraft?.props?.title, currentPage?.body, currentPage?.title]);
 
     // Handler for when a translated/proofread draft is created - navigate to the new draft
     const handleTranslatedPageCreated = React.useCallback((newPageId: string) => {

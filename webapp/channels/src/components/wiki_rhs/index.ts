@@ -20,12 +20,11 @@ function makeMapStateToProps() {
     return (state: GlobalState) => {
         const pageId = getSelectedPageId(state);
         const page = pageId ? getPageById(state, pageId) : null;
-        const pageTitle = (typeof page?.props?.title === 'string' ? page.props.title : 'Page');
+        const pageTitle = (typeof page?.title === 'string' ? page.title : 'Page');
 
-        // True once the page entity is hydrated (has channel_id). The wiki RHS uses
-        // page-comment endpoints, not channel-post endpoints, so the wiki backing channel
-        // does not need to be in entities.channels.channels.
-        const pageHydrated = Boolean(page?.channel_id);
+        // True once the page entity is hydrated (has wiki_id). The wiki RHS uses
+        // page-comment endpoints, not channel-post endpoints.
+        const pageHydrated = Boolean(page?.wiki_id);
 
         return {
             pageId,

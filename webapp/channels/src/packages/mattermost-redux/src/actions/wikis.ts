@@ -5,7 +5,7 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
-import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
+import type {BreadcrumbPath, Page, Wiki} from '@mattermost/types/wikis';
 
 import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -145,7 +145,7 @@ export function deleteWiki(wikiId: string): ActionFuncAsync<boolean> {
 
 // Page Operations
 
-export function getPages(wikiId: string, page: number, perPage: number): ActionFuncAsync<Post[]> {
+export function getPages(wikiId: string, page: number, perPage: number): ActionFuncAsync<Page[]> {
     return async (dispatch, getState) => {
         dispatch({type: WikiTypes.GET_PAGES_REQUEST, data: {wikiId}});
 
@@ -177,36 +177,34 @@ export function getPages(wikiId: string, page: number, perPage: number): ActionF
 export function getChannelPages(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
-            const data: {posts?: Record<string, Post>} = await Client4.getChannelPages(channelId);
+            const pages: Page[] = await Client4.getChannelPages(channelId);
 
-            if (data?.posts) {
-                // Group by wikiId so the reducer sees one RECEIVED_PAGES per wiki
-                // instead of N individual RECEIVED_PAGE actions (one re-render each).
-                const pagesByWiki: Record<string, Post[]> = {};
-                for (const page of Object.values(data.posts)) {
-                    const wikiId = page.props[PagePropsKeys.WIKI_ID] as string | undefined;
-                    if (wikiId) {
-                        if (!pagesByWiki[wikiId]) {
-                            pagesByWiki[wikiId] = [];
-                        }
-                        pagesByWiki[wikiId].push(page);
-                    } else {
-                        // Channel pages should always carry wiki_id; log so a server-side
-                        // schema regression doesn't silently orphan pages in byId.
-                        // eslint-disable-next-line no-console
-                        console.warn('getChannelPages: page missing wiki_id prop', page.id);
+            // Group by wikiId so the reducer sees one RECEIVED_PAGES per wiki
+            // instead of N individual RECEIVED_PAGE actions (one re-render each).
+            const pagesByWiki: Record<string, Page[]> = {};
+            for (const page of pages) {
+                const wikiId = page.wiki_id;
+                if (wikiId) {
+                    if (!pagesByWiki[wikiId]) {
+                        pagesByWiki[wikiId] = [];
                     }
-                }
-                const groupActions: AnyAction[] = Object.entries(pagesByWiki).map(([wikiId, pages]) => ({
-                    type: WikiTypes.RECEIVED_PAGES,
-                    data: {wikiId, pages},
-                }));
-                if (groupActions.length > 0) {
-                    dispatch(batchActions(groupActions));
+                    pagesByWiki[wikiId].push(page);
+                } else {
+                    // Channel pages should always carry wiki_id; log so a server-side
+                    // schema regression doesn't silently orphan pages in byId.
+                    // eslint-disable-next-line no-console
+                    console.warn('getChannelPages: page missing wiki_id', page.id);
                 }
             }
+            const groupActions: AnyAction[] = Object.entries(pagesByWiki).map(([wikiId, wikiPages]) => ({
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {wikiId, pages: wikiPages},
+            }));
+            if (groupActions.length > 0) {
+                dispatch(batchActions(groupActions));
+            }
 
-            return {data};
+            return {data: pages};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -215,10 +213,10 @@ export function getChannelPages(channelId: string): ActionFuncAsync {
     };
 }
 
-export function getPage(wikiId: string, pageId: string): ActionFuncAsync<Post> {
+export function getPage(wikiId: string, pageId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         try {
-            const data = await Client4.getPage(wikiId, pageId) as Post;
+            const data = await Client4.getPage(wikiId, pageId);
 
             dispatch({
                 type: WikiTypes.RECEIVED_PAGE,
@@ -234,14 +232,14 @@ export function getPage(wikiId: string, pageId: string): ActionFuncAsync<Post> {
     };
 }
 
-export function getChannelDefaultWikiPage(channelId: string): ActionFuncAsync<Post> {
+export function getChannelDefaultWikiPage(channelId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         try {
-            const data = await Client4.getChannelDefaultWikiPage(channelId) as Post;
+            const data = await Client4.getChannelDefaultWikiPage(channelId);
 
             dispatch({
                 type: WikiTypes.RECEIVED_PAGE,
-                data: {page: data, wikiId: data.props[PagePropsKeys.WIKI_ID] as string | undefined},
+                data: {page: data, wikiId: data.wiki_id},
             });
 
             return {data};
@@ -278,7 +276,7 @@ export function movePageParent(wikiId: string, pageId: string, newParentId: stri
     return async (dispatch, getState) => {
         try {
             await Client4.movePage(wikiId, pageId, newParentId);
-            const updatedPage = await Client4.getPage(wikiId, pageId) as Post;
+            const updatedPage = await Client4.getPage(wikiId, pageId);
             dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page: updatedPage, wikiId}});
             return {data: true};
         } catch (error) {
@@ -293,7 +291,7 @@ export function movePageToWiki(sourceWikiId: string, pageId: string, targetWikiI
     return async (dispatch, getState) => {
         try {
             await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
-            const updatedPage = await Client4.getPage(targetWikiId, pageId) as Post;
+            const updatedPage = await Client4.getPage(targetWikiId, pageId);
             dispatch({type: WikiTypes.REMOVED_PAGE_FROM_WIKI, data: {pageId, wikiId: sourceWikiId}});
             dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page: updatedPage, wikiId: targetWikiId}});
             return {data: true};
@@ -305,7 +303,7 @@ export function movePageToWiki(sourceWikiId: string, pageId: string, targetWikiI
     };
 }
 
-export function duplicatePage(wikiId: string, pageId: string, targetWikiId?: string, parentPageId?: string): ActionFuncAsync<Post> {
+export function duplicatePage(wikiId: string, pageId: string, targetWikiId?: string, parentPageId?: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         try {
             const duplicatedPage = await Client4.duplicatePage(wikiId, pageId, targetWikiId || wikiId, parentPageId);
@@ -452,7 +450,7 @@ export function updatePageStatus(postId: string, status: string): ActionFuncAsyn
         try {
             const state = getState();
             const post = state.entities.pages.byId[postId];
-            const wikiId = post?.props[PagePropsKeys.WIKI_ID] as string | undefined;
+            const wikiId = post?.wiki_id;
             if (!wikiId) {
                 return {error: new Error('updatePageStatus: missing wikiId for page ' + postId)};
             }
@@ -460,8 +458,8 @@ export function updatePageStatus(postId: string, status: string): ActionFuncAsyn
 
             const updatedPost = {
                 ...post,
-                props: {
-                    ...post.props,
+                properties: {
+                    ...(post?.properties ?? {}),
                     [PagePropsKeys.PAGE_STATUS]: status,
                 },
             };
@@ -482,7 +480,7 @@ export function updatePageStatus(postId: string, status: string): ActionFuncAsyn
 
 // Page Version History
 
-export function getPageVersionHistory(wikiId: string, pageId: string): ActionFuncAsync<Post[]> {
+export function getPageVersionHistory(wikiId: string, pageId: string): ActionFuncAsync<Page[]> {
     return async (dispatch, getState) => {
         try {
             const versionHistory = await Client4.getPageVersionHistory(wikiId, pageId);
@@ -553,10 +551,10 @@ export function publishPageDraft(
     pageStatus?: string,
     force?: boolean,
     baselineEditAt?: number,
-): ActionFuncAsync<Post> {
+): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         try {
-            const data = await Client4.publishPageDraft(wikiId, pageId, pageParentId, title, searchText, message, pageStatus, force, baselineEditAt) as Post;
+            const data = await Client4.publishPageDraft(wikiId, pageId, pageParentId, title, searchText, message, pageStatus, force, baselineEditAt);
 
             dispatch({
                 type: WikiTypes.RECEIVED_PAGE,

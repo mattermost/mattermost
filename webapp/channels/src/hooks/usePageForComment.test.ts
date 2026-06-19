@@ -4,6 +4,7 @@
 import {renderHook, waitFor} from '@testing-library/react';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 // Mock all external modules BEFORE they're imported by usePageForComment
 jest.mock('mattermost-redux/selectors/entities/pages', () => ({
@@ -54,12 +55,27 @@ const makeComment = (overrides: Partial<Post> = {}): Post => ({
     ...overrides,
 } as unknown as Post);
 
-const makePage = (): Post => ({
+const makePage = (): Page => ({
     id: pageId,
+    wiki_id: wikiId,
+    parent_id: '',
     type: 'page',
-    channel_id: 'c1',
-    props: {title: 'Test Page', wiki_id: wikiId},
-} as unknown as Post);
+    title: 'Test Page',
+    body: '',
+    search_text: '',
+    user_id: 'u1',
+    last_modified_by: 'u1',
+    sort_order: 0,
+    create_at: 0,
+    update_at: 0,
+    edit_at: 0,
+    delete_at: 0,
+    original_id: '',
+    has_effective_view_restriction: false,
+    has_local_edit_restriction: false,
+    properties: {},
+    pending_file_ids: [],
+});
 
 describe('usePageForComment', () => {
     beforeEach(() => {

@@ -25,7 +25,7 @@ import ImageResize from 'tiptap-extension-resize-image';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
@@ -255,7 +255,7 @@ type Props = {
     pageTitle?: string;
     pageParentId?: string | null;
     wikiId?: string;
-    pages?: Post[];
+    pages?: Page[];
     isExistingPage?: boolean;
     onCreateInlineComment?: (anchor: InlineAnchor) => void;
     inlineComments?: Array<{

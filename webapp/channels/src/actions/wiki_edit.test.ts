@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import * as PageDraftActions from 'actions/page_drafts';
 import * as PageDraftSelectors from 'selectors/page_drafts';
@@ -20,33 +20,26 @@ describe('wiki_edit actions', () => {
     const wikiId = 'wiki123';
     const pageId = 'page123';
 
-    const mockPage: Post = {
+    const mockPage: Page = {
         id: pageId,
+        wiki_id: wikiId,
+        parent_id: 'parent123',
+        type: 'page',
+        title: 'Test Page',
+        body: '{"type":"doc","content":[]}',
+        search_text: '',
+        user_id: 'user123',
+        last_modified_by: '',
+        sort_order: 0,
         create_at: 1000000000000,
         update_at: 1000000100000,
         edit_at: 1000000100000,
         delete_at: 0,
-        is_pinned: false,
-        user_id: 'user123',
-        channel_id: channelId,
-        root_id: '',
         original_id: '',
-        message: '{"type":"doc","content":[]}',
-        type: 'page',
-        props: {
-            title: 'Test Page',
-            page_status: 'In Progress',
-        },
-        page_parent_id: 'parent123',
-        hashtags: '',
-        pending_post_id: '',
-        reply_count: 0,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {page_status: 'In Progress'},
+        pending_file_ids: [],
     };
 
     const mockState = {
@@ -99,7 +92,7 @@ describe('wiki_edit actions', () => {
                 channelId,
                 wikiId,
                 pageId,
-                mockPage.message,
+                mockPage.body,
                 'Test Page',
                 undefined,
                 expect.objectContaining({
@@ -136,7 +129,7 @@ describe('wiki_edit actions', () => {
             mockHasUnsavedChanges.mockReturnValue(false);
             mockSavePageDraft.mockReturnValue(() => Promise.resolve({data: true}) as any);
 
-            const pageWithoutParent = {...mockPage, page_parent_id: ''};
+            const pageWithoutParent = {...mockPage, parent_id: ''};
 
             const dispatch: jest.Mock = jest.fn((action) => {
                 if (typeof action === 'function') {
@@ -258,7 +251,7 @@ describe('wiki_edit actions', () => {
             mockHasUnsavedChanges.mockReturnValue(false);
             mockSavePageDraft.mockReturnValue(() => Promise.resolve({data: true}) as any);
 
-            const pageWithoutTitle = {...mockPage, props: {}};
+            const pageWithoutTitle = {...mockPage, title: ''};
 
             const dispatch: jest.Mock = jest.fn((action) => {
                 if (typeof action === 'function') {

@@ -5,6 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
@@ -16,7 +17,7 @@ import Button from './common/button';
 
 export function renderThreadPaneHeaderTitle(
     post: Post,
-    pagePost: Post | null,
+    pagePost: Page | null,
     channel: {display_name: string} | null,
     goToInChannelHandler: () => void,
 ): JSX.Element {
@@ -51,7 +52,7 @@ export function shouldHideRootPost(post: Post): boolean {
     return isPagePost(post);
 }
 
-export function usePagePostForInlineComment(post: Post | null): Post | null {
+export function usePagePostForInlineComment(post: Post | null): Page | null {
     return useSelector((state: GlobalState) => {
         if (!isPageInlineComment(post) || !post?.root_id) {
             return null;

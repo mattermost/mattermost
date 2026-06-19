@@ -8,8 +8,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
-
-import {PostTypes} from 'mattermost-redux/constants/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -447,45 +446,30 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
     });
 
     describe('Page Linking Integration', () => {
+        const makeMockPage = (id: string, title: string, createAt: number): Page => ({
+            id,
+            wiki_id: 'wiki_id_1',
+            parent_id: '',
+            type: 'page',
+            title,
+            body: '',
+            search_text: '',
+            user_id: 'user1',
+            last_modified_by: 'user1',
+            sort_order: 0,
+            create_at: createAt,
+            update_at: createAt,
+            edit_at: 0,
+            delete_at: 0,
+            original_id: '',
+            has_effective_view_restriction: false,
+            has_local_edit_restriction: false,
+            properties: {},
+            pending_file_ids: [],
+        });
         const mockPages = [
-            {
-                id: 'page1',
-                type: PostTypes.PAGE,
-                props: {title: 'Getting Started'},
-                create_at: 1000,
-                update_at: 1000,
-                delete_at: 0,
-                edit_at: 0,
-                user_id: 'user1',
-                channel_id: 'channel_id_1',
-                root_id: '',
-                parent_id: '',
-                original_id: '',
-                message: '',
-                hashtags: '',
-                file_ids: [],
-                pending_post_id: '',
-                metadata: {} as any,
-            },
-            {
-                id: 'page2',
-                type: PostTypes.PAGE,
-                props: {title: 'API Documentation'},
-                create_at: 2000,
-                update_at: 2000,
-                delete_at: 0,
-                edit_at: 0,
-                user_id: 'user1',
-                channel_id: 'channel_id_1',
-                root_id: '',
-                parent_id: '',
-                original_id: '',
-                message: '',
-                hashtags: '',
-                file_ids: [],
-                pending_post_id: '',
-                metadata: {} as any,
-            },
+            makeMockPage('page1', 'Getting Started', 1000),
+            makeMockPage('page2', 'API Documentation', 2000),
         ];
 
         const stateWithPages: DeepPartial<GlobalState> = {
@@ -570,28 +554,10 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
         });
 
         test('filters pages to only include PAGE type posts', () => {
-            const mixedPosts = {
+            const mixedPosts: Record<string, Page> = {
                 page1: mockPages[0],
                 page2: mockPages[1],
-                post1: {
-                    id: 'post1',
-                    type: 'post' as any,
-                    props: {title: 'Regular Post'},
-                    create_at: 3000,
-                    update_at: 3000,
-                    delete_at: 0,
-                    edit_at: 0,
-                    user_id: 'user1',
-                    channel_id: 'channel_id_1',
-                    root_id: '',
-                    parent_id: '',
-                    original_id: '',
-                    message: 'Regular message',
-                    hashtags: '',
-                    file_ids: [],
-                    pending_post_id: '',
-                    metadata: {} as any,
-                },
+                post1: makeMockPage('post1', 'Regular Post', 3000),
             };
 
             const mixedState: DeepPartial<GlobalState> = {

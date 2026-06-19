@@ -5,6 +5,7 @@ import unescape from 'lodash/unescape';
 import type {AnyAction} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
 import {Permissions, PostTypes} from 'mattermost-redux/constants';
@@ -16,23 +17,26 @@ import {tiptapToMarkdown} from 'utils/tiptap_to_markdown';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import type {DraftPage} from 'types/store/pages';
 
 export const DEFAULT_PAGE_TITLE = 'Untitled';
 
 export function getPageTitle(
-    page: Pick<Post, 'props'> | null | undefined,
+    page: Pick<Post, 'props'> | Pick<Page, 'title'> | null | undefined,
     defaultTitle: string = DEFAULT_PAGE_TITLE,
 ): string {
-    return (page?.props?.title as string | undefined) || defaultTitle;
+    if (!page) {
+        return defaultTitle;
+    }
+    if ('title' in page) {
+        return (page.title as string | undefined) || defaultTitle;
+    }
+    return (page.props?.title as string | undefined) || defaultTitle;
 }
 
 // Mirrors server-side wiki edit permission: direct channel, system-level, or via any linked source channel.
-export function canEditPageInWiki(state: GlobalState, page: Post | null | undefined): boolean {
+export function canEditPageInWiki(state: GlobalState, page: Post | Page | null | undefined): boolean {
     if (!page) {
-        return false;
-    }
-
-    if (!page.channel_id) {
         return false;
     }
 
@@ -45,7 +49,7 @@ export function canEditPageInWiki(state: GlobalState, page: Post | null | undefi
         return false;
     }
 
-    const wikiId = page.props?.[PagePropsKeys.WIKI_ID] as string | undefined;
+    const wikiId = 'wiki_id' in page ? page.wiki_id : (page.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
     if (!wikiId) {
         return false;
     }
@@ -91,8 +95,8 @@ export function isPageComment(post: Post | null | undefined): boolean {
     return post?.type === PostTypes.PAGE_COMMENT;
 }
 
-export function isPagePost(post: Post | null | undefined): boolean {
-    return post?.type === PostTypes.PAGE;
+export function isPagePost(post: Post | Page | null | undefined): boolean {
+    return post?.type === PostTypes.PAGE || post?.type === 'page';
 }
 
 export function isPageMentionPost(post: Post | null | undefined): boolean {
@@ -129,12 +133,21 @@ export function getPageInlineAnchorId(post: Post | null | undefined): string | n
     return (post.props[PagePropsKeys.INLINE_ANCHOR] as {anchor_id: string}).anchor_id || null;
 }
 
-export function isEditingExistingPage(draft: PostDraft | Post | null | undefined): boolean {
+export function isEditingExistingPage(draft: PostDraft | Post | Page | DraftPage | null | undefined): boolean {
     if (!draft) {
         return false;
     }
 
-    // Use has_published_version from server if available, otherwise fall back to page_id prop
+    // DraftPage / Page: use properties map
+    if ('properties' in draft) {
+        const props = (draft as DraftPage | Page).properties;
+        if (props?.has_published_version !== undefined) {
+            return Boolean(props.has_published_version);
+        }
+        return Boolean(props?.[PagePropsKeys.PAGE_ID]);
+    }
+
+    // PostDraft / Post: use props map
     if (draft.props?.has_published_version !== undefined) {
         return Boolean(draft.props.has_published_version);
     }

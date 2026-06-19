@@ -6,7 +6,6 @@
     display: flex;
     min-width: 96px;
     align-items: center;
-    gap: 4px;
     padding: 6px 8px;
 
     // B9: stronger border + elevated shadow so the popover reads as a distinct
@@ -15,6 +14,7 @@
     border-radius: 6px;
     background: var(--center-channel-bg);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 0 1px rgba(0, 0, 0, 0.12);
+    gap: 4px;
 
     .inline-comment-toolbar__icon-btn {
         display: flex;

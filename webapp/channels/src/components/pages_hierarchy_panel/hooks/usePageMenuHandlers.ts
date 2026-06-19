@@ -5,8 +5,7 @@ import {useState, useCallback, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import type {Post} from '@mattermost/types/posts';
-import type {Wiki} from '@mattermost/types/wikis';
+import type {Page, Wiki} from '@mattermost/types/wikis';
 
 import {logError} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -31,7 +30,7 @@ import {convertDraftToPagePost} from '../utils/tree_builder';
 type UsePageMenuHandlersProps = {
     wikiId: string;
     channelId: string;
-    pages: Post[];
+    pages: Page[];
     drafts: PostDraft[];
     onPageSelect?: (pageId: string, isDraft?: boolean) => void;
     onCancelAutosave?: () => void;
@@ -56,7 +55,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
     // Build index records for O(1) lookups instead of O(n) .find() calls
     const pageMap = useMemo(() => {
-        const map: Record<string, Post | DraftPage> = {};
+        const map: Record<string, Page | DraftPage> = {};
         allPages.forEach((p) => {
             map[p.id] = p;
         });
@@ -64,7 +63,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, [allPages]);
 
     const pagesMap = useMemo(() => {
-        const map: Record<string, Post> = {};
+        const map: Record<string, Page> = {};
         pages.forEach((p) => {
             map[p.id] = p;
         });
@@ -81,9 +80,9 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
     // Build parent→children index for efficient getDescendantIds (O(d) instead of O(n) per call)
     const childrenByParent = useMemo(() => {
-        const map: Record<string, Array<Post | DraftPage>> = {};
+        const map: Record<string, Array<Page | DraftPage>> = {};
         allPages.forEach((page) => {
-            const parentId = page.page_parent_id || '__root__';
+            const parentId = page.parent_id || '__root__';
             if (!map[parentId]) {
                 map[parentId] = [];
             }
@@ -124,7 +123,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
-    const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
+    const [pageToDelete, setPageToDelete] = useState<{page: Page | DraftPage; childCount: number} | null>(null);
     const [availableWikis, setAvailableWikis] = useState<Wiki[]>([]);
     const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
     const [creatingPage, setCreatingPage] = useState(false);
@@ -290,7 +289,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                                 throw result.error;
                             }
                         } else {
-                            const result = await dispatch(updatePage(pageId, newTitle, wikiId)) as ActionResult<Post>;
+                            const result = await dispatch(updatePage(pageId, newTitle, wikiId)) as ActionResult<Page>;
                             if (result.error) {
                                 throw result.error;
                             }
@@ -320,14 +319,14 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         }
     }, [wikiId, dispatch]);
 
-    const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
+    const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Page[]> => {
         try {
             const wikisResult = await dispatch(fetchChannelWikis(channelId));
             const wikis = (wikisResult as ActionResult<Wiki[]>).data;
             const targetWiki = wikis?.find((w) => w.id === targetWikiId);
             if (targetWiki) {
                 const pagesResult = await dispatch(fetchPages(targetWikiId));
-                return (pagesResult as ActionResult<Post[]>).data || [];
+                return (pagesResult as ActionResult<Page[]>).data || [];
             }
             return [];
         } catch (error) {
@@ -427,7 +426,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                             if (result.error) {
                                 throw result.error;
                             }
-                            const parentId = page.page_parent_id || '';
+                            const parentId = page.parent_id || '';
                             onPageSelect?.(parentId);
                         }
                     } finally {
@@ -449,7 +448,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
         if (isDraft) {
             // If it's a draft editing an existing page, use the actual page ID
-            const actualPageId = page.props?.page_id as string | undefined;
+            const actualPageId = page.properties?.page_id as string | undefined;
             if (actualPageId) {
                 // Find the actual published page
                 const actualPage = pagesMapRef.current[actualPageId];
@@ -480,7 +479,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (!page) {
             return;
         }
-        copyPageAsMarkdown(page.message, getPageTitle(page));
+        copyPageAsMarkdown(page.body, getPageTitle(page));
     }, []);
 
     return {

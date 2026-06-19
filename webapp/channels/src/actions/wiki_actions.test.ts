@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {WikiLink} from '@mattermost/types/wikis';
+import type {ChannelMemberLink} from '@mattermost/types/wikis';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -30,7 +30,7 @@ describe('wiki_actions', () => {
         // fetchWikiBundle now also fetches wiki links; without this default the
         // unmocked Client4 call returns undefined and the catch path tries to
         // read users.currentUserId from a state that doesn't include it.
-        (Client4.getWikiLinks as jest.Mock).mockResolvedValue([]);
+        (Client4.getChannelMemberLinks as jest.Mock).mockResolvedValue([]);
     });
 
     describe('fetchWikiBundle', () => {
@@ -164,16 +164,16 @@ describe('wiki link actions', () => {
     describe('fetchWikiLinksForChannel', () => {
         test('should dispatch RECEIVED_WIKI_LINKS with correct payload on success', async () => {
             const channelId = 'channel_id_1';
-            const mockLinks: WikiLink[] = [
+            const mockLinks: ChannelMemberLink[] = [
                 {source_id: channelId, wiki_id: 'wiki_1', create_at: 1000},
                 {source_id: channelId, wiki_id: 'wiki_2', create_at: 2000},
             ];
 
-            (Client4.getWikiLinksForChannel as jest.Mock).mockResolvedValue(mockLinks);
+            (Client4.getChannelMemberLinksForChannel as jest.Mock).mockResolvedValue(mockLinks);
 
             const result = await testStore.dispatch(fetchWikiLinksForChannel(channelId));
 
-            expect(Client4.getWikiLinksForChannel).toHaveBeenCalledWith(channelId);
+            expect(Client4.getChannelMemberLinksForChannel).toHaveBeenCalledWith(channelId);
 
             const actions = testStore.getActions();
             expect(actions).toHaveLength(1);
@@ -189,7 +189,7 @@ describe('wiki link actions', () => {
             const channelId = 'channel_id_1';
             const error = new Error('Failed to fetch wiki links');
 
-            (Client4.getWikiLinksForChannel as jest.Mock).mockRejectedValue(error);
+            (Client4.getChannelMemberLinksForChannel as jest.Mock).mockRejectedValue(error);
 
             const result = await testStore.dispatch(fetchWikiLinksForChannel(channelId));
 
@@ -201,7 +201,7 @@ describe('wiki link actions', () => {
         test('should dispatch RECEIVED_WIKI_LINK with correct payload on success', async () => {
             const channelId = 'channel_id_1';
             const wikiId = 'wiki_id_1';
-            const mockLink: WikiLink = {
+            const mockLink: ChannelMemberLink = {
                 source_id: channelId,
                 wiki_id: wikiId,
                 create_at: 1000,

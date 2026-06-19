@@ -6,8 +6,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import type {Post} from '@mattermost/types/posts';
-import type {Wiki} from '@mattermost/types/wikis';
+import type {Page, Wiki} from '@mattermost/types/wikis';
 
 import {closeModal} from 'actions/views/modals';
 
@@ -29,7 +28,7 @@ type Props = {
     hasChildren?: boolean;
     childrenWarningText?: string;
     renderAdditionalInputs?: () => React.ReactNode;
-    fetchPagesForWiki: (wikiId: string) => Promise<Post[]>;
+    fetchPagesForWiki: (wikiId: string) => Promise<Page[]>;
     onConfirm: (targetWikiId: string, parentPageId?: string) => void;
     onCancel: () => void;
     confirmButtonTestId?: string;
@@ -57,7 +56,7 @@ const PageDestinationModal = ({
     const [selectedWikiId, setSelectedWikiId] = useState(currentWikiId);
     const [parentPageId, setParentPageId] = useState<string | undefined>();
     const [searchQuery, setSearchQuery] = useState('');
-    const [allPages, setAllPages] = useState<Post[]>([]);
+    const [allPages, setAllPages] = useState<Page[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Fetch pages when selected wiki changes
@@ -116,7 +115,7 @@ const PageDestinationModal = ({
         const query = searchQuery.toLowerCase();
         return targetPages.filter((page) => {
             const title = getPageTitle(page, '');
-            const searchText = title || page.message || '';
+            const searchText = title || page.search_text || page.body || '';
             return searchText.toLowerCase().includes(query);
         });
     }, [targetPages, searchQuery]);
@@ -254,7 +253,7 @@ const PageDestinationModal = ({
                             )}
 
                             {filteredPages.map((page) => {
-                                const displayTitle = getPageTitle(page, '') || page.message || untitledText;
+                                const displayTitle = getPageTitle(page, '') || page.title || untitledText;
                                 return (
                                     <button
                                         key={page.id}

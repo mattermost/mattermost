@@ -5,9 +5,7 @@ import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
 
-import type {Post} from '@mattermost/types/posts';
-
-import {PostTypes} from 'mattermost-redux/constants/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -19,117 +17,35 @@ describe('PageLinkModal', () => {
         fireEvent.change(linkTextInput, {target: {value}});
     };
 
-    const mockPages: Post[] = [
-        {
-            id: 'page1',
-            type: PostTypes.PAGE,
-            wiki_id: 'wiki123',
-            props: {title: 'Getting Started Guide'},
-            create_at: 1000,
-            update_at: 1000,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            original_id: '',
-            message: '',
-            hashtags: '',
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {} as any,
-            is_pinned: false,
-            reply_count: 0,
-        } as Post,
-        {
-            id: 'page2',
-            type: PostTypes.PAGE,
-            wiki_id: 'wiki456',
-            props: {title: 'API Documentation'},
-            create_at: 2000,
-            update_at: 2000,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            original_id: '',
-            message: '',
-            hashtags: '',
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {} as any,
-            is_pinned: false,
-            reply_count: 0,
-        } as Post,
-        {
-            id: 'page3',
-            type: PostTypes.PAGE,
-            wiki_id: 'wiki123',
-            props: {title: 'Authentication Guide'},
-            create_at: 3000,
-            update_at: 3000,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            original_id: '',
-            message: '',
-            hashtags: '',
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {} as any,
-            is_pinned: false,
-            reply_count: 0,
-        } as Post,
-        {
-            id: 'page4',
-            type: PostTypes.PAGE,
-            wiki_id: 'wiki456',
-            props: {title: 'API Reference'},
-            create_at: 4000,
-            update_at: 4000,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            original_id: '',
-            message: '',
-            hashtags: '',
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {} as any,
-            is_pinned: false,
-            reply_count: 0,
-        } as Post,
-        {
-            id: 'page5',
-            type: PostTypes.PAGE,
-            wiki_id: 'wiki789',
-            props: {},
-            create_at: 5000,
-            update_at: 5000,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            is_pinned: false,
-            reply_count: 0,
-            original_id: '',
-            message: '',
-            hashtags: '',
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {} as any,
-        } as Post,
+    const makePage = (overrides: Partial<Page> = {}): Page => ({
+        id: 'page1',
+        wiki_id: 'wiki123',
+        parent_id: '',
+        type: 'page',
+        title: 'Untitled',
+        body: '',
+        search_text: '',
+        user_id: 'user1',
+        last_modified_by: '',
+        sort_order: 0,
+        create_at: 1000,
+        update_at: 1000,
+        edit_at: 0,
+        delete_at: 0,
+        original_id: '',
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
+        ...overrides,
+    });
+
+    const mockPages: Page[] = [
+        makePage({id: 'page1', wiki_id: 'wiki123', title: 'Getting Started Guide', create_at: 1000, update_at: 1000}),
+        makePage({id: 'page2', wiki_id: 'wiki456', title: 'API Documentation', create_at: 2000, update_at: 2000}),
+        makePage({id: 'page3', wiki_id: 'wiki123', title: 'Authentication Guide', create_at: 3000, update_at: 3000}),
+        makePage({id: 'page4', wiki_id: 'wiki456', title: 'API Reference', create_at: 4000, update_at: 4000}),
+        makePage({id: 'page5', wiki_id: 'wiki789', title: '', create_at: 5000, update_at: 5000}),
     ];
 
     const baseProps = {
@@ -345,27 +261,12 @@ describe('PageLinkModal', () => {
     });
 
     test('limits results to 10 pages', () => {
-        const manyPages: Post[] = Array.from({length: 15}, (_, i) => ({
+        const manyPages: Page[] = Array.from({length: 15}, (_, i) => makePage({
             id: `page${i}`,
-            type: PostTypes.PAGE,
-            props: {title: `Page ${i}`},
+            title: `Page ${i}`,
             create_at: 1000 * i,
             update_at: 1000 * i,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            original_id: '',
-            message: '',
-            hashtags: '',
-            is_pinned: false,
-            reply_count: 0,
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {} as any,
-        } as Post));
+        }));
 
         renderWithContext(
             <PageLinkModal

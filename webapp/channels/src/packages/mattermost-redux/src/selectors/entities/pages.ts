@@ -3,12 +3,13 @@
 
 import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
+import type {Page} from '@mattermost/types/wikis';
 
 // Canonical read path for page objects. Pages live in entities.pages.byId after the
 // Redux migration; do not read from entities.posts.posts for page IDs.
 // Optional chaining defends against partial Redux state in tests where the slice
 // may not be present — combineReducers guarantees it exists in production.
-export function getPageById(state: GlobalState, pageId: string): Post | undefined {
+export function getPageById(state: GlobalState, pageId: string): Page | undefined {
     return state.entities.pages?.byId?.[pageId];
 }
 

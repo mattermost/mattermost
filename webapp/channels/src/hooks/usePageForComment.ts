@@ -5,6 +5,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {PagePropsKeys} from 'mattermost-redux/constants/pages';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
@@ -30,7 +31,7 @@ export function clearPendingPageFetchesForTests(): void {
 export type PageForCommentStatus = 'loading' | 'loaded' | 'missing';
 
 export type PageForCommentResult = {
-    page: Post | null;
+    page: Page | null;
     status: PageForCommentStatus;
 };
 

@@ -7,6 +7,7 @@ import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {restorePostVersion} from 'mattermost-redux/actions/posts';
 
@@ -23,8 +24,19 @@ import PageVersionHistoryItem from './page_version_history_item';
 
 import './page_version_history_modal.scss';
 
+// The version-history UI reuses EditedPostItem, a Post-shaped component. Adapt a page version
+// snapshot to the subset of Post fields it reads (content comes from body, not message).
+const pageVersionToPost = (p: Page): Post => ({
+    ...(p as unknown as Post),
+    message: p.body,
+    props: (p.properties ?? {}) as Post['props'],
+    channel_id: '',
+    root_id: '',
+    is_pinned: false,
+});
+
 type Props = {
-    page: Post;
+    page: Page;
     pageTitle: string;
     wikiId: string;
     onVersionRestored?: () => void;
@@ -38,7 +50,7 @@ const PageVersionHistoryModal = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const [versionHistory, setVersionHistory] = useState<Post[]>([]);
+    const [versionHistory, setVersionHistory] = useState<Page[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [hasError, setHasError] = useState<boolean>(false);
 
@@ -111,9 +123,9 @@ const PageVersionHistoryModal = ({
                     {versionHistory.map((post) => (
                         <PageVersionHistoryItem
                             key={post.id}
-                            post={post}
+                            post={pageVersionToPost(post)}
                             isCurrent={post.id === page.id}
-                            postCurrentVersion={page}
+                            postCurrentVersion={pageVersionToPost(page)}
                             isChannelAutotranslated={false}
                             onVersionRestored={onVersionRestored}
                             customHandleUndo={async () => {

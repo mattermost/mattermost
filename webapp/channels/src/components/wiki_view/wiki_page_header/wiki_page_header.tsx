@@ -86,7 +86,7 @@ const WikiPageHeader = ({
         if (isDraft || !pageId || !wikiId) {
             return false;
         }
-        const pageContent = getPageById(state, pageId)?.message || '';
+        const pageContent = getPageById(state, pageId)?.body || '';
         return hasUnpublishedChanges(state, wikiId, pageId, pageContent);
     });
 
@@ -99,9 +99,8 @@ const WikiPageHeader = ({
     }, []);
 
     const handleChannelSelected = useCallback(async (selectedChannelId: string) => {
-        if (page && page.props?.title) {
-            const title = typeof page.props.title === 'string' ? page.props.title : String(page.props.title);
-            await dispatch(createBookmarkFromPage(selectedChannelId, pageId, title));
+        if (page && page.title) {
+            await dispatch(createBookmarkFromPage(selectedChannelId, pageId, page.title));
         }
     }, [dispatch, pageId, page]);
 

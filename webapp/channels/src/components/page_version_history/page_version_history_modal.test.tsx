@@ -4,7 +4,7 @@
 import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import * as PagesActions from 'actions/pages';
 
@@ -20,45 +20,40 @@ jest.mock('mattermost-redux/actions/posts', () => ({
 const mockGetPageVersionHistory = PagesActions.getPageVersionHistory as jest.MockedFunction<typeof PagesActions.getPageVersionHistory>;
 
 describe('components/PageVersionHistoryModal', () => {
-    const mockPage: Post = {
+    const mockPage: Page = {
         id: 'page123',
-        original_id: 'page123',
+        wiki_id: 'wiki123',
+        parent_id: '',
+        type: 'page',
+        title: 'Test Page',
+        body: '{"type":"doc","content":[]}',
+        search_text: '',
+        user_id: 'user123',
+        last_modified_by: '',
+        sort_order: 0,
         create_at: 1000000000000,
         update_at: 1000000100000,
-        delete_at: 0,
         edit_at: 0,
-        is_pinned: false,
-        user_id: 'user123',
-        channel_id: 'channel123',
-        root_id: '',
-        message: '{"type":"doc","content":[]}',
-        type: 'page',
-        props: {
-            title: 'Test Page',
-        },
-        hashtags: '',
-        pending_post_id: '',
-        reply_count: 0,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
+        delete_at: 0,
+        original_id: 'page123',
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
     };
 
-    const mockVersionHistory: Post[] = [
+    const mockVersionHistory: Page[] = [
         {
             ...mockPage,
             id: 'version1',
             update_at: 1000000100000,
-            message: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Latest"}]}]}',
+            body: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Latest"}]}]}',
         },
         {
             ...mockPage,
             id: 'version2',
             update_at: 1000000050000,
-            message: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Previous"}]}]}',
+            body: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Previous"}]}]}',
         },
     ];
 

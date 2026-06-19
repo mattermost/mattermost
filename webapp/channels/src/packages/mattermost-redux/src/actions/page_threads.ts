@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
 import type {UserThreadWithPost} from '@mattermost/types/threads';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
@@ -34,7 +33,7 @@ export async function fetchMissingPagePosts(threads: UserThreadWithPost[], dispa
             Client4.getPage(wikiId!, pageId),
         ));
 
-        pagePosts.forEach((post: Post, i: number) => {
+        pagePosts.forEach((post, i: number) => {
             const {wikiId} = entriesWithWikiId[i];
             dispatch({
                 type: WikiTypes.RECEIVED_PAGE,

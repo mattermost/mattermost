@@ -59,7 +59,7 @@ const PageViewer = ({pageId, wikiId}: Props) => {
     // If `page` is absent, do not fetch — that path is handled by the parent WikiView
     // bundle loader, and refetching here would race with optimistic deletes (the
     // server may still serve a cached non-deleted copy and re-add the page to state).
-    const isPageContentMissing = Boolean(page) && (!page!.message || page!.message.trim() === '');
+    const isPageContentMissing = Boolean(page) && (!page!.body || page!.body.trim() === '');
 
     useEffect(() => {
         if (pageId && wikiId && isPageContentMissing) {
@@ -73,19 +73,19 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         if (!page) {
             return {type: 'doc', content: []};
         }
-        const message = page.message || '';
-        if (!message || message.trim() === '') {
+        const body = page.body || '';
+        if (!body || body.trim() === '') {
             return {type: 'doc', content: []};
         }
         try {
-            return JSON.parse(message);
+            return JSON.parse(body);
         } catch {
             return {
                 type: 'doc',
-                content: [{type: 'paragraph', content: [{type: 'text', text: message}]}],
+                content: [{type: 'paragraph', content: [{type: 'text', text: body}]}],
             };
         }
-    }, [pageId, page?.message]);
+    }, [pageId, page?.body]);
 
     const handleContentChange = useCallback(() => {}, []);
 
@@ -130,7 +130,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                                 userId={page.user_id}
                                 username={author.username}
                                 size='xs'
-                                channelId={page.channel_id}
                             />
                             <span className='PageViewer__authorText'>
                                 <FormattedMessage
@@ -140,7 +139,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                                         author: (
                                             <UserProfile
                                                 userId={page.user_id}
-                                                channelId={page.channel_id}
                                             />
                                         ),
                                     }}
@@ -173,11 +171,11 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                 <TipTapEditor
                     key={pageId}
                     content={pageContentJson}
-                    contentKey={page.message ?? ''}
+                    contentKey={page.body ?? ''}
                     onContentChange={handleContentChange}
                     editable={false}
                     currentUserId={currentUserId}
-                    channelId={page.channel_id}
+                    channelId=''
                     teamId={currentTeamId}
                     pageId={pageId}
                     wikiId={wikiId || undefined}

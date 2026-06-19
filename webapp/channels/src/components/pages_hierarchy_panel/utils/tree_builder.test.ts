@@ -1,12 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PostType} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import type {PostDraft} from 'types/store/draft';
 import type {PageOrDraft, TreeNode} from 'types/store/pages';
 
 import {buildTree, convertDraftToPagePost, getAncestorIds, getDescendantIds, isDescendant} from './tree_builder';
+
+function makePage(overrides: Partial<Page> = {}): Page {
+    return {
+        id: 'page-id',
+        wiki_id: 'wiki-1',
+        parent_id: '',
+        type: 'page',
+        title: 'Untitled',
+        body: '',
+        search_text: '',
+        user_id: 'user-1',
+        last_modified_by: 'user-1',
+        sort_order: 0,
+        create_at: 0,
+        update_at: 0,
+        edit_at: 0,
+        delete_at: 0,
+        original_id: '',
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
+        ...overrides,
+    };
+}
 
 describe('tree_builder', () => {
     describe('convertDraftToPagePost', () => {
@@ -20,18 +45,16 @@ describe('tree_builder', () => {
                 props: {},
                 fileInfos: [],
                 uploadsInProgress: [],
-                type: '' as PostType,
             };
 
             const result = convertDraftToPagePost(draft);
 
             expect(result.id).toBe('draft-123');
-            expect(result.channel_id).toBe('channel-1');
-            expect(result.message).toBe('Draft content');
+            expect(result.body).toBe('Draft content');
             expect(result.create_at).toBe(1000);
             expect(result.update_at).toBe(2000);
-            expect(result.props.title).toBe('Untitled');
-            expect(result.page_parent_id).toBe('');
+            expect(result.title).toBe('Untitled');
+            expect(result.parent_id).toBe('');
         });
 
         test('preserves title from draft props', () => {
@@ -44,12 +67,11 @@ describe('tree_builder', () => {
                 props: {title: 'My Draft Page'},
                 fileInfos: [],
                 uploadsInProgress: [],
-                type: '' as PostType,
             };
 
             const result = convertDraftToPagePost(draft);
 
-            expect(result.props.title).toBe('My Draft Page');
+            expect(result.title).toBe('My Draft Page');
         });
 
         test('uses custom untitled text', () => {
@@ -62,12 +84,11 @@ describe('tree_builder', () => {
                 props: {},
                 fileInfos: [],
                 uploadsInProgress: [],
-                type: '' as PostType,
             };
 
             const result = convertDraftToPagePost(draft, 'Custom Untitled');
 
-            expect(result.props.title).toBe('Custom Untitled');
+            expect(result.title).toBe('Custom Untitled');
         });
 
         test('preserves page_parent_id from draft props', () => {
@@ -80,40 +101,17 @@ describe('tree_builder', () => {
                 props: {page_parent_id: 'parent-page-1'},
                 fileInfos: [],
                 uploadsInProgress: [],
-                type: '' as PostType,
             };
 
             const result = convertDraftToPagePost(draft);
 
-            expect(result.page_parent_id).toBe('parent-page-1');
+            expect(result.parent_id).toBe('parent-page-1');
         });
     });
 
     describe('buildTree', () => {
-        const createPage = (id: string, title: string, pageParentId: string, createAt: number): PageOrDraft => ({
-            id,
-            create_at: createAt,
-            update_at: createAt,
-            delete_at: 0,
-            edit_at: 0,
-            is_pinned: false,
-            user_id: 'user-1',
-            channel_id: 'channel-1',
-            root_id: '',
-            original_id: '',
-            message: '',
-            type: 'page',
-            page_parent_id: pageParentId,
-            props: {title},
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {embeds: [], emojis: [], files: [], images: {}},
-        });
+        const createPage = (id: string, title: string, parentId: string, createAt: number): PageOrDraft =>
+            makePage({id, title, parent_id: parentId, create_at: createAt, update_at: createAt});
 
         test('builds tree from flat list with root pages', () => {
             const pages = [
@@ -208,16 +206,17 @@ describe('tree_builder', () => {
 
         test('uses ID as tiebreaker when create_at is identical', () => {
             const pages = [
-                createPage('bbb', 'Page B', '', 1000),
-                createPage('aaa', 'Page A', '', 1000),
-                createPage('ccc', 'Page C', '', 1000),
+                createPage('page-b', 'Page B', '', 1000),
+                createPage('page-a', 'Page A', '', 1000),
+                createPage('page-c', 'Page C', '', 1000),
             ];
 
             const tree = buildTree(pages);
 
-            expect(tree[0].id).toBe('aaa');
-            expect(tree[1].id).toBe('bbb');
-            expect(tree[2].id).toBe('ccc');
+            // Same create_at, sort by ID alphabetically
+            expect(tree[0].id).toBe('page-a');
+            expect(tree[1].id).toBe('page-b');
+            expect(tree[2].id).toBe('page-c');
         });
 
         test('returns empty array for empty input', () => {
@@ -252,33 +251,11 @@ describe('tree_builder', () => {
             expect(tree[1].children).toHaveLength(1);
         });
 
-        // Tests for page_sort_order sorting
-        const createPageWithSortOrder = (id: string, title: string, pageParentId: string, createAt: number, sortOrder?: number): PageOrDraft => ({
-            id,
-            create_at: createAt,
-            update_at: createAt,
-            delete_at: 0,
-            edit_at: 0,
-            is_pinned: false,
-            user_id: 'user-1',
-            channel_id: 'channel-1',
-            root_id: '',
-            original_id: '',
-            message: '',
-            type: 'page',
-            page_parent_id: pageParentId,
-            props: sortOrder === undefined ? {title} : {title, page_sort_order: sortOrder},
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {embeds: [], emojis: [], files: [], images: {}},
-        });
+        // Tests for sort_order sorting
+        const createPageWithSortOrder = (id: string, title: string, parentId: string, createAt: number, sortOrder = 0): PageOrDraft =>
+            makePage({id, title, parent_id: parentId, create_at: createAt, update_at: createAt, sort_order: sortOrder});
 
-        test('sorts by page_sort_order when set', () => {
+        test('sorts by sort_order when set', () => {
             const pages = [
                 createPageWithSortOrder('page-high', 'High Sort', '', 1000, 3000),
                 createPageWithSortOrder('page-low', 'Low Sort', '', 2000, 1000),
@@ -292,7 +269,7 @@ describe('tree_builder', () => {
             expect(tree[2].id).toBe('page-high'); // sort_order 3000
         });
 
-        test('falls back to create_at when page_sort_order is 0 or not set', () => {
+        test('falls back to create_at when sort_order is 0 or not set', () => {
             const pages = [
                 createPageWithSortOrder('page-3', 'Page 3', '', 3000, 0),
                 createPageWithSortOrder('page-1', 'Page 1', '', 1000), // no sort order
@@ -307,7 +284,7 @@ describe('tree_builder', () => {
             expect(tree[2].id).toBe('page-3');
         });
 
-        test('page_sort_order takes precedence over create_at', () => {
+        test('sort_order takes precedence over create_at', () => {
             const pages = [
                 createPageWithSortOrder('old-page', 'Old Page', '', 1000, 2000), // older but higher sort_order
                 createPageWithSortOrder('new-page', 'New Page', '', 5000, 1000), // newer but lower sort_order
@@ -319,7 +296,7 @@ describe('tree_builder', () => {
             expect(tree[1].id).toBe('old-page');
         });
 
-        test('sorts children by page_sort_order', () => {
+        test('sorts children by sort_order', () => {
             const pages = [
                 createPageWithSortOrder('parent', 'Parent', '', 1000),
                 createPageWithSortOrder('child-c', 'Child C', 'parent', 2000, 3000),
@@ -334,7 +311,7 @@ describe('tree_builder', () => {
             expect(tree[0].children[2].id).toBe('child-c'); // sort_order 3000
         });
 
-        test('handles mixed pages with and without page_sort_order', () => {
+        test('handles mixed pages with and without sort_order', () => {
             const pages = [
                 createPageWithSortOrder('with-order', 'With Order', '', 3000, 1000),
                 createPageWithSortOrder('without-order', 'Without Order', '', 1000), // no sort_order
@@ -347,71 +324,11 @@ describe('tree_builder', () => {
             expect(tree[0].id).toBe('without-order');
             expect(tree[1].id).toBe('with-order');
         });
-
-        test('handles page_sort_order as string (JSON deserialization edge case)', () => {
-            const pageWithStringOrder: PageOrDraft = {
-                id: 'string-order',
-                create_at: 1000,
-                update_at: 1000,
-                delete_at: 0,
-                edit_at: 0,
-                is_pinned: false,
-                user_id: 'user-1',
-                channel_id: 'channel-1',
-                root_id: '',
-                original_id: '',
-                message: '',
-                type: 'page',
-                page_parent_id: '',
-                props: {title: 'String Order', page_sort_order: '2000' as unknown as number}, // string instead of number
-                hashtags: '',
-                filenames: [],
-                file_ids: [],
-                pending_post_id: '',
-                reply_count: 0,
-                last_reply_at: 0,
-                participants: null,
-                metadata: {embeds: [], emojis: [], files: [], images: {}},
-            };
-
-            const pages = [
-                pageWithStringOrder,
-                createPageWithSortOrder('number-order', 'Number Order', '', 2000, 1000),
-            ];
-
-            const tree = buildTree(pages);
-
-            // String "2000" should be parsed as 2000, number 1000 comes first
-            expect(tree[0].id).toBe('number-order');
-            expect(tree[1].id).toBe('string-order');
-        });
     });
 
     describe('getAncestorIds', () => {
-        const createPage = (id: string, pageParentId: string): PageOrDraft => ({
-            id,
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            edit_at: 0,
-            is_pinned: false,
-            user_id: 'user-1',
-            channel_id: 'channel-1',
-            root_id: '',
-            original_id: '',
-            message: '',
-            type: 'page',
-            page_parent_id: pageParentId,
-            props: {title: 'Test'},
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {embeds: [], emojis: [], files: [], images: {}},
-        });
+        const createPage = (id: string, parentId: string): PageOrDraft =>
+            makePage({id, parent_id: parentId});
 
         test('returns empty array for root page', () => {
             const pages = [
@@ -493,30 +410,8 @@ describe('tree_builder', () => {
     });
 
     describe('getDescendantIds', () => {
-        const createPage = (id: string, pageParentId: string): PageOrDraft => ({
-            id,
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            edit_at: 0,
-            is_pinned: false,
-            user_id: 'user-1',
-            channel_id: 'channel-1',
-            root_id: '',
-            original_id: '',
-            message: '',
-            type: 'page',
-            page_parent_id: pageParentId,
-            props: {title: 'Test'},
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {embeds: [], emojis: [], files: [], images: {}},
-        });
+        const createPage = (id: string, parentId: string): PageOrDraft =>
+            makePage({id, parent_id: parentId});
 
         test('returns empty array for page with no children', () => {
             const pages = [

@@ -12,6 +12,7 @@ import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+import type {Page} from '@mattermost/types/wikis';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {
@@ -471,14 +472,18 @@ function PostComponent(props: Props) {
     const {selectPostFromRightHandSideSearch} = props.actions;
 
     const isSearchPopoutWindow = useMemo(() => isPopoutWindow() && isSearchResultItem, [isSearchResultItem]);
-    const handleCommentClick = useCallback((e: React.MouseEvent, pagePost?: Post | null) => {
+    const handleCommentClick = useCallback((e: React.MouseEvent, pagePost?: Post | Page | null) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
 
-        if (pagePost && pagePost.props?.wiki_id && props.teamName) {
+        let wikiId;
+        if (pagePost) {
+            wikiId = 'wiki_id' in pagePost ? pagePost.wiki_id : pagePost.props?.wiki_id;
+        }
+        if (pagePost && wikiId && props.teamName) {
             navigateToPageFromPost(pagePost, props.teamName);
             return;
         }

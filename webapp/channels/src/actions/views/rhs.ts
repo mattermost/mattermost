@@ -39,7 +39,7 @@ import {getSelectedPageId} from 'selectors/wiki_rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, PagePropsKeys, RHSStates, Constants, WikiRhsTypes} from 'utils/constants';
+import {ActionTypes, RHSStates, Constants, WikiRhsTypes} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
@@ -501,7 +501,7 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
 
         // Treat empty-string wikiId as absent — callers often pass `wikiId || ''` when unknown.
         const normalizedWikiId = wikiId || undefined;
-        const fetchWikiId = normalizedWikiId || (page?.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
+        const fetchWikiId = normalizedWikiId || page?.wiki_id;
 
         if (!page) {
             // Check if this is a draft before trying to fetch as a post
@@ -526,15 +526,7 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
 
         // If caller didn't supply wikiId, derive it from the page so SET_WIKI_ID
         // still fires and downstream RHS selectors have the wiki context.
-        const effectiveWikiId = normalizedWikiId ?? (page?.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
-
-        // Ensure the channel is loaded
-        if (page?.channel_id) {
-            const channel = getChannelSelector(getState(), page.channel_id);
-            if (!channel) {
-                await dispatch(getChannel(page.channel_id));
-            }
-        }
+        const effectiveWikiId = normalizedWikiId ?? page?.wiki_id;
 
         const currentRhsState = getRhsState(getState());
         const currentPageId = getSelectedPageId(getState());

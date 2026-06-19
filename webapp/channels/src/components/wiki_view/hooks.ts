@@ -8,7 +8,7 @@ import {useDispatch, useSelector, useStore} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {getChannel, getChannelMember} from 'mattermost-redux/actions/channels';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
@@ -190,7 +190,7 @@ export function useWikiPageData(
                     // redundant fetchPage. The effect intentionally runs only when
                     // pageId/wikiId/channelId change.
                     const existingPage = pageId ? getPageById(store.getState(), pageId) : undefined;
-                    const hasPageContent = existingPage?.message?.trim();
+                    const hasPageContent = existingPage?.body?.trim();
 
                     // eslint-disable-next-line no-console
                     console.log('[useWikiPageData] page check', {pageId, hasExisting: Boolean(existingPage), hasPageContent: Boolean(hasPageContent)});
@@ -295,7 +295,7 @@ export function useWikiPageActions(
     pageId: string | undefined,
     draftId: string | undefined,
     wikiId: string | null,
-    currentPage: Post | null,
+    currentPage: Page | null,
     currentDraft: PostDraft | null,
     location: Location,
     history: History,
@@ -321,7 +321,7 @@ export function useWikiPageActions(
     const [publishError, setPublishError] = useState<{parentPageId: string; parentPageTitle: string | null} | null>(null);
 
     // Conflict modal state
-    const [, setConflictPageData] = useState<Post | null>(null);
+    const [, setConflictPageData] = useState<Page | null>(null);
     const conflictContentRef = useRef<string>('');
 
     // Initialize refs when draft changes. We deliberately use `useLayoutEffect`
@@ -648,7 +648,7 @@ export function useWikiPageActions(
                     ));
 
                     conflictContentRef.current = content;
-                    const conflictPage = result.error.data.currentPage as Post;
+                    const conflictPage = result.error.data.currentPage as Page;
                     setConflictPageData(conflictPage);
 
                     // Open conflict modal via modal manager
@@ -878,7 +878,7 @@ type UseAutoPageSelectionParams = {
     channelId: string;
     allDrafts: PostDraft[];
     newDrafts: PostDraft[];
-    allPages: Post[];
+    allPages: Page[];
     lastViewedPageId: string | null;
     location: Location;
     history: History;
@@ -961,7 +961,7 @@ export function useAutoPageSelection({
 
 type UseVersionHistoryParams = {
     wikiId: string;
-    allPages: Post[];
+    allPages: Page[];
 };
 
 type UseVersionHistoryResult = {

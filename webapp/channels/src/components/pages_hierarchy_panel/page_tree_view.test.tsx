@@ -3,9 +3,7 @@
 
 import React from 'react';
 
-import type {Post} from '@mattermost/types/posts';
-
-import {PostTypes} from 'mattermost-redux/constants/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {buildTree} from 'selectors/pages_hierarchy';
 
@@ -16,43 +14,34 @@ import PageTreeView from './page_tree_view';
 describe('components/pages_hierarchy_panel/PageTreeView', () => {
     const mockTeamId = 'team-id-1';
     const mockUserId = 'user-id-1';
-    const mockChannelId = 'channel-id-1';
     const mockWikiId = 'wiki-id-1';
     const rootPage1Id = 'root-page-1';
     const rootPage2Id = 'root-page-2';
     const childPageId = 'child-page-1';
 
-    const createMockPage = (id: string, title: string, parentId?: string): Post => ({
+    const createMockPage = (id: string, title: string, parentId?: string): Page => ({
         id,
-        type: PostTypes.PAGE,
-        channel_id: mockChannelId,
+        wiki_id: mockWikiId,
+        parent_id: parentId || '',
+        type: 'page',
+        title,
+        body: '',
+        search_text: '',
         user_id: mockUserId,
-        page_parent_id: parentId || '',
-        props: {
-            title,
-            wiki_id: mockWikiId,
-        },
+        last_modified_by: '',
+        sort_order: 0,
         create_at: Date.now(),
         update_at: Date.now(),
-        delete_at: 0,
         edit_at: 0,
-        is_pinned: false,
-        root_id: '',
+        delete_at: 0,
         original_id: '',
-        message: '',
-        hashtags: '',
-        file_ids: [],
-        pending_post_id: '',
-        reply_count: 0,
-        metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-        },
+        has_effective_view_restriction: false,
+        has_local_edit_restriction: false,
+        properties: {},
+        pending_file_ids: [],
     });
 
-    const mockPages: Post[] = [
+    const mockPages: Page[] = [
         createMockPage(rootPage1Id, 'Root Page 1'),
         createMockPage(rootPage2Id, 'Root Page 2'),
         createMockPage(childPageId, 'Child Page', rootPage1Id),

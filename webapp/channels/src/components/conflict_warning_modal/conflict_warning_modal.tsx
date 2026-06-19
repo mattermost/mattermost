@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import type {Post} from '@mattermost/types/posts';
+import type {Page} from '@mattermost/types/wikis';
 
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -23,7 +23,7 @@ type ConflictOption = 'review' | 'continue' | 'overwrite';
 type ModalState = 'option-select' | 'diff-view';
 
 export type ConflictWarningModalProps = {
-    currentPage: Post;
+    currentPage: Page;
     draftContent: string | null;
     onContinueEditing: () => void;
     onOverwrite: () => void;
@@ -118,7 +118,7 @@ export default function ConflictWarningModal({
     };
 
     const draftParagraphs = useMemo(() => extractParagraphs(draftContent), [draftContent]);
-    const publishedParagraphs = useMemo(() => extractParagraphs(currentPage.message), [currentPage.message]);
+    const publishedParagraphs = useMemo(() => extractParagraphs(currentPage.body), [currentPage.body]);
 
     const isIdenticalContent = useMemo(() => {
         if (draftParagraphs.length !== publishedParagraphs.length) {

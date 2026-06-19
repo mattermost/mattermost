@@ -74,7 +74,7 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
         expect(button.disabled).toBe(false);
     });
 
-    test('submitting clears the message and dispatches submitPageComment with the right channel id', async () => {
+    test('submitting clears the message and dispatches submitPageComment with the comment payload', async () => {
         renderWithContext(<WikiReplyComment pageId={pageId}/>, getInitialState());
 
         const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
@@ -88,9 +88,12 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
 
         const [calledPageId, payload] = mockSubmitPageComment.mock.calls[0];
         expect(calledPageId).toBe(pageId);
+
+        // channelId is unused by submitPageComment (the channel is derived from the
+        // page + wikiId in state), so the hook passes an empty string.
         expect(payload).toMatchObject({
             message: 'hello world',
-            channelId,
+            channelId: '',
             rootId: pageId,
         });
 
