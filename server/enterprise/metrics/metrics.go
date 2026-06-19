@@ -558,6 +558,11 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:        "reliable_fallback_tcp",
 			Help:        "The total length in bytes of the SendBestEffort calls (UDP) that had to fallback to SendReliable (TCP) because of the message length.",
 			ConstLabels: additionalLabels,
+			// The data here will start at maxUDPDataLen = (1<<16 - 1) - 8 - 20 - 35 = 65472,
+			// so we start the first bucket at 32KiB, which will always be zero, and add 8
+			// steps exponentially until 4MiB:
+			// 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304
+			Buckets: prometheus.ExponentialBuckets(32768, 2, 8),
 		},
 		[]string{"event"},
 	)
