@@ -873,12 +873,6 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
-var channelScopedBuiltInRoles = map[string]bool{
-	ChannelGuestRoleId: true,
-	ChannelUserRoleId:  true,
-	ChannelAdminRoleId: true,
-}
-
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
 // IsValidUserRoles is format validation only; this rejects non-channel-scoped built-in roles.
 func IsValidChannelMemberRoles(channelMemberRoles string) bool {
@@ -887,7 +881,10 @@ func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 	}
 
 	for roleName := range strings.FieldsSeq(channelMemberRoles) {
-		if isBuiltInRole(roleName) && !channelScopedBuiltInRoles[roleName] {
+		if !isBuiltInRole(roleName) {
+			continue
+		}
+		if roleName != ChannelGuestRoleId && roleName != ChannelUserRoleId && roleName != ChannelAdminRoleId {
 			return false
 		}
 	}
