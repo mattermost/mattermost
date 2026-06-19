@@ -57,8 +57,6 @@ type FeatureFlags struct {
 	CloudAnnualRenewals    bool
 	CloudDedicatedExportUI bool
 
-	ChannelBookmarks bool
-
 	WebSocketEventScope bool
 
 	NotificationMonitoring bool
@@ -181,7 +179,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
-	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
