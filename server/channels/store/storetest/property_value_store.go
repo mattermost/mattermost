@@ -1385,24 +1385,24 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			expectedIDs: []string{value3.ID, value4.ID},
 		},
 		{
-			// value4 (deleted) shares the groupID and has UpdateAt > value1.UpdateAt,
-			// so delta mode surfaces it alongside value2 and value3.
-			// With `>=` semantics value1 itself is also included.
-			name: "filter by SinceUpdateAt timestamp - get values after specific time",
+			// Using value1.UpdateAt+1 demonstrates the `>=` boundary excludes
+			// anything strictly before it: value1 is dropped while later rows
+			// (including soft-deleted value4) are surfaced.
+			name: "filter by SinceUpdateAt timestamp - get values strictly after value1",
 			opts: model.PropertyValueSearchOpts{
-				SinceUpdateAt: value1.UpdateAt,
+				SinceUpdateAt: value1.UpdateAt + 1,
 				PerPage:       10,
 			},
-			expectedIDs: []string{value1.ID, value2.ID, value3.ID, value4.ID},
+			expectedIDs: []string{value2.ID, value3.ID, value4.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
 			opts: model.PropertyValueSearchOpts{
 				GroupID:       groupID,
-				SinceUpdateAt: value1.UpdateAt,
+				SinceUpdateAt: value1.UpdateAt + 1,
 				PerPage:       10,
 			},
-			expectedIDs: []string{value1.ID, value2.ID, value4.ID},
+			expectedIDs: []string{value2.ID, value4.ID},
 		},
 	}
 

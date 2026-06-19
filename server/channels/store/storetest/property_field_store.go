@@ -1292,16 +1292,16 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			expectedIDs: []string{field5.ID},
 		},
 		{
-			// Delta mode (SinceUpdateAt > 0) auto-includes tombstones, so
-			// field4 (soft-deleted) is part of the expected set even
-			// without IncludeDeleted. With `>=` field1 is also included.
-			name: "filter by SinceUpdateAt timestamp - get fields after specific time",
+			// Using field1.UpdateAt+1 demonstrates the `>=` boundary excludes
+			// anything strictly before it: field1 is dropped while later rows
+			// (including soft-deleted field4 as a tombstone) are surfaced.
+			name: "filter by SinceUpdateAt timestamp - get fields strictly after field1",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
-				SinceUpdateAt: field1.UpdateAt,
+				SinceUpdateAt: field1.UpdateAt + 1,
 				PerPage:       10,
 			},
-			expectedIDs: []string{field1.ID, field2.ID, field4.ID, field5.ID},
+			expectedIDs: []string{field2.ID, field4.ID, field5.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
