@@ -220,20 +220,20 @@ func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return r0
 }
 
-// WikiLink provides a mock function with no fields
-func (_m *Store) WikiLink() store.WikiLinkStore {
+// ChannelMemberLink provides a mock function with no fields
+func (_m *Store) ChannelMemberLink() store.ChannelMemberLinkStore {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for WikiLink")
+		panic("no return value specified for ChannelMemberLink")
 	}
 
-	var r0 store.WikiLinkStore
-	if rf, ok := ret.Get(0).(func() store.WikiLinkStore); ok {
+	var r0 store.ChannelMemberLinkStore
+	if rf, ok := ret.Get(0).(func() store.ChannelMemberLinkStore); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.WikiLinkStore)
+			r0 = ret.Get(0).(store.ChannelMemberLinkStore)
 		}
 	}
 
@@ -848,6 +848,26 @@ func (_m *Store) Page() store.PageStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.PageStore)
+		}
+	}
+
+	return r0
+}
+
+// PageReaction provides a mock function with no fields
+func (_m *Store) PageReaction() store.PageReactionStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for PageReaction")
+	}
+
+	var r0 store.PageReactionStore
+	if rf, ok := ret.Get(0).(func() store.PageReactionStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PageReactionStore)
 		}
 	}
 

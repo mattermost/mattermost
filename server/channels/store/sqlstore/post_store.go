@@ -2254,6 +2254,11 @@ func (s *SqlPostStore) buildCJKSearchClause(baseQuery sq.SelectBuilder, searchTy
 	return baseQuery
 }
 
+// pagesSearchTextConfig is the PostgreSQL text-search configuration the Pages full-text
+// query uses. It must match the fixed config baked into the idx_pages_search_txt GIN index
+// (000208_create_pages.up.sql); otherwise the query cannot use the index.
+const pagesSearchTextConfig = "english"
+
 func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	if params.Terms == "" && params.ExcludedTerms == "" &&
@@ -2296,6 +2301,13 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			termMap[strings.ToUpper(term)] = true
 		}
 	}
+
+	// Page content lives in the dedicated Pages table, not Posts. These are hoisted out of
+	// the term-parsing branch so the Pages full-text query can run after the Posts scan and
+	// merge page hits into the result set (pages appear as Type='page' result rows).
+	includePages := false
+	var pageSearchTsQuery, pageTextSearchCfg string
+	var wikiIDs, excludedWikiIDs []string
 
 	for _, c := range specialSearchChars {
 		if !params.IsHashtag {
@@ -2353,12 +2365,19 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		textSearchCfg := s.pgDefaultTextSearchConfig
 
+		// Hand the parsed ts_query + config to the post-scan Pages full-text query below.
+		pageSearchTsQuery = tsQueryClause
+		// The Pages GIN index (idx_pages_search_txt) is built with a fixed 'english' config.
+		// The query must use the same config to hit the index; the server's
+		// default_text_search_config (used for Posts) would force a seq scan if it differs.
+		pageTextSearchCfg = pagesSearchTextConfig
+
 		// Determine which content types to include based on type: modifier
 		normalizedTypes := normalizeSearchTypes(params.PostTypes)
 		normalizedExcludedTypes := normalizeSearchTypes(params.ExcludedPostTypes)
 
 		includePosts := true
-		includePages := true
+		includePages = true
 
 		// If specific types are requested, only include those
 		if len(normalizedTypes) > 0 {
@@ -2385,8 +2404,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 
 		// Resolve wiki names to IDs and apply wiki filter
-		var wikiIDs []string
-		var excludedWikiIDs []string
 		if len(params.WikiNames) > 0 {
 			wikiIDs, err = s.Wiki().ResolveNamesToIDs(params.WikiNames, teamId)
 			if err != nil {
@@ -2419,32 +2436,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 
 		if includePages {
-			// Page content is stored in Post.Message as TipTap JSON — search it directly
-			var wikiFilterClauses []string
-			var pageSearchArgs []any
-			wikiFilterClauses = append(wikiFilterClauses, "q2.Type = '"+model.PostTypePage+"'")
-			wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("to_tsvector('%s', COALESCE(q2.Props->>'title', '') || ' ' || COALESCE(q2.ContentText, '')) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg))
-			pageSearchArgs = append(pageSearchArgs, tsQueryClause)
-
-			// Apply wiki ID filter if specified
-			if len(wikiIDs) > 0 {
-				wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("q2.Props->>'wiki_id' IN (%s)", sq.Placeholders(len(wikiIDs))))
-				for _, id := range wikiIDs {
-					pageSearchArgs = append(pageSearchArgs, id)
-				}
-			}
-
-			// Apply wiki exclusion filter if specified
-			if len(excludedWikiIDs) > 0 {
-				wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("(q2.Props->>'wiki_id' IS NULL OR q2.Props->>'wiki_id' NOT IN (%s))", sq.Placeholders(len(excludedWikiIDs))))
-				for _, id := range excludedWikiIDs {
-					pageSearchArgs = append(pageSearchArgs, id)
-				}
-			}
-
-			pagesClause := fmt.Sprintf("(%s)", strings.Join(wikiFilterClauses, " AND "))
-			searchClauses = append(searchClauses, pagesClause)
-			combinedArgs = append(combinedArgs, pageSearchArgs...)
+			// Pages live in the dedicated Pages table, not Posts, so they are searched
+			// separately below (see pageQuery) over the Pages full-text index. This FALSE
+			// placeholder adds no Posts matches while keeping searchClauses non-empty, so a
+			// pages-only search still reaches the Pages query instead of returning early.
+			searchClauses = append(searchClauses, "FALSE")
 		}
 
 		if len(searchClauses) > 0 {
@@ -2505,6 +2501,50 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			list.AddOrder(p.Id)
 		}
 	}
+
+	// Merge wiki-page full-text hits from the dedicated Pages table. Pages no longer live in
+	// Posts, so the scan above never returns them; this sources them over the Pages functional
+	// GIN index and maps each hit to a Type='page' result row (Body->Message, SearchText->
+	// ContentText). The channel-membership filter is reused verbatim: a user reaches a page
+	// through (synthetic) membership of the wiki's backing channel, same as any other post.
+	if includePages && pageSearchTsQuery != "" {
+		pageQuery := s.getQueryBuilder().
+			Select("Id", "WikiId", "ChannelId", "UserId", "Title", "Body", "SearchText", "CreateAt", "UpdateAt", "EditAt").
+			From("Pages").
+			Where("DeleteAt = 0").
+			Where(fmt.Sprintf("to_tsvector('%s', COALESCE(Title, '') || ' ' || COALESCE(SearchText, '')) @@ to_tsquery('%s', ?)", pageTextSearchCfg, pageTextSearchCfg), pageSearchTsQuery).
+			Where(fmt.Sprintf("ChannelId IN (%s)", inQueryClause), inQueryClauseArgs...).
+			OrderBy("CreateAt DESC").
+			Limit(1000)
+		if len(wikiIDs) > 0 {
+			pageQuery = pageQuery.Where(sq.Eq{"WikiId": wikiIDs})
+		}
+		if len(excludedWikiIDs) > 0 {
+			pageQuery = pageQuery.Where(sq.NotEq{"WikiId": excludedWikiIDs})
+		}
+
+		var pageRows []*model.Page
+		if pageErr := s.GetSearchReplicaX().SelectBuilder(&pageRows, pageQuery); pageErr != nil {
+			mlog.Warn("Query error searching pages.", mlog.String("error", trimInput(pageErr.Error())))
+		} else {
+			for _, pg := range pageRows {
+				list.AddPost(&model.Post{
+					Id:          pg.Id,
+					CreateAt:    pg.CreateAt,
+					UpdateAt:    pg.UpdateAt,
+					EditAt:      pg.EditAt,
+					UserId:      pg.UserId,
+					ChannelId:   pg.ChannelId,
+					Message:     pg.Body,
+					Type:        model.PostTypePage,
+					ContentText: pg.SearchText,
+					Props:       model.StringInterface{"title": pg.Title, "wiki_id": pg.WikiId},
+				})
+				list.AddOrder(pg.Id)
+			}
+		}
+	}
+
 	list.MakeNonNil()
 	return list, nil
 }

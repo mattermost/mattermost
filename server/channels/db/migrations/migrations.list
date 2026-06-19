@@ -403,10 +403,10 @@ channels/db/migrations/postgres/000203_create_wikis_team_id_index.down.sql
 channels/db/migrations/postgres/000203_create_wikis_team_id_index.up.sql
 channels/db/migrations/postgres/000204_add_channel_type_wiki_enum.down.sql
 channels/db/migrations/postgres/000204_add_channel_type_wiki_enum.up.sql
-channels/db/migrations/postgres/000205_create_wiki_links.down.sql
-channels/db/migrations/postgres/000205_create_wiki_links.up.sql
-channels/db/migrations/postgres/000206_create_wiki_links_index.down.sql
-channels/db/migrations/postgres/000206_create_wiki_links_index.up.sql
+channels/db/migrations/postgres/000205_create_channel_member_links.down.sql
+channels/db/migrations/postgres/000205_create_channel_member_links.up.sql
+channels/db/migrations/postgres/000206_create_channel_member_links_index.down.sql
+channels/db/migrations/postgres/000206_create_channel_member_links_index.up.sql
 channels/db/migrations/postgres/000207_create_channel_members_source_index.down.sql
 channels/db/migrations/postgres/000207_create_channel_members_source_index.up.sql
 channels/db/migrations/postgres/000208_expand_post_and_draft_message.down.sql
@@ -423,3 +423,11 @@ channels/db/migrations/postgres/000213_add_page_comment_page_id_index.down.sql
 channels/db/migrations/postgres/000213_add_page_comment_page_id_index.up.sql
 channels/db/migrations/postgres/000214_create_wikis_channel_id_unique_index.down.sql
 channels/db/migrations/postgres/000214_create_wikis_channel_id_unique_index.up.sql
+channels/db/migrations/postgres/000215_create_pages.down.sql
+channels/db/migrations/postgres/000215_create_pages.up.sql
+channels/db/migrations/postgres/000216_create_page_reactions.down.sql
+channels/db/migrations/postgres/000216_create_page_reactions.up.sql
+channels/db/migrations/postgres/000217_add_pageid_to_fileinfo.down.sql
+channels/db/migrations/postgres/000217_add_pageid_to_fileinfo.up.sql
+channels/db/migrations/postgres/000218_create_fileinfo_pageid_index.down.sql
+channels/db/migrations/postgres/000218_create_fileinfo_pageid_index.up.sql

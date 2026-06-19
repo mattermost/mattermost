@@ -21,13 +21,26 @@ const (
 const MaxPageHierarchyDepth = 50
 
 // buildPageHierarchyCTE generates a recursive CTE query for page hierarchy traversal
+// over the Pages table (not Posts). Live-page guard DeleteAt=0 is applied at every
+// level of the recursion so version snapshots never appear in tree results.
+//
 // Parameters:
 //
 //	direction: Whether to traverse up (ancestors), down (descendants), or all descendants (subtree)
 //	excludeRoot: Whether to exclude the root page from results
-//	fullSelect: Whether to select all Post columns or just IDs
+//	fullSelect: Whether to select all Page columns or just IDs
 func buildPageHierarchyCTE(direction PageHierarchyCTEDirection, excludeRoot, fullSelect bool) string {
 	var cte, selectClause string
+
+	// pageColList matches pageColumns() for the full-select case.
+	// These are the columns of the Pages table in declaration order.
+	const pageColList = `p.Id, p.WikiId, p.ChannelId, p.ParentId, p.Type,
+		       p.Title, p.Body, p.SearchText,
+		       p.UserId, p.LastModifiedBy, p.SortOrder,
+		       p.CreateAt, p.UpdateAt, p.EditAt, p.DeleteAt, p.OriginalId,
+		       p.HasEffectiveViewRestriction, p.HasLocalEditRestriction,
+		       p.Props,
+		       p.ReparentedParentOnDelete, p.ReparentedChildrenOnDelete`
 
 	switch direction {
 	case PageHierarchyDescendants, PageHierarchySubtree:
@@ -36,25 +49,25 @@ func buildPageHierarchyCTE(direction PageHierarchyCTEDirection, excludeRoot, ful
 			cteName = "page_subtree"
 		}
 
-		// Include depth tracking to prevent infinite recursion
+		// Include depth tracking to prevent infinite recursion.
+		// DeleteAt=0 guard at both the anchor and the recursive step ensures
+		// version snapshots (DeleteAt>0) never appear in tree traversal.
 		cte = fmt.Sprintf(`
 		WITH RECURSIVE %s AS (
-			SELECT Id, PageParentId, 1 AS depth
-			FROM Posts WHERE Id = $1 AND Type = 'page' AND DeleteAt = 0
+			SELECT Id, ParentId, 1 AS depth
+			FROM Pages WHERE Id = $1 AND DeleteAt = 0
 			UNION ALL
-			SELECT p.Id, p.PageParentId, d.depth + 1
-			FROM Posts p
-			INNER JOIN %s d ON p.PageParentId = d.Id
-			WHERE p.Type = 'page' AND p.DeleteAt = 0 AND d.depth < %d
+			SELECT p.Id, p.ParentId, d.depth + 1
+			FROM Pages p
+			INNER JOIN %s d ON p.ParentId = d.Id
+			WHERE p.DeleteAt = 0 AND d.depth < %d
 		)`, cteName, cteName, MaxPageHierarchyDepth)
 
 		if fullSelect {
 			selectClause = fmt.Sprintf(`
-		SELECT p.Id, p.CreateAt, p.UpdateAt, p.EditAt, p.DeleteAt, p.IsPinned, p.UserId,
-		       p.ChannelId, p.RootId, p.OriginalId, p.Message, p.Type, p.Props, p.Hashtags,
-		       p.Filenames, p.FileIds, p.HasReactions, p.RemoteId, p.PageParentId
+		SELECT `+pageColList+`
 		FROM %s d
-		INNER JOIN Posts p ON p.Id = d.Id`, cteName)
+		INNER JOIN Pages p ON p.Id = d.Id`, cteName)
 			if excludeRoot {
 				selectClause += "\n		WHERE d.Id != $1"
 			}
@@ -67,26 +80,24 @@ func buildPageHierarchyCTE(direction PageHierarchyCTEDirection, excludeRoot, ful
 		}
 
 	case PageHierarchyAncestors:
-		// Include depth tracking to prevent infinite recursion
+		// Include depth tracking to prevent infinite recursion.
 		cte = fmt.Sprintf(`
 		WITH RECURSIVE ancestors AS (
-			SELECT Id, PageParentId, 1 AS depth
-			FROM Posts WHERE Id = $1 AND Type = 'page' AND DeleteAt = 0
+			SELECT Id, ParentId, 1 AS depth
+			FROM Pages WHERE Id = $1 AND DeleteAt = 0
 			UNION ALL
-			SELECT p.Id, p.PageParentId, a.depth + 1
-			FROM Posts p
-			INNER JOIN ancestors a ON p.Id = a.PageParentId
-			WHERE a.PageParentId IS NOT NULL AND a.PageParentId != ''
-			  AND p.Type = 'page' AND p.DeleteAt = 0 AND a.depth < %d
+			SELECT p.Id, p.ParentId, a.depth + 1
+			FROM Pages p
+			INNER JOIN ancestors a ON p.Id = a.ParentId
+			WHERE a.ParentId IS NOT NULL AND a.ParentId != ''
+			  AND p.DeleteAt = 0 AND a.depth < %d
 		)`, MaxPageHierarchyDepth)
 
 		if fullSelect {
 			selectClause = `
-		SELECT p.Id, p.CreateAt, p.UpdateAt, p.EditAt, p.DeleteAt, p.IsPinned, p.UserId,
-		       p.ChannelId, p.RootId, p.OriginalId, p.Message, p.Type, p.Props, p.Hashtags,
-		       p.Filenames, p.FileIds, p.HasReactions, p.RemoteId, p.PageParentId
+		SELECT ` + pageColList + `
 		FROM ancestors a
-		INNER JOIN Posts p ON p.Id = a.Id`
+		INNER JOIN Pages p ON p.Id = a.Id`
 			if excludeRoot {
 				selectClause += "\n		WHERE a.Id != $1"
 			}

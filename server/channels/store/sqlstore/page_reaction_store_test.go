@@ -9,6 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
-func TestWikiLinkStore(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestWikiLinkStore)
+func TestPageReactionStore(t *testing.T) {
+	StoreTestWithSqlStore(t, storetest.TestPageReactionStore)
 }

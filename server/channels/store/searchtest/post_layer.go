@@ -2376,11 +2376,9 @@ func testSearchWikiPages(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	wikiPage, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "Wiki page title", "", model.PostTypePage, 0, false)
-	require.NoError(t, err)
-
-	_, err = th.Store.Page().UpdatePageWithContent(th.Context, wikiPage.Id, "",
-		`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"This is searchable wiki page content with unique keyword wikisearchtest"}]}]}`)
+	wikiPage, err := th.createWikiPage(th.ChannelBasic.Id, "",
+		"Wiki Page Heading",
+		"This is searchable wiki page content with unique keyword wikisearchtest")
 	require.NoError(t, err)
 
 	t.Run("Should find wiki page by content in Post.Message", func(t *testing.T) {
@@ -2498,15 +2496,8 @@ func testSearchWithSQLSpecialCharacters(t *testing.T, th *SearchTestHelper) {
 
 func testSearchWikiPagesByTitle(t *testing.T, th *SearchTestHelper) {
 	// Create a wiki page post (Type='page')
-	// Note: Pages are stored in Posts table but have separate CRUD path via PageStore.
-	// For search tests, we create the Post directly and add PageContent separately.
-	wikiPage, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
-	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
-
-	// Create page content with searchable text
-	_, err = th.Store.Page().UpdatePageWithContent(th.Context, wikiPage.Id, "",
-		`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"UniqueWikiPageTitleSearchTest"}]}]}`)
+	wikiPage, err := th.createWikiPage(th.ChannelBasic.Id, "", "", "UniqueWikiPageTitleSearchTest")
 	require.NoError(t, err)
 
 	t.Run("Should find wiki page by content in Post.Message", func(t *testing.T) {
@@ -2567,18 +2558,10 @@ func testSearchPagesWithChannelModifiers(t *testing.T, th *SearchTestHelper) {
 	regularPost2, err := th.createPost(th.User.Id, channel2.Id, "testing in other channel", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 
-	wikiPage1, err := th.createPost(th.User.Id, channel1.Id, "", "", model.PostTypePage, 0, false)
+	wikiPage1, err := th.createWikiPage(channel1.Id, "", "", "testing page in wiki channel")
 	require.NoError(t, err)
 
-	_, err = th.Store.Page().UpdatePageWithContent(th.Context, wikiPage1.Id, "",
-		`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"testing page in wiki channel"}]}]}`)
-	require.NoError(t, err)
-
-	wikiPage2, err := th.createPost(th.User.Id, channel2.Id, "", "", model.PostTypePage, 0, false)
-	require.NoError(t, err)
-
-	_, err = th.Store.Page().UpdatePageWithContent(th.Context, wikiPage2.Id, "",
-		`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"testing page in other channel"}]}]}`)
+	wikiPage2, err := th.createWikiPage(channel2.Id, "", "", "testing page in other channel")
 	require.NoError(t, err)
 
 	defer th.deleteUserPosts(th.User.Id)
@@ -2646,11 +2629,7 @@ func testSearchTypeModifier(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteUserPosts(th.User.Id)
 
 	// Create a wiki page
-	wikiPage, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
-	require.NoError(t, err)
-
-	_, err = th.Store.Page().UpdatePageWithContent(th.Context, wikiPage.Id, "",
-		`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"TypeModifierTestContent wiki page"}]}]}`)
+	wikiPage, err := th.createWikiPage(th.ChannelBasic.Id, "", "", "TypeModifierTestContent wiki page")
 	require.NoError(t, err)
 
 	t.Run("type:page returns only pages", func(t *testing.T) {
@@ -2788,29 +2767,13 @@ func testSearchWikiModifier(t *testing.T, th *SearchTestHelper) {
 		_ = th.Store.Wiki().Delete(wiki2.Id, true)
 	}()
 
-	// Create a page in wiki1
-	page1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
-	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	// Set wiki_id in props
-	err = th.Store.Wiki().SetWikiIdInPostProps(page1.Id, wiki1.Id)
+	// Create a page in each wiki (WikiId is a Pages column).
+	page1, err := th.createWikiPage(th.ChannelBasic.Id, wiki1.Id, "", "WikiModifierTestContent in product docs")
 	require.NoError(t, err)
 
-	_, err = th.Store.Page().UpdatePageWithContent(th.Context, page1.Id, "",
-		`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"WikiModifierTestContent in product docs"}]}]}`)
-	require.NoError(t, err)
-
-	// Create a page in wiki2
-	page2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
-	require.NoError(t, err)
-
-	// Set wiki_id in props
-	err = th.Store.Wiki().SetWikiIdInPostProps(page2.Id, wiki2.Id)
-	require.NoError(t, err)
-
-	_, err = th.Store.Page().UpdatePageWithContent(th.Context, page2.Id, "",
-		`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"WikiModifierTestContent in engineering notes"}]}]}`)
+	page2, err := th.createWikiPage(th.ChannelBasic.Id, wiki2.Id, "", "WikiModifierTestContent in engineering notes")
 	require.NoError(t, err)
 
 	t.Run("wiki: modifier filters by wiki name", func(t *testing.T) {

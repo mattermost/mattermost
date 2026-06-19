@@ -63,12 +63,12 @@ func (_m *WikiStore) Delete(id string, hard bool) error {
 	return r0
 }
 
-// DeleteAllPagesForWiki provides a mock function with given fields: wikiId
-func (_m *WikiStore) DeleteAllPagesForWiki(wikiId string) error {
+// DeleteWikiCascade provides a mock function with given fields: wikiId
+func (_m *WikiStore) DeleteWikiCascade(wikiId string) error {
 	ret := _m.Called(wikiId)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteAllPagesForWiki")
+		panic("no return value specified for DeleteWikiCascade")
 	}
 
 	var r0 error
@@ -104,36 +104,6 @@ func (_m *WikiStore) Get(id string) (*model.Wiki, error) {
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAbandonedPages provides a mock function with given fields: cutoffTime
-func (_m *WikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) {
-	ret := _m.Called(cutoffTime)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAbandonedPages")
-	}
-
-	var r0 []*model.Post
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int64) ([]*model.Post, error)); ok {
-		return rf(cutoffTime)
-	}
-	if rf, ok := ret.Get(0).(func(int64) []*model.Post); ok {
-		r0 = rf(cutoffTime)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Post)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(cutoffTime)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -321,36 +291,6 @@ func (_m *WikiStore) GetLinkedToChannel(channelId string) ([]*model.Wiki, error)
 	return r0, r1
 }
 
-// GetPageByTitleInWiki provides a mock function with given fields: wikiId, title
-func (_m *WikiStore) GetPageByTitleInWiki(wikiId string, title string) (*model.Post, error) {
-	ret := _m.Called(wikiId, title)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPageByTitleInWiki")
-	}
-
-	var r0 *model.Post
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.Post, error)); ok {
-		return rf(wikiId, title)
-	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.Post); ok {
-		r0 = rf(wikiId, title)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(wikiId, title)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetPageCommentsForExport provides a mock function with given fields: pageId
 func (_m *WikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error) {
 	ret := _m.Called(pageId)
@@ -374,36 +314,6 @@ func (_m *WikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageComme
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(pageId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetPages provides a mock function with given fields: wikiId, offset, limit
-func (_m *WikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Post, error) {
-	ret := _m.Called(wikiId, offset, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPages")
-	}
-
-	var r0 []*model.Post
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.Post, error)); ok {
-		return rf(wikiId, offset, limit)
-	}
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Post); ok {
-		r0 = rf(wikiId, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Post)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(wikiId, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -121,8 +121,9 @@ type SqlStoreStores struct {
 	temporaryPost              store.TemporaryPostStore
 	wiki                       store.WikiStore
 	page                       store.PageStore
-	channelMemberLink          store.WikiLinkStore
+	channelMemberLink          store.ChannelMemberLinkStore
 	channelJoinRequest         store.ChannelJoinRequestStore
+	pageReaction               store.PageReactionStore
 }
 
 type SqlStore struct {
@@ -318,8 +319,9 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.wiki = newSqlWikiStore(store)
 	store.stores.page = newSqlPageStore(store)
-	store.stores.channelMemberLink = newSqlWikiLinkStore(store)
+	store.stores.channelMemberLink = newSqlChannelMemberLinkStore(store)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
+	store.stores.pageReaction = newSqlPageReactionStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1158,8 +1160,12 @@ func (ss *SqlStore) Page() store.PageStore {
 	return ss.stores.page
 }
 
-func (ss *SqlStore) WikiLink() store.WikiLinkStore {
+func (ss *SqlStore) ChannelMemberLink() store.ChannelMemberLinkStore {
 	return ss.stores.channelMemberLink
+}
+
+func (ss *SqlStore) PageReaction() store.PageReactionStore {
+	return ss.stores.pageReaction
 }
 
 // preMigration	runs before running the actual Morph migrations.

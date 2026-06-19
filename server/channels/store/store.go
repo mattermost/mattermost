@@ -107,8 +107,9 @@ type Store interface {
 	TemporaryPost() TemporaryPostStore
 	Wiki() WikiStore
 	Page() PageStore
-	WikiLink() WikiLinkStore
+	ChannelMemberLink() ChannelMemberLinkStore
 	ChannelJoinRequest() ChannelJoinRequestStore
+	PageReaction() PageReactionStore
 }
 
 type RetentionPolicyStore interface {
@@ -344,7 +345,7 @@ type ChannelStore interface {
 	// SaveMemberAndPropagateLinked inserts the direct member and propagates synthetic
 	// memberships to all linked destination channels in one transaction. Returns the
 	// list of linked destination channel IDs so the caller can invalidate caches
-	// without a second WikiLinks query.
+	// without a second ChannelMemberLinks query.
 	SaveMemberAndPropagateLinked(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, []string, error)
 
 	// RemoveSyntheticMembersForSource removes synthetic memberships from the destination
@@ -800,6 +801,7 @@ type FileInfoStore interface {
 	GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
+	GetForPage(pageID string) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
@@ -1356,10 +1358,11 @@ type WikiStore interface {
 	GetForUser(userId, teamId string, page, perPage int) ([]*model.Wiki, error)
 	Update(wiki *model.Wiki) (*model.Wiki, error)
 	Delete(id string, hard bool) error
-	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
-	GetPageByTitleInWiki(wikiId, title string) (*model.Post, error)
-	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
-	DeleteAllPagesForWiki(wikiId string) error
+	// DeleteWikiCascade atomically removes all page data for a wiki: soft-deletes Pages and
+	// page_comment Posts, deletes PageReactions/FileInfo/Drafts by pageId, purges version
+	// snapshots, and soft-deletes the Wikis row itself (as a TOCTOU lock). Returns
+	// store.ErrNotFound if the wiki does not exist.
+	DeleteWikiCascade(wikiId string) error
 	MovePageToWiki(pageId, targetWikiId, targetChannelId string, parentPageId *string) error
 	SetWikiIdInPostProps(pageId, wikiId string) error
 	// ResolveNamesToIDs converts wiki names/IDs to wiki IDs.
@@ -1378,123 +1381,125 @@ type WikiStore interface {
 	GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error)
 }
 
-type WikiLinkStore interface {
-	Save(link *model.WikiLink) (*model.WikiLink, error)
-	SaveAndPropagateMembers(rctx request.CTX, link *model.WikiLink, sourceChannelId string, propagateAdmin bool) (*model.WikiLink, error)
-	Get(sourceId, destinationId string) (*model.WikiLink, error)
-	GetBySource(sourceId string) ([]*model.WikiLink, error)
-	GetBySourceMaster(sourceId string) ([]*model.WikiLink, error)
-	GetBySources(sourceIds []string) ([]*model.WikiLink, error)
-	GetByDestination(destinationId string) ([]*model.WikiLink, error)
-	GetByWiki(wikiId string) ([]*model.WikiLink, error)
+type ChannelMemberLinkStore interface {
+	Save(link *model.ChannelMemberLink) (*model.ChannelMemberLink, error)
+	SaveAndPropagateMembers(rctx request.CTX, link *model.ChannelMemberLink, sourceChannelId string, propagateAdmin bool) (*model.ChannelMemberLink, error)
+	Get(sourceId, destinationId string) (*model.ChannelMemberLink, error)
+	GetBySource(sourceId string) ([]*model.ChannelMemberLink, error)
+	GetBySourceMaster(sourceId string) ([]*model.ChannelMemberLink, error)
+	GetBySources(sourceIds []string) ([]*model.ChannelMemberLink, error)
+	GetByDestination(destinationId string) ([]*model.ChannelMemberLink, error)
+	GetByWiki(wikiId string) ([]*model.ChannelMemberLink, error)
 	Delete(sourceId, destinationId string) error
 	DeleteAndCleanupMembers(rctx request.CTX, sourceId, destinationId string) error
 	DeleteByDestination(destinationId string) error
 }
 
-// PageStore manages page hierarchy operations.
-// Pages are stored as Posts with Type="page", but hierarchy-specific
-// operations are isolated in this store for better separation of concerns.
+type PageReactionStore interface {
+	Save(reaction *model.PageReaction) (*model.PageReaction, error)
+	Delete(reaction *model.PageReaction) error
+	GetForPage(pageId string) ([]*model.PageReaction, error)
+	PermanentDeleteByUser(userId string) error
+	DeleteByPageIds(pageIds []string) error
+}
+
+// PageStore manages page hierarchy operations over the dedicated Pages table.
 type PageStore interface {
-	// CreatePage creates a page and its content in a single transaction
-	CreatePage(rctx request.CTX, post *model.Post, content string) (*model.Post, error)
+	// CreatePage inserts a new page row into the Pages table.
+	CreatePage(rctx request.CTX, page *model.Page) (*model.Page, error)
 
 	// GetPage fetches a page by ID.
 	// Uses DBXFromContext to respect master flag for read-after-write consistency.
-	GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error)
+	GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Page, error)
 
-	// GetPagesByIDs fetches multiple pages by their IDs in a single query.
+	// GetPagesByIDs fetches multiple live pages by their IDs in a single query.
 	// Missing IDs are silently omitted from the result.
-	GetPagesByIDs(rctx request.CTX, pageIDs []string) ([]*model.Post, error)
+	GetPagesByIDs(rctx request.CTX, pageIDs []string) ([]*model.Page, error)
 
 	// DeletePage soft-deletes a page and all its associated data (comments and drafts).
-	// It also atomically reparents any child pages to newParentID (or makes them root pages if empty).
+	// Atomically reparents any child pages to newParentID (or makes them root pages if empty).
 	DeletePage(pageID string, deleteByID string, newParentID string) error
 
-	// RestorePage restores a soft-deleted page post
+	// RestorePage restores a soft-deleted page and re-parents its children.
 	RestorePage(pageID string) error
 
-	// GetPageChildren fetches direct children of a page
-	GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error)
+	// GetPageChildren fetches direct live children of a page.
+	GetPageChildren(pageID string, options model.GetPostsOptions) ([]*model.Page, error)
 
-	// GetPageDescendants fetches all descendants of a page (entire subtree)
-	GetPageDescendants(postID string) (*model.PostList, error)
+	// GetPageDescendants fetches all live descendants of a page (entire subtree).
+	GetPageDescendants(pageID string) ([]*model.Page, error)
 
-	// GetPageAncestors fetches all ancestors of a page up to the root
-	GetPageAncestors(postID string) (*model.PostList, error)
+	// GetPageAncestors fetches all live ancestors of a page up to the root.
+	GetPageAncestors(pageID string) ([]*model.Page, error)
 
-	// GetChannelPages fetches a paginated page of full-content pages in a channel, ordered by
-	// CreateAt DESC. Use offset=0, limit=0 to load all pages (import paths only).
-	GetChannelPages(channelID string, offset, limit int) (*model.PostList, error)
+	// GetChannelPages fetches a paginated set of full-content live pages in a channel,
+	// ordered by CreateAt DESC. Use offset=0, limit=0 to load all pages (import/export).
+	GetChannelPages(channelID string, offset, limit int) ([]*model.Page, error)
 
-	// GetChannelPagesMeta fetches all pages in a channel without the Message (TipTap content)
-	// field. Used for cross-wiki merged list views where content is not needed and loading all
-	// pages into memory must be cheap.
-	GetChannelPagesMeta(channelID string) (*model.PostList, error)
+	// GetChannelPagesMeta fetches all live pages in a channel without the Body field.
+	// Used for cross-wiki merged list views where content is not needed.
+	GetChannelPagesMeta(channelID string) ([]*model.Page, error)
 
-	// GetSiblingPages fetches all sibling pages (pages with the same parent) for a given parent.
+	// GetSiblingPages fetches all live sibling pages (same parent) for a given parent.
 	// If parentID is empty, returns root-level pages in the channel.
-	// Results are sorted by page_sort_order, then CreateAt, then Id.
-	GetSiblingPages(parentID, channelID string) ([]*model.Post, error)
+	// Results are sorted by SortOrder, then CreateAt, then Id.
+	GetSiblingPages(parentID, channelID string) ([]*model.Page, error)
 
 	// UpdatePageSortOrder reorders a page among its siblings.
-	// Moves the page to newIndex position (0-indexed) and recalculates sort orders for all siblings.
+	// Moves the page to newIndex position (0-indexed) and recalculates sort orders.
 	// Uses SELECT FOR UPDATE to prevent concurrent modification issues.
 	// Returns the updated list of siblings with their new sort orders.
-	UpdatePageSortOrder(pageID, parentID, channelID string, newIndex int64) ([]*model.Post, error)
+	UpdatePageSortOrder(pageID, parentID, channelID string, newIndex int64) ([]*model.Page, error)
 
-	// ChangePageParent updates the parent of a page.
-	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
+	// ChangePageParent updates the parent of a page using optimistic locking.
+	// Only updates if UpdateAt matches expectedUpdateAt.
 	// Returns ErrNotFound if no rows affected (page not found or concurrent modification).
-	ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error
+	ChangePageParent(pageID string, newParentID string, expectedUpdateAt int64) error
 
 	// MovePage atomically moves a page within the hierarchy.
 	// Combines parent change and sibling reordering in a single transaction.
-	// - newParentID: if non-nil, changes the page's parent (nil = keep current, empty string = root)
-	// - newIndex: if non-nil, reorders the page to this position among siblings
+	// newParentID: if non-nil, changes the page's parent (nil = keep current, empty string = root).
+	// newIndex: if non-nil, reorders the page to this position among siblings.
 	// Uses optimistic locking: only updates if UpdateAt matches expectedUpdateAt.
 	// Returns ErrNotFound if page not found or concurrent modification detected.
 	// Returns ErrInvalidInput if the move would create a cycle.
-	MovePage(pageID, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error)
+	MovePage(pageID, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Page, error)
 
-	// UpdatePageWithContent updates a page's title and/or content and creates edit history
-	UpdatePageWithContent(rctx request.CTX, pageID, title, content string) (*model.Post, error)
+	// UpdatePageWithContent updates a page's title and/or content and creates edit history.
+	UpdatePageWithContent(rctx request.CTX, pageID, title, content string) (*model.Page, error)
 
-	// Update updates a page (following MM pattern - no business logic, just UPDATE)
-	// Returns ErrNotFound if page doesn't exist or was deleted
-	Update(rctx request.CTX, page *model.Post) (*model.Post, error)
+	// Update updates a page using an explicit column allowlist.
+	// Returns ErrNotFound if page doesn't exist or was deleted.
+	Update(rctx request.CTX, page *model.Page) (*model.Page, error)
 
-	// GetPageVersionHistory fetches the version history for a page with pagination
-	GetPageVersionHistory(pageID string, offset, limit int) ([]*model.Post, error)
+	// GetPageVersionHistory fetches version snapshots for a page with pagination.
+	GetPageVersionHistory(pageID string, offset, limit int) ([]*model.Page, error)
 
-	// GetCommentsForPage fetches comments and replies for a page with pagination
+	// GetCommentsForPage fetches comments and replies for a page with pagination.
+	// Returns only page_comment posts; pages are no longer in the Posts table.
 	GetCommentsForPage(pageID string, includeDeleted bool, offset, limit int) (*model.PostList, error)
 
 	// GetSinglePageComment fetches a single page_comment post by ID.
 	GetSinglePageComment(commentID string, includeDeleted bool) (*model.Post, error)
 
 	// AtomicUpdatePageNotification atomically finds and updates an existing page update
-	// notification post within a transaction using SELECT FOR UPDATE to prevent lost updates
-	// from concurrent modifications. Returns the updated post, or nil if no matching
-	// notification was found (caller should create a new one).
+	// notification post (Posts-backed) within a transaction using SELECT FOR UPDATE.
+	// Returns the updated post, or nil if no matching notification was found.
 	AtomicUpdatePageNotification(channelID, pageID, userID, username, pageTitle string, sinceTime int64) (*model.Post, error)
 
 	// UpdateCommentProps sets the Props column on a page comment and bumps UpdateAt.
-	// Used for metadata-only changes such as resolve/unresolve that intentionally
-	// bypass post edit history. No permission checks or pipeline side-effects —
-	// callers are responsible for WebSocket events.
 	UpdateCommentProps(commentID string, props model.StringInterface) (*model.Post, error)
 
-	// UpdatePageFileIds sets the FileIds column on a page post and bumps UpdateAt.
-	// It also reparents FileInfo rows from fromPostID to pageID so file references survive
-	// snapshot pruning by data retention. Callers are responsible for WebSocket events.
-	UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Post, error)
+	// UpdatePageFileIds reparents FileInfo rows to the live page (SET PageId=pageID)
+	// and returns the refreshed page.
+	UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Page, error)
 
-	// PermanentDeletePage hard-deletes the page post and all its comments, threads, and file info.
+	// PermanentDeletePage hard-deletes the page, its snapshots, reactions, file info,
+	// drafts, and comment threads.
 	PermanentDeletePage(pageID string) error
 
-	// BatchSetPageParent updates PageParentId for multiple pages in a single query.
-	// Intended for bulk import repair — skips cycle detection (caller is responsible).
+	// BatchSetPageParent updates ParentId for multiple pages in a single query.
+	// Intended for bulk import repair — cycle detection is the caller's responsibility.
 	// updates maps pageID -> newParentID (empty string = root).
 	BatchSetPageParent(updates map[string]string) error
 }

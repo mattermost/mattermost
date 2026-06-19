@@ -278,184 +278,211 @@ func (s *SqlWikiStore) Delete(id string, hard bool) error {
 	return s.checkRowsAffected(result, "Wiki", id)
 }
 
-func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post, error) {
-	if !model.IsValidId(wikiId) {
-		return nil, store.NewErrInvalidInput("Wiki", "wikiId", wikiId)
-	}
-	if offset < 0 {
-		return nil, store.NewErrInvalidInput("Wiki", "offset", strconv.Itoa(offset))
-	}
-	if limit <= 0 {
-		return nil, store.NewErrInvalidInput("Wiki", "limit", strconv.Itoa(limit))
-	}
-
-	var columns []string
-	for _, c := range postSliceColumns() {
-		columns = append(columns, "p."+c)
-	}
-	builder := s.getQueryBuilder().
-		Select(columns...).
-		From("Posts p").
-		Join("Wikis w ON w.ChannelId = p.ChannelId AND w.Id = ? AND w.DeleteAt = 0", wikiId).
-		Where(sq.Eq{
-			"p.Type":     model.PostTypePage,
-			"p.DeleteAt": 0,
-		}).
-		OrderBy("p.CreateAt ASC, p.Id ASC").
-		Offset(uint64(offset)).
-		Limit(uint64(limit))
-
-	posts := []*model.Post{}
-	if err := s.GetReplica().SelectBuilder(&posts, builder); err != nil {
-		return nil, errors.Wrap(err, "unable_to_get_wiki_pages")
-	}
-
-	return posts, nil
-}
-
-func (s *SqlWikiStore) GetPageByTitleInWiki(wikiId, title string) (*model.Post, error) {
-	if !model.IsValidId(wikiId) {
-		return nil, store.NewErrInvalidInput("Wiki", "wikiId", wikiId)
-	}
-	if title == "" {
-		return nil, store.NewErrInvalidInput("Post", "title", title)
-	}
-
-	var columns []string
-	for _, c := range postSliceColumns() {
-		columns = append(columns, "p."+c)
-	}
-
-	builder := s.getQueryBuilder().
-		Select(columns...).
-		From("Posts p").
-		Join("Wikis w ON w.ChannelId = p.ChannelId AND w.Id = ? AND w.DeleteAt = 0", wikiId).
-		Where(sq.Eq{
-			"p.Type":     model.PostTypePage,
-			"p.DeleteAt": 0,
-		}).
-		Where("LOWER(COALESCE(p.Props->>'title', '')) = LOWER(?)", title).
-		Limit(1)
-
-	var post model.Post
-	if err := s.GetReplica().GetBuilder(&post, builder); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Post", title)
-		}
-		return nil, errors.Wrap(err, "unable_to_get_page_by_title")
-	}
-
-	return &post, nil
-}
-
-// GetAbandonedPages retrieves empty pages older than cutoff (for cleanup)
-func (s *SqlWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) {
-	query := s.getQueryBuilder().
-		Select(postSliceColumnsWithName("p")...).
-		From("Posts p").
-		Where(sq.And{
-			sq.Eq{"p.Type": model.PostTypePage},
-			sq.Eq{"p.Message": ""},
-			sq.Lt{"p.UpdateAt": cutoffTime},
-			sq.Eq{"p.DeleteAt": 0},
-		}).
-		OrderBy("p.UpdateAt ASC").
-		Limit(100)
-
-	posts := []*model.Post{}
-	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
-		return nil, errors.Wrap(err, "failed to get abandoned pages")
-	}
-
-	return posts, nil
-}
-
-func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
+// DeleteWikiCascade atomically removes all page data for a wiki in a single transaction.
+// Step ordering: (0) soft-delete/lock the Wikis row first so no new page can be created
+// mid-cascade; (1) collect page IDs including already-soft-deleted rows so their snapshots
+// are purged; (2) soft-delete Pages rows + their page_comment Posts + Threads; (3) delete
+// PageReactions, FileInfo (scoped to pageIds, not channelId), and Drafts; (4) delete
+// version-snapshot rows (WHERE OriginalId IN pageIds).
+func (s *SqlWikiStore) DeleteWikiCascade(wikiId string) error {
 	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
-		var channelID string
-		channelQuery := s.getQueryBuilder().
-			Select("ChannelId").
-			From("Wikis").
-			Where(sq.Eq{"Id": wikiId}).
-			Limit(1)
-		if err := transaction.GetBuilder(&channelID, channelQuery); err != nil {
-			if err == sql.ErrNoRows {
+		// Step 0: soft-delete/lock the Wikis row to prevent new pages being created mid-cascade.
+		now := model.GetMillis()
+		lockWikiQuery := s.getQueryBuilder().
+			Update("Wikis").
+			Set("DeleteAt", now).
+			Where(sq.And{
+				sq.Eq{"Id": wikiId},
+				sq.Eq{"DeleteAt": 0},
+			})
+		result, err := transaction.ExecBuilder(lockWikiQuery)
+		if err != nil {
+			return errors.Wrap(err, "failed to soft-delete wiki for cascade")
+		}
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return errors.Wrap(err, "failed to get rows affected for wiki lock")
+		}
+		if rowsAffected == 0 {
+			// Wiki already deleted or does not exist — check which.
+			var count int
+			checkQuery := s.getQueryBuilder().
+				Select("COUNT(*)").
+				From("Wikis").
+				Where(sq.Eq{"Id": wikiId})
+			if cntErr := transaction.GetBuilder(&count, checkQuery); cntErr != nil {
+				return errors.Wrap(cntErr, "failed to check wiki existence")
+			}
+			if count == 0 {
 				return store.NewErrNotFound("Wiki", wikiId)
 			}
-			return errors.Wrap(err, "failed to get wiki channel ID for page deletion")
+			// Already soft-deleted — still proceed to cascade orphan cleanup.
 		}
 
-		deleteAt := model.GetMillis()
-
-		// Find all page IDs in this wiki's channel
-		var postIDs []string
-		postIDsQuery := s.getQueryBuilder().
+		// Step 1: collect page IDs (live + already-soft-deleted) so their snapshots are purged.
+		var pageIDs []string
+		pageIDsQuery := s.getQueryBuilder().
 			Select("Id").
-			From("Posts").
-			Where(sq.Eq{
-				"ChannelId": channelID,
-				"Type":      model.PostTypePage,
-				"DeleteAt":  0,
+			From("Pages").
+			Where(sq.And{
+				sq.Eq{"WikiId": wikiId},
+				sq.Eq{"OriginalId": ""},
 			})
-
-		if selectErr := transaction.SelectBuilder(&postIDs, postIDsQuery); selectErr != nil {
-			return errors.Wrap(selectErr, "failed to find posts for wiki")
+		if selectErr := transaction.SelectBuilder(&pageIDs, pageIDsQuery); selectErr != nil {
+			return errors.Wrap(selectErr, "failed to collect page IDs for wiki cascade")
 		}
 
-		// Soft delete posts if any exist, processing in chunks to avoid unbounded IN clauses
-		const chunkSize = 1000
-		for i := 0; i < len(postIDs); i += chunkSize {
-			end := min(i+chunkSize, len(postIDs))
-			chunk := postIDs[i:end]
+		if len(pageIDs) > 0 {
+			const chunkSize = 1000
 
-			postsUpdateQuery := s.getQueryBuilder().
-				Update("Posts").
-				Set("DeleteAt", deleteAt).
-				Where(sq.Eq{
-					"Id":       chunk,
-					"DeleteAt": 0,
-				})
+			// Step 2a: soft-delete live Pages rows.
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
 
-			if _, execErr := transaction.ExecBuilder(postsUpdateQuery); execErr != nil {
-				return errors.Wrap(execErr, "failed to soft delete posts for wiki")
+				softDeletePagesQuery := s.getQueryBuilder().
+					Update("Pages").
+					Set("DeleteAt", now).
+					Set("UpdateAt", now).
+					Where(sq.And{
+						sq.Eq{"Id": chunk},
+						sq.Eq{"DeleteAt": 0},
+					})
+				if _, execErr := transaction.ExecBuilder(softDeletePagesQuery); execErr != nil {
+					return errors.Wrap(execErr, "failed to soft-delete pages for wiki cascade")
+				}
+			}
+
+			// Step 2b: soft-delete page_comment Posts for pages in this wiki.
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
+
+				softDeleteCommentsQuery := s.getQueryBuilder().
+					Update("Posts").
+					Set("DeleteAt", now).
+					Set("UpdateAt", now).
+					Where(sq.And{
+						sq.Eq{"Type": model.PostTypePageComment},
+						sq.Eq{"DeleteAt": 0},
+					}).
+					Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(chunk)))
+				if _, execErr := transaction.ExecBuilder(softDeleteCommentsQuery); execErr != nil {
+					return errors.Wrap(execErr, "failed to soft-delete page comments for wiki cascade")
+				}
+			}
+
+			// Step 2c: soft-delete Threads for those comment posts.
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
+
+				softDeleteThreadsQuery := s.getQueryBuilder().
+					Update("Threads").
+					Set("ThreadDeleteAt", now).
+					Where(sq.Expr(
+						"PostId IN (SELECT Id FROM Posts WHERE Props->>'page_id' = ANY(?) AND Type = ?)",
+						pq.Array(chunk), model.PostTypePageComment,
+					))
+				if _, execErr := transaction.ExecBuilder(softDeleteThreadsQuery); execErr != nil {
+					return errors.Wrap(execErr, "failed to soft-delete threads for wiki cascade")
+				}
+			}
+
+			// Step 3a: hard-delete PageReactions for these pages (PageReactions has no DeleteAt).
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
+
+				deleteReactionsQuery := s.getQueryBuilder().
+					Delete("PageReactions").
+					Where(sq.Eq{"PageId": chunk})
+				if _, execErr := transaction.ExecBuilder(deleteReactionsQuery); execErr != nil {
+					return errors.Wrap(execErr, "failed to delete PageReactions for wiki cascade")
+				}
+			}
+
+			// Step 3b: hard-delete FileInfo rows owned by these pages (scoped to pageIds,
+			// NOT to channelId — FileInfo.ChannelId is the backing channel for all files
+			// including comment files, so channel-scoping would wipe non-page files).
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
+
+				deleteFileInfoQuery := s.getQueryBuilder().
+					Delete("FileInfo").
+					Where(sq.Eq{"PageId": chunk})
+				if _, execErr := transaction.ExecBuilder(deleteFileInfoQuery); execErr != nil {
+					return errors.Wrap(execErr, "failed to delete FileInfo for wiki cascade")
+				}
+			}
+
+			// Step 3c: delete page Drafts (WikiId stored in Drafts.ChannelId; RootId = pageId).
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
+
+				deleteDraftsQuery := s.getQueryBuilder().
+					Delete("Drafts").
+					Where(sq.Eq{"RootId": chunk})
+				if _, execErr := transaction.ExecBuilder(deleteDraftsQuery); execErr != nil {
+					return errors.Wrap(execErr, "failed to delete page drafts for wiki cascade")
+				}
+			}
+
+			// Step 4: hard-delete version-snapshot rows (OriginalId IN pageIds).
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
+
+				deleteSnapshotsQuery := s.getQueryBuilder().
+					Delete("Pages").
+					Where(sq.Eq{"OriginalId": chunk})
+				if _, execErr := transaction.ExecBuilder(deleteSnapshotsQuery); execErr != nil {
+					return errors.Wrap(execErr, "failed to delete page snapshots for wiki cascade")
+				}
 			}
 		}
 
-		// Delete all page drafts for this wiki (WikiId is stored in Drafts.ChannelId for page drafts)
+		// Also delete wiki-level Drafts (e.g. default page draft stored with ChannelId=wikiId).
 		pageDraftsDeleteQuery := s.getQueryBuilder().
 			Delete("Drafts").
 			Where(sq.Eq{"ChannelId": wikiId}).
 			Where(sq.Expr("jsonb_exists(Props::jsonb, 'page_id')"))
-
 		if _, execErr := transaction.ExecBuilder(pageDraftsDeleteQuery); execErr != nil {
-			return errors.Wrap(execErr, "failed to delete page drafts for wiki")
+			return errors.Wrap(execErr, "failed to delete wiki-level page drafts for cascade")
 		}
 
 		return nil
 	})
 }
 
+// MovePageToWiki moves a page subtree to a different wiki in a single transaction.
+// The recursive CTE runs on the Pages table (not Posts). Both WikiId and ChannelId
+// are updated together (FK + denormalized cache) on live rows AND version-snapshot rows
+// (WHERE OriginalId IN subtree) so restore lands in the correct wiki. The page-row UPDATE
+// touches only WikiId/ChannelId/ParentId — HasEffectiveViewRestriction/HasLocalEditRestriction
+// are carried verbatim (no SELECT *-then-rewrite).
 func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId, targetChannelId string, parentPageId *string) error {
 	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
 		updateAt := model.GetMillis()
 
-		// Squirrel does not support recursive CTEs; this is the documented escape
-		// hatch. MaxPageHierarchyDepth is a compile-time constant interpolated via
-		// fmt.Sprintf, never user input. Page IDs and post type pass through
-		// parameterized placeholders.
+		// Squirrel does not support recursive CTEs; use fmt.Sprintf with compile-time
+		// constant MaxPageHierarchyDepth. pageId passes through a parameterized placeholder.
+		// The CTE now queries Pages (not Posts) and uses ParentId (not PageParentId).
 		recursiveCTE := fmt.Sprintf(`
 			WITH RECURSIVE page_subtree AS (
-				SELECT Id, 1 AS depth FROM Posts WHERE Id = ? AND Type = ? AND DeleteAt = 0
+				SELECT Id, 1 AS depth FROM Pages WHERE Id = ? AND DeleteAt = 0 AND OriginalId = ''
 				UNION ALL
-				SELECT p.Id, ps.depth + 1 FROM Posts p
-				INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
-				WHERE p.Type = ? AND p.DeleteAt = 0 AND ps.depth < %d
+				SELECT p.Id, ps.depth + 1 FROM Pages p
+				INNER JOIN page_subtree ps ON p.ParentId = ps.Id
+				WHERE p.DeleteAt = 0 AND p.OriginalId = '' AND ps.depth < %d
 			)
 			SELECT Id FROM page_subtree
 		`, MaxPageHierarchyDepth)
 
 		var pageIDs []string
-		if selectErr := transaction.Select(&pageIDs, recursiveCTE, pageId, model.PostTypePage, model.PostTypePage); selectErr != nil {
+		if selectErr := transaction.Select(&pageIDs, recursiveCTE, pageId); selectErr != nil {
 			return errors.Wrap(selectErr, "failed to find page subtree")
 		}
 
@@ -468,90 +495,105 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId, targetChannelId stri
 			newParentId = *parentPageId
 		}
 
-		updatePostQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("PageParentId", newParentId).
+		// Update the moved root's ParentId only (targeted column — must NOT touch restriction markers).
+		updateRootParentQuery := s.getQueryBuilder().
+			Update("Pages").
+			Set("ParentId", newParentId).
 			Set("UpdateAt", updateAt).
-			Where(sq.Eq{"Id": pageId, "DeleteAt": 0})
+			Where(sq.Eq{"Id": pageId, "DeleteAt": 0, "OriginalId": ""})
 
-		updatePostSQL, updatePostArgs, buildErr := updatePostQuery.ToSql()
-		if buildErr != nil {
-			return errors.Wrap(buildErr, "failed to build update page parent query")
-		}
-
-		if _, execErr := transaction.Exec(updatePostSQL, updatePostArgs...); execErr != nil {
+		if _, execErr := transaction.ExecBuilder(updateRootParentQuery); execErr != nil {
 			return errors.Wrap(execErr, "failed to update page parent")
 		}
 
-		// Process pageIDs in chunks to avoid unbounded IN clauses
 		const chunkSize = 1000
 
-		// Update wiki_id in Post.Props for all pages in subtree (optimization for fast lookup)
+		// Update WikiId + ChannelId on live page rows in subtree.
+		// Targeted SET — does NOT touch HasEffectiveViewRestriction/HasLocalEditRestriction.
 		for i := 0; i < len(pageIDs); i += chunkSize {
 			end := min(i+chunkSize, len(pageIDs))
 			chunk := pageIDs[i:end]
 
-			updatePostPropsQuery := s.getQueryBuilder().
-				Update("Posts").
-				Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(targetWikiId))).
+			updateLivePagesQuery := s.getQueryBuilder().
+				Update("Pages").
+				Set("WikiId", targetWikiId).
+				Set("ChannelId", targetChannelId).
 				Set("UpdateAt", updateAt).
-				Where(sq.Eq{"Id": chunk, "DeleteAt": 0})
+				Where(sq.Eq{"Id": chunk, "DeleteAt": 0, "OriginalId": ""})
 
-			if targetChannelId != "" {
-				updatePostPropsQuery = updatePostPropsQuery.Set("ChannelId", targetChannelId)
-			}
-
-			if _, propsErr := transaction.ExecBuilder(updatePostPropsQuery); propsErr != nil {
-				return errors.Wrap(propsErr, "failed to update wiki_id in Post.Props for page subtree")
+			if _, execErr := transaction.ExecBuilder(updateLivePagesQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to update WikiId/ChannelId on live pages")
 			}
 		}
 
-		// Update wiki_id in Props for top-level comments (comments where RootId is a page in the subtree)
+		// Update WikiId + ChannelId on version-snapshot rows (OriginalId IN subtree)
+		// so restore lands the page in the new wiki.
 		for i := 0; i < len(pageIDs); i += chunkSize {
 			end := min(i+chunkSize, len(pageIDs))
 			chunk := pageIDs[i:end]
 
-			updateTopLevelCommentsQuery := s.getQueryBuilder().
-				Update("Posts").
-				Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(targetWikiId))).
+			updateSnapshotsQuery := s.getQueryBuilder().
+				Update("Pages").
+				Set("WikiId", targetWikiId).
+				Set("ChannelId", targetChannelId).
 				Set("UpdateAt", updateAt).
-				Where(sq.Eq{
-					"Type":     model.PostTypePageComment,
-					"RootId":   chunk,
-					"DeleteAt": 0,
-				})
+				Where(sq.Eq{"OriginalId": chunk})
 
-			if targetChannelId != "" {
-				updateTopLevelCommentsQuery = updateTopLevelCommentsQuery.Set("ChannelId", targetChannelId)
-			}
-
-			if _, commentsErr := transaction.ExecBuilder(updateTopLevelCommentsQuery); commentsErr != nil {
-				return errors.Wrap(commentsErr, "failed to update wiki_id in Props for top-level comments")
+			if _, execErr := transaction.ExecBuilder(updateSnapshotsQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to update WikiId/ChannelId on page snapshots")
 			}
 		}
 
-		// Update wiki_id in Props for inline comments (RootId is empty, page_id is in Props)
+		// Update ChannelId and wiki_id prop on page_comment Posts (comments stay in Posts).
 		for i := 0; i < len(pageIDs); i += chunkSize {
 			end := min(i+chunkSize, len(pageIDs))
 			chunk := pageIDs[i:end]
 
-			updateInlineCommentsQuery := s.getQueryBuilder().
+			updateCommentsQuery := s.getQueryBuilder().
 				Update("Posts").
-				Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(targetWikiId))).
+				Set("ChannelId", targetChannelId).
 				Set("UpdateAt", updateAt).
+				Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(targetWikiId))).
 				Where(sq.Eq{
 					"Type":     model.PostTypePageComment,
-					"RootId":   "",
 					"DeleteAt": 0,
 				}).
 				Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(chunk)))
 
-			if targetChannelId != "" {
-				updateInlineCommentsQuery = updateInlineCommentsQuery.Set("ChannelId", targetChannelId)
+			if _, execErr := transaction.ExecBuilder(updateCommentsQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to update ChannelId and wiki_id on page comments")
 			}
+		}
 
-			if _, inlineErr := transaction.ExecBuilder(updateInlineCommentsQuery); inlineErr != nil {
-				return errors.Wrap(inlineErr, "failed to update wiki_id in Props for inline comments")
+		// Update ChannelId on FileInfo rows owned by these pages (FileInfo.PageId).
+		for i := 0; i < len(pageIDs); i += chunkSize {
+			end := min(i+chunkSize, len(pageIDs))
+			chunk := pageIDs[i:end]
+
+			updateFileInfoQuery := s.getQueryBuilder().
+				Update("FileInfo").
+				Set("ChannelId", targetChannelId).
+				Where(sq.Eq{"PageId": chunk})
+
+			if _, execErr := transaction.ExecBuilder(updateFileInfoQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to update ChannelId on FileInfo for page move")
+			}
+		}
+
+		// Update Drafts.ChannelId to the new WikiId (page drafts store WikiId in Drafts.ChannelId,
+		// NOT the backing channel — page_draft.go:67). Re-key to targetWikiId so the draft
+		// follows the page to its new wiki.
+		for i := 0; i < len(pageIDs); i += chunkSize {
+			end := min(i+chunkSize, len(pageIDs))
+			chunk := pageIDs[i:end]
+
+			updateDraftsQuery := s.getQueryBuilder().
+				Update("Drafts").
+				Set("ChannelId", targetWikiId).
+				Where(sq.Eq{"RootId": chunk})
+
+			if _, execErr := transaction.ExecBuilder(updateDraftsQuery); execErr != nil {
+				return errors.Wrap(execErr, "failed to update Drafts.ChannelId for page move")
 			}
 		}
 
@@ -650,7 +692,7 @@ func (s *SqlWikiStore) GetLinkedToChannel(channelId string) ([]*model.Wiki, erro
 	builder := s.getQueryBuilder().
 		Select("w.Id", "w.ChannelId", "w.TeamId", "w.CreatorId", "w.Title", "w.Description", "w.Icon", "w.Props", "w.CreateAt", "w.UpdateAt", "w.DeleteAt", "w.SortOrder").
 		From("Wikis w").
-		Join("WikiLinks cml ON cml.DestinationId = w.ChannelId").
+		Join("ChannelMemberLinks cml ON cml.DestinationId = w.ChannelId").
 		Where(sq.Eq{
 			"cml.SourceId": channelId,
 			"w.DeleteAt":   0,
@@ -780,27 +822,29 @@ func (s *SqlWikiStore) GetPagesForExport(wikiId string, limit int, afterId strin
 		return nil, store.NewErrInvalidInput("Page", "afterId", afterId)
 	}
 
-	// Note: Page title is stored in Props->>'title', not in Message column
-	// Note: Content is stored in Post.Message (TipTap JSON)
-	// Note: pp is the parent post, used to get parent's import_source_id for hierarchy export
+	// Note: pp is the parent page, used to get the parent's import_source_id for hierarchy export.
+	// Note: FileIds is derived from FileInfo.PageId (page attachments carry PageId, not a FileIds
+	// column); the exporter only checks whether it is non-empty before loading the actual files.
 	query := s.getQueryBuilder().
 		Select(
 			`p.Id AS "Id"`, `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
-			`COALESCE(p.Props->>'title', '') AS "Title"`, `COALESCE(p.Message, '') AS "Content"`,
-			`COALESCE(p.Props->>'page_parent_id', '') AS "PageParentId"`,
+			`COALESCE(p.Title, '') AS "Title"`, `COALESCE(p.Body, '') AS "Content"`,
+			`COALESCE(p.ParentId, '') AS "PageParentId"`,
 			// For parent's import_source_id: use the parent's import_source_id if it was imported, otherwise use its page ID
 			`COALESCE(pp.Props->>'import_source_id', pp.Id, '') AS "ParentImportSourceId"`,
-			`p.Props AS "Props"`, `p.CreateAt AS "CreateAt"`, `p.UpdateAt AS "UpdateAt"`, `p.FileIds AS "FileIds"`,
+			`p.Props AS "Props"`, `p.CreateAt AS "CreateAt"`, `p.UpdateAt AS "UpdateAt"`,
+			`COALESCE((SELECT string_agg(fi.Id, ',') FROM FileInfo fi WHERE fi.PageId = p.Id AND fi.DeleteAt = 0), '') AS "FileIds"`,
 		).
-		From("Posts p").
-		Join("Wikis w ON p.ChannelId = w.ChannelId AND w.Id = ? AND w.DeleteAt = 0", wikiId).
+		From("Pages p").
 		Join("Channels c ON p.ChannelId = c.Id").
 		Join("Teams t ON c.TeamId = t.Id").
 		Join("Users u ON p.UserId = u.Id").
-		LeftJoin("Posts pp ON p.Props->>'page_parent_id' = pp.Id").
+		LeftJoin("Pages pp ON p.ParentId = pp.Id").
 		Where(sq.Eq{
-			"p.Type":     model.PostTypePage,
-			"p.DeleteAt": 0,
+			"p.WikiId":     wikiId,
+			"p.Type":       model.PostTypePage,
+			"p.DeleteAt":   0,
+			"p.OriginalId": "",
 		}).
 		OrderBy("p.Id ASC").
 		Limit(uint64(limit))

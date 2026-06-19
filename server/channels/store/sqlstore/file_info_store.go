@@ -24,6 +24,7 @@ type fileInfoWithChannelID struct {
 	Id              string
 	CreatorId       string
 	PostId          string
+	PageId          string
 	ChannelId       string
 	CreateAt        int64
 	UpdateAt        int64
@@ -49,6 +50,7 @@ func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
 		Id:              fi.Id,
 		CreatorId:       fi.CreatorId,
 		PostId:          fi.PostId,
+		PageId:          fi.PageId,
 		ChannelId:       fi.ChannelId,
 		CreateAt:        fi.CreateAt,
 		UpdateAt:        fi.UpdateAt,
@@ -88,6 +90,7 @@ func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterfac
 		"FileInfo.Id",
 		"FileInfo.CreatorId",
 		"FileInfo.PostId",
+		"COALESCE(FileInfo.PageId, '') AS PageId",
 		"COALESCE(FileInfo.ChannelId, '') AS ChannelId",
 		"FileInfo.CreateAt",
 		"FileInfo.UpdateAt",
@@ -377,6 +380,29 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDele
 	return infos, nil
 }
 
+// GetForPage returns the live file infos owned by a wiki page (FileInfo.PageId), which is the
+// page-table analogue of GetForPost — page attachments carry PageId, not PostId.
+func (fs SqlFileInfoStore) GetForPage(pageId string) ([]*model.FileInfo, error) {
+	infos := []*model.FileInfo{}
+
+	query := fs.getQueryBuilder().
+		Select(fs.queryFields...).
+		From("FileInfo").
+		Where(sq.Eq{"PageId": pageId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		OrderBy("CreateAt")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "file_info_tosql")
+	}
+
+	if err := fs.GetReplica().Select(&infos, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find FileInfos with pageId=%s", pageId)
+	}
+	return infos, nil
+}
+
 func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 	infos := []*model.FileInfo{}
 
@@ -547,6 +573,10 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 		Where(sq.Or{
 			sq.Eq{"FileInfo.CreatorId": model.BookmarkFileOwner},
 			sq.NotEq{"FileInfo.PostId": ""},
+			// Wiki-page attachments have an empty PostId and a non-empty PageId; include them
+			// so page files are searchable (Confluence parity). Channel-scope permission still
+			// applies via the ChannelMembers join below (page files carry the backing ChannelId).
+			sq.NotEq{"FileInfo.PageId": ""},
 		}).
 		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM TemporaryPosts WHERE TemporaryPosts.PostId = FileInfo.PostId)")).
 		OrderBy("FileInfo.CreateAt DESC").

@@ -80,8 +80,9 @@ type Store struct {
 	WikiStore                       mocks.WikiStore
 	PageStore                       mocks.PageStore
 	ViewStore                       mocks.ViewStore
-	WikiLinkStore                   mocks.WikiLinkStore
+	ChannelMemberLinkStore          mocks.ChannelMemberLinkStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
+	PageReactionStore               mocks.PageReactionStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -206,8 +207,12 @@ func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }
-func (s *Store) WikiLink() store.WikiLinkStore {
-	return &s.WikiLinkStore
+func (s *Store) ChannelMemberLink() store.ChannelMemberLinkStore {
+	return &s.ChannelMemberLinkStore
+}
+
+func (s *Store) PageReaction() store.PageReactionStore {
+	return &s.PageReactionStore
 }
 
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
@@ -274,7 +279,8 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.WikiStore,
 		&s.PageStore,
 		&s.ViewStore,
-		&s.WikiLinkStore,
+		&s.ChannelMemberLinkStore,
 		&s.ChannelJoinRequestStore,
+		&s.PageReactionStore,
 	)
 }

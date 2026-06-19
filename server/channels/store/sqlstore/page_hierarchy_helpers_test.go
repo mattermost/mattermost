@@ -30,9 +30,9 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 			fullSelect:  true,
 			mustContain: []string{
 				"WITH RECURSIVE descendants AS",
-				"INNER JOIN Posts p ON p.Id = d.Id",
+				"INNER JOIN Pages p ON p.Id = d.Id",
 				"ORDER BY p.CreateAt",
-				"SELECT p.Id, p.CreateAt",
+				"SELECT p.Id, p.WikiId",
 			},
 			mustNotContain: []string{
 				"WHERE d.Id != $1",
@@ -45,7 +45,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 			fullSelect:  true,
 			mustContain: []string{
 				"WITH RECURSIVE descendants AS",
-				"INNER JOIN Posts p ON p.Id = d.Id",
+				"INNER JOIN Pages p ON p.Id = d.Id",
 				"WHERE d.Id != $1",
 				"ORDER BY p.CreateAt",
 			},
@@ -61,7 +61,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 				"SELECT Id FROM descendants",
 			},
 			mustNotContain: []string{
-				"FROM descendants d\n\t\tINNER JOIN Posts p",
+				"FROM descendants d\n\t\tINNER JOIN Pages p",
 				"ORDER BY p.CreateAt",
 			},
 		},
@@ -76,7 +76,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 				"WHERE Id != $1",
 			},
 			mustNotContain: []string{
-				"FROM descendants d\n\t\tINNER JOIN Posts p",
+				"FROM descendants d\n\t\tINNER JOIN Pages p",
 				"ORDER BY p.CreateAt",
 				"WHERE d.Id",
 			},
@@ -88,7 +88,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 			fullSelect:  true,
 			mustContain: []string{
 				"WITH RECURSIVE page_subtree AS",
-				"INNER JOIN Posts p ON p.Id = d.Id",
+				"INNER JOIN Pages p ON p.Id = d.Id",
 				"ORDER BY p.CreateAt",
 			},
 			mustNotContain: []string{
@@ -106,7 +106,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 				"WHERE Id != $1",
 			},
 			mustNotContain: []string{
-				"FROM page_subtree d\n\t\tINNER JOIN Posts p",
+				"FROM page_subtree d\n\t\tINNER JOIN Pages p",
 				"ORDER BY p.CreateAt",
 			},
 		},
@@ -117,9 +117,9 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 			fullSelect:  true,
 			mustContain: []string{
 				"WITH RECURSIVE ancestors AS",
-				"INNER JOIN Posts p ON p.Id = a.Id",
+				"INNER JOIN Pages p ON p.Id = a.Id",
 				"ORDER BY p.CreateAt",
-				"SELECT p.Id, p.CreateAt",
+				"SELECT p.Id, p.WikiId",
 			},
 			mustNotContain: []string{
 				"WHERE a.Id != $1",
@@ -132,7 +132,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 			fullSelect:  true,
 			mustContain: []string{
 				"WITH RECURSIVE ancestors AS",
-				"INNER JOIN Posts p ON p.Id = a.Id",
+				"INNER JOIN Pages p ON p.Id = a.Id",
 				"WHERE a.Id != $1",
 				"ORDER BY p.CreateAt",
 			},
@@ -148,7 +148,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 				"SELECT Id FROM ancestors",
 			},
 			mustNotContain: []string{
-				"FROM ancestors a\n\t\tINNER JOIN Posts p",
+				"FROM ancestors a\n\t\tINNER JOIN Pages p",
 				"ORDER BY p.CreateAt",
 			},
 		},
@@ -163,7 +163,7 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 				"WHERE Id != $1",
 			},
 			mustNotContain: []string{
-				"FROM ancestors a\n\t\tINNER JOIN Posts p",
+				"FROM ancestors a\n\t\tINNER JOIN Pages p",
 				"ORDER BY p.CreateAt",
 				"WHERE a.Id",
 			},
@@ -191,8 +191,8 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 				splitSQL := strings.Split(sql, ")")
 				if len(splitSQL) > 1 {
 					finalSelect := splitSQL[len(splitSQL)-1]
-					require.NotContains(t, finalSelect, "INNER JOIN Posts p",
-						"When fullSelect=false, final SELECT should not JOIN Posts table\nFinal SELECT:\n%s", finalSelect)
+					require.NotContains(t, finalSelect, "INNER JOIN Pages p",
+						"When fullSelect=false, final SELECT should not JOIN Pages table\nFinal SELECT:\n%s", finalSelect)
 				}
 			}
 		})
@@ -225,12 +225,12 @@ func TestBuildPageHierarchyCTE_SQLSyntaxValidity(t *testing.T) {
 						"SQL should contain SELECT clause")
 
 					if fullSelect {
-						require.Contains(t, sql, "INNER JOIN Posts p",
+						require.Contains(t, sql, "INNER JOIN Pages p",
 							"When fullSelect=true, SQL should include JOIN to Posts table")
 						require.Contains(t, sql, "ORDER BY p.CreateAt",
 							"When fullSelect=true, SQL should include ORDER BY using joined table")
 					} else {
-						require.NotContains(t, sql, "INNER JOIN Posts p",
+						require.NotContains(t, sql, "INNER JOIN Pages p",
 							"When fullSelect=false, SQL should NOT include JOIN to Posts table")
 						require.NotContains(t, sql, "ORDER BY",
 							"When fullSelect=false, SQL should NOT include ORDER BY")
