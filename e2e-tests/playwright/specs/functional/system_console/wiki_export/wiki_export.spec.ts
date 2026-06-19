@@ -332,8 +332,8 @@ test.describe('Wiki Export/Import Admin Console', () => {
         const page2CommentMessages = page2CommentsAfterImport.map((c: {message: string}) => c.message);
         expect(page2CommentMessages).toContain('Comment on page two');
 
-        // Verify page titles are correct (page title is in props.title, not message)
-        const pageTitles = pagesAfterImport.map((p: {props: {title?: string}}) => p.props?.title || '');
+        // Verify page titles are correct (page title is a top-level column)
+        const pageTitles = pagesAfterImport.map((p: {title?: string}) => p.title || '');
         expect(pageTitles).toContain('Page One');
         expect(pageTitles).toContain('Page Two');
     });
@@ -384,9 +384,9 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Attach file to page using page-specific endpoint
         await adminClient.updatePage(wiki.id, page.id, undefined, undefined, undefined, [fileId]);
 
-        // Verify page has the attachment
-        const pageWithAttachment = await adminClient.getPage(wiki.id, page.id);
-        expect(pageWithAttachment.file_ids).toContain(fileId);
+        // Verify page has the attachment (page attachments load separately via FileInfo.PageId)
+        const pageFiles = await adminClient.getPageFiles(wiki.id, page.id);
+        expect(pageFiles.map((f) => f.id)).toContain(fileId);
 
         // Create export job WITH include_attachments option enabled
         const exportJob = await adminClient.createJob({
@@ -442,8 +442,8 @@ test.describe('Wiki Export/Import Admin Console', () => {
         const pagesAfterImport = await adminClient.getPages(wiki.id);
         expect(pagesAfterImport.length).toBe(1); // No duplicates
 
-        const pageAfterImport = await adminClient.getPage(wiki.id, pagesAfterImport[0].id);
-        expect(pageAfterImport.file_ids?.length).toBeGreaterThan(0);
+        const filesAfterImport = await adminClient.getPageFiles(wiki.id, pagesAfterImport[0].id);
+        expect(filesAfterImport.length).toBeGreaterThan(0);
     });
 
     test('MM-WIKI-EXPORT-1 Should display wiki export/import page in admin console', async ({pw}) => {
@@ -806,11 +806,11 @@ test.describe('Wiki Export/Import Admin Console', () => {
             childPage.id,
         );
 
-        // Verify hierarchy is set up correctly (page_parent_id is a field on Post, not in props)
+        // Verify hierarchy is set up correctly (parent_id is a top-level column on Page)
         const fetchedChild = await adminClient.getPage(wiki.id, childPage.id);
         const fetchedGrandchild = await adminClient.getPage(wiki.id, grandchildPage.id);
-        expect(fetchedChild.page_parent_id).toBe(parentPage.id);
-        expect(fetchedGrandchild.page_parent_id).toBe(childPage.id);
+        expect(fetchedChild.parent_id).toBe(parentPage.id);
+        expect(fetchedGrandchild.parent_id).toBe(childPage.id);
 
         // Create export job
         const exportJob = await adminClient.createJob({
@@ -933,22 +933,22 @@ test.describe('Wiki Export/Import Admin Console', () => {
         const pagesAfterImport = await adminClient.getPages(wiki.id);
         expect(pagesAfterImport.length).toBe(3);
 
-        // Find pages by title (page title is in props.title, not message)
-        type PageWithProps = {id: string; props: {title?: string}};
-        const parentAfter = pagesAfterImport.find((p: PageWithProps) => p.props?.title === 'RT Parent');
-        const childAfter = pagesAfterImport.find((p: PageWithProps) => p.props?.title === 'RT Child');
-        const grandchildAfter = pagesAfterImport.find((p: PageWithProps) => p.props?.title === 'RT Grandchild');
+        // Find pages by title (page title is a top-level column)
+        type PageWithTitle = {id: string; title?: string};
+        const parentAfter = pagesAfterImport.find((p: PageWithTitle) => p.title === 'RT Parent');
+        const childAfter = pagesAfterImport.find((p: PageWithTitle) => p.title === 'RT Child');
+        const grandchildAfter = pagesAfterImport.find((p: PageWithTitle) => p.title === 'RT Grandchild');
 
         expect(parentAfter).toBeDefined();
         expect(childAfter).toBeDefined();
         expect(grandchildAfter).toBeDefined();
 
-        // Verify hierarchy relationships are maintained (page_parent_id is a field on Post)
+        // Verify hierarchy relationships are maintained (parent_id is a top-level column on Page)
         const fetchedChild = await adminClient.getPage(wiki.id, childAfter!.id);
         const fetchedGrandchild = await adminClient.getPage(wiki.id, grandchildAfter!.id);
 
-        expect(fetchedChild.page_parent_id).toBe(parentAfter!.id);
-        expect(fetchedGrandchild.page_parent_id).toBe(childAfter!.id);
+        expect(fetchedChild.parent_id).toBe(parentAfter!.id);
+        expect(fetchedGrandchild.parent_id).toBe(childAfter!.id);
     });
 
     test('MM-WIKI-EXPORT-13 Full round trip should preserve resolved inline comments after import', async ({pw}) => {
@@ -1411,19 +1411,20 @@ test.describe('Wiki Export/Import Admin Console', () => {
         expect(pagesAfterImport.length).toBe(2);
 
         // Verify hierarchy is preserved
-        type PageWithProps = {id: string; props: {title?: string}};
-        const parentAfter = pagesAfterImport.find((p: PageWithProps) => p.props?.title === 'Parent With All');
-        const childAfter = pagesAfterImport.find((p: PageWithProps) => p.props?.title === 'Child With All');
+        type PageWithTitle = {id: string; title?: string};
+        const parentAfter = pagesAfterImport.find((p: PageWithTitle) => p.title === 'Parent With All');
+        const childAfter = pagesAfterImport.find((p: PageWithTitle) => p.title === 'Child With All');
         expect(parentAfter).toBeDefined();
         expect(childAfter).toBeDefined();
 
         const fetchedChild = await adminClient.getPage(wiki.id, childAfter!.id);
-        expect(fetchedChild.page_parent_id).toBe(parentAfter!.id);
+        expect(fetchedChild.parent_id).toBe(parentAfter!.id);
 
-        // Verify attachments are preserved
-        const fetchedParent = await adminClient.getPage(wiki.id, parentAfter!.id);
-        expect(fetchedParent.file_ids?.length).toBeGreaterThan(0);
-        expect(fetchedChild.file_ids?.length).toBeGreaterThan(0);
+        // Verify attachments are preserved (page attachments load separately via FileInfo.PageId)
+        const parentFiles = await adminClient.getPageFiles(wiki.id, parentAfter!.id);
+        const childFiles = await adminClient.getPageFiles(wiki.id, childAfter!.id);
+        expect(parentFiles.length).toBeGreaterThan(0);
+        expect(childFiles.length).toBeGreaterThan(0);
 
         // Verify comments are preserved on parent
         const parentComments = await adminClient.getPageComments(wiki.id, parentPage.id);

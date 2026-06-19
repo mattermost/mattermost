@@ -15,7 +15,6 @@ import {
     clickPageEditButton,
     selectTextInEditor,
     openInlineCommentModal,
-    getPageIdFromUrl,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     SHORT_WAIT,
@@ -468,7 +467,7 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
  * Two users must be members of the same team and channel.
  */
 test('at-mention in page comment badges the recipient threads view', {tag: '@pages'}, async ({pw}) => {
-    const {team, user: commenterUser, adminClient} = await pw.initSetup();
+    const {team, user: commenterUser, adminClient, userClient: commenterClient} = await pw.initSetup();
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create a second user who will be mentioned in the comment
@@ -515,19 +514,26 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
     // # Select the mentioned user from the dropdown
     await selectMentionFromDropdown(commenterPage, mentionedUser.username);
 
-    // # Submit the comment
+    // # Submit the comment and capture the created comment's post ID. Each page comment is its
+    //   own thread root (a page is not a post and cannot anchor a thread), so the recipient's
+    //   threads inbox row is keyed by the comment post ID, not the page ID.
+    const commentCreate = commenterPage.waitForResponse(
+        (resp) => new URL(resp.url()).pathname.endsWith('/comments') && resp.request().method() === 'POST',
+    );
     await commentTextArea.press('Control+Enter');
+    const commentResponse = await commentCreate;
+    const commentPostId = (await commentResponse.json()).id as string;
+    expect(commentPostId, 'created comment must return a post ID').toBeTruthy();
+    // The create-comment request path carries the wiki and page IDs; reuse them for the
+    // follow-up reply in assertion 5.
+    const commentUrlMatch = new URL(commentResponse.url()).pathname.match(/\/wikis\/([^/]+)\/pages\/([^/]+)\/comments/);
+    expect(commentUrlMatch, 'comment URL must contain wiki and page IDs').toBeTruthy();
+    const [, wikiId, pageId] = commentUrlMatch!;
     await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Publish the page with the comment
     await publishPage(commenterPage);
     await expect(pageContent).toBeVisible();
-
-    // # Capture the page post ID (root_id for the comment thread) for later assertions
-    const pageRootId = getPageIdFromUrl(commenterPage.url());
-    if (!pageRootId) {
-        throw new Error('page ID must be present in the URL after publish');
-    }
 
     // # Wait for notification to propagate
     await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
@@ -545,7 +551,7 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
     await mentionedPage.locator('a[href*="/threads"]').click();
     await mentionedPage.waitForLoadState('networkidle');
 
-    // * Assertion 2: the Threads inbox row is keyed by the page post ID (root_id), not the channel
+    // * Assertion 2: the Threads inbox row is keyed by the comment post ID, not the page or channel
     const threadsState = await mentionedPage.evaluate(() => {
         const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
             entities: {
@@ -560,12 +566,12 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
             threads: state.entities.threads.threads,
         };
     });
-    expect(threadsState.allThreadIds, 'Threads inbox should contain a row keyed by the page post ID').toContain(
-        pageRootId,
+    expect(threadsState.allThreadIds, 'Threads inbox should contain a row keyed by the comment post ID').toContain(
+        commentPostId,
     );
 
-    // * Assertion 3: unreadMentions on the page thread = 1
-    expect(threadsState.threads[pageRootId]?.unread_mentions, 'unread_mentions on page thread row must be 1').toBe(1);
+    // * Assertion 3: unreadMentions on the comment thread = 1
+    expect(threadsState.threads[commentPostId]?.unread_mentions, 'unread_mentions on comment thread row must be 1').toBe(1);
 
     // * Assertion 4: the Unreads tab shows the page comment thread
     // Page threads appear in Unreads (not Followed threads, since the wiki backing
@@ -603,26 +609,27 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
             return t?.is_following && (t.unread_replies || t.unread_mentions) && t.last_reply_at !== 0;
         });
         return filteredIds.includes(rootId);
-    }, pageRootId);
-    expect(unreadOrderContainsThread, 'page thread must appear in the Unreads tab order').toBe(true);
+    }, commentPostId);
+    expect(unreadOrderContainsThread, 'comment thread must appear in the Unreads tab order').toBe(true);
 
-    // * Assertion 5: a follow-up comment WITHOUT a mention does NOT increment the badge
-    // Switch back to commenter, add a non-mention comment
-    await clickPageEditButton(commenterPage);
-    await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await selectTextInEditor(commenterPage);
-    const followUpContainer = await openInlineCommentModal(commenterPage);
-    const followUpTextarea = followUpContainer.locator('textarea, [contenteditable="true"]').first();
-    await followUpTextarea.click();
-    await followUpTextarea.type('Follow up without mention');
-    await followUpTextarea.press('Control+Enter');
-    await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
+    // * Assertion 5: a non-mention REPLY in the SAME (followed) thread must NOT increment the
+    //   mention badge. The reply is posted into commentPostId's thread (root = commentPostId),
+    //   which the mentioned user follows via the mention above — so it exercises the real path.
+    //   A separate top-level comment would be its own thread the user does not follow, which would
+    //   make this assertion pass trivially.
+    await commenterClient.createPageCommentReply(wikiId, pageId, commentPostId, 'Follow up without mention');
 
-    const unreadAfterNonMention = await mentionedPage.evaluate((rootId) => {
-        const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
-            entities: {threads: {threads: Record<string, {unread_mentions: number}>}};
-        };
-        return state.entities.threads.threads[rootId]?.unread_mentions;
-    }, pageRootId);
-    expect(unreadAfterNonMention, 'unread_mentions must NOT increment for a non-mention comment').toBe(1);
+    // The reply propagates to the mentioned user's followed thread. Wait until it registers as an
+    // unread reply (proving it landed), then confirm the mention count did not move.
+    await expect(async () => {
+        const thread = await mentionedPage.evaluate((rootId) => {
+            const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+                entities: {threads: {threads: Record<string, {unread_mentions: number; unread_replies: number}>}};
+            };
+            const t = state.entities.threads.threads[rootId];
+            return {mentions: t?.unread_mentions, replies: t?.unread_replies};
+        }, commentPostId);
+        expect(thread.replies, 'the non-mention reply must register in the followed thread').toBeGreaterThan(0);
+        expect(thread.mentions, 'a non-mention reply must NOT increment unread_mentions').toBe(1);
+    }).toPass({timeout: ELEMENT_TIMEOUT});
 });

@@ -361,12 +361,12 @@ test.skip(
 
         // * Verify via API that the page was saved (authoritative check)
         const serverPage = await adminClient.getPage(wiki.id, testPage.id);
-        expect(serverPage.message).toContain('Section B modified by User 2');
+        expect(serverPage.body).toContain('Section B modified by User 2');
 
         // Note: With simple conflict detection, User 1's changes may be lost
         // With intelligent merging, both changes would be preserved:
-        // expect(serverPage.message).toContain('Section A modified by User 1');
-        // expect(serverPage.message).toContain('Section B modified by User 2');
+        // expect(serverPage.body).toContain('Section A modified by User 1');
+        // expect(serverPage.body).toContain('Section B modified by User 2');
 
         await user2Page.close();
     },
@@ -490,9 +490,9 @@ test(
         // * Verify the server has User 2's content (first-write-wins) via API
         // This is the authoritative check - UI caching issues don't affect this
         const serverPage = await adminClient.getPage(wiki.id, testPage.id);
-        expect(serverPage.message).toContain('User 2 edit');
-        expect(serverPage.message).toContain('Original content');
-        expect(serverPage.message).not.toContain('User 1 edit');
+        expect(serverPage.body).toContain('User 2 edit');
+        expect(serverPage.body).toContain('Original content');
+        expect(serverPage.body).not.toContain('User 1 edit');
 
         // * Verify via User 2's view - User 2's content remains unchanged
         await page2.reload();
