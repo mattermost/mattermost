@@ -504,6 +504,26 @@ func TestCheckSelfInclusion(t *testing.T) {
 	})
 }
 
+func TestValidateExpressionAgainstRequesterExcludesNativeAttributes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	requesterID := th.BasicUser.Id
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+
+	// The requester query must scope to the requester AND request native-attribute
+	// stripping so only the CPA parts are validated against the saving admin.
+	mockACS.On("QueryUsersForExpression", mock.Anything, `user.isbot == false && user.attributes.team == "ops"`,
+		mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == requesterID && opts.ExcludeNativeAttributes
+		})).Return([]*model.User{{Id: requesterID}}, int64(1), nil).Once()
+
+	matches, appErr := th.App.ValidateExpressionAgainstRequester(th.Context, `user.isbot == false && user.attributes.team == "ops"`, requesterID)
+	require.Nil(t, appErr)
+	require.True(t, matches)
+	mockACS.AssertExpectations(t)
+}
+
 func TestGetChannelsForPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -1694,7 +1714,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1, ExcludeNativeAttributes: true},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -1729,7 +1749,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1, ExcludeNativeAttributes: true},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match
 
 		// Call the function
@@ -1755,7 +1775,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1, ExcludeNativeAttributes: true},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -1791,7 +1811,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1, ExcludeNativeAttributes: true},
 		).Return([]*model.User{}, int64(0), nil) // Admin doesn't match full expression
 
 		// Call the function
@@ -1817,7 +1837,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1, ExcludeNativeAttributes: true},
 		).Return([]*model.User{th.BasicUser}, int64(1), nil) // Admin matches
 
 		// Mock the actual search results
@@ -1852,7 +1872,7 @@ func TestTestExpressionWithChannelContext(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: th.BasicUser.Id, Limit: 1, ExcludeNativeAttributes: true},
 		).Return([]*model.User{}, int64(0), model.NewAppError("TestExpressionWithChannelContext", "app.access_control.query.app_error", nil, "validation error", http.StatusInternalServerError))
 
 		// Call the function
@@ -1881,7 +1901,7 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1, ExcludeNativeAttributes: true},
 		).Return(mockUsers, int64(1), nil)
 
 		// Call the function
@@ -1906,7 +1926,7 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1, ExcludeNativeAttributes: true},
 		).Return(mockUsers, int64(0), nil)
 
 		// Call the function
@@ -1931,7 +1951,7 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1, ExcludeNativeAttributes: true},
 		).Return(mockUsers, int64(0), nil)
 
 		// Call the function
@@ -1955,7 +1975,7 @@ func TestValidateExpressionAgainstRequester(t *testing.T) {
 			"QueryUsersForExpression",
 			th.Context,
 			expression,
-			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1},
+			model.SubjectSearchOptions{SubjectID: requesterID, Limit: 1, ExcludeNativeAttributes: true},
 		).Return([]*model.User{}, int64(0), model.NewAppError("ValidateExpressionAgainstRequester", "app.access_control.validate_requester.app_error", nil, "expression parsing error", http.StatusInternalServerError))
 
 		// Call the function
