@@ -872,38 +872,10 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
-var builtInRoleScopes = map[string]RoleScope{
-	ChannelGuestRoleId:           RoleScopeChannel,
-	ChannelUserRoleId:            RoleScopeChannel,
-	ChannelAdminRoleId:           RoleScopeChannel,
-	TeamGuestRoleId:              RoleScopeTeam,
-	TeamUserRoleId:               RoleScopeTeam,
-	TeamAdminRoleId:              RoleScopeTeam,
-	TeamPostAllRoleId:            RoleScopeTeam,
-	TeamPostAllPublicRoleId:      RoleScopeTeam,
-	SystemGuestRoleId:            RoleScopeSystem,
-	SystemUserRoleId:             RoleScopeSystem,
-	SystemAdminRoleId:            RoleScopeSystem,
-	SystemPostAllRoleId:          RoleScopeSystem,
-	SystemPostAllPublicRoleId:    RoleScopeSystem,
-	SystemUserAccessTokenRoleId:  RoleScopeSystem,
-	SystemUserManagerRoleId:      RoleScopeSystem,
-	SystemReadOnlyAdminRoleId:    RoleScopeSystem,
-	SystemManagerRoleId:          RoleScopeSystem,
-	SystemCustomGroupAdminRoleId: RoleScopeSystem,
-	SharedChannelManagerRoleId:   RoleScopeSystem,
-	PlaybookAdminRoleId:          RoleScopeSystem,
-	PlaybookMemberRoleId:         RoleScopeSystem,
-	RunAdminRoleId:               RoleScopeSystem,
-	RunMemberRoleId:              RoleScopeSystem,
-	CustomGroupUserRoleId:        RoleScopeGroup,
-}
-
-// GetBuiltInRoleScope returns the scope of a built-in role by exact ID match.
-// Custom roles return ok=false.
-func GetBuiltInRoleScope(roleName string) (RoleScope, bool) {
-	scope, ok := builtInRoleScopes[roleName]
-	return scope, ok
+var channelScopedBuiltInRoles = map[string]bool{
+	ChannelGuestRoleId: true,
+	ChannelUserRoleId:  true,
+	ChannelAdminRoleId: true,
 }
 
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
@@ -914,12 +886,21 @@ func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 	}
 
 	for roleName := range strings.FieldsSeq(channelMemberRoles) {
-		if scope, ok := GetBuiltInRoleScope(roleName); ok && scope != RoleScopeChannel {
+		if isBuiltInRole(roleName) && !channelScopedBuiltInRoles[roleName] {
 			return false
 		}
 	}
 
 	return true
+}
+
+func isBuiltInRole(roleName string) bool {
+	for _, builtInRoleID := range BuiltInSchemeManagedRoleIDs {
+		if roleName == builtInRoleID {
+			return true
+		}
+	}
+	return false
 }
 
 func MakeDefaultRoles() map[string]*Role {

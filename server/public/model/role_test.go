@@ -536,45 +536,6 @@ func TestRoleIsValid(t *testing.T) {
 	})
 }
 
-func TestGetBuiltInRoleScope(t *testing.T) {
-	tests := []struct {
-		name     string
-		roleName string
-		scope    RoleScope
-		ok       bool
-	}{
-		{name: "channel user", roleName: ChannelUserRoleId, scope: RoleScopeChannel, ok: true},
-		{name: "channel admin", roleName: ChannelAdminRoleId, scope: RoleScopeChannel, ok: true},
-		{name: "channel guest", roleName: ChannelGuestRoleId, scope: RoleScopeChannel, ok: true},
-		{name: "team user", roleName: TeamUserRoleId, scope: RoleScopeTeam, ok: true},
-		{name: "team admin", roleName: TeamAdminRoleId, scope: RoleScopeTeam, ok: true},
-		{name: "team post all", roleName: TeamPostAllRoleId, scope: RoleScopeTeam, ok: true},
-		{name: "system user", roleName: SystemUserRoleId, scope: RoleScopeSystem, ok: true},
-		{name: "system admin", roleName: SystemAdminRoleId, scope: RoleScopeSystem, ok: true},
-		{name: "system manager", roleName: SystemManagerRoleId, scope: RoleScopeSystem, ok: true},
-		{name: "system post all", roleName: SystemPostAllRoleId, scope: RoleScopeSystem, ok: true},
-		{name: "system read only admin", roleName: SystemReadOnlyAdminRoleId, scope: RoleScopeSystem, ok: true},
-		{name: "playbook admin", roleName: "playbook_admin", scope: RoleScopeSystem, ok: true},
-		{name: "run member", roleName: "run_member", scope: RoleScopeSystem, ok: true},
-		{name: "custom group user", roleName: CustomGroupUserRoleId, scope: RoleScopeGroup, ok: true},
-		{name: "custom role", roleName: "custom_role", scope: "", ok: false},
-		{name: "prefixed custom team role", roleName: "team_custom", scope: "", ok: false},
-		{name: "prefixed custom system role", roleName: "system_custom", scope: "", ok: false},
-		{name: "prefixed custom channel role", roleName: "channel_custom", scope: "", ok: false},
-		{name: "empty role", roleName: "", scope: "", ok: false},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			scope, ok := GetBuiltInRoleScope(tc.roleName)
-			assert.Equal(t, tc.ok, ok)
-			if ok {
-				assert.Equal(t, tc.scope, scope)
-			}
-		})
-	}
-}
-
 func TestIsValidChannelMemberRoles(t *testing.T) {
 	tests := []struct {
 		name  string

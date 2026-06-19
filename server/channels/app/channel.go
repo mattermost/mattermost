@@ -1398,7 +1398,7 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		}
 
 		if !role.SchemeManaged {
-			if scope, ok := model.GetBuiltInRoleScope(roleName); ok && scope != model.RoleScopeChannel {
+			if !model.IsValidChannelMemberRoles(roleName) {
 				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 				return nil, err
 			}
