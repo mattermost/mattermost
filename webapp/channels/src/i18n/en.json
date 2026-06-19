@@ -6356,7 +6356,6 @@
   "schedule_post.custom_time_modal.confirm_button_text": "Schedule",
   "schedule_post.custom_time_modal.conversion_recipient_time": "{day} at {time} {recipientName}'s time",
   "schedule_post.custom_time_modal.conversion_your_time": "{day} at {time} your time",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} for {dmUserName}",
   "schedule_post.custom_time_modal.remove_schedule": "Remove schedule",
   "schedule_post.custom_time_modal.title": "Schedule message",
   "Schedule_post.empty_state.subtitle": "Schedule drafts to send messages at a later time. Any scheduled drafts will show up here and can be modified after being scheduled.",
