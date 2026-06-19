@@ -72,7 +72,7 @@ type Subject struct {
 	Session map[string]any `json:"session,omitempty"`
 	// Email is the subject's email address (model.User.Email), exposed to
 	// CEL policies as user.email. Populated by BuildAccessControlSubject.
-	Email string `json:"email"`
+	Email string `json:"email,omitempty"`
 	// EmailVerified mirrors model.User.EmailVerified, exposed as user.verified.
 	EmailVerified bool `json:"email_verified,omitempty"`
 	// IsBot mirrors model.User.IsBot (derived from the Bots table on the
