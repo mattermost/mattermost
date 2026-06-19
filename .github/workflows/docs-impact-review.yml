@@ -13,35 +13,16 @@ concurrency:
 permissions: {}
 
 jobs:
-  check-docs-not-needed:
-    if: github.event.pull_request.draft == false && !startsWith(github.event.pull_request.user.login, 'unified-ci-app')
-    runs-on: ubuntu-24.04
-    permissions:
-      issues: read
-      pull-requests: read
-    outputs:
-      skip: ${{ steps.check.outputs.skip }}
-    steps:
-      - name: Check Docs/Not Needed label
-        id: check
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        with:
-          script: |
-            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-            });
-            core.setOutput('skip', labels.some(l => l.name === 'Docs/Not Needed') ? 'true' : 'false');
-
   docs-impact-review:
+    if: |
+      github.event.pull_request.draft == false
+      && !startsWith(github.event.pull_request.user.login, 'unified-ci-app')
+      && !contains(github.event.pull_request.labels.*.name, 'Docs/Not Needed')
     permissions:
       contents: read
       pull-requests: write
       issues: write
       id-token: write
-    needs: check-docs-not-needed
-    if: needs.check-docs-not-needed.outputs.skip != 'true'
     runs-on: ubuntu-24.04
     env:
       HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
