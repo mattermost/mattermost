@@ -9,15 +9,16 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
-import ConnectedRhsPlugin from '.';
 import RhsPlugin from './rhs_plugin';
+
+import ConnectedRhsPlugin from '.';
 
 jest.mock('components/search_results_header', () => ({
     __esModule: true,
     default: ({children, newWindowHandler}: {children: React.ReactNode; newWindowHandler?: () => void}) => (
         <div
             data-testid='search-results-header'
-            data-has-window-handler={newWindowHandler !== undefined ? 'true' : 'false'}
+            data-has-window-handler={newWindowHandler === undefined ? 'false' : 'true'}
         >
             {children}
         </div>
@@ -26,7 +27,7 @@ jest.mock('components/search_results_header', () => ({
 
 jest.mock('plugins/pluggable', () => ({
     __esModule: true,
-    default: () => <div data-testid='pluggable' />,
+    default: () => <div data-testid='pluggable'/>,
 }));
 
 jest.mock('utils/popouts/popout_windows', () => ({
@@ -131,13 +132,13 @@ describe('RhsPlugin', () => {
         }
 
         it('defaults showPopout to true when component showPopout field is undefined', () => {
-            renderWithContext(<ConnectedRhsPlugin />, stateWithRegisteredComponent(undefined));
+            renderWithContext(<ConnectedRhsPlugin/>, stateWithRegisteredComponent(undefined));
 
             expect(screen.getByTestId('search-results-header')).toHaveAttribute('data-has-window-handler', 'true');
         });
 
         it('passes showPopout: false through to hide the popout button', () => {
-            renderWithContext(<ConnectedRhsPlugin />, stateWithRegisteredComponent(false));
+            renderWithContext(<ConnectedRhsPlugin/>, stateWithRegisteredComponent(false));
 
             expect(screen.getByTestId('search-results-header')).toHaveAttribute('data-has-window-handler', 'false');
         });
