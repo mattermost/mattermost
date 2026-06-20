@@ -1,6 +1,6 @@
 # Cloud Build — Mattermost Team Edition (patched)
 #
-# Триггер: push в ветки patched-*
+# Триггер: push tag формата ^v*.*-pached$
 # Cloud Build работает нативно на linux/amd64 — QEMU не нужен.
 # npm run build занимает ~8-12 мин (vs 35+ мин под QEMU на macOS).
 #
@@ -23,7 +23,7 @@ steps:
           --file=Dockerfile.team-patch \
           --cache-from=type=registry,ref=$_IMAGE_REPO:buildcache \
           --cache-to=type=registry,ref=$_IMAGE_REPO:buildcache,mode=max \
-          --tag=$_IMAGE_REPO:$BRANCH_NAME \
+          --tag=$_IMAGE_REPO:$TAG_NAME \
           --tag=$_IMAGE_REPO:latest \
           --push \
           .
@@ -36,4 +36,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _IMAGE_REPO: 'asia-southeast3-docker.pkg.dev/gcloud-production-1/mattermost/mattermost'
+  _IMAGE_REPO: 'southamerica-east1-docker.pkg.dev/gcloud-production-1/mattermost/mattermost'
