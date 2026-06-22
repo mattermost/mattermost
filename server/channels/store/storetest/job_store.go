@@ -667,7 +667,8 @@ func testJobUpdateOptimistically(t *testing.T, rctx request.CTX, ss store.Store)
 	}
 
 	ret, err := ss.Job().UpdateOptimistically(job, model.JobStatusSuccess)
-	require.False(t, err != nil && ret != nil)
+	require.NoError(t, err)
+	require.Nil(t, ret)
 
 	time.Sleep(2 * time.Millisecond)
 
