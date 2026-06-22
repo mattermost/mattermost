@@ -171,7 +171,7 @@ test.describe('Shared channel invitations', () => {
 
             await expect(
                 appPage.getByText(
-                    'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+                    'There are no stored invitation records for this connection.',
                 ),
             ).toBeVisible();
 
@@ -179,7 +179,7 @@ test.describe('Shared channel invitations', () => {
 
             await expect(
                 appPage.getByText(
-                    'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+                    'There are no stored invitation records for this connection.',
                 ),
             ).toHaveCount(0);
 
@@ -279,7 +279,7 @@ test.describe('Shared channel invitations', () => {
 
                 await expect(
                     appPage.getByText(
-                        'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+                        'There are no stored invitation records for this connection.',
                     ),
                 ).toBeVisible();
             } finally {
