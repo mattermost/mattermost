@@ -2321,7 +2321,12 @@ export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslat
 
 export function handleJobUpdated(msg: WebSocketMessages.JobUpdated): ThunkActionFunc<void> {
     return (dispatch) => {
-        const job = JSON.parse(msg.data.job) as Job;
+        let job;
+        try {
+            job = JSON.parse(msg.data.job) as Job;
+        } catch {
+            return;
+        }
         dispatch({
             type: JobTypes.RECEIVED_JOB,
             data: job,

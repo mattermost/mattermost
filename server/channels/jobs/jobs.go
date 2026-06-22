@@ -116,8 +116,13 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 	if srv.publish == nil {
 		return
 	}
+	// Strip Data to avoid leaking job-type-specific fields (requesting_user_id,
+	// team_id, policy_id, role, etc.) to clients that may not have permission
+	// to read them. Status/progress/timestamps are sufficient for UI updates;
+	// the full job is fetched via the permissioned REST API on page load.
 	jobCopy := *job
 	jobCopy.Status = status
+	jobCopy.Data = nil
 	jobJSON, err := json.Marshal(&jobCopy)
 	if err != nil {
 		srv.logger.Warn("Failed to marshal job for WebSocket event", mlog.Err(err))
