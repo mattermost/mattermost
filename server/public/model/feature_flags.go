@@ -151,6 +151,12 @@ type FeatureFlags struct {
 	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
 	MobileEphemeralMode bool
 
+	// FEATURE_FLAG_REMOVAL: PropertyFieldRank - Remove this when the feature is GA.
+	// Gates the "rank" custom profile attribute type: when off, the app layer
+	// rejects creating a rank property field or converting an existing field to
+	// rank, and the admin console hides the rank type option.
+	PropertyFieldRank bool
+
 	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
 }
@@ -217,6 +223,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.DiscoverableChannels = false
 
 	f.MobileEphemeralMode = false
+
+	f.PropertyFieldRank = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

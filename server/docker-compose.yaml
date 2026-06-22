@@ -125,7 +125,7 @@ services:
     working_dir: '/home/mattermost-server/server'
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
-      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable&connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
@@ -149,11 +149,8 @@ services:
     command: ['make', 'run-server']
     expose:
       - "8065"
-      - "8064/tcp"
-      - "8064/udp"
       - "8074/tcp"
       - "8074/udp"
-      - "8075"
 
   follower:
     build:
@@ -162,7 +159,7 @@ services:
     working_dir: '/home/mattermost-server/server'
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
-      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable&connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
@@ -186,11 +183,8 @@ services:
     restart: on-failure
     expose:
       - "8065"
-      - "8064/tcp"
-      - "8064/udp"
       - "8074/tcp"
       - "8074/udp"
-      - "8075"
 
   follower2:
     build:
@@ -199,7 +193,7 @@ services:
     working_dir: '/home/mattermost-server/server'
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
-      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable&connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
@@ -223,11 +217,8 @@ services:
     restart: on-failure
     expose:
       - "8065"
-      - "8064/tcp"
-      - "8064/udp"
       - "8074/tcp"
       - "8074/udp"
-      - "8075"
 
   haproxy:
     image: nginx

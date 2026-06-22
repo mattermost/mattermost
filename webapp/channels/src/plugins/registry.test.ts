@@ -332,6 +332,150 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
+describe('PluginRegistry — registerPostHeaderComponent', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    let store: ReturnType<typeof createStore<ReturnType<typeof pluginsReducer>, any, any, any>>;
+    let registry: PluginRegistry;
+
+    beforeEach(() => {
+        store = createStore(pluginsReducer);
+        mockCurrentStore = store;
+        registry = new PluginRegistry(PLUGIN_ID);
+    });
+
+    function getComponents() {
+        return mockCurrentStore.getState().components.PostHeader;
+    }
+
+    it('(a) registration adds an entry to the PostHeader list and returns its id', () => {
+        const id = registry.registerPostHeaderComponent(() => null);
+
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].id).toBe(id);
+        expect(components[0].pluginId).toBe(PLUGIN_ID);
+    });
+
+    it('(b) REMOVED_WEBAPP_PLUGIN sweeps all post-header components for that plugin', () => {
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerPostHeaderComponent(() => null);
+        registry.registerPostHeaderComponent(() => null);
+        otherRegistry.registerPostHeaderComponent(() => null);
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].pluginId).toBe('other_plugin');
+    });
+});
+
+describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getItems() {
+        return mockCurrentStore.getState().components.ProductSwitcherMenuItem;
+    }
+
+    it('(a) reduced entry has pluginId, text, icon, and action by reference', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const action = jest.fn();
+
+        // Use a string glyph name as icon — resolveReactElement passes strings through unchanged.
+        const icon = 'shield-outline';
+        registry.registerProductSwitcherMenuItem({text: 'My Item', icon, action});
+
+        const items = getItems();
+        expect(items).toHaveLength(1);
+        expect(items[0].pluginId).toBe(PLUGIN_ID);
+        expect(items[0].text).toBe('My Item');
+        expect(items[0].icon).toBe(icon);
+        expect(items[0].action).toBe(action);
+    });
+
+    it('(a2) returns the non-empty string id of the stored entry', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id = registry.registerProductSwitcherMenuItem({text: 'My Item', icon: 'globe', action: () => {}});
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+        expect(getItems()[0].id).toBe(id);
+    });
+
+    it('(b) isHidden omitted stores undefined; provided function stored by reference', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerProductSwitcherMenuItem({text: 'No Gate', icon: 'globe', action: () => {}});
+        expect(getItems()[0].isHidden).toBeUndefined();
+
+        mockCurrentStore = createStore(pluginsReducer);
+        const isHidden = jest.fn(() => true);
+        registry.registerProductSwitcherMenuItem({text: 'Gated', icon: 'globe', action: () => {}, isHidden});
+        expect(getItems()[0].isHidden).toBe(isHidden);
+    });
+
+    it('(c) re-registration produces a second independent entry', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerProductSwitcherMenuItem({text: 'Item 1', icon: 'globe', action: () => {}});
+        registry.registerProductSwitcherMenuItem({text: 'Item 2', icon: 'globe', action: () => {}});
+
+        const items = getItems();
+        expect(items).toHaveLength(2);
+        expect(items[0].id).not.toBe(items[1].id);
+    });
+
+    it('(d) REMOVED_WEBAPP_PLUGIN sweeps all entries for that plugin, leaves other plugins', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerProductSwitcherMenuItem({text: 'Item 1', icon: 'globe', action: () => {}});
+        registry.registerProductSwitcherMenuItem({text: 'Item 2', icon: 'globe', action: () => {}});
+        otherRegistry.registerProductSwitcherMenuItem({text: 'Other Item', icon: 'globe', action: () => {}});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const items = getItems();
+        expect(items).toHaveLength(1);
+        expect(items[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(e) LOGOUT_SUCCESS resets the slot to []', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerProductSwitcherMenuItem({text: 'Item', icon: 'globe', action: () => {}});
+        expect(getItems()).toHaveLength(1);
+
+        mockCurrentStore.dispatch({type: 'LOGOUT_SUCCESS'});
+
+        expect(getItems()).toHaveLength(0);
+    });
+
+    it('(f) registrations from different plugins are sorted alphabetically by pluginId', () => {
+        const registryZ = new PluginRegistry('zzz_plugin');
+        const registryA = new PluginRegistry('aaa_plugin');
+        const registryM = new PluginRegistry('mmm_plugin');
+
+        registryZ.registerProductSwitcherMenuItem({text: 'ZZZ Item', icon: 'globe', action: () => {}});
+        registryA.registerProductSwitcherMenuItem({text: 'AAA Item', icon: 'globe', action: () => {}});
+        registryM.registerProductSwitcherMenuItem({text: 'MMM Item', icon: 'globe', action: () => {}});
+
+        const items = getItems();
+        expect(items).toHaveLength(3);
+        expect(items[0].pluginId).toBe('aaa_plugin');
+        expect(items[1].pluginId).toBe('mmm_plugin');
+        expect(items[2].pluginId).toBe('zzz_plugin');
+    });
+});
+
 describe('PluginRegistry — registerComposerPlaceholder', () => {
     const PLUGIN_ID = 'test_plugin';
 

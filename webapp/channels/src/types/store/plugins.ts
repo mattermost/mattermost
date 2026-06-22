@@ -75,7 +75,9 @@ export type PluginsState = {
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
+        PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
+        ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -440,14 +442,26 @@ export type ChannelIntroRegistration = PluginComponent & {
     component: React.ComponentType<{channel: Channel}>;
 };
 
+export type PostHeaderComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {post: Post}>;
+};
+
 export type ComposerPlaceholderRegistration = PluginComponent & {
     transform: (placeholder: string, channel: Channel, state: GlobalState, intl: IntlShape) => string;
+};
+
+export type ProductSwitcherMenuItemRegistration = PluginComponent & {
+    text: string;
+    icon: IconGlyphTypes | React.ReactNode;
+    action: () => void;
+    isHidden?: (state: GlobalState) => boolean;
 };
 
 export type ChannelTypeOptionComponent = PluginComponent & {
     label: PluggableText;
     description: PluggableText;
     icon: React.ReactNode;
+    createButtonText?: PluggableText;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;
