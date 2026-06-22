@@ -5539,14 +5539,19 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 
 	testCases := []struct {
 		name        string
-		message     string
+		post        *model.Post
 		notifyProps model.StringMap
 		mentions    bool
 		followers   bool
 	}{
 		{
-			name:    "When default is NONE, comments is NEVER, desktop threads is ALL, and has no mentions",
-			message: "reply",
+			name: "When default is NONE, comments is NEVER, desktop threads is ALL, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
 			notifyProps: model.StringMap{
 				model.DesktopNotifyProp:        model.UserNotifyNone,
 				model.CommentsNotifyProp:       model.CommentsNotifyNever,
@@ -5556,8 +5561,13 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			followers: false,
 		},
 		{
-			name:    "When default is NONE, comments is NEVER, desktop threads is ALL, and has mentions",
-			message: "mention @" + th.BasicUser.Username,
+			name: "When default is NONE, comments is NEVER, desktop threads is ALL, and has mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "mention @" + th.BasicUser.Username,
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
 			notifyProps: model.StringMap{
 				model.DesktopNotifyProp:        model.UserNotifyNone,
 				model.CommentsNotifyProp:       model.CommentsNotifyNever,
@@ -5567,8 +5577,13 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			followers: false,
 		},
 		{
-			name:    "When default is MENTION, comments is NEVER, desktop threads is ALL, and has no mentions",
-			message: "reply",
+			name: "When default is MENTION, comments is NEVER, desktop threads is ALL, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
 			notifyProps: model.StringMap{
 				model.DesktopNotifyProp:        model.UserNotifyMention,
 				model.CommentsNotifyProp:       model.CommentsNotifyNever,
@@ -5578,8 +5593,13 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			followers: true,
 		},
 		{
-			name:    "When default is MENTION, comments is ANY, desktop threads is MENTION, and has no mentions",
-			message: "reply",
+			name: "When default is MENTION, comments is ANY, desktop threads is MENTION, and has no mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply",
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
 			notifyProps: model.StringMap{
 				model.DesktopNotifyProp:        model.UserNotifyMention,
 				model.CommentsNotifyProp:       model.CommentsNotifyAny,
@@ -5589,8 +5609,13 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			followers: false,
 		},
 		{
-			name:    "When default is MENTION, comments is NEVER, desktop threads is MENTION, and has mentions",
-			message: "reply @" + th.BasicUser.Username,
+			name: "When default is MENTION, comments is NEVER, desktop threads is MENTION, and has mentions",
+			post: &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "reply @" + th.BasicUser.Username,
+				UserId:    th.BasicUser2.Id,
+				RootId:    rpost.Id,
+			},
 			notifyProps: model.StringMap{
 				model.DesktopNotifyProp:        model.UserNotifyMention,
 				model.CommentsNotifyProp:       model.CommentsNotifyNever,
@@ -5618,13 +5643,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			th.App.Srv().Store().Channel().ClearCaches()
 
 			// post a reply on the thread
-			reply := &model.Post{
-				ChannelId: th.BasicChannel.Id,
-				Message:   tc.message,
-				UserId:    th.BasicUser2.Id,
-				RootId:    rpost.Id,
-			}
-			_, _, appErr := th.App.CreatePostAsUser(th.Context, reply, th.Context.Session().Id, false)
+			_, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
 			require.Nil(t, appErr)
 
 			var caught bool
