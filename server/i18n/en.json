@@ -7801,6 +7801,10 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Could not restore ranked operators in policy expression."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
   },
@@ -8483,6 +8487,10 @@
   {
     "id": "app.property_field.not_found.app_error",
     "translation": "The specified property field does not exist."
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Rank property fields are not enabled."
   },
   {
     "id": "app.property_field.search.app_error",

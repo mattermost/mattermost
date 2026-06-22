@@ -8,11 +8,12 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {css} from 'styled-components';
 
-import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, FieldValueType, UserPropertyField} from '@mattermost/types/properties';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import * as Menu from 'components/menu';
 
 import './user_properties_type_menu.scss';
@@ -25,21 +26,33 @@ interface Props {
 const SelectType = (props: Props) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
+    const rankEnabled = useGetFeatureFlagValue('PropertyFieldRank') === 'true';
 
     const onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(e.target.value);
     };
 
     const handleTypeChange = (descriptor: TypeDescriptor) => {
-        props.updateField({...props.field, type: descriptor.fieldType, attrs: {...props.field.attrs, value_type: descriptor.valueType}});
+        let attrs = {...props.field.attrs, value_type: descriptor.valueType};
+        if (descriptor.fieldType === 'rank' && props.field.type !== 'rank') {
+            const existingOptions = attrs.options ?? [];
+            if (existingOptions.length > 0) {
+                attrs = {...attrs, options: existingOptions.map((opt, i) => ({...opt, rank: i + 1}))};
+            }
+        }
+        props.updateField({...props.field, type: descriptor.fieldType, attrs});
         setFilter('');
     };
 
     const options = useMemo(() => {
         return Object.values(TYPE_DESCRIPTOR).filter((descriptor) => {
+            // Gate the rank type behind the PropertyFieldRank feature flag.
+            if (descriptor.fieldType === 'rank' && !rankEnabled) {
+                return false;
+            }
             return formatMessage(descriptor.label).toLowerCase().includes(filter.toLowerCase());
         });
-    }, [TYPE_DESCRIPTOR, filter]);
+    }, [TYPE_DESCRIPTOR, filter, rankEnabled, formatMessage]);
 
     const currentTypeDescriptor = useMemo(() => {
         return getTypeDescriptor(props.field);
@@ -133,7 +146,7 @@ const getTypeDescriptor = (field: UserPropertyField): TypeDescriptor => {
     return TYPE_DESCRIPTOR.text;
 };
 
-type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect';
+type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect' | 'rank';
 
 type TypeDescriptor = {
     id: TypeID;
@@ -204,6 +217,16 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         label: defineMessage({
             id: 'admin.system_properties.user_properties.table.select_type.multi_select',
             defaultMessage: 'Multi-select',
+        }),
+    },
+    rank: {
+        id: 'rank',
+        fieldType: 'rank',
+        valueType: '',
+        icon: SortAscendingIcon,
+        label: defineMessage({
+            id: 'admin.system_properties.user_properties.table.select_type.rank',
+            defaultMessage: 'Rank',
         }),
     },
 } as const;

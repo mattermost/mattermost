@@ -1798,6 +1798,7 @@ func TestPatchPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldRank = true
 	}).InitBasic(t)
 
 	// Register property groups for testing
@@ -1993,10 +1994,11 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
+		newOptionID := model.NewId()
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{
 				"options": []map[string]any{
-					{"id": model.NewId(), "name": "New Option"},
+					{"id": newOptionID, "name": "New Option"},
 				},
 			},
 		}
@@ -2005,6 +2007,13 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedField)
+
+		// Verify the patched option was actually stored, not just that the request succeeded.
+		opts := updatedField.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, opts, 1)
+		option := opts[0].(map[string]any)
+		require.Equal(t, newOptionID, option["id"])
+		require.Equal(t, "New Option", option["name"])
 	})
 
 	t.Run("options-only update on multiselect field with member options permission should succeed", func(t *testing.T) {
@@ -2027,10 +2036,11 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
+		newOptionID := model.NewId()
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{
 				"options": []map[string]any{
-					{"id": model.NewId(), "name": "New Option"},
+					{"id": newOptionID, "name": "New Option"},
 				},
 			},
 		}
@@ -2039,6 +2049,101 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedField)
+
+		// Verify the patched option was actually stored, not just that the request succeeded.
+		opts := updatedField.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, opts, 1)
+		option := opts[0].(map[string]any)
+		require.Equal(t, newOptionID, option["id"])
+		require.Equal(t, "New Option", option["name"])
+	})
+
+	t.Run("options-only update on rank field with member options permission should succeed", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "Option 1", "rank": 1},
+				},
+			},
+			PermissionField:   &sysadminLevel, // Only admin can edit field
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel, // Member can manage options
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		// A member may re-rank options: options-only patches on rank fields
+		// use the narrower manage-options permission, same as select/multiselect.
+		th.LoginBasic(t)
+		newOptionID := model.NewId()
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []map[string]any{
+					{"id": newOptionID, "name": "New Option", "rank": 2},
+				},
+			},
+		}
+
+		updatedField, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", createdField.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updatedField)
+
+		// Verify the patched option (including its rank) was actually stored.
+		opts := updatedField.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, opts, 1)
+		option := opts[0].(map[string]any)
+		require.Equal(t, newOptionID, option["id"])
+		require.Equal(t, "New Option", option["name"])
+		require.EqualValues(t, 2, option["rank"])
+	})
+
+	t.Run("name and options update on rank field should check field permission not options", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "Option 1", "rank": 1},
+				},
+			},
+			PermissionField:   &sysadminLevel, // Only admin can edit field
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel, // Member can manage options
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{
+			Name: &newName,
+			Attrs: &model.StringInterface{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "New Option", "rank": 2},
+				},
+			},
+		}
+
+		// Member fails — a structural change (name) on a rank field requires the
+		// full edit-field permission, not the narrower options permission.
+		th.LoginBasic(t)
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", createdField.ID, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Admin (has field permission) succeeds.
+		updatedField, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", createdField.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, updatedField.Name)
 	})
 
 	t.Run("options-only update on select field with none options permission should fail for all", func(t *testing.T) {
