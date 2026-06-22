@@ -602,54 +602,71 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(dropdown).toBeInTheDocument();
     });
 
-    test('should render the selected dropdown option help text with markdown links as anchors', () => {
-        const dropdownSchema = {
-            id: 'Config',
-            name: 'config',
-            name_default: 'Configuration',
-            settings: [
-                {
-                    key: 'FirstSettings.settingc',
-                    label: 'label-c',
-                    label_default: 'Setting Three',
-                    type: 'dropdown',
-                    default: 'option1',
-                    options: [
-                        {
-                            display_name: 'Option 1',
-                            value: 'option1',
-                            help_text: 'See [http://www.w3.org/2000/09/xmldsig#rsa-sha1](http://www.w3.org/2000/09/xmldsig#rsa-sha1)',
-                            help_text_markdown: true,
-                        },
-                        {
-                            display_name: 'Option 2',
-                            value: 'option2',
-                            help_text: 'No link here',
-                        },
-                    ],
-                },
-            ],
-        } as unknown as AdminDefinitionSubSectionSchema;
+    const samlHelpUrl = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
 
-        const dropdownConfig = {
-            FirstSettings: {
-                settingc: 'option1',
+    const buildDropdownOptionSchema = (option: object) => ({
+        id: 'Config',
+        name: 'config',
+        name_default: 'Configuration',
+        settings: [
+            {
+                key: 'FirstSettings.settingc',
+                label: 'label-c',
+                label_default: 'Setting Three',
+                type: 'dropdown',
+                default: 'option1',
+                options: [option],
             },
-        } as Partial<AdminConfig>;
+        ],
+    } as unknown as AdminDefinitionSubSectionSchema);
 
-        renderWithContext(
+    const dropdownOptionConfig = {
+        FirstSettings: {
+            settingc: 'option1',
+        },
+    } as Partial<AdminConfig>;
+
+    test('should render the selected dropdown option help text with markdown links as anchors', () => {
+        const {container} = renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
-                config={dropdownConfig}
+                config={dropdownOptionConfig}
                 environmentConfig={environmentConfig}
-                schema={dropdownSchema}
+                schema={buildDropdownOptionSchema({
+                    display_name: 'Option 1',
+                    value: 'option1',
+                    help_text: `See [${samlHelpUrl}](${samlHelpUrl})`,
+                    help_text_markdown: true,
+                })}
                 patchConfig={jest.fn()}
             />,
         );
 
-        const link = screen.getByRole('link', {name: 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'});
+        const link = screen.getByRole('link', {name: samlHelpUrl});
         expect(link).toBeInTheDocument();
-        expect(link).toHaveAttribute('href', 'http://www.w3.org/2000/09/xmldsig#rsa-sha1');
+        expect(link).toHaveAttribute('href', samlHelpUrl);
+
+        // The non-link portion of the help text should remain intact.
+        expect(container.textContent).toContain('See ');
+    });
+
+    test('should render the selected dropdown option help text as plain text without help_text_markdown', () => {
+        const {container} = renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={dropdownOptionConfig}
+                environmentConfig={environmentConfig}
+                schema={buildDropdownOptionSchema({
+                    display_name: 'Option 1',
+                    value: 'option1',
+                    help_text: `See ${samlHelpUrl}`,
+                })}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        expect(container.textContent).toContain(`See ${samlHelpUrl}`);
     });
 
     test('should render radio button setting', () => {
