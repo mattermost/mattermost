@@ -1054,7 +1054,7 @@ export function updateUserRoles(userId: string, roles: string): ActionFuncAsync 
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);

@@ -69,7 +69,7 @@ var TDefault TranslateFunc = func(translationID string, args ...any) string {
 var locales = make(map[string]string)
 
 // supportedLocales is a hard-coded list of locales considered ready for production use. It must
-// be kept in sync with ../../../../webapp/channels/src/i18n/i18n.jsx.
+// be kept in sync with ../../../../webapp/channels/src/i18n/i18n.ts.
 var supportedLocales = []string{
 	"de",
 	"en",

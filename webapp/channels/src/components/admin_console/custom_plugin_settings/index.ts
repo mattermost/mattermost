@@ -6,7 +6,6 @@ import {defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
 
 import type {PluginRedux, PluginSetting, PluginSettingSection} from '@mattermost/types/plugins';
-import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
@@ -18,6 +17,7 @@ import {getAdminConsoleCustomComponents, getAdminConsoleCustomSections} from 'se
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
 import type {AdminConsolePluginComponent, AdminConsolePluginCustomSection} from 'types/store/plugins';
 
 import CustomPluginSettings from './custom_plugin_settings';
