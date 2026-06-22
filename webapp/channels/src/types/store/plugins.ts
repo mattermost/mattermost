@@ -350,6 +350,7 @@ export type PostDropdownMenuItemComponent = PluginComponent & {
 export type RightHandSidebarComponent = PluginComponent & {
     title: PluggableText;
     component: React.ComponentType<BasePluggableProps>;
+    showPopout?: boolean;
 };
 
 export type SearchHintsComponent = PluginComponent & {
