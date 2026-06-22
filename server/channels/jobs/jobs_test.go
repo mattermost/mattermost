@@ -58,7 +58,7 @@ func makeTeamEditionJobServer(t *testing.T) (*JobServer, *storetest.Store) {
 		mockStore.AssertExpectations(t)
 	})
 
-	jobServer := NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t))
+	jobServer := NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
 
 	return jobServer, mockStore
 }
