@@ -50,7 +50,7 @@ export default function ChannelSharedInvitationsPanel({
         [rows],
     );
 
-    const load = useCallback(async (options?: { preserveRows?: boolean }) => {
+    const load = useCallback(async (options?: {preserveRows?: boolean}) => {
         const requestId = ++loadRequestIdRef.current;
         if (!options?.preserveRows) {
             setRows(undefined);

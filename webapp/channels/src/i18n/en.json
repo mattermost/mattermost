@@ -3007,7 +3007,7 @@
   "admin.secure_connections.shared_channels.invitations.col.status": "Status",
   "admin.secure_connections.shared_channels.invitations.direction.received": "Received",
   "admin.secure_connections.shared_channels.invitations.direction.sent": "Sent",
-  "admin.secure_connections.shared_channels.invitations.empty_remote": "There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.",
+  "admin.secure_connections.shared_channels.invitations.empty_remote": "There are no stored invitation records for this connection.",
   "admin.secure_connections.shared_channels.invitations.header_count_failed": "{count} failed",
   "admin.secure_connections.shared_channels.invitations.header_count_pending": "{count} pending",
   "admin.secure_connections.shared_channels.invitations.load_error": "Unable to load invitations. Try again later.",

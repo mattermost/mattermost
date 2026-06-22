@@ -20,7 +20,6 @@ import Tag from 'components/widgets/tag/tag';
 import type {GlobalState} from 'types/store';
 
 import {
-    SectionContent,
     SectionHeader,
 } from '../controls';
 
@@ -55,7 +54,7 @@ export default function SharedChannelInvitationsPanel({
         [rows],
     );
 
-    const load = useCallback(async (options?: { preserveRows?: boolean }) => {
+    const load = useCallback(async (options?: {preserveRows?: boolean}) => {
         const requestId = ++loadRequestIdRef.current;
         if (!options?.preserveRows) {
             setRows(undefined);
@@ -134,7 +133,7 @@ export default function SharedChannelInvitationsPanel({
             <EmptyHint>
                 <FormattedMessage
                     id='admin.secure_connections.shared_channels.invitations.empty_remote'
-                    defaultMessage='There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.'
+                    defaultMessage='There are no stored invitation records for this connection.'
                 />
             </EmptyHint>
         );
@@ -225,12 +224,11 @@ export default function SharedChannelInvitationsPanel({
                 </InvitationsToggle>
             </InvitationsHeader>
             {expanded ? (
-                <SectionContent
+                <InvitationsContent
                     id={contentId}
-                    $compact={Boolean(rows?.length)}
                 >
                     {body}
-                </SectionContent>
+                </InvitationsContent>
             ) : null}
         </>
     );
@@ -302,4 +300,11 @@ const ErrorText = styled.p`
 const EmptyHint = styled.p`
     color: rgba(var(--center-channel-color-rgb), 0.72);
     margin: 0;
+`;
+
+const InvitationsContent = styled.div`
+    padding-top: 0;
+    padding-bottom: 24px;
+    padding-left: 32px;
+    padding-right: 32px;
 `;
