@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import SystemRoles from './system_roles';
 
@@ -68,9 +69,6 @@ class AdminRolesPanel {
     get sharedChannelManager() {
         return this.dataGrid.sharedChannelManager;
     }
-    get secureConnectionManager() {
-        return this.dataGrid.secureConnectionManager;
-    }
     get viewer() {
         return this.dataGrid.viewer;
     }
@@ -87,7 +85,6 @@ class DataGrid {
     readonly userManager: RoleRow;
     readonly customGroupManager: RoleRow;
     readonly sharedChannelManager: RoleRow;
-    readonly secureConnectionManager: RoleRow;
     readonly viewer: RoleRow;
 
     constructor(container: Locator) {
@@ -115,10 +112,6 @@ class DataGrid {
         this.sharedChannelManager = new RoleRow(
             this.rows.locator('.DataGrid_row').filter({hasText: 'Shared Channel Manager'}),
             'system_shared_channel_manager_edit',
-        );
-        this.secureConnectionManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'Secure Connection Manager'}),
-            'system_secure_connection_manager_edit',
         );
         this.viewer = new RoleRow(
             this.rows.locator('.DataGrid_row').filter({hasText: 'Viewer'}),

@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -19,13 +20,11 @@ type SqlPropertyValueStore struct {
 	tableSelectQuery sq.SelectBuilder
 }
 
-var propertyValueColumns = []string{"ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy"}
-
 func newPropertyValueStore(sqlStore *SqlStore) store.PropertyValueStore {
 	s := SqlPropertyValueStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select(propertyValueColumns...).
+		Select("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
 		From("PropertyValues")
 
 	return &s
@@ -49,7 +48,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyValues").
-		Columns(propertyValueColumns...).
+		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_create_insert")
@@ -63,7 +62,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_create_many_begin_transaction")
 	}
@@ -83,7 +82,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
-			Columns(propertyValueColumns...).
+			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
 		if _, err := transaction.ExecBuilder(builder); err != nil {
@@ -107,6 +106,9 @@ func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, e
 
 	var value model.PropertyValue
 	if err := s.GetReplica().GetBuilder(&value, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("PropertyValue", id)
+		}
 		return nil, errors.Wrap(err, "property_value_get_select")
 	}
 
@@ -196,7 +198,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_update_begin_transaction")
 	}
@@ -262,7 +264,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_upsert_begin_transaction")
 	}
@@ -271,6 +273,11 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 	updatedValues := make([]*model.PropertyValue, len(values))
 	updateTime := model.GetMillis()
 	for i, value := range values {
+		// Pin CreateAt to updateTime so PreSave does not capture a later
+		// GetMillis() — keeping CreateAt == UpdateAt on insert.
+		if value.CreateAt == 0 {
+			value.CreateAt = updateTime
+		}
 		value.PreSave()
 		value.UpdateAt = updateTime
 
@@ -285,11 +292,11 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
-			Columns(propertyValueColumns...).
+			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
 		builder = builder.SuffixExpr(sq.Expr(
-			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ? RETURNING *",
+			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ? RETURNING ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt, COALESCE(CreatedBy, '') as CreatedBy, COALESCE(UpdatedBy, '') as UpdatedBy",
 			valueJSON,
 			value.UpdateAt,
 			0,

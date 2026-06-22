@@ -5,9 +5,9 @@ import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
-import WithTooltip from 'components/with_tooltip';
 
 type Props = {
 
@@ -22,7 +22,7 @@ type Props = {
 
     // The configured duration in minutes for BoR messages
     durationMinutes: number;
-}
+};
 
 const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props) => {
     const {formatMessage} = useIntl();

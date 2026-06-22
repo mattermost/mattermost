@@ -287,6 +287,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	user.MfaActive = oldUser.MfaActive
 	user.MfaUsedTimestamps = oldUser.MfaUsedTimestamps
 	user.LastLogin = oldUser.LastLogin
+	user.RemoteId = oldUser.RemoteId
 
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
@@ -422,6 +423,45 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
 	}
 
+	return nil
+}
+
+// TryIncrementFailedPasswordAttempts atomically increments FailedAttempts by one
+// for the given user, only if FailedAttempts is strictly less than maxAttempts.
+// Returns true if the row was updated (a slot was claimed), false if the cap had
+// already been reached (or the user does not exist). The row lock taken by the
+// UPDATE serializes concurrent attempts on the same user, so the cap predicate
+// is enforced without any application-level locking.
+func (us SqlUserStore) TryIncrementFailedPasswordAttempts(userId string, maxAttempts int) (bool, error) {
+	res, err := us.GetMaster().Exec(
+		"UPDATE Users SET FailedAttempts = FailedAttempts + 1 WHERE Id = ? AND FailedAttempts < ?",
+		userId, maxAttempts,
+	)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to read rows affected for userId=%s", userId)
+	}
+
+	return rows == 1, nil
+}
+
+// DecrementFailedPasswordAttempts atomically decrements FailedAttempts by one
+// for the given user, only if FailedAttempts is strictly greater than zero. It
+// is used to refund a slot previously claimed by TryIncrementFailedPasswordAttempts
+// when the in-flight authentication turns out not to be a credential-failure
+// event (e.g. a backend error or an MFA pre-flight probe).
+func (us SqlUserStore) DecrementFailedPasswordAttempts(userId string) error {
+	_, err := us.GetMaster().Exec(
+		"UPDATE Users SET FailedAttempts = FailedAttempts - 1 WHERE Id = ? AND FailedAttempts > 0",
+		userId,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
 	return nil
 }
 
@@ -697,7 +737,7 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 			case model.SystemUserRoleId:
 				// If querying for a `system_user` ensure that the user is only a system_user.
 				sqOr = append(sqOr, sq.Eq{"Users.Roles": role})
-			case model.SystemGuestRoleId, model.SystemAdminRoleId, model.SystemUserManagerRoleId, model.SystemReadOnlyAdminRoleId, model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId, model.SharedChannelManagerRoleId, model.SecureConnectionManagerRoleId:
+			case model.SystemGuestRoleId, model.SystemAdminRoleId, model.SystemUserManagerRoleId, model.SystemReadOnlyAdminRoleId, model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId, model.SharedChannelManagerRoleId:
 				// If querying for any other roles search using a wildcard.
 				sqOr = append(sqOr, sq.ILike{"Users.Roles": queryRole})
 			}
@@ -1277,6 +1317,27 @@ func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
 		return nil, errors.Wrapf(err, "failed to get User with RemoteId=%s", remoteID)
 	}
 
+	return &user, nil
+}
+
+func (us SqlUserStore) GetByAuthData(authData *string) (*model.User, error) {
+	if authData == nil || *authData == "" {
+		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
+	}
+
+	query := us.usersQuery.Where("Users.AuthData = ?", authData)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_auth_data_tosql")
+	}
+
+	user := model.User{}
+	if err := us.GetReplica().Get(&user, queryString, args...); err == sql.ErrNoRows {
+		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s", *authData))
+	} else if err != nil {
+		return nil, errors.Wrapf(err, "failed to find User with authData=%s", *authData)
+	}
 	return &user, nil
 }
 
@@ -1883,7 +1944,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 		var transaction *sqlxTxWrapper
 		var err error
 
-		if transaction, err = us.GetMaster().Beginx(); err != nil {
+		if transaction, err = us.GetMaster().Begin(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransactionX(transaction, &err)
@@ -2130,7 +2191,7 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 }
 
 func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -2199,7 +2260,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
 }
 
 func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -2373,9 +2434,13 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 }
 
 func (us SqlUserStore) RefreshPostStatsForUsers() error {
-	if _, err := us.GetMaster().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
+	ctx, cancel := us.analyticsContext()
+	defer cancel()
+
+	if _, err := us.GetMaster().ExecContext(ctx, "REFRESH MATERIALIZED VIEW poststats"); err != nil {
 		return errors.Wrap(err, "users_refresh_post_stats_exec")
 	}
+
 	return nil
 }
 

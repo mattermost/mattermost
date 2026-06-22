@@ -5,6 +5,8 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
@@ -19,7 +21,7 @@ type Props = {
     actions: {
         loadRolesIfNeeded(roles: Iterable<string>): void;
     };
-}
+};
 
 const CREATE_EMOJIS_PERMISSIONS = [Permissions.CREATE_EMOJIS];
 const ROLES = ['system_admin', 'team_admin', 'system_user', 'team_user'];
@@ -60,15 +62,15 @@ export default function EmojiPage({
                         className='add-link'
                         to={'/' + teamName + '/emoji/add'}
                     >
-                        <button
+                        <Button
                             type='button'
-                            className='btn btn-primary'
+                            emphasis='primary'
                         >
                             <FormattedMessage
                                 id='emoji_list.add'
                                 defaultMessage='Add Custom Emoji'
                             />
-                        </button>
+                        </Button>
                     </Link>
                 </AnyTeamPermissionGate>
             </div>

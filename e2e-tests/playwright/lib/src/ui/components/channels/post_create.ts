@@ -3,7 +3,8 @@
 
 import path from 'node:path';
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {duration} from '@/util';
 import {assetPath} from '@/file';
@@ -28,10 +29,10 @@ export default class ChannelsPostCreate {
     constructor(container: Locator, isRHS = false) {
         this.container = container;
 
-        if (!isRHS) {
-            this.input = container.getByTestId('post_textbox');
-        } else {
+        if (isRHS) {
             this.input = container.getByTestId('reply_textbox');
+        } else {
+            this.input = container.getByTestId('post_textbox');
         }
 
         this.attachmentButton = container.locator('#fileUploadButton');
@@ -71,7 +72,7 @@ export default class ChannelsPostCreate {
      */
     async getInputValue() {
         await expect(this.input).toBeVisible();
-        return await this.input.inputValue();
+        return this.input.inputValue();
     }
 
     /**
@@ -103,9 +104,22 @@ export default class ChannelsPostCreate {
     async postMessage(message: string, files?: string[]) {
         await this.writeMessage(message);
 
+        const page = this.container.page();
+        const uploadResponsePromise =
+            files && files.length > 0
+                ? page.waitForResponse(
+                      (r) =>
+                          r.url().includes('/api/v4/files') &&
+                          r.request().method() === 'POST' &&
+                          r.status() >= 200 &&
+                          r.status() < 300,
+                      {timeout: 60000},
+                  )
+                : null;
+
         if (files) {
             const filePaths = files.map((file) => path.join(assetPath, file));
-            this.container.page().once('filechooser', async (fileChooser) => {
+            page.once('filechooser', async (fileChooser) => {
                 await fileChooser.setFiles(filePaths);
             });
 
@@ -117,6 +131,12 @@ export default class ChannelsPostCreate {
         }
 
         await this.sendMessage();
+
+        // Without this, tests can click Send before the upload finishes under CI load,
+        // producing posts with no attachments (flaky redacted-file / demo_plugin tests).
+        if (uploadResponsePromise) {
+            await uploadResponsePromise;
+        }
     }
 
     /**
@@ -174,6 +194,6 @@ export default class ChannelsPostCreate {
      * BoR is considered enabled if the label is visible above the input
      */
     async isBurnOnReadEnabled(): Promise<boolean> {
-        return await this.burnOnReadLabel.isVisible();
+        return this.burnOnReadLabel.isVisible();
     }
 }

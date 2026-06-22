@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {getThreadsForCurrentTeam, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
@@ -17,7 +18,6 @@ import {closeModal, openModal} from 'actions/views/modals';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import Header from 'components/widgets/header';
-import WithTooltip from 'components/with_tooltip';
 
 import {A11yClassNames, Constants, ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -34,7 +34,7 @@ import './thread_list.scss';
 
 export enum ThreadFilter {
     none = '',
-    unread = 'unread'
+    unread = 'unread',
 }
 
 export const FILTER_STORAGE_KEY = 'globalThreads_filter';
@@ -301,9 +301,9 @@ function useTabs<TabName extends string>({
         panelId: string;
     }>;
 }): {
-        tabListProps: React.HTMLAttributes<HTMLElement>;
-        tabProps: Array<React.HTMLAttributes<HTMLElement>>;
-    } {
+    tabListProps: React.HTMLAttributes<HTMLElement>;
+    tabProps: Array<React.HTMLAttributes<HTMLElement>>;
+} {
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         let delta = 0;
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.RIGHT)) {

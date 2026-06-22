@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Settings > Sidebar > Channel Switcher', () => {
     let testChannel;

@@ -62,7 +62,7 @@ export function findNextUnreadChannelId(curChannelId: string, allChannelIds: str
 }
 
 export function isArchivedChannel(channel?: Channel) {
-    return Boolean(channel && channel.delete_at !== 0);
+    return Boolean(channel?.delete_at);
 }
 
 /**
@@ -104,6 +104,34 @@ export function getChannelIconComponent(channel?: Channel) {
     }
 
     return GlobeIcon;
+}
+
+/**
+ * Returns the appropriate channel icon CSS class name based on channel state and type.
+ * Handles archived channels (with lock for private), private channels, and public channels.
+ * If channel is undefined, returns 'icon-globe' (matching getChannelIconComponent(undefined) behavior).
+ *
+ * @param channel - The channel object
+ * @returns The appropriate icon class name
+ */
+export function getChannelIconClassName(channel?: Channel): string {
+    if (isArchivedChannel(channel)) {
+        return getArchiveIconClassName(channel?.type);
+    }
+
+    if (channel?.type === Constants.DM_CHANNEL) {
+        return 'icon-account-outline';
+    }
+
+    if (channel?.type === Constants.GM_CHANNEL) {
+        return 'icon-account-multiple-outline';
+    }
+
+    if (channel?.type === Constants.PRIVATE_CHANNEL) {
+        return 'icon-lock-outline';
+    }
+
+    return 'icon-globe';
 }
 
 type JoinPrivateChannelPromptResult = {
@@ -164,6 +192,48 @@ export function getChannelRoutePathAndIdentifier(channel: Pick<Channel, 'type' |
         return {path: 'messages', identifier: channel.name};
     }
     return {path: 'channels', identifier: channel.name};
+}
+
+/**
+ * Reports whether the given channel's membership is gated by an ABAC policy.
+ *
+ * Prefer this over a bare `channel.policy_enforced` check whenever the caller
+ * cares about "is this channel ABAC-controlled for joins/invites?" — that is
+ * the meaning the UI historically read into `policy_enforced`, but the flag
+ * was widened server-side to mean "any access control policy is attached"
+ * (membership policies + permission-only policies like file upload
+ * restrictions). Reading `policy_enforced` directly now misfires for
+ * permission-only channels (e.g. it empties the invite picker and shows
+ * misleading "policy applied" indicators).
+ *
+ * The membership-specific bit lives at `channel.policy_actions.membership`
+ * (hydrated lazily by the server). When `policy_actions` is undefined (older
+ * server build, or an unhydrated read path) we fall back to `policy_enforced`
+ * so the UI degrades to the legacy behavior — no worse than today, never
+ * worse than today.
+ *
+ * Use {@link isChannelAccessControlled} when you want the inclusive
+ * "any AC policy attached" semantic (e.g. admin console toggles).
+ */
+export function isMembershipPolicyEnforced(channel?: Pick<Channel, 'policy_enforced' | 'policy_actions'> | null): boolean {
+    if (!channel) {
+        return false;
+    }
+    if (channel.policy_actions) {
+        return Boolean(channel.policy_actions.membership);
+    }
+    return Boolean(channel.policy_enforced);
+}
+
+/**
+ * Reports whether the channel has any access control policy attached,
+ * regardless of which actions that policy enforces. Use this for admin
+ * console toggles and the "fetch the channel's policy" short-circuit in
+ * useChannelSystemPolicies — anywhere the caller cares about the existence
+ * of a policy rather than its membership semantics.
+ */
+export function isChannelAccessControlled(channel?: Pick<Channel, 'policy_enforced'> | null): boolean {
+    return Boolean(channel?.policy_enforced);
 }
 
 export function makeNewEmptyChannel(displayName: string, teamId: string): Channel {

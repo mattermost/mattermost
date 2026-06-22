@@ -36,7 +36,6 @@ export default {
     SYSTEM_READ_ONLY_ADMIN_ROLE: 'system_read_only_admin',
     SYSTEM_MANAGER_ROLE: 'system_manager',
     SHARED_CHANNEL_MANAGER_ROLE: 'system_shared_channel_manager',
-    SECURE_CONNECTION_MANAGER_ROLE: 'system_secure_connection_manager',
     SYSTEM_USER_ACCESS_TOKEN_ROLE: 'system_user_access_token',
     SYSTEM_POST_ALL_ROLE: 'system_post_all',
     SYSTEM_POST_ALL_PUBLIC_ROLE: 'system_post_all_public',
@@ -78,6 +77,7 @@ export default {
     DEFAULT_GROUP: 'board',
     CUSTOM_GROUP_USER_ROLE: 'custom_group_user',
     MAX_GET_ROLES_BY_NAMES: 100,
+    SKUEntry: 'entry',
     SKUEnterprise: 'enterprise',
     SKUEnterpriseAdvanced: 'advanced',
 };

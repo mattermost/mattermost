@@ -265,6 +265,54 @@ const myFunction = () => {
     });
 });
 
+describe('messageHtmlToComponent — mmaction:// → InlineActionButton', () => {
+    // The renderer leaves mmaction:// links as plain anchors;
+    // messageHtmlToComponent intercepts them and replaces with the button
+    // component. Without this conversion, clicking the link would attempt
+    // to navigate to "mmaction://..." (which the browser cannot handle).
+    test('converts <a href="mmaction://..."> to a button when allowInlineActions is set', () => {
+        const html = '<a href="mmaction://mx?tail=214">Click</a>';
+
+        const {container} = renderWithContext(
+            <>{messageHtmlToComponent(html, {allowInlineActions: true, postId: 'p1'})}</>,
+        );
+
+        const button = container.querySelector('button.InlineActionButton');
+        expect(button).not.toBeNull();
+        expect(button).toHaveTextContent('Click');
+
+        // The original anchor element must be gone — otherwise we'd render
+        // both a button and a clickable link.
+        expect(container.querySelector('a[href^="mmaction://"]')).toBeNull();
+    });
+
+    test('leaves <a href="mmaction://..."> as plain anchor when allowInlineActions is unset', () => {
+        // Posts that don't carry the bot/webhook/plugin marker (set by
+        // post_markdown.tsx) must not render the button — the integration
+        // session check upstream rejects clicks anyway, but the UI shouldn't
+        // surface a non-functional affordance.
+        const html = '<a href="mmaction://mx?tail=214">Click</a>';
+
+        const {container} = renderWithContext(
+            <>{messageHtmlToComponent(html, {postId: 'p1'})}</>,
+        );
+
+        expect(container.querySelector('button.InlineActionButton')).toBeNull();
+        expect(container.querySelector('a[href^="mmaction://"]')).not.toBeNull();
+    });
+
+    test('does not convert <a> tags with non-mmaction schemes', () => {
+        const html = '<a href="https://example.com">Click</a>';
+
+        const {container} = renderWithContext(
+            <>{messageHtmlToComponent(html, {allowInlineActions: true, postId: 'p1'})}</>,
+        );
+
+        expect(container.querySelector('button.InlineActionButton')).toBeNull();
+        expect(container.querySelector('a[href="https://example.com"]')).not.toBeNull();
+    });
+});
+
 describe('convertPropsToReactStandard', () => {
     test('converts class to className', () => {
         const inputProps = {class: 'button-class'} as AnchorHTMLAttributes<HTMLAnchorElement>;

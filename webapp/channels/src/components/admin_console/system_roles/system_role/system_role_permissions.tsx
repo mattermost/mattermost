@@ -24,11 +24,11 @@ type Props = {
     updatePermissions: (permissions: PermissionToUpdate[]) => void;
     readOnly?: boolean;
     isLicensedForCloud: boolean;
-}
+};
 
 type State = {
     visibleSections: Record<string, boolean>;
-}
+};
 
 // the actual permissions correlating to these values are of the format `sysconsole_(read|write)_name(.subsection.name)`
 const sectionsList: SystemSection[] = [
@@ -266,38 +266,6 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                         <FormattedMessage
                             id='admin.permissions.roles.system_shared_channel_manager.permissions_info'
                             defaultMessage='This role has the <b>manage_shared_channels</b> permission, which allows browsing available connections and sharing or unsharing channels with remote servers.'
-                            values={{
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
-                        />
-                    </p>
-                </>
-            );
-        }
-
-        if (this.props.role.name === Constants.PERMISSIONS_SECURE_CONNECTION_MANAGER) {
-            return (
-                <>
-                    <p>
-                        <FormattedMessage
-                            id='admin.permissions.roles.system_secure_connection_manager.introduction'
-                            defaultMessage='The built-in Secure Connection Manager role can be used to delegate the ability to create, manage, and remove <a>secure connections</a> to remote servers to users other than the System Admin.'
-                            values={{
-                                a: (chunks) => (
-                                    <ExternalLink
-                                        href='https://docs.mattermost.com/administration-guide/onboard/connected-workspaces.html'
-                                        location='adminConsoleSystemRoles'
-                                    >
-                                        {chunks}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
-                    </p>
-                    <p>
-                        <FormattedMessage
-                            id='admin.permissions.roles.system_secure_connection_manager.permissions_info'
-                            defaultMessage='This role has the <b>manage_secure_connections</b> permission, which allows creating, editing, and deleting secure connections to remote servers.'
                             values={{
                                 b: (chunks) => <b>{chunks}</b>,
                             }}

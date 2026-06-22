@@ -74,6 +74,90 @@ describe('components/ElasticSearchSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should match snapshot, sniff enabled', () => {
+        const config = {
+            ElasticsearchSettings: {
+                ConnectionURL: 'test',
+                Backend: '',
+                SkipTLSVerification: false,
+                CA: 'test.ca',
+                ClientCert: 'test.crt',
+                ClientKey: 'test.key',
+                Username: 'test',
+                Password: 'test',
+                Sniff: true,
+                EnableIndexing: true,
+                EnableSearching: false,
+                EnableAutocomplete: false,
+                EnableSearchPublicChannelsWithoutMembership: false,
+                IgnoredPurgeIndexes: '',
+            },
+        };
+        const {container} = renderWithContext(
+            <ElasticSearchSettings
+                config={config as AdminConfig}
+                isDisabled={false}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should show warning when sniff is enabled', () => {
+        const config = {
+            ElasticsearchSettings: {
+                ConnectionURL: 'test',
+                Backend: '',
+                SkipTLSVerification: false,
+                CA: '',
+                ClientCert: '',
+                ClientKey: '',
+                Username: '',
+                Password: '',
+                Sniff: true,
+                EnableIndexing: true,
+                EnableSearching: false,
+                EnableAutocomplete: false,
+                EnableSearchPublicChannelsWithoutMembership: false,
+                IgnoredPurgeIndexes: '',
+            },
+        };
+        renderWithContext(
+            <ElasticSearchSettings
+                config={config as AdminConfig}
+                isDisabled={false}
+            />,
+        );
+        expect(screen.getByText('Do not enable cluster sniffing with cloud-hosted providers such as Elastic Cloud or Amazon OpenSearch Service.')).toBeInTheDocument();
+    });
+
+    test('should not show warning when sniff is disabled', () => {
+        const config = {
+            ElasticsearchSettings: {
+                ConnectionURL: 'test',
+                Backend: '',
+                SkipTLSVerification: false,
+                CA: '',
+                ClientCert: '',
+                ClientKey: '',
+                Username: '',
+                Password: '',
+                Sniff: false,
+                EnableIndexing: true,
+                EnableSearching: false,
+                EnableAutocomplete: false,
+                EnableSearchPublicChannelsWithoutMembership: false,
+                IgnoredPurgeIndexes: '',
+            },
+        };
+        renderWithContext(
+            <ElasticSearchSettings
+                config={config as AdminConfig}
+                isDisabled={false}
+            />,
+        );
+        expect(screen.queryByText('Do not enable cluster sniffing with cloud-hosted providers such as Elastic Cloud or Amazon OpenSearch Service.')).not.toBeInTheDocument();
+    });
+
     test('should maintain save disable until is tested', async () => {
         const config = {
             ElasticsearchSettings: {

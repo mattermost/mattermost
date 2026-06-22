@@ -6,13 +6,14 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import type {FieldValueType, FieldVisibility, UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldPatch} from '@mattermost/types/properties';
+import {supportsOptions, type FieldValueType, type FieldVisibility, type UserPropertyField, type UserPropertyFieldGroupID, type UserPropertyFieldPatch} from '@mattermost/types/properties';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
 import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
+import {validateCPAFieldName} from 'utils/properties';
 import {generateId} from 'utils/utils';
 
 import type {CollectionIO} from './section_utils';
@@ -86,15 +87,7 @@ export const useUserPropertyFields = () => {
             // update
             await Promise.all(process.edit.map(async (pendingItem) => {
                 const {id, name, type, attrs} = pendingItem;
-                let patch = {name, type, attrs};
-
-                // clear options if not select/multiselect
-                if (type !== 'select' && type !== 'multiselect') {
-                    const attrs = {...patch.attrs};
-                    Reflect.deleteProperty(attrs, 'options');
-
-                    patch = {...patch, attrs};
-                }
+                const patch = {name, type, attrs};
 
                 return Client4.patchCustomProfileAttributeField(id, patch).
                     then((nextItem) => {
@@ -149,9 +142,27 @@ export const useUserPropertyFields = () => {
                 }
 
                 if (!field.name) {
-                    // name not provided
-                    acc[field.id] = {name: ValidationWarningNameRequired};
-                } else if (pendingByName[field.name.toLowerCase()]?.filter((x) => x.delete_at === 0)?.length > 1) {
+                    // name not provided — suppress for brand-new fields that
+                    // haven't been interacted with yet (user just clicked "Add attribute")
+                    const hasDisplayName = Boolean(field.attrs?.display_name?.trim());
+                    if (field.create_at !== 0 || hasDisplayName) {
+                        acc[field.id] = {name: ValidationWarningNameRequired};
+                    }
+                    return acc;
+                }
+
+                // Lenient grandfather: only validate CEL names after a rename.
+                // Newly created fields always validate because they have no
+                // server-persisted identifier to grandfather from.
+                const originalName = current.data[field.id]?.name;
+                const nameChanged = field.create_at === 0 || field.name !== originalName;
+
+                if (nameChanged && validateCPAFieldName(field.name)) {
+                    acc[field.id] = {name: ValidationWarningNameInvalidCEL};
+                    return acc;
+                }
+
+                if (pendingByName[field.name.toLowerCase()]?.filter((x) => x.delete_at === 0)?.length > 1) {
                     // duplicate pending name
                     acc[field.id] = {name: ValidationWarningNameUnique};
                 } else if (
@@ -168,7 +179,7 @@ export const useUserPropertyFields = () => {
                     }
                 }
 
-                if (field.type === 'select' || field.type === 'multiselect') {
+                if (supportsOptions(field)) {
                     const options = field.attrs?.options;
                     if (!options?.length) {
                         acc[field.id] = {attrs: ValidationWarningOptionsRequired};
@@ -186,6 +197,20 @@ export const useUserPropertyFields = () => {
 
             return next;
         },
+        isEqual: (a, b) => {
+            if (a.order.length !== b.order.length) {
+                return false;
+            }
+            if (!a.order.every((id, i) => id === b.order[i])) {
+                return false;
+            }
+            const aKeys = Object.keys(a.data);
+            const bKeys = Object.keys(b.data);
+            if (aKeys.length !== bKeys.length) {
+                return false;
+            }
+            return aKeys.every((key) => a.data[key] === b.data[key]);
+        },
 
     }), []));
 
@@ -200,10 +225,14 @@ export const useUserPropertyFields = () => {
             pendingIO.apply((pending) => {
                 const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
 
+                const name = patch?.name ?
+                    getIncrementedCELName(patch.name, pending) :
+                    '';
+
                 const field = newPendingField({
                     type: 'text',
                     ...patch,
-                    name: getIncrementedName(patch?.name ?? 'Text', pending),
+                    name,
                     attrs: {
                         visibility: 'when_set',
                         value_type: '',
@@ -257,15 +286,20 @@ export const useUserPropertyFields = () => {
 export const ValidationWarningNameRequired = 'user_properties.validation.name_required';
 export const ValidationWarningNameUnique = 'user_properties.validation.name_unique';
 export const ValidationWarningNameTaken = 'user_properties.validation.name_taken';
+export const ValidationWarningNameInvalidCEL = 'user_properties.validation.name_invalid_cel';
 export const ValidationWarningOptionsRequired = 'user_properties.validation.options_required';
 
-const getIncrementedName = (desiredName: string, collection: UserPropertyFields) => {
-    const names = new Set(Object.values(collection.data).map(({name}) => name));
+const getIncrementedCELName = (desiredName: string, collection: UserPropertyFields) => {
+    const names = new Set(
+        Object.values(collection.data).
+            filter(({delete_at: deleteAt}) => deleteAt === 0).
+            map(({name}) => name.toLowerCase()),
+    );
     let newName = desiredName;
     let n = 1;
-    while (names.has(newName)) {
+    while (names.has(newName.toLowerCase())) {
         n++;
-        newName = `${desiredName} ${n}`;
+        newName = `${desiredName}_${n}`;
     }
     return newName;
 };

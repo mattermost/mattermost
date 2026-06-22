@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -85,7 +85,7 @@ describe('Group Message Conversion To Private Channel', () => {
     });
 
     it('When users belong to only one common team', () => {
-        let testUser4;
+        let testUser4: Cypress.UserProfile;
         let gm2;
 
         cy.apiCreateUser({prefix: 'other'}).then(({user}) => {
@@ -120,7 +120,7 @@ describe('Group Message Conversion To Private Channel', () => {
     });
 
     it('When users have no common team', () => {
-        let testUser5;
+        let testUser5: Cypress.UserProfile;
         let gm3;
         let testTeam3;
 

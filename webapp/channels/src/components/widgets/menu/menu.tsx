@@ -27,7 +27,7 @@ type Props = {
     customStyles?: CSSProperties;
     className?: string;
     listId?: string;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.

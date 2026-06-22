@@ -6,6 +6,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
@@ -34,7 +35,6 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
-import WithTooltip from 'components/with_tooltip';
 
 import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
@@ -64,7 +64,7 @@ export type SystemConsoleCustomSettingsComponentProps = {
     unRegisterSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
     cancelSubmit: () => void;
     showConfirm: boolean;
-}
+};
 
 export type SchemaAdminSettingsProps = {
     config: Partial<AdminConfig>;
@@ -80,7 +80,7 @@ export type SchemaAdminSettingsProps = {
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
-} & WrappedComponentProps
+} & WrappedComponentProps;
 
 type State = {
     [x: string]: any;
@@ -92,7 +92,7 @@ type State = {
     showConfirmId: string;
     clientWarning: string;
     prevSchemaId?: string;
-}
+};
 
 // Some path parts may contain periods (e.g. plugin ids), but path walking the configuration
 // relies on splitting by periods. Use this pair of functions to allow such path parts.
@@ -258,7 +258,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     try {
                         state[setting.key] = mappingValueFromRoles(setting.permissions_mapping_name, roles!) === 'true';
-                    } catch (e) {
+                    } catch {
                         state[setting.key] = false;
                     }
                     return;
@@ -397,8 +397,22 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                         if (tsetting.type === Constants.SettingsTypes.TYPE_TEXT) {
                             this.setState({[tsetting.key]: inputData, [`${tsetting.key}Error`]: null});
                         } else if (tsetting.type === Constants.SettingsTypes.TYPE_FILE_UPLOAD) {
-                            if (this.buildSettingFunctions[tsetting.type] && this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData) {
-                                this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData(tsetting.key, inputData);
+                            if (tsetting.set_action && tsetting.key) {
+                                const key = tsetting.key;
+                                const onSuccess = (filename: string) => {
+                                    this.handleChange(key, filename);
+                                    this.setState({[key]: filename, [`${key}Error`]: null});
+                                };
+                                const onError = (err: {message: string}) => {
+                                    this.setState({[`${key}Error`]: err.message});
+                                };
+                                if (typeof inputData !== 'string' || inputData.trim() === '') {
+                                    onError({
+                                        message: this.props.intl.formatMessage({id: 'admin.saml.getSamlMetadataFromIDPFail', defaultMessage: 'SAML Metadata URL did not connect and pull data successfully'}),
+                                    });
+                                    return;
+                                }
+                                tsetting.set_action(onSuccess, onError, inputData);
                             }
                         }
                     }

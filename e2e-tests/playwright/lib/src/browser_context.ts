@@ -5,8 +5,9 @@ import {writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import {Browser, BrowserContext, request} from '@playwright/test';
-import {UserProfile} from '@mattermost/types/users';
+import type {Browser, BrowserContext} from '@playwright/test';
+import {request} from '@playwright/test';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from './test_config';
 import {pages} from './ui/pages';
@@ -53,6 +54,16 @@ export class TestBrowser {
             threadsPage,
             contentReviewPage,
         };
+    }
+
+    /**
+     * Switch the auth state of an existing context to a different user
+     * without creating a new context. After switching, pages in the context
+     * should be reloaded to pick up the new auth state.
+     */
+    async switchUser(context: BrowserContext, user: UserProfile) {
+        const storagePath = await loginByAPI(user.username, user.password);
+        await (context as any).setStorageState(storagePath);
     }
 
     async close() {

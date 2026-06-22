@@ -100,10 +100,6 @@
 
     @include mixins.clearfix;
 
-    .browser--ie & {
-        width: 325px;
-    }
-
     .app__content & {
         margin-right: 0;
     }

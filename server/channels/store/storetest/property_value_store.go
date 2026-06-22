@@ -4,28 +4,29 @@
 package storetest
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
+	sq "github.com/mattermost/squirrel"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyValue", func(t *testing.T) { testCreatePropertyValue(t, rctx, ss) })
 	t.Run("CreateManyPropertyValues", func(t *testing.T) { testCreateManyPropertyValues(t, rctx, ss) })
 	t.Run("CreatePropertyValueWithArray", func(t *testing.T) { testCreatePropertyValueWithArray(t, rctx, ss) })
-	t.Run("GetPropertyValue", func(t *testing.T) { testGetPropertyValue(t, rctx, ss) })
-	t.Run("GetManyPropertyValues", func(t *testing.T) { testGetManyPropertyValues(t, rctx, ss) })
+	t.Run("GetPropertyValue", func(t *testing.T) { testGetPropertyValue(t, rctx, ss, s) })
+	t.Run("GetManyPropertyValues", func(t *testing.T) { testGetManyPropertyValues(t, rctx, ss, s) })
 	t.Run("UpdatePropertyValue", func(t *testing.T) { testUpdatePropertyValue(t, rctx, ss) })
-	t.Run("UpsertPropertyValue", func(t *testing.T) { testUpsertPropertyValue(t, rctx, ss) })
+	t.Run("UpsertPropertyValue", func(t *testing.T) { testUpsertPropertyValue(t, rctx, ss, s) })
 	t.Run("DeletePropertyValue", func(t *testing.T) { testDeletePropertyValue(t, rctx, ss) })
-	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss) })
+	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss, s) })
 	t.Run("SearchPropertyValuesSince", func(t *testing.T) { testSearchPropertyValuesSince(t, rctx, ss) })
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
 	t.Run("DeleteForTarget", func(t *testing.T) { testDeleteForTarget(t, rctx, ss) })
@@ -316,11 +317,40 @@ func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
+// insertPropertyValueWithNullColumns inserts a property value row that
+// simulates a record created before the migrations that added CreatedBy
+// and UpdatedBy columns. Those columns are left NULL so that the store's
+// COALESCE logic is exercised.
+// Returns groupID, targetID, fieldID, valueID.
+func insertPropertyValueWithNullColumns(t *testing.T, ss store.Store, s SqlStore) (string, string, string, string) {
+	t.Helper()
+
+	valueID := model.NewId()
+	groupID := model.NewId()
+	targetID := model.NewId()
+	fieldID := model.NewId()
+	db := ss.GetInternalMasterDB()
+
+	builder := sq.StatementBuilder.PlaceholderFormat(s.GetQueryPlaceholder()).
+		Insert("PropertyValues").
+		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(valueID, targetID, "test_type", groupID, fieldID, `"null-columns-value"`, model.GetMillis(), model.GetMillis(), 0)
+
+	query, args, err := builder.ToSql()
+	require.NoError(t, err)
+
+	_, err = db.Exec(query, args...)
+	require.NoError(t, err)
+
+	return groupID, targetID, fieldID, valueID
+}
+
+func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting value", func(t *testing.T) {
 		value, err := ss.PropertyValue().Get("", model.NewId())
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	groupID := model.NewId()
@@ -351,7 +381,8 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should not be able to retrieve an existing value when specifying a different group ID", func(t *testing.T) {
 		value, err := ss.PropertyValue().Get(model.NewId(), newValue.ID)
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("should be able to retrieve an existing property value with matching groupID", func(t *testing.T) {
@@ -388,11 +419,22 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		// Try to get the value with a different group ID
 		value, err := ss.PropertyValue().Get(model.NewId(), newValue.ID)
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
+	})
+
+	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {
+		groupID, _, _, valueID := insertPropertyValueWithNullColumns(t, ss, s)
+
+		value, err := ss.PropertyValue().Get(groupID, valueID)
+		require.NoError(t, err)
+		require.Equal(t, valueID, value.ID)
+		require.Empty(t, value.CreatedBy)
+		require.Empty(t, value.UpdatedBy)
 	})
 }
 
-func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting values", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany("", []string{model.NewId(), model.NewId()})
 		require.Empty(t, values)
@@ -453,6 +495,17 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		fields, err := ss.PropertyValue().GetMany("", []string{newValues[0].ID, newValueOutsideGroup.ID})
 		require.NoError(t, err)
 		require.Len(t, fields, 2)
+	})
+
+	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {
+		groupID, _, _, valueID := insertPropertyValueWithNullColumns(t, ss, s)
+
+		values, err := ss.PropertyValue().GetMany(groupID, []string{valueID})
+		require.NoError(t, err)
+		require.Len(t, values, 1)
+		require.Equal(t, valueID, values[0].ID)
+		require.Empty(t, values[0].CreatedBy)
+		require.Empty(t, values[0].UpdatedBy)
 	})
 }
 
@@ -794,7 +847,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
+func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail if the property value is not valid", func(t *testing.T) {
 		value := &model.PropertyValue{
 			TargetID:   "",
@@ -1048,6 +1101,28 @@ func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on upsert")
 		require.Equal(t, `"updated via upsert"`, string(fetched.Value))
 	})
+
+	t.Run("null columns, upsert conflict path before createdBy and updatedBy migrations", func(t *testing.T) {
+		groupID, targetID, fieldID, _ := insertPropertyValueWithNullColumns(t, ss, s)
+
+		// Upsert with the same (GroupID, TargetID, FieldID) to trigger the conflict (update) path.
+		// The existing row has NULL CreatedBy/UpdatedBy; the COALESCE in RETURNING must handle them.
+		updaterID := model.NewId()
+		value := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"upserted value"`),
+			UpdatedBy:  updaterID,
+		}
+
+		upserted, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value})
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+		require.Empty(t, upserted[0].CreatedBy)
+		require.Equal(t, updaterID, upserted[0].UpdatedBy)
+	})
 }
 
 func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -1141,7 +1216,7 @@ func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
+func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 	targetID := model.NewId()
 	fieldID := model.NewId()
@@ -1351,6 +1426,20 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			require.ElementsMatch(t, tc.expectedIDs, ids)
 		})
 	}
+
+	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {
+		nullGroupID, _, _, nullValueID := insertPropertyValueWithNullColumns(t, ss, s)
+
+		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID: nullGroupID,
+			PerPage: 10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 1)
+		require.Equal(t, nullValueID, results[0].ID)
+		require.Empty(t, results[0].CreatedBy)
+		require.Empty(t, results[0].UpdatedBy)
+	})
 }
 
 func testSearchPropertyValuesSince(t *testing.T, _ request.CTX, ss store.Store) {

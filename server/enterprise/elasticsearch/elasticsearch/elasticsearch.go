@@ -32,7 +32,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 )
 
-const elasticsearchMaxVersion = 8
+const elasticsearchMinVersion = 8
+const elasticsearchMaxVersion = 9
 
 var (
 	purgeIndexListAllowedIndexes = []string{common.IndexBaseChannels}
@@ -42,6 +43,7 @@ type ElasticsearchInterfaceImpl struct {
 	client      *elastic.TypedClient
 	mutex       sync.RWMutex
 	ready       atomic.Int32
+	healthy     atomic.Int32 // 1 = reachable, 0 = unreachable (set by watcher)
 	version     int
 	fullVersion string
 	plugins     []string
@@ -75,6 +77,18 @@ func (es *ElasticsearchInterfaceImpl) IsActive() bool {
 	return *es.Platform.Config().ElasticsearchSettings.EnableIndexing && es.ready.Load() == 1
 }
 
+func (es *ElasticsearchInterfaceImpl) IsHealthy() bool {
+	return es.healthy.Load() == 1
+}
+
+func (es *ElasticsearchInterfaceImpl) SetHealthy(healthy bool) {
+	if healthy {
+		es.healthy.Store(1)
+	} else {
+		es.healthy.Store(0)
+	}
+}
+
 func (es *ElasticsearchInterfaceImpl) IsIndexingEnabled() bool {
 	return *es.Platform.Config().ElasticsearchSettings.EnableIndexing
 }
@@ -92,8 +106,8 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 }
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClient) *model.AppError {
-	version, major, appErr := checkMaxVersion(client)
+func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *elastic.TypedClient) *model.AppError {
+	version, major, appErr := checkVersion(ctx, client)
 	if appErr != nil {
 		return appErr
 	}
@@ -103,7 +117,7 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClien
 
 	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
 	// Instead, we will log it and move forward
-	resp, err := client.API.Cat.Plugins().Do(context.Background())
+	resp, err := client.API.Cat.Plugins().Do(ctx)
 	if err != nil {
 		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
 	} else {
@@ -116,7 +130,7 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClien
 	return nil
 }
 
-func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
+func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	if license := es.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*es.Platform.Config().ElasticsearchSettings.EnableIndexing {
 		return nil
 	}
@@ -136,11 +150,9 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(es.client); appErr != nil {
+	if appErr = es.fetchServerInfo(ctx, es.client); appErr != nil {
 		return appErr
 	}
-
-	ctx := context.Background()
 
 	var err error
 	esSettings := es.Platform.Config().ElasticsearchSettings
@@ -229,6 +241,52 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 	}
 
 	es.ready.Store(1)
+	es.healthy.Store(1)
+
+	return nil
+}
+
+// snapshotClient returns the current client reference under the read lock,
+// releasing the lock before returning. This lets HealthCheck make a blocking
+// network call without holding the RLock for its full duration.
+//
+// Why this matters: the health check can block for up to 5 seconds when the
+// server is unreachable. Holding the RLock that long would block Stop() and
+// Start() (which need the write lock) — exactly when fast lifecycle
+// transitions matter most.
+//
+// Why we can't drop the mutex entirely: Stop() sets es.client = nil before
+// setting ready = 0, so without synchronization HealthCheck could see
+// ready == 1 but dereference a nil client. Using atomic.Pointer for the
+// client would work but would be a larger refactor across all methods.
+// Copying the reference under the lock is the minimal, safe fix.
+//
+// Worst case after releasing the lock: Stop() runs and nils es.client while
+// our snapshot is in-flight. The snapshot remains valid (Stop doesn't close
+// the HTTP transport), so the call completes or times out normally — the
+// next health check cycle will pick up the new state.
+func (es *ElasticsearchInterfaceImpl) snapshotClient() (*elastic.TypedClient, bool) {
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if es.ready.Load() == 0 {
+		return nil, false
+	}
+	return es.client, true
+}
+
+func (es *ElasticsearchInterfaceImpl) HealthCheck(_ request.CTX) *model.AppError {
+	client, ok := es.snapshotClient()
+	if !ok {
+		return model.NewAppError("Elasticsearch.HealthCheck", "ent.elasticsearch.healthcheck.not_started.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := client.Cluster.Health().Do(ctx); err != nil {
+		return model.NewAppError("Elasticsearch.HealthCheck", "ent.elasticsearch.healthcheck.unreachable.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadGateway).Wrap(err)
+	}
 
 	return nil
 }
@@ -238,7 +296,7 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	defer es.mutex.Unlock()
 
 	if es.ready.Load() == 0 {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.stop.already_stopped.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+		return nil
 	}
 
 	es.client = nil
@@ -251,6 +309,7 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	}
 
 	es.ready.Store(0)
+	es.healthy.Store(0)
 
 	return nil
 }
@@ -285,8 +344,8 @@ func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string,
 
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchPost.Id),
+			Index_: new(indexName),
+			Id_:    new(searchPost.Id),
 		}, searchPost)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -417,8 +476,8 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 				filters = append(filters, types.Query{
 					Range: map[string]types.RangeQuery{
 						"create_at": types.NumberRangeQuery{
-							Gte: model.NewPointer(types.Float64(before)),
-							Lte: model.NewPointer(types.Float64(after)),
+							Gte: new(types.Float64(before)),
+							Lte: new(types.Float64(after)),
 						},
 					},
 				})
@@ -426,11 +485,11 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 				if params.AfterDate != "" || params.BeforeDate != "" {
 					nrQuery := types.NumberRangeQuery{}
 					if params.AfterDate != "" {
-						nrQuery.Gte = model.NewPointer(types.Float64(params.GetAfterDateMillis()))
+						nrQuery.Gte = new(types.Float64(params.GetAfterDateMillis()))
 					}
 
 					if params.BeforeDate != "" {
-						nrQuery.Lte = model.NewPointer(types.Float64(params.GetBeforeDateMillis()))
+						nrQuery.Lte = new(types.Float64(params.GetBeforeDateMillis()))
 					}
 
 					query := types.Query{
@@ -447,8 +506,8 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(before)),
-									Lte: model.NewPointer(types.Float64(after)),
+									Gte: new(types.Float64(before)),
+									Lte: new(types.Float64(after)),
 								},
 							},
 						})
@@ -458,7 +517,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(params.GetExcludedAfterDateMillis())),
+									Gte: new(types.Float64(params.GetExcludedAfterDateMillis())),
 								},
 							},
 						})
@@ -468,7 +527,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Lte: model.NewPointer(types.Float64(params.GetExcludedBeforeDateMillis())),
+									Lte: new(types.Float64(params.GetExcludedBeforeDateMillis())),
 								},
 							},
 						})
@@ -933,8 +992,8 @@ func (es *ElasticsearchInterfaceImpl) deletePost(indexName, postID string) *mode
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(postID),
+			Index_: new(indexName),
+			Id_:    new(postID),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.DeletePost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -965,8 +1024,8 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchChannel.Id),
+			Index_: new(indexName),
+			Id_:    new(searchChannel.Id),
 		}, searchChannel)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexChannel", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1015,8 +1074,8 @@ func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, ch
 		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
 
 		err = es.syncBulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchChannel.Id),
+			Index_: new(indexName),
+			Id_:    new(searchChannel.Id),
 		}, searchChannel)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1148,8 +1207,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteChannel(channel *model.Channel) *mod
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
-			Id_:    model.NewPointer(channel.Id),
+			Index_: new(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
+			Id_:    new(channel.Id),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1183,8 +1242,8 @@ func (es *ElasticsearchInterfaceImpl) IndexUser(rctx request.CTX, user *model.Us
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchUser.Id),
+			Index_: new(indexName),
+			Id_:    new(searchUser.Id),
 		}, searchUser)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1258,7 +1317,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsers(contextCategory string, 
 					{
 						Range: map[string]types.RangeQuery{
 							"delete_at": types.DateRangeQuery{
-								Lte: model.NewPointer("0"),
+								Lte: new("0"),
 							},
 						},
 					}, {
@@ -1381,7 +1440,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, chan
 		deleteRangeQuery := types.Query{
 			Range: map[string]types.RangeQuery{
 				"delete_at": types.DateRangeQuery{
-					Lte: model.NewPointer("0"),
+					Lte: new("0"),
 				},
 			},
 		}
@@ -1497,8 +1556,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteUser(user *model.User) *model.AppErr
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
-			Id_:    model.NewPointer(user.Id),
+			Index_: new(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
+			Id_:    new(user.Id),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.DeleteUser", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1531,7 +1590,7 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(client); appErr != nil {
+	if appErr = es.fetchServerInfo(context.Background(), client); appErr != nil {
 		return appErr
 	}
 
@@ -1709,8 +1768,8 @@ func (es *ElasticsearchInterfaceImpl) IndexFile(file *model.FileInfo, channelId 
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchFile.Id),
+			Index_: new(indexName),
+			Id_:    new(searchFile.Id),
 		}, searchFile)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexFile", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1811,8 +1870,8 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 				filters = append(filters, types.Query{
 					Range: map[string]types.RangeQuery{
 						"create_at": types.NumberRangeQuery{
-							Gte: model.NewPointer(types.Float64(before)),
-							Lte: model.NewPointer(types.Float64(after)),
+							Gte: new(types.Float64(before)),
+							Lte: new(types.Float64(after)),
 						},
 					},
 				})
@@ -1820,11 +1879,11 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 				if params.AfterDate != "" || params.BeforeDate != "" {
 					nrQuery := types.NumberRangeQuery{}
 					if params.AfterDate != "" {
-						nrQuery.Gte = model.NewPointer(types.Float64(params.GetAfterDateMillis()))
+						nrQuery.Gte = new(types.Float64(params.GetAfterDateMillis()))
 					}
 
 					if params.BeforeDate != "" {
-						nrQuery.Lte = model.NewPointer(types.Float64(params.GetBeforeDateMillis()))
+						nrQuery.Lte = new(types.Float64(params.GetBeforeDateMillis()))
 					}
 					query := types.Query{
 						Range: map[string]types.RangeQuery{
@@ -1840,8 +1899,8 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(before)),
-									Lte: model.NewPointer(types.Float64(after)),
+									Gte: new(types.Float64(before)),
+									Lte: new(types.Float64(after)),
 								},
 							},
 						})
@@ -1851,7 +1910,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(params.GetExcludedAfterDateMillis())),
+									Gte: new(types.Float64(params.GetExcludedAfterDateMillis())),
 								},
 							},
 						})
@@ -1861,7 +1920,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Lte: model.NewPointer(types.Float64(params.GetExcludedBeforeDateMillis())),
+									Lte: new(types.Float64(params.GetExcludedBeforeDateMillis())),
 								},
 							},
 						})
@@ -1987,8 +2046,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteFile(fileID string) *model.AppError 
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
-			Id_:    model.NewPointer(fileID),
+			Index_: new(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
+			Id_:    new(fileID),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.DeleteFile", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2086,7 +2145,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 			Filter: []types.Query{{
 				Range: map[string]types.RangeQuery{
 					"create_at": types.NumberRangeQuery{
-						Lte: model.NewPointer(types.Float64(endTime)),
+						Lte: new(types.Float64(endTime)),
 					},
 				},
 			}},
@@ -2110,19 +2169,22 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-func checkMaxVersion(client *elastic.TypedClient) (string, int, *model.AppError) {
-	resp, err := client.API.Core.Info().Do(context.Background())
+func checkVersion(ctx context.Context, client *elastic.TypedClient) (string, int, *model.AppError) {
+	resp, err := client.API.Core.Info().Do(ctx)
 	if err != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	major, _, _, esErr := common.GetVersionComponents(resp.Version.Int)
 	if esErr != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
+	if major < elasticsearchMinVersion {
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.min_version.app_error", map[string]any{"Version": major, "MinVersion": elasticsearchMinVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
+	}
 	if major > elasticsearchMaxVersion {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
 	}
 	return resp.Version.Int, major, nil
 }

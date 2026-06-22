@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
 
 import SystemConsoleNavbar from '@/ui/components/system_console/navbar';
 import SystemConsoleSidebar from '@/ui/components/system_console/sidebar';
@@ -15,6 +15,7 @@ import MobileSecurity from '@/ui/components/system_console/sections/environment/
 import Localization from '@/ui/components/system_console/sections/site_configuration/localization';
 import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
+import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 
 export default class SystemConsolePage {
@@ -43,6 +44,9 @@ export default class SystemConsolePage {
     readonly localization: Localization;
     readonly notifications: Notifications;
     readonly usersAndTeams: UsersAndTeams;
+
+    // System Attributes
+    readonly systemProperties: SystemProperties;
 
     // Feature Discovery (license-gated features)
     readonly featureDiscovery: FeatureDiscovery;
@@ -76,6 +80,9 @@ export default class SystemConsolePage {
         this.notifications = new Notifications(adminConsoleWrapper);
         this.usersAndTeams = new UsersAndTeams(adminConsoleWrapper);
 
+        // System Attributes
+        this.systemProperties = new SystemProperties(adminConsoleWrapper);
+
         // Feature Discovery
         this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);
     }
@@ -88,5 +95,11 @@ export default class SystemConsolePage {
 
     async goto() {
         await this.page.goto('/admin_console');
+    }
+
+    /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
+    async gotoNotificationsSettings() {
+        await this.page.goto('/admin_console/environment/notifications');
+        await this.page.waitForLoadState('networkidle');
     }
 }

@@ -4,14 +4,6 @@
 
 @use 'sass:color';
 
-.browser--ie {
-    .modal {
-        .modal-dialog {
-            transform: translateY(0);
-        }
-    }
-}
-
 .modal-backdrop {
     &.in {
         opacity: 0.64;
@@ -325,7 +317,7 @@
                 background: transparent;
                 color: functions.v(center-channel-color);
                 font-size: 22px;
-                line-height: 44px;
+                line-height: 28px;
             }
         }
 
@@ -335,7 +327,7 @@
             color: functions.v(center-channel-color);
             font-size: 22px;
             font-weight: 600;
-            line-height: 44px;
+            line-height: 28px;
             word-break: break-word;
         }
     }
@@ -753,10 +745,6 @@
 .more-modal__list {
     display: flex;
     flex-direction: column;
-
-    .browser--ie & {
-        flex: 20;
-    }
 
     >div:not([data-simplebar]) {
         overflow: auto;

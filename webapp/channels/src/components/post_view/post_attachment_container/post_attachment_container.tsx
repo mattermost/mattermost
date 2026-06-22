@@ -24,7 +24,7 @@ export type Props = {
 type LinkParams = {
     postId: string;
     teamName: string;
-}
+};
 
 const getTeamAndPostIdFromLink = (link: string) => {
     const match = matchPath<LinkParams>(link, {path: '/:teamName/pl/:postId'});
@@ -50,6 +50,7 @@ const getElementClassName = (element: EventTarget | null): string => {
 const PostAttachmentContainer = (props: Props) => {
     const {children, className, link, preventClickAction} = props;
     const history = useHistory();
+    const attachmentClassName = `attachment attachment--${className}${preventClickAction ? ' attachment--prevent-click' : ''}`;
 
     const params = getTeamAndPostIdFromLink(link);
 
@@ -90,7 +91,7 @@ const PostAttachmentContainer = (props: Props) => {
     }, [className, crtEnabled, dispatch, history, link, params, post, shouldFocusPostWithoutRedirect, currentUserId]);
     return (
         <div
-            className={`attachment attachment--${className}`}
+            className={attachmentClassName}
             role={preventClickAction ? undefined : 'button'}
             onClick={preventClickAction ? undefined : handleOnClick}
         >

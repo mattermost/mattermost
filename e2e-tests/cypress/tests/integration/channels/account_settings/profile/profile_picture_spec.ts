@@ -13,7 +13,7 @@
 // TODO: Remove import once e2e/cypress/tests/support/index.ts is converted to Typescript.
 import 'cypress-file-upload';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Profile > Profile Settings > Profile Picture', () => {
     before(() => {

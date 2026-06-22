@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	seMocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -257,4 +258,95 @@ func TestExtractDBCluster(t *testing.T) {
 			require.Equal(t, tc.expectedClusterName, host)
 		})
 	}
+}
+
+func TestSearchEngineStatusGauge(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	readGauge := func() float64 {
+		m := &prometheusModels.Metric{}
+		require.NoError(t, miImpl.SearchEngineStatusGauge.Write(m))
+		return m.Gauge.GetValue()
+	}
+
+	setEngine := func(t *testing.T, engine *seMocks.SearchEngineInterface) {
+		t.Helper()
+		miImpl.Platform.SearchEngine.ElasticsearchEngine = engine
+		t.Cleanup(func() {
+			miImpl.Platform.SearchEngine.ElasticsearchEngine = nil
+		})
+	}
+
+	t.Run("nil engine returns 1", func(t *testing.T) {
+		miImpl.Platform.SearchEngine.ElasticsearchEngine = nil
+		require.Equal(t, 1.0, readGauge())
+	})
+
+	t.Run("disabled engine returns 1", func(t *testing.T) {
+		esMock := &seMocks.SearchEngineInterface{}
+		esMock.On("IsEnabled").Return(false)
+		setEngine(t, esMock)
+		require.Equal(t, 1.0, readGauge())
+	})
+
+	t.Run("enabled healthy engine returns 1", func(t *testing.T) {
+		esMock := &seMocks.SearchEngineInterface{}
+		esMock.On("IsEnabled").Return(true)
+		esMock.On("IsHealthy").Return(true)
+		setEngine(t, esMock)
+		require.Equal(t, 1.0, readGauge())
+	})
+
+	t.Run("enabled unhealthy engine returns 0", func(t *testing.T) {
+		esMock := &seMocks.SearchEngineInterface{}
+		esMock.On("IsEnabled").Return(true)
+		esMock.On("IsHealthy").Return(false)
+		setEngine(t, esMock)
+		require.Equal(t, 0.0, readGauge())
+	})
+}
+
+func TestObserveClusterReliableFallbackLength(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	event := model.ClusterEvent("ws_event")
+	length := 42
+	m := &prometheusModels.Metric{}
+
+	t.Run("labels are correct", func(t *testing.T) {
+		_, err := miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"event": "x"})
+		require.NoError(t, err, "expected 'event' to be a registered label")
+		_, err = miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"wrong_label": "x"})
+		require.Error(t, err, "expected no label other than 'event' to be registered")
+	})
+
+	t.Run("metric is registered and initialized at 0", func(t *testing.T) {
+		actualMetric, err := miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"event": string(event)})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
+		require.Equal(t, 0.0, m.Histogram.GetSampleSum())
+	})
+
+	t.Run("metric can be observed and the registered value is correct", func(t *testing.T) {
+		mi.ObserveClusterReliableFallbackLength(event, length)
+
+		actualMetric, err := miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"event": string(event)})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
+		require.InDelta(t, float64(length), m.Histogram.GetSampleSum(), 0.001)
+	})
 }

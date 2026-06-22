@@ -72,7 +72,14 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		if deleteErr != nil {
 			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 		}
+		rctx.Logger().Debug("Draft deleted via empty-message upsert", mlog.String("user_id", draft.UserId), mlog.String("channel_id", draft.ChannelId), mlog.String("root_id", draft.RootId))
 		return nil, nil
+	}
+
+	var guardErr *model.AppError
+	draft, guardErr = a.runGuardedDraftWillBeUpserted(rctx, draft)
+	if guardErr != nil {
+		return nil, guardErr
 	}
 
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
@@ -126,7 +133,7 @@ func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*mod
 		return nil, nil
 	}
 
-	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds, false, true)
+	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds, false, true, false)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForDraft", "app.draft.get_for_draft.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

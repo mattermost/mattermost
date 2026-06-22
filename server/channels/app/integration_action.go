@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"path"
@@ -39,7 +40,57 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+// maxMmBlocksActionsCloneDepth caps recursion in cloneMmBlocksActionsProp.
+// ValidateMmBlocksActions bounds top-level entry count and key length but
+// does not bound nesting depth inside spec.Context — a bot/plugin could
+// otherwise stash a pathologically nested object that drives stack
+// exhaustion on the restore path. 64 is well past any plausible legitimate
+// nesting; deeper input is treated as malicious and truncated.
+const maxMmBlocksActionsCloneDepth = 64
+
+// cloneMmBlocksActionsProp deep-clones the post.props.mm_blocks_actions value.
+// Each per-action entry can carry nested context / query maps (and arrays
+// inside those), so the clone walks the structure recursively — a shallow
+// clone at any level would leave nested objects aliased back to the live
+// post's props, defeating the restore-after-invalid-response guarantee.
+func cloneMmBlocksActionsProp(v any) any {
+	return cloneMmBlocksActionsPropAt(v, 0)
+}
+
+func cloneMmBlocksActionsPropAt(v any, depth int) any {
+	if depth > maxMmBlocksActionsCloneDepth {
+		// Defense-in-depth: drop the subtree rather than risk stack
+		// exhaustion. The restore path that calls this helper is on a
+		// rare branch (plugin response is invalid), and pathological
+		// nesting at this depth is not a legitimate use case.
+		return nil
+	}
+	switch typed := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(typed))
+		for k, child := range typed {
+			out[k] = cloneMmBlocksActionsPropAt(child, depth+1)
+		}
+		return out
+	case []any:
+		out := make([]any, len(typed))
+		for i, child := range typed {
+			out[i] = cloneMmBlocksActionsPropAt(child, depth+1)
+		}
+		return out
+	default:
+		// Scalars (string/number/bool/nil) are immutable — safe to share.
+		return v
+	}
+}
+
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie, query map[string]string) (string, *model.AppError) {
+	// Bound the per-click query at the App boundary so any caller — REST
+	// handler, plugin, future internal trigger — gets the same enforcement.
+	if err := model.ValidateActionQuery(query); err != nil {
+		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.query.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -121,10 +172,17 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = cookie.Type
-		upstreamRequest.Context = cookie.Integration.Context
+		// Clone the Context map — later code may add selected_option to
+		// it, and we must not mutate the shared source.
+		//
+		// query is intentionally not merged on the cookie path: cookies are
+		// only baked for attachment action buttons, not for mm_blocks
+		// actions, so this branch is never reached by a click that carries
+		// per-click query params.
+		upstreamRequest.Context = maps.Clone(cookie.Integration.Context)
 		datasource = cookie.DataSource
 
-		retain = cookie.RetainProps
+		retain = maps.Clone(cookie.RetainProps)
 		remove = cookie.RemoveProps
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
@@ -132,7 +190,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		post := result.Data
 		chResult := <-cchan
 		if chResult.NErr != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
+			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(chResult.NErr)
 		}
 		channel := chResult.Data
 
@@ -145,7 +203,12 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
-		upstreamRequest.Context = action.Integration.Context
+		// Clone the Context map — the action pointer returned from
+		// post.GetAction may alias post.props state (attachment action) or
+		// the synthesized mm_blocks_actions spec. Mutating it directly
+		// would leak per-click values (selected_option) into the post's
+		// cached integration for subsequent clickers.
+		upstreamRequest.Context = maps.Clone(action.Integration.Context)
 		datasource = action.DataSource
 
 		// Save the original values that may need to be preserved (including selected
@@ -158,7 +221,10 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 				remove = append(remove, key)
 			}
 		}
-		originalProps = post.GetProps()
+		// Clone — originalProps may be passed to response.Update.SetProps,
+		// which would otherwise have response.Update alias the original
+		// post's props map.
+		originalProps = maps.Clone(post.GetProps())
 		originalIsPinned = post.IsPinned
 		originalHasReactions = post.HasReactions
 
@@ -234,6 +300,18 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Merge per-click query into the upstream URL. This is the canonical
+	// transport for mm_blocks_actions external clicks; for legacy attachment
+	// clicks `query` is empty so this is a no-op. Done before the request
+	// log so operators see the URL actually sent on the wire.
+	if len(query) > 0 {
+		mergedURL, mergeErr := model.MergeQueryIntoURL(upstreamURL, query)
+		if mergeErr != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.merge_query.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+		}
+		upstreamURL = mergedURL
+	}
+
 	// Log request, regardless of whether destination is internal or external
 	rctx.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
 		mlog.String("url", upstreamURL),
@@ -281,7 +359,44 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
+		// Validate mm_blocks_actions on update responses. Since
+		// AllowMmBlocksActionsUpdate bypasses the non-integration guard in
+		// UpdatePost, and mm_blocks_actions are not in
+		// PostActionRetainPropKeys, a bad response would otherwise
+		// permanently replace the post's valid mm_blocks_actions. Keep the
+		// original value (if any) and log a warning so integration authors
+		// can diagnose.
+		//
+		// Contract (matches the attachments contract): a plugin update
+		// response that returns a non-nil Props map MUST echo
+		// mm_blocks_actions back if it wants the buttons to survive.
+		// Omitting the key drops the prop. This is intentional symmetry
+		// with attachments and matches the behavior in the mm_blocks
+		// framework PR.
+		if response.Update.GetProp(model.PostPropsMmBlocksActions) != nil {
+			if originalProps[model.PostPropsMmBlocksActions] == nil {
+				rctx.Logger().Info("Dropping mm_blocks_actions from plugin update response: original post had none",
+					mlog.String("post_id", postID),
+					mlog.String("url", upstreamURL),
+				)
+				response.Update.DelProp(model.PostPropsMmBlocksActions)
+			} else if err := model.ValidateMmBlocksActions(response.Update); err != nil {
+				rctx.Logger().Info("Restoring original mm_blocks_actions: plugin update response was invalid",
+					mlog.String("post_id", postID),
+					mlog.String("url", upstreamURL),
+					mlog.Err(err),
+				)
+				// originalProps came from maps.Clone(post.GetProps())
+				// which is a shallow clone — the nested
+				// mm_blocks_actions map is still aliased to
+				// post.Props. Deep-clone before reattaching so a
+				// later mutation through response.Update can't
+				// reach back into the original post's prop map.
+				response.Update.AddProp(model.PostPropsMmBlocksActions, cloneMmBlocksActionsProp(originalProps[model.PostPropsMmBlocksActions]))
+			}
+		}
+
+		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true}); appErr != nil {
 			return "", appErr
 		}
 	}
@@ -331,16 +446,7 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	// Allow access to plugin routes for action buttons
-	var httpClient *http.Client
-	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
-		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
-		httpClient = a.HTTPService().MakeClient(true)
-	} else {
-		httpClient = a.HTTPService().MakeClient(false)
-	}
+	httpClient := a.getPostActionClient(rctx, inURL, req)
 
 	resp, httpErr := httpClient.Do(req)
 	if httpErr != nil {
@@ -352,6 +458,20 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	}
 
 	return resp, nil
+}
+
+func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Request) *http.Client {
+	// Allow access to plugin routes for action buttons
+	var httpClient *http.Client
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins")) {
+		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
+		httpClient = a.HTTPService().MakeClient(true)
+	} else {
+		httpClient = a.HTTPService().MakeClient(false)
+	}
+	return httpClient
 }
 
 type LocalResponseWriter struct {
@@ -387,13 +507,15 @@ func (ch *Channels) doPluginRequest(rctx request.CTX, method, rawURL string, val
 	if err != nil {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	result := strings.Split(inURL.Path, "/")
+	result := strings.Split(path.Clean(inURL.Path), "/")
 	if len(result) < 2 {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
 	}
+
 	if result[0] != "plugins" {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
 	}
+
 	pluginID := result[1]
 
 	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginID)

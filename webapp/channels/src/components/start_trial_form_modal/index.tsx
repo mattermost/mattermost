@@ -3,9 +3,11 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import {Modal, Button} from 'react-bootstrap';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
@@ -39,7 +41,7 @@ enum TrialLoadStatus {
     NotStarted = 'NOT_STARTED',
     Started = 'STARTED',
     Success = 'SUCCESS',
-    Failed = 'FAILED'
+    Failed = 'FAILED',
 }
 
 defineMessages({
@@ -80,7 +82,7 @@ export enum OrgSize {
 
 type Props = {
     onClose?: () => void;
-}
+};
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
@@ -339,8 +341,9 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 <div className='buttons'>
                     <Button
                         disabled={isSubmitDisabled}
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={requestLicense}
+                        type='button'
                     >
                         {btnText(status)}
                     </Button>

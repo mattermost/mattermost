@@ -8,7 +8,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
+import {popoutChannel} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
 import MenuItemOpenInNewWindow from './open_in_new_window';
@@ -54,21 +54,20 @@ describe('MenuItemOpenInNewWindow', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(isChannelPopoutWindow).mockReturnValue(false);
     });
 
-    test('should render nothing when already in a channel popout', () => {
-        jest.mocked(isChannelPopoutWindow).mockReturnValue(true);
+    test('should render menu item and separator', () => {
         const channel = TestHelper.getChannelMock({type: 'O' as ChannelType, name: 'town-square'});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <WithTestMenuContext>
                 <MenuItemOpenInNewWindow channel={channel}/>
             </WithTestMenuContext>,
             baseState,
         );
 
-        expect(container).toBeEmptyDOMElement();
+        expect(screen.getByText('Open in new window')).toBeInTheDocument();
+        expect(screen.getByRole('separator')).toBeInTheDocument();
     });
 
     test('should call popoutChannel when clicked', async () => {

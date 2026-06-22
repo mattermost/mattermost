@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import {hexToRgbArray, rgbArrayToString} from '../../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {hexToRgbArray, rgbArrayToString} from '@/utils';
 
 describe('System Console OpenId Connect', () => {
     const FAKE_SETTING = '********************************';

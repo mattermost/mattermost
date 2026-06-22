@@ -28,6 +28,7 @@ const (
 	PropertyFieldTypeDate        PropertyFieldType = "date"
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
+	PropertyFieldTypeRank        PropertyFieldType = "rank"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -41,14 +42,28 @@ const (
 	PermissionLevelNone     PermissionLevel = "none"
 	PermissionLevelSysadmin PermissionLevel = "sysadmin"
 	PermissionLevelMember   PermissionLevel = "member"
+	// PermissionLevelAdmin resolves to the admin of the field's target: sysadmin
+	// for system targets, team admin for team targets, channel admin for
+	// channel targets. The specific permission checked per scope is documented
+	// at hasPropertyFieldPermissionLevel in the app package.
+	PermissionLevelAdmin PermissionLevel = "admin"
 
-	PropertyFieldObjectTypePost    = "post"
-	PropertyFieldObjectTypeChannel = "channel"
-	PropertyFieldObjectTypeUser    = "user"
+	PropertyFieldObjectTypePost     = "post"
+	PropertyFieldObjectTypeChannel  = "channel"
+	PropertyFieldObjectTypeUser     = "user"
+	PropertyFieldObjectTypeTemplate = "template"
+	PropertyFieldObjectTypeSession  = "session"
+
+	PropertyFieldObjectTypeSystem = "system"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
-var validPermissionLevels = []PermissionLevel{PermissionLevelNone, PermissionLevelSysadmin, PermissionLevelMember}
+var validPermissionLevels = []PermissionLevel{
+	PermissionLevelNone,
+	PermissionLevelSysadmin,
+	PermissionLevelMember,
+	PermissionLevelAdmin,
+}
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
 var validPSAv2TargetTypes = []string{
@@ -62,6 +77,25 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypePost,
 	PropertyFieldObjectTypeChannel,
 	PropertyFieldObjectTypeUser,
+	PropertyFieldObjectTypeTemplate,
+	PropertyFieldObjectTypeSession,
+	PropertyFieldObjectTypeSystem,
+}
+
+// optionFieldTypes are the property field types whose `options` attribute is
+// meaningful: each stores a list of selectable options. Kept as a single
+// allow-list so the "does this field carry options?" check stays consistent
+// across the model, API, and access-control layers.
+var optionFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+	PropertyFieldTypeRank,
+}
+
+// SupportsOptions reports whether the field type carries a list of options
+// (select, multiselect, rank). Mirrors the webapp's supportsOptions helper.
+func (t PropertyFieldType) SupportsOptions() bool {
+	return slices.Contains(optionFieldTypes, t)
 }
 
 type PropertyField struct {
@@ -77,6 +111,7 @@ type PropertyField struct {
 	PermissionField   *PermissionLevel  `json:"permission_field,omitempty"`
 	PermissionValues  *PermissionLevel  `json:"permission_values,omitempty"`
 	PermissionOptions *PermissionLevel  `json:"permission_options,omitempty"`
+	LinkedFieldID     *string           `json:"linked_field_id,omitempty"`
 	CreateAt          int64             `json:"create_at"`
 	UpdateAt          int64             `json:"update_at"`
 	DeleteAt          int64             `json:"delete_at"`
@@ -98,6 +133,7 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"permission_field":   pf.PermissionField,
 		"permission_values":  pf.PermissionValues,
 		"permission_options": pf.PermissionOptions,
+		"linked_field_id":    pf.LinkedFieldID,
 		"create_at":          pf.CreateAt,
 		"update_at":          pf.UpdateAt,
 		"delete_at":          pf.DeleteAt,
@@ -121,7 +157,7 @@ func (pf *PropertyField) PreSave() {
 // EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
 // This ensures option IDs are always set, similar to how field IDs are auto-generated.
 func (pf *PropertyField) EnsureOptionIDs() error {
-	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect {
+	if !pf.Type.SupportsOptions() {
 		return nil
 	}
 
@@ -210,6 +246,11 @@ func (pf *PropertyField) IsValid() error {
 				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "must be a valid ID for team or channel target type"}, "id="+pf.ID, http.StatusBadRequest)
 			}
 		}
+
+		// System-object fields attach to the system itself; they cannot be scoped below the system level.
+		if pf.ObjectType == PropertyFieldObjectTypeSystem && pf.TargetType != string(PropertyFieldTargetLevelSystem) {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "must be system for system object type"}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	} else {
 		// PSAv1 properties cannot have permissions or be protected
 		if pf.Protected {
@@ -234,8 +275,21 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type != PropertyFieldTypeMultiselect &&
 		pf.Type != PropertyFieldTypeDate &&
 		pf.Type != PropertyFieldTypeUser &&
-		pf.Type != PropertyFieldTypeMultiuser {
+		pf.Type != PropertyFieldTypeMultiuser &&
+		pf.Type != PropertyFieldTypeRank {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// LinkedFieldID validation: if set, must be a valid 26-char ID.
+	// Empty string is allowed as a transient signal for unlinking; callers
+	// must canonicalize it to nil before persistence.
+	if pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" && !IsValidId(*pf.LinkedFieldID) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "linked_field_id", "Reason": "invalid id"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// Template fields are canonical schema definitions and must not link to other fields
+	if pf.ObjectType == PropertyFieldObjectTypeTemplate && pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "linked_field_id", "Reason": "template fields cannot have a linked field"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.CreateAt == 0 {
@@ -277,20 +331,22 @@ func (pf *PropertyField) IsValid() error {
 }
 
 type PropertyFieldPatch struct {
-	Name       *string            `json:"name"`
-	Type       *PropertyFieldType `json:"type"`
-	Attrs      *StringInterface   `json:"attrs"`
-	TargetID   *string            `json:"target_id"`
-	TargetType *string            `json:"target_type"`
+	Name          *string            `json:"name"`
+	Type          *PropertyFieldType `json:"type"`
+	Attrs         *StringInterface   `json:"attrs"`
+	TargetID      *string            `json:"target_id"`
+	TargetType    *string            `json:"target_type"`
+	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 	return map[string]any{
-		"name":        pfp.Name,
-		"type":        pfp.Type,
-		"attrs":       pfp.Attrs,
-		"target_id":   pfp.TargetID,
-		"target_type": pfp.TargetType,
+		"name":            pfp.Name,
+		"type":            pfp.Type,
+		"attrs":           pfp.Attrs,
+		"target_id":       pfp.TargetID,
+		"target_type":     pfp.TargetType,
+		"linked_field_id": pfp.LinkedFieldID,
 	}
 }
 
@@ -317,7 +373,8 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		*pfp.Type != PropertyFieldTypeMultiselect &&
 		*pfp.Type != PropertyFieldTypeDate &&
 		*pfp.Type != PropertyFieldTypeUser &&
-		*pfp.Type != PropertyFieldTypeMultiuser {
+		*pfp.Type != PropertyFieldTypeMultiuser &&
+		*pfp.Type != PropertyFieldTypeRank {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
 	}
 
@@ -359,6 +416,15 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 
 	if patch.TargetType != nil {
 		pf.TargetType = *patch.TargetType
+	}
+
+	if patch.LinkedFieldID != nil {
+		if *patch.LinkedFieldID == "" {
+			// Empty string means unlink — clear to NULL
+			pf.LinkedFieldID = nil
+		} else {
+			pf.LinkedFieldID = patch.LinkedFieldID
+		}
 	}
 }
 
@@ -428,6 +494,7 @@ type PropertyFieldSearchOpts struct {
 	ObjectType     string
 	TargetType     string
 	TargetIDs      []string
+	LinkedFieldID  string
 	SinceUpdateAt  int64 // UpdatedAt after which to send the items
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor

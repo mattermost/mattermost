@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {AppCallResponse} from '@mattermost/types/apps';
 import type {CommandArgs, CommandResponse} from '@mattermost/types/integrations';
 
@@ -31,7 +32,6 @@ import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import {isUrlSafe, getSiteURL} from 'utils/url';
-import * as UserAgent from 'utils/user_agent';
 import {getUserIdFromChannelName} from 'utils/utils';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -43,7 +43,7 @@ export type ExecuteCommandReturnType = {
     silentFailureReason?: Error;
     commandResponse?: CommandResponse;
     appResponse?: AppCallResponse;
-}
+};
 
 export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {
@@ -81,7 +81,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             if (!channel) {
                 return {data: {silentFailureReason: new Error('cannot find current channel')}};
             }
-            if (channel.type === Constants.PRIVATE_CHANNEL) {
+            if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
                 dispatch(openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}}));
                 return {data: {frontendHandled: true}};
             }

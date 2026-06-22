@@ -17,7 +17,7 @@ type Props = {
     onError: (error: ServerError) => void;
     onSuccess: () => void;
     onExited: () => void;
-}
+};
 
 export default function ConfirmResetFailedAttemptsModal({user, onSuccess, onError, onExited}: Props) {
     const dispatch = useDispatch();
@@ -68,7 +68,7 @@ export default function ConfirmResetFailedAttemptsModal({user, onSuccess, onErro
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonClass='btn btn-danger'
+            confirmButtonVariant='destructive'
             cancelButtonText={cancelGroupMembershipsButton}
             confirmButtonText={createGroupMembershipsButton}
             onConfirm={confirm}

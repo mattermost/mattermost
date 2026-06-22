@@ -40,8 +40,26 @@ type Team struct {
 	LastTeamIconUpdate  int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId            *string `json:"scheme_id"`
 	GroupConstrained    *bool   `json:"group_constrained"`
-	PolicyID            *string `json:"policy_id"`
+	PolicyID            *string `json:"policy_id"` // Data Retention policy — unrelated to ABAC below
 	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
+
+	// Not persisted; derived by the store via EXISTS on AccessControlPolicies(Type='team').
+	// Use HasMembershipPolicyAction for enforcement — this is a read-path signal only.
+	PolicyEnforced bool            `json:"policy_enforced"`
+	PolicyActions  map[string]bool `json:"policy_actions,omitempty"` // hydrated lazily; nil when not hydrated
+	PolicyIsActive bool            `json:"policy_is_active"`
+}
+
+// HasPolicyAction is nil-safe; returns false when PolicyActions is nil or empty.
+func (o *Team) HasPolicyAction(action string) bool {
+	if o == nil || len(o.PolicyActions) == 0 {
+		return false
+	}
+	return o.PolicyActions[action]
+}
+
+func (o *Team) HasMembershipPolicyAction() bool {
+	return o.HasPolicyAction(AccessControlPolicyActionMembership)
 }
 
 func (o *Team) Auditable() map[string]any {

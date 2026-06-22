@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @system_console @enterprise @not_cloud
 
-import {FixedPublicLinks} from '../../../../utils';
+import {FixedPublicLinks} from '@/utils';
 
 describe('Edition and License', () => {
     before(() => {

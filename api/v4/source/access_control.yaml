@@ -144,6 +144,57 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/simulate_users:
+    post:
+      tags:
+        - access control
+      summary: Simulate an access control policy decision for an explicit user list
+      description: |
+        Runs the dual-lane PDP simulation against a draft (unsaved) access
+        control policy for an explicit set of users (with optional per-user
+        session-attribute overrides). The server compiles the draft
+        in-memory, layers on persisted higher-scoped permission policies,
+        and returns per-user, per-action ALLOW/DENY decisions plus blame
+        attribution for any deny.
+
+        Backs the picker-driven "Simulate access" UX in the System Console
+        and Channel Settings so authors can see how a draft interacts with
+        persisted higher-scoped policies before saving.
+
+        Gated by the `PermissionPolicies` feature flag and the Enterprise
+        Advanced license. Returns 501 (Not Implemented) when either is
+        missing.
+
+        ##### Permissions
+        Must have the `manage_system` permission, OR be a team admin with
+        `manage_team_access_rules` on the request's `team_id` (when any
+        provided `channel_id` resolves to a channel in that team), OR be a
+        channel admin with `manage_channel_access_rules` on the request's
+        `channel_id`.
+      operationId: SimulateAccessControlPolicyForUsers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicySimulationByUsersParams"
+      responses:
+        "200":
+          description: Per-user, per-action simulation results.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicySimulationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/search:
     post:
       tags:
@@ -330,9 +381,9 @@
     post:
       tags:
         - access control
-      summary: Assign an access control policy to channels
+      summary: Assign an access control policy to channels or teams
       description: |
-        Assigns an access control policy to a list of channels.
+        Assigns an access control policy to a list of channels and/or teams.
         ##### Permissions
         Must have the `manage_system` permission.
       operationId: AssignAccessControlPolicyToChannels
@@ -355,9 +406,17 @@
                   items:
                     type: string
                   description: The IDs of the channels to assign the policy to.
+                team_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    The IDs of the teams to assign the policy to. Requires the
+                    `manage_system` permission. Any unknown team ID is rejected
+                    with a 400.
       responses:
         "200":
-          description: Policy assigned to channels successfully.
+          description: Policy assigned to the channels and/or teams successfully.
           content:
             application/json:
               schema:
@@ -376,9 +435,9 @@
     delete:
       tags:
         - access control
-      summary: Unassign an access control policy from channels
+      summary: Unassign an access control policy from channels or teams
       description: |
-        Unassigns an access control policy from a list of channels.
+        Unassigns an access control policy from a list of channels and/or teams.
         ##### Permissions
         Must have the `manage_system` permission.
       operationId: UnassignAccessControlPolicyFromChannels
@@ -401,9 +460,17 @@
                   items:
                     type: string
                   description: The IDs of the channels to unassign the policy from.
+                team_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    The IDs of the teams to unassign the policy from. Requires the
+                    `manage_system` permission. Any unknown team ID is rejected
+                    with a 400.
       responses:
         "200":
-          description: Policy unassigned from channels successfully.
+          description: Policy unassigned from the channels and/or teams successfully.
           content:
             application/json:
               schema:

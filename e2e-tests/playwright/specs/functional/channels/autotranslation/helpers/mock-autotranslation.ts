@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
+import type {Page, Route} from '@playwright/test';
 
 interface MockTranslateRequest {
     q?: string;
@@ -26,7 +26,9 @@ let mockSourceLanguage = 'es';
  * Simulates how real LibreTranslate detects language from actual message text
  */
 function detectLanguageFromText(text: string): string {
-    if (!text) return mockSourceLanguage;
+    if (!text) {
+        return mockSourceLanguage;
+    }
 
     const lowerText = text.toLowerCase();
 
@@ -86,9 +88,15 @@ function detectLanguageFromText(text: string): string {
     const frenchMatches = frenchIndicators.filter((indicator) => lowerText.includes(indicator)).length;
 
     // Return the language with most matches
-    if (spanishMatches > englishMatches && spanishMatches > frenchMatches) return 'es';
-    if (englishMatches > frenchMatches) return 'en';
-    if (frenchMatches > 0) return 'fr';
+    if (spanishMatches > englishMatches && spanishMatches > frenchMatches) {
+        return 'es';
+    }
+    if (englishMatches > frenchMatches) {
+        return 'en';
+    }
+    if (frenchMatches > 0) {
+        return 'fr';
+    }
 
     // Default to configured mock language
     return mockSourceLanguage;
@@ -117,8 +125,15 @@ export function resetMockSourceLanguage(): void {
 }
 
 /**
- * Mock the autotranslation API route using Playwright's route interception
- * This replaces the need for an external mock server
+ * Mock the autotranslation API route using Playwright's route interception.
+ * This replaces the need for an external mock server.
+ *
+ * Returns a `Disposable` to remove the mock routes. Use with `await using`
+ * for automatic cleanup or call `.dispose()` manually:
+ *
+ * ```ts
+ * await using mock = await mockAutotranslationRoute(page);
+ * ```
  *
  * @param page - Playwright Page object
  * @param options - Optional configuration
@@ -131,15 +146,14 @@ export async function mockAutotranslationRoute(
         sourceLanguage?: string;
         supportedLanguages?: string[];
     },
-): Promise<void> {
+): Promise<{dispose(): Promise<void>; [Symbol.asyncDispose](): Promise<void>}> {
     // Reset mockSourceLanguage to avoid state leakage between tests
     mockSourceLanguage = options?.sourceLanguage || 'es';
 
     const supportedLanguages = options?.supportedLanguages || ['en', 'es', 'fr', 'de'];
 
-    // Mock LibreTranslate API endpoint
-    // Handles both /translate and /detect endpoints
-    await page.route('**/api/translate', async (route) => {
+    // Named handler so it can be passed to page.unroute() for cleanup
+    const translateHandler = async (route: Route): Promise<void> => {
         const request = route.request();
         const method = request.method();
 
@@ -251,13 +265,12 @@ export async function mockAutotranslationRoute(
         } else {
             await route.abort('failed');
         }
-    });
+    };
 
-    // Mock language detection endpoint (if used separately)
-    await page.route('**/api/detect', async (route) => {
+    // Named handler so it can be passed to page.unroute() for cleanup
+    const detectHandler = async (route: Route): Promise<void> => {
         // Language detection is mocked to always return the configured source language
         // regardless of the input text
-
         await route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -271,14 +284,20 @@ export async function mockAutotranslationRoute(
                 detectedLanguage: {language: mockSourceLanguage, confidence: 0.95},
             }),
         });
-    });
-}
+    };
 
-/**
- * Remove all mock routes for autotranslation
- * Useful for cleaning up between tests or switching to real API
- */
-export async function unmockAutotranslationRoute(page: Page): Promise<void> {
-    await page.unroute('**/api/translate');
-    await page.unroute('**/api/detect');
+    // Mock LibreTranslate API endpoints
+    await page.route('**/api/translate', translateHandler);
+    await page.route('**/api/detect', detectHandler);
+
+    return {
+        async dispose() {
+            await page.unroute('**/api/translate', translateHandler);
+            await page.unroute('**/api/detect', detectHandler);
+        },
+        async [Symbol.asyncDispose]() {
+            await page.unroute('**/api/translate', translateHandler);
+            await page.unroute('**/api/detect', detectHandler);
+        },
+    };
 }

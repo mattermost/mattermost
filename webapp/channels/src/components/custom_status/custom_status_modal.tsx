@@ -111,7 +111,7 @@ const defaultCustomStatusSuggestions: DefaultUserCustomStatus[] = [
 
 const defaultDuration = TODAY;
 const CustomStatusModal: React.FC<Props> = (props: Props) => {
-    const getCustomStatus = useMemo(makeGetCustomStatus, []);
+    const getCustomStatus = useMemo(() => makeGetCustomStatus(), []);
     const dispatch = useDispatch();
     const currentCustomStatus = useSelector(getCustomStatus);
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, currentCustomStatus));
@@ -367,7 +367,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             handleConfirm={handleSetStatus}
             handleEnterKeyPress={handleEnterKeyPressed}
             handleCancel={handleClearStatus}
-            confirmButtonClassName='btn btn-primary'
             ariaLabel={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
             keyboardEscape={false}
             tabIndex={-1}

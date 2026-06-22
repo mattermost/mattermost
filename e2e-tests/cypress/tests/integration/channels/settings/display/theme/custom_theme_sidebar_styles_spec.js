@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {hexToRgbArray, rgbArrayToString} from '../../../../../utils';
+import {hexToRgbArray, rgbArrayToString} from '@/utils';
 
 describe('Custom Theme - Sidebar Styles', () => {
     const themeRgbColor = {};

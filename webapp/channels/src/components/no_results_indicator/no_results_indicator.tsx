@@ -25,7 +25,7 @@ interface Props {
     subtitleClassName?: string;
 }
 
-const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
+const iconMap: {[key in NoResultsVariant]: React.ReactNode} = {
     [NoResultsVariant.Search]: <SearchSVG className='no-results__icon'/>,
     [NoResultsVariant.ChannelSearch]: <ChannelSearchSVG className='no-results__icon'/>,
     [NoResultsVariant.Files]: <ChannelFilesSVG className='no-results__icon'/>,

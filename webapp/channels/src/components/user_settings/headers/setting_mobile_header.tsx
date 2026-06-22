@@ -9,7 +9,7 @@ type Props = {
     text: ReactNode;
     closeModal: () => void;
     collapseModal: () => void;
-}
+};
 const SettingMobileHeader = ({
     text,
     closeModal,

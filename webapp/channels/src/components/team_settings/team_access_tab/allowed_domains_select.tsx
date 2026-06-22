@@ -13,7 +13,7 @@ type Props = {
     setAllowedDomains: (domains: string[]) => void;
     setHasChanges: (hasChanges: boolean) => void;
     setSaveChangesPanelState: (state: SaveChangesPanelState) => void;
-}
+};
 
 const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges, setSaveChangesPanelState}: Props) => {
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains.length > 0);

@@ -78,7 +78,7 @@ type Props = {
     setByEnv: boolean;
     disabledText?: React.ReactNode;
     helpText: React.ReactNode;
-}
+};
 
 const BooleanSetting = ({
     id,

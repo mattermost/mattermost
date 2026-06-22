@@ -23,7 +23,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
 
         // # Post BoR message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const secretMessage = `Secret message ${await pw.random.id()}`;
+        const secretMessage = `Secret message ${pw.random.id()}`;
         await senderPage.postMessage(secretMessage);
 
         // # Login as receiver in new context
@@ -72,7 +72,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `To be burned ${await pw.random.id()}`;
+        const message = `To be burned ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver
@@ -126,7 +126,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             await senderPage.toBeVisible();
 
             await senderPage.centerView.postCreate.toggleBurnOnRead();
-            const message = `Test message ${await pw.random.id()}`;
+            const message = `Test message ${pw.random.id()}`;
             await senderPage.postMessage(message);
 
             // # Login as receiver
@@ -180,7 +180,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Timer test ${await pw.random.id()}`;
+        const message = `Timer test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver
@@ -227,7 +227,13 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             adminClient,
         } = await setupBorTest(pw, {
             durationSeconds: 10,
-            maxTTLSeconds: 300,
+            maxTTLSeconds: 86400,
+        });
+
+        // # Verify the config was applied before proceeding (guard against state pollution)
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
         });
 
         // # Create receiver
@@ -240,8 +246,22 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
+        // Re-apply guard: concurrent initSetup() may reset BurnOnReadDurationSeconds to 60
+        // (default) after the pw.waitUntil check above but before the message is posted.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 10,
+                BurnOnReadMaximumTimeToLiveSeconds: 86400,
+            },
+        });
+        // Confirm the re-apply actually took effect before the post is created.
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
+        });
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Auto-delete test ${await pw.random.id()}`;
+        const message = `Auto-delete test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver
@@ -253,6 +273,21 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         const borPost = await receiverPage.getLastPost();
         const postId = await borPost.getId();
 
+        // Re-apply guard: TTL is assigned by the server at reveal time, not post time.
+        // A concurrent initSetup() may have reset BurnOnReadDurationSeconds to its
+        // default (60 s) between the sender's post and the receiver's reveal click.
+        // Re-applying here ensures the server uses 10 s when it writes the TTL.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 10,
+                BurnOnReadMaximumTimeToLiveSeconds: 86400,
+            },
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
+        });
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
@@ -266,7 +301,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             const postLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
             await expect(postLocator).not.toBeVisible();
         }).toPass({
-            timeout: 20000,
+            timeout: 30000,
             intervals: [1000],
         });
 
@@ -295,7 +330,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Badge test ${await pw.random.id()}`;
+        const message = `Badge test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver
