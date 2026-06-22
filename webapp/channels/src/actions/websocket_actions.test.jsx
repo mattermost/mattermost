@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes, TeamTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, JobTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -61,6 +61,7 @@ import {
     handleCustomAttributesCreated,
     handleCustomAttributesUpdated,
     handleCustomAttributesDeleted,
+    handleJobUpdated,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
@@ -2146,5 +2147,29 @@ describe('handleFileUploadRejected', () => {
         const closeModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_CLOSE);
         expect(closeModalAction).toBeDefined();
         expect(closeModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+    });
+});
+
+describe('handleJobUpdated', () => {
+    test('dispatches RECEIVED_JOB with the parsed job on valid JSON', () => {
+        const job = {id: 'job1', type: 'ldap_sync', status: 'success'};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toContainEqual({
+            type: JobTypes.RECEIVED_JOB,
+            data: job,
+        });
+    });
+
+    test('does not dispatch when msg.data.job is malformed JSON', () => {
+        const msg = {data: {job: '{not-valid-json'}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toHaveLength(0);
     });
 });
