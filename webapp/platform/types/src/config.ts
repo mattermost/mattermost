@@ -129,12 +129,14 @@ export type ClientConfig = {
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
+    FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
+    FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
 

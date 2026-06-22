@@ -8557,6 +8557,63 @@ func TestGetThreadsForUser(t *testing.T) {
 	})
 }
 
+func TestGetThreadsForUser_AfterTeamRemovalAndReinvite(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	admin := th.BasicUser
+	victim := th.BasicUser2
+
+	privateChannel := th.CreatePrivateChannel(t)
+	th.AddUserToChannel(t, victim, privateChannel)
+
+	defer func() {
+		require.NoError(t, th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, admin.Id))
+		require.NoError(t, th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, victim.Id))
+	}()
+
+	rootPost, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+		ChannelId: privateChannel.Id,
+		Message:   "private team secret",
+	})
+	require.NoError(t, err)
+
+	victimClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, victimClient)
+
+	_, _, err = victimClient.CreatePost(context.Background(), &model.Post{
+		ChannelId: privateChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "victim reply",
+	})
+	require.NoError(t, err)
+
+	uss, _, err := victimClient.GetUserThreads(context.Background(), victim.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{Extended: true})
+	require.NoError(t, err)
+	require.Len(t, uss.Threads, 1, "sanity: victim should see their own thread before team removal")
+
+	_, err = th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, victim.Id)
+	require.NoError(t, err)
+
+	_, _, err = th.SystemAdminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, victim.Id)
+	require.NoError(t, err)
+
+	th.LoginBasic2WithClient(t, victimClient)
+
+	uss, _, err = victimClient.GetUserThreads(context.Background(), victim.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{Extended: true})
+	require.NoError(t, err)
+	for _, thr := range uss.Threads {
+		require.NotEqual(t, rootPost.Id, thr.PostId, "private-channel thread must not leak to re-invited user")
+	}
+	require.Len(t, uss.Threads, 0, "re-invited user must not receive any threads from private channels they no longer belong to")
+}
+
 func TestThreadSocketEvents(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -10817,6 +10874,47 @@ func TestGetSessionAttributesManifest(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Empty(t, manifest)
+	})
+
+	t.Run("enabled field carries its seeded display name", func(t *testing.T) {
+		const desktopUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+
+		var hardwareField *model.PropertyField
+		for _, field := range fields {
+			if field.Name == model.SessionAttributesPropertyFieldHardwareID {
+				hardwareField = field
+				break
+			}
+		}
+		require.NotNil(t, hardwareField)
+		if hardwareField.Attrs == nil {
+			hardwareField.Attrs = model.StringInterface{}
+		}
+		hardwareField.Attrs["enabled"] = true
+		_, _, appErr = th.App.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{hardwareField}, true, "")
+		require.Nil(t, appErr)
+
+		th.Client.HTTPHeader = map[string]string{"User-Agent": desktopUserAgent}
+		defer func() { th.Client.HTTPHeader = nil }()
+
+		manifest, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var hardwareEntry *model.SessionAttributeManifestEntry
+		for _, entry := range manifest {
+			if entry.Name == model.SessionAttributesPropertyFieldHardwareID {
+				hardwareEntry = entry
+				break
+			}
+		}
+		require.NotNil(t, hardwareEntry)
+		require.Equal(t, model.SessionAttributesDisplayNameHardwareID, hardwareEntry.DisplayName)
 	})
 }
 

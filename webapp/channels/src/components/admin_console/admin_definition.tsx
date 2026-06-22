@@ -73,6 +73,7 @@ import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from '
 import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
     AnnouncementBannerFeatureDiscovery,
+    ClassificationMarkingsFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataSpillageFeatureDiscovery,
@@ -3462,6 +3463,28 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'ClassificationMarkings',
                     component: ClassificationMarkings,
                 },
+            },
+            classification_markings_feature_discovery: {
+                url: 'site_config/classification_markings',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
+                ),
+                schema: {
+                    id: 'ClassificationMarkings',
+                    name: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: ClassificationMarkingsFeatureDiscovery,
+                            key: 'ClassificationMarkingsFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
             announcement_banner: {
                 url: 'site_config/announcement_banner',

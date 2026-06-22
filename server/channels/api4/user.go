@@ -1043,12 +1043,33 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
-		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
-			return
+		// On a policy-governed team, abac_match_only=true narrows the candidates to
+		// users who satisfy the membership policy so callers like the invite modal
+		// never surface a non-qualifying user. Without the flag the listing is
+		// unchanged. Surface TeamAccessControlled errors rather than silently
+		// falling through to the unfiltered path.
+		abacMatchOnly, _ := strconv.ParseBool(r.URL.Query().Get("abac_match_only"))
+		useAbacFilter := false
+		if abacMatchOnly {
+			enforced, enforcedErr := c.App.TeamAccessControlled(c.AppContext, notInTeamId)
+			if enforcedErr != nil {
+				c.Err = enforcedErr
+				return
+			}
+			useAbacFilter = enforced
 		}
 
-		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		if useAbacFilter {
+			cursorId := r.URL.Query().Get("cursor_id")
+			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, cursorId, c.Params.PerPage, c.IsSystemAdmin())
+		} else {
+			etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
+			if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
+				return
+			}
+
+			profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		}
 	} else if inTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)

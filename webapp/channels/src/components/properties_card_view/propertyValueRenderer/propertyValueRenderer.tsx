@@ -52,6 +52,7 @@ export default function PropertyValueRenderer({field, value, metadata}: Props) {
             />
         );
     case 'select':
+    case 'rank':
         return (
             <SelectPropertyRenderer
                 value={value}

@@ -238,6 +238,7 @@ func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
+		cfg.FeatureFlags.PropertyFieldRank = true
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -525,6 +526,64 @@ func TestPatchCPAField(t *testing.T) {
 		rawValue, ok := retrieved[created.ID]
 		require.True(t, ok, "value should still exist after a non-type-changing patch")
 		require.Equal(t, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), rawValue)
+	})
+
+	t.Run("options-only patch on a rank field preserves IDs and round-trips ranks", func(t *testing.T) {
+		// A rank field is in the options-only permission branch (alongside
+		// select/multiselect), so an attrs.options-only patch routes through the
+		// manage-options path. Verify the admin patch succeeds and each option's
+		// rank persists through the round-trip.
+		rankField := &model.PropertyField{
+			Name: "rank_field_" + model.NewId(),
+			Type: model.PropertyFieldTypeRank,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Low", "rank": 1},
+					map[string]any{"name": "High", "rank": 2},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), rankField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.Len(t, createdCPA.Attrs.Options, 2)
+		id1 := createdCPA.Attrs.Options[0].ID
+		id2 := createdCPA.Attrs.Options[1].ID
+		require.NotEmpty(t, id1)
+		require.NotEmpty(t, id2)
+		require.NotNil(t, createdCPA.Attrs.Options[0].Rank)
+		require.Equal(t, 1, *createdCPA.Attrs.Options[0].Rank)
+
+		// Options-only patch: re-rank existing options and add a new one.
+		patch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": id1, "name": "Low", "rank": 10},
+					map[string]any{"id": id2, "name": "High", "rank": 20},
+					map[string]any{"name": "Highest", "rank": 30},
+				},
+			}),
+		}
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		patchedCPA, err := model.NewCPAFieldFromPropertyField(patched)
+		require.NoError(t, err)
+		require.Len(t, patchedCPA.Attrs.Options, 3)
+
+		require.Equal(t, id1, patchedCPA.Attrs.Options[0].ID)
+		require.NotNil(t, patchedCPA.Attrs.Options[0].Rank)
+		require.Equal(t, 10, *patchedCPA.Attrs.Options[0].Rank)
+		require.Equal(t, id2, patchedCPA.Attrs.Options[1].ID)
+		require.NotNil(t, patchedCPA.Attrs.Options[1].Rank)
+		require.Equal(t, 20, *patchedCPA.Attrs.Options[1].Rank)
+		require.NotEmpty(t, patchedCPA.Attrs.Options[2].ID)
+		require.NotNil(t, patchedCPA.Attrs.Options[2].Rank)
+		require.Equal(t, 30, *patchedCPA.Attrs.Options[2].Rank)
 	})
 }
 

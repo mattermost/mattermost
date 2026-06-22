@@ -14,6 +14,7 @@ import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
 
+import {ChannelComposerBanner} from './channel_composer_banner';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
@@ -206,6 +207,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     data-testid='post-create'
                     className='post-create__container AdvancedTextEditor__ctr'
                 >
+                    <ChannelComposerBanner channelId={this.props.channelId}/>
                     <AdvancedCreatePost/>
                 </div>
             );
