@@ -157,7 +157,7 @@ describe('SharedChannelInvitationsPanel', () => {
         await waitFor(() => {
             expect(
                 screen.getByText(
-                    'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+                    'There are no stored invitation records for this connection.',
                 ),
             ).toBeInTheDocument();
         });
@@ -187,7 +187,7 @@ describe('SharedChannelInvitationsPanel', () => {
         await waitFor(() => {
             expect(
                 screen.getByText(
-                    'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+                    'There are no stored invitation records for this connection.',
                 ),
             ).toBeInTheDocument();
         });
@@ -196,7 +196,7 @@ describe('SharedChannelInvitationsPanel', () => {
 
         expect(
             screen.queryByText(
-                'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+                'There are no stored invitation records for this connection.',
             ),
         ).not.toBeInTheDocument();
     });
