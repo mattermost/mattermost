@@ -211,6 +211,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 		}
 	}
 
+	job.LastActivityAt = model.GetMillis()
 	srv.publishJobStatus(job, job.Status)
 	return nil
 }

@@ -10,6 +10,7 @@ import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {
     getPostThreads,
     getPostsAround,
@@ -139,6 +140,10 @@ jest.mock('mattermost-redux/actions/shared_channels', () => ({
         channelId,
         forceRefresh,
     })),
+}));
+
+jest.mock('mattermost-redux/actions/jobs', () => ({
+    getJobsByType: jest.fn((jobType) => ({type: 'MOCK_GET_JOBS_BY_TYPE', jobType})),
 }));
 
 let mockState = {
@@ -2151,6 +2156,10 @@ describe('handleFileUploadRejected', () => {
 });
 
 describe('handleJobUpdated', () => {
+    beforeEach(() => {
+        getJobsByType.mockClear();
+    });
+
     test('dispatches RECEIVED_JOB with the parsed job on valid JSON', () => {
         const job = {id: 'job1', type: 'ldap_sync', status: 'success'};
         const msg = {data: {job: JSON.stringify(job)}};
@@ -2171,5 +2180,35 @@ describe('handleJobUpdated', () => {
         testStore.dispatch(handleJobUpdated(msg));
 
         expect(testStore.getActions()).toHaveLength(0);
+    });
+
+    test.each([
+        ['success', 'ldap_sync'],
+        ['error', 'message_export'],
+        ['warning', 'data_retention'],
+        ['canceled', 'elasticsearch_post_indexing'],
+    ])('re-fetches job list on terminal status "%s"', (status, type) => {
+        const job = {id: 'job1', type, status};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).toContainEqual({
+            type: 'MOCK_GET_JOBS_BY_TYPE',
+            jobType: type,
+        });
+    });
+
+    test('does not re-fetch on non-terminal status', () => {
+        const job = {id: 'job1', type: 'ldap_sync', status: 'in_progress'};
+        const msg = {data: {job: JSON.stringify(job)}};
+
+        const testStore = configureStore(mockState);
+        testStore.dispatch(handleJobUpdated(msg));
+
+        expect(testStore.getActions()).not.toContainEqual(
+            expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
+        );
     });
 });
