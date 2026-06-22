@@ -310,7 +310,10 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 
 			_, err = io.Copy(writer, reader)
 			if err != nil {
-				return fmt.Errorf("unable to add attachment to the Global Relay export: %w", err)
+				// Return nil not the error: gomail panics on subsequent attachments if w.err is set (nil partWriter in writeBody).
+				rctx.Logger().Warn("Unable to copy attachment for Global Relay export", mlog.String("filename", path), mlog.Err(err))
+				warningCount++
+				return nil
 			}
 			return nil
 		}))
