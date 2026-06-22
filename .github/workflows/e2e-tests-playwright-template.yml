@@ -165,7 +165,7 @@ jobs:
         # Sparse-checkout just .github/actions from the triggering ref (master)
         # so the composite action below is available before the full checkout
         # overwrites the workspace with inputs.commit_sha.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
           sparse-checkout: .github/actions
@@ -173,13 +173,13 @@ jobs:
       - name: ci/runner-prep-for-openldap
         uses: ./.github/actions/runner-prep-openldap
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -200,7 +200,7 @@ jobs:
         # the version. Avoids repeated MCR pulls which are frequently blocked by
         # Microsoft's CDN ("The request is blocked").
         id: playwright-image-cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: /tmp/playwright-docker-image.tar
           key: playwright-docker-image-${{ hashFiles('e2e-tests/.ci/server.generate.sh', '.github/workflows/e2e-tests-playwright-template.yml') }}-${{ runner.os }}
@@ -251,7 +251,7 @@ jobs:
           sudo dmesg | tail -500 >"$DIAG/host.dmesg.tail.txt" 2>&1
           sudo dmesg | grep -iE 'apparmor|denied|oom|killed|openldap|slapd' >"$DIAG/host.dmesg.relevant.txt" 2>&1
       - name: ci/upload-docker-diagnostics
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: docker-diagnostics-playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-${{ matrix.worker_index }}
@@ -259,7 +259,7 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
       - name: ci/upload-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
@@ -292,17 +292,17 @@ jobs:
       end_time: ${{ steps.record-end-time.outputs.end_time }}
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: "e2e-tests/playwright/package-lock.json"
       - name: ci/download-shard-results
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
           path: e2e-tests/playwright/shard-results/
@@ -321,7 +321,7 @@ jobs:
         with:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
       - name: ci/upload-merged-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: e2e-tests/playwright/results/
@@ -359,11 +359,11 @@ jobs:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: ".nvmrc"
           cache: npm
@@ -373,7 +373,7 @@ jobs:
       # reports already include the inline per-shard retry results, so no
       # separate retest download/merge is needed here.
       - name: ci/download-results
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: e2e-tests/playwright/results/
@@ -388,7 +388,7 @@ jobs:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
 
       - name: ci/aws-configure
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
