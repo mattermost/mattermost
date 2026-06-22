@@ -22,7 +22,7 @@ import {packRows} from './pack_rows';
 import ImageTile from './tiles/image_tile';
 import VideoTile from './tiles/video_tile';
 import type {ClassifiedFile, TileKind} from './types';
-import {useContainerWidth} from './use_container_width';
+import {useContainerDimensions} from './use_container_dimensions';
 
 import './media_gallery.scss';
 
@@ -58,7 +58,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     const enablePublicLink = useSelector((state: GlobalState) => getConfig(state).EnablePublicLink === 'true');
 
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const containerWidth = useContainerWidth(containerRef);
+    const {width: containerWidth} = useContainerDimensions(containerRef);
 
     const tiles: ClassifiedFile[] = useMemo(() => {
         const out: ClassifiedFile[] = [];
