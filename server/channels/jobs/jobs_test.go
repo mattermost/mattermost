@@ -807,18 +807,34 @@ func TestPublishJobStatus(t *testing.T) {
 		assertPublishedJob(t, captured, model.JobStatusWarning)
 	})
 
-	t.Run("SetJobSuccess publishes success", func(t *testing.T) {
+	t.Run("SetJobSuccess publishes success with DB timestamps", func(t *testing.T) {
 		jobServer, mockStore, mockMetrics := makeJobServer(t)
 		var captured *model.WebSocketEvent
 		jobServer.publish = func(ev *model.WebSocketEvent) { captured = ev }
 
+		// in-memory job has no timestamps (simulates worker's working copy)
 		job := &model.Job{Id: "job_id", Type: "job_type"}
 
-		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusSuccess).Return(job, nil)
+		// DB returns full job with start_at and last_activity_at populated
+		dbJob := &model.Job{
+			Id:             "job_id",
+			Type:           "job_type",
+			Status:         model.JobStatusSuccess,
+			StartAt:        1000,
+			LastActivityAt: 2000,
+		}
+
+		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusSuccess).Return(dbJob, nil)
 		mockMetrics.On("DecrementJobActive", "job_type")
 
 		require.Nil(t, jobServer.SetJobSuccess(job))
+
 		assertPublishedJob(t, captured, model.JobStatusSuccess)
+		jobJSON, _ := captured.GetData()["job"].(string)
+		var published model.Job
+		require.NoError(t, json.Unmarshal([]byte(jobJSON), &published))
+		require.Equal(t, int64(1000), published.StartAt, "published job must use start_at from DB")
+		require.Equal(t, int64(2000), published.LastActivityAt, "published job must use last_activity_at from DB")
 	})
 
 	t.Run("SetJobError nil jobError publishes error", func(t *testing.T) {

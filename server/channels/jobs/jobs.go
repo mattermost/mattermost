@@ -144,38 +144,54 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 }
 
 func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
-	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusWarning); err != nil {
+	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusWarning)
+	if err != nil {
 		return model.NewAppError("SetJobWarning", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	srv.publishJobStatus(job, model.JobStatusWarning)
+	pubJob := job
+	if ret != nil {
+		pubJob = ret
+	}
+	srv.publishJobStatus(pubJob, model.JobStatusWarning)
 	return nil
 }
 
 func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
-	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusSuccess); err != nil {
+	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusSuccess)
+	if err != nil {
 		return model.NewAppError("SetJobSuccess", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if srv.metrics != nil {
-		srv.metrics.DecrementJobActive(job.Type)
+	pubJob := job
+	if ret != nil {
+		pubJob = ret
 	}
 
-	srv.publishJobStatus(job, model.JobStatusSuccess)
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(pubJob.Type)
+	}
+
+	srv.publishJobStatus(pubJob, model.JobStatusSuccess)
 	return nil
 }
 
 func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
 	if jobError == nil {
-		_, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusError)
+		ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusError)
 		if err != nil {
 			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		if srv.metrics != nil {
-			srv.metrics.DecrementJobActive(job.Type)
+		pubJob := job
+		if ret != nil {
+			pubJob = ret
 		}
 
-		srv.publishJobStatus(job, model.JobStatusError)
+		if srv.metrics != nil {
+			srv.metrics.DecrementJobActive(pubJob.Type)
+		}
+
+		srv.publishJobStatus(pubJob, model.JobStatusError)
 		return nil
 	}
 
@@ -214,28 +230,40 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 }
 
 func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
-	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusCanceled); err != nil {
+	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusCanceled)
+	if err != nil {
 		return model.NewAppError("SetJobCanceled", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if srv.metrics != nil {
-		srv.metrics.DecrementJobActive(job.Type)
+	pubJob := job
+	if ret != nil {
+		pubJob = ret
 	}
 
-	srv.publishJobStatus(job, model.JobStatusCanceled)
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(pubJob.Type)
+	}
+
+	srv.publishJobStatus(pubJob, model.JobStatusCanceled)
 	return nil
 }
 
 func (srv *JobServer) SetJobPending(job *model.Job) *model.AppError {
-	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusPending); err != nil {
+	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusPending)
+	if err != nil {
 		return model.NewAppError("SetJobPending", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if srv.metrics != nil {
-		srv.metrics.DecrementJobActive(job.Type)
+	pubJob := job
+	if ret != nil {
+		pubJob = ret
 	}
 
-	srv.publishJobStatus(job, model.JobStatusPending)
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(pubJob.Type)
+	}
+
+	srv.publishJobStatus(pubJob, model.JobStatusPending)
 	return nil
 }
 

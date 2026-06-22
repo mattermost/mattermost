@@ -178,19 +178,23 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 }
 
 func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
-	job := &model.Job{
-		Id:             id,
-		Status:         status,
-		LastActivityAt: model.GetMillis(),
-	}
+	builder := jss.getQueryBuilder().
+		Update("Jobs").
+		Set("Status", status).
+		Set("LastActivityAt", model.GetMillis()).
+		Where(sq.Eq{"Id": id}).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
 
-	if _, err := jss.GetMaster().NamedExec(`UPDATE Jobs
-		SET Status=:Status, LastActivityAt=:LastActivityAt
-		WHERE Id=:Id`, job); err != nil {
+	var jobs []*model.Job
+	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
 	}
 
-	return job, nil
+	if len(jobs) != 1 {
+		return nil, nil
+	}
+
+	return jobs[0], nil
 }
 
 func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
