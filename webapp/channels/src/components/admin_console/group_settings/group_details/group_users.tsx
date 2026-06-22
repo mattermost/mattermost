@@ -26,7 +26,7 @@ type Props = {
     getMembers: (
         id: string,
         page?: number,
-        perPage?: number
+        perPage?: number,
     ) => Promise<ActionResult>;
 };
 

@@ -179,6 +179,6 @@ export type NewChannelFormState = {
  * - `error`: plugin encountered an error; the modal displays `message`.
  */
 export type NewChannelFormResult =
-    | {status: 'created'; channel: Channel}
-    | {status: 'deferred'}
-    | {status: 'error'; message: string};
+    {status: 'created'; channel: Channel} |
+    {status: 'deferred'} |
+    {status: 'error'; message: string};
