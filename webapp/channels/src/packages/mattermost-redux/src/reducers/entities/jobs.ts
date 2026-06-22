@@ -45,7 +45,8 @@ function jobsByTypeList(state: JobsByType = {}, action: MMReduxAction): JobsByTy
         }
         const idx = typeList.findIndex((j) => j.id === job.id);
         if (idx === -1) {
-            return state;
+            // New job for a known type — prepend so the list stays newest-first
+            return {...state, [job.type as JobType]: [job, ...typeList]};
         }
         const nextList = [...typeList];
         nextList[idx] = job;

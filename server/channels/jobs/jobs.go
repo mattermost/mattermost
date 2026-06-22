@@ -130,7 +130,6 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventJobUpdated, "", "", "", nil, "")
 	message.Add("job", string(jobJSON))
-	message.GetBroadcast().ContainsSensitiveData = true
 	srv.publish(message)
 }
 
@@ -138,8 +137,12 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 	job.Status = model.JobStatusInProgress
 	job.Progress = progress
 
-	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
+	ret, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress)
+	if err != nil {
 		return model.NewAppError("SetJobProgress", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if ret != nil {
+		srv.publishJobStatus(ret, model.JobStatusInProgress)
 	}
 	return nil
 }
@@ -291,7 +294,7 @@ func (srv *JobServer) RequestCancellation(rctx request.CTX, jobId string) *model
 		if srv.metrics != nil {
 			srv.metrics.DecrementJobActive(newJob.Type)
 		}
-
+		srv.publishJobStatus(newJob, model.JobStatusCanceled)
 		return nil
 	}
 

@@ -898,4 +898,39 @@ func TestPublishJobStatus(t *testing.T) {
 		require.Nil(t, jobServer.SetJobPending(job))
 		assertPublishedJob(t, captured, model.JobStatusPending)
 	})
+
+	t.Run("SetJobProgress publishes in_progress", func(t *testing.T) {
+		jobServer, mockStore, _ := makeJobServer(t)
+		var captured *model.WebSocketEvent
+		jobServer.publish = func(ev *model.WebSocketEvent) { captured = ev }
+
+		job := &model.Job{
+			Id:       "job_id",
+			Type:     "job_type",
+			Status:   model.JobStatusInProgress,
+			Progress: 50,
+		}
+
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(job, nil)
+
+		require.Nil(t, jobServer.SetJobProgress(job, 50))
+		assertPublishedJob(t, captured, model.JobStatusInProgress)
+	})
+
+	t.Run("RequestCancellation pending->canceled publishes canceled", func(t *testing.T) {
+		ctx := request.TestContext(t)
+		jobServer, mockStore, mockMetrics := makeJobServer(t)
+		var captured *model.WebSocketEvent
+		jobServer.publish = func(ev *model.WebSocketEvent) { captured = ev }
+
+		job := &model.Job{Id: "job_id", Type: "job_type"}
+
+		mockStore.JobStore.
+			On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).
+			Return(job, nil)
+		mockMetrics.On("DecrementJobActive", "job_type")
+
+		require.Nil(t, jobServer.RequestCancellation(ctx, "job_id"))
+		assertPublishedJob(t, captured, model.JobStatusCanceled)
+	})
 }

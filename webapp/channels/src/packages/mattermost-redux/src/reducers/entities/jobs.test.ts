@@ -33,17 +33,20 @@ describe('reducers/entities/jobs', () => {
             expect(newState.jobsByTypeList).toBe(initialState.jobsByTypeList);
         });
 
-        it('leaves jobsByTypeList unchanged when job id is not in the type list', () => {
+        it('prepends job to the type list when job id is not already in the list', () => {
             const existingJob = makeJob({id: 'other_job', type: 'ldap_sync', status: 'pending'});
-            const job = makeJob({id: 'job1', type: 'ldap_sync', status: 'success'});
+            const newJob = makeJob({id: 'job1', type: 'ldap_sync', status: 'in_progress'});
             const initialState = {
                 jobs: {},
                 jobsByTypeList: {ldap_sync: [existingJob]},
             };
 
-            const newState = reducer(initialState, {type: JobTypes.RECEIVED_JOB, data: job});
+            const newState = reducer(initialState, {type: JobTypes.RECEIVED_JOB, data: newJob});
 
-            expect(newState.jobsByTypeList).toBe(initialState.jobsByTypeList);
+            expect(newState.jobsByTypeList.ldap_sync).toHaveLength(2);
+            expect(newState.jobsByTypeList.ldap_sync![0]).toBe(newJob);
+            expect(newState.jobsByTypeList.ldap_sync![1]).toBe(existingJob);
+            expect(newState.jobsByTypeList).not.toBe(initialState.jobsByTypeList);
         });
 
         it('updates the matching job in the type list when id is found', () => {
