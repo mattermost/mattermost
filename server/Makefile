@@ -931,7 +931,7 @@ migrations-extract:
 
 check-migration-changes: ## Fails if an existing migration was renumbered or renamed compared to the base branch (default origin/master).
 	@echo "Checking for renumbered or renamed migrations"
-	$(GO) run $(GOFLAGS) ./scripts/migration_check
+	./scripts/check_migration_changes.sh
 
 test-local-filestore: setup-go-work # Run tests for local filestore
 	$(GO) test ./platform/shared/filestore -run '^TestLocalFileBackend' -v
