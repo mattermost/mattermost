@@ -207,16 +207,20 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(scheduledPost.FileIds) > 0 {
-		originalPost, err := existingScheduledPost.ToPost()
-		if err != nil {
-			c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.convert_to_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-		checkUploadFilePermissionForNewFiles(c, scheduledPost.FileIds, originalPost)
-		if c.Err != nil {
-			return
-		}
+	originalPost, err := existingScheduledPost.ToPost()
+	if err != nil {
+		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.convert_to_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	checkUploadFilePermissionForNewFiles(c, scheduledPost.FileIds, originalPost)
+	if c.Err != nil {
+		return
+	}
+
+	checkEditFileAttachmentPermission(c, scheduledPost.FileIds, originalPost)
+	if c.Err != nil {
+		return
 	}
 
 	scheduledPostChecks("Api4.updateScheduledPost", c, &scheduledPost)

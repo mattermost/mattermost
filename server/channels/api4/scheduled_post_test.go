@@ -5,9 +5,11 @@ package api4
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,6 +54,120 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, fetchedPost)
 		require.Equal(t, originalMessage, fetchedPost.Message)
 		require.Equal(t, originalScheduledAt, fetchedPost.ScheduledAt)
+	})
+
+	t.Run("should prevent swapping attachments when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		fileA, _, err := th.Client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		fileB, _, err := th.Client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+				FileIds:   model.StringArray{fileA.FileInfos[0].Id},
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		createdScheduledPost.FileIds = model.StringArray{fileB.FileInfos[0].Id}
+
+		_, resp, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.NotNil(t, fetchedPost)
+		require.Equal(t, model.StringArray{fileA.FileInfos[0].Id}, fetchedPost.FileIds)
+	})
+
+	t.Run("should prevent removing attachments when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		fileA, _, err := th.Client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+				FileIds:   model.StringArray{fileA.FileInfos[0].Id},
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		createdScheduledPost.FileIds = model.StringArray{}
+
+		_, resp, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.NotNil(t, fetchedPost)
+		require.Equal(t, model.StringArray{fileA.FileInfos[0].Id}, fetchedPost.FileIds)
+	})
+
+	t.Run("should allow updating message with unchanged attachments when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		fileA, _, err := th.Client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+				FileIds:   model.StringArray{fileA.FileInfos[0].Id},
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		createdScheduledPost.Message = "Updated message only"
+
+		updatedScheduledPost, resp, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+		require.NotNil(t, updatedScheduledPost)
+		require.Equal(t, "Updated message only", updatedScheduledPost.Message)
+		require.Equal(t, model.StringArray{fileA.FileInfos[0].Id}, updatedScheduledPost.FileIds)
 	})
 }
 
