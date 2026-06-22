@@ -13,10 +13,10 @@ import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
-import type {Job} from '@mattermost/types/jobs';
 import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
+import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties';
