@@ -5535,6 +5535,8 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
+	rpost := th.CreatePost(t)
+
 	testCases := []struct {
 		name        string
 		message     string
@@ -5599,19 +5601,12 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 		},
 	}
 
-	originalNotifyProps := model.CopyStringMap(th.BasicUser.NotifyProps)
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a fresh root post per sub-test so BasicUser auto-follows as
-			// the author (CRT + ThreadAutoFollow are now on), and follower state
-			// from earlier sub-tests cannot bleed in.
-			rpost := th.CreatePost(t)
-
 			userWSClient := th.CreateConnectedWebSocketClient(t)
 
 			patch := &model.UserPatch{}
-			patch.NotifyProps = model.CopyStringMap(originalNotifyProps)
+			patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
 			maps.Copy(patch.NotifyProps, tc.notifyProps)
 
 			// update user's notify props
