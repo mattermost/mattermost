@@ -6986,6 +6986,76 @@ func TestEnableUserAccessToken(t *testing.T) {
 	})
 }
 
+func TestRevokeUserAccessTokenDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	require.Nil(t, appErr)
+
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	require.NoError(t, err)
+	assertToken(t, th, token, th.BasicUser.Id)
+
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+
+	resp, err := th.Client.RevokeUserAccessToken(context.Background(), token.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestDisableUserAccessTokenDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	require.Nil(t, appErr)
+
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	require.NoError(t, err)
+	assertToken(t, th, token, th.BasicUser.Id)
+
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+
+	resp, err := th.Client.DisableUserAccessToken(context.Background(), token.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestEnableUserAccessTokenDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	require.Nil(t, appErr)
+
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	require.NoError(t, err)
+	assertToken(t, th, token, th.BasicUser.Id)
+
+	_, err = th.Client.DisableUserAccessToken(context.Background(), token.Id)
+	require.NoError(t, err)
+	assertInvalidToken(t, th, token)
+
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+
+	resp, err := th.Client.EnableUserAccessToken(context.Background(), token.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestUserAccessTokenInactiveUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
