@@ -554,7 +554,8 @@ func TestIsValidChannelMemberRoles(t *testing.T) {
 		{name: "system manager with channel user", roles: ChannelUserRoleId + " " + SystemManagerRoleId, valid: false},
 		{name: "system post all with channel user", roles: ChannelUserRoleId + " " + SystemPostAllRoleId, valid: false},
 		{name: "system read only admin with channel user", roles: ChannelUserRoleId + " " + SystemReadOnlyAdminRoleId, valid: false},
-		{name: "custom group user with channel user", roles: ChannelUserRoleId + " " + CustomGroupUserRoleId, valid: false},
+		{name: "custom group user with channel user", roles: ChannelUserRoleId + " " + CustomGroupUserRoleId, valid: true},
+		{name: "system custom group admin with channel user", roles: ChannelUserRoleId + " " + SystemCustomGroupAdminRoleId, valid: false},
 		{name: "invalid role name", roles: "invalid-role", valid: false},
 	}
 

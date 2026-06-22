@@ -1690,10 +1690,12 @@ func TestUpdateChannelMemberRolesRejectsOutOfScopeBuiltInRoles(t *testing.T) {
 	_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
 	require.Nil(t, appErr)
 
-	_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, model.ChannelUserRoleId+" "+model.SystemManagerRoleId)
-	require.NotNil(t, appErr)
-	require.Equal(t, "api.channel.update_channel_member_roles.scheme_role.app_error", appErr.Id)
-	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	for _, roleName := range []string{model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId} {
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, model.ChannelUserRoleId+" "+roleName)
+		require.NotNilf(t, appErr, "expected rejection for role %s", roleName)
+		require.Equal(t, "api.channel.update_channel_member_roles.scheme_role.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	}
 }
 
 func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {

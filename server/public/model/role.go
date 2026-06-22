@@ -5,8 +5,8 @@ package model
 
 import (
 	"fmt"
-	"slices"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
@@ -873,18 +873,37 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
+// builtInRoleSet is the lazily-computed set of all roles whose BuiltIn field is
+// true in MakeDefaultRoles. Using MakeDefaultRoles as the source of truth ensures
+// that newly-added built-in roles (e.g. system_custom_group_admin) are always
+// covered without manual list maintenance.
+var builtInRoleSet = sync.OnceValue(func() map[string]bool {
+	result := make(map[string]bool)
+	for name, r := range MakeDefaultRoles() {
+		if r.BuiltIn {
+			result[name] = true
+		}
+	}
+	return result
+})
+
+// IsChannelScopedBuiltInRole returns true for the three built-in roles that are
+// valid inside a channel-member role list.
+func IsChannelScopedBuiltInRole(roleName string) bool {
+	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
+}
+
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
-// IsValidUserRoles is format validation only; this rejects non-channel-scoped built-in roles.
+// IsValidUserRoles is format validation only; this additionally rejects any
+// built-in role (BuiltIn=true in MakeDefaultRoles) that is not channel-scoped.
 func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 	if !IsValidUserRoles(channelMemberRoles) {
 		return false
 	}
 
+	builtIns := builtInRoleSet()
 	for roleName := range strings.FieldsSeq(channelMemberRoles) {
-		if !slices.Contains(BuiltInSchemeManagedRoleIDs, roleName) {
-			continue
-		}
-		if roleName != ChannelGuestRoleId && roleName != ChannelUserRoleId && roleName != ChannelAdminRoleId {
+		if builtIns[roleName] && !IsChannelScopedBuiltInRole(roleName) {
 			return false
 		}
 	}
