@@ -699,6 +699,34 @@ func TestUserSanitize(t *testing.T) {
 		require.Empty(t, user.AuthService)
 		require.Zero(t, user.LastPasswordUpdate)
 	})
+
+	t.Run("populated options should retain fullname, passwordupdate and authservice when requested", func(t *testing.T) {
+		user := newUser()
+
+		user.Sanitize(map[string]bool{
+			"fullname":       true,
+			"passwordupdate": true,
+			"authservice":    true,
+		})
+
+		assertSecretsCleared(t, user)
+		require.Equal(t, "John", user.FirstName)
+		require.Equal(t, "Doe", user.LastName)
+		require.Equal(t, int64(1), user.LastPasswordUpdate)
+		require.Equal(t, UserAuthServiceLdap, user.AuthService)
+		require.Empty(t, user.Email)
+		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
+		require.Equal(t, "", user.GetAuthData())
+	})
+
+	t.Run("nil options should not panic with nil Props and AuthData", func(t *testing.T) {
+		user := &User{Email: "john@doe.com"}
+
+		require.NotPanics(t, func() {
+			user.Sanitize(nil)
+		})
+		require.Empty(t, user.Email)
+	})
 }
 
 func TestSanitizeProfile(t *testing.T) {
