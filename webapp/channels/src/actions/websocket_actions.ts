@@ -13,6 +13,7 @@ import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
+import type {Job} from '@mattermost/types/jobs';
 import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
@@ -31,6 +32,7 @@ import {
     EmojiTypes,
     FileTypes,
     GroupTypes,
+    JobTypes,
     PostTypes,
     TeamTypes,
     UserTypes,
@@ -763,6 +765,9 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.PostTranslationUpdated:
         dispatch(handlePostTranslationUpdated(msg));
+        break;
+    case WebSocketEvents.JobUpdated:
+        dispatch(handleJobUpdated(msg as WebSocketMessages.JobUpdated));
         break;
     case WebSocketEvents.RecapUpdated:
         dispatch(handleRecapUpdated(msg));
@@ -2310,6 +2315,16 @@ export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslat
                 language: locale,
                 ...t,
             },
+        });
+    };
+}
+
+export function handleJobUpdated(msg: WebSocketMessages.JobUpdated): ThunkActionFunc<void> {
+    return (dispatch) => {
+        const job = JSON.parse(msg.data.job) as Job;
+        dispatch({
+            type: JobTypes.RECEIVED_JOB,
+            data: job,
         });
     };
 }

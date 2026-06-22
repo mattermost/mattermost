@@ -37,6 +37,20 @@ function jobsByTypeList(state: JobsByType = {}, action: MMReduxAction): JobsByTy
         }
         return nextState;
     }
+    case JobTypes.RECEIVED_JOB: {
+        const job = action.data as Job;
+        const typeList = state[job.type as JobType];
+        if (!typeList) {
+            return state;
+        }
+        const idx = typeList.findIndex((j) => j.id === job.id);
+        if (idx === -1) {
+            return state;
+        }
+        const nextList = [...typeList];
+        nextList[idx] = job;
+        return {...state, [job.type as JobType]: nextList};
+    }
     default:
         return state;
     }

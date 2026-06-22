@@ -4,6 +4,7 @@
 package jobs
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -101,11 +102,30 @@ func (srv *JobServer) ClaimJob(job *model.Job) (*model.Job, *model.AppError) {
 		return nil, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if newJob != nil && srv.metrics != nil {
-		srv.metrics.IncrementJobActive(newJob.Type)
+	if newJob != nil {
+		if srv.metrics != nil {
+			srv.metrics.IncrementJobActive(newJob.Type)
+		}
+		srv.publishJobStatus(newJob, model.JobStatusInProgress)
 	}
 
 	return newJob, nil
+}
+
+func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
+	if srv.publish == nil {
+		return
+	}
+	jobCopy := *job
+	jobCopy.Status = status
+	jobJSON, err := json.Marshal(&jobCopy)
+	if err != nil {
+		srv.logger.Warn("Failed to marshal job for WebSocket event", mlog.Err(err))
+		return
+	}
+	message := model.NewWebSocketEvent(model.WebsocketEventJobUpdated, "", "", "", nil, "")
+	message.Add("job", string(jobJSON))
+	srv.publish(message)
 }
 
 func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppError {
@@ -122,6 +142,7 @@ func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusWarning); err != nil {
 		return model.NewAppError("SetJobWarning", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	srv.publishJobStatus(job, model.JobStatusWarning)
 	return nil
 }
 
@@ -134,6 +155,7 @@ func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 		srv.metrics.DecrementJobActive(job.Type)
 	}
 
+	srv.publishJobStatus(job, model.JobStatusSuccess)
 	return nil
 }
 
@@ -148,6 +170,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 			srv.metrics.DecrementJobActive(job.Type)
 		}
 
+		srv.publishJobStatus(job, model.JobStatusError)
 		return nil
 	}
 
@@ -181,6 +204,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 		}
 	}
 
+	srv.publishJobStatus(job, job.Status)
 	return nil
 }
 
@@ -193,6 +217,7 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 		srv.metrics.DecrementJobActive(job.Type)
 	}
 
+	srv.publishJobStatus(job, model.JobStatusCanceled)
 	return nil
 }
 
@@ -205,6 +230,7 @@ func (srv *JobServer) SetJobPending(job *model.Job) *model.AppError {
 		srv.metrics.DecrementJobActive(job.Type)
 	}
 
+	srv.publishJobStatus(job, model.JobStatusPending)
 	return nil
 }
 

@@ -4,6 +4,7 @@
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {Job} from '@mattermost/types/jobs';
 import type {Limits, Subscription} from '@mattermost/types/cloud';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Draft} from '@mattermost/types/drafts';
@@ -466,6 +467,12 @@ export type ContentFlaggingReportValueUpdated =
         property_values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
         target_id: string;
     }>;
+
+// Job messages
+
+export type JobUpdated = BaseWebSocketMessage<WebSocketEvents.JobUpdated, {
+    job: JsonEncodedValue<Job>;
+}>;
 
 // Recap messages
 
