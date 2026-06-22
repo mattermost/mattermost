@@ -170,18 +170,14 @@ test.describe('Shared channel invitations', () => {
             await appPage.getByRole('button', {name: 'Show or hide invitation activity'}).click();
 
             await expect(
-                appPage.getByText(
-                    'There are no stored invitation records for this connection.',
-                ),
+                appPage.getByText('There are no stored invitation records for this connection.'),
             ).toBeVisible();
 
             await appPage.getByRole('button', {name: 'Show or hide invitation activity'}).click();
 
-            await expect(
-                appPage.getByText(
-                    'There are no stored invitation records for this connection.',
-                ),
-            ).toHaveCount(0);
+            await expect(appPage.getByText('There are no stored invitation records for this connection.')).toHaveCount(
+                0,
+            );
 
             await appPage.locator('a.back').click();
 
@@ -278,9 +274,7 @@ test.describe('Shared channel invitations', () => {
                 await appPage.getByRole('button', {name: 'Show or hide invitation activity'}).click();
 
                 await expect(
-                    appPage.getByText(
-                        'There are no stored invitation records for this connection.',
-                    ),
+                    appPage.getByText('There are no stored invitation records for this connection.'),
                 ).toBeVisible();
             } finally {
                 if (remoteId && cleanupAdmin) {
