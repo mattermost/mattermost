@@ -160,7 +160,7 @@ func TestSetJobProgress(t *testing.T) {
 
 		mockStore.JobStore.
 			On("UpdateOptimistically", job, model.JobStatusInProgress).
-			Return(false, &model.AppError{Message: "message"})
+			Return(nil, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobProgress(job, progress)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -180,7 +180,7 @@ func TestSetJobProgress(t *testing.T) {
 
 		mockStore.JobStore.
 			On("UpdateOptimistically", job, model.JobStatusInProgress).
-			Return(true, nil)
+			Return(job, nil)
 
 		err := jobServer.SetJobProgress(job, progress)
 		require.Nil(t, err)
@@ -345,7 +345,7 @@ func TestSetJobError(t *testing.T) {
 
 			mockStore.JobStore.
 				On("UpdateOptimistically", job, model.JobStatusInProgress).
-				Return(false, &model.AppError{Message: "message"})
+				Return(nil, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, jobError)
 			expectErrorId(t, "app.job.update.app_error", err)
@@ -363,7 +363,7 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(job, nil)
 			mockMetrics.On("DecrementJobActive", "job_type")
 
 			err := jobServer.SetJobError(job, jobError)
@@ -382,7 +382,7 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(job, nil)
 
 			err := jobServer.SetJobError(job, jobError)
 			require.Nil(t, err)
@@ -400,8 +400,8 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(false, &model.AppError{Message: "message"})
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(nil, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(nil, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, jobError)
 			expectErrorId(t, "app.job.update.app_error", err)
@@ -419,8 +419,8 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(false, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(nil, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(nil, nil)
 
 			err := jobServer.SetJobError(job, jobError)
 			expectErrorId(t, "jobs.set_job_error.update.error", err)
@@ -438,8 +438,8 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{"error": jobError.Message},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(true, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(nil, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(job, nil)
 
 			err := jobServer.SetJobError(job, jobError)
 			require.Nil(t, err)
@@ -457,8 +457,8 @@ func TestSetJobError(t *testing.T) {
 				Data:     map[string]string{},
 			}
 
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
-			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(true, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(nil, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(job, nil)
 
 			err := jobServer.SetJobError(job, jobError)
 			require.Nil(t, err)
@@ -531,7 +531,7 @@ func TestUpdateInProgressJobData(t *testing.T) {
 
 		job.Status = model.JobStatusInProgress
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(nil, &model.AppError{Message: "message"})
 
 		err := jobServer.UpdateInProgressJobData(job)
 		expectErrorId(t, "app.job.update.app_error", err)
@@ -547,7 +547,7 @@ func TestUpdateInProgressJobData(t *testing.T) {
 
 		job.Status = model.JobStatusInProgress
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(job, nil)
 
 		err := jobServer.UpdateInProgressJobData(job)
 		require.Nil(t, err)
@@ -591,7 +591,7 @@ func TestHandleJobPanic(t *testing.T) {
 			panic("not OK")
 		}
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(job, nil)
 		metrics.On("DecrementJobActive", model.JobTypeImportProcess)
 
 		require.Panics(t, f)
@@ -612,7 +612,7 @@ func TestHandleJobPanic(t *testing.T) {
 			panic(fmt.Errorf("not OK"))
 		}
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(job, nil)
 		metrics.On("DecrementJobActive", model.JobTypeImportProcess)
 
 		require.Panics(t, f)
@@ -864,7 +864,7 @@ func TestPublishJobStatus(t *testing.T) {
 			Data:     map[string]string{"error": jobError.Message},
 		}
 
-		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(job, nil)
 		mockMetrics.On("DecrementJobActive", "job_type")
 
 		require.Nil(t, jobServer.SetJobError(job, jobError))

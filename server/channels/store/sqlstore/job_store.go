@@ -141,40 +141,37 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	return job, nil
 }
 
-func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+// UpdateOptimistically updates the job only if its current status matches currentStatus.
+// Returns the updated job on success, or nil if no row was matched (status mismatch or job not
+// found). A nil return with a nil error is not an error — it means the precondition was not met.
+func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
 	dataJSON, jsonErr := json.Marshal(job.Data)
 	if jsonErr != nil {
-		return false, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
+		return nil, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
 	}
 	if jss.IsBinaryParamEnabled() {
 		dataJSON = AppendBinaryFlag(dataJSON)
 	}
-	query, args, err := jss.getQueryBuilder().
+
+	builder := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", model.GetMillis()).
 		Set("Status", job.Status).
 		Set("Data", dataJSON).
 		Set("Progress", job.Progress).
-		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).ToSql()
-	if err != nil {
-		return false, errors.Wrap(err, "job_tosql")
-	}
-	sqlResult, err := jss.GetMaster().Exec(query, args...)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to update Job")
-	}
+		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
 
-	rows, err := sqlResult.RowsAffected()
-
-	if err != nil {
-		return false, errors.Wrap(err, "unable to get rows affected")
+	var jobs []*model.Job
+	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to update Job with id=%s", job.Id)
 	}
 
-	if rows != 1 {
-		return false, nil
+	if len(jobs) != 1 {
+		return nil, nil
 	}
 
-	return true, nil
+	return jobs[0], nil
 }
 
 func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error) {

@@ -193,26 +193,25 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if wrapped := jobError.Unwrap(); wrapped != nil {
 		job.Data["error"] += " — " + wrapped.Error()
 	}
-	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress)
+	ret, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress)
 	if err != nil {
 		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if updated && srv.metrics != nil {
+	if ret != nil && srv.metrics != nil {
 		srv.metrics.DecrementJobActive(job.Type)
 	}
 
-	if !updated {
-		updated, err = srv.Store.Job().UpdateOptimistically(job, model.JobStatusCancelRequested)
+	if ret == nil {
+		ret, err = srv.Store.Job().UpdateOptimistically(job, model.JobStatusCancelRequested)
 		if err != nil {
 			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		if !updated {
+		if ret == nil {
 			return model.NewAppError("SetJobError", "jobs.set_job_error.update.error", nil, "id="+job.Id, http.StatusInternalServerError)
 		}
 	}
 
-	job.LastActivityAt = model.GetMillis()
-	srv.publishJobStatus(job, job.Status)
+	srv.publishJobStatus(ret, ret.Status)
 	return nil
 }
 

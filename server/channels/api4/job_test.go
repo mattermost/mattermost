@@ -622,8 +622,8 @@ func TestDownloadJob(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	job.Data["is_downloadable"] = "true"
-	updateStatus, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
-	require.True(t, updateStatus)
+	updatedJob, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	require.NotNil(t, updatedJob)
 	require.NoError(t, err)
 
 	_, resp, err = th.SystemAdminClient.DownloadJob(context.Background(), job.Id)
