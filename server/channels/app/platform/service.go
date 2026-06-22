@@ -379,7 +379,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 9: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure, allowedUntrustedInternalConnections))
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
@@ -391,7 +392,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.exportFilestore = ps.filestore
 		if *ps.Config().FileSettings.DedicatedExportStore {
 			mlog.Info("Setting up dedicated export filestore", mlog.String("driver_name", *ps.Config().FileSettings.ExportDriverName))
-			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false, allowedUntrustedInternalConnections))
 			if errFileBack != nil {
 				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
 			}

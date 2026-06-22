@@ -476,7 +476,7 @@ type State = BaseState & {
     fileSelected: boolean;
     file: File | null;
     pluginDownloadUrl: string;
-    serverError: JSX.Element | string | null ;
+    serverError: JSX.Element | string | null;
     lastMessage: string | null;
     uploading: boolean;
     installing: boolean;

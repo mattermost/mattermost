@@ -55,14 +55,14 @@ class BrowserStoreClass {
                 this.localStorageSupported = true;
             }
             localStorage.removeItem('__testLocal__');
-        } catch (e) {
+        } catch {
             this.localStorageSupported = false;
         }
 
         try {
             sessionStorage.setItem('__testSession__', '1');
             sessionStorage.removeItem('__testSession__');
-        } catch (e) {
+        } catch {
             // Session storage not usable, website is unusable
             getHistory().push('/error?type=' + ErrorPageTypes.LOCAL_STORAGE);
         }

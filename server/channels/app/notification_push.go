@@ -92,6 +92,25 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 
 func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
 	rejectionReason := ""
+
+	if msg == nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError, model.NotificationNoPlatform)
+		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to parse push notification",
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonParseError),
+			mlog.String("user_id", userID),
+		)
+		return model.NewAppError(
+			"pushNotification",
+			"api.push_notifications.message.parse.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	originalTransportType := msg.Transport
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
@@ -101,6 +120,15 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		}
 		if replacementNotification != nil {
 			msg = replacementNotification
+
+			if msg.Transport != originalTransportType {
+				// Plugins that don't know about the updated model.PushNotification struct will incorrectly zero the Transport field,
+				// triggering a standard transport by mistake. For now, we disallow plugins touching the transport type.
+				rctx.Logger().Debug("Notification transport type changed by plugin, resetting original value", mlog.String("original_transport_type", originalTransportType), mlog.String("transport_type", msg.Transport))
+				msg.Transport = originalTransportType
+			}
+
+			rctx.Logger().Info("Notification modified by plugin.")
 		}
 		return true
 	}, plugin.NotificationWillBePushedID)
@@ -129,23 +157,6 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.Err(appErr),
 		)
 		return appErr
-	}
-
-	if msg == nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonParseError, model.NotificationNoPlatform)
-		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to parse push notification",
-			mlog.String("type", model.NotificationTypePush),
-			mlog.String("status", model.NotificationStatusError),
-			mlog.String("reason", model.NotificationReasonParseError),
-			mlog.String("user_id", userID),
-		)
-		return model.NewAppError(
-			"pushNotification",
-			"api.push_notifications.message.parse.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
 	}
 
 	for _, session := range sessions {
@@ -227,6 +238,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.String("reason", reason),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
+				mlog.String("transport", string(tmpMessage.Transport)),
+				mlog.String("sub_type", string(tmpMessage.SubType)),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
 				mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),
@@ -239,6 +252,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.String("type", model.NotificationTypePush),
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
+			mlog.String("transport", string(tmpMessage.Transport)),
+			mlog.String("sub_type", string(tmpMessage.SubType)),
 			mlog.String("user_id", session.UserId),
 			mlog.String("session_id", session.Id),
 			mlog.String("deviceId", model.RedactDeviceId(tmpMessage.DeviceId)),

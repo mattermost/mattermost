@@ -226,11 +226,9 @@ export default class Renderer extends marked.Renderer {
     public list(content: string, ordered: boolean, start: number) {
         const type = ordered ? 'ol' : 'ul';
 
-        let output = `<${type} className="markdown__list"`;
+        let output = `<${type} class="markdown__list"`;
         if (ordered && start !== undefined) {
-            // The CSS that we use for lists hides the actual counter and uses ::before to simulate one so that we can
-            // style it properly. We need to use a CSS counter to tell the ::before elements which numbers to show.
-            output += ` style="counter-reset: list ${start - 1}"`;
+            output += ` start="${start}"`;
         }
         output += `>${content}</${type}>`;
 
@@ -247,9 +245,7 @@ export default class Renderer extends marked.Renderer {
         '/> '}${text.replace(taskListReg, '')}</li>`;
         }
 
-        // Added a span because if not whitespace nodes only
-        // works in Firefox but not in Webkit
-        return `<li><span>${text}</span></li>`;
+        return `<li>${text}</li>`;
     }
 
     public text(txt: string) {

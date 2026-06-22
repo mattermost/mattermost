@@ -42,7 +42,7 @@ function ThreadFooter({
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
     const post = useSelector((state: GlobalState) => getPost(state, threadId));
-    const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, [post.id]);
+    const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
     const thread = useSelector((state: GlobalState) => getThreadOrSynthetic(state, post));
 
     useEffect(() => {
