@@ -130,6 +130,7 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventJobUpdated, "", "", "", nil, "")
 	message.Add("job", string(jobJSON))
+	message.GetBroadcast().ContainsSensitiveData = true
 	srv.publish(message)
 }
 
