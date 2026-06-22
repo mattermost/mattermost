@@ -734,6 +734,13 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(timeoutCtx), req.URL, requestJSON)
 	if appErr != nil {
+		// DoActionRequest can return a non-nil response together with an error
+		// (e.g. a non-200 status). Drain and close it so the HTTP connection
+		// isn't leaked on the error path.
+		if resp != nil && resp.Body != nil {
+			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
+			_ = resp.Body.Close()
+		}
 		return "", appErr
 	}
 	defer resp.Body.Close()

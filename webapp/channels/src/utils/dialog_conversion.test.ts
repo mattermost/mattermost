@@ -2007,7 +2007,7 @@ describe('dialog_conversion', () => {
                         url: 'https://example.com/action',
                         context: {key1: 'value1', key2: 'value2'},
                     },
-                } as DialogElement;
+                } as unknown as DialogElement;
 
                 const {field, errors} = convertElement(element, legacyOptions);
 
@@ -2072,7 +2072,7 @@ describe('dialog_conversion', () => {
                             url: 'https://example.com/submit',
                             context: {token: 'abc123'},
                         },
-                    } as DialogElement,
+                    } as unknown as DialogElement,
                 ];
 
                 const {form, errors} = convertDialogToAppForm(

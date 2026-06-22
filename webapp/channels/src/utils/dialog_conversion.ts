@@ -697,6 +697,13 @@ export function convertAppFormValuesToDialogSubmission(
     }
 
     elements.forEach((element) => {
+        // Action buttons are non-input elements — they never contribute a
+        // submission value, so skip them before the required/null validation
+        // (otherwise an unset action_button could raise a false required error).
+        if (element.type === DialogElementTypes.ACTION_BUTTON) {
+            return;
+        }
+
         const value = values[element.name];
 
         if (value === null || value === undefined) {

@@ -642,6 +642,20 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    // Validate action button fields
+    if (field.action_button_url !== undefined && typeof field.action_button_url !== 'string') {
+        return false;
+    }
+
+    if (field.action_button_context !== undefined) {
+        if (typeof field.action_button_context !== 'object' || field.action_button_context === null) {
+            return false;
+        }
+        if (!Object.values(field.action_button_context).every((value) => typeof value === 'string')) {
+            return false;
+        }
+    }
+
     return true;
 }
 

@@ -5,6 +5,8 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {executeDialogAction} from 'actions/integration_actions';
 
 type Props = {
@@ -39,7 +41,7 @@ const AppsFormActionButton: React.FC<Props> = ({label, url, context}) => {
             if (result?.error) {
                 setError(intl.formatMessage({id: 'interactive_dialog.action_button.error', defaultMessage: 'Action failed'}));
             }
-        } catch (e) {
+        } catch {
             if (mountedRef.current) {
                 setError(intl.formatMessage({id: 'interactive_dialog.action_button.error', defaultMessage: 'Action failed'}));
             }
@@ -52,15 +54,14 @@ const AppsFormActionButton: React.FC<Props> = ({label, url, context}) => {
 
     return (
         <div className='form-group'>
-            <button
-                className='btn btn-primary'
+            <Button
                 onClick={handleClick}
                 disabled={loading || !url}
                 aria-busy={loading}
                 type='button'
             >
                 {loading ? intl.formatMessage({id: 'interactive_dialog.action_button.loading', defaultMessage: 'Loading...'}) : label}
-            </button>
+            </Button>
             {error && (
                 <div
                     className='error-text'
