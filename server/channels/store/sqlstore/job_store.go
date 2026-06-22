@@ -191,7 +191,7 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error
 	}
 
 	if len(jobs) != 1 {
-		return nil, nil
+		return nil, store.NewErrNotFound("Job", id)
 	}
 
 	return jobs[0], nil
