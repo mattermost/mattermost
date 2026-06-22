@@ -50,6 +50,7 @@ func init() {
 		ChannelAdminRoleId,
 
 		CustomGroupUserRoleId,
+		SystemCustomGroupAdminRoleId,
 
 		PlaybookAdminRoleId,
 		PlaybookMemberRoleId,
@@ -873,16 +874,14 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
-// builtInRoleSet is the lazily-computed set of all roles whose BuiltIn field is
-// true in MakeDefaultRoles. Using MakeDefaultRoles as the source of truth ensures
-// that newly-added built-in roles (e.g. system_custom_group_admin) are always
-// covered without manual list maintenance.
+// builtInRoleSet is the lazily-computed O(1) lookup set for BuiltInSchemeManagedRoleIDs.
+// Using BuiltInSchemeManagedRoleIDs as the discriminant covers all scheme-managed
+// built-in roles including those (e.g. custom_group_user) whose role.BuiltIn flag
+// is false for unrelated reasons (e.g. WebSocket broadcast scope).
 var builtInRoleSet = sync.OnceValue(func() map[string]bool {
-	result := make(map[string]bool)
-	for name, r := range MakeDefaultRoles() {
-		if r.BuiltIn {
-			result[name] = true
-		}
+	result := make(map[string]bool, len(BuiltInSchemeManagedRoleIDs))
+	for _, id := range BuiltInSchemeManagedRoleIDs {
+		result[id] = true
 	}
 	return result
 })
@@ -895,7 +894,8 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
 // IsValidUserRoles is format validation only; this additionally rejects any
-// built-in role (BuiltIn=true in MakeDefaultRoles) that is not channel-scoped.
+// scheme-managed built-in role (present in BuiltInSchemeManagedRoleIDs) that is
+// not channel-scoped.
 func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 	if !IsValidUserRoles(channelMemberRoles) {
 		return false
