@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import AdminDefinition from './admin_definition';
-import type {AdminDefinitionSetting, AdminDefinitionSettingDropdown} from './types';
+import type {AdminDefinitionSetting} from './types';
+
+type AdminDefinitionSettingDropdown = Extract<AdminDefinitionSetting, {type: 'dropdown'}>;
 
 describe('AdminDefinition - SAML algorithm help text links', () => {
     const getSamlSettings = (): AdminDefinitionSetting[] => {
