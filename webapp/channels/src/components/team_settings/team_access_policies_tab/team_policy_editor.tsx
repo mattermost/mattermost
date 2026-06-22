@@ -4,7 +4,6 @@
 import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
@@ -14,7 +13,6 @@ import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
-import {createAccessControlTeamSyncJob} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
@@ -77,7 +75,6 @@ export default function TeamPolicyEditor({
     actions,
 }: Props) {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
     const abacActions = useChannelAccessControlActions(undefined, teamId);
 
     // Policy state
@@ -357,7 +354,7 @@ export default function TeamPolicyEditor({
                 policyActiveStatusChanges.length > 0 ||
                 !policyId;
             if (hasRuleOrChannelChanges) {
-                await dispatch(createAccessControlTeamSyncJob({policy_id: currentPolicyId}));
+                await abacActions.createAccessControlSyncJob({policy_id: currentPolicyId, team_id: teamId});
             }
 
             setShowConfirmationModal(false);
