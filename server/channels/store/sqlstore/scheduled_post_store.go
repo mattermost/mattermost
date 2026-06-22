@@ -179,8 +179,11 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime i
 			})
 	}
 
+	// We read from the master here instead of a replica on purpose. The scheduled post job
+	// deletes processed posts and then fetches the next page of pending posts. Reading from a
+	// replica can return stale data, causing already-processed posts to reappear on later pages.
 	var scheduledPosts []*model.ScheduledPost
-	if err := s.GetReplica().SelectBuilder(&scheduledPosts, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&scheduledPosts, query); err != nil {
 		mlog.Error(
 			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing",
 			mlog.Int("before_time", beforeTime),

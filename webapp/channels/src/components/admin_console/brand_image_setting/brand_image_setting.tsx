@@ -127,7 +127,7 @@ const BrandImageSetting = ({
             const img = imageRef.current;
             reader.onload = (e) => {
                 const src =
-                e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
+                    e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
 
                 if (src) {
                     img.setAttribute('src', src);

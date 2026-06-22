@@ -15,12 +15,16 @@ import {
     enableUserAccessToken,
     disableUserAccessToken,
 } from 'mattermost-redux/actions/users';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import UserAccessTokenSection from './user_access_token_section';
 
 function mapStateToProps(state: GlobalState) {
+    const config = getConfig(state);
+    const maxLifetimeDays = parseInt(config.MaximumPersonalAccessTokenLifetimeDays || '0', 10);
     return {
         userAccessTokens: state.entities.users.myUserAccessTokens,
+        maxLifetimeDays: Number.isFinite(maxLifetimeDays) ? maxLifetimeDays : 0,
     };
 }
 

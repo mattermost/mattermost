@@ -77,7 +77,7 @@ const useSubmit = (
 
     const dispatch = useDispatch();
 
-    const getFilesIdsForPost = useMemo(makeGetFileIdsForPost, []);
+    const getFilesIdsForPost = useMemo(() => makeGetFileIdsForPost(), []);
     const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);

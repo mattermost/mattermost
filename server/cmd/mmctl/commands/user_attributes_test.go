@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -463,5 +464,45 @@ func (s *MmctlUnitTestSuite) TestBuildFieldAttrs() {
 				}
 			})
 		}
+	})
+}
+
+// TestResolveDisplayValue covers the human-readable rendering of a stored
+// attribute value. A rank field stores a single option ID (same wire shape as
+// select), which must be resolved back to the option name for display.
+func (s *MmctlUnitTestSuite) TestResolveDisplayValue() {
+	secretID := model.NewId()
+	rankField := &model.PropertyField{
+		ID:   model.NewId(),
+		Name: "clearance",
+		Type: model.PropertyFieldTypeRank,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": secretID, "name": "SECRET", "rank": 2},
+				map[string]any{"id": model.NewId(), "name": "TOP SECRET", "rank": 3},
+			},
+		},
+	}
+
+	s.Run("rank value resolves a stored option ID to its name", func() {
+		got := resolveDisplayValue(rankField, json.RawMessage(fmt.Sprintf("%q", secretID)))
+		s.Equal("SECRET", got)
+	})
+
+	s.Run("rank value with an unknown option ID falls back to the raw ID", func() {
+		unknown := model.NewId()
+		got := resolveDisplayValue(rankField, json.RawMessage(fmt.Sprintf("%q", unknown)))
+		s.Equal(unknown, got)
+	})
+
+	s.Run("rank field with no options returns the raw value", func() {
+		empty := &model.PropertyField{
+			ID:    model.NewId(),
+			Name:  "empty",
+			Type:  model.PropertyFieldTypeRank,
+			Attrs: model.StringInterface{},
+		}
+		got := resolveDisplayValue(empty, json.RawMessage(`"opt-123"`))
+		s.Equal(`"opt-123"`, got)
 	})
 }
