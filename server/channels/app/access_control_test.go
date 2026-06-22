@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -5077,6 +5078,61 @@ func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
 
 		for _, sr := range subject.ScopedRoles {
 			assert.NotEqual(t, model.AccessControlSubjectScopeChannel, sr.Scope)
+		}
+	})
+}
+
+func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	defer th.App.Srv().SetLicense(nil)
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	cpaField, cErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, cErr)
+
+	nativeNames := []string{
+		model.NativeAttributePropertyFieldEmail,
+		model.NativeAttributePropertyFieldVerified,
+		model.NativeAttributePropertyFieldIsBot,
+		model.NativeAttributePropertyFieldCreateAt,
+	}
+
+	t.Run("first page prepends native attributes", func(t *testing.T) {
+		// The API maps an empty first page to a 26-zero sentinel cursor.
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, strings.Repeat("0", 26), 50, anonymousCallerId)
+		require.Nil(t, appErr)
+
+		seen := map[string]bool{}
+		for _, f := range fields {
+			if isNative, _ := f.Attrs[model.NativeAttributeAttrMarker].(bool); isNative {
+				seen[f.Name] = true
+			}
+		}
+		for _, name := range nativeNames {
+			assert.True(t, seen[name], "expected native attribute %q on first page", name)
+		}
+
+		require.GreaterOrEqual(t, len(fields), len(nativeNames)+1)
+		assert.Equal(t, true, fields[0].Attrs[model.NativeAttributeAttrMarker], "native attributes should precede CPA fields")
+	})
+
+	t.Run("subsequent pages omit native attributes", func(t *testing.T) {
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, cpaField.ID, 50, anonymousCallerId)
+		require.Nil(t, appErr)
+		for _, f := range fields {
+			isNative, _ := f.Attrs[model.NativeAttributeAttrMarker].(bool)
+			assert.False(t, isNative, "native attribute %q must not repeat on later pages", f.Name)
 		}
 	})
 }
