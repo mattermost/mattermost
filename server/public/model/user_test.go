@@ -627,6 +627,80 @@ func TestValidateCustomStatus(t *testing.T) {
 	})
 }
 
+func TestUserSanitize(t *testing.T) {
+	newUser := func() *User {
+		return &User{
+			Password:           "password",
+			MfaSecret:          "secret",
+			MfaUsedTimestamps:  StringArray{"1"},
+			LastLogin:          1,
+			Email:              "john@doe.com",
+			FirstName:          "John",
+			LastName:           "Doe",
+			LastPasswordUpdate: 1,
+			AuthService:        UserAuthServiceLdap,
+			AuthData:           NewPointer("auth-data"),
+			Props:              StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
+		}
+	}
+
+	assertSecretsCleared := func(t *testing.T, user *User) {
+		t.Helper()
+		require.Empty(t, user.Password)
+		require.Empty(t, user.MfaSecret)
+		require.Nil(t, user.MfaUsedTimestamps)
+		require.Zero(t, user.LastLogin)
+	}
+
+	t.Run("nil options should sanitize all sensitive fields", func(t *testing.T) {
+		user := newUser()
+
+		user.Sanitize(nil)
+
+		assertSecretsCleared(t, user)
+		require.Empty(t, user.Email)
+		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
+		require.Empty(t, user.FirstName)
+		require.Empty(t, user.LastName)
+		require.Zero(t, user.LastPasswordUpdate)
+		require.Empty(t, user.AuthService)
+		require.Equal(t, "", user.GetAuthData())
+	})
+
+	t.Run("empty options should only clear secrets and keep the user's own profile data", func(t *testing.T) {
+		user := newUser()
+
+		user.Sanitize(map[string]bool{})
+
+		assertSecretsCleared(t, user)
+		require.Equal(t, "john@doe.com", user.Email)
+		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
+		require.Equal(t, "John", user.FirstName)
+		require.Equal(t, "Doe", user.LastName)
+		require.Equal(t, int64(1), user.LastPasswordUpdate)
+		require.Equal(t, UserAuthServiceLdap, user.AuthService)
+		require.Equal(t, "auth-data", user.GetAuthData())
+	})
+
+	t.Run("populated options should retain only the requested fields", func(t *testing.T) {
+		user := newUser()
+
+		user.Sanitize(map[string]bool{
+			"email":    true,
+			"authdata": true,
+		})
+
+		assertSecretsCleared(t, user)
+		require.Equal(t, "john@doe.com", user.Email)
+		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
+		require.Equal(t, "auth-data", user.GetAuthData())
+		require.Empty(t, user.FirstName)
+		require.Empty(t, user.LastName)
+		require.Empty(t, user.AuthService)
+		require.Zero(t, user.LastPasswordUpdate)
+	})
+}
+
 func TestSanitizeProfile(t *testing.T) {
 	t.Run("should correctly sanitize email and remote email", func(t *testing.T) {
 		user := &User{
@@ -634,12 +708,24 @@ func TestSanitizeProfile(t *testing.T) {
 			Props: StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
 		}
 
-		user.SanitizeProfile(nil, false)
+		user.SanitizeProfile(map[string]bool{"email": true}, false)
 
 		require.Equal(t, "john@doe.com", user.Email)
 		require.Equal(t, "remote@doe.com", user.Props[UserPropsKeyRemoteEmail])
 
 		user.SanitizeProfile(map[string]bool{"email": false}, false)
+
+		require.Empty(t, user.Email)
+		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
+	})
+
+	t.Run("nil options should sanitize email and remote email", func(t *testing.T) {
+		user := &User{
+			Email: "john@doe.com",
+			Props: StringMap{UserPropsKeyRemoteEmail: "remote@doe.com"},
+		}
+
+		user.SanitizeProfile(nil, false)
 
 		require.Empty(t, user.Email)
 		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
