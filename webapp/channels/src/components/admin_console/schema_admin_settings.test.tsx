@@ -602,6 +602,56 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(dropdown).toBeInTheDocument();
     });
 
+    test('should render the selected dropdown option help text with markdown links as anchors', () => {
+        const dropdownSchema = {
+            id: 'Config',
+            name: 'config',
+            name_default: 'Configuration',
+            settings: [
+                {
+                    key: 'FirstSettings.settingc',
+                    label: 'label-c',
+                    label_default: 'Setting Three',
+                    type: 'dropdown',
+                    default: 'option1',
+                    options: [
+                        {
+                            display_name: 'Option 1',
+                            value: 'option1',
+                            help_text: 'See [http://www.w3.org/2000/09/xmldsig#rsa-sha1](http://www.w3.org/2000/09/xmldsig#rsa-sha1)',
+                            help_text_markdown: true,
+                        },
+                        {
+                            display_name: 'Option 2',
+                            value: 'option2',
+                            help_text: 'No link here',
+                        },
+                    ],
+                },
+            ],
+        } as unknown as AdminDefinitionSubSectionSchema;
+
+        const dropdownConfig = {
+            FirstSettings: {
+                settingc: 'option1',
+            },
+        } as Partial<AdminConfig>;
+
+        renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={dropdownConfig}
+                environmentConfig={environmentConfig}
+                schema={dropdownSchema}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        const link = screen.getByRole('link', {name: 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'});
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute('href', 'http://www.w3.org/2000/09/xmldsig#rsa-sha1');
+    });
+
     test('should render radio button setting', () => {
         renderWithContext(
             <SchemaAdminSettings
