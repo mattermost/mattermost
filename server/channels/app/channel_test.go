@@ -3996,3 +3996,99 @@ func TestPatchChannelWithCategorySorting(t *testing.T) {
 	require.Equal(t, "Disabled Category/Channel Name", patchedChannel.DisplayName)
 	require.Equal(t, "New Category", patchedChannel.DefaultCategoryName)
 }
+
+func TestPatchChannelDefaultCategoryMovesOutOfChannels(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableChannelCategorySorting = true
+	})
+
+	// Create several channels so the target sits at an index > 0 in the default Channels category,
+	// exercising the path that previously panicked when removing the channel from its original category.
+	var channels []*model.Channel
+	for range 3 {
+		c := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+		channels = append(channels, c)
+	}
+
+	categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	var channelsCategory *model.SidebarCategoryWithChannels
+	for _, category := range categories.Categories {
+		if category.Type == model.SidebarCategoryChannels {
+			channelsCategory = category
+			break
+		}
+	}
+	require.NotNil(t, channelsCategory)
+
+	created := make(map[string]*model.Channel, len(channels))
+	for _, c := range channels {
+		created[c.Id] = c
+	}
+
+	// Pick the created channel sitting at the highest index in the default Channels category so the
+	// removal path operates on an index > 1, which previously triggered an out-of-range panic.
+	var target *model.Channel
+	targetIndex := -1
+	for i, channelID := range channelsCategory.Channels {
+		if c, ok := created[channelID]; ok && i > targetIndex {
+			target = c
+			targetIndex = i
+		}
+	}
+	require.NotNil(t, target)
+	require.Greater(t, targetIndex, 1, "expected a created channel beyond index 1 to exercise the removal path")
+
+	patch := &model.ChannelPatch{DefaultCategoryName: new("Moved Category")}
+	_, appErr = th.App.PatchChannel(th.Context, target, patch, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	categories, appErr = th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	for _, category := range categories.Categories {
+		switch {
+		case category.DisplayName == "Moved Category":
+			assert.Contains(t, category.Channels, target.Id, "channel should be in the new default category")
+		case category.Type == model.SidebarCategoryChannels:
+			assert.NotContains(t, category.Channels, target.Id, "channel should no longer be in the default Channels category")
+		}
+	}
+}
+
+func TestPatchChannelDefaultCategoryReapplyIsIdempotent(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableChannelCategorySorting = true
+	})
+
+	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+	patch := &model.ChannelPatch{DefaultCategoryName: new("Reapply Category")}
+	channel, appErr := th.App.PatchChannel(th.Context, channel, patch, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	// Patching again re-runs the default category logic while the channel is already in the target
+	// category. This must not error or list the channel twice in the category.
+	_, appErr = th.App.PatchChannel(th.Context, channel, &model.ChannelPatch{Header: new("updated header")}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	for _, category := range categories.Categories {
+		if category.DisplayName == "Reapply Category" {
+			count := 0
+			for _, channelID := range category.Channels {
+				if channelID == channel.Id {
+					count++
+				}
+			}
+			assert.Equal(t, 1, count, "channel should appear exactly once in the default category")
+		}
+	}
+}

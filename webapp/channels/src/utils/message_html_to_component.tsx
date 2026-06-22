@@ -12,6 +12,7 @@ import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
 import MarkdownImage from 'components/markdown_image';
+import MarkdownListOrdered from 'components/markdown_list_ordered';
 import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
@@ -40,13 +41,13 @@ export type Options = Partial<{
      * users automatically for all posts.
      */
     fetchMissingUsers: boolean;
-}>
+}>;
 
 type ProcessingInstruction = {
     replaceChildren: boolean;
     shouldProcessNode: (node: any) => boolean;
     processNode: (node: any, children?: any, index?: number) => any;
-}
+};
 
 /*
  * Converts HTML to React components using html-to-react.
@@ -102,6 +103,21 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 ) : null;
             },
         },
+        {
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'ol',
+            processNode: (node: any, children: React.ReactNode, index?: number) => {
+                return (
+                    <MarkdownListOrdered
+                        key={index}
+                        className={node.attribs.class}
+                        start={node.attribs.start ? parseInt(node.attribs.start, 10) : undefined}
+                    >
+                        {children}
+                    </MarkdownListOrdered>
+                );
+            },
+        },
     ];
 
     processingInstructions.push({
@@ -116,7 +132,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 // Use dummy base for relative URLs
                 const urlObj = new URL(url, 'http://mattermost.com');
                 return urlObj.searchParams.get('view') === 'citation';
-            } catch (e) {
+            } catch {
                 return false;
             }
         },

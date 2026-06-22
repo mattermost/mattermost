@@ -24,12 +24,13 @@ import {DangerText} from './controls';
 import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import './user_properties_values.scss';
 import {useAttributeLinkModal} from './user_properties_dot_menu';
+import UserPropertyRankValues from './user_properties_rank_values';
 
 type Props = {
     field: UserPropertyField;
     updateField: (field: UserPropertyField) => void;
     autoFocus?: boolean;
-}
+};
 
 type Option = {label: string; id: string; value: string};
 type SelectProps = CreatableProps<Option, true, GroupBase<Option>>;
@@ -178,6 +179,18 @@ const UserPropertyValues = ({
             <span className='user-property-field-values'>
                 {'-'}
             </span>
+        );
+    }
+
+    // Ranked fields render numbered chips with a per-chip rank/label/remove
+    // popover instead of the plain creatable value list.
+    if (field.type === 'rank') {
+        return (
+            <UserPropertyRankValues
+                field={field}
+                updateField={updateField}
+                autoFocus={autoFocus}
+            />
         );
     }
 

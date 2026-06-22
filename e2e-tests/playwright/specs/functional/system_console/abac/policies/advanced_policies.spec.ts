@@ -16,10 +16,8 @@ import {
     getRandomId,
 } from '@mattermost/playwright-lib';
 
-import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeFields,
-} from '../../../channels/custom_profile_attributes/helpers';
+import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {
     ensureUserAttributes,
     createUserForABAC,
@@ -132,8 +130,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
 
             await activatePolicy(adminClient, policyId);
             await waitForPolicySyncJob(adminClient, policyId);
-            const __jobId1 = await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page, 10, __jobId1);
+            const jobId1 = await runSyncJob(systemConsolePage.page);
+            await waitForLatestSyncJob(systemConsolePage.page, 10, jobId1);
 
             try {
                 await getJobDetailsFromRecentJobs(systemConsolePage.page, privateChannel.display_name);
@@ -144,8 +142,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
             // Optional extra sync if user1 not added yet
             const added = await verifyUserInChannel(adminClient, user1.id, privateChannel.id);
             if (!added) {
-                const __jobId2 = await runSyncJob(systemConsolePage.page);
-                await waitForLatestSyncJob(systemConsolePage.page, 10, __jobId2);
+                const jobId2 = await runSyncJob(systemConsolePage.page);
+                await waitForLatestSyncJob(systemConsolePage.page, 10, jobId2);
                 await systemConsolePage.page.waitForTimeout(2000);
             }
         } finally {
@@ -315,8 +313,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
         if (policyId) {
             await activatePolicy(sharedAdminClient, policyId);
-            const __jobId3 = await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page, 15, __jobId3);
+            const jobId3 = await runSyncJob(systemConsolePage.page);
+            await waitForLatestSyncJob(systemConsolePage.page, 15, jobId3);
         }
         await searchInput.clear();
 
@@ -458,8 +456,8 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const policyId = (await foundPolicy.getAttribute('id'))?.replace('customDescription-', '');
         expect(policyId, 'policy row should expose id').toBeTruthy();
         await activatePolicy(adminClient, policyId!);
-        const __jobId4 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId4);
+        const jobId4 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, jobId4);
         await searchInput.clear();
 
         // Poll under PW_WORKERS>=2: another shard's sync job may interleave.

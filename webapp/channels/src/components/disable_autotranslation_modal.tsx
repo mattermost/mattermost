@@ -18,7 +18,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-}
+};
 
 const DisableAutotranslationModal = ({channel}: Props) => {
     const dispatch = useDispatch();

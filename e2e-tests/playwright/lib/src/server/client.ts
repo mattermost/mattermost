@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from '@mattermost/client';
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from '@/test_config';
 

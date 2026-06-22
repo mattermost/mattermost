@@ -6,6 +6,7 @@ import {useCallback, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {Post} from '@mattermost/types/posts';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {FileTypes} from 'mattermost-redux/action_types';
@@ -59,10 +60,10 @@ const useSubmit = (
     postError: React.ReactNode,
     channelId: string,
     rootId: string,
-    serverError: (ServerError & { submittedMessage?: string }) | null,
+    serverError: (ServerError & {submittedMessage?: string}) | null,
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
-    setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     setShowPreview: (showPreview: boolean) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
@@ -76,7 +77,7 @@ const useSubmit = (
 
     const dispatch = useDispatch();
 
-    const getFilesIdsForPost = useMemo(makeGetFileIdsForPost, []);
+    const getFilesIdsForPost = useMemo(() => makeGetFileIdsForPost(), []);
     const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);
@@ -198,7 +199,9 @@ const useSubmit = (
         try {
             let response;
             if (isInEditMode) {
-                response = await dispatch(editPost(submittingDraft));
+                // The types of Post and PostDraft are mostly interchangeable, but our typing doesn't make it easy to
+                // mix them without assertions like this
+                response = await dispatch(editPost(submittingDraft as unknown as Post));
                 handleFileChange(submittingDraft);
             } else {
                 response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));

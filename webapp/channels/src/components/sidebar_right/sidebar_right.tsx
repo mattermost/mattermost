@@ -62,11 +62,11 @@ export type Props = {
         showChannelFiles: (channelId: string) => void;
         showChannelInfo: (channelId: string) => void;
     };
-}
+};
 
 type State = {
     isOpened: boolean;
-}
+};
 
 export default class SidebarRight extends React.PureComponent<Props, State> {
     sidebarRight: React.RefObject<HTMLDivElement>;

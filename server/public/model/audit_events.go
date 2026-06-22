@@ -6,10 +6,10 @@ package model
 // Access Control & Security
 const (
 	AuditEventApplyIPFilters            = "applyIPFilters"            // apply IP address filtering
-	AuditEventAssignAccessPolicy        = "assignAccessPolicy"        // assign access control policy to channels
+	AuditEventAssignAccessPolicy        = "assignAccessPolicy"        // assign access control policy to channels and/or teams
 	AuditEventCreateAccessControlPolicy = "createAccessControlPolicy" // create access control policy
 	AuditEventDeleteAccessControlPolicy = "deleteAccessControlPolicy" // delete access control policy
-	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
+	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels and/or teams
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 
@@ -453,7 +453,7 @@ const (
 
 // Users
 const (
-	AuditEventAttachDeviceId               = "attachDeviceId"               // attach device ID to user session for mobile app
+	AuditEventAttachDeviceId               = "attachDeviceId"               // attach device IDs (standard or VoIP) to user session for mobile app
 	AuditEventCreateUser                   = "createUser"                   // create user account
 	AuditEventCreateUserAccessToken        = "createUserAccessToken"        // create personal access token for user API access
 	AuditEventDeleteUser                   = "deleteUser"                   // delete user account

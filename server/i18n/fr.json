@@ -7816,10 +7816,6 @@
     "translation": "Les paramètres OnlyThreads et OnlyTotals de getThreadsForUser sont mutuellement exclusifs"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "La configuration du stockage des fichiers a des valeurs manquantes."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "La configuration des courriels a des valeurs manquantes."
   },

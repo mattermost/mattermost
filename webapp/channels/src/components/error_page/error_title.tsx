@@ -9,7 +9,7 @@ import {ErrorPageTypes} from 'utils/constants';
 type Props = {
     type?: string | null;
     title: string;
-}
+};
 
 const ErrorTitle: React.FC<Props> = ({type, title}: Props) => {
     let errorTitle = null;

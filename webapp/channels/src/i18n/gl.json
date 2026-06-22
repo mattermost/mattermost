@@ -908,7 +908,6 @@
   "admin.ldap_feature_discovery.call_to_action.secondary": "Saber máis",
   "admin.ldap_feature_discovery.copy": "Cando conecta Mattermost co Active Directory/LDAP da súa organización, os usuarios poden iniciar sesión sen ter que crear novos nomes de usuario e contrasinais.",
   "admin.ldap_feature_discovery.title": "Integrar Active Directory/LDAP con Mattermost Enterprise E10",
-  "admin.license.choose": "Escolla o ficheiro",
   "admin.license.enterprise.restarting": "Reiniciando",
   "admin.license.enterprise.upgrade": "Anovar á Edición empresarial",
   "admin.license.enterprise.upgrading": "Anovando {percentage}%",

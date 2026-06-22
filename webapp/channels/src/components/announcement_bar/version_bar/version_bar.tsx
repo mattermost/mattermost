@@ -10,7 +10,7 @@ import AnnouncementBar from '../default_announcement_bar';
 
 type Props = {
     buildHash?: string;
-}
+};
 
 const reloadPage = () => {
     window.location.reload();
@@ -19,7 +19,7 @@ const reloadPage = () => {
 const VersionBar = ({
     buildHash,
 }: Props) => {
-    const [buildHashOnAppLoad, setBuildHashOnAppLoad] = useState<string|undefined>(buildHash);
+    const [buildHashOnAppLoad, setBuildHashOnAppLoad] = useState<string | undefined>(buildHash);
 
     useEffect(() => {
         if (!buildHashOnAppLoad && buildHash) {

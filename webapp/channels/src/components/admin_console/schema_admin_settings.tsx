@@ -36,7 +36,7 @@ import AdminSectionPanel from 'components/widgets/admin_console/admin_section_pa
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -64,7 +64,7 @@ export type SystemConsoleCustomSettingsComponentProps = {
     unRegisterSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
     cancelSubmit: () => void;
     showConfirm: boolean;
-}
+};
 
 export type SchemaAdminSettingsProps = {
     config: Partial<AdminConfig>;
@@ -80,7 +80,7 @@ export type SchemaAdminSettingsProps = {
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
-} & WrappedComponentProps
+} & WrappedComponentProps;
 
 type State = {
     [x: string]: any;
@@ -92,7 +92,7 @@ type State = {
     showConfirmId: string;
     clientWarning: string;
     prevSchemaId?: string;
-}
+};
 
 // Some path parts may contain periods (e.g. plugin ids), but path walking the configuration
 // relies on splitting by periods. Use this pair of functions to allow such path parts.
@@ -258,7 +258,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     try {
                         state[setting.key] = mappingValueFromRoles(setting.permissions_mapping_name, roles!) === 'true';
-                    } catch (e) {
+                    } catch {
                         state[setting.key] = false;
                     }
                     return;

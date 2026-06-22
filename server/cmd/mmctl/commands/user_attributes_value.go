@@ -148,8 +148,8 @@ func cpaValueSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 // resolveOptionNamesToIDs converts option names to option IDs for select/multiselect fields
 func resolveOptionNamesToIDs(field *model.PropertyField, values []string) ([]string, error) {
-	// For non-select fields, return values as-is
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
+	// For non-option fields, return values as-is
+	if !field.Type.SupportsOptions() {
 		return values, nil
 	}
 

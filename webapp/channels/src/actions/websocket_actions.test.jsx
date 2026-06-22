@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -30,20 +30,25 @@ import store from 'stores/redux_store';
 import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {setIntl} from 'utils/i18n';
 
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handleTeamAccessControlUpdatedEvent,
     handleEvent,
+    handleFileUploadRejected,
     handleNewPostEvent,
     handleNewPostEvents,
     handlePluginEnabled,
     handlePluginDisabled,
     handlePostEditEvent,
     handlePostUnreadEvent,
+    handleUserAddedEvent,
     handleUserRemovedEvent,
     handleLeaveTeamEvent,
     reconnect,
@@ -441,6 +446,68 @@ describe('handlePostUnreadEvent', () => {
 
         handlePostUnreadEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleUserAddedEvent', () => {
+    const currentChannelId = mockState.entities.channels.currentChannelId;
+
+    // getLicense() must resolve to an object for handleUserAddedEvent, so add one
+    // to a local copy of the state rather than mutating the shared mockState.
+    const stateWithLicense = {
+        ...mockState,
+        entities: {
+            ...mockState.entities,
+            general: {
+                ...mockState.entities.general,
+                license: {},
+            },
+        },
+    };
+
+    test('should load the added user profile when it is not already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).toHaveBeenCalledWith('remoteUser');
+    });
+
+    test('should not load the added user profile when it is already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'user',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
+    });
+
+    test('should not load the added user profile when the channel is not the current channel', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: 'someOtherChannel',
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
     });
 });
 
@@ -1017,6 +1084,39 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
 
         expect(testStore.getActions()).toEqual([]);
         expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleTeamAccessControlUpdatedEvent', () => {
+    test('dispatches RECEIVED_TEAM with parsed team', () => {
+        const testStore = configureStore({});
+        const team = {
+            id: 'team-ac-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                team: JSON.stringify(team),
+            },
+        };
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: TeamTypes.RECEIVED_TEAM,
+                data: team,
+            },
+        ]);
+    });
+
+    test('returns early when msg.data.team is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
     });
 });
 
@@ -2000,5 +2100,51 @@ describe('handleSharedChannelRemoteUpdatedEvent', () => {
         handleEvent(msg);
 
         expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleFileUploadRejected', () => {
+    beforeAll(() => {
+        setIntl(defaultIntl);
+    });
+
+    afterAll(() => {
+        setIntl(null);
+    });
+
+    const msg = {
+        event: WebSocketEvents.FileUploadRejected,
+        data: {
+            file_name: 'secret.tdf',
+            rejection_reason: 'blocked by policy',
+            channel_id: 'channel1',
+        },
+        broadcast: {},
+    };
+
+    test('opens an info toast with the rejection reason', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        expect(openModalAction).toBeDefined();
+        expect(openModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+        expect(openModalAction.dialogProps.position).toBe('bottom-center');
+        expect(openModalAction.dialogProps.content.message).toContain('blocked by policy');
+        expect(typeof openModalAction.dialogProps.onExited).toBe('function');
+    });
+
+    test('onExited closes the info toast', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        openModalAction.dialogProps.onExited();
+
+        const closeModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_CLOSE);
+        expect(closeModalAction).toBeDefined();
+        expect(closeModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
     });
 });

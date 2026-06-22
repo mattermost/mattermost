@@ -31,7 +31,7 @@ export type Props = {
         updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
         removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
     const [error, setError] = React.useState<JSX.Element | null>(null);
