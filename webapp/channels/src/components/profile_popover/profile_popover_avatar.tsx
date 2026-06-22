@@ -11,7 +11,7 @@ type Props = {
     hideStatus?: boolean;
     status?: string;
     urlSrc: string;
-}
+};
 const ProfilePopoverAvatar = ({
     username,
     hideStatus,

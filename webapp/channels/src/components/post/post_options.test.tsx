@@ -8,9 +8,11 @@ import type {SystemEmoji} from '@mattermost/types/emojis';
 import {Permissions} from 'mattermost-redux/constants';
 
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+import type {PostActionComponent} from 'types/store/plugins';
 
 import PostOptions from './post_options';
 
@@ -135,5 +137,43 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
                 pluginActions={[pluginComponent]}
             />,
         );
+    });
+});
+
+describe('PostOptions - plugin post actions (MM-68323)', () => {
+    test('keeps plugin action visible when its menu is open and hover ends', async () => {
+        const PluginAction = ({handleDropdownOpened}: {handleDropdownOpened?: (open: boolean) => void}) => (
+            <button onClick={() => handleDropdownOpened?.(true)}>
+                {'AI Actions'}
+            </button>
+        );
+        const pluginAction: PostActionComponent = {
+            id: 'ai-actions',
+            pluginId: 'mattermost-ai',
+            component: PluginAction,
+        };
+
+        const {rerender} = renderWithContext(
+            <PostOptions
+                {...baseProps}
+                hover={true}
+                pluginActions={[pluginAction]}
+            />,
+            baseState,
+        );
+
+        expect(screen.getByRole('button', {name: 'AI Actions'})).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'AI Actions'}));
+
+        rerender(
+            <PostOptions
+                {...baseProps}
+                hover={false}
+                pluginActions={[pluginAction]}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'AI Actions'})).toBeInTheDocument();
     });
 });

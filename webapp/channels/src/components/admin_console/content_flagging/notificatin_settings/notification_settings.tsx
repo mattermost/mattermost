@@ -22,7 +22,7 @@ type Props = {
     onChange: SystemConsoleCustomSettingChangeHandler;
     value: ContentFlaggingNotificationSettings;
     disabled?: boolean;
-}
+};
 
 export default function ContentFlaggingNotificationSettingsSection({id, value, onChange, disabled}: Props) {
     const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(value as ContentFlaggingNotificationSettings);

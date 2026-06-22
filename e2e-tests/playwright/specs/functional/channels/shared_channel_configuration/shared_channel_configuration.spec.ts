@@ -155,7 +155,7 @@ test.describe('Shared channel configuration', () => {
                             EnableRemoteClusterService: true,
                         },
                     });
-                    return await configurationTab.shareWithConnectedWorkspacesSection.isVisible();
+                    return configurationTab.shareWithConnectedWorkspacesSection.isVisible();
                 },
                 {timeout: 60000, intervals: [2000, 4000]},
             )
@@ -361,7 +361,7 @@ test.describe('Shared channel configuration', () => {
                             EnableRemoteClusterService: true,
                         },
                     });
-                    return await configurationTab.shareWithConnectedWorkspacesSection.isVisible();
+                    return configurationTab.shareWithConnectedWorkspacesSection.isVisible();
                 },
                 {timeout: 60000, intervals: [2000, 4000]},
             )

@@ -537,6 +537,75 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("GetAccessControlPolicy with channel admin when no policy exists returns 404 not 403", func(t *testing.T) {
+		// Regression test for MM-69054: a channel admin opening the
+		// Permissions Policy tab before any policy has been created must
+		// receive a clean 404 (handled by the UI as "first-time create")
+		// rather than a misleading 403. Authorization for a channel policy
+		// must not hinge on the policy record already existing.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+
+		privateChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
+		channelAdminClient := th.CreateClient()
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		// No policy exists yet for this channel.
+		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, notFound)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		_, resp, err := channelAdminClient.GetAccessControlPolicy(context.Background(), privateChannel.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("GetAccessControlPolicy with channel admin of another channel when no policy exists returns 403", func(t *testing.T) {
+		// Counterpart to the regression test above: the missing-policy
+		// fallback must only admit admins of the requested channel. A
+		// channel admin asking for an unrelated channel's (missing) policy
+		// must still be denied with 403.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+
+		ownedChannel := th.CreatePrivateChannel(t)
+		otherChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, ownedChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, ownedChannel)
+		channelAdminClient := th.CreateClient()
+		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), otherChannel.Id).Return(nil, notFound)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		_, resp, err := channelAdminClient.GetAccessControlPolicy(context.Background(), otherChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
@@ -1701,6 +1770,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		stored := newPolicy(th.BasicChannel.Id)
 		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), stored.ID).Return(stored, nil)
 		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(unknownFieldAST, nil).Maybe()
+		mockACS.On("MaskExpressionForCaller", mock.Anything, sensitiveExpr, mock.Anything).Return(expectedMaskedExpr, true, nil).Once()
 
 		result, resp, err := th.SystemAdminClient.GetAccessControlPolicy(context.Background(), stored.ID)
 		require.NoError(t, err)
@@ -1708,6 +1778,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		require.NotEmpty(t, result.Rules)
 		require.Equal(t, expectedMaskedExpr, result.Rules[0].Expression,
 			"get response must mask the raw CEL exactly")
+		mockACS.AssertExpectations(t)
 	})
 }
 
@@ -2418,6 +2489,41 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 		require.Error(t, err)
 		defer r.Body.Close()
 		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("team admin cannot unassign a channel outside their team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Admin owns a policy scoped to BasicTeam but passes a channel that
+		// belongs to another team. The channel-scope guard must reject it.
+		otherTeam := th.CreateTeam(t)
+		foreignCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, otherTeam.Id)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Maybe()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{foreignCh.Id},
+			"team_id":     th.BasicTeam.Id,
+		}
+		r, err := th.Client.DoAPIDeleteJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/unassign",
+			body,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 400, r.StatusCode)
 	})
 }
 

@@ -27,7 +27,7 @@ type AdvancedTextboxProps = {
     descriptionMessage?: JSX.Element | string;
     hasError?: boolean;
     errorMessage?: string | JSX.Element;
-    onValidate?: (value: string) => { isValid: boolean; errorMessage?: string };
+    onValidate?: (value: string) => {isValid: boolean; errorMessage?: string};
     showCharacterCount?: boolean;
     readOnly?: boolean;
     name?: string; // Added name prop for floating label

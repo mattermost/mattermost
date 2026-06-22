@@ -1454,6 +1454,23 @@ func TestPluginPropertyOption(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldType_SupportsOptions(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeText:        false,
+		PropertyFieldTypeDate:        false,
+		PropertyFieldTypeUser:        false,
+		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldType("bogus"):   false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsOptions(), "SupportsOptions for %q", fieldType)
+	}
+}
+
 func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 	t.Run("generates IDs for multiselect options without IDs", func(t *testing.T) {
 		pf := &PropertyField{

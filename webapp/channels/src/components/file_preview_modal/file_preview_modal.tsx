@@ -60,7 +60,7 @@ export type Props = {
      * The index number of starting image
      **/
     startIndex: number;
-}
+};
 
 type Translate = {x: number; y: number};
 
@@ -78,7 +78,7 @@ type State = {
     translate: Record<number, Translate>;
     isDragging: boolean;
     content: string;
-}
+};
 
 // Pure helper for cursor-aware zoom math. Given current scale + translate,
 // the cursor position relative to the wrapper's center, and the new scale,

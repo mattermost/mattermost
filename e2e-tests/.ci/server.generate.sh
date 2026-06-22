@@ -67,7 +67,10 @@ services:
       MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
       MM_FEATUREFLAGS_PERMISSIONPOLICIES: "true"
+      MM_FEATUREFLAGS_TEAMMEMBERSHIPACCESSCONTROL: "true"
       MM_FEATUREFLAGS_CLASSIFICATIONMARKINGS: "true"
+      MM_FEATUREFLAGS_PROPERTYFIELDRANK: "true"
+      MM_FEATUREFLAGS_ATTRIBUTEVALUEMASKING: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
     network_mode: host
@@ -308,6 +311,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_ADMIN_PASSWORD: Sys@dmin-sample1
       PW_ADMIN_EMAIL: sysadmin@sample.mattermost.com
       PW_ENSURE_PLUGINS_INSTALLED: ""
+      MM_TEST_DB_URL: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       PW_HA_CLUSTER_ENABLED: "false"
       PW_RESET_BEFORE_TEST: "false"
       PW_HEADLESS: "true"

@@ -30,24 +30,24 @@ type Props = {
         link: (key: string) => Promise<ActionResult>;
         unlink: (key: string) => Promise<ActionResult>;
     };
-}
+};
 
 type FilterOption = {
     is_configured?: boolean;
     is_linked?: boolean;
-}
+};
 
 type FilterConfig = {
     filter: string;
     option: FilterOption;
-}
+};
 
 type FilterSearchMap = {
     filterIsConfigured: FilterConfig;
     filterIsUnconfigured: FilterConfig;
     filterIsLinked: FilterConfig;
     filterIsUnlinked: FilterConfig;
-}
+};
 
 type State = {
     checked?: any;
@@ -60,7 +60,7 @@ type State = {
     filterIsUnconfigured?: boolean;
     filterIsLinked?: boolean;
     filterIsUnlinked?: boolean;
-}
+};
 
 type FilterUpdates = [string, boolean];
 

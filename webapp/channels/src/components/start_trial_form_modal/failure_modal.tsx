@@ -16,7 +16,7 @@ type Props = {
     onTryAgain?: () => void;
     title?: JSX.Element;
     buttonText?: JSX.Element;
-}
+};
 
 export default function StartTrialFormModalResult(props: Props) {
     const dispatch = useDispatch();

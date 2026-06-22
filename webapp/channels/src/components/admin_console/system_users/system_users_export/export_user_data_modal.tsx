@@ -14,7 +14,7 @@ import ConfirmModalRedux from 'components/confirm_modal_redux';
 type Props = {
     onConfirm: (checked: boolean) => void;
     onExited: () => void;
-}
+};
 
 export function ExportUserDataModal({onConfirm, onExited}: Props) {
     const tableFilterProps = useSelector(getAdminConsoleUserManagementTableProperties);

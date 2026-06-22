@@ -61,7 +61,7 @@ type Props = {
     canManageChannelTranslation?: boolean;
     canManageBanner?: boolean;
     canManageSharedChannels?: boolean;
-}
+};
 
 function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBannerInfo: Channel['banner_info']): boolean {
     return (originalBannerInfo?.text?.trim() || '') !== (updatedBannerInfo?.text?.trim() || '') ||
@@ -645,18 +645,24 @@ function ChannelSettingsConfigurationTab({
                 <>
                     <div className='channel_banner_header'>
                         <div className='channel_banner_header__text'>
-                            <span className='Input_legend'>
+                            <label
+                                className='Input_legend'
+                                htmlFor='channelClassificationToggle'
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.title'
                                     defaultMessage='Classification'
                                 />
-                            </span>
-                            <span className='Input_subheading'>
+                            </label>
+                            <label
+                                className='Input_subheading'
+                                htmlFor='channelClassificationToggle'
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.description'
                                     defaultMessage='When enabled, a classification level can be set for the channel with configurable indicators.'
                                 />
-                            </span>
+                            </label>
                         </div>
 
                         <div className='channel_banner_header__toggle'>
@@ -675,19 +681,17 @@ function ChannelSettingsConfigurationTab({
 
                     {classificationEnabled && (
                         <div className='channel_banner_section_body'>
-                            <div style={{marginBottom: 16}}>
-                                <SectionNotice
-                                    type='warning'
-                                    iconOverride='icon-information-outline'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.classification_markings.notice.title'
-                                            defaultMessage='Classification markings are informational only'
-                                        />
-                                    }
-                                    text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
-                                />
-                            </div>
+                            <SectionNotice
+                                type='warning'
+                                iconOverride='icon-information-outline'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.classification_markings.notice.title'
+                                        defaultMessage='Classification markings are informational only'
+                                    />
+                                }
+                                text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
+                            />
 
                             <div className='setting_section'>
                                 <span className='setting_title'>

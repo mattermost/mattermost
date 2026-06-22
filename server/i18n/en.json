@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "A group-synced team cannot have a membership policy applied."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
   },
@@ -70,6 +74,10 @@
   {
     "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
     "translation": "All users in the simulation must be members of the team or channel in the request."
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "Team membership access control feature is not enabled."
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
@@ -2305,6 +2313,10 @@
     "translation": "Unable to seek to file start."
   },
   {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Unable to create emoji. Animated GIF must have at most {{.MaxFrames}} frames."
+  },
+  {
     "id": "api.encoding_error",
     "translation": "Encountered an error encoding JSON for the API response"
   },
@@ -3247,6 +3259,10 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Session attributes require an Enterprise Advanced license."
+  },
+  {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "The specified property group was not found."
   },
@@ -3751,6 +3767,14 @@
     "translation": "Unable to parse the request body."
   },
   {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "Failed to build access control subject for user."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "User does not have required attributes to join the team."
+  },
+  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },
@@ -3973,6 +3997,10 @@
   {
     "id": "api.team.team_icon.update.app_error",
     "translation": "An error occurred updating the team icon."
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "Group sync cannot be enabled on a team that has a membership policy applied."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4583,6 +4611,14 @@
     "translation": "not an ldap user"
   },
   {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Invalid device id."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Invalid VoIP device id."
+  },
+  {
     "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
     "translation": "Authentication Transfer is not available as email signup is disabled."
   },
@@ -4801,6 +4837,10 @@
   {
     "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
     "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled team."
   },
   {
     "id": "api.user.guest_magic_link.expired_token.app_error",
@@ -5049,6 +5089,10 @@
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Failed to send verification email successfully"
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Session attributes are not enabled."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -7661,6 +7705,10 @@
     "translation": "Unable to assign access control policy to channels."
   },
   {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "Unable to assign access control policy to teams."
+  },
+  {
     "id": "app.pap.check_expression.app_error",
     "translation": "Could not check expression."
   },
@@ -7717,6 +7765,14 @@
     "translation": "Could not get attributes for policy."
   },
   {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "Could not get team members to remove."
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "Could not determine masked values for policy expression."
+  },
+  {
     "id": "app.pap.hydrate_actions.app_error",
     "translation": "Could not load the action set declared by the channel's access control policy."
   },
@@ -7729,8 +7785,12 @@
     "translation": "Access control service is not ready."
   },
   {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "Could not mask policy expression."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
-    "translation": "Could not merge policy expression."
+    "translation": "Could not merge policy expression with stored masked values."
   },
   {
     "id": "app.pap.missing_attribute.app_error",
@@ -7745,6 +7805,10 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Could not restore ranked operators in policy expression."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
   },
@@ -7754,11 +7818,23 @@
   },
   {
     "id": "app.pap.save_policy.invalid_value",
-    "translation": "Invalid value."
+    "translation": "The policy expression contains a value that is not permitted."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "A condition containing masked values was deleted. Please reload the policy and try again."
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "Could not initialise attribute resolver for policy save."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7805,6 +7881,10 @@
     "translation": "At least one user is required for simulation."
   },
   {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "Could not initialise attribute resolver for policy simulation."
+  },
+  {
     "id": "app.pap.simulate.too_many_users",
     "translation": "Too many users requested. Maximum allowed is {{.Max}}."
   },
@@ -7821,12 +7901,12 @@
     "translation": "Could not unassign access control policy from channels."
   },
   {
-    "id": "app.pap.update_access_control_policies_active.app_error",
-    "translation": "Could not update active status of access control policies."
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "Could not unassign access control policy from teams."
   },
   {
-    "id": "app.pap.validate_expression_values.app_error",
-    "translation": "Could not validate policy expression values."
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Could not update active status of access control policies."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -8413,6 +8493,10 @@
     "translation": "The specified property field does not exist."
   },
   {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Rank property fields are not enabled."
+  },
+  {
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields."
   },
@@ -8935,6 +9019,14 @@
     "translation": "Unable to remove all the sessions."
   },
   {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "Device id cannot be empty."
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "VoIP device id cannot be empty."
+  },
+  {
     "id": "app.session.save.app_error",
     "translation": "Unable to save the session."
   },
@@ -8949,6 +9041,10 @@
   {
     "id": "app.session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Session attribute fields cannot be created or deleted, and only their enabled, ttl_seconds and grace_period_seconds may be changed."
   },
   {
     "id": "app.status.get.app_error",
@@ -11459,6 +11555,10 @@
     "translation": "{{.Setting}} must be set when the corresponding AzureCloud value is 'custom'."
   },
   {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "Invalid value {{.Value}} for {{.Setting}}. The Azure storage account name must be 3 to 24 characters long and contain only lowercase letters and numbers."
+  },
+  {
     "id": "model.config.is_valid.azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
@@ -11653,6 +11753,10 @@
   {
     "id": "model.config.is_valid.export_azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",

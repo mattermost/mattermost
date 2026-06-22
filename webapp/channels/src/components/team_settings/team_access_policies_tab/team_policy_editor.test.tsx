@@ -37,6 +37,8 @@ describe('TeamPolicyEditor', () => {
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
+            TrustProxyDeviceIdentityHeader: false,
+            EnforceDeviceIDConsistency: false,
         },
         onNavigateBack: jest.fn(),
         actions: {

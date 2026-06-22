@@ -67,7 +67,7 @@ export const noBillingHistory = (
 
 type FreeTrialProps = {
     daysLeftOnTrial: number;
-}
+};
 
 export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
     const [openSalesLink] = useOpenSalesLink();
@@ -147,7 +147,7 @@ type InvoiceInfoProps = {
     fullCharges: InvoiceLineItem[];
     partialCharges: InvoiceLineItem[];
     hasMore?: number;
-}
+};
 
 export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasMore}: InvoiceInfoProps) => {
     const dispatch = useDispatch();

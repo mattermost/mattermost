@@ -34,7 +34,7 @@ import './thread_list.scss';
 
 export enum ThreadFilter {
     none = '',
-    unread = 'unread'
+    unread = 'unread',
 }
 
 export const FILTER_STORAGE_KEY = 'globalThreads_filter';
@@ -301,9 +301,9 @@ function useTabs<TabName extends string>({
         panelId: string;
     }>;
 }): {
-        tabListProps: React.HTMLAttributes<HTMLElement>;
-        tabProps: Array<React.HTMLAttributes<HTMLElement>>;
-    } {
+    tabListProps: React.HTMLAttributes<HTMLElement>;
+    tabProps: Array<React.HTMLAttributes<HTMLElement>>;
+} {
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         let delta = 0;
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.RIGHT)) {

@@ -3,7 +3,8 @@
 
 import path from 'node:path';
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {duration} from '@/util';
 import {assetPath} from '@/file';
@@ -28,10 +29,10 @@ export default class ChannelsPostCreate {
     constructor(container: Locator, isRHS = false) {
         this.container = container;
 
-        if (!isRHS) {
-            this.input = container.getByTestId('post_textbox');
-        } else {
+        if (isRHS) {
             this.input = container.getByTestId('reply_textbox');
+        } else {
+            this.input = container.getByTestId('post_textbox');
         }
 
         this.attachmentButton = container.locator('#fileUploadButton');
@@ -71,7 +72,7 @@ export default class ChannelsPostCreate {
      */
     async getInputValue() {
         await expect(this.input).toBeVisible();
-        return await this.input.inputValue();
+        return this.input.inputValue();
     }
 
     /**
@@ -193,6 +194,6 @@ export default class ChannelsPostCreate {
      * BoR is considered enabled if the label is visible above the input
      */
     async isBurnOnReadEnabled(): Promise<boolean> {
-        return await this.burnOnReadLabel.isVisible();
+        return this.burnOnReadLabel.isVisible();
     }
 }

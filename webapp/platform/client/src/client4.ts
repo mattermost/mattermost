@@ -875,7 +875,7 @@ export default class Client4 {
             login_id: loginId,
         };
 
-        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean}>(
             `${this.getUsersRoute()}/login/type`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -1276,10 +1276,14 @@ export default class Client4 {
         );
     };
 
-    createUserAccessToken = (userId: string, description: string) => {
+    createUserAccessToken = (userId: string, description: string, expiresAt?: number) => {
+        const body: {description: string; expires_at?: number} = {description};
+        if (expiresAt !== undefined) {
+            body.expires_at = expiresAt;
+        }
         return this.doFetch<UserAccessToken>(
             `${this.getUserRoute(userId)}/tokens`,
-            {method: 'post', body: JSON.stringify({description})},
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -1396,9 +1400,9 @@ export default class Client4 {
         );
     };
 
-    getTeams = (page = 0, perPage = PER_PAGE_DEFAULT, includeTotalCount = false, excludePolicyConstrained = false) => {
+    getTeams = (page = 0, perPage = PER_PAGE_DEFAULT, includeTotalCount = false, excludePolicyConstrained = false, forDirectory = false) => {
         return this.doFetch<Team[] | TeamsWithCount>(
-            `${this.getTeamsRoute()}${buildQueryString({page, per_page: perPage, include_total_count: includeTotalCount, exclude_policy_constrained: excludePolicyConstrained})}`,
+            `${this.getTeamsRoute()}${buildQueryString({page, per_page: perPage, include_total_count: includeTotalCount, exclude_policy_constrained: excludePolicyConstrained, for_directory: forDirectory})}`,
             {method: 'get'},
         );
     };
@@ -3482,7 +3486,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase & { data?: any }) => {
+    createJob = (job: JobTypeBase & {data?: any}) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -4950,6 +4954,46 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
             {method: 'delete', body: JSON.stringify({channel_ids: channelIds, ...(teamId && {team_id: teamId})})},
+        );
+    };
+
+    assignTeamsToAccessControlPolicy = (policyId: string, teamIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/assign`,
+            {method: 'post', body: JSON.stringify({team_ids: teamIds})},
+        );
+    };
+
+    unassignTeamsFromAccessControlPolicy = (policyId: string, teamIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign`,
+            {method: 'delete', body: JSON.stringify({team_ids: teamIds})},
+        );
+    };
+
+    getTeamAccessControlPolicy = (teamId: string) => {
+        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean}>(
+            `${this.getTeamRoute(teamId)}/access_control/policy`,
+            {method: 'get'},
+        );
+    };
+
+    // getProfilesMatchingTeamPolicy returns only users who satisfy the team's
+    // ABAC membership policy and are not yet members, for the policy-filtered
+    // invite candidate list.
+    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+        const queryStringObj: any = {
+            not_in_team: teamId,
+            per_page: perPage,
+            abac_match_only: true,
+        };
+        if (cursorId) {
+            queryStringObj.cursor_id = cursorId;
+        }
+
+        return this.doFetch<UserProfile[]>(
+            `${this.getUsersRoute()}${buildQueryString(queryStringObj)}`,
+            {method: 'get'},
         );
     };
 
