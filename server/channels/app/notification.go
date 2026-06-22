@@ -755,7 +755,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				// bot, they've been deactivated, or they've left the channel (MM-36769). None can
 				// receive the notification, so record it as not sent rather than an error.
 				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-				rctx.Logger().LogM(mlog.MlvlNotificationWarn, "Missing profile",
+				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Missing profile",
 					mlog.String("type", model.NotificationTypeWebsocket),
 					mlog.String("post_id", post.Id),
 					mlog.String("status", model.NotificationStatusNotSent),
