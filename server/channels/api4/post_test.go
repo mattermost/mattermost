@@ -5537,9 +5537,6 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 
 	rpost := th.CreatePost(t)
 
-	// reset the cache so that channel member notify props includes all users
-	th.App.Srv().Store().Channel().ClearCaches()
-
 	testCases := []struct {
 		name        string
 		post        *model.Post
@@ -5628,6 +5625,9 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			followers: true,
 		},
 	}
+
+	// reset the cache so that channel member notify props includes all users
+	th.App.Srv().Store().Channel().ClearCaches()
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
