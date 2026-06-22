@@ -16,52 +16,6 @@ type AuditStorageStore struct {
 	mock.Mock
 }
 
-// HasRead provides a mock function with given fields: ctx, userID, postID
-func (_m *AuditStorageStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
-	ret := _m.Called(ctx, userID, postID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for HasRead")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
-		return rf(ctx, userID, postID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
-		r0 = rf(ctx, userID, postID)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, userID, postID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Mark provides a mock function with given fields: ctx, userID, postID, mechanism
-func (_m *AuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
-	ret := _m.Called(ctx, userID, postID, mechanism)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Mark")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, int16) error); ok {
-		r0 = rf(ctx, userID, postID, mechanism)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // MarkBulk provides a mock function with given fields: ctx, records
 func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 	ret := _m.Called(ctx, records)
@@ -73,42 +27,6 @@ func (_m *AuditStorageStore) MarkBulk(ctx context.Context, records []model.Audit
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, []model.AuditDeliveryRecord) error); ok {
 		r0 = rf(ctx, records)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MarkBulkSamePost provides a mock function with given fields: ctx, userIDs, postID, mechanism
-func (_m *AuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
-	ret := _m.Called(ctx, userIDs, postID, mechanism)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MarkBulkSamePost")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, string, int16) error); ok {
-		r0 = rf(ctx, userIDs, postID, mechanism)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MarkBulkSameUser provides a mock function with given fields: ctx, userID, postIDs, mechanism
-func (_m *AuditStorageStore) MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error {
-	ret := _m.Called(ctx, userID, postIDs, mechanism)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MarkBulkSameUser")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string, int16) error); ok {
-		r0 = rf(ctx, userID, postIDs, mechanism)
 	} else {
 		r0 = ret.Error(0)
 	}

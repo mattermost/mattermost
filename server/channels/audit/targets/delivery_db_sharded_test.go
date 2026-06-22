@@ -52,18 +52,6 @@ func (f *fakeAuditStorage) snapshot() (map[model.AuditDeliveryRecord]int, int) {
 	return out, f.calls
 }
 
-// unused AuditStorageStore methods.
-func (f *fakeAuditStorage) Mark(context.Context, string, string, int16) error { return nil }
-func (f *fakeAuditStorage) MarkBulkSameUser(context.Context, string, []string, int16) error {
-	return nil
-}
-func (f *fakeAuditStorage) MarkBulkSamePost(context.Context, []string, string, int16) error {
-	return nil
-}
-func (f *fakeAuditStorage) HasRead(context.Context, string, string) (bool, error) {
-	return false, nil
-}
-
 func metaFields(meta map[string]any) []mlog.Field {
 	return []mlog.Field{mlog.Any(model.AuditKeyMeta, meta)}
 }

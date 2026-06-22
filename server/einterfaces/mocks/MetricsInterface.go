@@ -82,6 +82,11 @@ func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
 	_m.Called()
 }
 
+// IncrementAuditStorageRecordsPersisted provides a mock function with given fields: count
+func (_m *MetricsInterface) IncrementAuditStorageRecordsPersisted(count int) {
+	_m.Called(count)
+}
+
 // IncrementAutoTranslateNormHash provides a mock function with given fields: result
 func (_m *MetricsInterface) IncrementAutoTranslateNormHash(result string) {
 	_m.Called(result)

@@ -278,11 +278,6 @@ func (s *loadStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryR
 	return err
 }
 
-func (s *loadStore) Mark(context.Context, string, string, int16) error               { return nil }
-func (s *loadStore) MarkBulkSameUser(context.Context, string, []string, int16) error { return nil }
-func (s *loadStore) MarkBulkSamePost(context.Context, []string, string, int16) error { return nil }
-func (s *loadStore) HasRead(context.Context, string, string) (bool, error)           { return false, nil }
-
 const auditLoadContainer = "mm-audit-loadtest-pg"
 
 // ensureAuditDB returns a connected pool to the audit-storage DB, starting a

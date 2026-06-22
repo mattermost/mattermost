@@ -1000,95 +1000,11 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 
 }
 
-func (s *RetryLayerAuditStorageStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.AuditStorageStore.HasRead(ctx, userID, postID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
-
-	tries := 0
-	for {
-		err := s.AuditStorageStore.Mark(ctx, userID, postID, mechanism)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerAuditStorageStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 
 	tries := 0
 	for {
 		err := s.AuditStorageStore.MarkBulk(ctx, records)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
-
-	tries := 0
-	for {
-		err := s.AuditStorageStore.MarkBulkSamePost(ctx, userIDs, postID, mechanism)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerAuditStorageStore) MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error {
-
-	tries := 0
-	for {
-		err := s.AuditStorageStore.MarkBulkSameUser(ctx, userID, postIDs, mechanism)
 		if err == nil {
 			return nil
 		}

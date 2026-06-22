@@ -903,38 +903,6 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 	return err
 }
 
-func (s *TimerLayerAuditStorageStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
-	start := time.Now()
-
-	result, err := s.AuditStorageStore.HasRead(ctx, userID, postID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.HasRead", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
-	start := time.Now()
-
-	err := s.AuditStorageStore.Mark(ctx, userID, postID, mechanism)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.Mark", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerAuditStorageStore) MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error {
 	start := time.Now()
 
@@ -947,38 +915,6 @@ func (s *TimerLayerAuditStorageStore) MarkBulk(ctx context.Context, records []mo
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulk", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerAuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
-	start := time.Now()
-
-	err := s.AuditStorageStore.MarkBulkSamePost(ctx, userIDs, postID, mechanism)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulkSamePost", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerAuditStorageStore) MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error {
-	start := time.Now()
-
-	err := s.AuditStorageStore.MarkBulkSameUser(ctx, userID, postIDs, mechanism)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulkSameUser", success, elapsed)
 	}
 	return err
 }

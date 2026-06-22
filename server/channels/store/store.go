@@ -1294,19 +1294,10 @@ type ReadReceiptStore interface {
 // retry layer, no cache layer. Duplicates are allowed at write time and
 // deduped on read.
 type AuditStorageStore interface {
-	Mark(ctx context.Context, userID, postID string, mechanism int16) error
-	// MarkBulkSameUser records that one user received many posts (channel
-	// view, thread view, search, getPostsByIds). One SQL statement, no
-	// client-side iteration: INSERT … SELECT FROM unnest($postIDs::text[]).
-	MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error
-	// MarkBulkSamePost records that one post fanned out to many users
-	// (websocket broadcast). One SQL statement, no client-side iteration.
-	MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error
 	// MarkBulk records arbitrary mixed (user, entity, mechanism) triples in
 	// a single SQL statement. Used by the audit delivery target's batching
 	// worker pool to flush an accumulated batch in one round-trip.
 	MarkBulk(ctx context.Context, records []model.AuditDeliveryRecord) error
-	HasRead(ctx context.Context, userID, postID string) (bool, error)
 }
 
 type TemporaryPostStore interface {
