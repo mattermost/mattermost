@@ -699,10 +699,8 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.MfaUsedTimestamps = nil
 	u.LastLogin = 0
 
-	// A nil map means no options were provided, so default to the most
-	// restrictive behaviour and strip every sensitive field. An explicitly
-	// empty (non-nil) map is the "this is the requesting user's own data"
-	// sentinel and retains those fields for the caller to handle.
+	// A nil map strips every sensitive field. An explicitly empty (non-nil)
+	// map is the "requesting user's own data" sentinel and retains them.
 	if options == nil || len(options) != 0 {
 		if !options["email"] {
 			u.Email = ""

@@ -1451,8 +1451,8 @@ func (a *App) sendUpdatedUserEvent(user *model.User) {
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 
-	// The event is only sent to the user themselves, so use an empty options
-	// map to keep their own profile data while stripping secret fields.
+	// Sent only to the user themselves; keep their own profile data while
+	// stripping secret fields via the empty-options sentinel.
 	sourceUserCopyOfUser.Sanitize(map[string]bool{})
 	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", sourceUserCopyOfUser.Id, nil, "")
 	sourceUserMessage.Add("user", sourceUserCopyOfUser)
