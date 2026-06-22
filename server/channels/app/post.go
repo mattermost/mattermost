@@ -2905,7 +2905,7 @@ func (a *App) GetPostInfo(rctx request.CTX, postID string, channel *model.Channe
 
 func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*model.Post) {
 	env := a.GetPluginsEnvironment()
-	if env == nil || !env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) {
+	if env == nil || (!env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) && !env.HasPluginImplementing(plugin.MessagesWillBeConsumedWithContextID)) {
 		return
 	}
 
@@ -2938,7 +2938,7 @@ func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
 	}
 
 	env := a.GetPluginsEnvironment()
-	if env == nil || !env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) {
+	if env == nil || (!env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) && !env.HasPluginImplementing(plugin.MessagesWillBeConsumedWithContextID)) {
 		return
 	}
 
