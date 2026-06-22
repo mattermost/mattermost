@@ -46,7 +46,7 @@ export type ClassificationMarkingsState = {
  * 2. Enterprise license is active
  * 3. Template classification field exists with at least one level configured
  *
- * Also fetches the channel_classification linked field for consumers that need it.
+ * Also fetches the channel-scoped classification linked field for consumers that need it.
  */
 export default function useClassificationMarkings(): ClassificationMarkingsState {
     const dispatch = useDispatch();

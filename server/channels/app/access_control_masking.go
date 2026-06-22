@@ -173,7 +173,7 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 		condition.Value = nil
 		condition.HasMaskedValues = true
 	case model.PropertyAccessModeSharedOnly:
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type.SupportsOptions() {
 			filterConditionValues(condition, extractVisibleOptionNames(field))
 		} else {
 			filterConditionValues(condition, a.getCallerTextValues(rctx, callerID, field, cpaGroupID))

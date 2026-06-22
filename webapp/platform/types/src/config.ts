@@ -136,6 +136,7 @@ export type ClientConfig = {
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
+    FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
 
