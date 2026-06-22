@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -627,6 +628,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     } as Partial<AdminConfig>;
 
     test('should render the selected dropdown option help text with markdown links as anchors', () => {
+        // Production help text is a MessageDescriptor (defineMessage), so render through
+        // that branch to exercise the same path the SAML settings use.
         const {container} = renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
@@ -635,7 +638,10 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 schema={buildDropdownOptionSchema({
                     display_name: 'Option 1',
                     value: 'option1',
-                    help_text: `See [${samlHelpUrl}](${samlHelpUrl})`,
+                    help_text: defineMessage({
+                        id: 'test.dropdown.option.help',
+                        defaultMessage: `See [${samlHelpUrl}](${samlHelpUrl})`,
+                    }),
                     help_text_markdown: true,
                 })}
                 patchConfig={jest.fn()}
@@ -645,6 +651,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         const link = screen.getByRole('link', {name: samlHelpUrl});
         expect(link).toBeInTheDocument();
         expect(link).toHaveAttribute('href', samlHelpUrl);
+        expect(screen.getAllByRole('link')).toHaveLength(1);
 
         // The non-link portion of the help text should remain intact.
         expect(container.textContent).toContain('See ');
@@ -659,7 +666,10 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 schema={buildDropdownOptionSchema({
                     display_name: 'Option 1',
                     value: 'option1',
-                    help_text: `See ${samlHelpUrl}`,
+                    help_text: defineMessage({
+                        id: 'test.dropdown.option.help.plain',
+                        defaultMessage: `See ${samlHelpUrl}`,
+                    }),
                 })}
                 patchConfig={jest.fn()}
             />,
