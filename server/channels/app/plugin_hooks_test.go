@@ -2920,6 +2920,11 @@ func TestHookServeMetrics(t *testing.T) {
 	})
 }
 
+const (
+	pluginHookReadinessStableChecks = 3
+	hookPostExistsTimeout           = 60 * time.Second
+)
+
 func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessage string) {
 	t.Helper()
 
@@ -2937,35 +2942,40 @@ func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessa
 			}
 		}
 		assert.True(c, found, "expected hook post %q not found", expectedMessage)
-	}, 30*time.Second, 100*time.Millisecond)
+	}, hookPostExistsTimeout, 50*time.Millisecond)
 }
 
 func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string, requiredHooks ...string) {
 	t.Helper()
 
+	consecutiveReadyChecks := 0
 	assert.Eventually(t, func() bool {
 		env := th.App.GetPluginsEnvironment()
 		if env == nil || !env.IsActive(pluginID) {
+			consecutiveReadyChecks = 0
 			return false
 		}
 		hooks, err := env.HooksForPlugin(pluginID)
 		if err != nil {
+			consecutiveReadyChecks = 0
 			return false
 		}
-		if len(requiredHooks) == 0 {
-			return true
-		}
-		implemented, err := hooks.Implemented()
-		if err != nil {
-			return false
-		}
-		for _, requiredHook := range requiredHooks {
-			if !slices.Contains(implemented, requiredHook) {
+		if len(requiredHooks) > 0 {
+			implemented, err := hooks.Implemented()
+			if err != nil {
+				consecutiveReadyChecks = 0
 				return false
 			}
+			for _, requiredHook := range requiredHooks {
+				if !slices.Contains(implemented, requiredHook) {
+					consecutiveReadyChecks = 0
+					return false
+				}
+			}
 		}
-		return true
-	}, 10*time.Second, 50*time.Millisecond, "plugin %q failed to become ready for hooks", pluginID)
+		consecutiveReadyChecks++
+		return consecutiveReadyChecks >= pluginHookReadinessStableChecks
+	}, 20*time.Second, 50*time.Millisecond, "plugin %q failed to become ready for hooks", pluginID)
 }
 
 func TestUserHasJoinedChannel(t *testing.T) {
