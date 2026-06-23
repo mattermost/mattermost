@@ -164,12 +164,8 @@ jobs:
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
   # Install webapp node_modules once via the shared webapp-setup action, then
-  # workers restore the same stable cache. The platform/{client,types}/lib outputs
-  # are rebuilt by npm run postinstall on every cache hit rather than cached
-  # separately — their source changes every commit, so caching them generates a
-  # new ~370 MB entry per commit. The node_modules cache is keyed only on
-  # webapp/package-lock.json, which is stable across source changes, so it is
-  # shared with webapp-ci.yml jobs and rarely needs a cold build.
+  # workers restore the same stable cache. The node_modules cache is keyed only
+  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04

@@ -199,8 +199,8 @@ jobs:
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
   # Install webapp node_modules once via the shared webapp-setup action, then
-  # workers restore the same stable cache. See e2e-tests-playwright-template-v2.yml
-  # for a full explanation of why the volatile e2e-platform-pkgs cache was dropped.
+  # workers restore the same stable cache. The node_modules cache is keyed only
+  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
