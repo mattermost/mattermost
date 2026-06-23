@@ -75,8 +75,14 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         imgStyle.cursor = 'grab';
     }
     if (getFileType(fileInfo.extension) === FileTypes.SVG) {
-        imgStyle.width = fileInfo.width || '100%';
-        imgStyle.height = 'auto';
+        if (fileInfo.width) {
+            imgStyle.width = fileInfo.width;
+            imgStyle.height = 'auto';
+        } else {
+            imgStyle.width = 'auto';
+            imgStyle.height = 'calc(100vh - 168px)';
+            imgStyle.maxWidth = 'calc(100vw - 96px)';
+        }
     }
     const imgClassName = classNames('image_preview__image', {
         'image_preview__image--zoomed': isZoomed,

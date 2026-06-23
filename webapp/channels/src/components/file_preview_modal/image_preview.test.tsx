@@ -126,7 +126,7 @@ describe('components/view_image/ImagePreview', () => {
         expect(screen.getByTestId('imagePreview')).toHaveAttribute('src', props.fileInfo.link);
     });
 
-    test('should fill the available width for an SVG without known dimensions', () => {
+    test('should use the available modal height for an SVG without known dimensions', () => {
         const props = {
             ...baseProps,
             fileInfo: TestHelper.getFileInfoMock({id: 'svg_file', extension: 'svg', width: 0, height: 0}),
@@ -134,8 +134,9 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        expect(screen.getByTestId('imagePreview')).toHaveStyle('width: 100%');
-        expect(screen.getByTestId('imagePreview')).toHaveStyle('height: auto');
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('width: auto');
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('height: calc(100vh - 168px)');
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('max-width: calc(100vw - 96px)');
     });
 
     test('should use the SVG pixel width when dimensions are known', () => {
@@ -150,7 +151,7 @@ describe('components/view_image/ImagePreview', () => {
         expect(screen.getByTestId('imagePreview')).toHaveStyle('height: auto');
     });
 
-    test('should fill the available width for a dimensionless SVG even when downloads are disabled', () => {
+    test('should use the available modal height for a dimensionless SVG even when downloads are disabled', () => {
         const props = {
             ...baseProps,
             canDownloadFiles: false,
@@ -161,7 +162,8 @@ describe('components/view_image/ImagePreview', () => {
 
         const img = container.querySelector('img.image_preview__image') as HTMLElement;
         expect(img).not.toBeNull();
-        expect(img.style.width).toEqual('100%');
-        expect(img.style.height).toEqual('auto');
+        expect(img.style.width).toEqual('auto');
+        expect(img.style.height).toEqual('calc(100vh - 168px)');
+        expect(img.style.maxWidth).toEqual('calc(100vw - 96px)');
     });
 });
