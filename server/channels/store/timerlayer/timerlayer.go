@@ -14369,21 +14369,6 @@ func (s *TimerLayerUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt i
 	return result, err
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetNonCompliantExpiry(maxExpiresAt int64, limit int) ([]*model.UserAccessToken, error) {
-	start := time.Now()
-
-	result, err := s.UserAccessTokenStore.GetNonCompliantExpiry(maxExpiresAt, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.GetNonCompliantExpiry", success, elapsed)
-	}
-	return result, err
-}
 
 func (s *TimerLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 	start := time.Now()

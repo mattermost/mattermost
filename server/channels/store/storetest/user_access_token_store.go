@@ -404,9 +404,16 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.UserAccessToken().Save(botToken)
 	require.NoError(t, err)
 
+	// Sessions minted from the two non-compliant tokens — DeleteNonCompliantExpiry
+	// must remove these along with the tokens.
+	noExpirySession, nErr := ss.Session().Save(rctx, &model.Session{Token: noExpiry.Token, UserId: noExpiry.UserId})
+	require.NoError(t, nErr)
+	farFutureSession, nErr := ss.Session().Save(rctx, &model.Session{Token: farFuture.Token, UserId: farFuture.UserId})
+	require.NoError(t, nErr)
+
 	t.Cleanup(func() {
-		_ = ss.UserAccessToken().Delete(noExpiry.Id)
-		_ = ss.UserAccessToken().Delete(farFuture.Id)
+		// noExpiry and farFuture are deleted by DeleteNonCompliantExpiry below;
+		// only surviving tokens need explicit cleanup.
 		_ = ss.UserAccessToken().Delete(compliant.Id)
 		_ = ss.UserAccessToken().Delete(inactive.Id)
 		_ = ss.UserAccessToken().Delete(botToken.Id)
@@ -414,35 +421,58 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 		_ = ss.User().PermanentDelete(rctx, botUser.Id)
 	})
 
-	// Against the 30-day cap, the two active non-bot violators are added.
+	// Against the 30-day cap, the two active non-bot violators are counted.
 	count, err := ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
 	require.NoError(t, err)
 	require.Equal(t, baseline30+2, count)
 
-	// GetNonCompliantExpiry includes both violators, excludes the compliant,
-	// inactive and bot tokens, and never leaks the secret Token column. A large
-	// limit ensures our fixtures are within the returned page.
-	rows, err := ss.UserAccessToken().GetNonCompliantExpiry(maxExpiresAt, 10000)
+	// A non-positive limit is a no-op.
+	noop, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 0)
 	require.NoError(t, err)
-	gotIDs := map[string]bool{}
-	for _, row := range rows {
-		require.Empty(t, row.Token, "GetNonCompliantExpiry must never return the secret Token value")
-		gotIDs[row.Id] = true
+	require.Empty(t, noop)
+
+	// DeleteNonCompliantExpiry deletes both violators and their sessions, returns
+	// their user IDs, and leaves compliant/inactive/bot tokens untouched.
+	userIDs, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 10000)
+	require.NoError(t, err)
+	gotUserIDs := map[string]bool{}
+	for _, id := range userIDs {
+		gotUserIDs[id] = true
 	}
-	require.True(t, gotIDs[noExpiry.Id], "never-expiring token should be returned")
-	require.True(t, gotIDs[farFuture.Id], "far-future token should be returned")
-	require.False(t, gotIDs[compliant.Id], "compliant token must not be returned")
-	require.False(t, gotIDs[inactive.Id], "inactive token must not be returned")
-	require.False(t, gotIDs[botToken.Id], "bot token must not be returned")
+	require.True(t, gotUserIDs[noExpiry.UserId], "user of never-expiring token should be returned")
+	require.True(t, gotUserIDs[farFuture.UserId], "user of far-future token should be returned")
+	require.False(t, gotUserIDs[compliant.UserId], "compliant token user must not be returned")
+	require.False(t, gotUserIDs[inactive.UserId], "inactive token user must not be returned")
+	require.False(t, gotUserIDs[botToken.UserId], "bot token user must not be returned")
 
-	// A non-positive limit short-circuits to an empty slice without hitting the DB.
-	zeroLimit, err := ss.UserAccessToken().GetNonCompliantExpiry(maxExpiresAt, 0)
+	// Token rows are gone.
+	_, err = ss.UserAccessToken().Get(noExpiry.Id)
+	require.Error(t, err, "never-expiring token should be deleted")
+	_, err = ss.UserAccessToken().Get(farFuture.Id)
+	require.Error(t, err, "far-future token should be deleted")
+
+	// Sessions for deleted tokens are gone.
+	_, nErr = ss.Session().Get(rctx, noExpirySession.Token)
+	require.Error(t, nErr, "session for never-expiring token should be deleted")
+	_, nErr = ss.Session().Get(rctx, farFutureSession.Token)
+	require.Error(t, nErr, "session for far-future token should be deleted")
+
+	// Surviving tokens are untouched.
+	_, err = ss.UserAccessToken().Get(compliant.Id)
+	require.NoError(t, err, "compliant token must survive")
+	_, err = ss.UserAccessToken().Get(inactive.Id)
+	require.NoError(t, err, "inactive token must survive")
+	_, err = ss.UserAccessToken().Get(botToken.Id)
+	require.NoError(t, err, "bot token must survive")
+
+	// Count is back to baseline after deletion.
+	count, err = ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
 	require.NoError(t, err)
-	require.Empty(t, zeroLimit)
+	require.Equal(t, baseline30, count)
 
-	// Against the much larger cap only the never-expiring token among our
-	// fixtures is a violator (the far-future token now fits within the cap).
+	// Against the much larger cap only the never-expiring token was a violator
+	// (the far-future token fits within it); after deletion baseline is restored.
 	count, err = ss.UserAccessToken().CountNonCompliantExpiry(farCap)
 	require.NoError(t, err)
-	require.Equal(t, baselineFar+1, count, "only the never-expiring token violates a very large cap")
+	require.Equal(t, baselineFar, count, "only the never-expiring token violated a very large cap")
 }

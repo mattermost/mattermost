@@ -18189,26 +18189,6 @@ func (s *RetryLayerUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt i
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) GetNonCompliantExpiry(maxExpiresAt int64, limit int) ([]*model.UserAccessToken, error) {
-
-	tries := 0
-	for {
-		result, err := s.UserAccessTokenStore.GetNonCompliantExpiry(maxExpiresAt, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
 
 func (s *RetryLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 

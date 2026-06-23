@@ -286,36 +286,6 @@ func (_m *UserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, lim
 	return r0, r1
 }
 
-// GetNonCompliantExpiry provides a mock function with given fields: maxExpiresAt, limit
-func (_m *UserAccessTokenStore) GetNonCompliantExpiry(maxExpiresAt int64, limit int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(maxExpiresAt, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetNonCompliantExpiry")
-	}
-
-	var r0 []*model.UserAccessToken
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int) ([]*model.UserAccessToken, error)); ok {
-		return rf(maxExpiresAt, limit)
-	}
-	if rf, ok := ret.Get(0).(func(int64, int) []*model.UserAccessToken); ok {
-		r0 = rf(maxExpiresAt, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.UserAccessToken)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
-		r1 = rf(maxExpiresAt, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Save provides a mock function with given fields: token
 func (_m *UserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 	ret := _m.Called(token)
