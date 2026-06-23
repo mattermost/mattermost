@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -250,10 +250,11 @@ function ChannelSettingsConfigurationTab({
     // on reset and on save
     const [shareChannelKey, setShareChannelKey] = useState(Date.now());
 
-    // Track the toggle state to detect when sharing is explicitly disabled on a channel
-    // that has channel.shared=true but no remotes loaded (e.g. after page reload).
-    // Both are frozen at mount time so they don't drift apart due to async channel hydration.
-    const initialSharingEnabled = useRef(channel.shared || (initialRemotes || []).length > 0);
+    // Track the saved sharing toggle baseline alongside frozenInitialRemoteIds so
+    // hasWorkspaceChanges re-renders when the baseline updates after save.
+    const [frozenSharingEnabled, setFrozenSharingEnabled] = useState(
+        () => Boolean(channel.shared || (initialRemotes || []).length > 0),
+    );
     const [sharingEnabled, setSharingEnabled] = useState(channel.shared || (initialRemotes || []).length > 0);
 
     // Freeze initialRemoteIds in state and update it atomically with workspaceRemotes (in
@@ -266,7 +267,7 @@ function ChannelSettingsConfigurationTab({
     );
     const currentRemoteIds = workspaceRemotes.map((r) => r.remote_id || r.name).sort().join(',');
     const hasWorkspaceChanges = frozenInitialRemoteIds !== currentRemoteIds ||
-        sharingEnabled !== initialSharingEnabled.current;
+        sharingEnabled !== frozenSharingEnabled;
 
     const confirmModalMessages = useMemo(() => {
         const workspaceRemoteIdSet = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
@@ -318,13 +319,23 @@ function ChannelSettingsConfigurationTab({
 
     useDidUpdate(() => {
         if (initialRemotes && canManageSharedChannels) {
+            const serverRemoteIds = initialRemotes.map((r) => r.remote_id || r.name).sort().join(',');
+
             // Update both frozen baseline and working copy atomically so they never diverge.
-            setFrozenInitialRemoteIds(
-                initialRemotes.map((r) => r.remote_id || r.name).sort().join(','),
-            );
-            setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
-            initialSharingEnabled.current = initialRemotes.length > 0;
+            setFrozenInitialRemoteIds(serverRemoteIds);
+
+            setWorkspaceRemotes((prev) => {
+                const pending = prev.filter((w) => w.pendingSave);
+                const fromServer = initialRemotes.map((r) => ({...r}));
+                if (pending.length === 0) {
+                    return fromServer;
+                }
+                const serverIds = new Set(fromServer.map((r) => r.remote_id || r.name));
+                return [...fromServer, ...pending.filter((w) => !serverIds.has(w.remote_id || w.name))];
+            });
+
             if (initialRemotes.length > 0) {
+                setFrozenSharingEnabled(true);
                 setSharingEnabled(true);
             }
         }
@@ -491,7 +502,6 @@ function ChannelSettingsConfigurationTab({
                 }
             }
             await dispatch(fetchChannelRemotes(channel.id, true));
-            setShareChannelKey(Date.now());
 
             if (errorCount === 1) {
                 handleServerError(lastError as ServerError);
@@ -502,6 +512,24 @@ function ChannelSettingsConfigurationTab({
                     defaultMessage: 'There has been errors while sharing the channel with some workspaces. Please try again.',
                 }));
             }
+
+            if (errorCount === 0) {
+                const savedRemoteIds = workspaceRemotes.map((r) => r.remote_id || r.name).sort().join(',');
+                const sharingShouldBeEnabled = sharingEnabled && workspaceRemotes.length > 0;
+
+                if (sharingShouldBeEnabled) {
+                    setFrozenInitialRemoteIds(savedRemoteIds);
+                    setFrozenSharingEnabled(true);
+                    setSharingEnabled(true);
+                } else {
+                    setSharingEnabled(false);
+                    setFrozenSharingEnabled(false);
+                    setFrozenInitialRemoteIds('');
+                }
+            }
+
+            setShareChannelKey(Date.now());
+
             return errorCount === 0;
         }
 
@@ -524,6 +552,7 @@ function ChannelSettingsConfigurationTab({
         initialRemotes,
         isChannelAutotranslated,
         selectedClassificationId,
+        sharingEnabled,
         updatedChannelBanner,
         workspaceRemotes,
     ]);
@@ -581,13 +610,13 @@ function ChannelSettingsConfigurationTab({
         setSelectedClassificationId(initialClassificationState.classificationId);
 
         if (canManageSharedChannels) {
-            setSharingEnabled(initialSharingEnabled.current);
+            setSharingEnabled(frozenSharingEnabled);
             if (initialRemotes) {
                 setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
                 setShareChannelKey(Date.now());
             }
         }
-    }, [canManageSharedChannels, initialBannerInfo, initialClassificationState, initialRemotes]);
+    }, [canManageSharedChannels, frozenSharingEnabled, initialBannerInfo, initialClassificationState, initialRemotes]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
