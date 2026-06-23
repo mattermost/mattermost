@@ -88,7 +88,7 @@ type SupportPacketDiagnostics struct {
 
 	FileStore struct {
 		Status         string `yaml:"file_status"`
-		Error          string `yaml:"erorr,omitempty"`
+		Error          string `yaml:"error,omitempty"`
 		Driver         string `yaml:"file_driver"`
 		FilesystemType string `yaml:"filesystem_type,omitempty"`
 		TotalMB        uint64 `yaml:"total_mb,omitempty"`
