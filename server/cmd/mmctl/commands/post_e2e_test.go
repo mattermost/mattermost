@@ -153,7 +153,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 	s.Run("Send a direct message for System Admin Client", func() {
 		printer.Clean()
 
-		msgArg := "direct message text"
+		msgArg := model.NewRandomString(15)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
@@ -168,26 +168,72 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		posts, appErr := s.th.App.GetPosts(s.th.Context, dmChannel.Id, 0, 10)
 		s.Require().Nil(appErr)
 
-		var found bool
+		var matched []*model.Post
 		for _, post := range posts.Posts {
 			if post.Message == msgArg {
-				found = true
-				s.Require().Equal(s.th.SystemAdminUser.Id, post.UserId)
+				matched = append(matched, post)
 			}
 		}
-		s.Require().True(found, "expected the direct message to be posted in the DM channel")
+		s.Require().Len(matched, 1, "expected exactly one direct message with the sent text")
+		s.Require().Equal(s.th.SystemAdminUser.Id, matched[0].UserId)
+		s.Require().Equal(dmChannel.Id, matched[0].ChannelId)
+	})
+
+	s.Run("Send a direct message for Client", func() {
+		printer.Clean()
+
+		msgArg := model.NewRandomString(15)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		err := postCreateCmdF(s.th.Client, cmd, []string{"@" + s.th.BasicUser2.Username})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+
+		dmChannel, appErr := s.th.App.GetOrCreateDirectChannel(s.th.Context, s.th.BasicUser.Id, s.th.BasicUser2.Id)
+		s.Require().Nil(appErr)
+
+		posts, appErr := s.th.App.GetPosts(s.th.Context, dmChannel.Id, 0, 10)
+		s.Require().Nil(appErr)
+
+		var matched []*model.Post
+		for _, post := range posts.Posts {
+			if post.Message == msgArg {
+				matched = append(matched, post)
+			}
+		}
+		s.Require().Len(matched, 1, "expected exactly one direct message with the sent text")
+		s.Require().Equal(s.th.BasicUser.Id, matched[0].UserId)
+		s.Require().Equal(dmChannel.Id, matched[0].ChannelId)
+	})
+
+	s.Run("Send a direct message for Local Client should fail", func() {
+		printer.Clean()
+
+		msgArg := model.NewRandomString(15)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		err := postCreateCmdF(s.th.LocalClient, cmd, []string{"@" + s.th.BasicUser2.Username})
+		s.Require().NotNil(err)
+		s.Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("Send a direct message to a non-existing user should fail", func() {
 		printer.Clean()
 
-		msgArg := "direct message text"
+		msgArg := model.NewRandomString(15)
+		missingUsername := model.NewUsername()
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
 
-		err := postCreateCmdF(s.th.SystemAdminClient, cmd, []string{"@" + model.NewUsername()})
+		err := postCreateCmdF(s.th.SystemAdminClient, cmd, []string{"@" + missingUsername})
 		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), missingUsername)
+		s.Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("Reply to a an existing post for System Admin Client", func() {

@@ -174,7 +174,72 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Times(1)
 
 		err := postCreateCmdF(s.client, cmd, []string{"@" + username})
+		var nfErr ErrEntityNotFound
+		s.Require().ErrorAs(err, &nfErr)
+		s.Require().Equal("user", nfErr.Type)
+		s.Require().Equal(username, nfErr.ID)
+	})
+
+	s.Run("direct message fails to resolve the current user", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "target-user"
+		targetUserID := "target-user-id"
+		mockTargetUser := model.User{Id: targetUserID, Username: username}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(&mockTargetUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(nil, &model.Response{}, errors.New("some-error")).
+			Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{"@" + username})
 		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "could not retrieve the current user")
+	})
+
+	s.Run("direct message fails to create the direct channel", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "target-user"
+		meID := "my-user-id"
+		targetUserID := "target-user-id"
+		mockTargetUser := model.User{Id: targetUserID, Username: username}
+		mockMe := model.User{Id: meID}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(&mockTargetUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockMe, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateDirectChannel(context.TODO(), meID, targetUserID).
+			Return(nil, &model.Response{}, errors.New("some-error")).
+			Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{"@" + username})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "could not create direct channel with 'target-user'")
 	})
 
 	s.Run("reply to an existing post", func() {
