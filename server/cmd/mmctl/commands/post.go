@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -25,11 +26,13 @@ var PostCmd = &cobra.Command{
 }
 
 var PostCreateCmd = &cobra.Command{
-	Use:     "create",
-	Short:   "Create a post",
-	Example: `  post create myteam:mychannel --message "some text for the post"`,
-	Args:    cobra.ExactArgs(1),
-	RunE:    withClient(postCreateCmdF),
+	Use:   "create",
+	Short: "Create a post",
+	Long:  "Create a post in a channel or send a direct message to a user by prefixing the user with '@'.",
+	Example: `  post create myteam:mychannel --message "some text for the post"
+  post create @target-user --message "some text for the direct message"`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(postCreateCmdF),
 }
 
 var PostListCmd = &cobra.Command{
@@ -68,6 +71,9 @@ var PostDeleteCmd = &cobra.Command{
 const (
 	ISO8601Layout  = "2006-01-02T15:04:05-07:00"
 	PostTimeFormat = "2006-01-02 15:04:05-07:00"
+
+	// directMessagePrefix marks the post create argument as a user to send a direct message to.
+	directMessagePrefix = "@"
 )
 
 func init() {
@@ -110,13 +116,13 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
+	channelID, err := getPostChannelID(c, args[0])
+	if err != nil {
+		return err
 	}
 
 	post := &model.Post{
-		ChannelId: channel.Id,
+		ChannelId: channelID,
 		Message:   message,
 		RootId:    replyTo,
 	}
@@ -135,6 +141,45 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create post: %w", err)
 	}
 	return nil
+}
+
+// getPostChannelID resolves the post create argument to a channel ID. When the argument
+// is prefixed with "@", it is treated as a user and a direct message channel between the
+// current user and that user is resolved instead.
+func getPostChannelID(c client.Client, arg string) (string, error) {
+	if username, ok := strings.CutPrefix(arg, directMessagePrefix); ok {
+		channel, err := getDirectChannel(c, username)
+		if err != nil {
+			return "", err
+		}
+		return channel.Id, nil
+	}
+
+	channel := getChannelFromChannelArg(c, arg)
+	if channel == nil {
+		return "", errors.New("Unable to find channel '" + arg + "'")
+	}
+	return channel.Id, nil
+}
+
+// getDirectChannel returns the direct message channel between the current user and the
+// user referenced by username, creating it if it does not already exist.
+func getDirectChannel(c client.Client, username string) (*model.Channel, error) {
+	user, err := getUserFromArg(c, username)
+	if err != nil {
+		return nil, err
+	}
+
+	me, _, err := c.GetMe(context.TODO(), "")
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve the current user: %w", err)
+	}
+
+	channel, _, err := c.CreateDirectChannel(context.TODO(), me.Id, user.Id)
+	if err != nil {
+		return nil, fmt.Errorf("could not create direct channel with '%s': %w", username, err)
+	}
+	return channel, nil
 }
 
 func eventDataToPost(eventData map[string]any) (*model.Post, error) {
