@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -28,6 +29,7 @@ type MmctlUnitTestSuite struct {
 }
 
 func (s *MmctlUnitTestSuite) SetupTest() {
+	viper.Reset()
 	printer.Clean()
 	printer.SetFormat(printer.FormatJSON)
 
@@ -37,6 +39,7 @@ func (s *MmctlUnitTestSuite) SetupTest() {
 
 func (s *MmctlUnitTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
+	viper.Reset()
 }
 
 type MmctlE2ETestSuite struct {
