@@ -6,6 +6,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+import type {Locator} from '@playwright/test';
 
 import {expect, type ChannelsPage, type PlaywrightExtended} from '@mattermost/playwright-lib';
 
@@ -61,9 +62,9 @@ export async function createPost(
 }
 
 export async function openPostDotMenu(channelsPage: ChannelsPage, postId: string, rhs = false) {
-    const post = rhs ?
-        await channelsPage.sidebarRight.getPostById(postId) :
-        await channelsPage.centerView.getPostById(postId);
+    const post = rhs
+        ? await channelsPage.sidebarRight.getPostById(postId)
+        : await channelsPage.centerView.getPostById(postId);
 
     await post.hover();
     await post.postMenu.toBeVisible();
@@ -84,11 +85,22 @@ export async function expectUnreadSeparator(channelsPage: ChannelsPage, message:
 }
 
 export async function expectSidebarUnread(channelsPage: ChannelsPage, channelName: string) {
-    await expect(channelsPage.page.locator(`#sidebarItem_${channelName}`)).toHaveClass(/unread|unread-title/);
+    await expect(sidebarItem(channelsPage, channelName)).toHaveClass(/unread|unread-title/);
 }
 
 export async function expectSidebarRead(channelsPage: ChannelsPage, channelName: string) {
-    await expect(channelsPage.page.locator(`#sidebarItem_${channelName}`)).not.toHaveClass(/unread|unread-title/);
+    await expect(sidebarItem(channelsPage, channelName)).not.toHaveClass(/unread|unread-title/);
+}
+
+export async function goToSidebarItem(channelsPage: ChannelsPage, channelName: string) {
+    await sidebarItem(channelsPage, channelName).click();
+}
+
+function sidebarItem(channelsPage: ChannelsPage, channelName: string): Locator {
+    return channelsPage.page
+        .locator(`#sidebarItem_${channelName}`)
+        .or(channelsPage.sidebarLeft.container.locator('.SidebarLink').filter({hasText: channelName}))
+        .first();
 }
 
 export async function submitSearch(channelsPage: ChannelsPage, query: string) {
@@ -122,9 +134,4 @@ export async function selectUsersForDirectMessage(channelsPage: ChannelsPage, us
     }
 
     return modal;
-}
-
-export async function postMessageWithCtrlEnter(channelsPage: ChannelsPage, message: string) {
-    await channelsPage.centerView.postCreate.writeMessage(message);
-    await channelsPage.page.keyboard.press(process.platform === 'darwin' ? 'Meta+Enter' : 'Control+Enter');
 }
