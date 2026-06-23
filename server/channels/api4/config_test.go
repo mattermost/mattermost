@@ -1029,6 +1029,60 @@ func TestPatchConfig(t *testing.T) {
 		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.oauth-plugin")
 		assert.Equal(t, "test-client-id", storedCfg.PluginSettings.Plugins["com.example.oauth-plugin"]["clientid"])
 	})
+
+	t.Run("should preserve plugin configs absent from patch due to partial sync", func(t *testing.T) {
+		// Start with multiple plugins configured.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.plugin-a": {"token": "token-a"},
+				"com.example.plugin-b": {"token": "token-b"},
+			}
+		})
+
+		// simulate a client receives a partial sanitized config with only plugin-a, and PATCHes it back. Plugin-b should survive.
+		patch := &model.Config{}
+		patch.PluginSettings.Enable = new(true)
+		patch.PluginSettings.Plugins = map[string]map[string]any{
+			"com.example.plugin-a": {"token": "token-a-updated"},
+		}
+		_, _, err := th.SystemAdminClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+
+		// All plugin configs must survive; only the synced plugin was in the patch.
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-a")
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-b")
+		assert.Equal(t, "token-a-updated", storedCfg.PluginSettings.Plugins["com.example.plugin-a"]["token"])
+		assert.Equal(t, "token-b", storedCfg.PluginSettings.Plugins["com.example.plugin-b"]["token"])
+	})
+
+	t.Run("should preserve plugin configs absent from patch due to partial sync while using local client", func(t *testing.T) {
+		// Start with multiple plugins configured.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.plugin-a": {"token": "token-a"},
+				"com.example.plugin-b": {"token": "token-b"},
+			}
+		})
+
+		// Simulate a client receives a partial sanitized config with only plugin-a, and PATCHes it back. Plugin-b should survive.
+		patch := &model.Config{}
+		patch.PluginSettings.Enable = new(true)
+		patch.PluginSettings.Plugins = map[string]map[string]any{
+			"com.example.plugin-a": {"token": "token-a-updated"},
+		}
+		_, _, err := th.LocalClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+
+		// All plugin configs must survive; only the synced plugin was in the patch.
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-a")
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.plugin-b")
+		assert.Equal(t, "token-a-updated", storedCfg.PluginSettings.Plugins["com.example.plugin-a"]["token"])
+		assert.Equal(t, "token-b", storedCfg.PluginSettings.Plugins["com.example.plugin-b"]["token"])
+	})
 }
 
 func TestMigrateConfig(t *testing.T) {
