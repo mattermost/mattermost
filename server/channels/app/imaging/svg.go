@@ -77,6 +77,7 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 	}
 }
 
+// parseViewBox returns dimensions from a valid viewBox attribute.
 func parseViewBox(value string) (int, int, bool) {
 	fields := strings.FieldsFunc(value, func(r rune) bool {
 		return r == ',' || unicode.IsSpace(r)
@@ -94,6 +95,7 @@ func parseViewBox(value string) (int, int, bool) {
 	return width, height, true
 }
 
+// parseAbsoluteLength returns a positive unitless or pixel SVG length.
 func parseAbsoluteLength(value string) (int, bool) {
 	value = strings.TrimSpace(value)
 	if value == "" || strings.HasSuffix(value, "%") {
@@ -108,6 +110,7 @@ func parseAbsoluteLength(value string) (int, bool) {
 	return length, true
 }
 
+// parseDimension rounds a numeric SVG dimension to the nearest integer.
 func parseDimension(value string) (int, bool) {
 	parsed, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
 	if err != nil {
