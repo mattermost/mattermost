@@ -7712,10 +7712,6 @@
     "translation": "Funkce konceptů je zakázána."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Nastavení úložiště souborů obsahuje nevyplněné hodnoty."
-  },
-  {
     "id": "api.getUsersForReporting.invalid_active_filter",
     "translation": "Nelze skrýt zároveň aktivní i neaktivní uživatele."
   },

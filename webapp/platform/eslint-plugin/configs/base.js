@@ -200,7 +200,7 @@ const base = {
         '@stylistic/object-property-newline': [
             2,
             {
-                allowMultiplePropertiesPerLine: true,
+                allowAllPropertiesOnSameLine: true,
             },
         ],
         '@stylistic/one-var-declaration-per-line': 0,
@@ -219,7 +219,9 @@ const base = {
         '@stylistic/quotes': [
             2,
             'single',
-            'avoid-escape',
+            {
+                avoidEscape: true,
+            },
         ],
         '@stylistic/rest-spread-spacing': [
             2,
@@ -296,6 +298,12 @@ const base = {
         ],
         '@typescript-eslint/no-dupe-class-members': 2,
         '@typescript-eslint/no-empty-function': 0,
+        '@typescript-eslint/no-empty-object-type': [
+            2,
+            {
+                allowInterfaces: 'with-single-extends',
+            },
+        ],
         '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/no-unused-vars': [
             2,
@@ -614,6 +622,7 @@ const testOverrides = {
         'max-nested-callbacks': 0,
         'new-cap': 0,
         'prefer-arrow-callback': 0,
+        '@typescript-eslint/no-require-imports': 0,
     },
 };
 

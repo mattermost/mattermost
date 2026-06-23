@@ -1770,6 +1770,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		stored := newPolicy(th.BasicChannel.Id)
 		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), stored.ID).Return(stored, nil)
 		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(unknownFieldAST, nil).Maybe()
+		mockACS.On("MaskExpressionForCaller", mock.Anything, sensitiveExpr, mock.Anything).Return(expectedMaskedExpr, true, nil).Once()
 
 		result, resp, err := th.SystemAdminClient.GetAccessControlPolicy(context.Background(), stored.ID)
 		require.NoError(t, err)
@@ -1777,6 +1778,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		require.NotEmpty(t, result.Rules)
 		require.Equal(t, expectedMaskedExpr, result.Rules[0].Expression,
 			"get response must mask the raw CEL exactly")
+		mockACS.AssertExpectations(t)
 	})
 }
 

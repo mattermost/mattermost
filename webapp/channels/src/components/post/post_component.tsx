@@ -46,6 +46,7 @@ import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
+import Pluggable from 'plugins/pluggable';
 import {getHistory} from 'utils/browser_history';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
@@ -592,7 +593,17 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
-    const showPostTime = (!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER;
+    const showTimestamp =
+        (!hideProfilePicture && props.location === Locations.CENTER) ||
+        hover ||
+        props.location !== Locations.CENTER;
+
+    // For a consecutive non-compact post the host renders the timestamp in narrow
+    // style, which CSS reflows out of `badges-wrapper` onto the post body's left
+    // margin. In that case a registered post-header component would be visually
+    // orphaned, so suppress it — it stays paired with the timestamp anchor in
+    // `badges-wrapper`.
+    const showPostHeaderBadge = showTimestamp && (!props.isConsecutivePost || props.compactDisplay);
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -833,7 +844,7 @@ function PostComponent(props: Props) {
                                 {...props}
                                 isSystemMessage={isSystemMessage}
                             />
-                            {wrapTimestamp && showPostTime &&
+                            {wrapTimestamp && showTimestamp &&
                                 <div className='post__header-timestamp'>
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
@@ -847,7 +858,7 @@ function PostComponent(props: Props) {
                                 </div>
                             }
                             <div className='badges-wrapper col d-flex align-items-center'>
-                                {!wrapTimestamp && showPostTime &&
+                                {!wrapTimestamp && showTimestamp &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
@@ -858,6 +869,12 @@ function PostComponent(props: Props) {
                                         forceTimeOnly={forceTimeOnly}
                                     />
                                 }
+                                {showPostHeaderBadge && (
+                                    <Pluggable
+                                        pluggableName='PostHeader'
+                                        post={post}
+                                    />
+                                )}
                                 {priority}
                                 {burnOnReadBadge}
                                 {burnOnReadTimerChip}

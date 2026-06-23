@@ -54,7 +54,7 @@ function safeRedirect(path: string) {
     try {
         // Attempt to construct URL from hash (handles both absolute and relative URLs)
         redirectUrl = new URL(hash, baseUrl);
-    } catch (e) {
+    } catch {
         // Invalid hash, return safe default
         return baseUrl.href;
     }

@@ -957,3 +957,105 @@ describe('PostComponent', () => {
         });
     });
 });
+
+describe('PostComponent — PostHeader plugin component render site', () => {
+    const currentTeam = TestHelper.getTeamMock();
+    const channel = TestHelper.getChannelMock({team_id: currentTeam.id});
+
+    const baseProps: Props = {
+        center: false,
+        currentTeam,
+        currentUserId: 'currentUserId',
+        displayName: '',
+        hasReplies: false,
+        isBot: false,
+        isCollapsedThreadsEnabled: true,
+        isFlagged: false,
+        isMobileView: false,
+        isPostAcknowledgementsEnabled: false,
+        isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
+        location: Locations.CENTER,
+        post: TestHelper.getPostMock({channel_id: channel.id}),
+        recentEmojis: [],
+        replyCount: 0,
+        team: currentTeam,
+        pluginActions: [],
+        burnOnReadDurationMinutes: 10,
+        actions: {
+            markPostAsUnread: jest.fn(),
+            emitShortcutReactToLastPostFrom: jest.fn(),
+            selectPost: jest.fn(),
+            selectPostFromRightHandSideSearch: jest.fn(),
+            removePost: jest.fn(),
+            closeRightHandSide: jest.fn(),
+            selectPostCard: jest.fn(),
+            setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
+        },
+        isChannelAutotranslated: false,
+    };
+
+    // A real plugin-registered component rendered through Pluggable — not mocked away, so the
+    // test exercises the same Pluggable path the host uses in production.
+    const PluginBadge = () => <div data-testid='post-header-plugin'/>;
+
+    function stateWithPluginBadge() {
+        return {
+            plugins: {
+                components: {
+                    PostHeader: [{
+                        id: 'badge-1',
+                        pluginId: 'test-plugin',
+                        component: PluginBadge,
+                    }],
+                },
+            },
+        } as any;
+    }
+
+    it('renders a registered PostHeader component in the badges area', () => {
+        renderWithContext(<PostComponent {...baseProps}/>, stateWithPluginBadge());
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
+    });
+
+    it('does not render the component on a consecutive CENTER post (timestamp is hidden)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
+    });
+
+    it('does not render the component on a consecutive RHS_COMMENT post (timestamp is reflowed to narrow style)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+                location={Locations.RHS_COMMENT}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
+    });
+
+    it('renders the component on a consecutive RHS_COMMENT post in compactDisplay mode (timestamp stays in badges area)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+                location={Locations.RHS_COMMENT}
+                compactDisplay={true}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
+    });
+});

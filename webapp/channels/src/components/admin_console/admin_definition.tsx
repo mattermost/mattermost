@@ -74,6 +74,7 @@ import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from '
 import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
     AnnouncementBannerFeatureDiscovery,
+    ClassificationMarkingsFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataSpillageFeatureDiscovery,
@@ -3463,6 +3464,28 @@ const AdminDefinition: AdminDefinitionType = {
                     component: ClassificationMarkings,
                 },
             },
+            classification_markings_feature_discovery: {
+                url: 'site_config/classification_markings',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
+                ),
+                schema: {
+                    id: 'ClassificationMarkings',
+                    name: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: ClassificationMarkingsFeatureDiscovery,
+                            key: 'ClassificationMarkingsFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
             announcement_banner: {
                 url: 'site_config/announcement_banner',
                 title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
@@ -4312,7 +4335,7 @@ const AdminDefinition: AdminDefinitionType = {
             ip_filtering: {
                 url: 'site_config/ip_filtering',
                 title: adminDefinitionMessages.ip_filtering_title,
-                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.minLicenseTier(LicenseSkus.Enterprise))),
+                isHidden: it.not(it.all(it.licensedForFeature('Cloud'), it.minLicenseTier(LicenseSkus.Enterprise))),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
                 searchableStrings: [adminDefinitionMessages.ip_filtering_title],
                 schema: {
@@ -6120,6 +6143,16 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.MaximumPersonalAccessTokenLifetimeDays',
+                            label: defineMessage({id: 'admin.service.personalAccessTokenMaxLifetimeTitle', defaultMessage: 'Maximum Personal Access Token Lifetime (days):'}),
+                            help_text: defineMessage({id: 'admin.service.personalAccessTokenMaxLifetimeDescription', defaultMessage: 'The maximum number of days a personal access token can remain valid before it expires. Set to 0 to allow tokens that never expire. When set to a positive value, users must select an expiry date within this range when creating a token.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableUserAccessTokens'),
+                            ),
                         },
                     ],
                 },
