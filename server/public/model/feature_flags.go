@@ -51,8 +51,8 @@ type FeatureFlags struct {
 
 	StreamlinedMarketplace bool
 
-	CloudIPFiltering bool
-	ConsumePostHook  bool
+	CloudIPFiltering       bool
+	ConsumePostHook        bool
 	CloudDedicatedExportUI bool
 
 	ChannelBookmarks bool
