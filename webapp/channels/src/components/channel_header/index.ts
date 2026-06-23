@@ -104,7 +104,6 @@ function makeMapStateToProps() {
             isLastActiveEnabled,
             timestampUnits,
             hideGuestTags: config.HideGuestTags === 'true',
-            sharedChannelsPluginsEnabled: true,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
         };
     };
