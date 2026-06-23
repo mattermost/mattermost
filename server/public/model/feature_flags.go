@@ -47,7 +47,6 @@ type FeatureFlags struct {
 
 	StreamlinedMarketplace bool
 
-	ConsumePostHook        bool
 	CloudAnnualRenewals    bool
 	CloudDedicatedExportUI bool
 
@@ -170,7 +169,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
-	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
 	f.ChannelBookmarks = true
