@@ -113,8 +113,9 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.client, cmd, []string{channelArg})
 		s.Require().EqualError(err, "the --user flag is required when running in local mode")
@@ -134,8 +135,9 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("user", userArg, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		s.client.
 			EXPECT().

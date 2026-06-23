@@ -145,8 +145,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
@@ -162,8 +163,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("user", s.th.BasicUser.Username, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().Nil(err)
@@ -247,8 +249,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{"@" + s.th.BasicUser2.Username})
 		s.Require().NotNil(err)
@@ -264,8 +267,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("user", s.th.BasicUser.Username, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{"@" + s.th.BasicUser2.Username})
 		s.Require().Nil(err)
@@ -339,8 +343,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
@@ -357,8 +362,9 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		cmd.Flags().String("message", msgArg, "")
 		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
 		cmd.Flags().String("user", s.th.BasicUser.Username, "")
+		prevLocal := viper.GetBool("local")
 		viper.Set("local", true)
-		defer viper.Set("local", false)
+		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().Nil(err)

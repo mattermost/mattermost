@@ -102,8 +102,6 @@ func localCreatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.SetStatusOnline(post.UserId, false)
 	}
 
-	w.WriteHeader(http.StatusCreated)
-
 	if rp.Type == model.PostTypeBurnOnRead && rp.UserId == post.UserId {
 		masterCtx := sqlstore.RequestContextWithMaster(c.AppContext)
 		revealedPost, appErr := c.App.GetSinglePost(masterCtx, rp.Id, false)
@@ -116,6 +114,8 @@ func localCreatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 		rp.PendingPostId = post.PendingPostId
 	}
+
+	w.WriteHeader(http.StatusCreated)
 
 	if err := rp.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
