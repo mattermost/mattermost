@@ -38,14 +38,12 @@ func TestGetOldClientLicense(t *testing.T) {
 	require.NoError(t, err)
 
 	resp, err := client.DoAPIGet(context.Background(), "/license/client", "")
-	require.Error(t, err, "get /license/client did not return an error")
-	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
-		"expected 400 bad request")
+	require.NoError(t, err, "get /license/client should not return an error")
+	require.Equal(t, http.StatusOK, resp.StatusCode, "expected 200 OK")
 
 	resp, err = client.DoAPIGet(context.Background(), "/license/client?format=junk", "")
-	require.Error(t, err, "get /license/client?format=junk did not return an error")
-	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
-		"expected 400 Bad Request")
+	require.NoError(t, err, "get /license/client?format=junk should not return an error")
+	require.Equal(t, http.StatusOK, resp.StatusCode, "expected 200 OK")
 
 	license, _, err = th.SystemAdminClient.GetOldClientLicense(context.Background(), "")
 	require.NoError(t, err)
