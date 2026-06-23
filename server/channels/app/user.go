@@ -408,7 +408,7 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 		}, plugin.UserHasBeenCreatedID)
 	})
 
-	userLimits, limitErr := a.GetServerLimits()
+	userLimits, limitErr := a.GetServerLimits(true)
 	if limitErr != nil {
 		// we don't want to break the create user flow just because of this.
 		// So, we log the error, not return
@@ -1225,7 +1225,7 @@ func (a *App) UpdateActive(rctx request.CTX, user *model.User, active bool) (*mo
 	}
 
 	if active {
-		userLimits, appErr := a.GetServerLimits()
+		userLimits, appErr := a.GetServerLimits(true)
 		if appErr != nil {
 			rctx.Logger().Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
