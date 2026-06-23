@@ -98,24 +98,20 @@ func TestConfigureLogrusConcurrentWithLogging(t *testing.T) {
 	start := make(chan struct{})
 
 	for range 4 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			<-start
 			for range 500 {
 				logger.WithField("k", "v").Debug("message")
 			}
-		}()
+		})
 	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		<-start
 		for range 50 {
 			pluginapi.ConfigureLogrus(logger, client)
 		}
-	}()
+	})
 
 	close(start)
 	wg.Wait()
