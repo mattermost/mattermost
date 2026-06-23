@@ -19,7 +19,7 @@ describe('components/file_search_result/FileSearchResultItem', () => {
         channelType: Constants.OPEN_CHANNEL as ChannelType,
         teamName: 'test-team-name',
         channel: TestHelper.getChannelMock(),
-        enableSharedChannelsPlugins: false,
+
         onClick: jest.fn(),
         actions: {
             openModal: jest.fn(),

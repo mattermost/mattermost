@@ -17,7 +17,6 @@ function mapStateToProps(state: GlobalState) {
         pluginPostTypes: state.plugins.postTypes,
         theme: getTheme(state),
         currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
-        sharedChannelsPluginsEnabled: true,
     };
 }
 

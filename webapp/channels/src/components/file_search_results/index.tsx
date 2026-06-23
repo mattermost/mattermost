@@ -31,7 +31,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         channelDisplayName: '',
         channelType: channel?.type,
         channel,
-        enableSharedChannelsPlugins: true,
     };
 }
 
