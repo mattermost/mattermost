@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MfaSecret} from '@mattermost/types/mfa';
+
 import * as UserActions from 'mattermost-redux/actions/users';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-export function activateMfa(code) {
+import type {ActionFuncAsync} from 'types/store';
+
+export function activateMfa(code: string): ActionFuncAsync {
     return (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 
@@ -12,7 +16,7 @@ export function activateMfa(code) {
     };
 }
 
-export function deactivateMfa() {
+export function deactivateMfa(): ActionFuncAsync {
     return (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 
@@ -20,7 +24,7 @@ export function deactivateMfa() {
     };
 }
 
-export function generateMfaSecret() {
+export function generateMfaSecret(): ActionFuncAsync<MfaSecret> {
     return (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 

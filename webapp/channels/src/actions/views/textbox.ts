@@ -3,35 +3,35 @@
 
 import {ActionTypes} from 'utils/constants';
 
-export function setShowPreviewOnCreateComment(showPreview) {
+export function setShowPreviewOnCreateComment(showPreview: boolean) {
     return {
         type: ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_COMMENT,
         showPreview,
     };
 }
 
-export function setShowPreviewOnCreatePost(showPreview) {
+export function setShowPreviewOnCreatePost(showPreview: boolean) {
     return {
         type: ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_POST,
         showPreview,
     };
 }
 
-export function setShowPreviewOnEditChannelHeaderModal(showPreview) {
+export function setShowPreviewOnEditChannelHeaderModal(showPreview: boolean) {
     return {
         type: ActionTypes.SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL,
         showPreview,
     };
 }
 
-export function setShowPreviewOnChannelSettingsHeaderModal(showPreview) {
+export function setShowPreviewOnChannelSettingsHeaderModal(showPreview: boolean) {
     return {
         type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL,
         showPreview,
     };
 }
 
-export function setShowPreviewOnChannelSettingsPurposeModal(showPreview) {
+export function setShowPreviewOnChannelSettingsPurposeModal(showPreview: boolean) {
     return {
         type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL,
         showPreview,

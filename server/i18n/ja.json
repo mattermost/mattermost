@@ -8234,10 +8234,6 @@
     "translation": "getThreadsForUserに対するOnlyThreadsとOnlyTotalsのパラメータが矛盾しています"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "ファイルストレージの設定に未設定の値があります。"
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "電子メールの設定に未設定の値があります。"
   },

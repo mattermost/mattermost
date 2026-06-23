@@ -43,8 +43,6 @@ type FeatureFlags struct {
 
 	OnboardingTourTips bool
 
-	DeprecateCloudFree bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
@@ -171,7 +169,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false

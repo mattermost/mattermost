@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GlobalState} from 'types/store';
+
 import {getAllLanguages, getLanguageInfo, getLanguages, isLanguageAvailable, languages} from './i18n';
 
 jest.mock('./imports', () => ({
@@ -35,7 +37,7 @@ describe('i18n', () => {
                     },
                 },
             },
-        };
+        } as GlobalState;
 
         // no experimental languages
         expect(getLanguages(state)).toBe(languages);
@@ -82,7 +84,7 @@ describe('i18n', () => {
                     },
                 },
             },
-        };
+        } as GlobalState;
 
         // no experimental languages
         expect(isLanguageAvailable(state, 'cc')).toBe(false);
