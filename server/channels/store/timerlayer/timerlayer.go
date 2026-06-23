@@ -14273,6 +14273,22 @@ func (s *TimerLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, 
 	return result, err
 }
 
+func (s *TimerLayerUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.UserAccessTokenStore.DeleteNonCompliantExpiry(maxExpiresAt, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.DeleteNonCompliantExpiry", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserAccessTokenStore) Get(tokenID string) (*model.UserAccessToken, error) {
 	start := time.Now()
 
@@ -14352,23 +14368,6 @@ func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit in
 	}
 	return result, err
 }
-
-func (s *TimerLayerUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
-	start := time.Now()
-
-	result, err := s.UserAccessTokenStore.DeleteNonCompliantExpiry(maxExpiresAt, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.DeleteNonCompliantExpiry", success, elapsed)
-	}
-	return result, err
-}
-
 
 func (s *TimerLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 	start := time.Now()

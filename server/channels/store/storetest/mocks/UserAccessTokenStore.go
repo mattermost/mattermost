@@ -106,6 +106,36 @@ func (_m *UserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
 	return r0, r1
 }
 
+// DeleteNonCompliantExpiry provides a mock function with given fields: maxExpiresAt, limit
+func (_m *UserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
+	ret := _m.Called(maxExpiresAt, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteNonCompliantExpiry")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64, int) ([]string, error)); ok {
+		return rf(maxExpiresAt, limit)
+	}
+	if rf, ok := ret.Get(0).(func(int64, int) []string); ok {
+		r0 = rf(maxExpiresAt, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
+		r1 = rf(maxExpiresAt, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: tokenID
 func (_m *UserAccessTokenStore) Get(tokenID string) (*model.UserAccessToken, error) {
 	ret := _m.Called(tokenID)
@@ -249,36 +279,6 @@ func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*mo
 
 	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
 		r1 = rf(cutoff, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// DeleteNonCompliantExpiry provides a mock function with given fields: maxExpiresAt, limit
-func (_m *UserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
-	ret := _m.Called(maxExpiresAt, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteNonCompliantExpiry")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int) ([]string, error)); ok {
-		return rf(maxExpiresAt, limit)
-	}
-	if rf, ok := ret.Get(0).(func(int64, int) []string); ok {
-		r0 = rf(maxExpiresAt, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
-		r1 = rf(maxExpiresAt, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
