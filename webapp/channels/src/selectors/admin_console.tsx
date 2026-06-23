@@ -11,12 +11,14 @@ import {getMySystemPermissions, haveISystemPermission} from 'mattermost-redux/se
 
 import AdminDefinition from 'components/admin_console/admin_definition';
 
+import type {GlobalState} from 'types/store';
+
 import {isEnterpriseLicense} from '../utils/license_utils';
 
 export const getAdminDefinition = createSelector(
     'getAdminDefinition',
     () => AdminDefinition,
-    (state) => state.plugins.adminConsoleReducers,
+    (state: GlobalState) => state.plugins.adminConsoleReducers,
     (adminDefinition, reducers) => {
         let result = cloneDeep(AdminDefinition);
         for (const reducer of Object.values(reducers)) {
@@ -26,10 +28,10 @@ export const getAdminDefinition = createSelector(
     },
 );
 
-export const getAdminConsoleCustomComponents = (state, pluginId) =>
+export const getAdminConsoleCustomComponents = (state: GlobalState, pluginId: string) =>
     state.plugins.adminConsoleCustomComponents[pluginId] || {};
 
-export const getAdminConsoleCustomSections = (state, pluginId) =>
+export const getAdminConsoleCustomSections = (state: GlobalState, pluginId: string) =>
     state.plugins.adminConsoleCustomSections[pluginId] || {};
 
 export const getConsoleAccess = createSelector(
@@ -37,22 +39,29 @@ export const getConsoleAccess = createSelector(
     getAdminDefinition,
     getMySystemPermissions,
     (adminDefinition, mySystemPermissions) => {
-        const consoleAccess = {read: {}, write: {}};
-        const addEntriesForKey = (entryKey) => {
+        const consoleAccess: {
+            read: Record<string, boolean>;
+            write: Record<string, boolean>;
+        } = {
+            read: {},
+            write: {},
+        };
+        const addEntriesForKey = (entryKey: string) => {
             const permissions = ResourceToSysConsolePermissionsTable[entryKey].filter((x) => mySystemPermissions.has(x));
             consoleAccess.read[entryKey] = permissions.length !== 0;
             consoleAccess.write[entryKey] = permissions.some((permission) => permission.startsWith('sysconsole_write_'));
         };
-        const mapAccessValuesForKey = ([key]) => {
-            if (typeof RESOURCE_KEYS[key.toUpperCase()] === 'object') {
-                Object.values(RESOURCE_KEYS[key.toUpperCase()]).forEach((entry) => {
+        const mapAccessValuesForKey = (key: string) => {
+            const upperKey = key.toUpperCase() as keyof typeof RESOURCE_KEYS;
+            if (upperKey in RESOURCE_KEYS && typeof RESOURCE_KEYS[upperKey] === 'object') {
+                Object.values(RESOURCE_KEYS[upperKey]).forEach((entry) => {
                     addEntriesForKey(entry);
                 });
             } else {
                 addEntriesForKey(key);
             }
         };
-        Object.entries(adminDefinition).forEach(mapAccessValuesForKey);
+        Object.keys(adminDefinition).forEach(mapAccessValuesForKey);
         return consoleAccess;
     },
 );

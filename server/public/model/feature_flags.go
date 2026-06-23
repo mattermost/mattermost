@@ -34,16 +34,12 @@ type FeatureFlags struct {
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
-	PermalinkPreviews bool
-
 	NormalizeLdapDNs bool
 
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
 	OnboardingTourTips bool
-
-	DeprecateCloudFree bool
 
 	EnableExportDirectDownload bool
 
@@ -171,7 +167,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false

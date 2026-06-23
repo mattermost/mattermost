@@ -8000,10 +8000,6 @@
     "translation": "Erro: nenhum nome de organização foi fornecido para o onboarding auto-hospedado."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "As configurações de armazenamento de arquivos têm valores não definidos."
-  },
-  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Os parâmetros OnlyThreads e OnlyTotals para getThreadsForUser são mutuamente exclusivos"
   },
