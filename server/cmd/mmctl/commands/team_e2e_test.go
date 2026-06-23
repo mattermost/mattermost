@@ -50,7 +50,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("display-name", "", "Team Display Name")
 
 		err := renameTeamCmdF(c, cmd, args)
-		s.Require().EqualError(err, "required at least one of --name or --display-name")
+		s.Require().EqualError(err, "at least one of --name or --display-name is required")
 	})
 
 	s.RunForSystemAdminAndLocal("Rename the name (slug) of an existing team", func(c client.Client) {

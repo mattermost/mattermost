@@ -387,7 +387,8 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	// A change to the team Name (the URL slug) is handled separately, since the
 	// standard update path is sanitized and intentionally ignores the Name field.
 	if team.Name != "" && team.Name != oldTeam.Name {
-		renamedTeam, err := c.App.RenameTeam(oldTeam, team.Name, team.DisplayName)
+		var renamedTeam *model.Team
+		renamedTeam, err = c.App.RenameTeam(oldTeam, team.Name, team.DisplayName)
 		if err != nil {
 			c.Err = err
 			return

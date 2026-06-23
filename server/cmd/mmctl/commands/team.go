@@ -271,7 +271,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	newName, _ := cmd.Flags().GetString("name")
 	newDisplayName, _ := cmd.Flags().GetString("display-name")
 	if newName == "" && newDisplayName == "" {
-		return errors.New("required at least one of --name or --display-name")
+		return errors.New("at least one of --name or --display-name is required")
 	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)

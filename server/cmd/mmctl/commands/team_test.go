@@ -128,7 +128,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("display-name", "", "Team Display Name")
 
 		err := renameTeamCmdF(s.client, cmd, []string{"existingName"})
-		s.Require().EqualError(err, "required at least one of --name or --display-name")
+		s.Require().EqualError(err, "at least one of --name or --display-name is required")
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
