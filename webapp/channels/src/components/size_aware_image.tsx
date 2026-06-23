@@ -227,10 +227,15 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
+        // SVGs whose dimensions could not be determined (e.g. only a relative
+        // width/height like "100%") should fill the available preview area
+        // instead of collapsing to a tiny fixed width.
+        const svgWithoutDimensions = fileType === FileTypes.SVG && !this.dimensionsAvailable(dimensions);
+
         let conditionalSVGStyleAttribute;
         if (fileType === FileTypes.SVG) {
             conditionalSVGStyleAttribute = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
+                width: dimensions?.width || '100%',
                 height: 'auto',
             };
         }
@@ -321,7 +326,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             </WithTooltip>
         );
 
-        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
+        if (this.props.handleSmallImageContainer && this.state.isSmallImage && !svgWithoutDimensions) {
             let className = 'small-image__container cursor--pointer a11y--active';
             if (this.state.imageWidth < MIN_IMAGE_SIZE) {
                 className += ' small-image__container--min-width';

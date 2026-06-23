@@ -100,7 +100,9 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
 
     const finalImgStyle: React.CSSProperties = {...imgStyle};
     if (getFileType(fileInfo.extension) === FileTypes.SVG) {
-        finalImgStyle.width = fileInfo.width;
+        // Fall back to filling the available width when the SVG has no known
+        // pixel dimensions, otherwise width:0 would make it invisible.
+        finalImgStyle.width = fileInfo.width || '100%';
         finalImgStyle.height = 'auto';
     }
 
