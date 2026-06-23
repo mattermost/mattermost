@@ -116,6 +116,12 @@ func TestParseSVGDimensionSources(t *testing.T) {
 			expectErr: true,
 		},
 		{
+			name:           "degenerate viewBox falls back to absolute width and height",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
 			name:           "comma separated viewBox without spaces",
 			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,800,600"></svg>`,
 			expectedWidth:  800,
