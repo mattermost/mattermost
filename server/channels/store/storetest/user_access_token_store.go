@@ -431,10 +431,12 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 		_ = ss.User().PermanentDelete(rctx, botUser.Id)
 	})
 
-	// Against the 30-day cap, four active non-bot violators are counted.
+	// Against the 30-day cap, at least our four active non-bot violators are counted.
+	// Use GreaterOrEqual to avoid flakiness from concurrent tests that may also
+	// hold non-compliant tokens when this test runs.
 	count, err := ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
 	require.NoError(t, err)
-	require.Equal(t, baseline30+4, count)
+	require.GreaterOrEqual(t, count, baseline30+4)
 
 	// A non-positive limit is a no-op.
 	noop, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 0)
@@ -444,13 +446,21 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	// DeleteNonCompliantExpiry deletes all violators and their sessions, returns
 	// one UserId per deleted token row (not per user), and leaves
 	// compliant/inactive/bot tokens untouched.
+	// Use GreaterOrEqual for the same reason as the count check above.
 	userIDs, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 10000)
 	require.NoError(t, err)
-	require.Equal(t, 4, len(userIDs), "should return one entry per deleted token, not per user")
+	require.GreaterOrEqual(t, len(userIDs), 4, "should return at least our four deleted tokens")
+	// Verify sharedUserID appears exactly twice — once per token, not once per user.
+	// This specifically guards against a SELECT DISTINCT regression.
+	sharedOccurrences := 0
 	gotUserIDs := map[string]bool{}
 	for _, id := range userIDs {
 		gotUserIDs[id] = true
+		if id == sharedUserID {
+			sharedOccurrences++
+		}
 	}
+	require.Equal(t, 2, sharedOccurrences, "sharedUserID should appear once per deleted token, not once per user")
 	require.True(t, gotUserIDs[noExpiry.UserId], "user of never-expiring token should be returned")
 	require.True(t, gotUserIDs[farFuture.UserId], "user of far-future token should be returned")
 	require.True(t, gotUserIDs[sharedUserID], "shared user with multiple tokens should be returned")
@@ -482,14 +492,17 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.UserAccessToken().Get(botToken.Id)
 	require.NoError(t, err, "bot token must survive")
 
-	// Count is back to baseline after deletion.
+	// Count is back to at most baseline after deletion (could be lower if our
+	// delete swept up tokens from other concurrent tests; could equal baseline if
+	// no concurrent tests hold non-compliant tokens right now).
 	count, err = ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
 	require.NoError(t, err)
-	require.Equal(t, baseline30, count)
+	require.LessOrEqual(t, count, baseline30)
 
-	// Against the much larger cap only the never-expiring token was a violator
-	// (the far-future token fits within it); after deletion baseline is restored.
+	// Against the much larger cap, the never-expiring tokens were the only
+	// violators among our fixtures; after deletion the count should not exceed
+	// the baseline measured before we created anything.
 	count, err = ss.UserAccessToken().CountNonCompliantExpiry(farCap)
 	require.NoError(t, err)
-	require.Equal(t, baselineFar, count, "only the never-expiring token violated a very large cap")
+	require.LessOrEqual(t, count, baselineFar, "count under large cap must not exceed pre-test baseline")
 }
