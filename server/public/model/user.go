@@ -692,15 +692,18 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail, u.BotLastIconUpdate)
 }
 
-// Remove any private data from the user object
+// Sanitize removes private data from the user object.
+//
+// Password, MFA data, and last login are always cleared. Nil options also
+// clears email, full name, password update time, auth service, and auth data;
+// an empty non-nil options map keeps those fields for callers returning a
+// user's own data.
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.MfaSecret = ""
 	u.MfaUsedTimestamps = nil
 	u.LastLogin = 0
 
-	// A nil map strips every sensitive field. An explicitly empty (non-nil)
-	// map is the "requesting user's own data" sentinel and retains them.
 	if options == nil || len(options) != 0 {
 		if !options["email"] {
 			u.Email = ""
