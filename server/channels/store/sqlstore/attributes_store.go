@@ -39,6 +39,17 @@ func attributesSliceColumns(prefix ...string) []string {
 	}
 }
 
+// qualify prefixes each column with the given table name. The members-to-remove
+// queries join Users, whose columns (Roles, DeleteAt, CreateAt) collide with the
+// member columns, so the member SELECT must be table-qualified to stay unambiguous.
+func qualify(table string, columns []string) []string {
+	qualified := make([]string, len(columns))
+	for i, c := range columns {
+		qualified[i] = table + "." + c
+	}
+	return qualified
+}
+
 func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.AttributesStore {
 	s := &SqlAttributesStore{
 		SqlStore: sqlStore,
@@ -136,7 +147,11 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
+		// Paginate on Users.Id (the ORDER BY column), not AttributeView.TargetID.
+		// The cursor value is a user id, and TargetID comes from a LEFT JOIN so it
+		// is NULL for users with no custom-attribute row — comparing against it
+		// silently drops those users (e.g. matches of a native-only policy).
+		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id > $%d", argCount), opts.Cursor.TargetID))
 	}
 
 	searchFields := make([]string, 0, len(UserSearchTypeNames))
@@ -177,11 +192,20 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	query := s.getQueryBuilder().
-		Select(channelMemberSliceColumns()...).From("ChannelMembers").LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
+		Select(qualify("ChannelMembers", channelMemberSliceColumns())...).From("ChannelMembers").
+		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
+		// resolve here, mirroring SearchUsers on the add path.
+		LeftJoin("Users ON Users.Id = ChannelMembers.UserId").
+		LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+		// A member is removed when they do NOT satisfy the policy; a NULL result
+		// (e.g. a missing custom attribute) counts as "does not satisfy" via
+		// COALESCE. We must not additionally remove members just because they
+		// lack an AttributeView row — a native-only policy matches against the
+		// Users table, so a user with zero custom attributes can still satisfy it.
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}
 
 	argCount := len(opts.Args)
@@ -215,12 +239,21 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().
-		Select(teamMemberSliceColumns()...).From("TeamMembers").LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
+		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").
+		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
+		// resolve here, mirroring SearchUsers on the add path.
+		LeftJoin("Users ON Users.Id = TeamMembers.UserId").
+		LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
 		Where("TeamMembers.DeleteAt = 0").
 		OrderBy("TeamMembers.UserId ASC")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+		// A member is removed when they do NOT satisfy the policy; a NULL result
+		// (e.g. a missing custom attribute) counts as "does not satisfy" via
+		// COALESCE. We must not additionally remove members just because they
+		// lack an AttributeView row — a native-only policy matches against the
+		// Users table, so a user with zero custom attributes can still satisfy it.
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}
 
 	argCount := len(opts.Args)
