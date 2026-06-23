@@ -794,17 +794,45 @@ func TestUpdateTeam(t *testing.T) {
 		team, _, err := client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 
+		// Renaming the slug must update only the Name, and must not let other
+		// non-renamable fields (e.g. Email, Type) leak through on the rename path.
 		newName := "renamed-" + model.NewRandomTeamName()
 		team.Name = newName
+		team.Email = "leak+" + model.NewId() + "@simulator.amazonses.com"
+		team.Type = model.TeamInvite
 		uteam, _, err := client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 		require.Equal(t, newName, uteam.Name, "team name (slug) should be updated")
 
-		// An invalid team name must be rejected rather than persisted.
+		fetched, _, err := client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "renamed slug should be persisted")
+		require.NotEqual(t, team.Email, fetched.Email, "rename must not change the email")
+		require.Equal(t, model.TeamOpen, fetched.Type, "rename must not change the type")
+
+		// An invalid team name must be rejected and must not be persisted.
 		team.Name = "Invalid Name"
 		_, resp, err := client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+
+		fetched, _, err = client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "an invalid rename must leave the slug unchanged")
+
+		// Renaming to a name that is already in use must be rejected.
+		other := &model.Team{DisplayName: "Other", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
+		other, _, err = client.CreateTeam(context.Background(), other)
+		require.NoError(t, err)
+
+		team.Name = other.Name
+		_, resp, err = client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		fetched, _, err = client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "a duplicate rename must leave the slug unchanged")
 	})
 }
 

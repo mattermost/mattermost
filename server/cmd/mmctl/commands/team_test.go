@@ -251,6 +251,55 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
 	})
 
+	s.Run("Both name and display name should be updated when both flags are provided", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		existingName := "existingTeamName"
+		existingDisplayName := "existingDisplayName"
+		newName := "new-team-name"
+		newDisplayName := "New Display Name"
+		args := []string{existingName}
+
+		cmd.Flags().String("name", newName, "Team Name")
+		cmd.Flags().String("display-name", newDisplayName, "Team Display Name")
+
+		foundTeam := &model.Team{
+			Name:        existingName,
+			DisplayName: existingDisplayName,
+		}
+		updatedTeam := &model.Team{
+			Name:        newName,
+			DisplayName: newDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), existingName, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), existingName, "").
+			Return(foundTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateTeam(context.TODO(), updatedTeam).
+			Return(updatedTeam, &model.Response{}, nil).
+			Times(1)
+
+		err := renameTeamCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
+	})
+
 	s.Run("Team name (slug) should be updated when --name is provided", func() {
 		printer.Clean()
 
