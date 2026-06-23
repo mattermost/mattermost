@@ -181,4 +181,90 @@ describe('DateTimeDisplayFormatSetting', () => {
 
         expect(screen.queryByLabelText(/Show seconds in timestamps/i)).not.toBeInTheDocument();
     });
+
+    test('handleSubmit deletes seconds preference when selection matches system default from config', async () => {
+        const savePreferences = jest.spyOn(preferencesActions, 'savePreferences').mockReturnValue({type: 'MOCK_SAVE'} as never);
+        const deletePreferences = jest.spyOn(preferencesActions, 'deletePreferences').mockReturnValue({type: 'MOCK_DELETE'} as never);
+        const updateSection = jest.fn();
+
+        const state: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    config: {
+                        DateTimeDisplayFormat: TimestampFormat.STANDARD,
+                        ShowTimestampSeconds: 'true',
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <DateTimeDisplayFormatSetting
+                {...baseProps}
+                configShowTimestampSeconds={true}
+                showTimestampSeconds='true'
+                updateSection={updateSection}
+            />,
+            state,
+        );
+
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        expect(deletePreferences).toHaveBeenCalledWith(userId, expect.arrayContaining([
+            expect.objectContaining({
+                category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                name: Preferences.SHOW_TIMESTAMP_SECONDS,
+                value: 'true',
+            }),
+        ]));
+        expect(savePreferences).not.toHaveBeenCalledWith(userId, expect.arrayContaining([
+            expect.objectContaining({
+                name: Preferences.SHOW_TIMESTAMP_SECONDS,
+            }),
+        ]));
+        expect(updateSection).toHaveBeenCalledWith('');
+    });
+
+    test('handleSubmit saves seconds preference when selection differs from system default from config', async () => {
+        const savePreferences = jest.spyOn(preferencesActions, 'savePreferences').mockReturnValue({type: 'MOCK_SAVE'} as never);
+        jest.spyOn(preferencesActions, 'deletePreferences').mockReturnValue({type: 'MOCK_DELETE'} as never);
+        const updateSection = jest.fn();
+
+        const state: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    config: {
+                        DateTimeDisplayFormat: TimestampFormat.STANDARD,
+                        ShowTimestampSeconds: 'true',
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <DateTimeDisplayFormatSetting
+                {...baseProps}
+                configShowTimestampSeconds={true}
+                showTimestampSeconds='true'
+                updateSection={updateSection}
+            />,
+            state,
+        );
+
+        await userEvent.click(screen.getByLabelText(/Show seconds in timestamps/i));
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        expect(savePreferences).toHaveBeenCalledWith(userId, expect.arrayContaining([
+            expect.objectContaining({
+                category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                name: Preferences.SHOW_TIMESTAMP_SECONDS,
+                value: 'false',
+            }),
+        ]));
+        expect(updateSection).toHaveBeenCalledWith('');
+    });
 });

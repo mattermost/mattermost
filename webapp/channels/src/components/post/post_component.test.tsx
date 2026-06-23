@@ -755,6 +755,10 @@ describe('PostComponent', () => {
             },
         };
 
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
         test('should hide consecutive post timestamp until hover', async () => {
             const user = userEvent.setup();
             const props = {
@@ -809,8 +813,6 @@ describe('PostComponent', () => {
             expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
             expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
             expect(container.querySelector('.post__header-timestamp')).toBeInTheDocument();
-
-            jest.useRealTimers();
         });
 
         test('should show date context for consecutive compact posts in RHS thread', () => {
@@ -833,8 +835,6 @@ describe('PostComponent', () => {
 
             expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
             expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
-
-            jest.useRealTimers();
         });
 
         test('should not stack timestamp for standard format', () => {

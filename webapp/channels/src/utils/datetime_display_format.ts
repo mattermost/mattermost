@@ -292,7 +292,7 @@ export function resolveAdminShowTimestampSeconds(
 ): boolean {
     const stateValue = state['DisplaySettings.ShowTimestampSeconds'];
     if (stateValue != null) {
-        return Boolean(stateValue);
+        return stateValue === true || stateValue === 'true';
     }
 
     return config.DisplaySettings?.ShowTimestampSeconds === true;

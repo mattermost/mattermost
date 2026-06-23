@@ -131,6 +131,16 @@ describe('datetime_display_format', () => {
             {DisplaySettings: {ShowTimestampSeconds: true}},
             {},
         )).toBe(true);
+
+        expect(resolveAdminShowTimestampSeconds(
+            {DisplaySettings: {ShowTimestampSeconds: false}},
+            {'DisplaySettings.ShowTimestampSeconds': 'true'},
+        )).toBe(true);
+
+        expect(resolveAdminShowTimestampSeconds(
+            {DisplaySettings: {ShowTimestampSeconds: true}},
+            {'DisplaySettings.ShowTimestampSeconds': 'false'},
+        )).toBe(false);
     });
 
     test('getTimestampFormatOptionDisplayNameValues matches time example helper', () => {

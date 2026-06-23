@@ -8,8 +8,6 @@ import {useIntl} from 'react-intl';
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
-
 import Constants from 'utils/constants';
 import {formatFullDateTimeForTooltip} from 'utils/datetime_display_format';
 
@@ -22,14 +20,12 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
         return null;
     }
 
-    const editedDate = timeZone ? getDateForTimezone(new Date(editedAt), timeZone) : new Date(editedAt);
-
     const editedText = intl.formatMessage({
         id: 'post_message_view.edited',
         defaultMessage: 'Edited',
     });
 
-    const formattedTime = formatFullDateTimeForTooltip(editedDate, intl, {
+    const formattedTime = formatFullDateTimeForTooltip(new Date(editedAt), intl, {
         timeZone,
         useMilitaryTime: isMilitaryTime,
     });
