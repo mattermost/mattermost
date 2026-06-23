@@ -208,6 +208,8 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		s.Require().Equal(dmChannel.Id, matched[0].ChannelId)
 	})
 
+	// Local mode does not expose the APIs needed to create posts or direct channels
+	// (no POST /posts, POST /channels/direct, or GET /users/me local endpoints).
 	s.Run("Send a direct message for Local Client should fail", func() {
 		printer.Clean()
 
