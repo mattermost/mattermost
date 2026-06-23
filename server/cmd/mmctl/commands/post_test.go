@@ -208,6 +208,64 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("create a direct message with reply-to and burn-on-read", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "target-user"
+		meID := "my-user-id"
+		targetUserID := "target-user-id"
+		dmChannelID := "dm-channel-id"
+		replyToArg := "reply-to-post"
+		rootID := "root-post-id"
+
+		mockTargetUser := model.User{Id: targetUserID, Username: username}
+		mockMe := model.User{Id: meID}
+		mockChannel := model.Channel{Id: dmChannelID, Type: model.ChannelTypeDirect}
+		mockReplyTo := model.Post{RootId: rootID}
+		mockPost := model.Post{Message: msgArg, ChannelId: dmChannelID, RootId: rootID, Type: model.PostTypeBurnOnRead}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+		cmd.Flags().String("reply-to", replyToArg, "")
+		cmd.Flags().Bool("burn-on-read", true, "")
+
+		s.client.
+			EXPECT().
+			GetPost(context.TODO(), replyToArg, "").
+			Return(&mockReplyTo, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(&mockTargetUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockMe, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateDirectChannel(context.TODO(), meID, targetUserID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			Return(nil, nil).
+			Times(1)
+
+		err = postCreateCmdF(s.client, cmd, []string{"@" + username})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
 	s.Run("direct message to a non-existing user", func() {
 		printer.Clean()
 		msgArg := "some text"

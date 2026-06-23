@@ -73,7 +73,6 @@ const (
 	ISO8601Layout  = "2006-01-02T15:04:05-07:00"
 	PostTimeFormat = "2006-01-02 15:04:05-07:00"
 
-	// directMessagePrefix marks the post create argument as a user to send a direct message to.
 	directMessagePrefix = "@"
 )
 
@@ -161,9 +160,6 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// getPostChannelID resolves the post create argument to a channel ID. When the argument
-// is prefixed with "@", it is treated as a user and a direct message channel between the
-// current user and that user is resolved instead.
 func getPostChannelID(c client.Client, arg string, actingUser *model.User) (string, error) {
 	if username, ok := strings.CutPrefix(arg, directMessagePrefix); ok {
 		channel, err := getDirectChannel(c, username, actingUser)
@@ -180,8 +176,6 @@ func getPostChannelID(c client.Client, arg string, actingUser *model.User) (stri
 	return channel.Id, nil
 }
 
-// getDirectChannel returns the direct message channel between the current user and the
-// user referenced by username, creating it if it does not already exist.
 func getDirectChannel(c client.Client, username string, actingUser *model.User) (*model.Channel, error) {
 	user, err := getUserFromArg(c, username)
 	if err != nil {
