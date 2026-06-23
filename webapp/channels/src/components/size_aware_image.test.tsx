@@ -297,7 +297,6 @@ describe('components/SizeAwareImage', () => {
 
             const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
 
-            // viewBox-less SVGs frequently report a 0x0 natural size once loaded.
             const img = container.querySelector('img')!;
             simulateImageLoad(img, 0, 0);
 

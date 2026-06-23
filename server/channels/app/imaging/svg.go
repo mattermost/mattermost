@@ -38,8 +38,6 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 
 		start, ok := token.(xml.StartElement)
 		if !ok {
-			// Skip processing instructions, comments and char data until we
-			// reach the root element.
 			continue
 		}
 

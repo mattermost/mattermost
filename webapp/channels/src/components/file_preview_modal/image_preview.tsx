@@ -75,8 +75,6 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         imgStyle.cursor = 'grab';
     }
     if (getFileType(fileInfo.extension) === FileTypes.SVG) {
-        // Fall back to filling the available width when the SVG has no known
-        // pixel dimensions, otherwise width:0 would make it invisible.
         imgStyle.width = fileInfo.width || '100%';
         imgStyle.height = 'auto';
     }

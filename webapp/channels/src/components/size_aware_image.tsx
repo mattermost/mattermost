@@ -227,9 +227,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
-        // SVGs whose dimensions could not be determined (e.g. only a relative
-        // width/height like "100%") should fill the available preview area
-        // instead of collapsing to a tiny fixed width.
         const svgWithoutDimensions = fileType === FileTypes.SVG && !this.dimensionsAvailable(dimensions);
 
         let conditionalSVGStyleAttribute;
