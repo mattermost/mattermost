@@ -133,8 +133,8 @@ test(
 
         // # Reopen the same GM from the Direct Messages modal
         const modal = await openDirectMessagesModal(channelsPage);
-        await modal.fillSearchInput(participants[0].username);
-        await modal.results.locator('.more-modal__row').filter({hasText: participants[1].username}).first().click();
+        await modal.selectUser(participants[0]);
+        await modal.selectUser(participants[1]);
         await modal.goToChannel();
 
         // * Verify the existing group message opens again

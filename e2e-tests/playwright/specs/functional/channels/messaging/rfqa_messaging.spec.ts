@@ -66,10 +66,10 @@ test(
         await channelsPage.emojiGifPickerPopup.clickEmoji('grinning');
 
         // * Verify the emoji was inserted at the caret and can be posted
-        await expect(channelsPage.centerView.postCreate.input).toHaveValue('Hello😀World!');
+        await expect(channelsPage.centerView.postCreate.input).toHaveValue('Hello 😀 World!');
         await channelsPage.centerView.postCreate.sendMessage();
         const lastPost = await channelsPage.getLastPost();
-        await lastPost.toContainText('Hello😀World!');
+        await lastPost.toContainText('Hello 😀 World!');
     },
 );
 

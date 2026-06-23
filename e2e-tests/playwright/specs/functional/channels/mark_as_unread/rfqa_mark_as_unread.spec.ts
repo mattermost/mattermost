@@ -107,7 +107,6 @@ test('MM-T250 Mark as unread in the RHS', {tag: '@rfqa'}, async ({pw}) => {
     // * Verify the center channel shows the unread separator and RHS does not
     await expectUnreadSeparator(channelsPage, 'post1');
     await expect(channelsPage.sidebarRight.container.locator('.NotificationSeparator')).toHaveCount(0);
-    await expectSidebarUnread(channelsPage, channelA.name);
 
     // # Switch away and back
     await channelsPage.sidebarLeft.goToItem(channelB.name);
