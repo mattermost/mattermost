@@ -270,33 +270,19 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 	return tokens, nil
 }
 
-// nonCompliantExpiryPredicate builds the WHERE clauses identifying active,
-// non-bot tokens that violate a maximum-lifetime policy: a token is
-// non-compliant when it never expires (ExpiresAt == 0) or when its expiry lies
-// beyond maxExpiresAt, the latest expiry the current policy permits. Bot tokens
-// are exempt from the lifetime policy (matching CreateUserAccessToken), so they
-// are excluded here as well. The same predicate backs both the count and the
-// fetch so the previewed blast radius matches what is actually revoked.
-func nonCompliantExpiryWhere(query sq.SelectBuilder, maxExpiresAt int64) sq.SelectBuilder {
-	return query.
+// CountNonCompliantExpiry returns the number of active, non-bot tokens that
+// violate the maximum lifetime policy implied by maxExpiresAt. It is used to
+// preview the blast radius before revoking.
+func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("UserAccessTokens").
 		Where(sq.Or{
 			sq.Eq{"UserAccessTokens.ExpiresAt": 0},
 			sq.Gt{"UserAccessTokens.ExpiresAt": maxExpiresAt},
 		}).
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
 		Where(sq.Expr("UserAccessTokens.UserId NOT IN (SELECT UserId FROM Bots)"))
-}
-
-// CountNonCompliantExpiry returns the number of active, non-bot tokens that
-// violate the maximum lifetime policy implied by maxExpiresAt. It is used to
-// preview the blast radius before revoking.
-func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
-	query := nonCompliantExpiryWhere(
-		s.getQueryBuilder().
-			Select("COUNT(*)").
-			From("UserAccessTokens"),
-		maxExpiresAt,
-	)
 
 	var count int64
 	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
