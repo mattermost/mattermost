@@ -6,7 +6,6 @@ package model
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
@@ -57,6 +56,11 @@ func init() {
 		RunAdminRoleId,
 		RunMemberRoleId,
 	}, NewSystemRoleIDs...)
+
+	builtInRoleSet = make(map[string]bool, len(BuiltInSchemeManagedRoleIDs))
+	for _, id := range BuiltInSchemeManagedRoleIDs {
+		builtInRoleSet[id] = true
+	}
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
@@ -874,17 +878,11 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
-// builtInRoleSet is the lazily-computed O(1) lookup set for BuiltInSchemeManagedRoleIDs.
+// builtInRoleSet is the O(1) lookup set for BuiltInSchemeManagedRoleIDs, built in init().
 // Using BuiltInSchemeManagedRoleIDs as the discriminant covers all scheme-managed
 // built-in roles including those (e.g. custom_group_user) whose role.BuiltIn flag
 // is false for unrelated reasons (e.g. WebSocket broadcast scope).
-var builtInRoleSet = sync.OnceValue(func() map[string]bool {
-	result := make(map[string]bool, len(BuiltInSchemeManagedRoleIDs))
-	for _, id := range BuiltInSchemeManagedRoleIDs {
-		result[id] = true
-	}
-	return result
-})
+var builtInRoleSet map[string]bool
 
 // IsChannelScopedBuiltInRole returns true for the three built-in roles that are
 // valid inside a channel-member role list.
@@ -901,9 +899,8 @@ func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 		return false
 	}
 
-	builtIns := builtInRoleSet()
 	for roleName := range strings.FieldsSeq(channelMemberRoles) {
-		if builtIns[roleName] && !IsChannelScopedBuiltInRole(roleName) {
+		if builtInRoleSet[roleName] && !IsChannelScopedBuiltInRole(roleName) {
 			return false
 		}
 	}
