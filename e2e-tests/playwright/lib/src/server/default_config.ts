@@ -767,7 +767,6 @@ const defaultServerConfig: AdminConfig = {
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
-        CloudIPFiltering: false,
         ConsumePostHook: false,
         CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
