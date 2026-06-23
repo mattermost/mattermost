@@ -46,6 +46,26 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
     });
 
+    it('plugin-managed bot shows the managing plugin display name', () => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: 'com.mattermost.calls'});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        renderWithContext(
+            <Bot
+                bot={bot}
+                user={user}
+                owner={undefined}
+                pluginDisplayName='Calls'
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
+            />,
+        );
+
+        expect(screen.getByText('Managed by Calls plugin')).toBeInTheDocument();
+        expect(screen.queryByText('Managed by plugin com.mattermost.calls')).not.toBeInTheDocument();
+    });
+
     it('plugin-managed bot without a known plugin id falls back to a generic label', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: ''});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
@@ -61,7 +81,7 @@ describe('components/integrations/bots/Bot', () => {
             />,
         );
 
-        expect(screen.getByText('Managed by plugin')).toBeInTheDocument();
+        expect(screen.getByText('Managed by a plugin')).toBeInTheDocument();
         expect(screen.queryByText('Create New Token')).not.toBeInTheDocument();
         expect(screen.queryByText('Edit')).not.toBeInTheDocument();
         expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();

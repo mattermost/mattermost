@@ -70,6 +70,8 @@ type Props = {
      */
     fromApp: boolean;
 
+    pluginDisplayName?: string;
+
     actions: {
 
         /**
@@ -496,7 +498,13 @@ export default class Bot extends React.PureComponent<Props, State> {
                 />
             );
         } else if (this.props.bot.owner_id) {
-            managedBy = (
+            managedBy = this.props.pluginDisplayName && this.props.pluginDisplayName !== this.props.bot.owner_id ? (
+                <FormattedMessage
+                    id='bots.managed_by.plugin_named'
+                    defaultMessage='Managed by {pluginName} plugin'
+                    values={{pluginName: this.props.pluginDisplayName}}
+                />
+            ) : (
                 <FormattedMessage
                     id='bots.managed_by.plugin'
                     defaultMessage='Managed by plugin {pluginId}'
@@ -507,7 +515,7 @@ export default class Bot extends React.PureComponent<Props, State> {
             managedBy = (
                 <FormattedMessage
                     id='bots.managed_by.unknown_plugin'
-                    defaultMessage='Managed by plugin'
+                    defaultMessage='Managed by a plugin'
                 />
             );
         }
