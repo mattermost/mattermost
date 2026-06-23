@@ -213,6 +213,49 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
+func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	query := s.getQueryBuilder().
+		Select(teamMemberSliceColumns()...).From("TeamMembers").LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
+		Where("TeamMembers.DeleteAt = 0").
+		OrderBy("TeamMembers.UserId ASC")
+
+	if opts.Query != "" {
+		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+	}
+
+	argCount := len(opts.Args)
+
+	argCount++
+	query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.TeamId = $%d", argCount), teamID))
+
+	// An explicit limit is capped at MaxPerPage; an unset limit (0) intentionally
+	// returns every removal candidate for the team. The membership-sync caller
+	// consumes the full set in one pass, so capping an unset limit here would
+	// permanently leave members beyond the cap in a team they no longer qualify
+	// for. The result is naturally bounded by the team's membership.
+	if opts.Limit > 0 {
+		limit := min(opts.Limit, MaxPerPage)
+		query = query.Limit(uint64(limit))
+	}
+
+	if opts.Cursor.TargetID != "" {
+		argCount++
+		query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
+	}
+
+	q, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+
+	members := []*model.TeamMember{}
+	if err := s.GetReplica().Select(&members, q, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find team members for team id=%s", teamID)
+	}
+
+	return members, nil
+}
+
 func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, prevArgs int) (int, sq.SelectBuilder) {
 	for _, term := range terms {
 		searchFields := []string{}

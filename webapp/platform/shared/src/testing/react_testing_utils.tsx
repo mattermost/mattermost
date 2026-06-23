@@ -13,7 +13,7 @@ export type FullContextOptions = {
     intlMessages?: Record<string, string>;
     locale?: string;
     sharedContext?: Partial<Omit<SharedProviderProps, 'children'>>;
-}
+};
 
 export const renderWithContext = (
     component: React.ReactElement,
@@ -83,13 +83,13 @@ type Opts = {
     intlMessages: Record<string, string> | undefined;
     locale: string;
     sharedContext?: Partial<Omit<SharedProviderProps, 'children'>>;
-}
+};
 
 type RenderStateProps = {
     children: React.ReactNode;
 
     options: Opts;
-}
+};
 
 // This should wrap the component in roughly the same providers used in App and RootProvider
 const Providers = ({

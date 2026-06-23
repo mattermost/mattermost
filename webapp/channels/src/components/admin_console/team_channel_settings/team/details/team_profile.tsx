@@ -25,7 +25,7 @@ type Props = {
     onToggleArchive: () => void;
     isDisabled?: boolean;
     saveNeeded?: boolean;
-}
+};
 
 export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, saveNeeded}: Props) {
     const teamIconUrl = imageURLForTeam(team);

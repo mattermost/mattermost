@@ -148,6 +148,30 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: false,
 		},
+		"MaximumPersonalAccessTokenLifetimeDays zero (unlimited) is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(0),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays negative is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(-1),
+			},
+			ExpectError: true,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays at upper bound is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays beyond upper bound is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays + 1),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.ServiceSettings.SetDefaults(false)
@@ -318,6 +342,259 @@ func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
 			err := cfg.FileSettings.isValid()
 			require.NotNil(t, err)
 			assert.Equal(t, tc.errID, err.Id)
+		})
+	}
+}
+
+func TestFileSettingsExtractContentTimeout(t *testing.T) {
+	t.Run("default is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.ExtractContentTimeout)
+		assert.Equal(t, 10, *cfg.FileSettings.ExtractContentTimeout)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("zero disables the timeout and is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(0)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a positive value is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(10)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a negative value is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(-1)
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.extract_content_timeout.app_error", err.Id)
+	})
+}
+
+func TestFileSettingsAzureAuthMode(t *testing.T) {
+	t.Run("defaults to shared_key", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.AzureAuthMode)
+		require.NotNil(t, cfg.FileSettings.ExportAzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.AzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.ExportAzureAuthMode)
+	})
+
+	t.Run("default_credential is accepted", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("unknown primary mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.azure_auth_mode.app_error", err.Id)
+	})
+
+	t.Run("unknown export mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.export_azure_auth_mode.app_error", err.Id)
+	})
+}
+
+func TestFileSettingsAzureCloudValidation(t *testing.T) {
+	t.Run("unknown cloud values are rejected", func(t *testing.T) {
+		cases := []struct {
+			name         string
+			configSetter func(*Config, *string)
+			errID        string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.configSetter(cfg, NewPointer("not-a-real-cloud"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud requires endpoint", func(t *testing.T) {
+		cases := []struct {
+			name        string
+			cloudSetter func(*Config, *string)
+			errID       string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud with a valid endpoint passes validation", func(t *testing.T) {
+		cases := []struct {
+			name           string
+			cloudSetter    func(*Config, *string)
+			endpointSetter func(*Config, *string)
+		}{
+			{
+				"AzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureEndpoint = v },
+			},
+			{
+				"ExportAzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureEndpoint = v },
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+				tc.endpointSetter(cfg, NewPointer("https://account.blob.core.windows.net/"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+		}
+	})
+}
+
+func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
+	// Managed clouds put the account name in the service hostname, so it must
+	// match Azure's documented format.
+	type accessors struct {
+		driver  func(*Config, *string)
+		cloud   func(*Config, *string)
+		account func(*Config, *string)
+	}
+	variants := []struct {
+		name string
+		accessors
+	}{
+		{
+			"upload",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.DriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureStorageAccount = v },
+			},
+		},
+		{
+			"export",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportDriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureStorageAccount = v },
+			},
+		},
+	}
+
+	for _, variant := range variants {
+		t.Run(variant.name, func(t *testing.T) {
+			t.Run("malformed account name is rejected for commercial cloud", func(t *testing.T) {
+				for _, bad := range []string{"", "ab", strings.Repeat("a", 25), "WithUppercase", "with-dash", "with.dot", "with/slash", "with#hash"} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+					variant.account(cfg, NewPointer(bad))
+
+					err := cfg.FileSettings.isValid()
+					require.NotNil(t, err, "expected %q to be rejected", bad)
+					assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+				}
+			})
+
+			t.Run("valid account name passes for managed clouds", func(t *testing.T) {
+				// Empty cloud is treated as commercial, so it is validated too.
+				for _, cloud := range []string{AzureCloudCommercial, AzureCloudGovernment, ""} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(cloud))
+					variant.account(cfg, NewPointer("acmemattermost"))
+
+					err := cfg.FileSettings.isValid()
+					require.Nil(t, err)
+				}
+			})
+
+			t.Run("malformed account name is rejected for empty (commercial) cloud", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(""))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+			})
+
+			t.Run("custom cloud skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(AzureCloudCustom))
+				variant.account(cfg, NewPointer("with#hash"))
+				// Custom mode derives the host from the endpoint, not the account.
+				if variant.name == "upload" {
+					cfg.FileSettings.AzureEndpoint = NewPointer("https://blob.example.com/")
+				} else {
+					cfg.FileSettings.ExportAzureEndpoint = NewPointer("https://blob.example.com/")
+				}
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+
+			t.Run("non-azure driver skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				// DriverName stays at its default (local); the malformed Azure
+				// account name must not block an unrelated driver's config.
+				variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
 		})
 	}
 }

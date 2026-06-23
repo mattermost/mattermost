@@ -11,6 +11,7 @@ import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
@@ -19,7 +20,6 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -53,7 +53,7 @@ type State = {
     nextDisabled: boolean;
     channelSearchValue: string;
     isSearch?: boolean;
-}
+};
 
 export class SearchableChannelList extends React.PureComponent<Props, State> {
     private nextTimeoutId: number | NodeJS.Timeout;
@@ -123,8 +123,11 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
     createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-        const ChannelIcon = getChannelIconComponent(channel);
-        const channelTypeIcon = <ChannelIcon size={18}/>;
+        const channelTypeIcon = (
+            <ChannelIcon
+                channel={channel}
+                size={18}
+            />);
         let memberCount = 0;
         if (this.props.channelsMemberCount?.[channel.id]) {
             memberCount = this.props.channelsMemberCount[channel.id];

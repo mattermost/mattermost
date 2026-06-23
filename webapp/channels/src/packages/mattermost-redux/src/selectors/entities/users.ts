@@ -198,7 +198,7 @@ export const getCurrentUserRoles: (_: GlobalState) => UserProfile['roles'] = cre
 export type UserMentionKey = {
     key: string;
     caseSensitive?: boolean;
-}
+};
 
 export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[] = createSelector(
     'getCurrentUserMentionKeys',
@@ -237,7 +237,7 @@ export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[]
 
 export type HighlightWithoutNotificationKey = {
     key: string;
-}
+};
 
 export const getHighlightWithoutNotificationKeys: (state: GlobalState) => HighlightWithoutNotificationKey[] = createSelector(
     'getHighlightWithoutNotificationKeys',
@@ -666,7 +666,7 @@ export function makeGetProfilesByIdsAndUsernames(): (
     props: {
         allUserIds?: Array<UserProfile['id']>;
         allUsernames?: Array<UserProfile['username']>;
-    }
+    },
 ) => UserProfile[] {
     return createSelector(
         'makeGetProfilesByIdsAndUsernames',

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Bot, BotPatch} from '@mattermost/types/bots';
+import type {Bot, BotPatch} from '@mattermost/types/bots';
 
 import {getRandomId} from '../../utils';
 
-import {ChainableT} from '@/types';
-
+import type {ChainableT} from '@/types';
 
 // *****************************************************************************
 // Bots

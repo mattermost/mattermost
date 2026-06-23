@@ -16,7 +16,7 @@ jest.mock('components/tours/onboarding_tour', () => ({
 jest.mock('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const React = require('react');
 
-    return ({label, channelLeaveHandler}: {label: string; channelLeaveHandler?: (callback: () => void) => void}) => {
+    return ({label, channelLeaveHandler}: {label: string; icon?: JSX.Element | null; channelLeaveHandler?: (callback: () => void) => void}) => {
         const [isOpen, setIsOpen] = React.useState(false);
 
         return (

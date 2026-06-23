@@ -1,14 +1,15 @@
 {
   "name": "@mattermost/components",
-  "version": "9.2.0",
+  "version": "11.9.0",
   "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "styles": "dist/index.esm.css",
   "scripts": {
     "build": "rollup -c",
-    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "check": "eslint ./src eslint.config.mjs --quiet",
     "check-types": "tsc -b",
+    "fix": "eslint ./src eslint.config.mjs --quiet --fix",
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
@@ -40,8 +41,8 @@
   },
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
-    "@mattermost/compass-icons": "0.1.53",
-    "@mattermost/shared": "11.8.0",
+    "@mattermost/compass-icons": "0.1.61",
+    "@mattermost/shared": "11.9.0",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",

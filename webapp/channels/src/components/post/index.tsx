@@ -202,8 +202,8 @@ function makeMapStateToProps() {
             replyCount: getReplyCount(state, post),
             canReply,
             pluginPostTypes: state.plugins.postTypes,
+            channel,
             channelIsArchived: isArchivedChannel(channel),
-            channelIsShared: channel?.shared,
             isConsecutivePost: isConsecutivePost(state, ownProps, locale),
             previousPostIsComment,
             isFlagged: isPostFlagged(state, post.id),
@@ -275,7 +275,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
 
 const connector = connect(makeMapStateToProps, mapDispatchToProps);
 
-export type PropsFromRedux = ConnectedProps<typeof connector>
+export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(PostComponent);
 

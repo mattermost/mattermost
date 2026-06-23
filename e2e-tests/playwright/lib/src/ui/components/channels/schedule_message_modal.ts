@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ScheduleMessageModal {
     readonly container: Locator;
@@ -27,7 +28,9 @@ export default class ScheduleMessageModal {
     }
 
     getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) return 'th';
+        if (day > 3 && day < 21) {
+            return 'th';
+        }
 
         switch (day % 10) {
             case 1:

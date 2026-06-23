@@ -51,6 +51,7 @@ type Props = {
     *  Map from botUserId to user.
     */
     users: Record<string, UserProfile>;
+    pluginDisplayNames?: Record<string, string>;
     createBots?: boolean;
 
     actions: {
@@ -99,11 +100,11 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 export default class Bots extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -183,6 +184,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 bot={bot}
                 owner={this.props.owners[bot.user_id]}
                 user={this.props.users[bot.user_id]}
+                pluginDisplayName={this.props.pluginDisplayNames?.[bot.user_id]}
                 accessTokens={(this.props.accessTokens && this.props.accessTokens[bot.user_id]) || {}}
                 actions={this.props.actions}
                 team={this.props.team}

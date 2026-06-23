@@ -550,22 +550,60 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/file/test:
+    post:
+      tags:
+        - system
+      summary: Test the configured file storage backend
+      description: >
+        Send a test to validate that the server can connect to the configured
+        file storage backend (local, Amazon S3, or Azure Blob Storage). Optionally
+        provide a configuration in the request body to test. If no valid
+        configuration is present in the request body the current server
+        configuration will be tested.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 11.10
+      operationId: TestFileStoreConnection
+      requestBody:
+        description: Mattermost configuration
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Config"
+      responses:
+        "200":
+          description: File storage test successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/file/s3_test:
     post:
       tags:
         - system
       summary: Test AWS S3 connection
       description: >
-        Send a test to validate if can connect to AWS S3. Optionally provide a
-        configuration in the request body to test. If no valid configuration is
-        present in the request body the current server configuration will be
-        tested.
+        Deprecated alias for `/api/v4/file/test` kept for backwards
+        compatibility. New callers should use `/api/v4/file/test`, which is
+        backend-agnostic.
 
         ##### Permissions
 
         Must have `manage_system` permission.
 
         __Minimum server version__: 4.8
+      deprecated: true
       operationId: TestS3Connection
       requestBody:
         description: Mattermost configuration
@@ -581,6 +619,8 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
         "500":
@@ -633,8 +673,8 @@
       summary: Update configuration
       description: >
         Submit a new configuration for the server to use. As of server version
-        4.8, the `PluginSettings.EnableUploads` setting cannot be modified by
-        this endpoint.
+        4.8, the `PluginSettings.EnableUploads` and `PluginSettings.SignaturePublicKeyFiles`
+        settings cannot be modified by this endpoint.
 
         Note that the parameters that aren't set in the configuration that you
         provide will be reset to default values. Therefore, if you want to
@@ -775,8 +815,8 @@
       summary: Patch configuration
       description: >
         Submit configuration to patch. As of server version 4.8, the
-        `PluginSettings.EnableUploads` setting cannot be modified by this
-        endpoint.
+        `PluginSettings.EnableUploads` and `PluginSettings.SignaturePublicKeyFiles`
+        settings cannot be modified by this endpoint.
 
         ##### Permissions
 
@@ -872,6 +912,92 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/license/preview:
+    post:
+      tags:
+        - system
+      summary: Preview license file
+      description: |
+        Validate and parse a license file without saving it. This allows administrators
+        to preview the license details before applying it.
+
+        __Minimum server version__: 10.9
+
+        ##### Permissions
+        Must have `manage_license_information` permission.
+      operationId: PreviewLicenseFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                license:
+                  description: The license to be previewed
+                  type: string
+                  format: binary
+              required:
+                - license
+      responses:
+        "200":
+          description: License preview successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The unique identifier of the license
+                  issued_at:
+                    type: integer
+                    format: int64
+                    description: The timestamp when the license was issued
+                  starts_at:
+                    type: integer
+                    format: int64
+                    description: The timestamp when the license becomes active
+                  expires_at:
+                    type: integer
+                    format: int64
+                    description: The timestamp when the license expires
+                  sku_name:
+                    type: string
+                    description: The display name of the license SKU (e.g., "Enterprise", "Professional")
+                  sku_short_name:
+                    type: string
+                    description: The short name of the license SKU (e.g., "enterprise", "professional")
+                  is_trial:
+                    type: boolean
+                    description: Whether this is a trial license
+                  is_gov_sku:
+                    type: boolean
+                    description: Whether this is a government SKU license
+                  customer:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      company:
+                        type: string
+                  features:
+                    type: object
+                    properties:
+                      users:
+                        type: integer
+                        description: The number of users allowed by the license
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
   /api/v4/license/client:
     get:
       tags:

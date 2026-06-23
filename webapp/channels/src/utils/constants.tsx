@@ -430,7 +430,6 @@ export const ModalIdentifiers = {
     JOIN_PUBLIC_CHANNEL_MODAL: 'join_public_channel_modal',
     CLOUD_INVOICE_PREVIEW: 'cloud_invoice_preview',
     BILLING_HISTORY: 'billing_history',
-    SUM_OF_MEMBERS_MODAL: 'sum_of_members_modal',
     RESTORE_POST_MODAL: 'restore_post',
     INFO_TOAST: 'info_toast',
     MARK_ALL_THREADS_AS_READ: 'mark_all_threads_as_read_modal',
@@ -483,6 +482,7 @@ export const ModalIdentifiers = {
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
     CREATE_RECAP_MODAL: 'create_recap_modal',
@@ -607,7 +607,7 @@ export const A11yCustomEventTypes = {
 export type A11yFocusEventDetail = {
     target: HTMLElement | null | undefined;
     keyboardOnly: boolean;
-}
+};
 
 export function isA11yFocusEventDetail(o: unknown): o is A11yFocusEventDetail {
     return Boolean(o && typeof o === 'object' && 'keyboardOnly' in o);
@@ -968,6 +968,7 @@ export const UserSettingsNotificationSections = {
     DESKTOP_AND_MOBILE: 'desktopAndMobile',
     DESKTOP_NOTIFICATION_SOUND: 'desktopNotificationSound',
     EMAIL: 'email',
+    CHANNEL_MENTION_AUTO_FOLLOW: 'channelMentionAutoFollow',
     KEYWORDS_MENTIONS: 'keywordsAndMentions',
     KEYWORDS_HIGHLIGHT: 'keywordsAndHighlight',
     REPLY_NOTIFCATIONS: 'replyNotifications',
@@ -1428,9 +1429,11 @@ export const CacheTypes = {
 
 export const ZoomSettings = {
     DEFAULT_SCALE: 1.75,
+    DEFAULT_SCALE_IMAGE: 1.0,
     SCALE_DELTA: 0.25,
     MIN_SCALE: 0.25,
     MAX_SCALE: 3.0,
+    MAX_SCALE_IMAGE: 2.0,
 };
 
 export const DataSpillagePropertyNames = {
@@ -1487,9 +1490,7 @@ export const Constants = {
     MAX_ADD_MEMBERS_BATCH: 256,
 
     SPECIAL_MENTIONS: ['all', 'channel', 'here'],
-    PLAN_MENTIONS: /Professional plan|Enterprise plan|Enterprise trial/gi,
     SPECIAL_MENTIONS_REGEX: /(?:\B|\b_+)@(channel|all|here)(?!(\.|-|_)*[^\W_])/gi,
-    SUM_OF_MEMBERS_MENTION_REGEX: /\d+ members/gi,
     ALL_MENTION_REGEX: /(?:\B|\b_+)@(all)(?!(\.|-|_)*[^\W_])/gi,
     CHANNEL_MENTION_REGEX: /(?:\B|\b_+)@(channel)(?!(\.|-|_)*[^\W_])/gi,
     HERE_MENTION_REGEX: /(?:\B|\b_+)@(here)(?!(\.|-|_)*[^\W_])/gi,

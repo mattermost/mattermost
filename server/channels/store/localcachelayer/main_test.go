@@ -54,6 +54,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeRole2 := model.Role{Id: "456", Name: "role-name2"}
 	mockRolesStore := mocks.RoleStore{}
 	mockRolesStore.On("Save", &fakeRole).Return(&model.Role{}, nil)
+	mockRolesStore.On("SavePreservingUnknownPermissions", &fakeRole).Return(&model.Role{}, nil)
 	mockRolesStore.On("Delete", "123").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByName", context.Background(), "role-name").Return(&fakeRole, nil)
 	mockRolesStore.On("GetByNames", []string{"role-name"}).Return([]*model.Role{&fakeRole}, nil)
@@ -203,6 +204,17 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
+
+	mockSessionAttributeStore := mocks.SessionAttributeStore{}
+	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
+
+	fakeField := model.PropertyField{ID: "field-id", GroupID: "group-id", Name: "field-name"}
+	mockPropertyFieldStore := mocks.PropertyFieldStore{}
+	mockPropertyFieldStore.On("GetForGroup", context.Background(), "group-id").Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("Create", &fakeField).Return(&fakeField, nil)
+	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
+	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
+	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)

@@ -4,7 +4,8 @@
 import path from 'node:path';
 
 import type {Page} from '@playwright/test';
-import {Client4, ClientError} from '@mattermost/client';
+import type {Client4} from '@mattermost/client';
+import {ClientError} from '@mattermost/client';
 
 import {expect, mergeWithOnPremServerConfig} from '@mattermost/playwright-lib';
 

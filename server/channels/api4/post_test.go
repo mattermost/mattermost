@@ -5526,16 +5526,16 @@ func TestGetEditHistoryForPost(t *testing.T) {
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
-	t.Skip("flaky")
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	rpost := th.CreatePost(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
+
+	rpost := th.CreatePost(t)
 
 	testCases := []struct {
 		name        string
@@ -5642,7 +5642,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			require.NoError(t, err)
 
 			// post a reply on the thread
-			_, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			reply, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
 			require.Nil(t, appErr)
 
 			var caught bool
@@ -5650,23 +5650,34 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 				for {
 					select {
 					case ev := <-userWSClient.EventChannel:
-						if ev.EventType() == model.WebsocketEventPosted {
-							caught = true
-							data := ev.GetData()
-
-							users, ok := data["mentions"]
-							require.Equal(t, tc.mentions, ok)
-							if ok {
-								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
-							}
-
-							users, ok = data["followers"]
-							require.Equal(t, tc.followers, ok)
-
-							if ok {
-								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
-							}
+						if ev.EventType() != model.WebsocketEventPosted {
+							continue
 						}
+						data := ev.GetData()
+						post, ok := data["post"]
+						if !ok {
+							continue
+						}
+						var evPost model.Post
+						require.NoError(t, json.Unmarshal([]byte(post.(string)), &evPost))
+						if evPost.Id != reply.Id {
+							continue
+						}
+						caught = true
+
+						users, ok := data["mentions"]
+						require.Equal(t, tc.mentions, ok)
+						if ok {
+							require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+						}
+
+						users, ok = data["followers"]
+						require.Equal(t, tc.followers, ok)
+
+						if ok {
+							require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+						}
+						return
 					case <-time.After(5 * time.Second):
 						return
 					}

@@ -98,6 +98,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	SessionAttribute() SessionAttributeStore
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
@@ -557,7 +558,7 @@ type SessionStore interface {
 	UpdateExpiresAt(sessionID string, timestamp int64) error
 	UpdateLastActivityAt(sessionID string, timestamp int64) error
 	UpdateRoles(userID string, roles string) (string, error)
-	UpdateDeviceId(id string, deviceID string, expiresAt int64) (string, error)
+	UpdateDeviceId(id string, deviceId string, voIPDeviceId string, expiresAt int64) error
 	UpdateProps(session *model.Session) error
 	AnalyticsSessionCount() (int64, error)
 	Cleanup(expiryTime int64, batchSize int64) error
@@ -869,6 +870,10 @@ type PluginStore interface {
 
 type RoleStore interface {
 	Save(role *model.Role) (*model.Role, error)
+	// SavePreservingUnknownPermissions behaves like Save but tolerates and preserves
+	// permissions not recognized by this server build instead of rejecting the role.
+	// Unrecognized permissions are logged (see MM-68830).
+	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
 	GetByName(ctx context.Context, name string) (*model.Role, error)
@@ -1172,6 +1177,7 @@ type PropertyFieldStore interface {
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
+	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
@@ -1224,6 +1230,14 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)
+}
+
+type SessionAttributeStore interface {
+	Refresh(sessionID string, attrs map[string]any, updatedAt int64) error
+	Get(sessionID string) (map[string]any, map[string]int64, error)
+	Invalidate(sessionID string) error
+	Clear() error
 }
 
 type AutoTranslationStore interface {

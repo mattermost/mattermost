@@ -35,7 +35,7 @@ describe('components/mfa/components/Confirm', () => {
     });
 
     test('should submit on enter', () => {
-        const map: { [key: string]: any } = {
+        const map: {[key: string]: any} = {
             keydown: null,
         };
         document.body.addEventListener = jest.fn().mockImplementation((event: string, callback: string) => {
