@@ -40,6 +40,16 @@ cd e2e-tests && TEST=playwright make
 
 This approach uses the server's Docker image to create a consistent testing environment. It automatically configures the server with the necessary settings for Playwright tests and handles dependencies.
 
+To run migrated Rainforest browser tests through Docker, set `TEST_FILTER` and the enterprise server image before invoking the E2E Makefile:
+
+```bash
+cd e2e-tests
+SERVER_IMAGE="mattermostdevelopment/mattermost-enterprise-edition:master" \
+TEST=playwright \
+TEST_FILTER="--grep @rfqa --project=chrome" \
+make
+```
+
 #### 2. Install dependencies and run the test.
 
 ```bash
@@ -63,6 +73,9 @@ npm run test
 # Run CI tests (excludes visual tests, runs only in Chrome)
 # Note: visual tests run in a separate workflow
 npm run test:ci
+
+# Run migrated Rainforest browser tests
+npm run test:rfqa
 ```
 
 #### 3. Inspect test results at `/results/output` folder when something fails unexpectedly.
