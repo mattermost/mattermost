@@ -52,7 +52,7 @@ runs:
       run: |
         make node_modules
     - name: ci/build-platform-packages
-      # These are built automatically when depenedencies are installed, but they aren't cached properly, so we need to
+      # These are built automatically when dependencies are installed, but they aren't cached properly, so we need to
       # manually build them when the cache is hit. They aren't worth caching because they have too many dependencies.
       if: steps.cache-hit.outputs.cache-hit == 'true'
       shell: bash
