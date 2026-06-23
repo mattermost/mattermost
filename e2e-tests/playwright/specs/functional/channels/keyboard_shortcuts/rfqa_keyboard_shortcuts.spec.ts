@@ -44,7 +44,7 @@ test('MM-T1242 CTRL/CMD+K typed characters are not lost after switching channels
     await page.keyboard.press('ControlOrMeta+K');
     await expect(page.locator('#quickSwitchInput')).toBeVisible();
     await page.locator('#quickSwitchInput').fill('off');
-    await page.locator('#suggestionList').getByText('Off-Topic').click();
+    await page.locator('#suggestionList').getByTestId('off-topic').getByText('Off-Topic', {exact: true}).click();
     await channelsPage.centerView.header.toHaveTitle('Off-Topic');
     await channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.type(message);
