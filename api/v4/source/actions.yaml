@@ -234,8 +234,10 @@
         information on interactive dialogs.
 
 
-        Up to 3 interactive dialogs may be open at once; requests that would
-        exceed this limit are silently ignored by the client.
+        This request is always processed server-side. The client caps the number
+        of simultaneously open interactive dialogs at 3, so if the resulting
+        `open_dialog` event would exceed that limit the client silently skips
+        rendering the additional dialog.
 
 
         __Minimum server version: 11.10__
