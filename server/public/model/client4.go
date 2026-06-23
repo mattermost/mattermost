@@ -1955,7 +1955,7 @@ func (c *Client4) GetNonCompliantUserAccessTokenCount(ctx context.Context) (*Non
 // access token that violates the configured maximum lifetime policy and returns
 // the number of tokens revoked. Must have the 'manage_system' permission.
 func (c *Client4) RevokeNonCompliantUserAccessTokens(ctx context.Context) (*NonCompliantUserAccessTokenResult, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "revoke_non_compliant"), nil)
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "non_compliant", "revoke"), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

@@ -91,7 +91,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens", api.APISessionRequired(getUserAccessTokens)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/search", api.APISessionRequired(searchUserAccessTokens)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/non_compliant/count", api.APISessionRequired(countNonCompliantUserAccessTokens)).Methods(http.MethodGet)
-	api.BaseRoutes.Users.Handle("/tokens/revoke_non_compliant", api.APISessionRequired(revokeNonCompliantUserAccessTokens)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/tokens/non_compliant/revoke", api.APISessionRequired(revokeNonCompliantUserAccessTokens)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.APISessionRequired(getUserAccessToken)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken)).Methods(http.MethodPost)
@@ -3090,7 +3090,6 @@ func countNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *htt
 func revokeNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventRevokeNonCompliantUserAccessTokens, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	c.LogAudit("")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -3105,7 +3104,6 @@ func revokeNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *ht
 
 	model.AddEventParameterToAuditRec(auditRec, "revoked_count", count)
 	auditRec.Success()
-	c.LogAudit(fmt.Sprintf("success - revoked_count=%d", count))
 
 	js, err := json.Marshal(model.NonCompliantUserAccessTokenResult{Count: count})
 	if err != nil {

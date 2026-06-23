@@ -1333,7 +1333,7 @@ export default class Client4 {
 
     revokeNonCompliantUserAccessTokens = () => {
         return this.doFetch<{count: number}>(
-            `${this.getUsersRoute()}/tokens/revoke_non_compliant`,
+            `${this.getUsersRoute()}/tokens/non_compliant/revoke`,
             {method: 'post'},
         );
     };

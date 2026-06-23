@@ -2647,7 +2647,7 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-  /api/v4/users/tokens/revoke_non_compliant:
+  /api/v4/users/tokens/non_compliant/revoke:
     post:
       tags:
         - users
