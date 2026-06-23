@@ -5,8 +5,6 @@ import React from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
-
 import type {ChannelIntroButtonAction} from 'types/store/plugins';
 
 type Props = {
@@ -21,11 +19,6 @@ const PluggableIntroButtons = React.memo(({
     channelMember,
 }: Props) => {
     const channelIsArchived = channel.delete_at !== 0;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel.id);
-
-    if (!pluginItemsVisible) {
-        return null;
-    }
 
     if (channelIsArchived || pluginButtons.length === 0 || !channelMember) {
         return null;

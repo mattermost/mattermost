@@ -94,15 +94,6 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		MembershipErrors:      make([]string, 0),
 	}
 
-	// Check if feature flag is enabled for membership changes
-	membershipSyncEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync
-	hasMembershipChanges := len(syncMsg.MembershipChanges) > 0
-
-	// If this message only contains membership changes and feature is disabled, skip it
-	if hasMembershipChanges && !membershipSyncEnabled && len(syncMsg.Users) == 0 && len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 {
-		return syncResp, nil
-	}
-
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", syncMsg.ChannelId),
@@ -282,7 +273,7 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 	}
 
 	// Process membership changes after users have been synced
-	if hasMembershipChanges && membershipSyncEnabled {
+	if len(syncMsg.MembershipChanges) > 0 {
 		if err := scs.onReceiveMembershipChanges(syncMsg, rc); err != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error processing membership changes",
 				mlog.String("remote", rc.Name),
