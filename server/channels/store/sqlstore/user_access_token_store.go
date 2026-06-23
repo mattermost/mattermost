@@ -307,9 +307,9 @@ func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (in
 }
 
 // DeleteNonCompliantExpiry hard-deletes up to limit non-compliant tokens and
-// their associated sessions in a single transaction, returning the distinct
-// user IDs of the deleted tokens so the caller can clear per-user session
-// caches. A non-positive limit returns nil without hitting the DB.
+// their associated sessions in a single transaction, returning one UserId per
+// deleted token row so the caller can count deletions and clear per-user
+// session caches. A non-positive limit returns nil without hitting the DB.
 func (s SqlUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
 	if limit <= 0 {
 		return nil, nil
@@ -333,7 +333,7 @@ deleted_tokens AS (
     WHERE Id IN (SELECT Id FROM to_delete)
     RETURNING UserId
 )
-SELECT DISTINCT UserId FROM deleted_tokens`
+SELECT UserId FROM deleted_tokens`
 
 	var userIDs []string
 	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit); err != nil {

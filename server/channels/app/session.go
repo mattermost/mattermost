@@ -679,8 +679,12 @@ func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *mode
 
 		totalRevoked += int64(len(userIDs))
 
+		seen := make(map[string]struct{}, len(userIDs))
 		for _, userID := range userIDs {
-			a.ClearSessionCacheForUser(userID)
+			if _, ok := seen[userID]; !ok {
+				seen[userID] = struct{}{}
+				a.ClearSessionCacheForUser(userID)
+			}
 		}
 
 		if len(userIDs) < revokeNonCompliantBatchLimit {

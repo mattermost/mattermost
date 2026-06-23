@@ -404,7 +404,17 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.UserAccessToken().Save(botToken)
 	require.NoError(t, err)
 
-	// Sessions minted from the two non-compliant tokens — DeleteNonCompliantExpiry
+	// Two non-compliant tokens owned by the same user — verifies that the
+	// returned slice has one entry per deleted token row, not one per user.
+	sharedUserID := model.NewId()
+	multiA := &model.UserAccessToken{Token: model.NewId(), UserId: sharedUserID, Description: "multi A"}
+	_, err = ss.UserAccessToken().Save(multiA)
+	require.NoError(t, err)
+	multiB := &model.UserAccessToken{Token: model.NewId(), UserId: sharedUserID, Description: "multi B", ExpiresAt: now + 60*day}
+	_, err = ss.UserAccessToken().Save(multiB)
+	require.NoError(t, err)
+
+	// Sessions minted from the non-compliant tokens — DeleteNonCompliantExpiry
 	// must remove these along with the tokens.
 	noExpirySession, nErr := ss.Session().Save(rctx, &model.Session{Token: noExpiry.Token, UserId: noExpiry.UserId})
 	require.NoError(t, nErr)
@@ -412,7 +422,7 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.NoError(t, nErr)
 
 	t.Cleanup(func() {
-		// noExpiry and farFuture are deleted by DeleteNonCompliantExpiry below;
+		// noExpiry, farFuture, multiA, multiB are deleted by DeleteNonCompliantExpiry;
 		// only surviving tokens need explicit cleanup.
 		_ = ss.UserAccessToken().Delete(compliant.Id)
 		_ = ss.UserAccessToken().Delete(inactive.Id)
@@ -421,26 +431,29 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 		_ = ss.User().PermanentDelete(rctx, botUser.Id)
 	})
 
-	// Against the 30-day cap, the two active non-bot violators are counted.
+	// Against the 30-day cap, four active non-bot violators are counted.
 	count, err := ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
 	require.NoError(t, err)
-	require.Equal(t, baseline30+2, count)
+	require.Equal(t, baseline30+4, count)
 
 	// A non-positive limit is a no-op.
 	noop, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 0)
 	require.NoError(t, err)
 	require.Empty(t, noop)
 
-	// DeleteNonCompliantExpiry deletes both violators and their sessions, returns
-	// their user IDs, and leaves compliant/inactive/bot tokens untouched.
+	// DeleteNonCompliantExpiry deletes all violators and their sessions, returns
+	// one UserId per deleted token row (not per user), and leaves
+	// compliant/inactive/bot tokens untouched.
 	userIDs, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 10000)
 	require.NoError(t, err)
+	require.Equal(t, 4, len(userIDs), "should return one entry per deleted token, not per user")
 	gotUserIDs := map[string]bool{}
 	for _, id := range userIDs {
 		gotUserIDs[id] = true
 	}
 	require.True(t, gotUserIDs[noExpiry.UserId], "user of never-expiring token should be returned")
 	require.True(t, gotUserIDs[farFuture.UserId], "user of far-future token should be returned")
+	require.True(t, gotUserIDs[sharedUserID], "shared user with multiple tokens should be returned")
 	require.False(t, gotUserIDs[compliant.UserId], "compliant token user must not be returned")
 	require.False(t, gotUserIDs[inactive.UserId], "inactive token user must not be returned")
 	require.False(t, gotUserIDs[botToken.UserId], "bot token user must not be returned")
@@ -450,6 +463,10 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.Error(t, err, "never-expiring token should be deleted")
 	_, err = ss.UserAccessToken().Get(farFuture.Id)
 	require.Error(t, err, "far-future token should be deleted")
+	_, err = ss.UserAccessToken().Get(multiA.Id)
+	require.Error(t, err, "shared-user token A should be deleted")
+	_, err = ss.UserAccessToken().Get(multiB.Id)
+	require.Error(t, err, "shared-user token B should be deleted")
 
 	// Sessions for deleted tokens are gone.
 	_, nErr = ss.Session().Get(rctx, noExpirySession.Token)
