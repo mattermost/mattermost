@@ -269,4 +269,54 @@ describe('components/SizeAwareImage', () => {
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('button.size-aware-image__copy_link')).toBeNull();
     });
+
+    describe('SVG previews', () => {
+        const svgProps = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+            fileInfo: TestHelper.getFileInfoMock({
+                name: 'diagram',
+                extension: 'svg',
+            }),
+        };
+
+        test('fills the available width when the SVG has no known dimensions', () => {
+            const props = {...svgProps};
+            Reflect.deleteProperty(props, 'dimensions');
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = container.querySelector('img')!;
+            expect(img.style.width).toEqual('100%');
+            expect(img.style.height).toEqual('auto');
+        });
+
+        test('does not collapse a dimensionless SVG into the small-image container when it reports a tiny natural size', () => {
+            const props = {...svgProps};
+            Reflect.deleteProperty(props, 'dimensions');
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            // viewBox-less SVGs frequently report a 0x0 natural size once loaded.
+            const img = container.querySelector('img')!;
+            simulateImageLoad(img, 0, 0);
+
+            expect(container.querySelector('div.small-image__container')).toBeNull();
+            expect(img.className).not.toContain('small-image--inside-container');
+            expect(img.style.width).toEqual('100%');
+        });
+
+        test('uses the explicit pixel width when the SVG has known dimensions', () => {
+            const props = {
+                ...svgProps,
+                dimensions: {width: 800, height: 500},
+            };
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = container.querySelector('img')!;
+            expect(img.style.width).toEqual('800px');
+            expect(img.style.height).toEqual('auto');
+        });
+    });
 });

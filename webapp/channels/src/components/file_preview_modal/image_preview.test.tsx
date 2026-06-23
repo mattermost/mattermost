@@ -125,4 +125,26 @@ describe('components/view_image/ImagePreview', () => {
         expect(screen.getByRole('link')).toHaveAttribute('href', '#');
         expect(screen.getByTestId('imagePreview')).toHaveAttribute('src', props.fileInfo.link);
     });
+
+    test('should fill the available width for an SVG without known dimensions', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: TestHelper.getFileInfoMock({id: 'svg_file', extension: 'svg', width: 0, height: 0}),
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('width: 100%');
+    });
+
+    test('should use the SVG pixel width when dimensions are known', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: TestHelper.getFileInfoMock({id: 'svg_file', extension: 'svg', width: 640, height: 480}),
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('width: 640px');
+    });
 });
