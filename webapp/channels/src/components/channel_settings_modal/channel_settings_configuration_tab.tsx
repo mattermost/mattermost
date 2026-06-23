@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -66,6 +66,19 @@ function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBan
     return (originalBannerInfo?.text?.trim() || '') !== (updatedBannerInfo?.text?.trim() || '') ||
         (originalBannerInfo?.background_color?.trim() || '') !== (updatedBannerInfo?.background_color?.trim() || '') ||
         originalBannerInfo?.enabled !== updatedBannerInfo?.enabled;
+}
+
+type SharingSnapshot = {
+    enabled: boolean;
+    remotes: WorkspaceWithStatus[];
+};
+
+function remoteIdsKey(remotes: Array<{remote_id?: string; name?: string}>) {
+    return remotes.map((r) => r.remote_id || r.name).sort().join(',');
+}
+
+function copyRemotes(remotes: WorkspaceWithStatus[]) {
+    return remotes.map((r) => ({...r}));
 }
 
 function ChannelSettingsConfigurationTab({
@@ -232,7 +245,6 @@ function ChannelSettingsConfigurationTab({
     const autoTranslationSubHeading = formatMessage({id: 'channel_translation.label.subtext', defaultMessage: 'When enabled, messages in this channel will be translated to members\' own languages. Members can opt-out of this from the channel menu to view the original message instead.'});
 
     const initialIsChannelAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslatedSelector(state, channel.id));
-    const initialRemotes = useSelector((state: GlobalState) => getRemotesForChannel(state, channel.id));
     const [isChannelAutotranslated, setIsChannelAutotranslated] = useState(initialIsChannelAutotranslated);
     const hasAutoTranslationChanges = isChannelAutotranslated !== initialIsChannelAutotranslated;
 
@@ -241,37 +253,46 @@ function ChannelSettingsConfigurationTab({
     }, []);
 
     // Shared channels section
-    const [workspaceRemotes, setWorkspaceRemotes] = useState<WorkspaceWithStatus[]>(() =>
-        (initialRemotes || []).map((r) => ({...r})),
-    );
+    const initialRemotes = useSelector((state: GlobalState) => getRemotesForChannel(state, channel.id));
+    const userEditedSharingRef = useRef(false);
+
+    const [savedSharing, setSavedSharing] = useState<SharingSnapshot>(() => ({
+        enabled: Boolean(channel.shared || (initialRemotes || []).length > 0),
+        remotes: copyRemotes(initialRemotes || []),
+    }));
+    const [sharingEnabled, setSharingEnabled] = useState(savedSharing.enabled);
+    const [workspaceRemotes, setWorkspaceRemotes] = useState<WorkspaceWithStatus[]>(() => copyRemotes(savedSharing.remotes));
     const [showRemoveSharingConfirmModal, setShowRemoveSharingConfirmModal] = useState(false);
 
-    // Key to force re-render the ShareChannelWithWorkspaces component
-    // on reset and on save
-    const [shareChannelKey, setShareChannelKey] = useState(Date.now());
+    const hasWorkspaceChanges = sharingEnabled !== savedSharing.enabled ||
+        remoteIdsKey(workspaceRemotes) !== remoteIdsKey(savedSharing.remotes);
 
-    // Track the saved sharing toggle baseline alongside frozenInitialRemoteIds so
-    // hasWorkspaceChanges re-renders when the baseline updates after save.
-    const [frozenSharingEnabled, setFrozenSharingEnabled] = useState(
-        () => Boolean(channel.shared || (initialRemotes || []).length > 0),
-    );
-    const [sharingEnabled, setSharingEnabled] = useState(channel.shared || (initialRemotes || []).length > 0);
+    const applySharingSnapshot = useCallback((remotes: WorkspaceWithStatus[]) => {
+        const copies = copyRemotes(remotes);
+        const enabled = copies.length > 0;
+        setSavedSharing({enabled, remotes: copies});
+        setSharingEnabled(enabled);
+        setWorkspaceRemotes(copies);
+    }, []);
 
-    // Freeze initialRemoteIds in state and update it atomically with workspaceRemotes (in
-    // useDidUpdate below) so that the two never diverge in the same render. If we computed
-    // initialRemoteIds live from the Redux selector, a fetchChannelRemotes response could
-    // update initialRemotes one render before useDidUpdate syncs workspaceRemotes, causing a
-    // spurious hasWorkspaceChanges=true that triggers the "discard changes" dialog on close.
-    const [frozenInitialRemoteIds, setFrozenInitialRemoteIds] = useState(
-        () => (initialRemotes || []).map((r) => r.remote_id || r.name).sort().join(','),
-    );
-    const currentRemoteIds = workspaceRemotes.map((r) => r.remote_id || r.name).sort().join(',');
-    const hasWorkspaceChanges = frozenInitialRemoteIds !== currentRemoteIds ||
-        sharingEnabled !== frozenSharingEnabled;
+    const commitSharingAfterSave = useCallback((remotes: WorkspaceWithStatus[]) => {
+        applySharingSnapshot(remotes);
+        userEditedSharingRef.current = false;
+    }, [applySharingSnapshot]);
+
+    const handleSharingToggle = useCallback((enabled: boolean) => {
+        userEditedSharingRef.current = true;
+        setSharingEnabled(enabled);
+    }, []);
+
+    const handleWorkspaceRemotesChange = useCallback((update: React.SetStateAction<WorkspaceWithStatus[]>) => {
+        userEditedSharingRef.current = true;
+        setWorkspaceRemotes(update);
+    }, []);
 
     const confirmModalMessages = useMemo(() => {
         const workspaceRemoteIdSet = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
-        const remotesToRemove = (initialRemotes || []).filter((r) => !workspaceRemoteIdSet.has(r.remote_id || r.name));
+        const remotesToRemove = savedSharing.remotes.filter((r) => !workspaceRemoteIdSet.has(r.remote_id || r.name));
         const channelDisplayName = channel.display_name || channel.name;
         const removeCount = remotesToRemove.length;
         const workspaceNames = remotesToRemove.map((r) => r.display_name || r.name || r.remote_id || '');
@@ -307,7 +328,7 @@ function ChannelSettingsConfigurationTab({
         channel.name,
         formatList,
         formatMessage,
-        initialRemotes,
+        savedSharing.remotes,
         workspaceRemotes,
     ]);
 
@@ -318,28 +339,13 @@ function ChannelSettingsConfigurationTab({
     }, [canManageSharedChannels, channel.id, dispatch]);
 
     useDidUpdate(() => {
-        if (initialRemotes && canManageSharedChannels) {
-            const serverRemoteIds = initialRemotes.map((r) => r.remote_id || r.name).sort().join(',');
-
-            // Update both frozen baseline and working copy atomically so they never diverge.
-            setFrozenInitialRemoteIds(serverRemoteIds);
-
-            setWorkspaceRemotes((prev) => {
-                const pending = prev.filter((w) => w.pendingSave);
-                const fromServer = initialRemotes.map((r) => ({...r}));
-                if (pending.length === 0) {
-                    return fromServer;
-                }
-                const serverIds = new Set(fromServer.map((r) => r.remote_id || r.name));
-                return [...fromServer, ...pending.filter((w) => !serverIds.has(w.remote_id || w.name))];
-            });
-
-            if (initialRemotes.length > 0) {
-                setFrozenSharingEnabled(true);
-                setSharingEnabled(true);
-            }
+        if (!canManageSharedChannels || userEditedSharingRef.current) {
+            return;
         }
-    }, [canManageSharedChannels, initialRemotes]);
+
+        const fromServer = (initialRemotes || []).map((r) => ({...r}));
+        applySharingSnapshot(fromServer);
+    }, [applySharingSnapshot, canManageSharedChannels, initialRemotes]);
 
     const handleCancelRemoveSharing = useCallback(() => {
         setShowRemoveSharingConfirmModal(false);
@@ -474,11 +480,11 @@ function ChannelSettingsConfigurationTab({
         }
 
         if (canManageSharedChannels && hasWorkspaceChanges) {
-            const initialIds = new Set((initialRemotes || []).map((r) => r.remote_id || r.name));
+            const savedIds = new Set(savedSharing.remotes.map((r) => r.remote_id || r.name));
             const currentIds = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
 
             const toAdd = workspaceRemotes.filter((w) => w.pendingSave).map((w) => w.remote_id || w.name);
-            const toRemove = Array.from(initialIds).filter((id) => !currentIds.has(id));
+            const toRemove = Array.from(savedIds).filter((id) => !currentIds.has(id));
 
             let errorCount = 0;
             let lastError: ServerError | undefined;
@@ -501,7 +507,7 @@ function ChannelSettingsConfigurationTab({
                     errorCount++;
                 }
             }
-            await dispatch(fetchChannelRemotes(channel.id, true));
+            const fetchResult = await dispatch(fetchChannelRemotes(channel.id, true));
 
             if (errorCount === 1) {
                 handleServerError(lastError as ServerError);
@@ -514,21 +520,9 @@ function ChannelSettingsConfigurationTab({
             }
 
             if (errorCount === 0) {
-                const savedRemoteIds = workspaceRemotes.map((r) => r.remote_id || r.name).sort().join(',');
-                const sharingShouldBeEnabled = sharingEnabled && workspaceRemotes.length > 0;
-
-                if (sharingShouldBeEnabled) {
-                    setFrozenInitialRemoteIds(savedRemoteIds);
-                    setFrozenSharingEnabled(true);
-                    setSharingEnabled(true);
-                } else {
-                    setSharingEnabled(false);
-                    setFrozenSharingEnabled(false);
-                    setFrozenInitialRemoteIds('');
-                }
+                const refreshedRemotes = (fetchResult as {data?: WorkspaceWithStatus[]})?.data ?? workspaceRemotes;
+                commitSharingAfterSave(refreshedRemotes);
             }
-
-            setShareChannelKey(Date.now());
 
             return errorCount === 0;
         }
@@ -549,12 +543,12 @@ function ChannelSettingsConfigurationTab({
         initialBannerInfo,
         initialClassificationState.enabled,
         initialIsChannelAutotranslated,
-        initialRemotes,
         isChannelAutotranslated,
         selectedClassificationId,
-        sharingEnabled,
+        savedSharing,
         updatedChannelBanner,
         workspaceRemotes,
+        commitSharingAfterSave,
     ]);
 
     const performSave = useCallback(async () => {
@@ -578,7 +572,7 @@ function ChannelSettingsConfigurationTab({
     const handleSaveChanges = useCallback(async () => {
         if (canManageSharedChannels && hasWorkspaceChanges) {
             const currentIds = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
-            const remotesToRemove = (initialRemotes || []).filter(
+            const remotesToRemove = savedSharing.remotes.filter(
                 (r) => !currentIds.has(r.remote_id || r.name),
             );
 
@@ -589,7 +583,7 @@ function ChannelSettingsConfigurationTab({
         }
 
         await performSave();
-    }, [canManageSharedChannels, hasWorkspaceChanges, initialRemotes, performSave, workspaceRemotes]);
+    }, [canManageSharedChannels, hasWorkspaceChanges, performSave, savedSharing.remotes, workspaceRemotes]);
 
     const handleConfirmRemoveSharing = useCallback(async () => {
         setShowRemoveSharingConfirmModal(false);
@@ -610,13 +604,11 @@ function ChannelSettingsConfigurationTab({
         setSelectedClassificationId(initialClassificationState.classificationId);
 
         if (canManageSharedChannels) {
-            setSharingEnabled(frozenSharingEnabled);
-            if (initialRemotes) {
-                setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
-                setShareChannelKey(Date.now());
-            }
+            setSharingEnabled(savedSharing.enabled);
+            setWorkspaceRemotes(copyRemotes(savedSharing.remotes));
+            userEditedSharingRef.current = false;
         }
-    }, [canManageSharedChannels, frozenSharingEnabled, initialBannerInfo, initialClassificationState, initialRemotes]);
+    }, [canManageSharedChannels, initialBannerInfo, initialClassificationState, savedSharing]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
@@ -651,12 +643,11 @@ function ChannelSettingsConfigurationTab({
                         isStacked={true}
                     />
                     <ShareChannelWithWorkspaces
-                        key={shareChannelKey}
                         remotes={workspaceRemotes}
-                        initialRemotes={initialRemotes}
-                        onRemotesChange={setWorkspaceRemotes}
+                        initialRemotes={savedSharing.remotes}
+                        onRemotesChange={handleWorkspaceRemotesChange}
                         enabled={sharingEnabled}
-                        onToggle={setSharingEnabled}
+                        onToggle={handleSharingToggle}
                     />
                 </>
             )}

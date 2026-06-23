@@ -480,7 +480,9 @@ describe('ChannelSettingsConfigurationTab', () => {
     describe('Share channel with connected workspaces', () => {
         beforeEach(() => {
             const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');
             getRemotesForChannel.mockReturnValue([]);
+            fetchChannelRemotes.mockImplementation(() => ({type: 'MOCK_ACTION', data: []}));
         });
 
         it('should render ShareChannelWithWorkspaces section when canManageSharedChannels is true', () => {
@@ -571,8 +573,14 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
             });
 
+            const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
+
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(fetchChannelRemotes.mock.calls.length).toBeGreaterThan(fetchCallsAfterMount);
+            });
 
             await waitFor(() => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
@@ -592,7 +600,91 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
 
             expect(await screen.findByRole('button', {name: 'Save'})).toBeInTheDocument();
-            expect(fetchChannelRemotes).toHaveBeenCalled();
+        });
+
+        it('should preserve local workspace removals when server remotes refresh before save', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+
+            const remote = {
+                remote_id: 'remote1',
+                name: 'nebula',
+                display_name: 'Nebula Networks',
+                create_at: 0,
+                delete_at: 0,
+                last_ping_at: Date.now(),
+                site_url: 'https://nebula.example.com',
+            };
+            let remotes = [remote];
+            getRemotesForChannel.mockImplementation(() => remotes);
+
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const removeButton = await screen.findByRole('button', {name: /Remove Nebula Networks/i});
+            await userEvent.click(removeButton);
+
+            expect(screen.queryByRole('button', {name: /Remove Nebula Networks/i})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+
+            remotes = [{...remote}];
+            getRemotesForChannel.mockImplementation(() => remotes);
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(screen.queryByRole('button', {name: /Remove Nebula Networks/i})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        });
+
+        it('should preserve sharing toggle off when server remotes refresh before save', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+
+            const remote = {
+                remote_id: 'remote1',
+                name: 'nebula',
+                display_name: 'Nebula Networks',
+                create_at: 0,
+                delete_at: 0,
+                last_ping_at: Date.now(),
+                site_url: 'https://nebula.example.com',
+            };
+            let remotes = [remote];
+            getRemotesForChannel.mockImplementation(() => remotes);
+
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannel, shared: true}}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toHaveClass('active');
+            });
+
+            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+
+            remotes = [{...remote}];
+            getRemotesForChannel.mockImplementation(() => remotes);
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannel, shared: true}}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         });
 
         it('when shared channel changes include only adding workspaces, save calls invite and fetchChannelRemotes', async () => {
@@ -629,6 +721,55 @@ describe('ChannelSettingsConfigurationTab', () => {
             expect(Client4.sharedChannelRemoteInvite).toHaveBeenCalledWith('remote1', 'channel1');
             expect(fetchChannelRemotes.mock.calls.length).toBe(fetchCallsAfterMount + 1);
             expect(fetchChannelRemotes).toHaveBeenLastCalledWith('channel1', true);
+        });
+
+        it('should clear pending save status after workspace is saved', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');
+
+            const savedRemote = {
+                remote_id: 'remote1',
+                name: 'nebula',
+                display_name: 'Nebula Networks',
+                create_at: 0,
+                delete_at: 0,
+                last_ping_at: Date.now(),
+                site_url: 'https://nebula.example.com',
+            };
+
+            getRemotesForChannel.mockReturnValue([]);
+            fetchChannelRemotes.mockImplementation(() => ({
+                type: 'MOCK_ACTION',
+                data: [savedRemote],
+            }));
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+            });
+
+            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
+            await waitFor(() => {
+                expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
+
+            await waitFor(() => {
+                expect(screen.getByText('Pending save')).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(screen.queryByText('Pending save')).not.toBeInTheDocument();
+            });
         });
 
         it('when shared channel changes include removing a connection, confirm modal is shown before save', async () => {
