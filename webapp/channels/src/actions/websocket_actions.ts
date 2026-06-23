@@ -169,11 +169,11 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
-import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'plugins/interactive_dialog';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
+import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';

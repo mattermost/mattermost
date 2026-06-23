@@ -28,11 +28,7 @@ import store from 'stores/redux_store';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {
-    MAX_OPEN_DIALOGS,
-    getOpenDialogCount,
-    openInteractiveDialog,
-} from './interactive_dialog';
+import {openInteractiveDialog} from './interactive_dialog';
 
 const mockStore = store as jest.Mocked<typeof store>;
 const mockOpenModal = openModal as jest.MockedFunction<typeof openModal>;
@@ -55,46 +51,6 @@ function makeState(modalIds: string[]) {
 
 beforeEach(() => {
     jest.clearAllMocks();
-});
-
-describe('MAX_OPEN_DIALOGS', () => {
-    it('is 3', () => {
-        expect(MAX_OPEN_DIALOGS).toBe(3);
-    });
-});
-
-describe('getOpenDialogCount', () => {
-    it('returns 0 when modalState is empty', () => {
-        const state = makeState([]);
-        expect(getOpenDialogCount(state)).toBe(0);
-    });
-
-    it('returns 0 when modalState is undefined', () => {
-        const state = {views: {modals: {}}} as any;
-        expect(getOpenDialogCount(state)).toBe(0);
-    });
-
-    it('counts only keys that start with ModalIdentifiers.INTERACTIVE_DIALOG', () => {
-        const interactiveDialogIds = [
-            ModalIdentifiers.INTERACTIVE_DIALOG,
-            `${ModalIdentifiers.INTERACTIVE_DIALOG}_trigger1`,
-            `${ModalIdentifiers.INTERACTIVE_DIALOG}_trigger2`,
-        ];
-        const otherIds = ['delete_channel', 'edit_post', 'some_other_modal'];
-        const state = makeState([...interactiveDialogIds, ...otherIds]);
-
-        expect(getOpenDialogCount(state)).toBe(3);
-    });
-
-    it('returns 0 when only non-interactive-dialog modals are open', () => {
-        const state = makeState(['delete_channel', 'edit_post']);
-        expect(getOpenDialogCount(state)).toBe(0);
-    });
-
-    it('returns 1 when a single interactive dialog is open', () => {
-        const state = makeState([ModalIdentifiers.INTERACTIVE_DIALOG]);
-        expect(getOpenDialogCount(state)).toBe(1);
-    });
 });
 
 describe('openInteractiveDialog', () => {

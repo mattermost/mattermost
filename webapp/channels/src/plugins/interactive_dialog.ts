@@ -9,17 +9,7 @@ import store from 'stores/redux_store';
 import DialogRouter from 'components/dialog_router';
 
 import {ModalIdentifiers} from 'utils/constants';
-
-import type {GlobalState} from 'types/store';
-
-export const MAX_OPEN_DIALOGS = 3;
-
-export function getOpenDialogCount(state: GlobalState): number {
-    const modals = state.views.modals?.modalState ?? {};
-    return Object.keys(modals).filter(
-        (id) => id.startsWith(ModalIdentifiers.INTERACTIVE_DIALOG),
-    ).length;
-}
+import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 
 export function openInteractiveDialog(dialog: any): void {
     // Store the dialog before the cap check so the store.subscribe fallback below
