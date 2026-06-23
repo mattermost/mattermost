@@ -1130,4 +1130,25 @@ func TestExecuteDialogAction(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, model.BuildResponse(resp))
 	})
+
+	t.Run("integration returns 500 — DoActionRequest non-200 path returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		// DoActionRequest returns a 400 AppError on non-200 upstream responses;
+		// the handler propagates it unchanged.
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
 }

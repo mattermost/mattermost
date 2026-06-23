@@ -3119,4 +3119,62 @@ func TestExecuteDialogAction(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
+
+	t.Run("non-existent channel returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: model.NewId(), // valid-format but non-existent
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("non-existent team returns 500", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		// The api4 handler overwrites TeamId with channel.TeamId before calling
+		// ExecuteDialogAction, so the only way to exercise the app-layer team
+		// lookup error branch is via a direct call with a bogus TeamId and a
+		// valid channel whose TeamId is empty (DM channel, so the handler would
+		// set TeamId="" and skip the lookup).  Here we call the app layer directly
+		// with a real channel but a synthetic non-existent TeamId so the store
+		// lookup fails.
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    model.NewId(), // valid-format but non-existent
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("integration returns 500 — DoActionRequest non-200 path drains body and returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		// DoActionRequest maps non-200 upstream responses to a 400 AppError.
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 }

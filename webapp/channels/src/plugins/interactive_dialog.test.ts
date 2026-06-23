@@ -35,12 +35,18 @@ const mockOpenModal = openModal as jest.MockedFunction<typeof openModal>;
 
 // Build a minimal GlobalState whose views.modals.modalState contains the
 // supplied modal ids mapped to a truthy open entry.
-function makeState(modalIds: string[]) {
+function makeState(modalIds: string[], dialogTriggerId = '', dialog: any = null) {
     const modalState: Record<string, {open: boolean}> = {};
     for (const id of modalIds) {
         modalState[id] = {open: true};
     }
     return {
+        entities: {
+            integrations: {
+                dialogTriggerId,
+                dialog,
+            },
+        },
         views: {
             modals: {
                 modalState,
@@ -48,6 +54,13 @@ function makeState(modalIds: string[]) {
         },
     } as any;
 }
+
+// Capture the subscribe callback registered at module-load time BEFORE any
+// beforeEach can clear the mock call history.
+let subscribeCallback: () => void;
+beforeAll(() => {
+    subscribeCallback = (mockStore.subscribe as jest.Mock).mock.calls[0][0];
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -178,5 +191,104 @@ describe('openInteractiveDialog', () => {
             });
             expect(mockOpenModal).toHaveBeenCalledTimes(1);
         });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// store.subscribe callback tests
+//
+// The module registers store.subscribe(callback) at load time.  previousTriggerId
+// is module-scoped state that persists across invocations — each test uses a
+// distinct trigger id and is ordered so that prior state is accounted for.
+// ---------------------------------------------------------------------------
+describe('store.subscribe callback', () => {
+    // Sequence counter ensures each test gets a globally unique trigger id so
+    // that module-level previousTriggerId state never causes a false "unchanged"
+    // match between tests.
+    let seq = 0;
+    const nextId = () => `sub-trigger-${++seq}`;
+
+    it('returns early without dispatching openModal when currentTriggerId === previousTriggerId', () => {
+        // First call: advance previousTriggerId from '' to triggerId-A.
+        const triggerIdA = nextId();
+        mockStore.getState.mockReturnValue(
+            makeState([], triggerIdA, {trigger_id: triggerIdA, dialog: {}}),
+        );
+        subscribeCallback(); // previousTriggerId is now triggerIdA
+
+        jest.clearAllMocks(); // reset dispatch / openModal call counts
+
+        // Second call with the SAME triggerId — should return early.
+        mockStore.getState.mockReturnValue(
+            makeState([], triggerIdA, {trigger_id: triggerIdA, dialog: {}}),
+        );
+        subscribeCallback();
+
+        expect(mockStore.dispatch).not.toHaveBeenCalled();
+        expect(mockOpenModal).not.toHaveBeenCalled();
+    });
+
+    it('returns early without dispatching openModal when dialog is null', () => {
+        const triggerId = nextId();
+
+        // dialog is null — even though triggerId changed, the callback should bail.
+        mockStore.getState.mockReturnValue(makeState([], triggerId, null));
+        subscribeCallback();
+
+        expect(mockStore.dispatch).not.toHaveBeenCalled();
+        expect(mockOpenModal).not.toHaveBeenCalled();
+    });
+
+    it('returns early without dispatching openModal when dialog.trigger_id !== currentTriggerId', () => {
+        const triggerId = nextId();
+
+        // dialog exists but its trigger_id is a different value.
+        mockStore.getState.mockReturnValue(
+            makeState([], triggerId, {trigger_id: 'some-other-id', dialog: {}}),
+        );
+        subscribeCallback();
+
+        expect(mockStore.dispatch).not.toHaveBeenCalled();
+        expect(mockOpenModal).not.toHaveBeenCalled();
+    });
+
+    it('dispatches openModal with the composite modalId when triggerId changed and dialog matches and count is under cap', () => {
+        const triggerId = nextId();
+        mockStore.getState.mockReturnValue(
+            makeState([], triggerId, {trigger_id: triggerId, dialog: {}}),
+        );
+        subscribeCallback();
+
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: `${ModalIdentifiers.INTERACTIVE_DIALOG}_${triggerId}`,
+            }),
+        );
+        expect(mockStore.dispatch).toHaveBeenCalledWith(
+            expect.objectContaining({type: 'OPEN_MODAL'}),
+        );
+    });
+
+    it('emits console.warn and does NOT dispatch openModal when at the cap (3 open)', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        try {
+            const triggerId = nextId();
+            const atCapIds = [
+                `${ModalIdentifiers.INTERACTIVE_DIALOG}_cap1`,
+                `${ModalIdentifiers.INTERACTIVE_DIALOG}_cap2`,
+                `${ModalIdentifiers.INTERACTIVE_DIALOG}_cap3`,
+            ];
+            mockStore.getState.mockReturnValue(
+                makeState(atCapIds, triggerId, {trigger_id: triggerId, dialog: {}}),
+            );
+            subscribeCallback();
+
+            expect(mockOpenModal).not.toHaveBeenCalled();
+            expect(mockStore.dispatch).not.toHaveBeenCalled();
+            expect(warnSpy).toHaveBeenCalledWith('Maximum number of open dialogs reached');
+        } finally {
+            warnSpy.mockRestore();
+        }
     });
 });
