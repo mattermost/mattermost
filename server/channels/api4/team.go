@@ -384,27 +384,6 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(oldTeam)
 
-	// A change to the team Name (the URL slug) is handled separately, since the
-	// standard update path is sanitized and intentionally ignores the Name field.
-	if team.Name != "" && team.Name != oldTeam.Name {
-		var renamedTeam *model.Team
-		renamedTeam, err = c.App.RenameTeam(oldTeam, team.Name, team.DisplayName)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		auditRec.Success()
-		auditRec.AddEventResultState(renamedTeam)
-		auditRec.AddEventObjectType("team")
-
-		c.App.SanitizeTeam(*c.AppContext.Session(), renamedTeam)
-		if err := json.NewEncoder(w).Encode(renamedTeam); err != nil {
-			c.Logger.Warn("Error while writing response", mlog.Err(err))
-		}
-		return
-	}
-
 	updatedTeam, err := c.App.UpdateTeam(&team)
 	if err != nil {
 		c.Err = err

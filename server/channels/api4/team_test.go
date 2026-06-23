@@ -794,19 +794,23 @@ func TestUpdateTeam(t *testing.T) {
 		team, _, err := client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		// Renaming the slug must update only the Name, and must not let other
-		// non-renamable fields (e.g. Email, Type) leak through on the rename path.
+		// Renaming the slug must also persist sanitized fields without letting
+		// non-renamable fields (e.g. Email, Type) leak through.
 		newName := "renamed-" + model.NewRandomTeamName()
+		newDescription := "Updated description"
 		team.Name = newName
+		team.Description = newDescription
 		team.Email = "leak+" + model.NewId() + "@simulator.amazonses.com"
 		team.Type = model.TeamInvite
 		uteam, _, err := client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 		require.Equal(t, newName, uteam.Name, "team name (slug) should be updated")
+		require.Equal(t, newDescription, uteam.Description, "team description should be updated")
 
 		fetched, _, err := client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, newName, fetched.Name, "renamed slug should be persisted")
+		require.Equal(t, newDescription, fetched.Description, "updated description should be persisted")
 		require.NotEqual(t, team.Email, fetched.Email, "rename must not change the email")
 		require.Equal(t, model.TeamOpen, fetched.Type, "rename must not change the type")
 

@@ -94,6 +94,12 @@ func (ts *TeamService) UpdateTeam(team *model.Team, opts UpdateOptions) (*model.
 	}
 
 	if opts.Sanitized {
+		if team.Name != "" && team.Name != oldTeam.Name && team.Name != "-" {
+			if _, err = ts.store.GetByName(team.Name); err == nil {
+				return oldTeam, &NameOccupiedError{Name: team.Name}
+			}
+			oldTeam.Name = team.Name
+		}
 		oldTeam.DisplayName = team.DisplayName
 		oldTeam.Description = team.Description
 		oldTeam.AllowOpenInvite = team.AllowOpenInvite
