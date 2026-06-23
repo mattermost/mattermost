@@ -43,8 +43,9 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
         try {
             const {count: nonCompliant} = await Client4.getNonCompliantUserAccessTokenCount();
             setCount(nonCompliant);
+            setError('');
         } catch (err) {
-            setError(err.message);
+            setError(err instanceof Error ? err.message : '');
         }
     }, []);
 

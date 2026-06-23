@@ -9703,6 +9703,10 @@
     "translation": "No maximum personal access token lifetime is configured, so there are no non-compliant tokens to revoke."
   },
   {
+    "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
+    "translation": "The batch limit was reached before all non-compliant tokens could be revoked. Run the operation again to continue."
+  },
+  {
     "id": "app.user_access_token.save.app_error",
     "translation": "Unable to save the personal access token."
   },

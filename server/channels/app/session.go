@@ -669,34 +669,31 @@ func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *mode
 
 	var totalRevoked int64
 	for range revokeNonCompliantMaxBatches {
-		tokens, err := a.Srv().Store().UserAccessToken().GetNonCompliantExpiry(maxExpiresAt, revokeNonCompliantBatchLimit)
-		if err != nil {
-			return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.get_non_compliant.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		if len(tokens) == 0 {
-			break
-		}
-
-		ids := make([]string, len(tokens))
-		userIDs := make(map[string]struct{}, len(tokens))
-		for i, token := range tokens {
-			ids[i] = token.Id
-			userIDs[token.UserId] = struct{}{}
-		}
-
-		deleted, err := a.Srv().Store().UserAccessToken().DeleteByIds(ids)
+		userIDs, err := a.Srv().Store().UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, revokeNonCompliantBatchLimit)
 		if err != nil {
 			return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		totalRevoked += deleted
+		if len(userIDs) == 0 {
+			break
+		}
 
-		for userID := range userIDs {
+		totalRevoked += int64(len(userIDs))
+
+		for _, userID := range userIDs {
 			a.ClearSessionCacheForUser(userID)
 		}
 
-		if len(tokens) < revokeNonCompliantBatchLimit {
+		if len(userIDs) < revokeNonCompliantBatchLimit {
 			break
 		}
+	}
+
+	remaining, err := a.Srv().Store().UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
+	if err != nil {
+		return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.get_non_compliant.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if remaining > 0 {
+		return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.partial.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return totalRevoked, nil
