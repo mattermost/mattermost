@@ -20,11 +20,7 @@ type SVGInfo struct {
 	Height int
 }
 
-// ParseSVG returns information for the given SVG input data. It prefers the
-// viewBox attribute, which reliably describes the image's coordinate space,
-// and otherwise falls back to absolute width/height attributes. Relative
-// values such as percentages (e.g. width="100%") are intentionally ignored
-// because they don't describe pixel dimensions.
+// ParseSVG returns dimensions from viewBox or absolute width/height attributes.
 func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 	svgInfo := SVGInfo{}
 
@@ -81,9 +77,6 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 	}
 }
 
-// parseViewBox parses the third and fourth values of a viewBox attribute as
-// width and height. The values can be separated by whitespace, commas, or
-// both.
 func parseViewBox(value string) (int, int, bool) {
 	fields := strings.FieldsFunc(value, func(r rune) bool {
 		return r == ',' || unicode.IsSpace(r)
@@ -101,9 +94,6 @@ func parseViewBox(value string) (int, int, bool) {
 	return width, height, true
 }
 
-// parseAbsoluteLength parses an SVG length attribute, accepting only unit-less
-// values or values expressed in pixels. Relative units such as percentages are
-// rejected since they don't represent fixed pixel dimensions.
 func parseAbsoluteLength(value string) (int, bool) {
 	value = strings.TrimSpace(value)
 	if value == "" || strings.HasSuffix(value, "%") {
