@@ -318,5 +318,32 @@ describe('components/SizeAwareImage', () => {
             expect(img.style.width).toEqual('800px');
             expect(img.style.height).toEqual('auto');
         });
+
+        test('still collapses a small SVG that has known dimensions into the small-image container', () => {
+            const props = {
+                ...svgProps,
+                dimensions: {width: 24, height: 24},
+            };
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+            const img = container.querySelector('img')!;
+            simulateImageLoad(img, 24, 24);
+
+            expect(container.querySelector('div.small-image__container')).not.toBeNull();
+        });
+
+        test('does not apply the SVG width fallback to non-SVG files without dimensions', () => {
+            const props = {
+                ...baseProps,
+                handleSmallImageContainer: true,
+                fileInfo: TestHelper.getFileInfoMock({name: 'photo', extension: 'png'}),
+            };
+            Reflect.deleteProperty(props, 'dimensions');
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = container.querySelector('img')!;
+            expect(img.style.width).toEqual('');
+        });
     });
 });

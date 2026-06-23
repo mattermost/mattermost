@@ -100,6 +100,22 @@ func TestParseSVGDimensionSources(t *testing.T) {
 			expectedHeight: 256,
 		},
 		{
+			name:           "absolute width and height in pixels without viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			name:      "mixed percentage and absolute dimensions without viewBox is not usable",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="480"></svg>`,
+			expectErr: true,
+		},
+		{
+			name:      "degenerate viewBox falls back and fails when no usable dimensions remain",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0"></svg>`,
+			expectErr: true,
+		},
+		{
 			name:           "comma separated viewBox without spaces",
 			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,800,600"></svg>`,
 			expectedWidth:  800,

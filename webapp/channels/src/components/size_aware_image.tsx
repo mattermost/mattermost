@@ -250,7 +250,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 className={
                     this.props.className +
                     (this.props.handleSmallImageContainer &&
-                        this.state.isSmallImage ? ' small-image--inside-container' : '')}
+                        this.state.isSmallImage && !svgWithoutDimensions ? ' small-image--inside-container' : '')}
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}

@@ -135,6 +135,7 @@ describe('components/view_image/ImagePreview', () => {
         render(<ImagePreview {...props}/>);
 
         expect(screen.getByTestId('imagePreview')).toHaveStyle('width: 100%');
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('height: auto');
     });
 
     test('should use the SVG pixel width when dimensions are known', () => {
@@ -146,5 +147,21 @@ describe('components/view_image/ImagePreview', () => {
         render(<ImagePreview {...props}/>);
 
         expect(screen.getByTestId('imagePreview')).toHaveStyle('width: 640px');
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('height: auto');
+    });
+
+    test('should fill the available width for a dimensionless SVG even when downloads are disabled', () => {
+        const props = {
+            ...baseProps,
+            canDownloadFiles: false,
+            fileInfo: TestHelper.getFileInfoMock({id: 'svg_file', extension: 'svg', width: 0, height: 0}),
+        };
+
+        const {container} = render(<ImagePreview {...props}/>);
+
+        const img = container.querySelector('img.image_preview__image') as HTMLElement;
+        expect(img).not.toBeNull();
+        expect(img.style.width).toEqual('100%');
+        expect(img.style.height).toEqual('auto');
     });
 });

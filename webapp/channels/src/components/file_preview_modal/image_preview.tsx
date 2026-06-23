@@ -74,6 +74,12 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
     if (isZoomed) {
         imgStyle.cursor = 'grab';
     }
+    if (getFileType(fileInfo.extension) === FileTypes.SVG) {
+        // Fall back to filling the available width when the SVG has no known
+        // pixel dimensions, otherwise width:0 would make it invisible.
+        imgStyle.width = fileInfo.width || '100%';
+        imgStyle.height = 'auto';
+    }
     const imgClassName = classNames('image_preview__image', {
         'image_preview__image--zoomed': isZoomed,
     });
@@ -98,14 +104,6 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         );
     }
 
-    const finalImgStyle: React.CSSProperties = {...imgStyle};
-    if (getFileType(fileInfo.extension) === FileTypes.SVG) {
-        // Fall back to filling the available width when the SVG has no known
-        // pixel dimensions, otherwise width:0 would make it invisible.
-        finalImgStyle.width = fileInfo.width || '100%';
-        finalImgStyle.height = 'auto';
-    }
-
     const preventLinkNav = (e: React.SyntheticEvent) => e.preventDefault();
 
     return (
@@ -123,7 +121,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
                 data-testid='imagePreview'
                 alt={'preview url image'}
                 src={previewUrl}
-                style={finalImgStyle}
+                style={imgStyle}
                 draggable={false}
             />
         </a>
