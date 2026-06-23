@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var PostCmd = &cobra.Command{
@@ -80,6 +81,7 @@ func init() {
 	PostCreateCmd.Flags().StringP("message", "m", "", "Message for the post")
 	PostCreateCmd.Flags().StringP("reply-to", "r", "", "Post id to reply to")
 	PostCreateCmd.Flags().BoolP("burn-on-read", "b", false, "Message will be deleted after a certain time after being read")
+	PostCreateCmd.Flags().String("user", "", "User to act as when running in local mode (username, email, or ID)")
 
 	PostListCmd.Flags().IntP("number", "n", 20, "Number of messages to list")
 	PostListCmd.Flags().BoolP("show-ids", "i", false, "Show posts ids")
@@ -105,6 +107,19 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("message cannot be empty")
 	}
 
+	var actingUser *model.User
+	if viper.GetBool("local") {
+		userArg, _ := cmd.Flags().GetString("user")
+		if userArg == "" {
+			return errors.New("the --user flag is required when running in local mode")
+		}
+		var err error
+		actingUser, err = getUserFromArg(c, userArg)
+		if err != nil {
+			return err
+		}
+	}
+
 	replyTo, _ := cmd.Flags().GetString("reply-to")
 	if replyTo != "" {
 		replyToPost, _, err := c.GetPost(context.TODO(), replyTo, "")
@@ -116,7 +131,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channelID, err := getPostChannelID(c, args[0])
+	channelID, err := getPostChannelID(c, args[0], actingUser)
 	if err != nil {
 		return err
 	}
@@ -125,6 +140,9 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ChannelId: channelID,
 		Message:   message,
 		RootId:    replyTo,
+	}
+	if actingUser != nil {
+		post.UserId = actingUser.Id
 	}
 
 	if burnOnRead, _ := cmd.Flags().GetBool("burn-on-read"); burnOnRead {
@@ -146,9 +164,9 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 // getPostChannelID resolves the post create argument to a channel ID. When the argument
 // is prefixed with "@", it is treated as a user and a direct message channel between the
 // current user and that user is resolved instead.
-func getPostChannelID(c client.Client, arg string) (string, error) {
+func getPostChannelID(c client.Client, arg string, actingUser *model.User) (string, error) {
 	if username, ok := strings.CutPrefix(arg, directMessagePrefix); ok {
-		channel, err := getDirectChannel(c, username)
+		channel, err := getDirectChannel(c, username, actingUser)
 		if err != nil {
 			return "", err
 		}
@@ -164,15 +182,21 @@ func getPostChannelID(c client.Client, arg string) (string, error) {
 
 // getDirectChannel returns the direct message channel between the current user and the
 // user referenced by username, creating it if it does not already exist.
-func getDirectChannel(c client.Client, username string) (*model.Channel, error) {
+func getDirectChannel(c client.Client, username string, actingUser *model.User) (*model.Channel, error) {
 	user, err := getUserFromArg(c, username)
 	if err != nil {
 		return nil, err
 	}
 
-	me, _, err := c.GetMe(context.TODO(), "")
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve the current user: %w", err)
+	var me *model.User
+	if actingUser != nil {
+		me = actingUser
+	} else {
+		var getMeErr error
+		me, _, getMeErr = c.GetMe(context.TODO(), "")
+		if getMeErr != nil {
+			return nil, fmt.Errorf("could not retrieve the current user: %w", getMeErr)
+		}
 	}
 
 	channel, _, err := c.CreateDirectChannel(context.TODO(), me.Id, user.Id)

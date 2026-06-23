@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/viper"
 )
 
 func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
@@ -104,6 +105,58 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("local mode requires --user flag", func() {
+		msgArg := "some text"
+		channelArg := "example-channel"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+		viper.Set("local", true)
+		defer viper.Set("local", false)
+
+		err := postCreateCmdF(s.client, cmd, []string{channelArg})
+		s.Require().EqualError(err, "the --user flag is required when running in local mode")
+	})
+
+	s.Run("create a post in local mode", func() {
+		msgArg := "some text"
+		channelArg := "example-channel"
+		userArg := "acting-user"
+		actingUserID := "acting-user-id"
+		mockChannel := model.Channel{Name: channelArg, Id: "channel-id"}
+		mockUser := model.User{Id: actingUserID, Username: userArg}
+		mockPost := model.Post{Message: msgArg, ChannelId: mockChannel.Id, UserId: actingUserID}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+		cmd.Flags().String("user", userArg, "")
+		viper.Set("local", true)
+		defer viper.Set("local", false)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelArg).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			Return(nil, nil).
+			Times(1)
+
+		err = postCreateCmdF(s.client, cmd, []string{channelArg})
+		s.Require().Nil(err)
 	})
 
 	s.Run("create a direct message", func() {

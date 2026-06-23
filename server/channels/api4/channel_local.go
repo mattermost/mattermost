@@ -15,6 +15,7 @@ import (
 func (api *API) InitChannelLocal() {
 	api.BaseRoutes.Channels.Handle("", api.APILocal(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APILocal(localCreateChannel)).Methods(http.MethodPost)
+	api.BaseRoutes.Channels.Handle("/direct", api.APILocal(localCreateDirectChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("", api.APILocal(getChannel)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelByName.Handle("", api.APILocal(getChannelByName)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("", api.APILocal(localDeleteChannel)).Methods(http.MethodDelete)
@@ -34,6 +35,48 @@ func (api *API) InitChannelLocal() {
 
 	api.BaseRoutes.ChannelByName.Handle("", api.APILocal(getChannelByName)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.APILocal(getChannelByNameForTeamName)).Methods(http.MethodGet)
+}
+
+func localCreateDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds, err := model.NonSortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("localCreateDirectChannel", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	if len(userIds) == 1 {
+		userIds = append(userIds, userIds[0])
+	}
+	if len(userIds) != 2 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	for _, id := range userIds {
+		if !model.IsValidId(id) {
+			c.SetInvalidParam("user_id")
+			return
+		}
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventLocalCreateDirectChannel, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "user_ids", userIds)
+	defer c.LogAuditRec(auditRec)
+
+	sc, appErr := c.App.GetOrCreateDirectChannel(c.AppContext, userIds[0], userIds[1])
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.AddEventResultState(sc)
+	auditRec.AddEventObjectType("channel")
+	auditRec.Success()
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(sc); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
