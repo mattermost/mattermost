@@ -59,7 +59,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
     };
 
     private renderPluginItems = () => {
-        const {fileInfo, channel} = this.props;
+        const {fileInfo} = this.props;
 
         const pluginItems = this.props.pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
             return (

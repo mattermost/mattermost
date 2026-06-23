@@ -18,7 +18,7 @@ describe('components/file_search_result/FileSearchResultItem', () => {
         channelDisplayName: '',
         channelType: Constants.OPEN_CHANNEL as ChannelType,
         teamName: 'test-team-name',
-        channel: TestHelper.getChannelMock(),
+
 
         onClick: jest.fn(),
         actions: {
