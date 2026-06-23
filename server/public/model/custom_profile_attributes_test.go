@@ -829,7 +829,7 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 				errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
 			},
 			{
-				name: "managed field should clear LDAP sync properties",
+				name: "admin-managed text field preserves LDAP and SAML sync properties",
 				field: &CPAField{
 					PropertyField: PropertyField{
 						Type: PropertyFieldTypeText,
@@ -844,27 +844,27 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 				expectedAttrs: CPAAttrs{
 					Visibility: CustomProfileAttributesVisibilityDefault,
 					Managed:    "admin",
-					LDAP:       "", // Should be cleared
-					SAML:       "", // Should be cleared
+					LDAP:       "ldap_attribute", // preserved: managed no longer strips the link
+					SAML:       "saml_attribute",
 				},
 			},
 			{
-				name: "managed field should clear sync properties even when field supports syncing",
+				name: "admin-managed SAML-only text field preserves the link",
 				field: &CPAField{
 					PropertyField: PropertyField{
 						Type: PropertyFieldTypeText, // Text fields support syncing
 					},
 					Attrs: CPAAttrs{
 						Managed: "admin",
-						LDAP:    "ldap_attribute",
+						SAML:    "saml_attribute",
 					},
 				},
 				expectError: false,
 				expectedAttrs: CPAAttrs{
 					Visibility: CustomProfileAttributesVisibilityDefault,
 					Managed:    "admin",
-					LDAP:       "", // Should be cleared due to mutual exclusivity
-					SAML:       "",
+					LDAP:       "",
+					SAML:       "saml_attribute", // preserved
 				},
 			},
 		}
