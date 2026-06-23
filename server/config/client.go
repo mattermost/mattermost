@@ -229,7 +229,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		if license.HasSharedChannels() {
 			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ConnectedWorkspacesSettings.EnableSharedChannels)
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(*c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
-			props["FeatureFlagEnableSharedChannelsPlugins"] = "true"
 		}
 
 		if model.MinimumProfessionalLicense(license) {
