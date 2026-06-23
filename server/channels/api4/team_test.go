@@ -747,11 +747,11 @@ func TestUpdateTeam(t *testing.T) {
 
 		require.Equal(t, uteam.AllowedDomains, "domain", "Update failed")
 
-		team.Name = "Updated name"
+		team.Name = "updated-" + model.NewRandomTeamName()
 		uteam, _, err = client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		require.NotEqual(t, uteam.Name, "Updated name", "Should not update name")
+		require.Equal(t, uteam.Name, team.Name, "Should update name")
 
 		team.Email = "test@domain.com"
 		uteam, _, err = client.UpdateTeam(context.Background(), team)
@@ -794,9 +794,17 @@ func TestUpdateTeam(t *testing.T) {
 		team, _, err := client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		team.Name = "new-name"
-		_, _, err = client.UpdateTeam(context.Background(), team)
+		newName := "renamed-" + model.NewRandomTeamName()
+		team.Name = newName
+		uteam, _, err := client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
+		require.Equal(t, newName, uteam.Name, "team name (slug) should be updated")
+
+		// An invalid team name must be rejected rather than persisted.
+		team.Name = "Invalid Name"
+		_, resp, err := client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 

@@ -209,7 +209,10 @@ func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName st
 		team.DisplayName = newDisplayName
 	}
 
-	newTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{})
+	// team already holds the current team state with the new Name/DisplayName
+	// applied, so persist it as-is. The standard update path is sanitized and
+	// would otherwise discard the Name change.
+	newTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Imported: true})
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -227,6 +230,10 @@ func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName st
 		default:
 			return nil, model.NewAppError("RenameTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	if appErr := a.sendTeamEvent(newTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+		return nil, appErr
 	}
 
 	return newTeam, nil
