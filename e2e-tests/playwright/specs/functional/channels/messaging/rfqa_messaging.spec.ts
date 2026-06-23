@@ -63,7 +63,7 @@ test(
         // # Select the grinning emoji from the picker
         await channelsPage.centerView.postCreate.openEmojiPicker();
         await channelsPage.emojiGifPickerPopup.toBeVisible();
-        await channelsPage.emojiGifPickerPopup.clickEmoji('grinning face');
+        await channelsPage.emojiGifPickerPopup.clickEmoji('grinning');
 
         // * Verify the emoji was inserted at the caret and can be posted
         await expect(channelsPage.centerView.postCreate.input).toHaveValue('Hello😀World!');
@@ -110,6 +110,9 @@ test('MM-T222 Emoji characters followed by punctuation', {tag: '@rfqa'}, async (
 
     // * Verify the emoticon renders and the punctuation remains adjacent
     const lastPost = await channelsPage.getLastPost();
-    await expect(lastPost.container.locator('.emoticon').first()).toHaveAttribute('alt', ':slightly_smiling_face:');
+    await expect(lastPost.container.locator('.emoticon').first()).toHaveAttribute(
+        'aria-label',
+        ':slightly_smiling_face:',
+    );
     await expect(lastPost.container.locator('.post-message__text p').first()).toContainText('=');
 });

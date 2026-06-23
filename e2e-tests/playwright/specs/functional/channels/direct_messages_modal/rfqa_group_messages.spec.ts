@@ -126,7 +126,7 @@ test(
         await channelsPage.gotoMessage(team.name, gmChannel.name);
         await channelsPage.toBeVisible();
         await channelsPage.centerView.header.openChannelMenu();
-        await page.getByRole('menuitem', {name: 'Close Conversation'}).click();
+        await page.getByRole('menuitem', {name: 'Close Group Message'}).click();
         await expect(
             channelsPage.sidebarLeft.container.locator('.SidebarLink').filter({hasText: participants[0].username}),
         ).toHaveCount(0);
