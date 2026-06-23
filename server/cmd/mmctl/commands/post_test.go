@@ -121,6 +121,19 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Require().EqualError(err, "the --user flag is required when running in local mode")
 	})
 
+	s.Run("--user flag requires local mode", func() {
+		msgArg := "some text"
+		channelArg := "example-channel"
+		userArg := "acting-user"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+		cmd.Flags().String("user", userArg, "")
+
+		err := postCreateCmdF(s.client, cmd, []string{channelArg})
+		s.Require().EqualError(err, "the --user flag can only be used when running in local mode")
+	})
+
 	s.Run("create a post in local mode", func() {
 		msgArg := "some text"
 		channelArg := "example-channel"

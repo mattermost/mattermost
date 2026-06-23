@@ -106,9 +106,13 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("message cannot be empty")
 	}
 
+	userArg, _ := cmd.Flags().GetString("user")
+	if userArg != "" && !viper.GetBool("local") {
+		return errors.New("the --user flag can only be used when running in local mode")
+	}
+
 	var actingUser *model.User
 	if viper.GetBool("local") {
-		userArg, _ := cmd.Flags().GetString("user")
 		if userArg == "" {
 			return errors.New("the --user flag is required when running in local mode")
 		}
