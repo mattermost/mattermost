@@ -2936,9 +2936,8 @@ export default class Client4 {
     };
 
     getClientLicenseOld = () => {
-        // Keep format=old for compatibility with pre-v11 servers
         return this.doFetch<ClientLicense>(
-            `${this.getBaseRoute()}/license/client?format=old`,
+            `${this.getBaseRoute()}/license/client`,
             {method: 'get'},
         );
     };
