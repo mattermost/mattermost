@@ -695,6 +695,13 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 				}
 				collectIDs(e, depth+1)
 			}
+		case []string:
+			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
+				collectIDs(e, depth+1)
+			}
 		case map[string]any:
 			for _, e := range typed {
 				if scanLimitExceeded {

@@ -131,12 +131,11 @@ const AppsFormFileUpload: React.FC<Props> = ({
         // each render, so this effect re-runs frequently. Once the user has interacted,
         // the files state — not the incoming value — is the source of truth.
         const newIds = hasInteractedRef.current ? [] : (value ?? []).filter((fid) => !hydratedRef.current.has(fid) && !existingFileIds.has(fid));
-        const idsToHydrate = allowMultiple ? newIds : newIds.slice(0, maxFiles);
 
-        if (idsToHydrate.length > 0) {
+        if (newIds.length > 0) {
             const hydrate = async () => {
                 const hydratedFiles: FileState[] = [];
-                for (const fileId of idsToHydrate) {
+                for (const fileId of newIds) {
                     try {
                         const fileInfo = await Client4.getFileInfo(fileId); // eslint-disable-line no-await-in-loop
                         if (cancelled) {
@@ -150,6 +149,9 @@ const AppsFormFileUpload: React.FC<Props> = ({
                             fileId,
                             fileInfo,
                         });
+                        if (!allowMultiple && hydratedFiles.length >= maxFiles) {
+                            break;
+                        }
                     } catch (err: unknown) {
                         // Only skip 403/404 (deleted/inaccessible); rethrow everything else
                         const statusCode = (err && typeof err === 'object' && 'status_code' in err) ?
@@ -172,7 +174,7 @@ const AppsFormFileUpload: React.FC<Props> = ({
 
                 // If some IDs were dropped (deleted/inaccessible), notify parent
                 // with the sanitized list so it stays in sync
-                if (hydratedFiles.length < idsToHydrate.length) {
+                if (hydratedFiles.length < newIds.length) {
                     const hydratedIds = new Set(hydratedFiles.map((f) => f.fileId!));
                     const existingIds = new Set(
                         filesRef.current.
