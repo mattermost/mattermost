@@ -66,10 +66,15 @@ func (r *scriptedReader) Seek(offset int64, whence int) (int64, error) {
 }
 
 // scriptedBackend is a filestore.FileBackend whose Reader is driven by a per-path factory.
-// Only Reader is exercised by generateEmail, so the embedded nil interface is never used.
+// generateEmail exercises Reader plus FileExists (consulted on a read failure to tell a
+// genuinely-missing object apart from a transient read error); the rest of the embedded
+// interface is nil and unused.
 type scriptedBackend struct {
 	filestore.FileBackend
 	readers map[string]func() (filestore.ReadCloseSeeker, error)
+	// missing lists paths that FileExists should report as absent, modelling an object that
+	// opens lazily (S3/MinIO) but no longer exists. Paths not listed report as present.
+	missing map[string]bool
 }
 
 func (b *scriptedBackend) Reader(path string) (filestore.ReadCloseSeeker, error) {
@@ -77,6 +82,10 @@ func (b *scriptedBackend) Reader(path string) (filestore.ReadCloseSeeker, error)
 		return fn()
 	}
 	return nil, fmt.Errorf("scriptedBackend: no reader registered for %q", path)
+}
+
+func (b *scriptedBackend) FileExists(path string) (bool, error) {
+	return !b.missing[path], nil
 }
 
 // scriptedReaderFactory returns a Reader factory that fails at the given offsets on
@@ -228,6 +237,32 @@ func TestGenerateEmail_MissingAttachmentSkipped(t *testing.T) {
 	warnings, out, genErr := runGenerateEmail(t, backend, ce)
 
 	require.NoError(t, genErr, "a missing file should be skipped, not fail the batch")
+	require.Equal(t, 1, warnings, "the missing file should be counted as a warning")
+	assertAttachmentPresent(t, out, healthyContent, "the surviving attachment should still be exported")
+}
+
+// On S3/MinIO a deleted object is not detected when the reader is opened (minio-go's
+// GetObject is lazy); the "no such key" only surfaces as a read error on the first Read. Such
+// a file must be treated as missing — skipped with a warning, batch not failed and not
+// retried — exactly like a local-backend open failure (MM-62493). Modeled
+// here by a reader that opens but fails its first read, with FileExists reporting it absent.
+func TestGenerateEmail_ReadNotFoundSkipped(t *testing.T) {
+	healthyContent := []byte("healthy attachment content")
+	ce := newChannelExport(
+		&model.FileInfo{Id: "file1", Name: "s3missing.bin", Path: "data/s3missing.bin"},
+		&model.FileInfo{Id: "file2", Name: "healthy.bin", Path: "data/healthy.bin"},
+	)
+	backend := &scriptedBackend{
+		readers: map[string]func() (filestore.ReadCloseSeeker, error){
+			"data/s3missing.bin": scriptedReaderFactory(make([]byte, 200), 0), // opens, first read fails
+			"data/healthy.bin":   healthyReader(healthyContent),
+		},
+		missing: map[string]bool{"data/s3missing.bin": true}, // FileExists reports it gone
+	}
+
+	warnings, out, genErr := runGenerateEmail(t, backend, ce)
+
+	require.NoError(t, genErr, "a read-time not-found must be skipped, not fail the batch")
 	require.Equal(t, 1, warnings, "the missing file should be counted as a warning")
 	assertAttachmentPresent(t, out, healthyContent, "the surviving attachment should still be exported")
 }

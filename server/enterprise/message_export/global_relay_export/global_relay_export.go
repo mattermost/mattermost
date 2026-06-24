@@ -356,8 +356,11 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 // still complete over a flaky connection as long as each retry advances; a cancelled job
 // aborts promptly via the context.
 //
-// It returns missing=true when the file cannot be opened at all (the caller skips it,
-// preserving MM-62493), or a non-nil error when the content could not be streamed.
+// It returns missing=true when the file does not exist — either the open fails (local
+// backend) or a read fails and a follow-up existence check confirms the object is gone
+// (S3/MinIO, where minio-go's GetObject is lazy so a deleted object isn't detected on open
+// and only errors on the first Read). The caller skips a missing file, preserving MM-62493.
+// It returns a non-nil error only when an existing file's content could not be streamed.
 //
 // NOTE: a failed stream may have already written a partial attachment to dst. That is safe
 // only because the caller fails the whole batch on a non-nil error, so the incomplete output
@@ -395,6 +398,18 @@ func streamAttachmentForExport(rctx request.CTX, backend filestore.FileBackend, 
 			// The copy failed writing to the output stream, not reading the attachment.
 			// Retrying the read can't help, so surface it to fail the batch.
 			return false, err
+		}
+
+		// A read failure. On S3/MinIO a deleted object isn't detected when the reader is
+		// opened — minio-go's GetObject is lazy, so "no such key" only surfaces here, on the
+		// first Read. Before treating this as a transient failure worth retrying, check whether
+		// the object still exists. If it's genuinely gone (and we haven't emitted any bytes
+		// yet), treat it as missing so the caller skips it — the same MM-62493 behavior as an
+		// open failure — instead of burning the retry budget on a file that won't come back.
+		if written == 0 {
+			if exists, existsErr := backend.FileExists(path); existsErr == nil && !exists {
+				return true, nil
+			}
 		}
 
 		if n > 0 {
