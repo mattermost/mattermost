@@ -119,7 +119,6 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			IsFreeTrial:     subscription.IsFreeTrial,
 			TrialEndAt:      subscription.TrialEndAt,
 			EndAt:           subscription.EndAt,
-			CancelAt:        subscription.CancelAt,
 			DelinquentSince: subscription.DelinquentSince,
 			CustomerID:      "",
 			AddOns:          []string{},
@@ -137,10 +136,9 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		subscription.SimulatedCurrentTimeMs = nil
 	}
 
-	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {
-		subscription.WillRenew = ""
-		subscription.CancelAt = nil
-	}
+	// The annual renewals feature is deprecated; renewal and cancellation timing are not exposed to clients.
+	subscription.WillRenew = ""
+	subscription.CancelAt = nil
 
 	json, err := json.Marshal(subscription)
 	if err != nil {
