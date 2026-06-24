@@ -58,6 +58,15 @@ span.greyed-out {
     line-height: 20px;
 }
 
+.team-desc-col--edit {
+    flex: 1 1 auto;
+    max-width: 520px;
+
+    .Input_container {
+        width: 100%;
+    }
+}
+
 .center-row > div {
     display: inline-block;
     float: none;

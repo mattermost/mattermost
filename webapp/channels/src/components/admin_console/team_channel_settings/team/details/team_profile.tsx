@@ -122,7 +122,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                                 url={teamIconUrl}
                             />
                         </div>
-                        <div className='team-desc-col'>
+                        <div className='team-desc-col team-desc-col--edit'>
                             <div className='row row-bottom-padding'>
                                 <Input
                                     id='teamName'
