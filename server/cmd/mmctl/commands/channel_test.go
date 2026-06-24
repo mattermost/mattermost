@@ -2581,7 +2581,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		channelID := "channel-id"
 		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
 
-		inTeamUser := &model.User{Id: "in-team-user-id", Username: "in-team-user"}
+		inTeamUser := &model.User{Id: "in-team-user-id"}
 		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
 		channelMembers := model.ChannelMembers{
 			{UserId: inTeamUser.Id, ChannelId: channelID},
@@ -2643,7 +2643,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		channelID := "channel-id"
 		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
 
-		inTeamUser := &model.User{Id: "in-team-user-id", Username: "in-team-user"}
+		inTeamUser := &model.User{Id: "in-team-user-id"}
 		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
 		channelMembers := model.ChannelMembers{
 			{UserId: inTeamUser.Id, ChannelId: channelID},
