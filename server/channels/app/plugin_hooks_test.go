@@ -2853,29 +2853,19 @@ func TestHookServeMetrics(t *testing.T) {
 func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessage string) {
 	t.Helper()
 
-	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+	assert.Eventually(t, func() bool {
 		posts, appErr := th.App.GetPosts(th.Context, channelID, 0, 30)
-		if !assert.Nil(c, appErr) {
-			return
-		}
+		require.Nil(t, appErr)
 
-		found := false
 		for _, postID := range posts.Order {
-			if posts.Posts[postID].Message == expectedMessage {
-				found = true
-				break
+			post := posts.Posts[postID]
+			if post.Message == expectedMessage {
+				return true
 			}
 		}
-		assert.True(c, found, "expected hook post %q not found", expectedMessage)
-	}, 30*time.Second, 100*time.Millisecond)
-}
 
-func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string) {
-	t.Helper()
-
-	assert.Eventually(t, func() bool {
-		return th.App.GetPluginsEnvironment().IsActive(pluginID)
-	}, 5*time.Second, 50*time.Millisecond, "plugin %q failed to become active", pluginID)
+		return false
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 func TestUserHasJoinedChannel(t *testing.T) {
@@ -2943,7 +2933,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID), "plugin %q failed to activate", pluginID)
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user2.Id,
@@ -2974,7 +2964,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID), "plugin %q failed to activate", pluginID)
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user1.Id,
