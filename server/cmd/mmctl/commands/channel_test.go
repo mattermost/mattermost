@@ -2455,6 +2455,12 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
+			GetUsersInChannel(context.TODO(), mockChannel.Id, 0, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
 			MoveChannel(context.TODO(), mockChannel.Id, mockTeam1.Id, false).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
@@ -2549,6 +2555,12 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
 			MoveChannel(context.TODO(), channelID, mockTeam1.Id, false).
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
@@ -2558,6 +2570,190 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		expected = multierror.Append(expected, fmt.Errorf("unable to move channel %q: some-error", "some-name"))
 
 		s.Require().EqualError(err, expected.Error())
+	})
+
+	s.Run("List the missing users and skip the move when they are not in the destination team", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam := model.Team{Name: "destination-team-name", Id: dstTeamID}
+
+		channelID := "channel-id"
+		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
+
+		inTeamUser := &model.User{Id: "in-team-user-id", Username: "in-team-user"}
+		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return([]*model.User{inTeamUser, missingUser}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 0, DefaultPageSize, "").
+			Return([]*model.User{inTeamUser}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 1, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "missing-user")
+		s.Require().Contains(err.Error(), "--auto-add-users")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Auto-add the missing users to the destination team before moving the channel", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam := model.Team{Name: "destination-team-name", Id: dstTeamID}
+
+		channelID := "channel-id"
+		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
+
+		inTeamUser := &model.User{Id: "in-team-user-id", Username: "in-team-user"}
+		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto-add-users", true, "")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return([]*model.User{inTeamUser, missingUser}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 0, DefaultPageSize, "").
+			Return([]*model.User{inTeamUser}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 1, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			AddTeamMember(context.TODO(), dstTeamID, missingUser.Id).
+			Return(&model.TeamMember{TeamId: dstTeamID, UserId: missingUser.Id}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveChannel(context.TODO(), channelID, dstTeamID, false).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(missingUser, printer.GetLines()[0])
+		s.Require().Equal(&mockChannel, printer.GetLines()[1])
+	})
+
+	s.Run("Report a failure to auto-add a user and skip the move", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam := model.Team{Name: "destination-team-name", Id: dstTeamID}
+
+		channelID := "channel-id"
+		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
+
+		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto-add-users", true, "")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return([]*model.User{missingUser}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeam(context.TODO(), dstTeamID, 0, DefaultPageSize, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			AddTeamMember(context.TODO(), dstTeamID, missingUser.Id).
+			Return(nil, &model.Response{}, errors.New("add-error")).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "unable to add user \"missing-user\"")
+		s.Require().Contains(err.Error(), "add-error")
 	})
 }
 
