@@ -496,6 +496,9 @@ describe('ChannelSettingsConfigurationTab', () => {
         });
 
         it('should not render ShareChannelWithWorkspaces section when canManageSharedChannels is false', () => {
+            const {Client4} = require('mattermost-redux/client');
+            Client4.getSharedChannelCanShare.mockClear();
+
             renderWithContext(
                 <ChannelSettingsConfigurationTab
                     {...baseProps}
@@ -504,6 +507,9 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             expect(screen.queryByText('Share with connected workspaces')).not.toBeInTheDocument();
+
+            // Without the manage permission the share eligibility should not be requested at all.
+            expect(Client4.getSharedChannelCanShare).not.toHaveBeenCalled();
         });
 
         it('should show Add workspace button when toggle is enabled', async () => {
@@ -534,6 +540,24 @@ describe('ChannelSettingsConfigurationTab', () => {
             expect(await screen.findByText("This channel can't be shared because it originates from another workspace.")).toBeInTheDocument();
             expect(screen.queryByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeInTheDocument();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
+        });
+
+        it('fails open and keeps the share controls when the can_share request errors', async () => {
+            const {Client4} = require('mattermost-redux/client');
+            Client4.getSharedChannelCanShare.mockRejectedValueOnce(new Error('network error'));
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            // The toggle is rendered synchronously; wait a tick to let the rejected
+            // promise settle and confirm it did not flip the UI into the notice state.
+            const toggle = await screen.findByTestId('shareChannelWithWorkspacesToggle-button');
+            expect(toggle).toBeInTheDocument();
+            expect(screen.queryByText("This channel can't be shared because it originates from another workspace.")).not.toBeInTheDocument();
         });
 
         it('when shared channel changes include only adding workspaces, save calls invite and fetchChannelRemotes', async () => {
