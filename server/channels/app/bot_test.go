@@ -603,7 +603,7 @@ func TestUpdateBotActive(t *testing.T) {
 
 		_, err := th.App.UpdateBotActive(th.Context, model.NewId(), false)
 		require.NotNil(t, err)
-		require.Equal(t, "app.user.missing_account.const", err.Id)
+		require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 	})
 
 	t.Run("disable/enable bot", func(t *testing.T) {
