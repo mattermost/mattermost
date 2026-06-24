@@ -52,7 +52,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
 
     // If in a cloud context and the teams usage hasn't loaded, don't render anything to prevent weird flashes on the screen
     if (license.Cloud === 'true' && !usage.teams.teamsLoaded) {
-        return null;//
+        return null;
     }
 
     const archiveBtn = isArchived ?
