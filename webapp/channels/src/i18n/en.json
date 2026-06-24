@@ -3876,6 +3876,7 @@
   "app.post.move_thread_command.direct_or_group.one_message": "A message has been moved to a Direct/Group Message\n",
   "app.post.move_thread.from_another_channel": "This thread was moved from another channel",
   "apps_form_file_upload.hydration_failed": "Failed to load file",
+  "apps_form_file_upload.max_files": "Uploads limited to {count, number} files maximum.",
   "apps_form_file_upload.upload_failed": "Upload failed",
   "apps_form.date_field.placeholder": "Select a date",
   "apps_form.datetime_field.timezone_hint": "Times in {timezone}",

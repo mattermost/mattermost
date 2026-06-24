@@ -42,6 +42,10 @@ const (
 	DialogElementFileMaxLength        = 300
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
 	MaxDialogFileIds                  = 10
+	// MaxDialogSubmissionIDShapedTokenScan bounds defense-in-depth scanning of
+	// request.Submission for ID-shaped tokens (file IDs, user/channel select values,
+	// etc.). This is not the per-dialog file upload limit — see MaxDialogFileIds.
+	MaxDialogSubmissionIDShapedTokenScan = 256
 
 	// Go date/time format constants
 	ISODateFormat                 = "2006-01-02"                // YYYY-MM-DD

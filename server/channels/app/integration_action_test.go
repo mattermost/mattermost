@@ -3171,6 +3171,104 @@ func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
 		require.NotNil(t, resp)
 	})
 
+	t.Run("submission ID scan fails closed when breadth cap is exceeded", func(t *testing.T) {
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		maxTokens := model.MaxDialogSubmissionIDShapedTokenScan
+		require.Greater(t, maxTokens, 0)
+
+		padded := make([]any, 0, maxTokens+1)
+		for range maxTokens {
+			padded = append(padded, model.NewId())
+		}
+		require.Len(t, padded, maxTokens)
+
+		padded = append(padded, otherFile.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"overflow": padded}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_submission_ids")
+	})
+
+	t.Run("submission ID scan fails closed for comma-separated padding attack", func(t *testing.T) {
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		maxTokens := model.MaxDialogSubmissionIDShapedTokenScan
+		require.Greater(t, maxTokens, 0)
+
+		var b strings.Builder
+		for i := range maxTokens {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(model.NewId())
+		}
+		b.WriteString(", ")
+		b.WriteString(otherFile.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"documents": b.String()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_submission_ids")
+	})
+
+	t.Run("unowned file ID smuggled via a nested submission map is rejected", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{
+			"metadata": map[string]any{"document": fileInfo.Id},
+		}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("unowned file ID smuggled via comma-separated submission string is rejected", func(t *testing.T) {
+		ownFile := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{
+			"documents": ownFile.Id + ", " + otherFile.Id,
+		}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("declared and submission file IDs combined cannot exceed MaxDialogFileIds", func(t *testing.T) {
+		declaredIds := make([]string, model.MaxDialogFileIds/2)
+		for i := range declaredIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			declaredIds[i] = fi.Id
+		}
+		submissionIds := make([]string, model.MaxDialogFileIds-len(declaredIds)+1)
+		for i := range submissionIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			submissionIds[i] = fi.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = declaredIds
+		submit.Submission = map[string]any{"extra": submissionIds}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_file_ids")
+	})
+
 	t.Run("unowned file ID smuggled via a submission array is rejected", func(t *testing.T) {
 		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
 

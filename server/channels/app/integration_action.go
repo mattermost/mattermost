@@ -634,7 +634,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	if len(request.FileIds) > 0 {
 		declaredFiles, nErr := a.Srv().Store().FileInfo().GetByIds(request.FileIds, false, false, false)
 		if nErr != nil {
-			return nil, model.NewAppError("SubmitInteractiveDialog", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.get_file_info_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		foundFileIDs := make(map[string]bool, len(declaredFiles))
 		for _, fileInfo := range declaredFiles {
@@ -661,18 +661,17 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	// are real files. Tokens that don't resolve to a file (e.g. user/channel select
 	// IDs, or ID-shaped free text) are ordinary values and ignored.
 	//
-	// The scan is bounded in both breadth (number of IDs collected) and depth
-	// (recursion into nested arrays/objects) so a value packed with ID-shaped
-	// strings or a deeply nested structure can't drive an unbounded query or
-	// exhaust the stack; legitimate dialogs reference far fewer real files at
-	// shallow depth.
-	const maxSubmissionFileIDScan = 256
+	// The scan is bounded in both breadth (ID-shaped tokens collected) and depth
+	// (recursion into nested arrays/objects). Hitting either bound must not silently
+	// skip remaining values — breadth overflow fails closed so a padded submission
+	// cannot smuggle an unchecked file ID past the cap.
 	const maxSubmissionScanDepth = 100
 	candidateFileIDs := make([]string, 0)
 	seenCandidate := make(map[string]bool)
+	scanLimitExceeded := false
 	var collectIDs func(v any, depth int)
 	collectIDs = func(v any, depth int) {
-		if depth > maxSubmissionScanDepth || len(candidateFileIDs) >= maxSubmissionFileIDScan {
+		if depth > maxSubmissionScanDepth || scanLimitExceeded {
 			return
 		}
 		switch typed := v.(type) {
@@ -682,28 +681,44 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 				if tok == "" || declaredFileIDs[tok] || seenCandidate[tok] || !model.IsValidId(tok) {
 					continue
 				}
-				seenCandidate[tok] = true
-				candidateFileIDs = append(candidateFileIDs, tok)
-				if len(candidateFileIDs) >= maxSubmissionFileIDScan {
+				if len(candidateFileIDs) >= model.MaxDialogSubmissionIDShapedTokenScan {
+					scanLimitExceeded = true
 					return
 				}
+				seenCandidate[tok] = true
+				candidateFileIDs = append(candidateFileIDs, tok)
 			}
 		case []any:
 			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
 				collectIDs(e, depth+1)
 			}
 		case map[string]any:
 			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
 				collectIDs(e, depth+1)
 			}
 		}
 	}
 	for _, raw := range request.Submission {
+		if scanLimitExceeded {
+			break
+		}
 		collectIDs(raw, 0)
 	}
 
+	if scanLimitExceeded {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_submission_ids",
+			map[string]any{"Max": model.MaxDialogSubmissionIDShapedTokenScan}, "", http.StatusBadRequest)
+	}
+
 	if len(candidateFileIDs) > 0 {
-		// allowFromCache=false: the file-info cache is keyed by post, not by file ID.
+		// allowFromCache=false: ownership must be decided from current DB state, not a
+		// possibly stale per-file cache entry.
 		submissionFiles, nErr := a.Srv().Store().FileInfo().GetByIds(candidateFileIDs, false, false, false)
 		if nErr != nil {
 			// Defense-in-depth scan: a transient store error must not block an otherwise

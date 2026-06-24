@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
+import {MaxDialogFileIds} from '@mattermost/types/integrations';
 
 import {renderWithContext, screen, fireEvent, waitFor, act} from 'tests/react_testing_utils';
 
@@ -365,6 +366,34 @@ describe('components/apps_form/apps_form_file_upload/AppsFormFileUpload', () => 
             expect(onFileSelected).toHaveBeenLastCalledWith(['file-2']);
         });
 
+        it('allowMultiple=false limits selection to one file per pick', () => {
+            const {container} = renderComponent({allowMultiple: false});
+
+            selectFiles(container, [makeFile('first.png'), makeFile('second.png')]);
+
+            expect(mockUploadFile).toHaveBeenCalledTimes(1);
+            expect(screen.getByText('Uploads limited to 1 files maximum.')).toBeVisible();
+        });
+
+        it('allowMultiple=false hydrates only the first value file ID on mount', async () => {
+            mockGetFileInfo.mockImplementation((fileId: string) => {
+                return Promise.resolve(makeFileInfo({id: fileId, name: `${fileId}.png`}));
+            });
+
+            renderComponent({
+                allowMultiple: false,
+                value: ['file-a', 'file-b'],
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('file-preview-item-file-a')).toBeVisible();
+            });
+
+            expect(mockGetFileInfo).toHaveBeenCalledTimes(1);
+            expect(mockGetFileInfo).toHaveBeenCalledWith('file-a');
+            expect(screen.queryByTestId('file-preview-item-file-b')).not.toBeInTheDocument();
+        });
+
         it('allowMultiple=true appends files on new selection', () => {
             const onFileSelected = jest.fn();
             const {container} = renderComponent({allowMultiple: true, onFileSelected});
@@ -388,6 +417,32 @@ describe('components/apps_form/apps_form_file_upload/AppsFormFileUpload', () => 
             });
 
             expect(onFileSelected).toHaveBeenLastCalledWith(['file-1', 'file-2']);
+        });
+
+        it('allowMultiple=true limits uploads to MaxDialogFileIds', () => {
+            const onFileSelected = jest.fn();
+            const {container} = renderComponent({allowMultiple: true, onFileSelected});
+
+            const batch = Array.from({length: MaxDialogFileIds + 2}, (_, i) => makeFile(`file-${i}.png`));
+            selectFiles(container, batch);
+
+            expect(mockUploadFile).toHaveBeenCalledTimes(MaxDialogFileIds);
+            expect(screen.getByText(`Uploads limited to ${MaxDialogFileIds} files maximum.`)).toBeVisible();
+        });
+
+        it('allowMultiple=true disables choose button at MaxDialogFileIds', async () => {
+            const onFileSelected = jest.fn();
+            const {container} = renderComponent({allowMultiple: true, onFileSelected});
+
+            for (let i = 0; i < MaxDialogFileIds; i++) {
+                selectFiles(container, [makeFile(`file-${i}.png`)]);
+                const {onSuccess} = getUploadCallbacks(i);
+                act(() => {
+                    onSuccess({file_infos: [makeFileInfo({id: `file-id-${i}`, name: `file-${i}.png`})]});
+                });
+            }
+
+            expect(screen.getByRole('button', {name: /choose files/i})).toBeDisabled();
         });
 
         it('onPendingChange(true) called when upload starts, false when done', () => {

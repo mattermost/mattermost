@@ -8,6 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Button} from '@mattermost/shared/components/button';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
+import {MaxDialogFileIds} from '@mattermost/types/integrations';
 
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
@@ -76,6 +77,8 @@ const AppsFormFileUpload: React.FC<Props> = ({
     filesRef.current = files;
     const [serverError, setServerError] = useState<string | undefined>(undefined);
 
+    const maxFiles = allowMultiple ? MaxDialogFileIds : 1;
+
     // Derived from files state — avoids the stale-closure bug where setIsUploading(false)
     // was being called synchronously after dispatching async uploads.
     const isUploading = files.some((f) => f.status === 'uploading');
@@ -128,11 +131,12 @@ const AppsFormFileUpload: React.FC<Props> = ({
         // each render, so this effect re-runs frequently. Once the user has interacted,
         // the files state — not the incoming value — is the source of truth.
         const newIds = hasInteractedRef.current ? [] : (value ?? []).filter((fid) => !hydratedRef.current.has(fid) && !existingFileIds.has(fid));
+        const idsToHydrate = allowMultiple ? newIds : newIds.slice(0, maxFiles);
 
-        if (newIds.length > 0) {
+        if (idsToHydrate.length > 0) {
             const hydrate = async () => {
                 const hydratedFiles: FileState[] = [];
-                for (const fileId of newIds) {
+                for (const fileId of idsToHydrate) {
                     try {
                         const fileInfo = await Client4.getFileInfo(fileId); // eslint-disable-line no-await-in-loop
                         if (cancelled) {
@@ -163,12 +167,12 @@ const AppsFormFileUpload: React.FC<Props> = ({
                     hydratedRef.current.add(f.fileId!);
                 }
                 if (hydratedFiles.length > 0) {
-                    setFiles((prev) => [...hydratedFiles, ...prev]);
+                    setFiles((prev) => (allowMultiple ? [...hydratedFiles, ...prev] : hydratedFiles));
                 }
 
                 // If some IDs were dropped (deleted/inaccessible), notify parent
                 // with the sanitized list so it stays in sync
-                if (hydratedFiles.length < newIds.length) {
+                if (hydratedFiles.length < idsToHydrate.length) {
                     const hydratedIds = new Set(hydratedFiles.map((f) => f.fileId!));
                     const existingIds = new Set(
                         filesRef.current.
@@ -182,7 +186,7 @@ const AppsFormFileUpload: React.FC<Props> = ({
                     const survivingIds = (value ?? []).filter((fileId) =>
                         hydratedIds.has(fileId) || existingIds.has(fileId),
                     );
-                    onFileSelectedRef.current(survivingIds);
+                    onFileSelectedRef.current(allowMultiple ? survivingIds : survivingIds.slice(0, maxFiles));
                 }
             };
             hydrate().catch((err) => {
@@ -200,7 +204,7 @@ const AppsFormFileUpload: React.FC<Props> = ({
         return () => {
             cancelled = true;
         };
-    }, [value, dispatch, formatMessage]);
+    }, [value, dispatch, formatMessage, allowMultiple, maxFiles]);
 
     // Notify parent dialog when files are uploading so it can block submit
     useEffect(() => {
@@ -271,14 +275,62 @@ const AppsFormFileUpload: React.FC<Props> = ({
         uploadRequestsRef.current.set(stableId, xhr);
     }, [currentChannelId, dispatch, formatMessage]);
 
+    const abortInFlightUploads = useCallback((fileStates: FileState[]) => {
+        for (const f of fileStates) {
+            if (f.status === 'uploading') {
+                const xhr = uploadRequestsRef.current.get(f.stableId);
+                if (xhr) {
+                    xhr.abort();
+                    uploadRequestsRef.current.delete(f.stableId);
+                }
+            }
+            fileObjectsRef.current.delete(f.stableId);
+        }
+    }, []);
+
     const handleFileInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         hasInteractedRef.current = true;
         const selectedFiles = event.target.files;
 
         if (selectedFiles && selectedFiles.length > 0) {
+            let filesToProcess = Array.from(selectedFiles);
+            let uploadLimitError: string | undefined;
+
+            if (allowMultiple) {
+                const remaining = maxFiles - filesRef.current.length;
+                if (remaining <= 0) {
+                    setServerError(
+                        formatMessage({
+                            id: 'apps_form_file_upload.max_files',
+                            defaultMessage: 'Uploads limited to {count, number} files maximum.',
+                        }, {count: maxFiles}),
+                    );
+                    if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                    }
+                    return;
+                }
+                if (filesToProcess.length > remaining) {
+                    uploadLimitError = formatMessage({
+                        id: 'apps_form_file_upload.max_files',
+                        defaultMessage: 'Uploads limited to {count, number} files maximum.',
+                    }, {count: maxFiles});
+                    filesToProcess = filesToProcess.slice(0, remaining);
+                }
+            } else {
+                if (filesToProcess.length > 1) {
+                    uploadLimitError = formatMessage({
+                        id: 'apps_form_file_upload.max_files',
+                        defaultMessage: 'Uploads limited to {count, number} files maximum.',
+                    }, {count: maxFiles});
+                }
+                filesToProcess = filesToProcess.slice(0, maxFiles);
+                abortInFlightUploads(filesRef.current);
+            }
+
             const filesToUpload: Array<{file: File; stableId: string}> = [];
 
-            const newFiles = Array.from(selectedFiles).map((file) => {
+            const newFiles = filesToProcess.map((file) => {
                 const stableId = Utils.generateId();
                 fileObjectsRef.current.set(stableId, file);
                 filesToUpload.push({file, stableId});
@@ -290,11 +342,11 @@ const AppsFormFileUpload: React.FC<Props> = ({
                 };
             });
 
-            setFiles((prevFiles) => {
-                return allowMultiple ? [...prevFiles, ...newFiles] : newFiles;
+            setFiles(() => {
+                return allowMultiple ? [...filesRef.current, ...newFiles] : newFiles;
             });
 
-            setServerError(undefined);
+            setServerError(uploadLimitError);
 
             // Clear the input
             if (fileInputRef.current) {
@@ -306,7 +358,7 @@ const AppsFormFileUpload: React.FC<Props> = ({
                 startUpload(file, stableId);
             }
         }
-    }, [allowMultiple, startUpload]);
+    }, [allowMultiple, maxFiles, startUpload, formatMessage, abortInFlightUploads]);
 
     // Notify parent when uploads settle. Skips mount-time fire to avoid clobbering
     // pre-populated values before hydration completes.
@@ -315,8 +367,9 @@ const AppsFormFileUpload: React.FC<Props> = ({
             return;
         }
         const completedFiles = files.filter((f) => (f.status === 'uploaded' || f.status === 'hydrated') && f.fileId);
-        onFileSelectedRef.current(completedFiles.map((f) => f.fileId!));
-    }, [files]);
+        const fileIds = completedFiles.map((f) => f.fileId!);
+        onFileSelectedRef.current(allowMultiple ? fileIds : fileIds.slice(0, maxFiles));
+    }, [files, allowMultiple, maxFiles]);
 
     const handleRemoveById = useCallback((idToRemove: string) => {
         hasInteractedRef.current = true;
@@ -335,11 +388,13 @@ const AppsFormFileUpload: React.FC<Props> = ({
         setFiles((prevFiles) =>
             prevFiles.filter((f) => f.fileId !== idToRemove && f.clientId !== idToRemove),
         );
+        setServerError(undefined);
     }, []);
 
     const uploadingFiles = files.filter((f) => f.status === 'uploading');
     const completedFiles = files.filter((f) => (f.status === 'uploaded' || f.status === 'hydrated') && f.fileInfo);
     const failedFiles = files.filter((f) => f.status === 'failed');
+    const atFileLimit = allowMultiple && files.length >= maxFiles;
 
     return (
         <div className='form-group apps-form-file-upload'>
@@ -393,7 +448,7 @@ const AppsFormFileUpload: React.FC<Props> = ({
                         <Button
                             type='button'
                             emphasis='tertiary'
-                            disabled={disabled || isUploading}
+                            disabled={disabled || isUploading || atFileLimit}
                             onClick={handleChooseClick}
                         >
                             <FormattedMessage
@@ -407,7 +462,7 @@ const AppsFormFileUpload: React.FC<Props> = ({
                             type='file'
                             accept={fileType}
                             onChange={handleFileInput}
-                            disabled={disabled || isUploading}
+                            disabled={disabled || isUploading || atFileLimit}
                             multiple={allowMultiple}
                         />
                     </div>

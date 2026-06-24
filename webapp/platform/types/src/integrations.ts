@@ -228,3 +228,6 @@ export type SubmitDialogResponse = {
     type?: string;
     form?: Dialog;
 };
+
+// Keep in sync with server/public/model/integration_action.go MaxDialogFileIds.
+export const MaxDialogFileIds = 10;
