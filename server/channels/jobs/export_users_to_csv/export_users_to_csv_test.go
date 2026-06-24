@@ -12,14 +12,31 @@ import (
 )
 
 func TestCSVExportColumns(t *testing.T) {
-	t.Run("should include a Teams column", func(t *testing.T) {
-		require.Contains(t, csvExportColumns, "Teams")
+	t.Run("header has the expected columns in order", func(t *testing.T) {
+		// Pin the exact header so a rename or reorder is caught. Teams sits
+		// between ChannelCount and DeletedAt.
+		require.Equal(t, []string{
+			"Id",
+			"Username",
+			"Email",
+			"CreateAt",
+			"Name",
+			"Roles",
+			"LastLogin",
+			"LastStatusAt",
+			"LastPostDate",
+			"DaysActive",
+			"TotalPosts",
+			"ChannelCount",
+			"Teams",
+			"DeletedAt",
+		}, csvExportColumns)
 	})
 
-	t.Run("header columns must align with the report row values", func(t *testing.T) {
-		// The CSV header is written separately from the data rows, so a mismatch
-		// between the header and model.UserReport.ToReport would silently shift
-		// every column. Keep them in lock-step.
+	t.Run("header column count matches the report row values", func(t *testing.T) {
+		// The CSV header is written separately from the data rows, so a count
+		// mismatch between the header and model.UserReport.ToReport would
+		// silently shift every column. Keep them in lock-step.
 		report := (&model.UserReport{}).ToReport()
 		require.Equal(t, len(csvExportColumns), len(report))
 	})

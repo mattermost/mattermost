@@ -6798,24 +6798,68 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	})
 
 	t.Run("should include team membership data", func(t *testing.T) {
-		// users[0] and users[1] are members of the shared `team` fixture, while
-		// the rest of the users do not belong to any team.
-		teamB, tErr := ss.Team().Save(&model.Team{
-			DisplayName: "AAA First Team",
+		teamAlpha, tErr := ss.Team().Save(&model.Team{
+			DisplayName: "Alpha Team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, tErr)
+		teamZeta, tErr := ss.Team().Save(&model.Team{
+			DisplayName: "Zeta Team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, tErr)
+		archivedTeam, tErr := ss.Team().Save(&model.Team{
+			DisplayName: "Archived Team",
 			Name:        NewTestID(),
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 		})
 		require.NoError(t, tErr)
 
-		// users[0] also belongs to teamB so we can assert multi-team aggregation.
-		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: users[0].Id, TeamId: teamB.Id}, 100)
-		require.NoError(t, tErr)
+		multiTeamUser, uErr := ss.User().Save(rctx, &model.User{Username: "zzreport_multi_" + model.NewId()[:8], Email: MakeEmail()})
+		require.NoError(t, uErr)
+		singleTeamUser, uErr := ss.User().Save(rctx, &model.User{Username: "zzreport_single_" + model.NewId()[:8], Email: MakeEmail()})
+		require.NoError(t, uErr)
+		noTeamUser, uErr := ss.User().Save(rctx, &model.User{Username: "zzreport_none_" + model.NewId()[:8], Email: MakeEmail()})
+		require.NoError(t, uErr)
 
 		defer func() {
-			require.NoError(t, ss.Team().RemoveMember(rctx, teamB.Id, users[0].Id))
-			require.NoError(t, ss.Team().PermanentDelete(teamB.Id))
+			require.NoError(t, ss.User().PermanentDelete(rctx, multiTeamUser.Id))
+			require.NoError(t, ss.User().PermanentDelete(rctx, singleTeamUser.Id))
+			require.NoError(t, ss.User().PermanentDelete(rctx, noTeamUser.Id))
+			require.NoError(t, ss.Team().PermanentDelete(teamAlpha.Id))
+			require.NoError(t, ss.Team().PermanentDelete(teamZeta.Id))
+			require.NoError(t, ss.Team().PermanentDelete(archivedTeam.Id))
 		}()
+
+		// multiTeamUser belongs to two active teams (added out of alphabetical
+		// order to verify the aggregation orders by display name).
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: multiTeamUser.Id, TeamId: teamZeta.Id}, 100)
+		require.NoError(t, tErr)
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: multiTeamUser.Id, TeamId: teamAlpha.Id}, 100)
+		require.NoError(t, tErr)
+
+		// singleTeamUser belongs to one active team.
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: singleTeamUser.Id, TeamId: teamAlpha.Id}, 100)
+		require.NoError(t, tErr)
+
+		// A membership in an archived (soft-deleted) team must be excluded.
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: multiTeamUser.Id, TeamId: archivedTeam.Id}, 100)
+		require.NoError(t, tErr)
+		archivedTeam.DeleteAt = model.GetMillis()
+		_, tErr = ss.Team().Update(archivedTeam)
+		require.NoError(t, tErr)
+
+		// A soft-deleted membership must be excluded.
+		deletedMember, tErr := ss.Team().SaveMember(rctx, &model.TeamMember{UserId: singleTeamUser.Id, TeamId: teamZeta.Id}, 100)
+		require.NoError(t, tErr)
+		deletedMember.DeleteAt = model.GetMillis()
+		_, tErr = ss.Team().UpdateMember(rctx, deletedMember)
+		require.NoError(t, tErr)
 
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
@@ -6831,13 +6875,14 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 			teamsByUserID[report.Id] = report.Teams
 		}
 
-		// A user in multiple teams has the team display names joined together,
-		// ordered alphabetically by display name.
-		require.Equal(t, "AAA First Team, "+team.DisplayName, teamsByUserID[users[0].Id])
-		// A user in a single team reports just that team.
-		require.Equal(t, team.DisplayName, teamsByUserID[users[1].Id])
+		// Active teams are joined and ordered alphabetically by display name; the
+		// archived team is excluded.
+		require.Equal(t, "Alpha Team, Zeta Team", teamsByUserID[multiTeamUser.Id])
+		// Only the active membership is reported; the soft-deleted Zeta membership
+		// is excluded.
+		require.Equal(t, "Alpha Team", teamsByUserID[singleTeamUser.Id])
 		// A user without any team membership reports an empty string.
-		require.Equal(t, "", teamsByUserID[users[2].Id])
+		require.Equal(t, "", teamsByUserID[noTeamUser.Id])
 	})
 
 	t.Run("should return in the correct order", func(t *testing.T) {
