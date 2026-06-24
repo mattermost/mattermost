@@ -492,6 +492,11 @@ export type AppField = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    // Collapsible section props. A field of type 'collapsible' groups child
+    // fields behind an expandable title and contributes no value of its own.
+    fields?: AppField[];
+    expanded?: boolean;
 };
 
 /**

@@ -17,6 +17,7 @@ export const DialogElementTypes = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    COLLAPSIBLE: 'collapsible',
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -231,6 +232,8 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.DATE;
     case DialogElementTypes.DATETIME:
         return AppFieldTypes.DATETIME;
+    case DialogElementTypes.COLLAPSIBLE:
+        return AppFieldTypes.COLLAPSIBLE;
     default:
         return null; // Skip unknown field types
     }
@@ -395,6 +398,27 @@ export function convertElement(element: DialogElement, options: ConversionOption
             value: getDefaultValue(element),
         };
         return {field: fallbackField, errors};
+    }
+
+    // Collapsible: convert children recursively; the section itself has no value.
+    if (element.type === DialogElementTypes.COLLAPSIBLE) {
+        const childFields: AppField[] = [];
+        (element.elements || []).forEach((child) => {
+            const {field: childField, errors: childErrors} = convertElement(child, options);
+            errors.push(...childErrors);
+            if (childField) {
+                childFields.push(childField);
+            }
+        });
+
+        const collapsibleField: AppField = {
+            name: String(element.name),
+            type: AppFieldTypes.COLLAPSIBLE,
+            label: String(element.display_name),
+            fields: childFields,
+            expanded: element.is_expanded ?? true,
+        };
+        return {field: collapsibleField, errors};
     }
 
     const appField: AppField = {
@@ -668,6 +692,18 @@ export function convertServerDialogResponseToAppForm(
 }
 
 /**
+ * Flatten elements, expanding collapsible sections into their children.
+ */
+export function flattenDialogElements(elements: DialogElement[]): DialogElement[] {
+    return elements.flatMap((element) => {
+        if (element.type === DialogElementTypes.COLLAPSIBLE) {
+            return flattenDialogElements(element.elements || []);
+        }
+        return [element];
+    });
+}
+
+/**
  * Convert Apps Form values back to Interactive Dialog submission format
  */
 export function convertAppFormValuesToDialogSubmission(
@@ -682,7 +718,8 @@ export function convertAppFormValuesToDialogSubmission(
         return {submission, errors};
     }
 
-    elements.forEach((element) => {
+    // Flatten collapsibles so child values are collected and the containers are excluded.
+    flattenDialogElements(elements).forEach((element) => {
         const value = values[element.name];
 
         if (value === null || value === undefined) {

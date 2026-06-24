@@ -40,6 +40,7 @@ const (
 	DialogElementSelectMaxLength      = 3000
 	DialogElementBoolMaxLength        = 150
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+	DialogCollapsibleMaxDepth         = 3  // Maximum levels of nested collapsible sections (top-level collapsible is depth 1)
 
 	// Go date/time format constants
 	ISODateFormat                 = "2006-01-02"                // YYYY-MM-DD
@@ -387,6 +388,11 @@ type DialogElement struct {
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
 	Refresh       bool                 `json:"refresh,omitempty"`
+
+	// Collapsible section children; only used when Type is "collapsible".
+	Elements []DialogElement `json:"elements,omitempty"`
+	// IsExpanded controls initial open/closed state; nil means expanded.
+	IsExpanded *bool `json:"is_expanded,omitempty"`
 
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
@@ -746,8 +752,40 @@ func (e *DialogElement) IsValid() error {
 			}
 		}
 
+	case "collapsible":
+		multiErr = multierror.Append(multiErr, e.validateCollapsible(1))
+
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+// validateCollapsible validates a collapsible element and its children, enforcing
+// the maximum nesting depth. depth is the level of this collapsible, where a
+// top-level collapsible is depth 1.
+func (e *DialogElement) validateCollapsible(depth int) error {
+	var multiErr *multierror.Error
+
+	if len(e.Elements) == 0 {
+		multiErr = multierror.Append(multiErr, errors.New("collapsible element must have at least one child element"))
+	}
+
+	for i, child := range e.Elements {
+		if child.Type == "collapsible" {
+			if depth >= DialogCollapsibleMaxDepth {
+				multiErr = multierror.Append(multiErr, errors.Errorf("collapsible nesting exceeds maximum depth of %d (child %q at index %d)", DialogCollapsibleMaxDepth, child.Name, i))
+				continue
+			}
+			if err := child.validateCollapsible(depth + 1); err != nil {
+				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+			}
+			continue
+		}
+		if err := child.IsValid(); err != nil {
+			multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+		}
 	}
 
 	return multiErr.ErrorOrNil()

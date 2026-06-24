@@ -29,6 +29,7 @@ import type {DoAppCallResult} from 'types/apps';
 
 import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';
+import CollapsibleSection from './collapsible_section';
 
 import './apps_form_component.scss';
 
@@ -204,9 +205,12 @@ const createSanitizedField = (field: AppField): AppField => {
 const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
     const values: AppFormValues = {};
     if (form && form.fields) {
+        // Seed from leaf fields only; collapsible containers have no value.
+        const leafFields = flattenFields(form.fields);
+
         // Validate all fields first and log any validation errors (no mutations)
         const allErrors: string[] = [];
-        form.fields.forEach((f) => {
+        leafFields.forEach((f) => {
             const fieldErrors = validateAppField(f);
             allErrors.push(...fieldErrors);
         });
@@ -218,7 +222,7 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
         }
 
         // Work with sanitized copies for safe usage
-        form.fields.forEach((originalField) => {
+        leafFields.forEach((originalField) => {
             const field = createSanitizedField(originalField);
 
             let defaultValue: AppFormValue = null;
@@ -354,7 +358,8 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
         const fieldErrors: {[name: string]: React.ReactNode} = {};
 
-        const elements = fieldsAsElements(fields);
+        // Flatten so required children inside collapsed sections are still validated.
+        const elements = fieldsAsElements(flattenFields(fields));
         elements?.forEach((element) => {
             const error = checkDialogElementForError( // TODO: make sure all required values are present in `element`
                 element,
@@ -520,7 +525,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     onChange = (name: string, value: any) => {
-        const field = this.props.form.fields?.find((f) => f.name === name);
+        const field = flattenFields(this.props.form.fields).find((f) => f.name === name);
         if (!field) {
             return;
         }
@@ -685,37 +690,59 @@ export class AppsForm extends React.PureComponent<Props, State> {
         );
     }
 
+    // Collapsible children go through this helper so they share state.values/fieldErrors.
+    // depth tracks the collapsible nesting level (0 = top level) for indentation.
+    renderField = (originalField: AppField, autoFocus: boolean, depth = 0) => {
+        const {isEmbedded} = this.props;
+
+        if (originalField.type === AppFieldTypes.COLLAPSIBLE) {
+            const childFields = originalField.fields || [];
+            return (
+                <CollapsibleSection
+                    key={originalField.name}
+                    label={originalField.label || originalField.name}
+                    expanded={originalField.expanded ?? true}
+                    depth={depth}
+                >
+                    {childFields.map((child) => this.renderField(child, false, depth + 1))}
+                </CollapsibleSection>
+            );
+        }
+
+        // Use cached sanitized field to preserve object identity across renders.
+        // This prevents AsyncSelect remounts that trigger spurious lookup calls.
+        let field = this.sanitizedFieldCache.get(originalField);
+        if (!field) {
+            field = createSanitizedField(originalField);
+            this.sanitizedFieldCache.set(originalField, field);
+        }
+
+        return (
+            <AppsFormField
+                field={field}
+                key={field.name}
+                autoFocus={autoFocus}
+                name={field.name}
+                errorText={this.state.fieldErrors[field.name]}
+                value={this.state.values[field.name]}
+                performLookup={this.performLookup}
+                onChange={this.onChange}
+                setIsInteracting={this.setIsInteracting}
+                listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
+            />
+        );
+    };
+
     renderElements() {
-        const {isEmbedded, form} = this.props;
+        const {form} = this.props;
 
         const {fields} = form;
         if (!fields) {
             return null;
         }
 
-        return fields.filter((f) => f.name !== form.submit_buttons).map((originalField, index) => {
-            // Use cached sanitized field to preserve object identity across renders.
-            // This prevents AsyncSelect remounts that trigger spurious lookup calls.
-            let field = this.sanitizedFieldCache.get(originalField);
-            if (!field) {
-                field = createSanitizedField(originalField);
-                this.sanitizedFieldCache.set(originalField, field);
-            }
-
-            return (
-                <AppsFormField
-                    field={field}
-                    key={field.name}
-                    autoFocus={index === 0}
-                    name={field.name}
-                    errorText={this.state.fieldErrors[field.name]}
-                    value={this.state.values[field.name]}
-                    performLookup={this.performLookup}
-                    onChange={this.onChange}
-                    setIsInteracting={this.setIsInteracting}
-                    listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
-                />
-            );
+        return fields.filter((f) => f.name !== form.submit_buttons).map((field, index) => {
+            return this.renderField(field, index === 0);
         });
     }
 
@@ -811,6 +838,19 @@ export class AppsForm extends React.PureComponent<Props, State> {
     render() {
         return this.props.isEmbedded ? this.renderEmbedded() : this.renderModal();
     }
+}
+
+// Returns all leaf fields, expanding collapsible sections.
+function flattenFields(fields?: AppField[]): AppField[] {
+    if (!fields) {
+        return [];
+    }
+    return fields.flatMap((field) => {
+        if (field.type === AppFieldTypes.COLLAPSIBLE) {
+            return flattenFields(field.fields);
+        }
+        return [field];
+    });
 }
 
 function fieldsAsElements(fields?: AppField[]): DialogElement[] {

@@ -64,3 +64,39 @@
     color: rgba(var(--center-channel-color-rgb), 0.56);
     font-size: 11px;
 }
+
+.apps-form-collapsible-section {
+    margin-bottom: 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+
+    &__toggle {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        padding: 10px 12px;
+        border: 0;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-weight: 600;
+        text-align: left;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        .icon {
+            margin-right: 6px;
+            font-size: 18px;
+        }
+    }
+
+    &__title {
+        flex: 1;
+    }
+
+    &__content {
+        padding: 4px 12px 12px;
+    }
+}

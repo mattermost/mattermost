@@ -218,6 +218,11 @@ export type DialogElement = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    // Collapsible section configuration. A "collapsible" element groups child
+    // elements behind an expandable title and contributes no value of its own.
+    elements?: DialogElement[];
+    is_expanded?: boolean;
 };
 
 export type SubmitDialogResponse = {
