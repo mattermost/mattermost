@@ -193,8 +193,11 @@ describe('admin_console/manage_roles_modal', () => {
         expect(screen.getByRole('checkbox', {name: /System Manager/})).toBeChecked();
         expect(screen.getByRole('checkbox', {name: /User Manager/})).not.toBeChecked();
 
-        const nextUser = TestHelper.getUserMock({id: 'user_2', username: 'other', roles: 'system_user system_user_manager'});
-        rerender(<ManageRolesModal {...props} user={nextUser}/>);
+        const nextProps = {
+            ...props,
+            user: TestHelper.getUserMock({id: 'user_2', username: 'other', roles: 'system_user system_user_manager'}),
+        };
+        rerender(<ManageRolesModal {...nextProps}/>);
 
         expect(screen.getByRole('checkbox', {name: /System Manager/})).not.toBeChecked();
         expect(screen.getByRole('checkbox', {name: /User Manager/})).toBeChecked();
