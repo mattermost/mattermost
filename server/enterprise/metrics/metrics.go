@@ -196,6 +196,7 @@ type MetricsInterfaceImpl struct {
 	SharedChannelsSyncSendStepHistogram       *prometheus.HistogramVec
 
 	ServerStartTime prometheus.Gauge
+	ServerInfo      prometheus.Gauge
 
 	JobsActive *prometheus.GaugeVec
 
@@ -259,6 +260,19 @@ func init() {
 	platform.RegisterMetricsInterface(func(ps *platform.PlatformService, driver, dataSource string) einterfaces.MetricsInterface {
 		return New(ps, driver, dataSource)
 	})
+}
+
+// mergeLabels returns a new label set combining base with extra. Values in extra
+// take precedence when a key is present in both.
+func mergeLabels(base, extra map[string]string) prometheus.Labels {
+	merged := prometheus.Labels{}
+	for k, v := range base {
+		merged[k] = v
+	}
+	for k, v := range extra {
+		merged[k] = v
+	}
+	return merged
 }
 
 // New creates a new MetricsInterface. The driver and datasource parameters are added during
@@ -1159,6 +1173,21 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	})
 	m.ServerStartTime.SetToCurrentTime()
 	m.Registry.MustRegister(m.ServerStartTime)
+
+	m.ServerInfo = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: MetricsNamespace,
+		Subsystem: MetricsSubsystemSystem,
+		Name:      "server_info",
+		Help:      "The server version and build information. Always 1; read the labels.",
+		ConstLabels: mergeLabels(additionalLabels, map[string]string{
+			"version":               model.CurrentVersion,
+			"build_number":          model.BuildNumber,
+			"build_hash":            model.BuildHash,
+			"build_hash_enterprise": model.BuildHashEnterprise,
+		}),
+	})
+	m.ServerInfo.Set(1)
+	m.Registry.MustRegister(m.ServerInfo)
 
 	m.JobsActive = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
