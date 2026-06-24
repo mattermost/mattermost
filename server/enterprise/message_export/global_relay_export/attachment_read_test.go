@@ -221,24 +221,51 @@ func TestGenerateEmail_PersistentReadFailsBatch(t *testing.T) {
 	require.Equal(t, 0, warnings, "a read failure is an error, not a skipped/missing-file warning")
 }
 
-// A genuinely missing attachment (cannot be opened) keeps the prior MM-62493 behavior:
-// warn, increment the warning count, skip it, and do not fail the batch.
+// A genuinely missing attachment (open fails AND FileExists confirms it's gone) keeps the
+// prior MM-62493 behavior: warn, increment the warning count, skip it, don't fail the batch.
 func TestGenerateEmail_MissingAttachmentSkipped(t *testing.T) {
 	healthyContent := []byte("healthy attachment content")
 	ce := newChannelExport(
 		&model.FileInfo{Id: "file1", Name: "missing.bin", Path: "data/missing.bin"},
 		&model.FileInfo{Id: "file2", Name: "healthy.bin", Path: "data/healthy.bin"},
 	)
-	backend := &scriptedBackend{readers: map[string]func() (filestore.ReadCloseSeeker, error){
-		"data/missing.bin": openFails,
-		"data/healthy.bin": healthyReader(healthyContent),
-	}}
+	backend := &scriptedBackend{
+		readers: map[string]func() (filestore.ReadCloseSeeker, error){
+			"data/missing.bin": openFails,
+			"data/healthy.bin": healthyReader(healthyContent),
+		},
+		missing: map[string]bool{"data/missing.bin": true}, // FileExists confirms it's gone
+	}
 
 	warnings, out, genErr := runGenerateEmail(t, backend, ce)
 
 	require.NoError(t, genErr, "a missing file should be skipped, not fail the batch")
 	require.Equal(t, 1, warnings, "the missing file should be counted as a warning")
 	assertAttachmentPresent(t, out, healthyContent, "the surviving attachment should still be exported")
+}
+
+// A transient OPEN failure (backend.Reader errors, but the file still exists) must NOT be
+// silently skipped as "missing": it is retried and, if it persists, fails the batch so the
+// job retries — otherwise a transient infrastructure hiccup at open time could drop an
+// attachment from a compliance export and still report success (MM-69338).
+func TestGenerateEmail_TransientOpenFailureFailsBatch(t *testing.T) {
+	ce := newChannelExport(
+		&model.FileInfo{Id: "file1", Name: "openflaky.bin", Path: "data/openflaky.bin"},
+		&model.FileInfo{Id: "file2", Name: "healthy.bin", Path: "data/healthy.bin"},
+	)
+	backend := &scriptedBackend{
+		readers: map[string]func() (filestore.ReadCloseSeeker, error){
+			"data/openflaky.bin": openFails, // open fails on every attempt...
+			"data/healthy.bin":   healthyReader([]byte("healthy attachment content")),
+		},
+		// ...but FileExists reports the object still present, so it's a transient hiccup, not a
+		// deletion (no entry in `missing` ⇒ FileExists returns true).
+	}
+
+	warnings, _, genErr := runGenerateEmail(t, backend, ce)
+
+	require.Error(t, genErr, "a transient open failure on an existing file should fail the batch, not be skipped")
+	require.Equal(t, 0, warnings, "a transient open failure is an error, not a skipped/missing-file warning")
 }
 
 // On S3/MinIO a deleted object is not detected when the reader is opened (minio-go's
