@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
+import type {Role} from '@mattermost/types/roles';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -21,9 +22,22 @@ import {DeveloperLinks} from 'utils/constants';
 
 import {isSuccess} from 'types/actions';
 
+import {rolesStrings} from '../system_roles/strings';
+
+// Delegated (granular) administration roles that can be granted from this modal.
+// Kept in sync with the roles surfaced in the Delegated Granular Administration screen.
+export const DELEGATED_ROLE_NAMES = [
+    'system_manager',
+    'system_user_manager',
+    'system_custom_group_admin',
+    'system_shared_channel_manager',
+    'system_read_only_admin',
+];
+
 export type Props = {
     user?: UserProfile;
     userAccessTokensEnabled: boolean;
+    roles: Record<string, Role>;
 
     // defining custom function type instead of using React.MouseEventHandler
     // to make the event optional
@@ -31,6 +45,7 @@ export type Props = {
     onExited: () => void;
     actions: {
         updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
+        loadRolesIfNeeded: (roles: Iterable<string>) => Promise<ActionResult>;
     };
 };
 
@@ -42,7 +57,19 @@ type State = {
     hasPostAllPublicRole: boolean;
     hasUserAccessTokenRole: boolean;
     isSystemAdmin: boolean;
+    delegatedRoles: Record<string, boolean>;
 };
+
+function getDelegatedRolesFromRoles(roles: string): Record<string, boolean> {
+    const roleSet = new Set(roles.split(' '));
+    const delegatedRoles: Record<string, boolean> = {};
+
+    for (const name of DELEGATED_ROLE_NAMES) {
+        delegatedRoles[name] = roleSet.has(name);
+    }
+
+    return delegatedRoles;
+}
 
 function getStateFromProps(props: Props): State {
     const roles = props.user && props.user.roles ? props.user.roles : '';
@@ -55,6 +82,7 @@ function getStateFromProps(props: Props): State {
         hasPostAllPublicRole: UserUtils.hasPostAllPublicRole(roles),
         hasUserAccessTokenRole: UserUtils.hasUserAccessTokenRole(roles),
         isSystemAdmin: UserUtils.isSystemAdmin(roles),
+        delegatedRoles: getDelegatedRolesFromRoles(roles),
     };
 }
 
@@ -69,6 +97,10 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
             return getStateFromProps(nextProps);
         }
         return null;
+    }
+
+    componentDidMount() {
+        this.props.actions.loadRolesIfNeeded(DELEGATED_ROLE_NAMES);
     }
 
     handleError = (error: any) => {
@@ -103,6 +135,16 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         });
     };
 
+    handleDelegatedRoleChange = (roleName: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const checked = e.target.checked;
+        this.setState((prevState) => ({
+            delegatedRoles: {
+                ...prevState.delegatedRoles,
+                [roleName]: checked,
+            },
+        }));
+    };
+
     onHide = () => {
         this.setState({show: false});
     };
@@ -123,6 +165,12 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
             }
         }
 
+        for (const roleName of DELEGATED_ROLE_NAMES) {
+            if (this.state.delegatedRoles[roleName]) {
+                roles += ' ' + roleName;
+            }
+        }
+
         const result = await this.props.actions.updateUserRoles(this.props.user!.id, roles);
 
         if (isSuccess(result)) {
@@ -136,6 +184,53 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 />,
             );
         }
+    };
+
+    renderDelegatedAdminRoles = () => {
+        const availableRoles = DELEGATED_ROLE_NAMES.filter((name) => this.props.roles[name] && rolesStrings[name]);
+
+        if (availableRoles.length === 0) {
+            return null;
+        }
+
+        return (
+            <div className='member-row--padded'>
+                <p>
+                    <strong>
+                        <FormattedMessage
+                            id='admin.manage_roles.delegatedAdminRolesTitle'
+                            defaultMessage='Delegated Administration Roles'
+                        />
+                    </strong>
+                </p>
+                <p className='light'>
+                    <FormattedMessage
+                        id='admin.manage_roles.delegatedAdminRolesDescription'
+                        defaultMessage='Grant access to specific areas of the System Console without making this account a full System Admin.'
+                    />
+                </p>
+                {availableRoles.map((name) => (
+                    <div
+                        className='checkbox'
+                        key={name}
+                    >
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={Boolean(this.state.delegatedRoles[name])}
+                                onChange={this.handleDelegatedRoleChange(name)}
+                            />
+                            <strong>
+                                <FormattedMessage {...rolesStrings[name].name}/>
+                            </strong>
+                            <span className='d-block pt-2 pb-2 light'>
+                                <FormattedMessage {...rolesStrings[name].description}/>
+                            </span>
+                        </label>
+                    </div>
+                ))}
+            </div>
+        );
     };
 
     renderContents = () => {
@@ -331,6 +426,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                             </label>
                         </div>
                     </div>
+                    {!user.is_bot && this.renderDelegatedAdminRoles()}
                     {userAccessTokenContent}
                 </div>
             </div>

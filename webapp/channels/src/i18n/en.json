@@ -1998,6 +1998,8 @@
   "admin.manage_roles.allowUserAccessTokensDesc": "Removing this permission doesn't delete existing tokens. To delete them, go to the user's Manage Tokens menu.",
   "admin.manage_roles.botAdditionalRoles": "Select additional permissions for the account. <link>Read more about roles and permissions</link>.",
   "admin.manage_roles.cancel": "Cancel",
+  "admin.manage_roles.delegatedAdminRolesDescription": "Grant access to specific areas of the System Console without making this account a full System Admin.",
+  "admin.manage_roles.delegatedAdminRolesTitle": "Delegated Administration Roles",
   "admin.manage_roles.manageRolesTitle": "Manage Roles",
   "admin.manage_roles.postAllPublicRole": "Access to post to all Mattermost public channels.",
   "admin.manage_roles.postAllPublicRoleTitle": "post:channels",
