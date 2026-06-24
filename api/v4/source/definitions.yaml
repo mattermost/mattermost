@@ -1007,6 +1007,9 @@ components:
           format: int64
         device_id:
           type: string
+        voip_device_id:
+          description: VoIP push token. Same prefix shape as device_id.
+          type: string
         expires_at:
           description: The time in milliseconds a session will expire
           type: integer
@@ -2699,6 +2702,9 @@ components:
         device_id:
           type: string
           description: Optional mobile device identifier used for push notifications. If provided, the device will be registered for receiving push notifications.
+        voip_device_id:
+          type: string
+          description: Optional VoIP push token. Same prefix shape as device_id. When provided, enables ring-style call push notifications.
     Compliance:
       type: object
       properties:

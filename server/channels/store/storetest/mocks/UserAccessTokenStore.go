@@ -78,36 +78,6 @@ func (_m *UserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
 	return r0, r1
 }
 
-// GetExpiredBefore provides a mock function with given fields: cutoff, limit
-func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(cutoff, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetExpiredBefore")
-	}
-
-	var r0 []*model.UserAccessToken
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int) ([]*model.UserAccessToken, error)); ok {
-		return rf(cutoff, limit)
-	}
-	if rf, ok := ret.Get(0).(func(int64, int) []*model.UserAccessToken); ok {
-		r0 = rf(cutoff, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.UserAccessToken)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
-		r1 = rf(cutoff, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Get provides a mock function with given fields: tokenID
 func (_m *UserAccessTokenStore) Get(tokenID string) (*model.UserAccessToken, error) {
 	ret := _m.Called(tokenID)
@@ -221,6 +191,36 @@ func (_m *UserAccessTokenStore) GetByUser(userID string, page int, perPage int) 
 
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userID, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetExpiredBefore provides a mock function with given fields: cutoff, limit
+func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+	ret := _m.Called(cutoff, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExpiredBefore")
+	}
+
+	var r0 []*model.UserAccessToken
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64, int) ([]*model.UserAccessToken, error)); ok {
+		return rf(cutoff, limit)
+	}
+	if rf, ok := ret.Get(0).(func(int64, int) []*model.UserAccessToken); ok {
+		r0 = rf(cutoff, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.UserAccessToken)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
+		r1 = rf(cutoff, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

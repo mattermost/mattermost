@@ -41,7 +41,7 @@ type Props = {
      * Replacement in place of edit button when the setting (in collapsed mode) is disabled
      */
     collapsedEditButtonWhenDisabled?: ReactNode;
-}
+};
 
 const SettingItem = ({
     active,

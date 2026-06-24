@@ -6,6 +6,7 @@ import {useSelector} from 'react-redux';
 
 import CopyButton from 'components/copy_button';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
@@ -16,7 +17,7 @@ type Props = {
     language: string;
     searchedContent?: string;
     channelId?: string;
-}
+};
 
 const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
     const getUsedLanguage = useCallback(() => {
@@ -91,10 +92,14 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
             const Component = item.component as any;
             return (
-                <Component
+                <PluggableErrorBoundary
                     key={item.id}
-                    code={code}
-                />
+                    pluginId={item.pluginId}
+                >
+                    <Component
+                        code={code}
+                    />
+                </PluggableErrorBoundary>
             );
         });
 

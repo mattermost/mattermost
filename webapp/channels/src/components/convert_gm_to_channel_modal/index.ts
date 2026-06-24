@@ -24,7 +24,7 @@ import ConvertGmToChannelModal from './convert_gm_to_channel_modal';
 
 type OwnProps = {
     channel: Channel;
-}
+};
 function makeMapStateToProps() {
     const getProfilesInChannel = makeGetProfilesInChannel();
 
@@ -45,7 +45,7 @@ export type Actions = {
     closeModal: (modalID: string) => void;
     convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => Promise<ActionResult>;
     moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting?: boolean) => void;
-}
+};
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {

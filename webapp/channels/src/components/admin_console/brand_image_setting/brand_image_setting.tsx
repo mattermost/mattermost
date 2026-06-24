@@ -9,7 +9,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions';
 
 import SettingSet from 'components/admin_console/setting_set';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
@@ -57,7 +57,7 @@ const BrandImageSetting = ({
     const imageRef = useRef<HTMLImageElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [brandImage, setBrandImage] = useState<Blob | undefined>();
+    const [brandImage, setBrandImage] = useState<File | undefined>();
     const [shouldDeleteBrandImage, setShouldDeleteBrandImage] = useState(false);
     const [brandImageExists, setBrandImageExists] = useState(false);
     const [brandImageTimestamp, setBrandImageTimestamp] = useState(Date.now());
@@ -127,7 +127,7 @@ const BrandImageSetting = ({
             const img = imageRef.current;
             reader.onload = (e) => {
                 const src =
-                e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
+                    e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
 
                 if (src) {
                     img.setAttribute('src', src);

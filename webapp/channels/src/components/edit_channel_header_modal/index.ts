@@ -37,4 +37,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connect(mapStateToProps, mapDispatchToProps)(EditChannelHeaderModal);
+export default connector(EditChannelHeaderModal);

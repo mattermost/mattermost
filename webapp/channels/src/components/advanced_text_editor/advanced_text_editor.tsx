@@ -80,6 +80,7 @@ import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
 import UnifiedLabelsWrapper from './unified_labels_wrapper';
 import useBurnOnRead from './use_burn_on_read';
+import {useComposerPlaceholder} from './use_composer_placeholder';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import usePluginItems from './use_plugin_items';
@@ -116,7 +117,7 @@ export type Props = {
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
-}
+};
 
 const AdvancedTextEditor = ({
     location,
@@ -133,9 +134,9 @@ const AdvancedTextEditor = ({
 
     const dispatch = useDispatch();
 
-    const getChannelSelector = useMemo(makeGetChannel, []);
-    const getDraftSelector = useMemo(makeGetDraft, []);
-    const getDisplayName = useMemo(makeGetDisplayName, []);
+    const getChannelSelector = useMemo(() => makeGetChannel(), []);
+    const getDraftSelector = useMemo(() => makeGetDraft(), []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
 
     let textboxId: string;
     if (isInEditMode) {
@@ -220,7 +221,7 @@ const AdvancedTextEditor = ({
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
-    const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
+    const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
     const [showPreview, setShowPreview] = useState(false);
     const [isMessageLong, setIsMessageLong] = useState(false);
@@ -659,6 +660,10 @@ const AdvancedTextEditor = ({
     } else {
         createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
+
+    // Let plugins append to or replace the composer placeholder for this channel (e.g. an encryption
+    // marker). Called here, after every branch has set the base placeholder.
+    createMessage = useComposerPlaceholder(channelId, createMessage);
 
     const messageValue = isDisabled && !rewriteIsProcessing ? '' : draft.message_source || draft.message;
 

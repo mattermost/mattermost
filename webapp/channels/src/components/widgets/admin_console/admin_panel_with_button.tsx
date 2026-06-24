@@ -19,7 +19,7 @@ type Props = {
     onButtonClick?: React.EventHandler<React.MouseEvent>;
     disabled?: boolean;
     buttonText?: MessageDescriptor;
-}
+};
 
 const AdminPanelWithButton = ({
     className = '',

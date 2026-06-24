@@ -1,0 +1,16 @@
+.rank-badge {
+    display: inline-flex;
+    min-width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-family: var(--font-family-monospace, monospace);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+}

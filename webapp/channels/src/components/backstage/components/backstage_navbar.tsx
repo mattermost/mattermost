@@ -12,7 +12,7 @@ import BackIcon from 'components/widgets/icons/fa_back_icon';
 type Props = {
     team?: Team;
     siteName?: string;
-}
+};
 
 const BackstageNavbar = ({team, siteName}: Props) => {
     const teamExists = team?.delete_at === 0;

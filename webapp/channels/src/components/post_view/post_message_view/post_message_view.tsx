@@ -15,6 +15,7 @@ import ShowMore from 'components/post_view/show_more';
 import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {PostTypes} from 'utils/constants';
 import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
@@ -43,13 +44,13 @@ type Props = {
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
     isChannelAutotranslated: boolean;
     userLanguage: string;
-}
+};
 
 type State = {
     collapse: boolean;
     hasOverflow: boolean;
     checkOverflow: number;
-}
+};
 
 export default class PostMessageView extends React.PureComponent<Props, State> {
     private imageProps: any;
@@ -131,12 +132,14 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         if (pluginPostTypes && Object.hasOwn(pluginPostTypes, postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
             return (
-                <PluginComponent
-                    post={post}
-                    compactDisplay={compactDisplay}
-                    isRHS={isRHS}
-                    theme={theme}
-                />
+                <PluggableErrorBoundary pluginId={pluginPostTypes[postType].pluginId}>
+                    <PluginComponent
+                        post={post}
+                        compactDisplay={compactDisplay}
+                        isRHS={isRHS}
+                        theme={theme}
+                    />
+                </PluggableErrorBoundary>
             );
         }
 

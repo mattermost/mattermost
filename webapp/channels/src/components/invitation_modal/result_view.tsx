@@ -17,7 +17,7 @@ import type {InviteResult} from './result_table';
 export type InviteResults = {
     sent: InviteResult[];
     notSent: InviteResult[];
-}
+};
 
 export type ResultState = {
     sent: InviteResult[];

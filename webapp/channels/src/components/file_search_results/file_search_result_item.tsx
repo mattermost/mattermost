@@ -28,7 +28,7 @@ type Props = OwnProps & PropsFromRedux;
 
 type State = {
     keepOpen: boolean;
-}
+};
 
 const FILE_TOOLTIP_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
