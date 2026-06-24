@@ -316,6 +316,8 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
 
   "/api/v4/sharedchannels/users/{user_id}/can_dm/{other_user_id}":
     get:

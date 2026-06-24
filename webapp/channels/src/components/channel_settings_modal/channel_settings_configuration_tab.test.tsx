@@ -577,6 +577,36 @@ describe('ChannelSettingsConfigurationTab', () => {
             expect(screen.queryByText("This channel can't be shared because it originates from another workspace.")).not.toBeInTheDocument();
         });
 
+        it('resets share eligibility when switching to another channel', async () => {
+            const {Client4} = require('mattermost-redux/client');
+            Client4.getSharedChannelCanShare.
+                mockResolvedValueOnce({can_share: false}).
+                mockImplementationOnce(() => new Promise(() => {}));
+
+            const remoteHomedChannel = {...mockChannel, id: 'channel-remote-homed'};
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={remoteHomedChannel}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(await screen.findByText("This channel can't be shared because it originates from another workspace.")).toBeInTheDocument();
+
+            const localChannel = {...mockChannel, id: 'channel-local'};
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={localChannel}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(screen.queryByText("This channel can't be shared because it originates from another workspace.")).not.toBeInTheDocument();
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeInTheDocument();
+        });
+
         it('when shared channel changes include only adding workspaces, save calls invite and fetchChannelRemotes', async () => {
             const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
             const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');

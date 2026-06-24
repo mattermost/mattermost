@@ -191,6 +191,23 @@ describe('ShareChannelWithWorkspaces', () => {
         expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
     });
 
+    it('should hide the toggle and picker when canShare is false even with prepopulated remotes', async () => {
+        renderWithContext(
+            <ShareChannelWithWorkspaces
+                remotes={mockRemotes}
+                initialRemotes={mockRemotes}
+                onRemotesChange={jest.fn()}
+                enabled={true}
+                onToggle={jest.fn()}
+                canShare={false}
+            />,
+        );
+
+        expect(await screen.findByText("This channel can't be shared because it originates from another workspace.")).toBeInTheDocument();
+        expect(screen.queryByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
+    });
+
     it('should remove workspace when remove button is clicked', async () => {
         const onRemotesChange = jest.fn();
         renderWithContext(

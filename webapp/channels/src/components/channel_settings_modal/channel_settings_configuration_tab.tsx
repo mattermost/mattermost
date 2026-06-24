@@ -327,6 +327,7 @@ function ChannelSettingsConfigurationTab({
         }
 
         let cancelled = false;
+        setCanShareChannel(true);
         Client4.getSharedChannelCanShare(channel.id).then(({can_share: canShare}) => {
             if (!cancelled) {
                 setCanShareChannel(canShare);
