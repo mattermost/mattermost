@@ -73,6 +73,8 @@ describe('SearchableSyncJobChannelList', () => {
             );
 
             expect(screen.getByText('No channels were affected by this job.')).toBeInTheDocument();
+            expect(screen.getByText('0 Results')).toBeInTheDocument();
+            expect(screen.getByLabelText('No channels were affected by this job.')).toBeInTheDocument();
             expect(screen.queryByText('No channels match your search or filter.')).not.toBeInTheDocument();
             expect(screen.queryByText(/No results for/)).not.toBeInTheDocument();
         });
@@ -86,8 +88,25 @@ describe('SearchableSyncJobChannelList', () => {
             await userEvent.type(screen.getByPlaceholderText('Search channels'), 'nomatch');
 
             expect(screen.getByText('No results for "nomatch"')).toBeInTheDocument();
+            expect(screen.getByLabelText('No results for "nomatch"')).toBeInTheDocument();
             expect(screen.getByText('No channels match your search or filter.')).toBeInTheDocument();
             expect(screen.queryByText('No channels were affected by this job.')).not.toBeInTheDocument();
+        });
+
+        it('reverts to the neutral message when the search term is cleared', async () => {
+            renderWithContext(
+                <SearchableSyncJobChannelList {...emptyProps}/>,
+                baseState,
+            );
+
+            await userEvent.type(screen.getByPlaceholderText('Search channels'), 'nomatch');
+            expect(screen.getByText('No results for "nomatch"')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('input-clear'));
+
+            expect(screen.getByText('No channels were affected by this job.')).toBeInTheDocument();
+            expect(screen.queryByText('No channels match your search or filter.')).not.toBeInTheDocument();
+            expect(screen.queryByText(/No results for/)).not.toBeInTheDocument();
         });
     });
 
