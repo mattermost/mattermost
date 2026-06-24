@@ -639,7 +639,7 @@ func TestUpdateBotActive(t *testing.T) {
 		require.Equal(t, reenabledBot.DeleteAt, reenabledBotAgain.DeleteAt)
 	})
 
-	for _, username := range []string{model.BotSystemBotUsername, model.ContentFlaggingBotUsername} {
+	for username := range model.ProtectedBotUsernames {
 		t.Run("cannot disable protected bot "+username, func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
 

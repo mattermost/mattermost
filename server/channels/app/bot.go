@@ -254,65 +254,42 @@ func (a *App) GetOrCreateSystemOwnedBot(rctx request.CTX, botUsername, botDispla
 	}
 
 	// Auto-heal: re-enable the bot if it was disabled (e.g. its owner was deactivated).
+	// UpdateBotActive routes protected bots through the admission-check-free
+	// reactivation path, so recovery succeeds even at the user cap.
 	if bot.DeleteAt != 0 {
-		return a.reactivateProtectedBot(rctx, bot)
+		return a.UpdateBotActive(rctx, bot.UserId, true)
 	}
 
 	return bot, nil
 }
 
-// reactivateProtectedBot re-enables an existing protected system-owned bot without
-// re-running active-user/license admission checks.
-func (a *App) reactivateProtectedBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
-	user, nErr := a.Srv().Store().User().Get(context.Background(), bot.UserId)
+// reactivateUser re-enables a user without running the active-user/license
+// admission checks performed by UpdateActive. It is used to recover protected
+// system-owned bots whose backing user was deactivated, so recovery is always
+// possible even when the instance is at the user cap.
+func (a *App) reactivateUser(rctx request.CTX, user *model.User) *model.AppError {
+	if user.DeleteAt == 0 {
+		return nil
+	}
+
+	user.UpdateAt = model.GetMillis()
+	user.DeleteAt = 0
+	userUpdate, nErr := a.ch.srv.userService.UpdateUser(rctx, user, true)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		var invErr *store.ErrInvalidInput
 		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("reactivateProtectedBot", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+		case errors.As(nErr, &appErr):
+			return appErr
+		case errors.As(nErr, &invErr):
+			return model.NewAppError("reactivateUser", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("reactivateProtectedBot", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return model.NewAppError("reactivateUser", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
-
-	if user.DeleteAt != 0 {
-		user.UpdateAt = model.GetMillis()
-		user.DeleteAt = 0
-		userUpdate, updateErr := a.ch.srv.userService.UpdateUser(rctx, user, true)
-		if updateErr != nil {
-			var appErr *model.AppError
-			var invErr *store.ErrInvalidInput
-			switch {
-			case errors.As(updateErr, &appErr):
-				return nil, appErr
-			case errors.As(updateErr, &invErr):
-				return nil, model.NewAppError("reactivateProtectedBot", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(updateErr)
-			default:
-				return nil, model.NewAppError("reactivateProtectedBot", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
-			}
-		}
-		a.InvalidateCacheForUser(user.Id)
-		a.sendUpdatedUserEvent(userUpdate.New)
-	}
-
-	if bot.DeleteAt != 0 {
-		bot.DeleteAt = 0
-		bot, nErr = a.Srv().Store().Bot().Update(bot)
-		if nErr != nil {
-			var nfErr *store.ErrNotFound
-			var appErr *model.AppError
-			switch {
-			case errors.As(nErr, &nfErr):
-				return nil, model.MakeBotNotFoundError("SqlBotStore.Get", nfErr.ID).Wrap(nErr)
-			case errors.As(nErr, &appErr):
-				return nil, appErr
-			default:
-				return nil, model.NewAppError("reactivateProtectedBot", "app.bot.patchbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-			}
-		}
-	}
-
-	return bot, nil
+	a.InvalidateCacheForUser(user.Id)
+	a.sendUpdatedUserEvent(userUpdate.New)
+	return nil
 }
 
 // PatchBot applies the given patch to the bot and corresponding user.
@@ -461,13 +438,11 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 		}
 	}
 
-	if _, protected := model.ProtectedBotUsernames[bot.Username]; protected {
-		if !active {
-			return nil, model.NewAppError("UpdateBotActive", "app.bot.update_bot_active.protected_bot.app_error", nil, "", http.StatusForbidden)
-		}
-		if bot.DeleteAt != 0 {
-			return a.reactivateProtectedBot(rctx, bot)
-		}
+	// System-owned bots must never be disabled. This is the single choke point
+	// for both direct API calls and the disableUserBots owner-deactivation path.
+	_, protected := model.ProtectedBotUsernames[bot.Username]
+	if protected && !active {
+		return nil, model.NewAppError("UpdateBotActive", "app.bot.update_bot_active.protected_bot.app_error", nil, "", http.StatusForbidden)
 	}
 
 	user, nErr := a.Srv().Store().User().Get(context.Background(), botUserId)
@@ -481,7 +456,13 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 		}
 	}
 
-	if _, err := a.UpdateActive(rctx, user, active); err != nil {
+	if protected && active {
+		// Re-enabling a protected bot bypasses the active-user/license admission
+		// checks so recovery is always possible, even at the user cap.
+		if err := a.reactivateUser(rctx, user); err != nil {
+			return nil, err
+		}
+	} else if _, err := a.UpdateActive(rctx, user, active); err != nil {
 		return nil, err
 	}
 

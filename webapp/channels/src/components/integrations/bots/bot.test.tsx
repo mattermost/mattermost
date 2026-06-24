@@ -204,6 +204,11 @@ describe('components/integrations/bots/Bot', () => {
 
         // An active bot should not offer Enable.
         expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
+
+        // System-owned bots are surfaced as managed by Mattermost rather than by
+        // the system admin that happens to own them.
+        expect(screen.getByText('Managed by Mattermost')).toBeInTheDocument();
+        expect(screen.queryByText(`Managed by ${owner.username}`)).not.toBeInTheDocument();
     });
 
     it('disabled protected system bot still offers a working Enable control for recovery', () => {

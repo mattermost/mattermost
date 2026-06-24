@@ -492,7 +492,14 @@ export default class Bot extends React.PureComponent<Props, State> {
         }
 
         let managedBy;
-        if (this.props.fromApp) {
+        if (isProtectedBot) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.system'
+                    defaultMessage='Managed by Mattermost'
+                />
+            );
+        } else if (this.props.fromApp) {
             managedBy = (
                 <FormattedMessage
                     id='bots.managed_by.app'
