@@ -14,6 +14,7 @@ import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
 import MarkdownImage from 'components/markdown_image';
+import MarkdownListOrdered from 'components/markdown_list_ordered';
 import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
@@ -108,6 +109,21 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                         />
                     </React.Fragment>
                 ) : null;
+            },
+        },
+        {
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'ol',
+            processNode: (node: any, children: React.ReactNode, index?: number) => {
+                return (
+                    <MarkdownListOrdered
+                        key={index}
+                        className={node.attribs.class}
+                        start={node.attribs.start ? parseInt(node.attribs.start, 10) : undefined}
+                    >
+                        {children}
+                    </MarkdownListOrdered>
+                );
             },
         },
     ];

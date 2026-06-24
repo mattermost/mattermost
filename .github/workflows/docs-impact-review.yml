@@ -14,12 +14,15 @@ permissions: {}
 
 jobs:
   docs-impact-review:
+    if: |
+      github.event.pull_request.draft == false
+      && !startsWith(github.event.pull_request.user.login, 'unified-ci-app')
+      && !contains(github.event.pull_request.labels.*.name, 'Docs/Not Needed')
     permissions:
       contents: read
       pull-requests: write
       issues: write
       id-token: write
-    if: github.event.pull_request.draft == false && !startsWith(github.event.pull_request.user.login, 'unified-ci-app')
     runs-on: ubuntu-24.04
     env:
       HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}

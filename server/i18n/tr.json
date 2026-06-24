@@ -8202,10 +8202,6 @@
     "translation": "getThreadsForUser için OnlyThreads ve OnlyTotals parametreleri aynı anda kullanılamaz"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Dosya depolama alanı ayarlarında yapılandırılmamış değerler var."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "E-posta ayarlarında yapılandırılmamış değerler var."
   },

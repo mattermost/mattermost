@@ -1,6 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ClusterInfo} from '@mattermost/types/admin';
+import type {StatusOK} from '@mattermost/types/client4';
+import type {AdminConfig, AllowedIPRange, FetchIPResponse, RequestLicenseBody} from '@mattermost/types/config';
+import type {Job, JobTypeBase} from '@mattermost/types/jobs';
+import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
+import type {AuthChangeResponse, UserProfile} from '@mattermost/types/users';
+
 import * as AdminActions from 'mattermost-redux/actions/admin';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
 import {createJob} from 'mattermost-redux/actions/jobs';
@@ -15,9 +22,15 @@ import store from 'stores/redux_store';
 
 import {ActionTypes, JobTypes} from 'utils/constants';
 
+import type {ThunkActionFunc} from 'types/store';
+import type {AdminConsolePluginComponent} from 'types/store/plugins';
+
 const dispatch = store.dispatch;
 
-export async function reloadConfig(success, error) {
+type SuccessCallback<T = StatusOK> = ((data: T) => void) | null | undefined;
+type ErrorCallback = ((error: Error & {id: string; server_error_id: string}) => void) | null | undefined;
+
+export async function reloadConfig(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.reloadConfig());
     if (data && success) {
         dispatch(AdminActions.getConfig());
@@ -28,7 +41,7 @@ export async function reloadConfig(success, error) {
     }
 }
 
-export async function adminResetMfa(userId, success, error) {
+export async function adminResetMfa(userId: string, success: SuccessCallback<boolean>, error?: ErrorCallback) {
     const {data, error: err} = await dispatch(UserActions.updateUserMfa(userId, false));
     if (data && success) {
         success(data);
@@ -37,7 +50,7 @@ export async function adminResetMfa(userId, success, error) {
     }
 }
 
-export async function getClusterStatus(success, error) {
+export async function getClusterStatus(success: SuccessCallback<ClusterInfo[]>, error?: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.getClusterStatus());
     if (data && success) {
         success(data);
@@ -46,7 +59,7 @@ export async function getClusterStatus(success, error) {
     }
 }
 
-export async function ldapTest(success, error) {
+export async function ldapTest(success: SuccessCallback, error?: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.testLdap());
     if (data && success) {
         success(data);
@@ -55,7 +68,7 @@ export async function ldapTest(success, error) {
     }
 }
 
-export async function ldapTestConnection(success, error, settings) {
+export async function ldapTestConnection(success: SuccessCallback, error: ErrorCallback, settings: any) {
     const {data, error: err} = await dispatch(AdminActions.testLdapConnection(settings));
     if (data && success) {
         success(data);
@@ -64,7 +77,7 @@ export async function ldapTestConnection(success, error, settings) {
     }
 }
 
-export async function ldapTestFilters(success, error, settings) {
+export async function ldapTestFilters(success: SuccessCallback, error: ErrorCallback, settings: any) {
     const {data, error: err} = await dispatch(AdminActions.testLdapFilters(settings));
     if (data && success) {
         success(data);
@@ -73,7 +86,7 @@ export async function ldapTestFilters(success, error, settings) {
     }
 }
 
-export async function ldapTestAttributes(success, error, settings) {
+export async function ldapTestAttributes(success: SuccessCallback, error: ErrorCallback, settings: any) {
     const {data, error: err} = await dispatch(AdminActions.testLdapAttributes(settings));
     if (data && success) {
         success(data);
@@ -82,7 +95,7 @@ export async function ldapTestAttributes(success, error, settings) {
     }
 }
 
-export async function ldapTestGroupAttributes(success, error, settings) {
+export async function ldapTestGroupAttributes(success: SuccessCallback, error: ErrorCallback, settings: any) {
     const {data, error: err} = await dispatch(AdminActions.testLdapGroupAttributes(settings));
     if (data && success) {
         success(data);
@@ -91,7 +104,7 @@ export async function ldapTestGroupAttributes(success, error, settings) {
     }
 }
 
-export async function invalidateAllCaches(success, error) {
+export async function invalidateAllCaches(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.invalidateCaches());
     if (data && success) {
         success(data);
@@ -100,7 +113,7 @@ export async function invalidateAllCaches(success, error) {
     }
 }
 
-export async function recycleDatabaseConnection(success, error) {
+export async function recycleDatabaseConnection(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.recycleDatabase());
     if (data && success) {
         success(data);
@@ -109,7 +122,7 @@ export async function recycleDatabaseConnection(success, error) {
     }
 }
 
-export async function adminResetEmail(user, success, error) {
+export async function adminResetEmail(user: UserProfile, success: SuccessCallback<UserProfile>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(UserActions.patchUser(user));
     if (data && success) {
         success(data);
@@ -118,7 +131,7 @@ export async function adminResetEmail(user, success, error) {
     }
 }
 
-export async function samlCertificateStatus(success, error) {
+export async function samlCertificateStatus(success: SuccessCallback<SamlCertificateStatus>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.getSamlCertificateStatus());
     if (data && success) {
         success(data);
@@ -127,7 +140,7 @@ export async function samlCertificateStatus(success, error) {
     }
 }
 
-export async function getIPFilters(success, error) {
+export async function getIPFilters(success: SuccessCallback<AllowedIPRange[]>, error?: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.getIPFilters());
     if (data && success) {
         success(data);
@@ -136,7 +149,7 @@ export async function getIPFilters(success, error) {
     }
 }
 
-export async function getCurrentIP(success, error) {
+export async function getCurrentIP(success: SuccessCallback<FetchIPResponse>, error?: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.getCurrentIP());
     if (data && success) {
         success(data);
@@ -145,7 +158,7 @@ export async function getCurrentIP(success, error) {
     }
 }
 
-export async function applyIPFilters(ipList, success, error) {
+export async function applyIPFilters(ipList: AllowedIPRange[], success: SuccessCallback<AllowedIPRange[]>, error?: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.applyIPFilters(ipList));
     if (data && success) {
         success(data);
@@ -154,29 +167,47 @@ export async function applyIPFilters(ipList, success, error) {
     }
 }
 
-/**
- * @param {string | null} clientId
- * @returns {ActionResult<OAuthApp>}
- */
-export function getOAuthAppInfo(clientId) {
+export function getOAuthAppInfo(clientId: string) {
     return bindClientFunc({
         clientFunc: Client4.getOAuthAppInfo,
         params: [clientId],
     });
 }
 
-/**
- * @param {*}
- * @returns {ActionResult<{redirect: string}>}
- */
-export function allowOAuth2({responseType, clientId, redirectUri, state, scope, resource, codeChallenge, codeChallengeMethod}) {
+export function allowOAuth2({
+    responseType,
+    clientId,
+    redirectUri,
+    state,
+    scope,
+    resource,
+    codeChallenge,
+    codeChallengeMethod,
+}: {
+    responseType: string | null;
+    clientId: string | null;
+    redirectUri: string | null;
+    state: string | null;
+    scope: string | null;
+    resource?: string | null;
+    codeChallenge?: string | null;
+    codeChallengeMethod?: string | null;
+}) {
     return bindClientFunc({
         clientFunc: Client4.authorizeOAuthApp,
         params: [responseType, clientId, redirectUri, state, scope, resource, codeChallenge, codeChallengeMethod],
     });
 }
 
-export async function emailToLdap(loginId, password, token, ldapId, ldapPassword, success, error) {
+export async function emailToLdap(
+    loginId: string,
+    password: string,
+    token: string | undefined,
+    ldapId: string,
+    ldapPassword: string,
+    success: SuccessCallback<AuthChangeResponse>,
+    error: ErrorCallback,
+) {
     const {data, error: err} = await dispatch(UserActions.switchEmailToLdap(loginId, password, ldapId, ldapPassword, token));
     if (data && success) {
         success(data);
@@ -185,7 +216,14 @@ export async function emailToLdap(loginId, password, token, ldapId, ldapPassword
     }
 }
 
-export async function emailToOAuth(loginId, password, token, newType, success, error) {
+export async function emailToOAuth(
+    loginId: string,
+    password: string,
+    token: string | undefined,
+    newType: string,
+    success: SuccessCallback<AuthChangeResponse>,
+    error: ErrorCallback,
+) {
     const {data, error: err} = await dispatch(UserActions.switchEmailToOAuth(newType, loginId, password, token));
     if (data && success) {
         success(data);
@@ -194,7 +232,13 @@ export async function emailToOAuth(loginId, password, token, newType, success, e
     }
 }
 
-export async function oauthToEmail(currentService, email, password, success, error) {
+export async function oauthToEmail(
+    currentService: string,
+    email: string,
+    password: string,
+    success: SuccessCallback<AuthChangeResponse>,
+    error: ErrorCallback,
+) {
     const {data, error: err} = await dispatch(UserActions.switchOAuthToEmail(currentService, email, password));
     if (data) {
         if (data.follow_link) {
@@ -208,7 +252,7 @@ export async function oauthToEmail(currentService, email, password, success, err
     }
 }
 
-export async function uploadBrandImage(brandImage, success, error) {
+export async function uploadBrandImage(brandImage: File, success: SuccessCallback<StatusOK>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.uploadBrandImage(brandImage));
     if (data && success) {
         success(data);
@@ -217,7 +261,7 @@ export async function uploadBrandImage(brandImage, success, error) {
     }
 }
 
-export async function deleteBrandImage(success, error) {
+export async function deleteBrandImage(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.deleteBrandImage());
     if (data && success) {
         success(data);
@@ -226,7 +270,7 @@ export async function deleteBrandImage(success, error) {
     }
 }
 
-export async function uploadPublicSamlCertificate(file, success, error) {
+export async function uploadPublicSamlCertificate(file: File, success: SuccessCallback<string>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.uploadPublicSamlCertificate(file));
     if (data && success) {
         success('saml-public.crt');
@@ -235,7 +279,7 @@ export async function uploadPublicSamlCertificate(file, success, error) {
     }
 }
 
-export async function uploadPrivateSamlCertificate(file, success, error) {
+export async function uploadPrivateSamlCertificate(file: File, success: SuccessCallback<string>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.uploadPrivateSamlCertificate(file));
     if (data && success) {
         success('saml-private.key');
@@ -244,7 +288,7 @@ export async function uploadPrivateSamlCertificate(file, success, error) {
     }
 }
 
-export async function uploadPublicLdapCertificate(file, success, error) {
+export async function uploadPublicLdapCertificate(file: File, success: SuccessCallback<string>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.uploadPublicLdapCertificate(file));
     if (data && success) {
         success('ldap-public.crt');
@@ -252,7 +296,7 @@ export async function uploadPublicLdapCertificate(file, success, error) {
         error({id: err.server_error_id, ...err});
     }
 }
-export async function uploadPrivateLdapCertificate(file, success, error) {
+export async function uploadPrivateLdapCertificate(file: File, success: SuccessCallback<string>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.uploadPrivateLdapCertificate(file));
     if (data && success) {
         success('ldap-private.key');
@@ -261,7 +305,7 @@ export async function uploadPrivateLdapCertificate(file, success, error) {
     }
 }
 
-export async function uploadIdpSamlCertificate(file, success, error) {
+export async function uploadIdpSamlCertificate(file: File, success: SuccessCallback<string>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.uploadIdpSamlCertificate(file));
     if (data && success) {
         success('saml-idp.crt');
@@ -270,7 +314,7 @@ export async function uploadIdpSamlCertificate(file, success, error) {
     }
 }
 
-export async function uploadAuditCertificate(fileData, success, error) {
+export async function uploadAuditCertificate(fileData: File, success: SuccessCallback<string>, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.uploadAuditCertificate(fileData));
     if (data && success) {
         success('audit.crt');
@@ -279,7 +323,7 @@ export async function uploadAuditCertificate(fileData, success, error) {
     }
 }
 
-export async function removeAuditCertificate(success, error) {
+export async function removeAuditCertificate(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.removeAuditCertificate());
     if (data && success) {
         success(data);
@@ -288,7 +332,7 @@ export async function removeAuditCertificate(success, error) {
     }
 }
 
-export async function removePublicSamlCertificate(success, error) {
+export async function removePublicSamlCertificate(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.removePublicSamlCertificate());
     if (data && success) {
         success(data);
@@ -297,7 +341,7 @@ export async function removePublicSamlCertificate(success, error) {
     }
 }
 
-export async function removePrivateSamlCertificate(success, error) {
+export async function removePrivateSamlCertificate(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.removePrivateSamlCertificate());
     if (data && success) {
         success(data);
@@ -306,7 +350,7 @@ export async function removePrivateSamlCertificate(success, error) {
     }
 }
 
-export async function removePublicLdapCertificate(success, error) {
+export async function removePublicLdapCertificate(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.removePublicLdapCertificate());
     if (data && success) {
         success(data);
@@ -315,7 +359,7 @@ export async function removePublicLdapCertificate(success, error) {
     }
 }
 
-export async function removePrivateLdapCertificate(success, error) {
+export async function removePrivateLdapCertificate(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.removePrivateLdapCertificate());
     if (data && success) {
         success(data);
@@ -324,7 +368,7 @@ export async function removePrivateLdapCertificate(success, error) {
     }
 }
 
-export async function removeIdpSamlCertificate(success, error) {
+export async function removeIdpSamlCertificate(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.removeIdpSamlCertificate());
     if (data && success) {
         success(data);
@@ -333,7 +377,7 @@ export async function removeIdpSamlCertificate(success, error) {
     }
 }
 
-export async function getStandardAnalytics(teamId) {
+export async function getStandardAnalytics(teamId?: string) {
     await dispatch(AdminActions.getStandardAnalytics(teamId));
 }
 
@@ -341,23 +385,23 @@ export async function refreshServerLimits() {
     await dispatch(getServerLimitsAction());
 }
 
-export async function getAdvancedAnalytics(teamId) {
+export async function getAdvancedAnalytics(teamId?: string) {
     await dispatch(AdminActions.getAdvancedAnalytics(teamId));
 }
 
-export async function getBotPostsPerDayAnalytics(teamId) {
+export async function getBotPostsPerDayAnalytics(teamId?: string) {
     await dispatch(AdminActions.getBotPostsPerDayAnalytics(teamId));
 }
 
-export async function getPostsPerDayAnalytics(teamId) {
+export async function getPostsPerDayAnalytics(teamId?: string) {
     await dispatch(AdminActions.getPostsPerDayAnalytics(teamId));
 }
 
-export async function getUsersPerDayAnalytics(teamId) {
+export async function getUsersPerDayAnalytics(teamId?: string) {
     await dispatch(AdminActions.getUsersPerDayAnalytics(teamId));
 }
 
-export async function elasticsearchTest(config, success, error) {
+export async function elasticsearchTest(config: AdminConfig, success: SuccessCallback, error?: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.testElasticsearch(config));
     if (data && success) {
         success(data);
@@ -366,7 +410,7 @@ export async function elasticsearchTest(config, success, error) {
     }
 }
 
-export async function testFileStoreConnection(success, error) {
+export async function testFileStoreConnection(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.testFileStoreConnection());
     if (data && success) {
         success(data);
@@ -375,7 +419,7 @@ export async function testFileStoreConnection(success, error) {
     }
 }
 
-export async function elasticsearchPurgeIndexes(success, error, indexes) {
+export async function elasticsearchPurgeIndexes(success: SuccessCallback, error: ErrorCallback, indexes?: string[]) {
     const {data, error: err} = await dispatch(AdminActions.purgeElasticsearchIndexes(indexes));
     if (data && success) {
         success(data);
@@ -384,7 +428,7 @@ export async function elasticsearchPurgeIndexes(success, error, indexes) {
     }
 }
 
-export async function jobCreate(success, error, job) {
+export async function jobCreate(success: SuccessCallback<Job>, error: ErrorCallback, job: JobTypeBase & {data?: any}) {
     const {data, error: err} = await dispatch(createJob(job));
     if (data && success) {
         success(data);
@@ -393,7 +437,7 @@ export async function jobCreate(success, error, job) {
     }
 }
 
-export async function rebuildChannelsIndex(success, error) {
+export async function rebuildChannelsIndex(success: SuccessCallback<void>, error: ErrorCallback) {
     await elasticsearchPurgeIndexes(undefined, error, ['channels']);
     const job = {
         type: JobTypes.ELASTICSEARCH_POST_INDEXING,
@@ -406,17 +450,17 @@ export async function rebuildChannelsIndex(success, error) {
         },
     };
     await jobCreate(undefined, error, job);
-    success();
+    success?.();
 }
 
-export function setNavigationBlocked(blocked) {
+export function setNavigationBlocked(blocked: boolean) {
     return {
         type: ActionTypes.SET_NAVIGATION_BLOCKED,
         blocked,
     };
 }
 
-export function deferNavigation(onNavigationConfirmed) {
+export function deferNavigation(onNavigationConfirmed: () => void) {
     return {
         type: ActionTypes.DEFER_NAVIGATION,
         onNavigationConfirmed,
@@ -429,7 +473,7 @@ export function cancelNavigation() {
     };
 }
 
-export function confirmNavigation() {
+export function confirmNavigation(): ThunkActionFunc<void> {
     // have to rename these because of lint no-shadow
     return (thunkDispatch, thunkGetState) => {
         const callback = getOnNavigationConfirmed(thunkGetState());
@@ -444,7 +488,7 @@ export function confirmNavigation() {
     };
 }
 
-export async function invalidateAllEmailInvites(success, error) {
+export async function invalidateAllEmailInvites(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(TeamActions.invalidateAllEmailInvites());
     if (data && success) {
         success(data);
@@ -453,7 +497,7 @@ export async function invalidateAllEmailInvites(success, error) {
     }
 }
 
-export async function testSmtp(success, error) {
+export async function testSmtp(success: SuccessCallback, error: ErrorCallback) {
     const {data, error: err} = await dispatch(AdminActions.testEmail());
     if (data && success) {
         success(data);
@@ -462,7 +506,7 @@ export async function testSmtp(success, error) {
     }
 }
 
-export function registerAdminConsolePlugin(pluginId, reducer) {
+export function registerAdminConsolePlugin(pluginId: string, reducer: unknown): ThunkActionFunc<void> {
     return (storeDispatch) => {
         storeDispatch({
             type: ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER,
@@ -474,7 +518,7 @@ export function registerAdminConsolePlugin(pluginId, reducer) {
     };
 }
 
-export function unregisterAdminConsolePlugin(pluginId) {
+export function unregisterAdminConsolePlugin(pluginId: string): ThunkActionFunc<void> {
     return (storeDispatch) => {
         storeDispatch({
             type: ActionTypes.REMOVED_ADMIN_CONSOLE_REDUCER,
@@ -485,7 +529,7 @@ export function unregisterAdminConsolePlugin(pluginId) {
     };
 }
 
-export async function testSiteURL(success, error, siteURL) {
+export async function testSiteURL(success: SuccessCallback, error: ErrorCallback, siteURL: string) {
     const {data, error: err} = await dispatch(AdminActions.testSiteURL(siteURL));
     if (data && success) {
         success(data);
@@ -494,7 +538,12 @@ export async function testSiteURL(success, error, siteURL) {
     }
 }
 
-export function registerAdminConsoleCustomSetting(pluginId, key, component, {showTitle}) {
+export function registerAdminConsoleCustomSetting(
+    pluginId: string,
+    key: string,
+    component: React.Component,
+    {showTitle}: AdminConsolePluginComponent['options'],
+): ThunkActionFunc<void> {
     return (storeDispatch) => {
         storeDispatch({
             type: ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT,
@@ -508,7 +557,11 @@ export function registerAdminConsoleCustomSetting(pluginId, key, component, {sho
     };
 }
 
-export function registerAdminConsoleCustomSection(pluginId, key, component) {
+export function registerAdminConsoleCustomSection(
+    pluginId: string,
+    key: string,
+    component: React.Component,
+): ThunkActionFunc<void> {
     return (storeDispatch) => {
         storeDispatch({
             type: ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION,
@@ -521,7 +574,11 @@ export function registerAdminConsoleCustomSection(pluginId, key, component) {
     };
 }
 
-export async function getSamlMetadataFromIdp(success, error, samlMetadataURL) {
+export async function getSamlMetadataFromIdp(
+    success: SuccessCallback<SamlMetadataResponse>,
+    error: ErrorCallback,
+    samlMetadataURL: string,
+) {
     const {data, error: err} = await dispatch(AdminActions.getSamlMetadataFromIdp(samlMetadataURL));
     if (data && success) {
         success(data);
@@ -530,7 +587,7 @@ export async function getSamlMetadataFromIdp(success, error, samlMetadataURL) {
     }
 }
 
-export async function setSamlIdpCertificateFromMetadata(success, error, certData) {
+export async function setSamlIdpCertificateFromMetadata(success: SuccessCallback<string>, error: ErrorCallback, certData: string) {
     const {data, error: err} = await dispatch(AdminActions.setSamlIdpCertificateFromMetadata(certData));
     if (data && success) {
         success('saml-idp.crt');
@@ -571,14 +628,14 @@ export function restartServer() {
     };
 }
 
-export function ping(getServerStatus, deviceId) {
+export function ping(getServerStatus?: boolean, deviceId?: string) {
     return async () => {
         const data = await Client4.ping(getServerStatus, deviceId);
         return data;
     };
 }
 
-export function requestTrialLicense(requestLicenseBody) {
+export function requestTrialLicense(requestLicenseBody: RequestLicenseBody) {
     return async () => {
         try {
             const response = await Client4.requestTrialLicense(requestLicenseBody);
