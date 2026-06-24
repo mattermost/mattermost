@@ -317,7 +317,13 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
 
     test('calls onNameChange with the typed value when the team name is edited', async () => {
         const onNameChange = jest.fn();
-        renderWithContext(<TeamProfile {...baseProps} onNameChange={onNameChange}/>, initialState);
+        renderWithContext(
+            <TeamProfile
+                {...baseProps}
+                onNameChange={onNameChange}
+            />,
+            initialState,
+        );
 
         await userEvent.type(screen.getByTestId('teamNameInput'), '!');
 
@@ -328,7 +334,13 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
 
     test('calls onDescriptionChange with the typed value when the description is edited', async () => {
         const onDescriptionChange = jest.fn();
-        renderWithContext(<TeamProfile {...baseProps} onDescriptionChange={onDescriptionChange}/>, initialState);
+        renderWithContext(
+            <TeamProfile
+                {...baseProps}
+                onDescriptionChange={onDescriptionChange}
+            />,
+            initialState,
+        );
 
         await userEvent.type(screen.getByTestId('teamDescriptionInput'), '.');
 
@@ -337,7 +349,13 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
 
     test('shows the validation error attached to the name field when nameError is provided', () => {
         const nameError = <span>{'Team name must be 2 or more characters'}</span>;
-        renderWithContext(<TeamProfile {...baseProps} nameError={nameError}/>, initialState);
+        renderWithContext(
+            <TeamProfile
+                {...baseProps}
+                nameError={nameError}
+            />,
+            initialState,
+        );
 
         // The error must render within the name field's container, not the description field's.
         const nameContainer = screen.getByTestId('teamNameInput').closest('.Input_container') as HTMLElement;
@@ -348,7 +366,13 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
     });
 
     test('disables the name and description fields when isDisabled is set', () => {
-        renderWithContext(<TeamProfile {...baseProps} isDisabled={true}/>, initialState);
+        renderWithContext(
+            <TeamProfile
+                {...baseProps}
+                isDisabled={true}
+            />,
+            initialState,
+        );
 
         expect(screen.getByTestId('teamNameInput')).toBeDisabled();
         expect(screen.getByTestId('teamDescriptionInput')).toBeDisabled();

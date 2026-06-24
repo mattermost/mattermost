@@ -246,7 +246,13 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             description: 'Another description',
             delete_at: 0,
         });
-        rerender(<TeamDetails {...baseProps} team={otherTeam} teamID={otherTeam.id}/>);
+        rerender(
+            <TeamDetails
+                {...baseProps}
+                team={otherTeam}
+                teamID={otherTeam.id}
+            />,
+        );
 
         expect(screen.getByLabelText('Team Name')).toHaveValue('Another Team');
         expect(screen.getByLabelText('Team Description')).toHaveValue('Another description');
