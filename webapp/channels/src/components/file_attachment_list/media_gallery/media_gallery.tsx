@@ -7,7 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
