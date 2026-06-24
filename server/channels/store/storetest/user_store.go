@@ -6797,6 +6797,49 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 		require.Equal(t, users[2].Username, userReport[2].Username)
 	})
 
+	t.Run("should include team membership data", func(t *testing.T) {
+		// users[0] and users[1] are members of the shared `team` fixture, while
+		// the rest of the users do not belong to any team.
+		teamB, tErr := ss.Team().Save(&model.Team{
+			DisplayName: "AAA First Team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, tErr)
+
+		// users[0] also belongs to teamB so we can assert multi-team aggregation.
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: users[0].Id, TeamId: teamB.Id}, 100)
+		require.NoError(t, tErr)
+
+		defer func() {
+			require.NoError(t, ss.Team().RemoveMember(rctx, teamB.Id, users[0].Id))
+			require.NoError(t, ss.Team().PermanentDelete(teamB.Id))
+		}()
+
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   200,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		teamsByUserID := map[string]string{}
+		for _, report := range userReport {
+			teamsByUserID[report.Id] = report.Teams
+		}
+
+		// A user in multiple teams has the team display names joined together,
+		// ordered alphabetically by display name.
+		require.Equal(t, "AAA First Team, "+team.DisplayName, teamsByUserID[users[0].Id])
+		// A user in a single team reports just that team.
+		require.Equal(t, team.DisplayName, teamsByUserID[users[1].Id])
+		// A user without any team membership reports an empty string.
+		require.Equal(t, "", teamsByUserID[users[2].Id])
+	})
+
 	t.Run("should return in the correct order", func(t *testing.T) {
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
