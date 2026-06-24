@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -23,6 +24,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
+
+// ErrLicenseWrongEnvironment indicates the license signature is valid, but was signed
+// for a different service environment than the one this server is running in (e.g. a
+// production license uploaded to a test/dev server, or vice versa).
+var ErrLicenseWrongEnvironment = errors.New("license is signed for a different service environment")
 
 var LicenseValidator LicenseValidatorIface
 
@@ -43,7 +49,7 @@ type LicenseValidatorImpl struct {
 func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
 	licenseStr, err := l.ValidateLicense(licenseBytes)
 	if err != nil {
-		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, NewLicenseValidationAppError("LicenseFromBytes", err)
 	}
 
 	var license model.License
@@ -74,35 +80,67 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 	plaintext := decoded[:len(decoded)-256]
 	signature := decoded[len(decoded)-256:]
 
-	var publicKey []byte
-	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentProduction:
-		publicKey = productionPublicKey
-	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
-		publicKey = testPublicKey
-	}
-	block, _ := pem.Decode(publicKey)
-	if block == nil {
-		return "", fmt.Errorf("failed to decode public key PEM block for environment %q", model.GetServiceEnvironment())
-	}
-
-	public, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return "", fmt.Errorf("Encountered error signing license: %w", err)
-	}
-
-	rsaPublic := public.(*rsa.PublicKey)
+	primaryKey, alternateKey := licenseKeysForEnvironment(model.GetServiceEnvironment())
 
 	h := sha512.New()
 	h.Write(plaintext)
 	d := h.Sum(nil)
 
-	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
-	if err != nil {
+	if err := verifyLicenseSignature(primaryKey, d, signature); err != nil {
+		// The license did not verify against this environment's key. If it verifies
+		// against the other environment's key, the license is genuine but was signed
+		// for a different service environment, so report that distinctly.
+		if altErr := verifyLicenseSignature(alternateKey, d, signature); altErr == nil {
+			return "", ErrLicenseWrongEnvironment
+		}
 		return "", fmt.Errorf("Invalid signature: %w", err)
 	}
 
 	return string(plaintext), nil
+}
+
+// licenseKeysForEnvironment returns the public key for the given service environment
+// (primary) along with the public key for the other environment (alternate).
+func licenseKeysForEnvironment(environment string) (primary, alternate []byte) {
+	switch environment {
+	case model.ServiceEnvironmentProduction:
+		return productionPublicKey, testPublicKey
+	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
+		return testPublicKey, productionPublicKey
+	default:
+		return nil, nil
+	}
+}
+
+// verifyLicenseSignature verifies the RSA PKCS1v15 signature of a license digest against
+// the provided PEM-encoded public key.
+func verifyLicenseSignature(publicKey, digest, signature []byte) error {
+	block, _ := pem.Decode(publicKey)
+	if block == nil {
+		return fmt.Errorf("failed to decode public key PEM block")
+	}
+
+	public, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return fmt.Errorf("encountered error parsing public key: %w", err)
+	}
+
+	rsaPublic, ok := public.(*rsa.PublicKey)
+	if !ok {
+		return fmt.Errorf("public key is not an RSA key")
+	}
+
+	return rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, digest, signature)
+}
+
+// NewLicenseValidationAppError converts a license validation error returned by
+// ValidateLicense into a user-facing AppError, distinguishing a license signed for the
+// wrong service environment from a generally invalid license.
+func NewLicenseValidationAppError(where string, err error) *model.AppError {
+	if errors.Is(err, ErrLicenseWrongEnvironment) {
+		return model.NewAppError(where, model.WrongEnvironmentLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	return model.NewAppError(where, model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 }
 
 func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte, error) {

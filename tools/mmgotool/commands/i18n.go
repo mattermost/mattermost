@@ -485,6 +485,7 @@ func extractForConstants(name string, valueNode ast.Expr) *string {
 		"MissingAccountError":          true,
 		"ExpiredLicenseError":          true,
 		"InvalidLicenseError":          true,
+		"WrongEnvironmentLicenseError": true,
 		"NoTranslation":                true,
 		"PayloadParseError":            true,
 	}
