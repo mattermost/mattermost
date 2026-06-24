@@ -214,12 +214,6 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 		c.Attrs.SAML = ""
 	}
 
-	// Clear sync properties if managed is set (mutual exclusivity)
-	if c.IsAdminManaged() {
-		c.Attrs.LDAP = ""
-		c.Attrs.SAML = ""
-	}
-
 	switch c.Type {
 	case PropertyFieldTypeText:
 		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
