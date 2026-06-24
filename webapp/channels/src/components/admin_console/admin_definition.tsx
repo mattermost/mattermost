@@ -2750,7 +2750,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     featureName: 'mobile_ephemeral_mode',
                                     title: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.title', defaultMessage: 'Control mobile data persistence with Mobile Ephemeral Mode'}),
                                     description: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Mobile Ephemeral Mode to enforce data persistence policies on mobile devices. Configure disconnection timeouts, offline data retention, and automatic cache cleanup.'}),
-                                    learnMoreURL: 'https://docs.mattermost.com',
+                                    learnMoreURL: 'https://docs.mattermost.com/configure/environment-configuration-settings.html#mobile-security',
                                 },
                             },
                             isHidden: it.configIsFalse('FeatureFlags', 'MobileEphemeralMode'),
