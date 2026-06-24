@@ -39,11 +39,13 @@ describe('components/admin_console/feature_discovery/features/AutoTranslationFea
         renderWithContext(<AutoTranslationFeatureDiscovery/>);
 
         expect(screen.getByText('Remove language barriers with auto-translation')).toBeInTheDocument();
+        expect(screen.getByText(/Effortlessly collaborate across languages/)).toBeInTheDocument();
 
         expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'Learn more'})).toHaveAttribute(
             'href',
-            expect.stringContaining('https://docs.mattermost.com/administration-guide/manage/admin/autotranslation.html'),
+            expect.stringContaining('docs.mattermost.com/administration-guide/manage/admin/autotranslation.html'),
         );
+        expect(document.querySelector('.FeatureDiscovery_imageWrapper svg')).toBeInTheDocument();
     });
 });
