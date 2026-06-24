@@ -3,6 +3,8 @@
 
 import type {IntlShape} from 'react-intl';
 
+import * as limits from './limits';
+import * as mmBlock from './mm_block';
 import {
     ADAPTIVE_CARDS_COMPLEX,
     ADAPTIVE_CARDS_SIMPLE,
@@ -20,8 +22,6 @@ import {
 } from './test_fixtures';
 
 import {getPostInteractiveIntegrationFormat, hasInteractiveMessageProps, translatePostProps} from './index';
-import * as limits from './limits';
-import * as mmBlock from './mm_block';
 
 const mockIntl = {
     formatMessage: jest.fn((descriptor) => descriptor.defaultMessage),
