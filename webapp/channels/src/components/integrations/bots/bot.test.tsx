@@ -179,6 +179,52 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.getByText('Disable')).toBeInTheDocument();
     });
 
+    it.each(['system-bot', 'content-review'])('protected system bot %s hides Edit and Disable but keeps token management', (username) => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1', username});
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
+            />,
+        );
+
+        // Token management remains available for system-owned bots.
+        expect(screen.getByText('Create New Token')).toBeInTheDocument();
+
+        // Edit and Disable must be hidden so the bot cannot be disabled from the UI.
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
+    });
+
+    it('disabled protected system bot still offers Enable for recovery', () => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1', username: 'system-bot'});
+        bot.delete_at = 100; // disabled
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
+            />,
+        );
+
+        expect(screen.getByText('Enable')).toBeInTheDocument();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
+    });
+
     it('bot with access tokens', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         const tokenId = generateId();

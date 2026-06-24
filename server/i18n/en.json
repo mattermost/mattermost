@@ -5491,6 +5491,10 @@
     "translation": "Unable to update the bot."
   },
   {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Cannot disable a system-owned bot."
+  },
+  {
     "id": "app.burn_post.not_burn_on_read.app_error",
     "translation": "This post is not a burn-on-read post and cannot be burned."
   },

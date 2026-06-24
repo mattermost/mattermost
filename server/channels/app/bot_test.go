@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -637,6 +638,32 @@ func TestUpdateBotActive(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, reenabledBot.DeleteAt, reenabledBotAgain.DeleteAt)
 	})
+
+	t.Run("cannot disable a protected system bot", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+		require.Equal(t, model.BotSystemBotUsername, systemBot.Username)
+
+		_, err = th.App.UpdateBotActive(th.Context, systemBot.UserId, false)
+		require.NotNil(t, err)
+		require.Equal(t, "app.bot.update_bot_active.protected_bot.app_error", err.Id)
+		require.Equal(t, http.StatusForbidden, err.StatusCode)
+
+		// The bot and its user must remain active.
+		refetched, err := th.App.GetBot(th.Context, systemBot.UserId, true)
+		require.Nil(t, err)
+		require.Zero(t, refetched.DeleteAt)
+
+		botUser, err := th.App.GetUser(systemBot.UserId)
+		require.Nil(t, err)
+		require.Zero(t, botUser.DeleteAt)
+
+		// Re-enabling a protected bot is still allowed, so recovery remains possible.
+		_, err = th.App.UpdateBotActive(th.Context, systemBot.UserId, true)
+		require.Nil(t, err)
+	})
 }
 
 func TestPermanentDeleteBot(t *testing.T) {
@@ -994,6 +1021,51 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
+
+	t.Run("A disabled system bot is automatically re-enabled when retrieved", func(t *testing.T) {
+		bot, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+
+		// Simulate a legacy installation where the system bot was disabled
+		// before the protection guard existed, by disabling it directly in the
+		// store to bypass UpdateBotActive's guard.
+		storedBot, nErr := th.App.Srv().Store().Bot().Get(bot.UserId, true)
+		require.NoError(t, nErr)
+		storedBot.DeleteAt = model.GetMillis()
+		_, nErr = th.App.Srv().Store().Bot().Update(storedBot)
+		require.NoError(t, nErr)
+
+		disabled, err := th.App.GetBot(th.Context, bot.UserId, true)
+		require.Nil(t, err)
+		require.NotZero(t, disabled.DeleteAt)
+
+		// Retrieving the system bot should auto-heal it back to active.
+		healed, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+		require.Zero(t, healed.DeleteAt)
+	})
+}
+
+func TestSystemBotProtectedFromOwnerDeactivation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true
+	})
+
+	// The system bot's owner is the first system admin.
+	systemBot, err := th.App.GetSystemBot(th.Context)
+	require.Nil(t, err)
+	require.Equal(t, model.BotSystemBotUsername, systemBot.Username)
+
+	// Deactivating the owner must not disable the protected system bot.
+	err = th.App.disableUserBots(th.Context, systemBot.OwnerId)
+	require.Nil(t, err)
+
+	refetched, err := th.App.GetBot(th.Context, systemBot.UserId, true)
+	require.Nil(t, err)
+	require.Zero(t, refetched.DeleteAt, "system bot should remain enabled after owner deactivation")
 }
 
 func TestIsBotExemptFromDMRestrictions(t *testing.T) {
