@@ -1436,6 +1436,22 @@ func (mr *MockClientMockRecorder) GetTeamByName(arg0, arg1, arg2 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamByName", reflect.TypeOf((*MockClient)(nil).GetTeamByName), arg0, arg1, arg2)
 }
 
+// GetTeamMembersByIds mocks base method.
+func (m *MockClient) GetTeamMembersByIds(arg0 context.Context, arg1 string, arg2 []string) ([]*model.TeamMember, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTeamMembersByIds", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.TeamMember)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetTeamMembersByIds indicates an expected call of GetTeamMembersByIds.
+func (mr *MockClientMockRecorder) GetTeamMembersByIds(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamMembersByIds", reflect.TypeOf((*MockClient)(nil).GetTeamMembersByIds), arg0, arg1, arg2)
+}
+
 // GetUpload mocks base method.
 func (m *MockClient) GetUpload(arg0 context.Context, arg1 string) (*model.UploadSession, *model.Response, error) {
 	m.ctrl.T.Helper()
