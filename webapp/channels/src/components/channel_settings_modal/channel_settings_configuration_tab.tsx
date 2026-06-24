@@ -246,6 +246,11 @@ function ChannelSettingsConfigurationTab({
     );
     const [showRemoveSharingConfirmModal, setShowRemoveSharingConfirmModal] = useState(false);
 
+    // Whether this channel can be shared with additional connected workspaces.
+    // It is false when the channel originates from another workspace (homed on
+    // a remote), in which case the share controls are replaced with a notice.
+    const [canShareChannel, setCanShareChannel] = useState(true);
+
     // Key to force re-render the ShareChannelWithWorkspaces component
     // on reset and on save
     const [shareChannelKey, setShareChannelKey] = useState(Date.now());
@@ -315,6 +320,26 @@ function ChannelSettingsConfigurationTab({
             dispatch(fetchChannelRemotes(channel.id, true));
         }
     }, [canManageSharedChannels, channel.id, dispatch]);
+
+    useEffect(() => {
+        if (!canManageSharedChannels) {
+            return undefined;
+        }
+
+        let cancelled = false;
+        Client4.getSharedChannelCanShare(channel.id).then(({can_share: canShare}) => {
+            if (!cancelled) {
+                setCanShareChannel(canShare);
+            }
+        }).catch(() => {
+            if (!cancelled) {
+                setCanShareChannel(true);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [canManageSharedChannels, channel.id]);
 
     useDidUpdate(() => {
         if (initialRemotes && canManageSharedChannels) {
@@ -628,6 +653,7 @@ function ChannelSettingsConfigurationTab({
                         onRemotesChange={setWorkspaceRemotes}
                         enabled={sharingEnabled}
                         onToggle={setSharingEnabled}
+                        canShare={canShareChannel}
                     />
                 </>
             )}

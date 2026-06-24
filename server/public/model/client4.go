@@ -7588,6 +7588,19 @@ func (c *Client4) GetAllSharedChannels(ctx context.Context, teamID string, page,
 	return DecodeJSONFromResponse[[]*SharedChannel](r)
 }
 
+func (c *Client4) GetSharedChannelCanShare(ctx context.Context, channelID string) (bool, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.sharedChannelsRoute().Join(channelID, "can_share"), "")
+	if err != nil {
+		return false, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	result, _, decodeErr := DecodeJSONFromResponse[map[string]bool](r)
+	if decodeErr != nil {
+		return false, BuildResponse(r), decodeErr
+	}
+	return result["can_share"], BuildResponse(r), nil
+}
+
 func (c *Client4) GetRemoteClusterInfo(ctx context.Context, remoteID string) (RemoteClusterInfo, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.sharedChannelsRoute().Join("remote_info", remoteID), "")
 	if err != nil {

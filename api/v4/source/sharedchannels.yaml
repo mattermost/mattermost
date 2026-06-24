@@ -275,6 +275,48 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
+  "/api/v4/sharedchannels/{channel_id}/can_share":
+    get:
+      tags:
+        - shared channels
+      summary: Check if a channel can be shared with connected workspaces
+      description: |
+        Reports whether a channel can be shared with additional connected
+        workspaces from this server. A channel that already originates from
+        another workspace (its shared channel record is homed on a remote
+        cluster) cannot be shared further, so `can_share` is `false`.
+
+        __Minimum server version__: 11.9
+
+        ##### Permissions
+        Must be authenticated and have the `read_channel` permission for the channel.
+      operationId: CanShareChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel share eligibility retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  can_share:
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   "/api/v4/sharedchannels/users/{user_id}/can_dm/{other_user_id}":
     get:
       tags:

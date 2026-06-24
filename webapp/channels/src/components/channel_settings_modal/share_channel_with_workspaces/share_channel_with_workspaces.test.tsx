@@ -171,6 +171,26 @@ describe('ShareChannelWithWorkspaces', () => {
         });
     });
 
+    it('should show a not-shareable notice and hide the toggle and picker when canShare is false', async () => {
+        renderWithContext(
+            <ShareChannelWithWorkspaces
+                remotes={[]}
+                initialRemotes={[]}
+                onRemotesChange={jest.fn()}
+                enabled={true}
+                onToggle={jest.fn()}
+                canShare={false}
+            />,
+        );
+
+        expect(await screen.findByText("This channel can't be shared because it originates from another workspace.")).toBeInTheDocument();
+
+        // The toggle and the workspace picker must not be available for a
+        // channel that originates from another workspace.
+        expect(screen.queryByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
+    });
+
     it('should remove workspace when remove button is clicked', async () => {
         const onRemotesChange = jest.fn();
         renderWithContext(

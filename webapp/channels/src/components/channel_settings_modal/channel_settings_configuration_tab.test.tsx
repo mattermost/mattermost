@@ -31,6 +31,7 @@ jest.mock('mattermost-redux/client', () => ({
             {remote_id: 'remote1', name: 'nebula', display_name: 'Nebula Networks'},
             {remote_id: 'remote2', name: 'cascade', display_name: 'Cascade Collaborative'},
         ]),
+        getSharedChannelCanShare: jest.fn().mockResolvedValue({can_share: true}),
         getPropertyValues: jest.fn().mockResolvedValue([]),
         patchPropertyValues: jest.fn().mockResolvedValue([]),
     },
@@ -517,6 +518,22 @@ describe('ChannelSettingsConfigurationTab', () => {
             await userEvent.click(toggle);
 
             expect(screen.getByText('Add workspace')).toBeInTheDocument();
+        });
+
+        it('shows a not-shareable notice and hides the picker for a channel homed on another workspace', async () => {
+            const {Client4} = require('mattermost-redux/client');
+            Client4.getSharedChannelCanShare.mockResolvedValueOnce({can_share: false});
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(await screen.findByText("This channel can't be shared because it originates from another workspace.")).toBeInTheDocument();
+            expect(screen.queryByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeInTheDocument();
+            expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
         it('when shared channel changes include only adding workspaces, save calls invite and fetchChannelRemotes', async () => {

@@ -4461,6 +4461,7 @@
   "channel_settings.share_channel_with_workspaces.disable_toggle_tooltip": "No connected workspaces are available",
   "channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint": "Contact your system admin to add one.",
   "channel_settings.share_channel_with_workspaces.no_workspaces_available": "No connected workspaces are available. Contact your system admin to add one.",
+  "channel_settings.share_channel_with_workspaces.not_shareable_remote": "This channel can't be shared because it originates from another workspace.",
   "channel_settings.share_channel_with_workspaces.pending_save": "Pending save",
   "channel_settings.share_channel_with_workspaces.remove_aria": "Remove {name}",
   "channel_settings.share_channel_with_workspaces.title": "Share with connected workspaces",

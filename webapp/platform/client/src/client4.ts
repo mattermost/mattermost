@@ -2320,6 +2320,13 @@ export default class Client4 {
         );
     };
 
+    getSharedChannelCanShare = (channelId: string) => {
+        return this.doFetch<{can_share: boolean}>(
+            `${this.getBaseRoute()}/sharedchannels/${channelId}/can_share`,
+            {method: 'GET'},
+        );
+    };
+
     getRemoteClusterInfo = (remoteId: string, includeDeleted?: boolean) => {
         return this.doFetch<RemoteClusterInfo>(
             `${this.getBaseRoute()}/sharedchannels/remote_info/${remoteId}${buildQueryString({include_deleted: includeDeleted})}`,

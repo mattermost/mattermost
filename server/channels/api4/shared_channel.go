@@ -16,6 +16,7 @@ func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes", api.APISessionRequired(getSharedChannelRemotes)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/can_share", api.APISessionRequired(canShareChannel)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/users/{user_id:[A-Za-z0-9]+}/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(canUserDirectMessage)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
@@ -300,6 +301,42 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := json.NewEncoder(w).Encode(remoteInfos); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// canShareChannel reports whether a channel can be shared with additional
+// connected workspaces from this server. A channel that already originates
+// from another server (its SharedChannel record is homed on a remote) cannot
+// be shared further, so the UI can hide the workspace picker instead of
+// letting the invite fail.
+func canShareChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	// make sure remote cluster service is enabled.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	// A channel can be shared unless it is already shared and homed on a
+	// remote cluster. When the channel has no SharedChannel record yet, it
+	// originates locally and can be shared.
+	canShare := true
+	if sc, err := c.App.GetSharedChannel(c.Params.ChannelId); err == nil && sc != nil && !sc.Home {
+		canShare = false
+	}
+
+	result := map[string]bool{"can_share": canShare}
+	if err := json.NewEncoder(w).Encode(result); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

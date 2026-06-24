@@ -572,6 +572,74 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	})
 }
 
+func TestCanShareChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		_, resp, err := th.Client.GetSharedChannelCanShare(context.Background(), th.BasicChannel.Id)
+		CheckNotImplementedStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	t.Run("a channel that is not shared can be shared", func(t *testing.T) {
+		canShare, resp, err := th.Client.GetSharedChannelCanShare(context.Background(), th.BasicChannel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, canShare)
+	})
+
+	t.Run("a channel homed locally can be shared", func(t *testing.T) {
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    channel.TeamId,
+			Home:      true,
+			ShareName: "shared_home_local",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  model.NewId(),
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		canShare, resp, err := th.Client.GetSharedChannelCanShare(context.Background(), channel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, canShare)
+	})
+
+	t.Run("a channel homed on a remote cannot be shared further", func(t *testing.T) {
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    channel.TeamId,
+			Home:      false,
+			ShareName: "shared_home_remote",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  model.NewId(),
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		canShare, resp, err := th.Client.GetSharedChannelCanShare(context.Background(), channel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.False(t, canShare)
+	})
+
+	t.Run("requires permission to read the channel", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, privateChannel)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.GetSharedChannelCanShare(context.Background(), privateChannel.Id)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+}
+
 func TestInviteRemoteClusterToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {

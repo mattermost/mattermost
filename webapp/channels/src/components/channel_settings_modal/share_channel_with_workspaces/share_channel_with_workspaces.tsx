@@ -27,6 +27,11 @@ type Props = {
     onRemotesChange: React.Dispatch<React.SetStateAction<WorkspaceWithStatus[]>>;
     enabled: boolean;
     onToggle?: (enabled: boolean) => void;
+
+    // canShare is false when the channel already originates from another
+    // workspace (it is homed on a remote cluster) and therefore cannot be
+    // shared further from this server.
+    canShare?: boolean;
 };
 
 const emptyRemotes: RemoteClusterInfo[] = [];
@@ -37,6 +42,7 @@ export default function ShareChannelWithWorkspaces({
     onRemotesChange,
     enabled,
     onToggle,
+    canShare = true,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -132,34 +138,48 @@ export default function ShareChannelWithWorkspaces({
                         {subheading}
                     </label>
                 </div>
-                <WithTooltip
-                    title={formatMessage({
-                        id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
-                        defaultMessage: 'No connected workspaces are available',
-                    })}
-                    hint={formatMessage({
-                        id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint',
-                        defaultMessage: 'Contact your system admin to add one.',
-                    })}
-                    disabled={hasAvailableWorkspaces}
-                >
-                    <div className='channel_shared_with_workspaces_header__toggle'>
+                {canShare && (
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
+                            defaultMessage: 'No connected workspaces are available',
+                        })}
+                        hint={formatMessage({
+                            id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip_hint',
+                            defaultMessage: 'Contact your system admin to add one.',
+                        })}
+                        disabled={hasAvailableWorkspaces}
+                    >
+                        <div className='channel_shared_with_workspaces_header__toggle'>
 
-                        <Toggle
-                            id='shareChannelWithWorkspacesToggle'
-                            ariaLabel={heading}
-                            size='btn-md'
-                            onToggle={handleToggle}
-                            toggled={enabled && hasAvailableWorkspaces}
-                            disabled={!hasAvailableWorkspaces}
-                            tabIndex={hasAvailableWorkspaces ? 0 : -1}
-                            toggleClassName='btn-toggle-primary'
-                        />
-                    </div>
-                </WithTooltip>
+                            <Toggle
+                                id='shareChannelWithWorkspacesToggle'
+                                ariaLabel={heading}
+                                size='btn-md'
+                                onToggle={handleToggle}
+                                toggled={enabled && hasAvailableWorkspaces}
+                                disabled={!hasAvailableWorkspaces}
+                                tabIndex={hasAvailableWorkspaces ? 0 : -1}
+                                toggleClassName='btn-toggle-primary'
+                            />
+                        </div>
+                    </WithTooltip>
+                )}
             </div>
 
-            {!hasAvailableWorkspaces && (
+            {!canShare && (
+                <div className='channel_shared_with_workspaces_section_body'>
+                    <span className='ShareChannelWithWorkspaces__noWorkspacesMessage'>
+                        <i className='icon icon-information-outline'/>
+                        <FormattedMessage
+                            id='channel_settings.share_channel_with_workspaces.not_shareable_remote'
+                            defaultMessage="This channel can't be shared because it originates from another workspace."
+                        />
+                    </span>
+                </div>
+            )}
+
+            {canShare && !hasAvailableWorkspaces && (
                 <div className='channel_shared_with_workspaces_section_body'>
                     <span className='ShareChannelWithWorkspaces__noWorkspacesMessage'>
                         <i className='icon icon-information-outline'/>
@@ -171,7 +191,7 @@ export default function ShareChannelWithWorkspaces({
                 </div>
             )}
 
-            {hasAvailableWorkspaces && enabled && (
+            {canShare && hasAvailableWorkspaces && enabled && (
                 <div className='channel_shared_with_workspaces_section_body'>
                     <span className='ShareChannelWithWorkspaces__listHeader'>
                         {remotes.length > 0 ? (
