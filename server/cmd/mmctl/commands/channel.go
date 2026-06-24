@@ -512,75 +512,99 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 // getChannelMembersNotInTeam returns the users that are members of the channel
 // but are not members of the given team.
 func getChannelMembersNotInTeam(c client.Client, channelID, teamID string) ([]*model.User, error) {
-	channelUsers, err := getAllUsersInChannel(c, channelID)
+	channelMemberUserIDs, err := getAllChannelMemberUserIDs(c, channelID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get users in channel: %w", err)
+		return nil, fmt.Errorf("unable to get channel members: %w", err)
 	}
 
-	if len(channelUsers) == 0 {
+	if len(channelMemberUserIDs) == 0 {
 		return []*model.User{}, nil
 	}
 
-	teamUsers, err := getAllUsersInTeam(c, teamID)
+	teamMembers, err := getTeamMembersByUserIDs(c, teamID, channelMemberUserIDs)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get users in team: %w", err)
+		return nil, fmt.Errorf("unable to get team members: %w", err)
 	}
 
-	teamMembers := make(map[string]bool, len(teamUsers))
-	for _, user := range teamUsers {
-		teamMembers[user.Id] = true
+	teamMemberUserIDs := make(map[string]bool, len(teamMembers))
+	for _, member := range teamMembers {
+		teamMemberUserIDs[member.UserId] = true
 	}
 
-	missingUsers := []*model.User{}
-	for _, user := range channelUsers {
-		if !teamMembers[user.Id] {
-			missingUsers = append(missingUsers, user)
+	missingUserIDs := []string{}
+	for _, userID := range channelMemberUserIDs {
+		if !teamMemberUserIDs[userID] {
+			missingUserIDs = append(missingUserIDs, userID)
 		}
+	}
+
+	if len(missingUserIDs) == 0 {
+		return []*model.User{}, nil
+	}
+
+	users, _, err := c.GetUsersByIds(context.TODO(), missingUserIDs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get users for missing channel members: %w", err)
+	}
+
+	usersByID := make(map[string]*model.User, len(users))
+	for _, user := range users {
+		usersByID[user.Id] = user
+	}
+
+	missingUsers := make([]*model.User, 0, len(missingUserIDs))
+	for _, userID := range missingUserIDs {
+		if user, ok := usersByID[userID]; ok {
+			missingUsers = append(missingUsers, user)
+			continue
+		}
+		missingUsers = append(missingUsers, &model.User{Id: userID, Username: userID})
 	}
 
 	return missingUsers, nil
 }
 
-func getAllUsersInChannel(c client.Client, channelID string) ([]*model.User, error) {
-	users := []*model.User{}
+func getAllChannelMemberUserIDs(c client.Client, channelID string) ([]string, error) {
+	userIDs := []string{}
 	page := 0
 
 	for {
-		usersPage, _, err := c.GetUsersInChannel(context.TODO(), channelID, page, DefaultPageSize, "")
+		membersPage, _, err := c.GetChannelMembers(context.TODO(), channelID, page, DefaultPageSize, "")
 		if err != nil {
 			return nil, err
 		}
 
-		if len(usersPage) == 0 {
+		if len(membersPage) == 0 {
 			break
 		}
 
-		users = append(users, usersPage...)
+		for _, member := range membersPage {
+			userIDs = append(userIDs, member.UserId)
+		}
 		page++
 	}
 
-	return users, nil
+	return userIDs, nil
 }
 
-func getAllUsersInTeam(c client.Client, teamID string) ([]*model.User, error) {
-	users := []*model.User{}
-	page := 0
+func getTeamMembersByUserIDs(c client.Client, teamID string, userIDs []string) ([]*model.TeamMember, error) {
+	teamMembers := []*model.TeamMember{}
 
-	for {
-		usersPage, _, err := c.GetUsersInTeam(context.TODO(), teamID, page, DefaultPageSize, "")
+	for i := 0; i < len(userIDs); i += DefaultPageSize {
+		end := i + DefaultPageSize
+		if end > len(userIDs) {
+			end = len(userIDs)
+		}
+
+		members, _, err := c.GetTeamMembersByIds(context.TODO(), teamID, userIDs[i:end])
 		if err != nil {
 			return nil, err
 		}
 
-		if len(usersPage) == 0 {
-			break
-		}
-
-		users = append(users, usersPage...)
-		page++
+		teamMembers = append(teamMembers, members...)
 	}
 
-	return users, nil
+	return teamMembers, nil
 }
 
 func addUsersToTeam(c client.Client, team *model.Team, users []*model.User) error {

@@ -2455,8 +2455,8 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), mockChannel.Id, 0, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
+			GetChannelMembers(context.TODO(), mockChannel.Id, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
@@ -2555,8 +2555,8 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
@@ -2583,6 +2583,10 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		inTeamUser := &model.User{Id: "in-team-user-id", Username: "in-team-user"}
 		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
+		channelMembers := model.ChannelMembers{
+			{UserId: inTeamUser.Id, ChannelId: channelID},
+			{UserId: missingUser.Id, ChannelId: channelID},
+		}
 
 		cmd := &cobra.Command{}
 
@@ -2600,26 +2604,26 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
-			Return([]*model.User{inTeamUser, missingUser}, &model.Response{}, nil).
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(channelMembers, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 1, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
+			GetChannelMembers(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersInTeam(context.TODO(), dstTeamID, 0, DefaultPageSize, "").
-			Return([]*model.User{inTeamUser}, &model.Response{}, nil).
+			GetTeamMembersByIds(context.TODO(), dstTeamID, []string{inTeamUser.Id, missingUser.Id}).
+			Return([]*model.TeamMember{{UserId: inTeamUser.Id, TeamId: dstTeamID}}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersInTeam(context.TODO(), dstTeamID, 1, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
+			GetUsersByIds(context.TODO(), []string{missingUser.Id}).
+			Return([]*model.User{missingUser}, &model.Response{}, nil).
 			Times(1)
 
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
@@ -2641,6 +2645,10 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		inTeamUser := &model.User{Id: "in-team-user-id", Username: "in-team-user"}
 		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
+		channelMembers := model.ChannelMembers{
+			{UserId: inTeamUser.Id, ChannelId: channelID},
+			{UserId: missingUser.Id, ChannelId: channelID},
+		}
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("auto-add-users", true, "")
@@ -2659,26 +2667,26 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
-			Return([]*model.User{inTeamUser, missingUser}, &model.Response{}, nil).
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(channelMembers, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 1, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
+			GetChannelMembers(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersInTeam(context.TODO(), dstTeamID, 0, DefaultPageSize, "").
-			Return([]*model.User{inTeamUser}, &model.Response{}, nil).
+			GetTeamMembersByIds(context.TODO(), dstTeamID, []string{inTeamUser.Id, missingUser.Id}).
+			Return([]*model.TeamMember{{UserId: inTeamUser.Id, TeamId: dstTeamID}}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUsersInTeam(context.TODO(), dstTeamID, 1, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
+			GetUsersByIds(context.TODO(), []string{missingUser.Id}).
+			Return([]*model.User{missingUser}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
@@ -2711,6 +2719,9 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
 
 		missingUser := &model.User{Id: "missing-user-id", Username: "missing-user"}
+		channelMembers := model.ChannelMembers{
+			{UserId: missingUser.Id, ChannelId: channelID},
+		}
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("auto-add-users", true, "")
@@ -2729,20 +2740,26 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(channelMembers, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamMembersByIds(context.TODO(), dstTeamID, []string{missingUser.Id}).
+			Return([]*model.TeamMember{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{missingUser.Id}).
 			Return([]*model.User{missingUser}, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 1, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUsersInTeam(context.TODO(), dstTeamID, 0, DefaultPageSize, "").
-			Return([]*model.User{}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
@@ -2782,7 +2799,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Times(1)
 
 		// With --force the missing-user check is bypassed entirely; the strict
-		// mock controller would fail if GetUsersInChannel/GetUsersInTeam were
+		// mock controller would fail if GetChannelMembers/GetTeamMembersByIds were
 		// called. force is propagated to the move call.
 		s.client.
 			EXPECT().
@@ -2821,7 +2838,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
 			Return(nil, &model.Response{}, errors.New("fetch-error")).
 			Times(1)
 
@@ -2830,6 +2847,64 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "unable to determine missing team members for channel \"channel-name\"")
 		s.Require().Contains(err.Error(), "fetch-error")
+	})
+
+	s.Run("Detect deactivated channel members missing from the destination team", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam := model.Team{Name: "destination-team-name", Id: dstTeamID}
+
+		channelID := "channel-id"
+		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
+
+		deactivatedUser := &model.User{Id: "deactivated-user-id", Username: "deactivated-user", DeleteAt: 1}
+		channelMembers := model.ChannelMembers{
+			{UserId: deactivatedUser.Id, ChannelId: channelID},
+		}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(channelMembers, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamMembersByIds(context.TODO(), dstTeamID, []string{deactivatedUser.Id}).
+			Return([]*model.TeamMember{}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{deactivatedUser.Id}).
+			Return([]*model.User{deactivatedUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "deactivated-user")
+		s.Require().Contains(err.Error(), "--auto-add-users")
 	})
 }
 

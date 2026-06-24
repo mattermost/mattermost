@@ -35,6 +35,7 @@ type Client interface {
 	CreateTeam(ctx context.Context, team *model.Team) (*model.Team, *model.Response, error)
 	PatchTeam(ctx context.Context, teamID string, patch *model.TeamPatch) (*model.Team, *model.Response, error)
 	AddTeamMember(ctx context.Context, teamID, userID string) (*model.TeamMember, *model.Response, error)
+	GetTeamMembersByIds(ctx context.Context, teamID string, userIDs []string) ([]*model.TeamMember, *model.Response, error)
 	RemoveTeamMember(ctx context.Context, teamID, userID string) (*model.Response, error)
 	SoftDeleteTeam(ctx context.Context, teamID string) (*model.Response, error)
 	PermanentDeleteTeam(ctx context.Context, teamID string) (*model.Response, error)
