@@ -12,6 +12,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -165,6 +166,22 @@ func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, model.InvalidLicenseError, appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+}
+
+func TestNewLicenseValidationAppError(t *testing.T) {
+	t.Run("maps the wrong-environment sentinel to WrongEnvironmentLicenseError", func(t *testing.T) {
+		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("wrap: %w", ErrLicenseWrongEnvironment))
+		require.Equal(t, model.WrongEnvironmentLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.ErrorIs(t, appErr, ErrLicenseWrongEnvironment)
+	})
+
+	t.Run("maps any other error to InvalidLicenseError", func(t *testing.T) {
+		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("Invalid signature"))
+		require.Equal(t, model.InvalidLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.NotErrorIs(t, appErr, ErrLicenseWrongEnvironment)
 	})
 }
 
