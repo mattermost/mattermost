@@ -5,6 +5,7 @@ package metrics
 
 import (
 	"database/sql"
+	"maps"
 	"math"
 	"net/url"
 	"os"
@@ -266,12 +267,8 @@ func init() {
 // take precedence when a key is present in both.
 func mergeLabels(base, extra map[string]string) prometheus.Labels {
 	merged := prometheus.Labels{}
-	for k, v := range base {
-		merged[k] = v
-	}
-	for k, v := range extra {
-		merged[k] = v
-	}
+	maps.Copy(merged, base)
+	maps.Copy(merged, extra)
 	return merged
 }
 
