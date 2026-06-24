@@ -41,6 +41,7 @@ const MIN_TILE_WIDTH = 50;
 const MAX_TILE_WIDTH = 500;
 const GAP = 8;
 const FALLBACK_WIDTH = 700;
+const NARROW_CONTAINER_WIDTH = 480;
 
 function tileKindFor(fileInfo: FileInfo): TileKind | null {
     const type = getFileType(fileInfo.extension);
@@ -73,9 +74,10 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
 
     const rows = useMemo(() => {
         const effectiveWidth = containerWidth > 0 ? containerWidth : FALLBACK_WIDTH;
+        const isNarrow = effectiveWidth < NARROW_CONTAINER_WIDTH;
         return packRows(tiles, {
             containerWidth: effectiveWidth,
-            rowHeight: compactDisplay ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
+            rowHeight: (compactDisplay || isNarrow) ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
             minTileWidth: MIN_TILE_WIDTH,
             maxTileWidth: MAX_TILE_WIDTH,
             gap: GAP,
@@ -156,36 +158,27 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                                 'icon-menu-right': !isEmbedVisible,
                             })}
                         />
-                    </button>
-                    <span className='MediaGallery__header_label'>
                         <FormattedMessage
                             id='media_gallery.count_label'
                             defaultMessage='{count, plural, one {# item} other {# items}}'
                             values={{count: tiles.length}}
                         />
-                    </span>
-                    <WithTooltip
-                        title={formatMessage({
-                            id: 'media_gallery.download_all_tooltip',
-                            defaultMessage: 'Download all',
-                        })}
+                    </button>
+                    <button
+                        type='button'
+                        className='style--none MediaGallery__download_all'
+                        aria-label={formatMessage(
+                            {id: 'media_gallery.download_all_label', defaultMessage: 'Download all {count, plural, one {# item} other {# items}}'},
+                            {count: tiles.length},
+                        )}
+                        onClick={handleDownloadAll}
                     >
-                        <button
-                            type='button'
-                            className='style--none MediaGallery__download_all'
-                            aria-label={formatMessage(
-                                {id: 'media_gallery.download_all_label', defaultMessage: 'Download all {count, plural, one {# item} other {# items}}'},
-                                {count: tiles.length},
-                            )}
-                            onClick={handleDownloadAll}
-                        >
-                            <DownloadOutlineIcon size={14}/>
-                            <FormattedMessage
-                                id='media_gallery.download_all'
-                                defaultMessage='Download all'
-                            />
-                        </button>
-                    </WithTooltip>
+                        <DownloadOutlineIcon size={14}/>
+                        <FormattedMessage
+                            id='media_gallery.download_all'
+                            defaultMessage='Download all'
+                        />
+                    </button>
                 </div>
             )}
             <div

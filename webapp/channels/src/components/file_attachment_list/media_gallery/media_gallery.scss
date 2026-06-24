@@ -1,5 +1,4 @@
 .MediaGallery {
-    overflow: hidden;
     width: 100%;
     max-width: 960px;
     box-sizing: border-box;
@@ -19,7 +18,7 @@
         align-items: center;
         justify-content: flex-start;
         padding: 0;
-        margin: 0 0 4px -4px;
+        margin: 0 0 4px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         font-weight: 600;
@@ -29,18 +28,19 @@
 
     &__toggle {
         display: inline-flex;
-        width: 24px;
         height: 24px;
         align-items: center;
-        justify-content: center;
-        padding: 0;
+        padding: 0 6px 0 2px;
         border: none;
         border-radius: 4px;
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         cursor: pointer;
-        font-size: 18px;
-        line-height: 18px;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 2px;
+        line-height: 16px;
+        user-select: none;
 
         .icon {
             display: inline-flex;
@@ -48,6 +48,8 @@
             height: 18px;
             align-items: center;
             justify-content: center;
+            font-size: 18px;
+            line-height: 18px;
 
             &::before {
                 margin: 0;
@@ -62,11 +64,6 @@
             outline: 2px solid var(--button-bg);
             outline-offset: 2px;
         }
-    }
-
-    &__header_label {
-        margin-left: 4px;
-        user-select: none;
     }
 
     &__download_all {
