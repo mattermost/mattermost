@@ -86,20 +86,12 @@ func (s *MmctlE2ETestSuite) TestNukeUsersCmd() {
 	s.Run("Delete all user as unpriviliged user should not work", func() {
 		printer.Clean()
 
-		previousLocal := viper.GetBool("local")
-		viper.Set("local", false)
-		defer viper.Set("local", previousLocal)
-
 		requireLocalOnlyPrecheckBlocked(s.T())
 		s.assertUsersNotDeleted()
 	})
 
 	s.Run("Delete all user as system admin through the port API should not work", func() {
 		printer.Clean()
-
-		previousLocal := viper.GetBool("local")
-		viper.Set("local", false)
-		defer viper.Set("local", previousLocal)
 
 		requireLocalOnlyPrecheckBlocked(s.T())
 		s.assertUsersNotDeleted()
@@ -119,15 +111,17 @@ func (s *MmctlE2ETestSuite) TestNukeUsersCmd() {
 			s.Require().Nil(appErr)
 		}
 
-		previousLocal := viper.GetBool("local")
-		viper.Set("local", true)
-		defer viper.Set("local", previousLocal)
+		localCmd := &cobra.Command{}
+		localCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
+		s.Require().NoError(viper.BindPFlag("local", localCmd.PersistentFlags().Lookup("local")))
+		s.Require().NoError(localCmd.PersistentFlags().Set("local", "true"))
+		s.T().Cleanup(func() {
+			_ = localCmd.PersistentFlags().Set("local", "false")
+			_ = SystemNukeUsersCmd.Flags().Set("confirm", "false")
+		})
 
 		err := SystemNukeUsersCmd.ParseFlags([]string{"--confirm"})
 		s.Require().NoError(err)
-		defer func() {
-			_ = SystemNukeUsersCmd.Flags().Set("confirm", "false")
-		}()
 
 		localOnlyPrecheck(SystemNukeUsersCmd, nil)
 		err = nukeUsersCmdF(s.th.LocalClient, SystemNukeUsersCmd, []string{})
