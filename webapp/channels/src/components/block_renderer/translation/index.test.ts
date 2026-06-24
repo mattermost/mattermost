@@ -20,6 +20,8 @@ import {
 } from './test_fixtures';
 
 import {getPostInteractiveIntegrationFormat, hasInteractiveMessageProps, translatePostProps} from './index';
+import * as limits from './limits';
+import * as mmBlock from './mm_block';
 
 const mockIntl = {
     formatMessage: jest.fn((descriptor) => descriptor.defaultMessage),
@@ -172,6 +174,42 @@ describe('translatePostProps', () => {
                 cards: undefined,
                 attachments: [{text: 'uses attachments'}],
             }, mockIntl)).toMatchSnapshot();
+        });
+    });
+
+    describe('translation errors', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns an error block when mm_blocks translation throws', () => {
+            jest.spyOn(mmBlock, 'translateMMBlocks').mockImplementation(() => {
+                throw new RangeError('Maximum call stack size exceeded');
+            });
+            expect(translatePostProps({mm_blocks: [{type: 'text', text: 'x'}]}, mockIntl)).toEqual([{
+                type: 'container',
+                accent_color: 'danger',
+                border: true,
+                content: [
+                    {type: 'text', text: '**This interactive message could not be displayed.**'},
+                    {type: 'text', text: 'Maximum call stack size exceeded', is_subtle: true},
+                ],
+            }]);
+        });
+
+        it('returns an error block when applyBlockTranslationLimits throws', () => {
+            jest.spyOn(limits, 'applyBlockTranslationLimits').mockImplementation(() => {
+                throw new Error('limit walk failed');
+            });
+            expect(translatePostProps({mm_blocks: [{type: 'text', text: 'ok'}]}, mockIntl)).toEqual([{
+                type: 'container',
+                accent_color: 'danger',
+                border: true,
+                content: [
+                    {type: 'text', text: '**This interactive message could not be displayed.**'},
+                    {type: 'text', text: 'limit walk failed', is_subtle: true},
+                ],
+            }]);
         });
     });
 });

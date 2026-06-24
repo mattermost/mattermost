@@ -5486,6 +5486,7 @@
   "interactive_dialog.submit": "Submit",
   "interactive_dialog.submitting": "Submitting...",
   "interactive_dialog.validation_failed": "Dialog validation failed: {errors}",
+  "interactive_messages.translation_error": "This interactive message could not be displayed.",
   "intro_messages.addGroupsToTeam": "Add other groups to this team",
   "intro_messages.anyMember": "This is the start of {display_name}. Any team member can join and read this channel.",
   "intro_messages.creator": "Public channel created by {creator} on {date}.",
