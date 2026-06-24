@@ -214,12 +214,16 @@ jobs:
             exit 1
           fi
       - name: Check for renumbered or renamed migrations
+        # Only backports (PRs targeting a release branch) are expected to be a
+        # subset of master. On master-targeted PRs new migrations are normal, so
+        # the check would flag them as stray.
+        if: startsWith(github.base_ref, 'release-')
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch --no-tags --depth=1 origin "${MM_MIGRATION_CHECK_BASE_REF#origin/}"
+          git fetch --no-tags --depth=1 origin master
           make check-migration-changes
         env:
-          MM_MIGRATION_CHECK_BASE_REF: origin/${{ github.base_ref || github.ref_name || 'master' }}
+          MM_MIGRATION_CHECK_BASE_REF: origin/master
   check-email-templates:
     name: Generate email templates
     needs: go
