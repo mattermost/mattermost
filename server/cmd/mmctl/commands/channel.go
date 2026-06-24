@@ -591,10 +591,7 @@ func getTeamMembersByUserIDs(c client.Client, teamID string, userIDs []string) (
 	teamMembers := []*model.TeamMember{}
 
 	for i := 0; i < len(userIDs); i += DefaultPageSize {
-		end := i + DefaultPageSize
-		if end > len(userIDs) {
-			end = len(userIDs)
-		}
+		end := min(i+DefaultPageSize, len(userIDs))
 
 		members, _, err := c.GetTeamMembersByIds(context.TODO(), teamID, userIDs[i:end])
 		if err != nil {
