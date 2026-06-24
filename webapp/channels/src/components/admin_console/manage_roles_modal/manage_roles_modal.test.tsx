@@ -126,4 +126,77 @@ describe('admin_console/manage_roles_modal', () => {
             expect(props.actions.updateUserRoles).toHaveBeenCalledWith('user_id', 'system_user system_admin system_manager');
         });
     });
+
+    test('appends multiple selected delegated roles in a stable order', async () => {
+        const props = getBaseProps({roles: 'system_user'});
+        renderWithContext(<ManageRolesModal {...props}/>);
+
+        // Click in reverse order to prove the saved order follows DELEGATED_ROLE_NAMES, not click order.
+        await userEvent.click(screen.getByRole('checkbox', {name: /Viewer/}));
+        await userEvent.click(screen.getByRole('checkbox', {name: /User Manager/}));
+        await clickSave();
+
+        await waitFor(() => {
+            expect(props.actions.updateUserRoles).toHaveBeenCalledWith('user_id', 'system_user system_user_manager system_read_only_admin');
+        });
+    });
+
+    test('does not grant a role that is checked and then unchecked before saving', async () => {
+        const props = getBaseProps({roles: 'system_user'});
+        renderWithContext(<ManageRolesModal {...props}/>);
+
+        const checkbox = screen.getByRole('checkbox', {name: /User Manager/});
+        await userEvent.click(checkbox);
+        await userEvent.click(checkbox);
+        await clickSave();
+
+        await waitFor(() => {
+            expect(props.actions.updateUserRoles).toHaveBeenCalledWith('user_id', 'system_user');
+        });
+    });
+
+    test('does not render the delegated roles section when no delegated roles are available', () => {
+        const props = {...getBaseProps({roles: 'system_user'}), roles: {}};
+        renderWithContext(<ManageRolesModal {...props}/>);
+
+        expect(screen.queryByText('Delegated Administration Roles')).not.toBeInTheDocument();
+    });
+
+    test('shows an error and does not report success when saving fails', async () => {
+        const props = getBaseProps({roles: 'system_user'});
+        props.actions.updateUserRoles.mockResolvedValue({error: {message: 'boom'}});
+        renderWithContext(<ManageRolesModal {...props}/>);
+
+        await userEvent.click(screen.getByRole('checkbox', {name: /User Manager/}));
+        await clickSave();
+
+        expect(await screen.findByText('Unable to save roles.')).toBeInTheDocument();
+        expect(props.onSuccess).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+    });
+
+    test('closes the modal after a successful save', async () => {
+        const props = getBaseProps({roles: 'system_user'});
+        renderWithContext(<ManageRolesModal {...props}/>);
+
+        await clickSave();
+
+        await waitFor(() => {
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        });
+    });
+
+    test('resets the delegated role selection when a different user is provided', () => {
+        const props = getBaseProps({id: 'user_1', roles: 'system_user system_manager'});
+        const {rerender} = renderWithContext(<ManageRolesModal {...props}/>);
+
+        expect(screen.getByRole('checkbox', {name: /System Manager/})).toBeChecked();
+        expect(screen.getByRole('checkbox', {name: /User Manager/})).not.toBeChecked();
+
+        const nextUser = TestHelper.getUserMock({id: 'user_2', username: 'other', roles: 'system_user system_user_manager'});
+        rerender(<ManageRolesModal {...props} user={nextUser}/>);
+
+        expect(screen.getByRole('checkbox', {name: /System Manager/})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: /User Manager/})).toBeChecked();
+    });
 });
