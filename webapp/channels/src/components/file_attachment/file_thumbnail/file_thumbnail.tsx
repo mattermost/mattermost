@@ -54,7 +54,7 @@ const FileThumbnail = ({
             }
 
             let thumbnailUrl = getFileThumbnailUrl(id);
-            if (extension && isGIFImage(extension) && !hasPreviewImage) {
+            if (extension && (isGIFImage(extension) || extension.toLowerCase() === 'webp') && !hasPreviewImage) {
                 thumbnailUrl = getFileUrl(id);
             }
 

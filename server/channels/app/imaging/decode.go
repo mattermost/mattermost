@@ -4,6 +4,8 @@
 package imaging
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"image"
@@ -121,6 +123,57 @@ func GetDimensions(imageData io.Reader) (width int, height int, err error) {
 		}
 	}
 	return
+}
+
+// DecodeWebPFirstFrame extracts and decodes the first frame of an animated WebP file.
+// Returns an error if the data is not an animated WebP or if decoding fails.
+func DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("webp: read failed: %w", err)
+	}
+
+	if len(data) < 12 || string(data[:4]) != "RIFF" || string(data[8:12]) != "WEBP" {
+		return nil, errors.New("webp: not a WebP file")
+	}
+
+	for offset := 12; offset+8 <= len(data); {
+		id := string(data[offset : offset+4])
+		size := int(binary.LittleEndian.Uint32(data[offset+4 : offset+8]))
+		end := offset + 8 + size
+		if end > len(data) {
+			break
+		}
+
+		if id == "ANMF" && size > 16 {
+			// ANMF layout: 16-byte header (Frame X/Y, Width, Height, Duration, Flags)
+			// followed by a VP8 or VP8L bitstream chunk.
+			framePayload := data[offset+8+16 : end]
+			fid := string(framePayload[:4])
+			fsize := int(binary.LittleEndian.Uint32(framePayload[4:8]))
+			if (fid == "VP8 " || fid == "VP8L") && 8+fsize <= len(framePayload) {
+				chunk := framePayload[:8+fsize]
+				// Wrap in a minimal RIFF/WEBP container so the registered webp decoder can handle it.
+				syn := make([]byte, 12+len(chunk))
+				copy(syn, "RIFF")
+				binary.LittleEndian.PutUint32(syn[4:], uint32(4+len(chunk)))
+				copy(syn[8:], "WEBP")
+				copy(syn[12:], chunk)
+				img, _, decErr := image.Decode(bytes.NewReader(syn))
+				if decErr != nil {
+					return nil, fmt.Errorf("webp: first frame decode failed: %w", decErr)
+				}
+				return img, nil
+			}
+		}
+
+		offset += 8 + size
+		if size%2 != 0 {
+			offset++
+		}
+	}
+
+	return nil, errors.New("webp: no decodable animation frame found")
 }
 
 // This is only needed to try and simplify GC work.
