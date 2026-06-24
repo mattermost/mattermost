@@ -187,13 +187,7 @@ func parseDCRRedirectURIPattern(pattern string) (dcrRedirectURIPattern, bool) {
 	path := ""
 	rawQuery := ""
 	if strings.HasPrefix(remainder, "/") {
-		queryIndex := strings.Index(remainder, "?")
-		if queryIndex == -1 {
-			path = remainder
-		} else {
-			path = remainder[:queryIndex]
-			rawQuery = remainder[queryIndex+1:]
-		}
+		path, rawQuery, _ = strings.Cut(remainder, "?")
 	} else if strings.HasPrefix(remainder, "?") {
 		rawQuery = remainder[1:]
 	}
