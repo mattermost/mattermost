@@ -174,6 +174,84 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(patchTeam).not.toHaveBeenCalled();
     });
 
+    test('blocks the save when the team name is only whitespace', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, '   ');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+        expect(patchTeam).not.toHaveBeenCalled();
+    });
+
+    test('clears the name error and saves once a valid name is entered after a failed validation', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'a');
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+
+        await userEvent.type(nameInput, 'cme Team');
+        await waitFor(() => {
+            expect(screen.queryByText(/Team name must be 2 or more characters/)).not.toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByText('Save'));
+        await waitFor(() => {
+            expect(patchTeam).toHaveBeenCalledWith(expect.objectContaining({display_name: 'acme Team'}));
+        });
+    });
+
+    test('blocks navigation once the team name is edited', async () => {
+        const setNavigationBlocked = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, setNavigationBlocked},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await userEvent.type(screen.getByLabelText('Team Name'), '!');
+
+        expect(setNavigationBlocked).toHaveBeenCalledWith(true);
+    });
+
+    test('resets the edited fields when a different team is loaded', () => {
+        const {rerender} = renderWithContext(<TeamDetails {...baseProps}/>);
+
+        expect(screen.getByLabelText('Team Name')).toHaveValue('team');
+
+        const otherTeam = TestHelper.getTeamMock({
+            id: '456',
+            display_name: 'Another Team',
+            description: 'Another description',
+            delete_at: 0,
+        });
+        rerender(<TeamDetails {...baseProps} team={otherTeam} teamID={otherTeam.id}/>);
+
+        expect(screen.getByLabelText('Team Name')).toHaveValue('Another Team');
+        expect(screen.getByLabelText('Team Description')).toHaveValue('Another description');
+    });
+
     test('does not render the ABAC toggle when ABAC is unsupported', () => {
         renderWithContext(<TeamDetails {...baseProps}/>);
         expect(screen.queryByText('Manage membership with attribute based membership policies')).not.toBeInTheDocument();

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -335,11 +335,16 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
         expect(onDescriptionChange).toHaveBeenCalledWith('Original description.');
     });
 
-    test('shows the validation error next to the name field when nameError is provided', () => {
+    test('shows the validation error attached to the name field when nameError is provided', () => {
         const nameError = <span>{'Team name must be 2 or more characters'}</span>;
         renderWithContext(<TeamProfile {...baseProps} nameError={nameError}/>, initialState);
 
-        expect(screen.getByText('Team name must be 2 or more characters')).toBeInTheDocument();
+        // The error must render within the name field's container, not the description field's.
+        const nameContainer = screen.getByTestId('teamNameInput').closest('.Input_container') as HTMLElement;
+        expect(within(nameContainer).getByText('Team name must be 2 or more characters')).toBeInTheDocument();
+
+        const descriptionContainer = screen.getByTestId('teamDescriptionInput').closest('.Input_container') as HTMLElement;
+        expect(within(descriptionContainer).queryByText('Team name must be 2 or more characters')).not.toBeInTheDocument();
     });
 
     test('disables the name and description fields when isDisabled is set', () => {
