@@ -112,6 +112,11 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
 	if appErr != nil {
+		if appErr.Id == model.WrongEnvironmentLicenseError {
+			c.LogAudit("failed - wrong environment license")
+		} else if appErr.Id == model.InvalidLicenseError {
+			c.LogAudit("failed - invalid license")
+		}
 		c.Err = appErr
 		return
 	}
@@ -142,8 +147,6 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("failed - expired or non-started license")
 		} else if appErr.Id == model.InvalidLicenseError {
 			c.LogAudit("failed - invalid license")
-		} else if appErr.Id == model.WrongEnvironmentLicenseError {
-			c.LogAudit("failed - wrong environment license")
 		} else {
 			c.LogAudit("failed - unable to save license")
 		}
