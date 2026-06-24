@@ -137,7 +137,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props) {
         const {totalGroups, team} = this.props;
-        if (prevProps.team?.id !== team?.id || totalGroups !== prevProps.totalGroups) {
+        if (prevProps.team?.id !== team?.id) {
             this.setState({
                 totalGroups,
                 name: team?.display_name || '',
@@ -150,9 +150,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 isLocalArchived: team ? team.delete_at > 0 : true,
                 policyEnforced: Boolean(team?.policy_enforced),
             });
-            if (this.props.abacSupported && prevProps.team?.id !== team?.id && team?.id) {
+            if (this.props.abacSupported && team?.id) {
                 this.fetchAccessControlPolicies(team.id);
             }
+        } else if (totalGroups !== prevProps.totalGroups) {
+            this.setState({totalGroups});
         }
     }
 
@@ -272,8 +274,34 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
         let serverError: JSX.Element | undefined;
 
+        if (name.trim().length < Constants.MIN_TEAMNAME_LENGTH) {
+            const nameError = (
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.teamNameRestrictions'
+                    defaultMessage='Team name must be {min} or more characters up to a maximum of {max}.'
+                    values={{min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH}}
+                />
+            );
+            this.setState({nameError, saving: false, saveNeeded: true});
+            actions.setNavigationBlocked(true);
+            return;
+        }
+
         if (this.teamToBeArchived()) {
             let saveNeeded = false;
+            const patchTeamResult = await actions.patchTeam({
+                ...team,
+                display_name: name.trim(),
+                description,
+            });
+            if (patchTeamResult.error) {
+                serverError = <FormError error={patchTeamResult.error?.message}/>;
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded, usersToRemoveCount: 0, rolesToUpdate: {}, usersToAdd: {}, usersToRemove: {}});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+
             const result = await actions.deleteTeam(team.id);
             if ('error' in result) {
                 serverError = <FormError error={result.error.message}/>;
@@ -291,19 +319,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 serverError = <FormError error={result.error.message}/>;
             }
             this.setState({serverError, previousServerError: undefined});
-        }
-
-        if (name.trim().length < Constants.MIN_TEAMNAME_LENGTH) {
-            const nameError = (
-                <FormattedMessage
-                    id='admin.team_settings.team_detail.teamNameRestrictions'
-                    defaultMessage='Team name must be {min} or more characters up to a maximum of {max}.'
-                    values={{min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH}}
-                />
-            );
-            this.setState({nameError, saving: false, saveNeeded: true});
-            actions.setNavigationBlocked(true);
-            return;
         }
 
         let saveNeeded = false;

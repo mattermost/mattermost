@@ -17,7 +17,7 @@ jest.mock('./team_members/index', () => {
 // relevant here and is exercised directly in team_profile.test.tsx; this fake
 // lets us drive TeamDetails' own save/validation logic through real state.
 jest.mock('./team_profile', () => ({
-    TeamProfile: (props: {name: string; description: string; nameError?: React.ReactNode; onNameChange: (v: string) => void; onDescriptionChange: (v: string) => void}) => (
+    TeamProfile: (props: {name: string; description: string; nameError?: React.ReactNode; onNameChange: (v: string) => void; onDescriptionChange: (v: string) => void; onToggleArchive?: () => void; isArchived?: boolean}) => (
         <div>
             <input
                 aria-label='Team Name'
@@ -30,6 +30,14 @@ jest.mock('./team_profile', () => ({
                 onChange={(e) => props.onDescriptionChange(e.target.value)}
             />
             {props.nameError ? <div>{props.nameError}</div> : null}
+            {props.onToggleArchive ? (
+                <button
+                    type='button'
+                    onClick={props.onToggleArchive}
+                >
+                    {props.isArchived ? 'Unarchive Team' : 'Archive Team'}
+                </button>
+            ) : null}
         </div>
     ),
 }));
@@ -256,6 +264,76 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
         expect(screen.getByLabelText('Team Name')).toHaveValue('Another Team');
         expect(screen.getByLabelText('Team Description')).toHaveValue('Another description');
+    });
+
+    test('does not reset edited fields when only totalGroups changes', async () => {
+        const {rerender} = renderWithContext(<TeamDetails {...baseProps}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Edited Name');
+
+        rerender(
+            <TeamDetails
+                {...baseProps}
+                totalGroups={baseProps.totalGroups + 1}
+            />,
+        );
+
+        expect(screen.getByLabelText('Team Name')).toHaveValue('Edited Name');
+    });
+
+    test('patches profile fields before archiving the team', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const deleteTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam, deleteTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Archived Team');
+
+        await userEvent.click(screen.getByText('Archive Team'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Save and Archive Team')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('Archive'));
+
+        await waitFor(() => {
+            expect(patchTeam).toHaveBeenCalledWith(expect.objectContaining({
+                display_name: 'Archived Team',
+            }));
+            expect(deleteTeam).toHaveBeenCalledWith('123');
+        });
+        expect(patchTeam.mock.invocationCallOrder[0]).toBeLessThan(deleteTeam.mock.invocationCallOrder[0]);
+    });
+
+    test('blocks restore when the edited team name is invalid', async () => {
+        const unarchiveTeam = jest.fn().mockResolvedValue({data: {}});
+        const archivedTeam = {...baseProps.team, delete_at: 16465313};
+        const props = {
+            ...baseProps,
+            team: archivedTeam,
+            actions: {...baseProps.actions, unarchiveTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'a');
+
+        await userEvent.click(screen.getByText('Unarchive Team'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+        expect(unarchiveTeam).not.toHaveBeenCalled();
     });
 
     test('does not render the ABAC toggle when ABAC is unsupported', () => {
