@@ -542,21 +542,38 @@ describe('ChannelSettingsConfigurationTab', () => {
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
-        it('fails open and keeps the share controls when the can_share request errors', async () => {
+        it('fails open and restores the share controls when a later can_share request errors', async () => {
             const {Client4} = require('mattermost-redux/client');
-            Client4.getSharedChannelCanShare.mockRejectedValueOnce(new Error('network error'));
+            Client4.getSharedChannelCanShare.
+                mockResolvedValueOnce({can_share: false}).
+                mockRejectedValueOnce(new Error('network error'));
 
-            renderWithContext(
+            // First channel reports it is homed on another workspace, so the
+            // notice is shown and the controls are hidden.
+            const remoteHomedChannel = {...mockChannel, id: 'channel-remote-homed'};
+            const {rerender} = renderWithContext(
                 <ChannelSettingsConfigurationTab
                     {...baseProps}
+                    channel={remoteHomedChannel}
                     canManageSharedChannels={true}
                 />,
             );
 
-            // The toggle is rendered synchronously; wait a tick to let the rejected
-            // promise settle and confirm it did not flip the UI into the notice state.
-            const toggle = await screen.findByTestId('shareChannelWithWorkspacesToggle-button');
-            expect(toggle).toBeInTheDocument();
+            expect(await screen.findByText("This channel can't be shared because it originates from another workspace.")).toBeInTheDocument();
+            expect(screen.queryByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeInTheDocument();
+
+            // Switching to another channel re-fetches and the request errors; the
+            // UI must fail open, dropping the notice and restoring the controls.
+            const erroringChannel = {...mockChannel, id: 'channel-fetch-error'};
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={erroringChannel}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(await screen.findByTestId('shareChannelWithWorkspacesToggle-button')).toBeInTheDocument();
             expect(screen.queryByText("This channel can't be shared because it originates from another workspace.")).not.toBeInTheDocument();
         });
 
