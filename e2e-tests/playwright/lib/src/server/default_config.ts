@@ -767,7 +767,6 @@ const defaultServerConfig: AdminConfig = {
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
-        ConsumePostHook: false,
         CloudDedicatedExportUI: false,
         ChannelBookmarks: true,
         WebSocketEventScope: true,
