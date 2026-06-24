@@ -36,7 +36,7 @@ import AdminSectionPanel from 'components/widgets/admin_console/admin_section_pa
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -258,7 +258,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     try {
                         state[setting.key] = mappingValueFromRoles(setting.permissions_mapping_name, roles!) === 'true';
-                    } catch (e) {
+                    } catch {
                         state[setting.key] = false;
                     }
                     return;

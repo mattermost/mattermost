@@ -32,7 +32,7 @@ const siteURLCheck = async (config: Partial<AdminConfig>, formatMessage: ReturnT
         const onError = () => {
             status = ItemStatus.ERROR;
         };
-        await testSiteURL(onSuccess, onError, config.ServiceSettings?.SiteURL);
+        await testSiteURL(onSuccess, onError, config.ServiceSettings?.SiteURL ?? '');
     };
 
     await testURL();

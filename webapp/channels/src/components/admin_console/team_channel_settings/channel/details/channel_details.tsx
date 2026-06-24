@@ -1174,7 +1174,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     });
                 }
             }
-        } catch (error) {
+        } catch {
             // No channel policy exists, continue with empty rules
         }
     };

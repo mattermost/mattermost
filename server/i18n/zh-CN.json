@@ -3599,7 +3599,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "文件设置中的驱动名称无效。必须为“local”或“amazons3”。"
+    "translation": "文件设置中的驱动名称无效。必须为 'local'、'amazons3' 或 'azureblob'。"
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -8182,10 +8182,6 @@
     "translation": "参数 getThreadsForUser 的 OnlyThreads 和 OnlyTotals 互斥"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "文件存储设置尚未配置。"
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "邮件设置尚未配置。"
   },
@@ -12699,7 +12695,7 @@
   },
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
-    "translation": "此频道不再与另一个工作区共享。"
+    "translation": "此频道不再与其他工作区共享。"
   },
   {
     "id": "app.data_spillage.report.column.step",
@@ -12856,5 +12852,541 @@
   {
     "id": "app.data_spillage.report.revisions_found",
     "translation": "发现的修订："
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "未启用频道级权限策略功能。"
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "未启用策略模拟功能。"
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "模拟中的所有用户都必须是请求中团队或频道的成员。"
+  },
+  {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "无法通过 /channels 端点访问 Boards 频道。请改用 /boards API。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "你已经是此频道的成员。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "无法请求加入已归档频道。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "加入此频道需要管理员批准。请从“浏览频道”模式窗口发送请求。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "你已有加入此频道的待处理请求。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "此服务器未启用可发现频道。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "访客不能请求加入可发现的私有频道。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "频道加入请求的更新无效。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "此频道不可发现。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "加入请求已不再处于待处理状态。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "只有私有频道接受加入请求。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "你不满足加入此频道所需的访问规则。"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "共享频道不接受可发现加入请求。"
+  },
+  {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "无法打开生成的已标记帖子报告文件。"
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "无法读取已标记帖子报告文件信息。"
+  },
+  {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "无法向文件存储后端进行认证。请验证你的凭据和认证设置。"
+  },
+  {
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "配置的存储桶或容器不存在。请验证你的文件存储配置和权限。"
+  },
+  {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "未启用全部标为已读功能。"
+  },
+  {
+    "id": "api.post.do_action.merge_query.app_error",
+    "translation": "无法将查询合并到操作 URL 中。"
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "操作查询无效。"
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "在此组中未找到属性字段 {{.FieldID}}。"
+  },
+  {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "机器人账号不能转换为访客账号。"
+  },
+  {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "无法获取用户的频道角色。请重试。"
+  },
+  {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "未启用集成 Boards 功能。"
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "无法创建 Boards 频道。"
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "Boards 频道数据无效。"
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "已达到每个团队允许的最大频道数。"
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "无法通过 CreateChannel 创建 Boards 频道。请改用 /boards API。"
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "无法获取包含未读和提及的频道。"
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "无法加载频道加入请求。"
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "未找到频道加入请求。"
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "无法保存频道加入请求。"
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "无法更新频道加入请求。"
+  },
+  {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "插件拒绝恢复频道：{{.Reason}}"
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "无法保存频道成员。"
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "插件 {{.PluginID}} 试图通过 ChannelWillBeUpdated 更改频道类型；类型更改必须通过专用的类型更改路径进行"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "插件拒绝更新频道：{{.Reason}}"
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "频道 ID 不是有效的频道标识符。"
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "无法注册频道保护器。"
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "注册频道保护器需要频道 ID。"
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "无法取消注册频道保护器。"
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "取消注册频道保护器需要频道 ID。"
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "无法写入 CSV 数据。"
+  },
+  {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "无法关闭已标记帖子报告文件。"
+  },
+  {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "无法将已标记帖子报告文件同步到磁盘。"
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "无法为已标记帖子报告创建临时文件。"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "无法将编辑历史记录条目写入已标记帖子报告。"
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "无法将元数据写入已标记帖子报告。"
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "无法将帖子详情写入已标记帖子报告。"
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "无法将内容审核详情写入已标记帖子报告。"
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "无法关闭已标记帖子报告归档。"
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "无法将附件内容复制到已标记帖子报告归档中。"
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "无法在已标记帖子报告归档中创建条目。"
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "插件拒绝草稿：{{.Reason}}"
+  },
+  {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "你不能删除此策略，因为其中包含你无权查看的属性值。"
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "无法根据表达式生成已遮蔽的可视 AST。"
+  },
+  {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "无法加载频道访问控制策略声明的操作集。"
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "无法合并策略表达式。"
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "值无效。"
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "你不能移除包含你无权查看的属性值的条件。"
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "权限规则名称在策略中必须唯一。"
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "你不满足此策略中的一个或多个条件。"
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "无法刷新模拟的属性。"
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "无法编译用于模拟的策略。"
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "权限策略功能当前已禁用。"
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "策略无效。"
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "模拟至少需要一个操作。"
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "模拟频道范围策略需要指定频道。"
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "模拟需要指定策略。"
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "模拟至少需要一个用户。"
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "请求的用户过多。最多允许 {{.Max}} 个。"
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "策略管理点未初始化。"
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "模拟器不支持策略类型“{{.Type}}”。"
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "操作被拒绝：声明插件 {{.PluginID}} 的钩子调用失败"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "操作被拒绝：所需插件未激活"
+  },
+  {
+    "id": "app.property.access_denied.app_error",
+    "translation": "你没有执行此操作的权限。"
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "access_mode 属性无效。"
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "你的许可证不支持此属性组。"
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "指定的属性不存在。"
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "此属性字段由外部同步管理，无法直接修改。"
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "已达到此组允许的最大属性字段数。"
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "已达到此对象类型允许的最大属性字段数。"
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "属性字段特性无效。"
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "你没有权限将此属性字段标记为管理员管理。"
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "指定的属性字段不存在。"
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "属性值批次中存在重复的字段 ID。"
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "未找到属性字段 {{.FieldID}}。"
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "属性字段 ID 无效。"
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "批次中的所有属性值必须属于同一属性组。"
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "属性字段对象类型与请求不匹配。"
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "属性值验证失败。"
+  },
+  {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "插件拒绝定时帖子：{{.Reason}}"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "插件拒绝更新定时帖子：{{.Reason}}"
+  },
+  {
+    "id": "app.user_access_token.expired",
+    "translation": "个人访问令牌已过期。"
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "导入必须以成员资格父策略为目标。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "成员资格不能与同一规则中的其他操作组合。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "权限操作规则只能用于频道策略。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "权限规则需要一个未超出策略最大长度的非空名称。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "权限规则名称在策略中必须唯一。"
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "规则角色无效。"
+  },
+  {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "只有私有频道可以标记为可发现。"
+  },
+  {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "Boards 显示名称不能为空。"
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "Boards 频道必须属于一个团队。"
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "频道类型必须为 BO（开放 Boards）或 BP（私有 Boards）。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "频道 ID 无效。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "创建时间必须是有效时间。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "拒绝原因过长。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "只能为已拒绝的加入请求设置拒绝原因。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "ID 无效。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "加入请求消息过长。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "审核者 ID 无效。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "已批准或已拒绝的加入请求必须记录审核者和审核时间。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "加入请求状态无效。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "更新时间必须是有效时间。"
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "用户 ID 无效。"
+  },
+  {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "超时值 {{.Value}} 无效。应为正数。"
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "{{.Setting}} 中不允许使用路径遍历序列（\"..\"）。发现 \"{{.Value}}\"。"
+  },
+  {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "超时值 {{.Value}} 无效。应为正数。"
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "自动缓存清理值无效。必须介于 {{.Min}} 到 {{.Max}} 天之间。"
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "断开连接超时值无效。必须介于 {{.Min}} 到 {{.Max}} 秒之间。"
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "离线保留计时器值无效。必须介于 {{.Min}} 到 {{.Max}} 小时之间。"
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "expires_at 无效，必须为 0 或正的 Unix 时间戳（毫秒）。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_id.app_error",
+    "translation": "看板列 ID 无效或缺失。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_name.app_error",
+    "translation": "看板列名称不能为空。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_options.app_error",
+    "translation": "看板列必须至少有一个选项 ID。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
+    "translation": "看板视图必须至少有一列。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
+    "translation": "看板视图超出最大列数。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_field_id.app_error",
+    "translation": "看板视图必须引用有效的属性字段 ID。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_invalid.app_error",
+    "translation": "看板视图的 props 结构无效。"
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_required.app_error",
+    "translation": "看板视图需要带有 group_by 配置的 props。"
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "插件帖子更新中的 mm_blocks_actions 无效。"
   }
 ]

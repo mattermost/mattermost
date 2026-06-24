@@ -1175,3 +1175,128 @@ func TestInheritV0_3(t *testing.T) {
 		require.Equal(t, "model.access_policy.inherit.version.app_error", err.Id)
 	})
 }
+
+func TestIsValidTeamType(t *testing.T) {
+	validID := NewId()
+
+	t.Run("team type with rules only is valid", func(t *testing.T) {
+		p := &AccessControlPolicy{
+			ID:       validID,
+			Type:     AccessControlPolicyTypeTeam,
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("team type with imports only is valid", func(t *testing.T) {
+		p := &AccessControlPolicy{
+			ID:       validID,
+			Type:     AccessControlPolicyTypeTeam,
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Imports:  []string{NewId()},
+		}
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("team type with neither rules nor imports is invalid", func(t *testing.T) {
+		p := &AccessControlPolicy{
+			ID:       validID,
+			Type:     AccessControlPolicyTypeTeam,
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+		}
+		appErr := p.IsValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.access_policy.is_valid.rules_imports.app_error", appErr.Id)
+	})
+}
+
+func TestInheritTeamType(t *testing.T) {
+	makeParent := func() *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "TestParent",
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+	}
+
+	t.Run("team child inherits from parent is ok", func(t *testing.T) {
+		parent := makeParent()
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeTeam,
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		err := child.Inherit(parent)
+		require.Nil(t, err)
+		require.Contains(t, child.Imports, parent.ID)
+	})
+
+	t.Run("team child inheriting from team policy returns 400", func(t *testing.T) {
+		teamParent := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeTeam,
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Imports:  []string{NewId()},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeTeam,
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		err := child.Inherit(teamParent)
+		require.NotNil(t, err)
+		require.Equal(t, 400, err.StatusCode)
+	})
+
+	t.Run("team child inheriting from permission policy returns 400", func(t *testing.T) {
+		permParent := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "PermParent",
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Roles:    []string{"system_admin"},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeTeam,
+			Version:  AccessControlPolicyVersionV0_3,
+			Revision: 0,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		err := child.Inherit(permParent)
+		require.NotNil(t, err)
+		require.Equal(t, 400, err.StatusCode)
+	})
+}
