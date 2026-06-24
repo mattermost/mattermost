@@ -662,11 +662,11 @@ export function makeGetProfilesNotInChannel(): (state: GlobalState, channelId: C
 }
 
 export function makeGetProfilesByIdsAndUsernames(): (
-state: GlobalState,
-props: {
-    allUserIds?: Array<UserProfile['id']>;
-    allUsernames?: Array<UserProfile['username']>;
-}
+    state: GlobalState,
+    props: {
+        allUserIds?: Array<UserProfile['id']>;
+        allUsernames?: Array<UserProfile['username']>;
+    },
 ) => UserProfile[] {
     return createSelector(
         'makeGetProfilesByIdsAndUsernames',

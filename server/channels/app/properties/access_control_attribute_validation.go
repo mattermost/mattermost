@@ -35,7 +35,7 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //   - trims whitespace on string attrs
 //   - applies the visibility default when unset
 //   - clears attrs that don't apply to the field type (options on non-select,
-//     ldap/saml on non-text or admin-managed fields)
+//     ldap/saml on non-text fields)
 //   - auto-assigns IDs to options that lack one and validates option shape
 //   - validates visibility, value_type, managed, display_name, and sort_order
 //   - validates property values for text fields against value_type
@@ -95,14 +95,14 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	// Type-based attr clearing: select-shaped fields keep options, only text
 	// supports external sync, and admin-managed fields can never be synced
 	// (mutual exclusivity).
-	isSelect := field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect
+	isSelect := field.Type.SupportsOptions()
 	isText := field.Type == model.PropertyFieldTypeText
 	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
 
 	if !isSelect {
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
 	}
-	if !isText || managed == "admin" {
+	if !isText {
 		delete(field.Attrs, model.PropertyFieldAttrLDAP)
 		delete(field.Attrs, model.PropertyFieldAttrSAML)
 	}
@@ -163,6 +163,30 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 	var options model.PropertyOptions[*model.CustomProfileAttributesSelectOption]
 	if err = json.Unmarshal(data, &options); err != nil {
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+
+	// Rank validation. For rank fields every option must carry a positive,
+	// unique rank. For other field types rank is not meaningful, so any stray
+	// values are stripped to prevent them from drifting into persisted attrs.
+	if field.Type == model.PropertyFieldTypeRank {
+		ranks := make(map[int]struct{}, len(options))
+		for i, opt := range options {
+			if opt.Rank == nil {
+				return fmt.Errorf("invalid options: option at index %d is missing rank for rank field: %w", i, ErrInvalidFieldAttrs)
+			}
+			rank := *opt.Rank
+			if rank <= 0 {
+				return fmt.Errorf("invalid options: option rank must be a positive integer, got %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
+			}
+			if _, exists := ranks[rank]; exists {
+				return fmt.Errorf("invalid options: duplicate option rank %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
+			}
+			ranks[rank] = struct{}{}
+		}
+	} else {
+		for i := range options {
+			options[i].Rank = nil
+		}
 	}
 
 	for i := range options {
@@ -382,7 +406,7 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 		}
 		return model.ValidatePropertyValueForValueType(valueType, value.Value)
 
-	case model.PropertyFieldTypeSelect:
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
 			return fmt.Errorf("expected string value for select field: %w", err)

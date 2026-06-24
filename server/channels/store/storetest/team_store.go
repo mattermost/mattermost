@@ -75,6 +75,117 @@ func TestTeamStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, rctx, ss) })
 	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, rctx, ss) })
 	t.Run("GetCommonTeamIDsForMultipleUsers", func(t *testing.T) { testGetCommonTeamIDsForMultipleUsers(t, rctx, ss) })
+	t.Run("PolicyEnforced", func(t *testing.T) { testTeamStorePolicyEnforced(t, rctx, ss) })
+}
+
+func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store) {
+	saveTeam := func() *model.Team {
+		team, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.Team().PermanentDelete(team.Id) })
+		return team
+	}
+
+	// savePolicy persists a policy whose ID matches the target resource. team-type
+	// policies validate only from v0.3 onward.
+	savePolicy := func(id, policyType string, active bool) {
+		version := model.AccessControlPolicyVersionV0_2
+		if policyType == model.AccessControlPolicyTypeTeam {
+			version = model.AccessControlPolicyVersionV0_3
+		}
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:      id,
+			Type:    policyType,
+			Active:  active,
+			Version: version,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "user.properties.program == \"engineering\"",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.AccessControlPolicy().Delete(rctx, id) })
+	}
+
+	t.Run("no policy", func(t *testing.T) {
+		team := saveTeam()
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("active team policy", func(t *testing.T) {
+		team := saveTeam()
+		savePolicy(team.Id, model.AccessControlPolicyTypeTeam, true)
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.True(t, got.PolicyIsActive)
+	})
+
+	t.Run("inactive team policy", func(t *testing.T) {
+		team := saveTeam()
+		savePolicy(team.Id, model.AccessControlPolicyTypeTeam, false)
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("type guard ignores non-team policy with same id", func(t *testing.T) {
+		team := saveTeam()
+		savePolicy(team.Id, model.AccessControlPolicyTypeChannel, true)
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("channel retrofit ignores team policy with same id", func(t *testing.T) {
+		ch := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}
+		ch, err := ss.Channel().Save(rctx, ch, -1)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.Channel().PermanentDelete(rctx, ch.Id) })
+
+		savePolicy(ch.Id, model.AccessControlPolicyTypeTeam, true)
+		got, err := ss.Channel().Get(ch.Id, false)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	// GetAllPage feeds the team directory listing; the directory visibility filter
+	// short-circuits on PolicyEnforced, so this listing path must hydrate it.
+	t.Run("GetAllPage hydrates PolicyEnforced", func(t *testing.T) {
+		enforced := saveTeam()
+		savePolicy(enforced.Id, model.AccessControlPolicyTypeTeam, true)
+		plain := saveTeam()
+
+		teams, err := ss.Team().GetAllPage(0, 1000, nil)
+		require.NoError(t, err)
+
+		byID := make(map[string]*model.Team, len(teams))
+		for _, tm := range teams {
+			byID[tm.Id] = tm
+		}
+
+		require.Contains(t, byID, enforced.Id)
+		require.True(t, byID[enforced.Id].PolicyEnforced, "team with an active team policy must report PolicyEnforced from GetAllPage")
+		require.True(t, byID[enforced.Id].PolicyIsActive)
+		require.Contains(t, byID, plain.Id)
+		require.False(t, byID[plain.Id].PolicyEnforced)
+	})
 }
 
 func testTeamStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {

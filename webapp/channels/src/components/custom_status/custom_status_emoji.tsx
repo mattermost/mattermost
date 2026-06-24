@@ -38,7 +38,7 @@ function CustomStatusEmoji({
     userID = '',
     onClick,
 }: Props) {
-    const getCustomStatus = useMemo(makeGetCustomStatus, []);
+    const getCustomStatus = useMemo(() => makeGetCustomStatus(), []);
     const customStatus = useSelector((state: GlobalState) => getCustomStatus(state, userID));
 
     const timezone = useSelector(getCurrentTimezone);
