@@ -388,9 +388,14 @@ func TestServerInfo(t *testing.T) {
 		for _, pair := range m.GetLabel() {
 			labels[pair.GetName()] = pair.GetValue()
 		}
-		require.Equal(t, model.CurrentVersion, labels["version"])
-		require.Equal(t, model.BuildNumber, labels["build_number"])
-		require.Equal(t, model.BuildHash, labels["build_hash"])
-		require.Equal(t, model.BuildHashEnterprise, labels["build_hash_enterprise"])
+		for key, want := range map[string]string{
+			"version":               model.CurrentVersion,
+			"build_number":          model.BuildNumber,
+			"build_hash":            model.BuildHash,
+			"build_hash_enterprise": model.BuildHashEnterprise,
+		} {
+			require.Contains(t, labels, key)
+			require.Equal(t, want, labels[key])
+		}
 	})
 }
