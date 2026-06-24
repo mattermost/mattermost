@@ -5,7 +5,9 @@ package commands
 
 import (
 	"os"
+	"os/exec"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -13,6 +15,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 )
 
 func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
@@ -43,49 +47,62 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	})
 }
 
+// TestLocalOnlyPrecheckSubprocess is invoked in a subprocess to verify that
+// localOnlyPrecheck exits when local mode is disabled.
+func TestLocalOnlyPrecheckSubprocess(t *testing.T) {
+	if os.Getenv("MMCTL_TEST_LOCAL_ONLY_PRECHECK") != "1" {
+		return
+	}
+
+	viper.Set("local", false)
+	localOnlyPrecheck(SystemNukeUsersCmd, nil)
+	os.Exit(0)
+}
+
+func requireLocalOnlyPrecheckBlocked(t *testing.T) {
+	t.Helper()
+
+	cmd := exec.Command(os.Args[0], "-test.run=^TestLocalOnlyPrecheckSubprocess$", "-test.count=1")
+	cmd.Env = append(os.Environ(), "MMCTL_TEST_LOCAL_ONLY_PRECHECK=1")
+	err := cmd.Run()
+
+	exitErr, ok := err.(*exec.ExitError)
+	require.True(t, ok, "expected process to exit, got %v", err)
+	require.Equal(t, 1, exitErr.ExitCode())
+}
+
+func (s *MmctlE2ETestSuite) assertUsersNotDeleted() {
+	users, appErr := s.th.App.GetUsersPage(&model.UserGetOptions{
+		Page:    0,
+		PerPage: 10,
+	}, true)
+	s.Require().Nil(appErr)
+	s.Require().NotZero(len(users))
+}
+
 func (s *MmctlE2ETestSuite) TestNukeUsersCmd() {
 	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Delete all user as unpriviliged user should not work", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		previousLocal := viper.GetBool("local")
+		viper.Set("local", false)
+		defer viper.Set("local", previousLocal)
 
-		err := nukeUsersCmdF(s.th.Client, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 0)
-
-		// expect users not deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().NotZero(len(users))
+		requireLocalOnlyPrecheckBlocked(s.T())
+		s.assertUsersNotDeleted()
 	})
 
 	s.Run("Delete all user as system admin through the port API should not work", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		previousLocal := viper.GetBool("local")
+		viper.Set("local", false)
+		defer viper.Set("local", previousLocal)
 
-		err := nukeUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 0)
-
-		// expect users not deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().NotZero(len(users))
+		requireLocalOnlyPrecheckBlocked(s.T())
+		s.assertUsersNotDeleted()
 	})
 
 	s.Run("Delete all users through local mode should work correctly", func() {
@@ -98,27 +115,32 @@ func (s *MmctlE2ETestSuite) TestNukeUsersCmd() {
 				Password: model.NewTestPassword(),
 				Email:    s.th.GenerateTestEmail(),
 			}
-			_, err := s.th.App.CreateUser(s.th.Context, &userData)
-			s.Require().Nil(err)
+			_, appErr := s.th.App.CreateUser(s.th.Context, &userData)
+			s.Require().Nil(appErr)
 		}
 
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+		previousLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", previousLocal)
 
-		// delete all users only works on local mode
-		err := nukeUsersCmdF(s.th.LocalClient, cmd, []string{})
-		s.Require().Nil(err)
+		err := SystemNukeUsersCmd.ParseFlags([]string{"--confirm"})
+		s.Require().NoError(err)
+		defer func() {
+			_ = SystemNukeUsersCmd.Flags().Set("confirm", "false")
+		}()
+
+		localOnlyPrecheck(SystemNukeUsersCmd, nil)
+		err = nukeUsersCmdF(s.th.LocalClient, SystemNukeUsersCmd, []string{})
+		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
 
-		// expect users deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
+		users, appErr := s.th.App.GetUsersPage(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 		}, true)
-		s.Require().Nil(err)
+		s.Require().Nil(appErr)
 		s.Require().Zero(len(users))
 	})
 }

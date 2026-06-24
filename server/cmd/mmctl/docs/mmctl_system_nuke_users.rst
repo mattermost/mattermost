@@ -27,7 +27,7 @@ Options
 
 ::
 
-      --confirm   Confirm you really want to delete all users and a DB backup has been performed
+      --confirm   Confirm you really want to permanently delete all users, posts, and related data, and that a DB backup has been performed
   -h, --help      help for users
 
 Options inherited from parent commands

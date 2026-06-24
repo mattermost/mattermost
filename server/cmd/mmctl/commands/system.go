@@ -99,7 +99,7 @@ func init() {
 
 	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
 
-	SystemNukeUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete all users and a DB backup has been performed")
+	SystemNukeUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to permanently delete all users, posts, and related data, and that a DB backup has been performed")
 
 	SystemNukeCmd.AddCommand(
 		SystemNukeUsersCmd,
@@ -242,7 +242,7 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 func nukeUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		if err := getConfirmation("Are you sure you want to permanently delete all user accounts?", true); err != nil {
+		if err := getConfirmation("Are you sure you want to permanently delete all users, posts, and related data?", true); err != nil {
 			return err
 		}
 	}
