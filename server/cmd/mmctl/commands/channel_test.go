@@ -2625,6 +2625,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "missing-user")
+		s.Require().NotContains(err.Error(), "in-team-user")
 		s.Require().Contains(err.Error(), "--auto-add-users")
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2754,6 +2755,81 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "unable to add user \"missing-user\"")
 		s.Require().Contains(err.Error(), "add-error")
+	})
+
+	s.Run("With --force, skip the team membership check and remove users while moving", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam := model.Team{Name: "destination-team-name", Id: dstTeamID}
+
+		channelID := "channel-id"
+		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", true, "")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		// With --force the missing-user check is bypassed entirely; the strict
+		// mock controller would fail if GetUsersInChannel/GetUsersInTeam were
+		// called. force is propagated to the move call.
+		s.client.
+			EXPECT().
+			MoveChannel(context.TODO(), channelID, dstTeamID, true).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockChannel, printer.GetLines()[0])
+	})
+
+	s.Run("Report an error when the channel members cannot be fetched", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam := model.Team{Name: "destination-team-name", Id: dstTeamID}
+
+		channelID := "channel-id"
+		mockChannel := model.Channel{Name: "channel-name", TeamId: "source-team-id", Id: channelID}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), dstTeamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInChannel(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(nil, &model.Response{}, errors.New("fetch-error")).
+			Times(1)
+
+		// The move must be skipped when membership cannot be determined.
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "unable to determine missing team members for channel \"channel-name\"")
+		s.Require().Contains(err.Error(), "fetch-error")
 	})
 }
 
