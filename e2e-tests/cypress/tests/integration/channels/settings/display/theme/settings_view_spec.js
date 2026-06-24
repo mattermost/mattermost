@@ -42,7 +42,7 @@ function verifyMinDisplayView() {
     cy.get('#name_formatTitle').scrollIntoView().should('be.visible').and('contain', 'Teammate Name Display');
     cy.get('#name_formatEdit').should('be.visible').and('contain', 'Edit');
 
-    cy.get('#collapseTitle').scrollIntoView().should('be.visible').and('contain', 'Default appearance of image previews');
+    cy.get('#collapseTitle').scrollIntoView().should('be.visible', 'contain', 'Default appearance of image previews');
     cy.get('#collapseEdit').should('be.visible').and('contain', 'Edit');
 
     cy.get('#message_displayTitle').scrollIntoView().should('be.visible').and('contain', 'Message Display');
