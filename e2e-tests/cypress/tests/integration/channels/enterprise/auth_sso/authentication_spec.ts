@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console @authentication
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getRandomId, newTestPassword} from '@/utils';

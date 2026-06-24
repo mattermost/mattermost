@@ -53,6 +53,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {getPostDraft} from 'selectors/rhs';
 import globalStore from 'stores/redux_store';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
@@ -60,7 +61,6 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';
@@ -86,11 +86,11 @@ const ThreadsChannel: FakeChannel = {
 
 type FakeChannel = Pick<Channel, 'id' | 'name' | 'display_name' | 'update_at' | 'delete_at'> & {
     type: string;
-}
+};
 
 type FakeDirectChannel = FakeChannel & {
     userId: string;
-}
+};
 
 type ChannelItem = Channel | FakeChannel | FakeDirectChannel;
 
@@ -125,7 +125,7 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
-}
+};
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     id,
@@ -202,7 +202,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Archived channel',
                 })}
             >
-                <i className={`icon ${getArchiveIconClassName(channel.type)}`}/>
+                {isRealChannel(channel) ? (
+                    <ChannelTypeIcon channel={channel}/>
+                ) : (
+                    <i className='icon icon-archive-outline'/>
+                )}
             </span>
         );
     } else if (hasDraft) {
@@ -228,7 +232,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Public channel',
                 })}
             >
-                <i className='icon icon-globe'/>
+                {isRealChannel(channel) && <ChannelTypeIcon channel={channel}/>}
             </span>
         );
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
@@ -241,7 +245,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Private channel',
                 })}
             >
-                <i className='icon icon-lock-outline'/>
+                {isRealChannel(channel) && <ChannelTypeIcon channel={channel}/>}
             </span>
         );
     } else if (channel.type === Constants.THREADS) {

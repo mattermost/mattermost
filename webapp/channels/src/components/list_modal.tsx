@@ -79,7 +79,7 @@ type Props = {
      *     const renderRow = (item, listModal) => <div>{item.id}</div>;
      */
     renderRow: (item: Group, listModal: ListModal) => JSX.Element;
-}
+};
 
 type State = {
     show: boolean;
@@ -88,7 +88,7 @@ type State = {
     totalCount: number;
     loading: boolean;
     searchTerm: string;
-}
+};
 
 export default class ListModal extends React.PureComponent<Props, State> {
     static defaultProps = {

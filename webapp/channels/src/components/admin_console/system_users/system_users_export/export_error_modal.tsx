@@ -11,7 +11,7 @@ import ConfirmModalRedux from 'components/confirm_modal_redux';
 type Props = {
     error: ServerError;
     onExited: () => void;
-}
+};
 
 export function ExportErrorModal({error, onExited}: Props) {
     const isInProgress = error.status_code === 400 &&

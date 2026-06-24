@@ -72,7 +72,7 @@ type Props = {
     onSend: (scheduledPostId: string) => void;
     onEdit: () => void;
     onCopyText: () => void;
-}
+};
 
 function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, onSend, onEdit, onCopyText}: Props) {
     const dispatch = useDispatch();

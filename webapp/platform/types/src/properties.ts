@@ -9,7 +9,8 @@ export type FieldType = (
     'multiselect' |
     'date' |
     'user' |
-    'multiuser'
+    'multiuser' |
+    'rank'
 );
 
 export type PropertyField = {
@@ -51,7 +52,7 @@ export type PropertyValue<T> = {
     delete_at: number;
     created_by: string;
     updated_by: string;
-}
+};
 
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 
@@ -87,7 +88,7 @@ export type PropertyFieldOption = {
     name: string;
     color?: string;
     rank?: number;
-}
+};
 
 export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
@@ -111,10 +112,10 @@ export type SelectPropertyField = PropertyField & {
         editable?: boolean;
         options?: PropertyFieldOption[];
     };
-}
+};
 
 export const supportsOptions = (field: UserPropertyField) => {
-    return field.type === 'select' || field.type === 'multiselect';
+    return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
@@ -151,7 +152,7 @@ export type PropertyValuesState = {
 
 export type PropertyGroupsState = {
     byId: IDMappedObjects<PropertyGroup>;
-    byName: { [name: string]: PropertyGroup };
+    byName: {[name: string]: PropertyGroup};
 };
 
 export type PropertyValuesUpdated<T> = {

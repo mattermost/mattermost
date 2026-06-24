@@ -10,34 +10,27 @@ import type {OAuthApp} from '@mattermost/types/integrations';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import type {allowOAuth2} from 'actions/admin_actions';
+
 import FormError from 'components/form_error';
 
 import icon50 from 'images/icon50x50.png';
 import {getHistory} from 'utils/browser_history';
-
-export type Params = {
-    responseType: string | null;
-    clientId: string | null;
-    redirectUri: string | null;
-    state: string | null;
-    scope: string | null;
-    resource: string | null;
-}
 
 type Props = {
     location: {
         search: string;
     };
     actions: {
-        getOAuthAppInfo: (clientId: string | null) => Promise<ActionResult<OAuthApp>>;
-        allowOAuth2: (params: Params) => Promise<ActionResult<{redirect: string}>>;
+        getOAuthAppInfo: (clientId: string) => Promise<ActionResult<OAuthApp>>;
+        allowOAuth2: (...params: Parameters<typeof allowOAuth2>) => Promise<ActionResult<{redirect: string}>>;
     };
-}
+};
 
 type State = {
     app?: OAuthApp;
     error?: string;
-}
+};
 
 export default class Authorize extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -53,7 +46,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
             blocker.parentNode.removeChild(blocker);
         }
         const clientId = (new URLSearchParams(this.props.location.search)).get('client_id');
-        if (clientId && !((/^[a-z0-9]+$/).test(clientId))) {
+        if (!clientId || !((/^[a-z0-9]+$/).test(clientId))) {
             return;
         }
 

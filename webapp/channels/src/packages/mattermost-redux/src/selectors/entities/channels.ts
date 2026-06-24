@@ -597,7 +597,7 @@ export const getMembersInCurrentChannel: (state: GlobalState) => Record<string, 
  * A scalar encoding or primitive-value representation of
  */
 export type BasicUnreadStatus = boolean | number;
-export type BasicUnreadMeta = {isUnread: boolean; unreadMentionCount: number}
+export type BasicUnreadMeta = {isUnread: boolean; unreadMentionCount: number};
 
 export function basicUnreadMeta(unreadStatus: BasicUnreadStatus): BasicUnreadMeta {
     return {

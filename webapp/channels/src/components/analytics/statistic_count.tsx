@@ -14,7 +14,7 @@ type Props = {
     children?: React.ReactNode;
     status?: 'warning' | 'error';
     formatter?: (value: number) => string;
-}
+};
 
 const StatisticCount = ({
     title,

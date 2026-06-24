@@ -13,7 +13,7 @@ export type UseDataOptions<Entity, Identifier = string, State = GlobalState> = {
 
     fetch: (identifier: Identifier, ...fetchArgs: unknown[]) => Action | ThunkAction<unknown, State, unknown, Action>;
     selector: (state: State, identifier: Identifier) => Entity | undefined;
-}
+};
 
 export function makeUseEntity<Entity, Identifier = string, State = GlobalState>(options: UseDataOptions<Entity, Identifier, State>) {
     function useEntity(identifier: Identifier, ...fetchArgs: unknown[]): Entity | undefined {

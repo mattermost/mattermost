@@ -86,7 +86,7 @@ type Props = {
     registerSaveAction: (saveAction: () => Promise<unknown>) => void;
     unRegisterSaveAction: (saveAction: () => Promise<unknown>) => void;
     id?: string;
-}
+};
 
 type SaveActionResult = {
     error?: Error;

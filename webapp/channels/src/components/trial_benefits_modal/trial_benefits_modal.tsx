@@ -35,7 +35,7 @@ export type Props = {
     onClose?: () => void;
     onExited: () => void;
     trialJustStarted?: boolean;
-}
+};
 
 const TrialBenefitsModal = ({
     onClose,
