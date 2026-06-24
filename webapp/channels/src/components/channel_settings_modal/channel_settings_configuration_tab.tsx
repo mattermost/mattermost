@@ -81,6 +81,14 @@ function copyRemotes(remotes: WorkspaceWithStatus[]) {
     return remotes.map((r) => ({...r}));
 }
 
+function remotesWithoutPendingSave(remotes: WorkspaceWithStatus[]) {
+    return remotes.map((remote) => {
+        const saved = {...remote};
+        delete saved.pendingSave;
+        return saved;
+    });
+}
+
 function ChannelSettingsConfigurationTab({
     channel,
     setAreThereUnsavedChanges,
@@ -257,7 +265,7 @@ function ChannelSettingsConfigurationTab({
     const userEditedSharingRef = useRef(false);
 
     const [savedSharing, setSavedSharing] = useState<SharingSnapshot>(() => ({
-        enabled: Boolean(channel.shared || (initialRemotes || []).length > 0),
+        enabled: (initialRemotes || []).length > 0,
         remotes: copyRemotes(initialRemotes || []),
     }));
     const [sharingEnabled, setSharingEnabled] = useState(savedSharing.enabled);
@@ -268,7 +276,7 @@ function ChannelSettingsConfigurationTab({
         remoteIdsKey(workspaceRemotes) !== remoteIdsKey(savedSharing.remotes);
 
     const applySharingSnapshot = useCallback((remotes: WorkspaceWithStatus[]) => {
-        const copies = copyRemotes(remotes);
+        const copies = remotesWithoutPendingSave(copyRemotes(remotes));
         const enabled = copies.length > 0;
         setSavedSharing({enabled, remotes: copies});
         setSharingEnabled(enabled);
