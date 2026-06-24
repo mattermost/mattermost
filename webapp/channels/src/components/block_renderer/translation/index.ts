@@ -88,6 +88,7 @@ export function translatePostProps(props: Record<string, unknown>, intl: IntlSha
         }
         return applyBlockTranslationLimits(blocks);
     } catch (error) {
+        console.log('error translating post props', error); // eslint-disable-line no-console
         return buildTranslationErrorBlocks(intl, error);
     }
 }

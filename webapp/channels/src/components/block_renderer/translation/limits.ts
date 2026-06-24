@@ -67,19 +67,7 @@ function limitBlock(block: MmBlock, depth: number, count: {value: number}): MmBl
         return {...block, items};
     }
     case 'column_set': {
-        const columns: MmColumnBlock[] = [];
-        for (const col of block.columns) {
-            if (count.value >= BLOCK_TRANSLATION_LIMITS.maxTotalBlocks) {
-                break;
-            }
-            count.value++;
-            const items = limitBlocks(col.items, depth + 2, count);
-            if (items.length === 0) {
-                count.value--;
-                continue;
-            }
-            columns.push({...col, items});
-        }
+        const columns: MmColumnBlock[] = limitBlocks(block.columns, depth + 1, count) as MmColumnBlock[];
         if (columns.length === 0) {
             count.value--;
             return null;
