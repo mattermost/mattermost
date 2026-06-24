@@ -45,11 +45,11 @@ function buildTransform(scale?: number, translate?: {x: number; y: number}): str
 // information once a viewBox has been injected, so the modal can scale it instead
 // of clipping it. Until that resolves (or if it cannot be resolved) it returns null
 // and the caller falls back to the original preview URL.
-function useResolvedSvgUrl(previewUrl: string, enabled: boolean): string | null {
+function useResolvedSvgUrl(previewUrl: string | undefined, enabled: boolean): string | null {
     const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!enabled) {
+        if (!enabled || !previewUrl) {
             setObjectUrl(null);
             return undefined;
         }
