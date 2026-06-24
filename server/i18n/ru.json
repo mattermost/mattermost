@@ -8244,10 +8244,6 @@
     "translation": "Параметры OnlyThreads и OnlyTotals для getThreadsForUser являются взаимоисключающими"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "В настройках хранилища файлов есть незаданные значения."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "В настройки электронной почты есть не заданные значения."
   },
@@ -10670,5 +10666,9 @@
   {
     "id": "app.plugin.seek.app_error",
     "translation": "Невозможно сбросить позицию чтения к началу пакета плагинов."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Этот канал больше не используется совместно с другим рабочим пространством."
   }
 ]

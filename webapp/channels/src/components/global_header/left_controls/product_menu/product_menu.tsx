@@ -3,12 +3,10 @@
 
 import React, {useRef} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 import styled from 'styled-components';
 
-import {
-    ProductsIcon,
-} from '@mattermost/compass-icons/components';
+import {ProductsIcon} from '@mattermost/compass-icons/components';
 
 import {isFreeEdition as isFreeEditionSelector} from 'mattermost-redux/selectors/entities/general';
 
@@ -26,10 +24,13 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
+import type {GlobalState} from 'types/store';
+
 import ProductBranding from './product_branding';
 import ProductBrandingFreeEdition from './product_branding_team_edition';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
+import ProductSwitcherMenuItem from './product_switcher_menu_item';
 
 import {useClickOutsideRef} from '../../hooks';
 
@@ -77,6 +78,28 @@ const ProductMenu = (): JSX.Element => {
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
     const isFreeEdition = useSelector(isFreeEditionSelector);
+    const visibleSwitcherItems = useSelector(
+        (state: GlobalState) => {
+            if (!isSwitcherOpen(state)) {
+                return [];
+            }
+            return (state.plugins.components.ProductSwitcherMenuItem ?? []).filter((item) => {
+                if (item.isHidden === undefined) {
+                    return true;
+                }
+                try {
+                    return !item.isHidden(state);
+                } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.error(`ProductSwitcherMenuItem ${item.pluginId}:${item.id} isHidden threw`, e);
+
+                    // Fail closed: hide the item if its predicate throws.
+                    return false;
+                }
+            });
+        },
+        shallowEqual,
+    );
 
     const handleClick = () => dispatch(setProductMenuSwitcherOpen(!switcherOpen));
 
@@ -153,6 +176,17 @@ const ProductMenu = (): JSX.Element => {
                         onClick={handleClick}
                     />
                     {productItems}
+                    {visibleSwitcherItems.length > 0 && (
+                        <Menu.Group>
+                            {visibleSwitcherItems.map((item) => (
+                                <ProductSwitcherMenuItem
+                                    key={item.id}
+                                    item={item}
+                                    onClose={handleClick}
+                                />
+                            ))}
+                        </Menu.Group>
+                    )}
                     <ProductMenuList
                         isMessaging={isChannels(currentProductID)}
                         onClick={handleClick}

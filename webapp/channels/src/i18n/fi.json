@@ -695,7 +695,6 @@
   "admin.requestButton.loading": " Ladataan...",
   "admin.requestButton.requestFailure": "Testivirhe: {error}",
   "admin.requestButton.requestSuccess": "Testi onnistui",
-  "admin.s3.s3Success": "Yhteys onnistui",
   "admin.saml.adminAttrTitle": "ID attribuutti:",
   "admin.saml.assertionConsumerServiceURLTitle": "Palveluntarjoajan kirjautumis-URL:",
   "admin.saml.emailAttrEx": "Esim.: \"Email\" tai \"PrimaryEmail\"",

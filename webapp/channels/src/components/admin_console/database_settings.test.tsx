@@ -7,7 +7,7 @@ import DatabaseSettings from 'components/admin_console/database_settings';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-jest.mock('actions/admin_actions.jsx', () => {
+jest.mock('actions/admin_actions', () => {
     const pingFn = () => {
         return jest.fn(() => {
             return {ActiveSearchBackend: 'none'};

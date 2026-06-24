@@ -8198,10 +8198,6 @@
     "translation": "Kann die Dateianzahl für den Kanal nicht holen"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Dateispeicher-Einstellungen haben ungesetzte Werte."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "E-Mail Einstellungen haben ungesetzte Werte."
   },

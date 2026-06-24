@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListNumberedIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
@@ -17,6 +17,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import {slugifyForCEL} from 'utils/properties';
 
 import AttributeModal from './attribute_modal';
+import RankedSchemaModal from './ranked_schema_modal';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';
 
@@ -115,10 +116,23 @@ const DotMenu = ({
     updateField,
     deleteField,
 }: Props) => {
+    const dispatch = useDispatch();
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const isProtected = Boolean(field.attrs?.protected);
+
+    const promptEditRanking = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.RANKED_SCHEMA_MODAL,
+            dialogType: RankedSchemaModal,
+            dialogProps: {
+                field,
+                onSave: updateField,
+                onExited: () => {},
+            },
+        }));
+    };
 
     const isSynced = Boolean(field.attrs.ldap || field.attrs.saml);
     const isEditableByUsers = !isSynced && field.attrs.managed !== 'admin';
@@ -204,6 +218,19 @@ const DotMenu = ({
                 className: 'user-property-field-dotmenu-menu',
             }}
         >
+            {field.type === 'rank' && (
+                <Menu.Item
+                    id={`${menuId}_edit-ranking`}
+                    onClick={promptEditRanking}
+                    leadingElement={<FormatListNumberedIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.edit_ranking.label'
+                            defaultMessage='Edit ranking'
+                        />
+                    )}
+                />
+            )}
             <Menu.SubMenu
                 id={`${menuId}-${field.id}-visibility`}
                 menuId={`${menuId}-${field.id}-visibility-menu`}
