@@ -278,17 +278,17 @@ func (a *App) reactivateProtectedBot(rctx request.CTX, bot *model.Bot) (*model.B
 	if user.DeleteAt != 0 {
 		user.UpdateAt = model.GetMillis()
 		user.DeleteAt = 0
-		userUpdate, nErr := a.ch.srv.userService.UpdateUser(rctx, user, true)
-		if nErr != nil {
+		userUpdate, updateErr := a.ch.srv.userService.UpdateUser(rctx, user, true)
+		if updateErr != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {
-			case errors.As(nErr, &appErr):
+			case errors.As(updateErr, &appErr):
 				return nil, appErr
-			case errors.As(nErr, &invErr):
-				return nil, model.NewAppError("reactivateProtectedBot", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+			case errors.As(updateErr, &invErr):
+				return nil, model.NewAppError("reactivateProtectedBot", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(updateErr)
 			default:
-				return nil, model.NewAppError("reactivateProtectedBot", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return nil, model.NewAppError("reactivateProtectedBot", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 			}
 		}
 		a.InvalidateCacheForUser(user.Id)
