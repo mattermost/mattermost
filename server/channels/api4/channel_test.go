@@ -1992,13 +1992,6 @@ func TestCreateDirectChannel(t *testing.T) {
 	_, resp, err = client.CreateDirectChannel(context.Background(), model.NewId(), user2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
-}
-
-func TestLocalCreateDirectChannel(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	user1 := th.BasicUser
-	user2 := th.BasicUser2
 
 	t.Run("Create a direct channel in local mode", func(t *testing.T) {
 		dm, resp, err := th.LocalClient.CreateDirectChannel(context.Background(), user1.Id, user2.Id)

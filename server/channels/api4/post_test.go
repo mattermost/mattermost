@@ -476,12 +476,6 @@ func TestCreatePost(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 		assert.Nil(t, rpost)
 	})
-}
-
-func TestLocalCreatePost(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	th := Setup(t).InitBasic(t)
 
 	t.Run("Create a post in local mode", func(t *testing.T) {
 		post := &model.Post{
