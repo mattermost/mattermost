@@ -6,6 +6,7 @@ import React, {useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
+import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -59,7 +60,6 @@ import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
-import AlertTag from 'components/widgets/tag/alert_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
@@ -128,12 +128,9 @@ type Props = SuggestionProps<WrappedChannel> & {
     status?: string;
     team?: Team;
 
-    /**
-     * True when the current user matches the membership policy for this
-     * channel and is not already a member. Drives the inline "Recommended"
-     * AlertTag rendering — see mapStateToPropsForSwitchChannelSuggestion
-     * for the gating logic.
-     */
+    // True when the user matches the channel's membership policy and isn't
+    // already a member; drives the inline Recommended indicator. Gating lives
+    // in mapStateToPropsForSwitchChannelSuggestion.
     isRecommendedRow: boolean;
 };
 
@@ -291,30 +288,19 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     let tag = null;
     let customStatus = null;
     if (isRecommendedRow) {
-        // Spec (PR #36275 review mockup
-        // https://github.com/user-attachments/assets/384ced48-2493-445a-a947-a708c681f75e):
-        // pill-style tag with light blue background and --button-bg blue
-        // text, positioned at the end of the row's primary column. The
-        // AlertTag `primary` variant is exactly that visual treatment, so
-        // we reuse it rather than rolling a one-off span. Tooltip carries
-        // the longer-form explanation that doesn't fit in the pill.
-        // Recommended-row rendering can only fire on public channels
-        // (gated in the connect mapper) and BotTag/GuestTag only fire on
-        // DM rows, so the two paths are mutually exclusive.
+        // Inline lightbulb + "Recommended" in --button-bg blue, matching the
+        // Browse Channels indicator so the signal looks the same on both
+        // surfaces. Only fires on public channels (gated in the connect
+        // mapper); BotTag/GuestTag only fire on DM rows, so they never collide.
         tag = (
-            <AlertTag
-                className='switch-channel-suggestion__recommended-tag'
-                testId={`recommendedTag-${channel.name}`}
-                variant='primary'
-                text={formatMessage({
-                    id: 'quick_switch_modal.recommended',
-                    defaultMessage: 'Recommended',
-                })}
-                tooltipTitle={formatMessage({
-                    id: 'quick_switch_modal.recommended_indicator',
-                    defaultMessage: 'Recommended for membership',
-                })}
-            />
+            <span
+                className='switch-channel-suggestion__recommended'
+                data-testid={`recommendedTag-${channel.name}`}
+                aria-label={formatMessage({id: 'quick_switch_modal.recommended_indicator', defaultMessage: 'Recommended for membership'})}
+            >
+                <LightbulbOutlineIcon size={14}/>
+                {formatMessage({id: 'quick_switch_modal.recommended', defaultMessage: 'Recommended'})}
+            </span>
         );
     }
     if (channel.type === Constants.DM_CHANNEL && teammate) {

@@ -141,21 +141,19 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             memberCount = this.props.channelsMemberCount[channel.id];
         }
 
-        // Show the indicator on cross-cut views (All / Public) where it
-        // adds signal. Hide it inside the Recommended filter — every row
-        // there is already recommended, so the indicator would be
-        // redundant noise. Also hide it for joined rows: the design treats
-        // "Joined" and "Recommended" as mutually exclusive states in the
-        // same slot, since once you're a member the recommendation is
-        // moot. This matches the spec mockup on PR #36275 review.
-        const isRecommendedRow = (
+        // "Joined" and "Recommended" share one slot and are mutually
+        // exclusive: a member doesn't need a recommendation. The indicator
+        // is also hidden inside the Recommended filter, where every row is
+        // already recommended.
+        const isMember = Boolean(this.isMemberOfChannel(channel.id));
+        const isRecommendedRow = Boolean(
             this.props.recommendedChannelIds?.has(channel.id) &&
             this.props.filter !== Filter.Recommended &&
-            !this.isMemberOfChannel(channel.id)
+            !isMember,
         );
 
         let statusIndicator: JSX.Element | null = null;
-        if (this.isMemberOfChannel(channel.id)) {
+        if (isMember) {
             statusIndicator = (
                 <div
                     id='membershipIndicatorContainer'
@@ -184,11 +182,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             );
         }
 
-        // Compute a dynamic status string for the screen-reader label so
-        // rows announce the actual indicator state (Joined / Recommended /
-        // none) instead of always reading "Membership Indicator: Joined".
-        let channelStatus: 'joined' | 'recommended' | 'none' = 'none';
-        if (this.isMemberOfChannel(channel.id)) {
+        // Match the spoken status to the visible indicator.
+        let channelStatus = 'none';
+        if (isMember) {
             channelStatus = 'joined';
         } else if (isRecommendedRow) {
             channelStatus = 'recommended';

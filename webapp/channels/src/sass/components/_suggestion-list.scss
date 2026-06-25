@@ -292,18 +292,19 @@
             white-space: nowrap;
         }
 
-        // Recommended tag: AlertTag (primary variant) inherited styling —
-        // light --button-bg-rgb tint background with --button-bg text.
-        // Pinned to the end of the row's primary column with a small
-        // left-margin so it never collides with the slug/desc text and
-        // mirrors the BotTag/GuestTag spacing already used here. The tag
-        // is mutually exclusive with BotTag/GuestTag (connect mapper
-        // gates it on public + non-member rows; the DM tags only fire on
-        // DM rows), so we never render both.
-        .switch-channel-suggestion__recommended-tag {
+        // Recommended indicator: lightbulb + label in --button-bg blue,
+        // matching the Browse Channels indicator. Pinned to the end of the
+        // row's primary column.
+        .switch-channel-suggestion__recommended {
+            display: inline-flex;
             flex: 0 0 auto;
-            margin-bottom: 0;
+            align-items: center;
             margin-left: 8px;
+            color: var(--button-bg);
+            font-size: 12px;
+            font-weight: 600;
+            gap: 2px;
+            white-space: nowrap;
         }
 
         .badge {
