@@ -6294,7 +6294,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 func TestRevokeUserAccessTokenDeniesOAuthSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -6316,7 +6316,7 @@ func TestRevokeUserAccessTokenDeniesOAuthSession(t *testing.T) {
 
 func TestDisableUserAccessTokenDeniesOAuthSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -6338,7 +6338,7 @@ func TestDisableUserAccessTokenDeniesOAuthSession(t *testing.T) {
 
 func TestEnableUserAccessTokenDeniesOAuthSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
