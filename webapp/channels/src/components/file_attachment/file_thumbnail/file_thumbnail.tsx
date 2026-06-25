@@ -14,7 +14,7 @@ import {getFileTypeFromMime} from 'utils/file_utils';
 import {
     getFileType,
     getIconClassName,
-    isGIFImage,
+    isAnimatedImage,
 } from 'utils/utils';
 
 type FilePreviewInfoLimited = Pick<FilePreviewInfo, 'clientId' | 'name' | 'percent' | 'type'>;
@@ -54,7 +54,7 @@ const FileThumbnail = ({
             }
 
             let thumbnailUrl = getFileThumbnailUrl(id);
-            if (extension && (isGIFImage(extension) || extension.toLowerCase() === 'webp') && !hasPreviewImage) {
+            if (isAnimatedImage(extension, hasPreviewImage)) {
                 thumbnailUrl = getFileUrl(id);
             }
 
