@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -68,7 +67,7 @@ func init() {
 }
 
 func rolesListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	roles, _, err := c.GetAllRoles(context.TODO())
+	roles, _, err := c.GetAllRoles(cmdContext(cmd))
 	if err != nil {
 		return fmt.Errorf("failed to get roles: %w", err)
 	}
@@ -80,9 +79,9 @@ func rolesListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) error {
+func rolesSystemAdminCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var errs *multierror.Error
-	users := getUsersFromUserArgs(c, args)
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args)
 	for i, user := range users {
 		if user == nil {
 			userErr := fmt.Errorf("unable to find user %q", args[i])
@@ -101,7 +100,7 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 
 		if !systemAdmin {
 			roles = append(roles, model.SystemAdminRoleId)
-			if _, err := c.UpdateUserRoles(context.TODO(), user.Id, strings.Join(roles, " ")); err != nil {
+			if _, err := c.UpdateUserRoles(cmdContext(cmd), user.Id, strings.Join(roles, " ")); err != nil {
 				updateErr := fmt.Errorf("can't update roles for user %q: %w", args[i], err)
 				errs = multierror.Append(errs, updateErr)
 				printer.PrintError(updateErr.Error())
@@ -115,9 +114,9 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 	return errs.ErrorOrNil()
 }
 
-func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
+func rolesMemberCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var errs *multierror.Error
-	users := getUsersFromUserArgs(c, args)
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args)
 	for i, user := range users {
 		if user == nil {
 			userErr := fmt.Errorf("unable to find user %q", args[i])
@@ -140,7 +139,7 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		}
 
 		if shouldRemoveSysadmin {
-			if _, err := c.UpdateUserRoles(context.TODO(), user.Id, strings.Join(newRoles, " ")); err != nil {
+			if _, err := c.UpdateUserRoles(cmdContext(cmd), user.Id, strings.Join(newRoles, " ")); err != nil {
 				updateErr := fmt.Errorf("can't update roles for user %q: %w", args[i], err)
 				errs = multierror.Append(errs, updateErr)
 				printer.PrintError(updateErr.Error())

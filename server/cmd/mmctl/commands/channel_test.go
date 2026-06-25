@@ -4,10 +4,10 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
@@ -41,13 +41,13 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, teamID, "").
+			GetChannelByName(gomock.Any(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -69,27 +69,27 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 0, DefaultPageSize).
 			Return(mockTeams, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
+			GetAllTeams(gomock.Any(), "", 1, DefaultPageSize).
 			Return([]*model.Team{}, &model.Response{}, nil).
 			Times(1)
 
 		// first call is for the other team, that doesn't have the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, otherTeamID, "").
+			GetChannelByName(gomock.Any(), channelName, otherTeamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// second call is for the team that contains the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, teamID, "").
+			GetChannelByName(gomock.Any(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -109,13 +109,13 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByName(context.TODO(), channelName, teamID, "").
+			GetChannelByName(gomock.Any(), channelName, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -134,13 +134,13 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -192,7 +192,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(gomock.Any(), args[0]).
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -215,13 +215,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), team, "").
+			GetTeam(gomock.Any(), team, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team, "").
+			GetTeamByName(gomock.Any(), team, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -246,7 +246,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(gomock.Any(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -271,7 +271,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(gomock.Any(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -298,13 +298,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(gomock.Any(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypeOpen).
+			UpdateChannelPrivacy(gomock.Any(), channel.Id, model.ChannelTypeOpen).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -333,13 +333,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(gomock.Any(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypeOpen).
+			UpdateChannelPrivacy(gomock.Any(), channel.Id, model.ChannelTypeOpen).
 			Return(returnedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -368,13 +368,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), args[0]).
+			GetChannel(gomock.Any(), args[0]).
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(context.TODO(), channel.Id, model.ChannelTypePrivate).
+			UpdateChannelPrivacy(gomock.Any(), channel.Id, model.ChannelTypePrivate).
 			Return(returnedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -411,19 +411,19 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID).
+			DeleteChannel(gomock.Any(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -443,13 +443,13 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID).
+			DeleteChannel(gomock.Any(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -475,25 +475,25 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg1).
+			GetChannel(gomock.Any(), channelArg1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg2).
+			GetChannel(gomock.Any(), channelArg2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID1).
+			DeleteChannel(gomock.Any(), channelID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID2).
+			DeleteChannel(gomock.Any(), channelID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -514,13 +514,13 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -546,19 +546,19 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelArg, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelArg, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -581,7 +581,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -607,14 +607,14 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockErr := errors.New("mock error")
 		s.client.
 			EXPECT().
-			DeleteChannel(context.TODO(), channelID).
+			DeleteChannel(gomock.Any(), channelID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
@@ -664,13 +664,13 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID, "").
+			GetTeamByName(gomock.Any(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -700,30 +700,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -757,37 +757,37 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -823,37 +823,37 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -891,49 +891,49 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -972,30 +972,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(1)
 
@@ -1022,31 +1022,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1071,30 +1071,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1119,31 +1119,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1) // falls through to GetChannelsForTeamForUser in non-local mode
 
@@ -1170,31 +1170,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(0) // does not fall through to GetChannelsForTeamForUser in local mode
 
@@ -1222,31 +1222,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID, "me", false, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1282,60 +1282,60 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID1, "").
+			GetTeam(gomock.Any(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID2, "").
+			GetTeam(gomock.Any(), teamID2, "").
 			Return(nil, &model.Response{}, nil). // Team 2 not found
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamID2, "").
+			GetTeamByName(gomock.Any(), teamID2, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID1, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1374,49 +1374,49 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID1, "").
+			GetTeam(gomock.Any(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID1, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1424,30 +1424,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID2, "").
+			GetTeam(gomock.Any(), teamID2, "").
 			Return(team2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID2, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID2, "me", false, "").
 			Return(privateChannels, &model.Response{}, mockError).
 			Times(1)
 
@@ -1472,23 +1472,23 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), team1ID, "").
+			GetTeam(gomock.Any(), team1ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), team2ID, "").
+			GetTeam(gomock.Any(), team2ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team1ID, "").
+			GetTeamByName(gomock.Any(), team1ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), team2ID, "").
+			GetTeamByName(gomock.Any(), team2ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1526,97 +1526,97 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID1, "").
+			GetTeam(gomock.Any(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID1, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID2, "").
+			GetTeam(gomock.Any(), teamID2, "").
 			Return(team2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID2, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(context.TODO(), teamID2, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(gomock.Any(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID2, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(context.TODO(), teamID2, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(gomock.Any(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID2, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(context.TODO(), teamID2, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(gomock.Any(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(context.TODO(), teamID2, "me", false, "").
+			GetChannelsForTeamForUser(gomock.Any(), teamID2, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1670,19 +1670,19 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID).
+			RestoreChannel(gomock.Any(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1702,13 +1702,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID).
+			RestoreChannel(gomock.Any(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1734,25 +1734,25 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg1).
+			GetChannel(gomock.Any(), channelArg1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg2).
+			GetChannel(gomock.Any(), channelArg2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID1).
+			RestoreChannel(gomock.Any(), channelID1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID2).
+			RestoreChannel(gomock.Any(), channelID2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
@@ -1772,13 +1772,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamArg, "").
+			GetTeamByName(gomock.Any(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1804,19 +1804,19 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamArg, "").
+			GetTeam(gomock.Any(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelArg, teamArg, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelArg, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1839,7 +1839,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1863,14 +1863,14 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockErr := errors.New("mock error")
 		s.client.
 			EXPECT().
-			RestoreChannel(context.TODO(), channelID).
+			RestoreChannel(gomock.Any(), channelID).
 			Return(nil, &model.Response{}, mockErr).
 			Times(1)
 
@@ -1957,25 +1957,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, foundTeam.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2000,7 +2000,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2024,13 +2024,13 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2054,7 +2054,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2066,19 +2066,19 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, foundTeam.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2118,26 +2118,26 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockError := model.NewAppError("at-random-location.go", "mock error", nil, "mocking a random error", 0)
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(gomock.Any(), foundChannel.Id, channelPatch).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -2183,25 +2183,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(gomock.Any(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2245,13 +2245,13 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(gomock.Any(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2299,25 +2299,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(gomock.Any(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2365,25 +2365,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(context.TODO(), foundChannel.Id, channelPatch).
+			PatchChannel(gomock.Any(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2425,37 +2425,37 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamName, "").
+			GetTeam(gomock.Any(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), dstTeamName, "").
+			GetTeamByName(gomock.Any(), dstTeamName, "").
 			Return(&mockTeam1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), srcTeamName, "").
+			GetTeam(gomock.Any(), srcTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), srcTeamName, "").
+			GetTeamByName(gomock.Any(), srcTeamName, "").
 			Return(&mockTeam2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, mockTeam2.Id, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, mockTeam2.Id, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			MoveChannel(context.TODO(), mockChannel.Id, mockTeam1.Id, false).
+			MoveChannel(gomock.Any(), mockChannel.Id, mockTeam1.Id, false).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2475,13 +2475,13 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamName, "").
+			GetTeam(gomock.Any(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), dstTeamName, "").
+			GetTeamByName(gomock.Any(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -2506,13 +2506,13 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamID, "").
+			GetTeam(gomock.Any(), dstTeamID, "").
 			Return(&mockTeam1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(gomock.Any(), channelID).
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -2537,19 +2537,19 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), dstTeamID, "").
+			GetTeam(gomock.Any(), dstTeamID, "").
 			Return(&mockTeam1, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID).
+			GetChannel(gomock.Any(), channelID).
 			Return(&model.Channel{Id: channelID, Name: "some-name"}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			MoveChannel(context.TODO(), channelID, mockTeam1.Id, false).
+			MoveChannel(gomock.Any(), channelID, mockTeam1.Id, false).
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
@@ -2631,13 +2631,13 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -2675,19 +2675,19 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(context.TODO(), foundChannel).
+			CreateChannel(gomock.Any(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2728,13 +2728,13 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(context.TODO(), foundChannel).
+			CreateChannel(gomock.Any(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2781,13 +2781,13 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(context.TODO(), foundChannel).
+			CreateChannel(gomock.Any(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2826,19 +2826,19 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2857,13 +2857,13 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamName, "").
+			GetTeam(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), teamName, "").
+			GetTeamByName(gomock.Any(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2882,19 +2882,19 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, teamID, "").
 			Return(&mockChannel, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteChannel(context.TODO(), channelID).
+			PermanentDeleteChannel(gomock.Any(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2912,7 +2912,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(gomock.Any(), teamID, "").
 			Return(&mockTeam, nil, nil).
 			Times(2)
 
@@ -2921,25 +2921,25 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelNameDoesNotExist, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelNameDoesNotExist, teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelNameDoesNotExist).
+			GetChannel(gomock.Any(), channelNameDoesNotExist).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(gomock.Any(), channelName, teamID, "").
 			Return(&mockChannel, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteChannel(context.TODO(), channelID).
+			PermanentDeleteChannel(gomock.Any(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

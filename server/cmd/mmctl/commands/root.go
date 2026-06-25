@@ -4,12 +4,16 @@
 package commands
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
+	"syscall"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -62,10 +66,14 @@ func Run(args []string) error {
 		}
 	}()
 
-	err := RootCmd.Execute()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+	err := RootCmd.ExecuteContext(ctx)
+	// Restore default signal handling before flushing so a second Ctrl+C kills immediately.
+	stop()
 	// Flush the printer first before printing any error
 	_ = printer.Flush()
-	if err != nil {
+	if err != nil && !errors.Is(err, context.Canceled) {
 		_, _ = fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 	}
 

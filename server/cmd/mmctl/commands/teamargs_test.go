@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -19,16 +18,16 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), notFoundTeam, "").
+			GetTeam(s.T().Context(), notFoundTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), notFoundTeam, "").
+			GetTeamByName(s.T().Context(), notFoundTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
-		teams, err := getTeamsFromArgs(s.client, []string{notFoundTeam})
+		teams, err := getTeamsFromArgs(s.T().Context(), s.client, []string{notFoundTeam})
 		s.Require().Empty(teams)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", notFoundTeam))
@@ -39,16 +38,16 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), badRequestTeam, "").
+			GetTeam(s.T().Context(), badRequestTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(context.TODO(), badRequestTeam, "").
+			GetTeamByName(s.T().Context(), badRequestTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
-		teams, err := getTeamsFromArgs(s.client, []string{badRequestTeam})
+		teams, err := getTeamsFromArgs(s.T().Context(), s.client, []string{badRequestTeam})
 		s.Require().Empty(teams)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", badRequestTeam))
@@ -59,11 +58,11 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), forbidden, "").
+			GetTeam(s.T().Context(), forbidden, "").
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 
-		teams, err := getTeamsFromArgs(s.client, []string{forbidden})
+		teams, err := getTeamsFromArgs(s.T().Context(), s.client, []string{forbidden})
 		s.Require().Empty(teams)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "1 error occurred:\n\t* team forbidden\n\n")
@@ -74,11 +73,11 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), errTeam, "").
+			GetTeam(s.T().Context(), errTeam, "").
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, internalServerErrorErr).
 			Times(1)
 
-		teams, err := getTeamsFromArgs(s.client, []string{errTeam})
+		teams, err := getTeamsFromArgs(s.T().Context(), s.client, []string{errTeam})
 		s.Require().Empty(teams)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "1 error occurred:\n\t* team internalServerError\n\n")
@@ -89,11 +88,11 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), successID, "").
+			GetTeam(s.T().Context(), successID, "").
 			Return(successTeam, nil, nil).
 			Times(1)
 
-		teams, summary := getTeamsFromArgs(s.client, []string{successID})
+		teams, summary := getTeamsFromArgs(s.T().Context(), s.client, []string{successID})
 		s.Require().Nil(summary)
 		s.Require().Len(teams, 1)
 		s.Require().Equal(successTeam, teams[0])

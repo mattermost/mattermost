@@ -4,8 +4,7 @@
 package commands
 
 import (
-	"context"
-
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -29,7 +28,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "", "", 0, perPage).
+			GetJobs(gomock.Any(), "", "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -65,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "", "", 0, perPage).
+			GetJobs(gomock.Any(), "", "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -96,7 +95,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), id).
+			GetJob(gomock.Any(), id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -133,7 +132,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), "", model.JobStatusSuccess, 0, perPage).
+			GetJobs(gomock.Any(), "", model.JobStatusSuccess, 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -170,7 +169,7 @@ func (s *MmctlUnitTestSuite) TestListJobsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeDataRetention, "", 0, perPage).
+			GetJobs(gomock.Any(), model.JobTypeDataRetention, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -194,7 +193,7 @@ func (s *MmctlUnitTestSuite) TestUpdateJobCmdF() {
 
 		s.client.
 			EXPECT().
-			UpdateJobStatus(context.TODO(), id, model.JobStatusPending, true).
+			UpdateJobStatus(gomock.Any(), id, model.JobStatusPending, true).
 			Return(&model.Response{}, nil).
 			Times(1)
 

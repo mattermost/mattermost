@@ -5,7 +5,6 @@ package commands
 
 import (
 	"archive/zip"
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -29,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 
 		s.client.
 			EXPECT().
-			ListImports(context.TODO()).
+			ListImports(gomock.Any()).
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
@@ -50,7 +50,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 
 		s.client.
 			EXPECT().
-			ListImports(context.TODO()).
+			ListImports(gomock.Any()).
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
@@ -71,7 +71,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUploadsForUser(context.TODO(), "me").
+			GetUploadsForUser(gomock.Any(), "me").
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
@@ -101,7 +101,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUploadsForUser(context.TODO(), "me").
+			GetUploadsForUser(gomock.Any(), "me").
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
@@ -122,7 +122,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), jobID).
+			GetJob(gomock.Any(), jobID).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
@@ -140,7 +140,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), mockJob.Id).
+			GetJob(gomock.Any(), mockJob.Id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -165,7 +165,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeImportProcess, "", 0, perPage).
+			GetJobs(gomock.Any(), model.JobTypeImportProcess, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -198,7 +198,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeImportProcess, "", 0, perPage).
+			GetJobs(gomock.Any(), model.JobTypeImportProcess, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -227,7 +227,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(gomock.Any(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -276,7 +276,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(gomock.Any(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -440,19 +440,19 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 0, 200, "").
+			GetUsers(gomock.Any(), 0, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, 200).
+			GetAllTeams(gomock.Any(), "", 0, 200).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetClientConfig(context.TODO(), "").
+			GetClientConfig(gomock.Any(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -501,19 +501,19 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 0, 200, "").
+			GetUsers(gomock.Any(), 0, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, 200).
+			GetAllTeams(gomock.Any(), "", 0, 200).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetClientConfig(context.TODO(), "").
+			GetClientConfig(gomock.Any(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -560,19 +560,19 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsers(context.TODO(), 0, 200, "").
+			GetUsers(gomock.Any(), 0, 200, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, 200).
+			GetAllTeams(gomock.Any(), "", 0, 200).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetClientConfig(context.TODO(), "").
+			GetClientConfig(gomock.Any(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -601,7 +601,7 @@ func (s *MmctlUnitTestSuite) TestDeleteImportCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			DeleteImport(context.TODO(), "import.zip").
+			DeleteImport(gomock.Any(), "import.zip").
 			Return(&model.Response{}, nil).
 			Times(2)
 

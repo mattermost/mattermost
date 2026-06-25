@@ -4,10 +4,10 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,7 +27,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(gomock.Any(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(gomock.Any(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -74,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			CreateJob(context.TODO(), mockJob).
+			CreateJob(gomock.Any(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -95,7 +95,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 
 	s.client.
 		EXPECT().
-		DeleteExport(context.TODO(), exportName).
+		DeleteExport(gomock.Any(), exportName).
 		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
@@ -113,7 +113,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.TODO()).
+			ListExports(gomock.Any()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
@@ -134,7 +134,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.TODO()).
+			ListExports(gomock.Any()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 

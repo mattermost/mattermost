@@ -5,7 +5,6 @@ package commands
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +12,7 @@ import (
 	"os"
 	"testing"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +35,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -54,7 +54,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -73,7 +73,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -92,7 +92,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -111,7 +111,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -132,7 +132,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -153,7 +153,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -173,7 +173,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
@@ -200,7 +200,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(7)
 
@@ -258,7 +258,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(0)
 
@@ -275,7 +275,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -299,12 +299,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -327,12 +327,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -355,12 +355,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -383,12 +383,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -410,12 +410,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -437,7 +437,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -456,7 +456,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -478,12 +478,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
@@ -518,13 +518,13 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(3)
 
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(3)
 
@@ -558,7 +558,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -579,7 +579,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -627,12 +627,12 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), inputConfig).
+			PatchConfig(gomock.Any(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -667,12 +667,12 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(context.TODO(), expectedConfig).
+			PatchConfig(gomock.Any(), expectedConfig).
 			Return(expectedConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -690,7 +690,7 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -718,12 +718,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(context.TODO(), defaultConfig).
+			UpdateConfig(gomock.Any(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -744,12 +744,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(context.TODO(), defaultConfig).
+			UpdateConfig(gomock.Any(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -771,7 +771,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -792,7 +792,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -809,7 +809,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig(context.TODO()).
+			GetConfig(gomock.Any()).
 			Return(nil, &model.Response{}, configError).
 			Times(1)
 
@@ -825,7 +825,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig(context.TODO()).
+			ReloadConfig(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -839,7 +839,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig(context.TODO()).
+			ReloadConfig(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -863,7 +863,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(context.TODO(), args[0], args[1]).
+			MigrateConfig(gomock.Any(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -881,7 +881,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(context.TODO(), args[0], args[1]).
+			MigrateConfig(gomock.Any(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -1011,7 +1011,7 @@ func (s *MmctlUnitTestSuite) TestConfigExportCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfigWithOptions(context.TODO(), model.GetConfigOptions{}).
+			GetConfigWithOptions(gomock.Any(), model.GetConfigOptions{}).
 			Return(map[string]any{
 				"SqlSettings": map[string]any{
 					"DriverName": "postgres",

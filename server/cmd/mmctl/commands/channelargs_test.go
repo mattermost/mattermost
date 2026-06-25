@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -19,11 +18,11 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), notFoundChannel).
+			GetChannel(s.T().Context(), notFoundChannel).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
-		channels, err := getChannelsFromArgs(s.client, []string{notFoundChannel})
+		channels, err := getChannelsFromArgs(s.T().Context(), s.client, []string{notFoundChannel})
 		s.Require().Empty(channels)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", notFoundChannel))
@@ -34,11 +33,11 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), badRequestChannel).
+			GetChannel(s.T().Context(), badRequestChannel).
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
-		channels, err := getChannelsFromArgs(s.client, []string{badRequestChannel})
+		channels, err := getChannelsFromArgs(s.T().Context(), s.client, []string{badRequestChannel})
 		s.Require().Empty(channels)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", badRequestChannel))
@@ -49,11 +48,11 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), forbidden).
+			GetChannel(s.T().Context(), forbidden).
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 
-		channels, err := getChannelsFromArgs(s.client, []string{forbidden})
+		channels, err := getChannelsFromArgs(s.T().Context(), s.client, []string{forbidden})
 		s.Require().Empty(channels)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "1 error occurred:\n\t* channel forbidden\n\n")
@@ -64,11 +63,11 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), errChannel).
+			GetChannel(s.T().Context(), errChannel).
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, internalServerErrorErr).
 			Times(1)
 
-		channels, err := getChannelsFromArgs(s.client, []string{errChannel})
+		channels, err := getChannelsFromArgs(s.T().Context(), s.client, []string{errChannel})
 		s.Require().Empty(channels)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "1 error occurred:\n\t* channel internalServerError\n\n")
@@ -79,11 +78,11 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), successID).
+			GetChannel(s.T().Context(), successID).
 			Return(successChannel, nil, nil).
 			Times(1)
 
-		channels, summary := getChannelsFromArgs(s.client, []string{successID})
+		channels, summary := getChannelsFromArgs(s.T().Context(), s.client, []string{successID})
 		s.Require().Nil(summary)
 		s.Require().Len(channels, 1)
 		s.Require().Equal(successChannel, channels[0])
@@ -97,16 +96,16 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(context.TODO(), teamID, "").
+			GetTeam(s.T().Context(), teamID, "").
 			Return(successTeam, nil, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(s.T().Context(), channelID, teamID, "").
 			Return(successChannel, nil, nil).
 			Times(1)
 
-		channels, summary := getChannelsFromArgs(s.client, []string{fmt.Sprintf("%v:%v", teamID, channelID)})
+		channels, summary := getChannelsFromArgs(s.T().Context(), s.client, []string{fmt.Sprintf("%v:%v", teamID, channelID)})
 		s.Require().Nil(summary)
 		s.Require().Len(channels, 1)
 		s.Require().Equal(successChannel, channels[0])

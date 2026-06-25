@@ -4,10 +4,10 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 	"time"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -43,7 +43,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPost(context.TODO(), replyToArg, "").
+			GetPost(gomock.Any(), replyToArg, "").
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
@@ -64,13 +64,13 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			DoAPIPost(gomock.Any(), "/posts?set_online=false", data).
 			Return(nil, errors.New("some-error")).
 			Times(1)
 
@@ -91,13 +91,13 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			DoAPIPost(gomock.Any(), "/posts?set_online=false", data).
 			Return(nil, nil).
 			Times(1)
 
@@ -123,19 +123,19 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg).
+			GetChannel(gomock.Any(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPost(context.TODO(), replyToArg, "").
+			GetPost(gomock.Any(), replyToArg, "").
 			Return(&mockReplyTo, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			DoAPIPost(gomock.Any(), "/posts?set_online=false", data).
 			Return(nil, nil).
 			Times(1)
 
@@ -162,7 +162,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -187,19 +187,19 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForChannel(context.TODO(), channelID, 0, 1, "", false, false).
+			GetPostsForChannel(gomock.Any(), channelID, 0, 1, "", false, false).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userID, "").
+			GetUser(gomock.Any(), userID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -235,19 +235,19 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName).
+			GetChannel(gomock.Any(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false).
+			GetPostsSince(gomock.Any(), channelID, sinceTimeMillis, false).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), userID, "").
+			GetUser(gomock.Any(), userID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -279,7 +279,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			PermanentDeletePost(context.TODO(), postID1).
+			PermanentDeletePost(gomock.Any(), postID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		cmd := &cobra.Command{}
@@ -295,7 +295,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			DeletePost(context.TODO(), postID1).
+			DeletePost(gomock.Any(), postID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		cmd := &cobra.Command{}
@@ -311,12 +311,12 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			PermanentDeletePost(context.TODO(), postID1).
+			PermanentDeletePost(gomock.Any(), postID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeletePost(context.TODO(), postID2).
+			PermanentDeletePost(gomock.Any(), postID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		cmd := &cobra.Command{}
@@ -336,7 +336,7 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 
 		s.client.
 			EXPECT().
-			PermanentDeletePost(context.TODO(), postID1).
+			PermanentDeletePost(gomock.Any(), postID1).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -356,12 +356,12 @@ func (s *MmctlUnitTestSuite) TestDeletePostsCmdF() {
 		mockError := errors.New("an error occurred on deleting a post")
 		s.client.
 			EXPECT().
-			PermanentDeletePost(context.TODO(), postID1).
+			PermanentDeletePost(gomock.Any(), postID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PermanentDeletePost(context.TODO(), postID2).
+			PermanentDeletePost(gomock.Any(), postID2).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 		cmd := &cobra.Command{}

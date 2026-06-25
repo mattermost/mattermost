@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -22,7 +23,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO()).
+			SyncLdap(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -39,7 +40,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO()).
+			SyncLdap(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -56,7 +57,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(context.TODO()).
+			SyncLdap(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -74,7 +75,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap(context.TODO(), "test-id").
+			MigrateIdLdap(gomock.Any(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -90,7 +91,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap(context.TODO(), "test-id").
+			MigrateIdLdap(gomock.Any(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("test-error")).
 			Times(1)
 
@@ -113,7 +114,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
+			GetJobs(gomock.Any(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -146,7 +147,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobs(context.TODO(), model.JobTypeLdapSync, "", 0, perPage).
+			GetJobs(gomock.Any(), model.JobTypeLdapSync, "", 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -168,7 +169,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), jobID).
+			GetJob(gomock.Any(), jobID).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
@@ -186,7 +187,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(context.TODO(), mockJob.Id).
+			GetJob(gomock.Any(), mockJob.Id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 

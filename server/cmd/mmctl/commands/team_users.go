@@ -49,15 +49,15 @@ func init() {
 }
 
 func teamUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	team := getTeamFromTeamArg(c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
 	var errs *multierror.Error
-	users := getUsersFromUserArgs(c, args[1:])
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args[1:])
 	for i, user := range users {
-		if err := removeUserFromTeam(c, team, user, args[i+1]); err != nil {
+		if err := removeUserFromTeam(cmdContext(cmd), c, team, user, args[i+1]); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 	}
@@ -65,7 +65,7 @@ func teamUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	return errs.ErrorOrNil()
 }
 
-func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) error {
+func removeUserFromTeam(ctx context.Context, c client.Client, team *model.Team, user *model.User, userArg string) error {
 	if user == nil {
 		err := fmt.Errorf("can't find user '%s'", userArg)
 		printer.PrintError(err.Error())
@@ -73,7 +73,7 @@ func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, use
 	}
 
 	var err error
-	if _, err = c.RemoveTeamMember(context.TODO(), team.Id, user.Id); err != nil {
+	if _, err = c.RemoveTeamMember(ctx, team.Id, user.Id); err != nil {
 		err = fmt.Errorf("unable to remove '%s' from %s. Error: %w", userArg, team.Name, err)
 		printer.PrintError(err.Error())
 	}
@@ -83,12 +83,12 @@ func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, use
 
 func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var errs *multierror.Error
-	team := getTeamFromTeamArg(c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	users := getUsersFromUserArgs(c, args[1:])
+	users := getUsersFromUserArgs(cmdContext(cmd), c, args[1:])
 	for i, user := range users {
 		if user == nil {
 			userErr := fmt.Errorf("can't find user '%s'", args[i+1])
@@ -96,14 +96,14 @@ func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			errs = multierror.Append(errs, userErr)
 			continue
 		}
-		addUserToTeam(c, team, user, args[i+1])
+		addUserToTeam(cmdContext(cmd), c, team, user, args[i+1])
 	}
 
 	return errs.ErrorOrNil()
 }
 
-func addUserToTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
-	if _, _, err := c.AddTeamMember(context.TODO(), team.Id, user.Id); err != nil {
+func addUserToTeam(ctx context.Context, c client.Client, team *model.Team, user *model.User, userArg string) {
+	if _, _, err := c.AddTeamMember(ctx, team.Id, user.Id); err != nil {
 		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + err.Error())
 	}
 }

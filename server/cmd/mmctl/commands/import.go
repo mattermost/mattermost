@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -152,7 +151,7 @@ func importListIncompleteCmdF(c client.Client, command *cobra.Command, args []st
 		userID = model.UploadNoUserID
 	}
 
-	uploads, _, err := c.GetUploadsForUser(context.TODO(), userID)
+	uploads, _, err := c.GetUploadsForUser(cmdContext(command), userID)
 	if err != nil {
 		return fmt.Errorf("failed to get uploads: %w", err)
 	}
@@ -175,7 +174,7 @@ func importListIncompleteCmdF(c client.Client, command *cobra.Command, args []st
 }
 
 func importListAvailableCmdF(c client.Client, command *cobra.Command, args []string) error {
-	imports, _, err := c.ListImports(context.TODO())
+	imports, _, err := c.ListImports(cmdContext(command))
 	if err != nil {
 		return fmt.Errorf("failed to list imports: %w", err)
 	}
@@ -219,7 +218,7 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 			return errors.New("upload session ID is missing or invalid")
 		}
 
-		us, _, err = c.GetUpload(context.TODO(), uploadID)
+		us, _, err = c.GetUpload(cmdContext(command), uploadID)
 		if err != nil {
 			return fmt.Errorf("failed to get upload session: %w", err)
 		}
@@ -238,7 +237,7 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 			userID = model.UploadNoUserID
 		}
 
-		us, _, err = c.CreateUpload(context.TODO(), &model.UploadSession{
+		us, _, err = c.CreateUpload(cmdContext(command), &model.UploadSession{
 			Filename: info.Name(),
 			FileSize: info.Size(),
 			Type:     model.UploadTypeImport,
@@ -251,7 +250,7 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 		printer.PrintT("Upload session successfully created, ID: {{.Id}} ", us)
 	}
 
-	finfo, _, err := c.UploadData(context.TODO(), us.Id, file)
+	finfo, _, err := c.UploadData(cmdContext(command), us.Id, file)
 	if err != nil {
 		return fmt.Errorf("failed to upload data: %w", err)
 	}
@@ -264,7 +263,7 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 func importDeleteCmdF(c client.Client, command *cobra.Command, args []string) error {
 	importName := args[0]
 
-	if _, err := c.DeleteImport(context.TODO(), importName); err != nil {
+	if _, err := c.DeleteImport(cmdContext(command), importName); err != nil {
 		return fmt.Errorf("failed to delete import: %w", err)
 	}
 
@@ -280,7 +279,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	if bypassUpload {
 		if isLocal {
 			// First, we validate whether the server is in HA.
-			config, _, err := c.GetClientConfig(context.TODO(), "")
+			config, _, err := c.GetClientConfig(cmdContext(command), "")
 			if err != nil {
 				return err
 			}
@@ -328,7 +327,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		jobData["workers"] = strconv.Itoa(workers)
 	}
 
-	job, _, err := c.CreateJob(context.TODO(), &model.Job{
+	job, _, err := c.CreateJob(cmdContext(command), &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: jobData,
 	})
@@ -342,7 +341,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
-	job, _, err := c.GetJob(context.TODO(), args[0])
+	job, _, err := c.GetJob(cmdContext(command), args[0])
 	if err != nil {
 		return fmt.Errorf("failed to get import job: %w", err)
 	}
@@ -390,13 +389,13 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 
 	preRunWithClient := func(c client.Client, cmd *cobra.Command, args []string) error {
 		users, err := getPages(func(page, numPerPage int, etag string) ([]*model.User, *model.Response, error) {
-			return c.GetUsers(context.TODO(), page, numPerPage, etag)
+			return c.GetUsers(cmdContext(cmd), page, numPerPage, etag)
 		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
 
-		config, _, err := c.GetClientConfig(context.TODO(), "")
+		config, _, err := c.GetClientConfig(cmdContext(cmd), "")
 		if err != nil {
 			return err
 		}
@@ -414,7 +413,7 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 		}
 
 		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
-			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
+			return c.GetAllTeams(cmdContext(cmd), etag, page, numPerPage)
 		}, DefaultPageSize)
 		if err != nil {
 			return err
@@ -425,14 +424,14 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 			serverTeams[team.Name] = team
 
 			publicChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
-				return c.GetPublicChannelsForTeam(context.TODO(), team.Id, page, numPerPage, etag)
+				return c.GetPublicChannelsForTeam(cmdContext(cmd), team.Id, page, numPerPage, etag)
 			}, DefaultPageSize)
 			if err != nil {
 				return err
 			}
 
 			privateChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
-				return c.GetPrivateChannelsForTeam(context.TODO(), team.Id, page, numPerPage, etag)
+				return c.GetPrivateChannelsForTeam(cmdContext(cmd), team.Id, page, numPerPage, etag)
 			}, DefaultPageSize)
 			if err != nil {
 				return err

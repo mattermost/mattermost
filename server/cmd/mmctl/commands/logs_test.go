@@ -5,12 +5,12 @@ package commands
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,7 +32,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 1).
+			GetLogs(gomock.Any(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 0).
+			GetLogs(gomock.Any(), 0, 0).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
@@ -68,7 +68,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.TODO(), 0, 1).
+			GetLogs(gomock.Any(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 

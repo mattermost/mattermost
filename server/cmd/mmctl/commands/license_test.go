@@ -4,10 +4,10 @@
 package commands
 
 import (
-	"context"
 	"net/http"
 	"os"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -25,7 +25,7 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 		s.client.
 			EXPECT().
-			RemoveLicenseFile(context.TODO()).
+			RemoveLicenseFile(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -42,7 +42,7 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 		s.client.
 			EXPECT().
-			RemoveLicenseFile(context.TODO()).
+			RemoveLicenseFile(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
@@ -70,7 +70,7 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.TODO(), mockLicenseFile).
+			UploadLicenseFile(gomock.Any(), mockLicenseFile).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -84,7 +84,7 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		errMsg := "open " + path + ": no such file or directory"
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.TODO(), mockLicenseFile).
+			UploadLicenseFile(gomock.Any(), mockLicenseFile).
 			Times(0)
 
 		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{path})
@@ -108,7 +108,7 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseStringCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.TODO(), mockLicenseFile).
+			UploadLicenseFile(gomock.Any(), mockLicenseFile).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -143,7 +143,7 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientLicense(context.TODO(), "").
+			GetOldClientLicense(gomock.Any(), "").
 			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -170,7 +170,7 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientLicense(context.TODO(), "").
+			GetOldClientLicense(gomock.Any(), "").
 			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -186,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientLicense(context.TODO(), "").
+			GetOldClientLicense(gomock.Any(), "").
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, mockErr).
 			Times(1)
 

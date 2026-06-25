@@ -3,7 +3,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -20,16 +19,16 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), notFoundEmail, "").
+			GetUserByUsername(s.T().Context(), notFoundEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), notFoundEmail, "").
+			GetUser(s.T().Context(), notFoundEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
-		users, err := getUsersFromArgs(s.client, []string{notFoundEmail})
+		users, err := getUsersFromArgs(s.T().Context(), s.client, []string{notFoundEmail})
 		s.Require().Empty(users)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", notFoundEmail))
@@ -41,21 +40,21 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), badRequestEmail, "").
+			GetUserByEmail(s.T().Context(), badRequestEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByUsername(context.TODO(), badRequestEmail, "").
+			GetUserByUsername(s.T().Context(), badRequestEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUser(context.TODO(), badRequestEmail, "").
+			GetUser(s.T().Context(), badRequestEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
-		users, err := getUsersFromArgs(s.client, []string{badRequestEmail})
+		users, err := getUsersFromArgs(s.T().Context(), s.client, []string{badRequestEmail})
 		s.Require().Empty(users)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", badRequestEmail))
@@ -67,10 +66,10 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), unexpectedErrEmail, "").
+			GetUserByEmail(s.T().Context(), unexpectedErrEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, unexpectedErr).
 			Times(1)
-		users, err := getUsersFromArgs(s.client, []string{unexpectedErrEmail})
+		users, err := getUsersFromArgs(s.T().Context(), s.client, []string{unexpectedErrEmail})
 		s.Require().Empty(users)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "1 error occurred:\n\t* internal server error\n\n")
@@ -81,10 +80,10 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), forbiddenErrEmail, "").
+			GetUserByEmail(s.T().Context(), forbiddenErrEmail, "").
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
-		users, err := getUsersFromArgs(s.client, []string{forbiddenErrEmail})
+		users, err := getUsersFromArgs(s.T().Context(), s.client, []string{forbiddenErrEmail})
 		s.Require().Empty(users)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "1 error occurred:\n\t* forbidden\n\n")
@@ -95,10 +94,10 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), successEmail, "").
+			GetUserByEmail(s.T().Context(), successEmail, "").
 			Return(successUser, nil, nil).
 			Times(1)
-		users, err := getUsersFromArgs(s.client, []string{successEmail})
+		users, err := getUsersFromArgs(s.T().Context(), s.client, []string{successEmail})
 		s.Require().NoError(err)
 		s.Require().Len(users, 1)
 		s.Require().Equal(successUser, users[0])

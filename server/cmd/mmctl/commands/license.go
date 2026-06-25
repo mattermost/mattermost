@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"os"
 	"strconv"
@@ -68,7 +67,7 @@ func uploadLicenseStringCmdF(c client.Client, cmd *cobra.Command, args []string)
 
 	licenseBytes := []byte(args[0])
 
-	if _, err := c.UploadLicenseFile(context.TODO(), licenseBytes); err != nil {
+	if _, err := c.UploadLicenseFile(cmdContext(cmd), licenseBytes); err != nil {
 		return err
 	}
 
@@ -87,7 +86,7 @@ func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return err
 	}
 
-	if _, err := c.UploadLicenseFile(context.TODO(), fileBytes); err != nil {
+	if _, err := c.UploadLicenseFile(cmdContext(cmd), fileBytes); err != nil {
 		return err
 	}
 
@@ -97,7 +96,7 @@ func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func removeLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if _, err := c.RemoveLicenseFile(context.TODO()); err != nil {
+	if _, err := c.RemoveLicenseFile(cmdContext(cmd)); err != nil {
 		return err
 	}
 
@@ -107,7 +106,7 @@ func removeLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func getLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	license, _, err := c.GetOldClientLicense(context.TODO(), "")
+	license, _, err := c.GetOldClientLicense(cmdContext(cmd), "")
 	if err != nil {
 		return err
 	}

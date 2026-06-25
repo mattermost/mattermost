@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -114,14 +113,14 @@ func init() {
 func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	team := getTeamFromTeamArg(c, args[0])
+	team := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if team == nil {
 		return errors.New("unable to find team '" + args[0] + "'")
 	}
 
 	// get the creator
 	creator, _ := cmd.Flags().GetString("creator")
-	user := getUserFromUserArg(c, creator)
+	user := getUserFromUserArg(cmdContext(cmd), c, creator)
 	if user == nil {
 		return errors.New("unable to find user '" + creator + "'")
 	}
@@ -164,7 +163,7 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		URL:              url,
 	}
 
-	createdCommand, _, err := c.CreateCommand(context.TODO(), newCommand)
+	createdCommand, _, err := c.CreateCommand(cmdContext(cmd), newCommand)
 	if err != nil {
 		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + err.Error())
 	}
@@ -178,14 +177,14 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 	if len(args) < 1 {
 		teamList, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
-			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
+			return c.GetAllTeams(cmdContext(cmd), etag, page, numPerPage)
 		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
 		teams = teamList
 	} else {
-		teams = getTeamsFromTeamArgs(c, args)
+		teams = getTeamsFromTeamArgs(cmdContext(cmd), c, args)
 	}
 
 	var errs *multierror.Error
@@ -195,7 +194,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			errs = multierror.Append(errs, fmt.Errorf("unable to find team '%s'", args[i]))
 			continue
 		}
-		commands, _, err := c.ListCommands(context.TODO(), team.Id, true)
+		commands, _, err := c.ListCommands(cmdContext(cmd), team.Id, true)
 		if err != nil {
 			printer.PrintError("Unable to list commands for '" + team.Id + "'")
 			errs = multierror.Append(errs, fmt.Errorf("unable to list commands for '%s': %w", team.Id, err))
@@ -209,7 +208,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	resp, err := c.DeleteCommand(context.TODO(), args[0])
+	resp, err := c.DeleteCommand(cmdContext(cmd), args[0])
 	if err != nil {
 		return errors.New("Unable to archive command '" + args[0] + "' error: " + err.Error())
 	}
@@ -224,7 +223,7 @@ func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 
 func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
-	command := getCommandFromCommandArg(c, args[0])
+	command := getCommandFromCommandArg(cmdContext(cmd), c, args[0])
 	if command == nil {
 		return fmt.Errorf("unable to find command '%s'", args[0])
 	}
@@ -251,7 +250,7 @@ func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 	if flags.Changed("creator") {
 		creator, _ := flags.GetString("creator")
-		user := getUserFromUserArg(c, creator)
+		user := getUserFromUserArg(cmdContext(cmd), c, creator)
 		if user == nil {
 			return fmt.Errorf("unable to find user '%s'", creator)
 		}
@@ -281,7 +280,7 @@ func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 	}
 
-	modifiedCommand, _, err := c.UpdateCommand(context.TODO(), command)
+	modifiedCommand, _, err := c.UpdateCommand(cmdContext(cmd), command)
 	if err != nil {
 		return fmt.Errorf("unable to modify command '%s': %w", command.DisplayName, err)
 	}
@@ -293,17 +292,17 @@ func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 func moveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	newTeam := getTeamFromTeamArg(c, args[0])
+	newTeam := getTeamFromTeamArg(cmdContext(cmd), c, args[0])
 	if newTeam == nil {
 		return fmt.Errorf("unable to find team '%s'", args[0])
 	}
 
-	command := getCommandFromCommandArg(c, args[1])
+	command := getCommandFromCommandArg(cmdContext(cmd), c, args[1])
 	if command == nil {
 		return fmt.Errorf("unable to find command '%s'", args[1])
 	}
 
-	resp, err := c.MoveCommand(context.TODO(), newTeam.Id, command.Id)
+	resp, err := c.MoveCommand(cmdContext(cmd), newTeam.Id, command.Id)
 	if err != nil {
 		return fmt.Errorf("unable to move command '%s': %w", command.Id, err)
 	}
@@ -319,7 +318,7 @@ func moveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func showCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	command := getCommandFromCommandArg(c, args[0])
+	command := getCommandFromCommandArg(cmdContext(cmd), c, args[0])
 	if command == nil {
 		return fmt.Errorf("unable to find command '%s'", args[0])
 	}

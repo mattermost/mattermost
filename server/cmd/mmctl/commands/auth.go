@@ -5,7 +5,6 @@ package commands
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -172,17 +171,22 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not parse the instance url: %w", err)
 	}
 
-	res, err := http.Get(instanceURL)
+	ctx := cmdContext(cmd)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, instanceURL, nil)
+	if err != nil {
+		return fmt.Errorf("could not create instance status request: %w", err)
+	}
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("could not get instance status: %w", err)
 	}
+	res.Body.Close()
 	if res.StatusCode != 200 {
 		return fmt.Errorf("instance status code is not 200: %d", res.StatusCode)
 	}
 
 	method := MethodPassword
-
-	ctx := context.TODO()
 
 	if name == "" {
 		reader := bufio.NewReader(os.Stdin)
@@ -367,7 +371,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ctx := context.TODO()
+	ctx := cmdContext(cmd)
 
 	if (credentials.AuthMethod == MethodPassword || credentials.AuthMethod == MethodMFA) && password == "" {
 		if password == "" {
