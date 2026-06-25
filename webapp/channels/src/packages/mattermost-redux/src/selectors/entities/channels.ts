@@ -105,6 +105,29 @@ export function getChannelsMemberCount(state: GlobalState): Record<string, numbe
     return state.entities.channels.channelsMemberCount;
 }
 
+// getRecommendedChannelIdsByTeam exposes the per-team list of channel ids
+// the current user matches the ABAC membership policy for. Populated by the
+// getRecommendedChannelsForUser action; lazy by team — an undefined entry
+// for a team means the recommendation set hasn't been fetched yet (NOT
+// "no recommendations").
+export function getRecommendedChannelIdsByTeam(state: GlobalState): Record<string, string[]> {
+    return state.entities.channels.recommendedChannelIdsByTeam;
+}
+
+export function getRecommendedChannelIdsForTeam(state: GlobalState, teamId: string): string[] | undefined {
+    return state.entities.channels.recommendedChannelIdsByTeam[teamId];
+}
+
+// isChannelRecommendedForTeam returns true when the channel id is present in
+// the cached recommendation set for the given team. Returns false both for
+// "channel id not in set" and "team's set hasn't been fetched yet" — callers
+// that need to distinguish those two cases should use
+// getRecommendedChannelIdsForTeam directly.
+export function isChannelRecommendedForTeam(state: GlobalState, teamId: string, channelId: string): boolean {
+    const ids = state.entities.channels.recommendedChannelIdsByTeam[teamId];
+    return Array.isArray(ids) && ids.includes(channelId);
+}
+
 export function getChannelsInTeam(state: GlobalState): RelationOneToManyUnique<Team, Channel> {
     return state.entities.channels.channelsInTeam;
 }

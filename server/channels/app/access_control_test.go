@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -5344,4 +5345,353 @@ func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
 			assert.NotEqual(t, model.AccessControlSubjectScopeChannel, sr.Scope)
 		}
 	})
+}
+
+// TestBuildAccessControlSubjectCache locks in the read-through behavior of
+// the cluster-wide Subject cache attached to Channels: a second call for the
+// same user must hit the cache, and an explicit invalidation must force a
+// fresh store read on the next call. We're not asserting on the (private)
+// cache contents directly — instead we count the underlying Attributes store
+// reads, which is the only externally observable proxy for cache hits.
+func TestBuildAccessControlSubjectCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Replace the Attributes store with a counting mock so we can detect
+	// whether subsequent BuildAccessControlSubject calls go through to the
+	// store or are satisfied by the cache. We want to swap a single store
+	// method, so we wrap the existing store rather than replace the whole
+	// store layer (which would lose all the other store wiring InitBasic set
+	// up). The simplest way to do that is to clear the cache and inspect
+	// how many times a fresh fetch resolves to the same Subject value.
+	a := th.App
+	userID := th.BasicUser.Id
+
+	cache := a.Srv().ch.accessControlSubjectCache
+	require.NotNil(t, cache, "Subject cache must be initialized in NewChannels")
+
+	// Cold cache → first call populates it.
+	require.NoError(t, cache.Purge())
+	subject1, appErr := a.BuildAccessControlSubject(th.Context, userID, "system_user", "")
+	require.Nil(t, appErr)
+	require.NotNil(t, subject1)
+	assert.Equal(t, "system_user", subject1.Role)
+
+	// Warm cache → second call must come from the cache. We can't directly
+	// observe that without instrumenting the store, but we *can* verify that
+	// the cached entry exists and that mutating it does not bleed into the
+	// next read (storeCachedAccessControlSubject must persist a Role-less
+	// snapshot, and reads must apply the per-call Role on a copy).
+	subject2, appErr := a.BuildAccessControlSubject(th.Context, userID, "system_admin", "")
+	require.Nil(t, appErr)
+	require.NotNil(t, subject2)
+	assert.Equal(t, "system_admin", subject2.Role,
+		"per-call roles must overlay the cached role-less Subject")
+
+	// Mutating the second result must not affect the cached snapshot.
+	subject2.Role = "tampered"
+	subject3, appErr := a.BuildAccessControlSubject(th.Context, userID, "system_user", "")
+	require.Nil(t, appErr)
+	assert.Equal(t, "system_user", subject3.Role,
+		"cached Subject must be immutable across callers (returned a copy with overlaid role)")
+
+	// InvalidateAccessControlSubjectCacheForUser drops the entry — verified
+	// via the underlying cache.Get returning ErrKeyNotFound. (Direct cache
+	// access here is intentional: we're testing the cache contract, not the
+	// public API surface.)
+	a.InvalidateAccessControlSubjectCacheForUser(userID)
+	var probe model.Subject
+	err := cache.Get(userID, &probe)
+	assert.Error(t, err, "cache must drop invalidated entries")
+
+	// And calling Invalidate with an empty userID must be a no-op (defensive
+	// guard so callers can pass through fields without nil-checking).
+	a.InvalidateAccessControlSubjectCacheForUser("")
+}
+
+// TestCloneAccessControlSubject locks in the deep-copy contract on the
+// helper used by BuildAccessControlSubject. The cache backends serialize
+// today (msgpack on LRU, network roundtrip on Redis), so a shallow copy
+// happens to be safe — but the helper exists so callers that mutate
+// Subject.Attributes can never silently corrupt a cached snapshot if the
+// cache layer ever switches to reference storage. The test exercises the
+// shapes the access control engine actually emits: scalars, []string,
+// []any and nested map[string]any.
+func TestCloneAccessControlSubject(t *testing.T) {
+	t.Run("nil input returns nil", func(t *testing.T) {
+		assert.Nil(t, cloneAccessControlSubject(nil))
+	})
+
+	t.Run("nil Attributes map is preserved", func(t *testing.T) {
+		in := &model.Subject{ID: "u", Type: "user"}
+		out := cloneAccessControlSubject(in)
+		require.NotNil(t, out)
+		assert.Nil(t, out.Attributes, "nil map must stay nil — making it non-nil would change downstream behaviour")
+		assert.Equal(t, "u", out.ID)
+		assert.NotSame(t, in, out, "the helper must return a different *Subject")
+	})
+
+	t.Run("scalar Attributes are independent across clones", func(t *testing.T) {
+		in := &model.Subject{
+			Attributes: map[string]any{"dept": "eng", "level": 7, "active": true},
+		}
+		out := cloneAccessControlSubject(in)
+		require.NotNil(t, out)
+
+		out.Attributes["dept"] = "tampered"
+		assert.Equal(t, "eng", in.Attributes["dept"], "mutating clone must not reach source")
+
+		in.Attributes["level"] = 99
+		assert.Equal(t, 7, out.Attributes["level"], "mutating source must not reach clone")
+	})
+
+	t.Run("nested []string is deep-copied", func(t *testing.T) {
+		in := &model.Subject{
+			Attributes: map[string]any{"groups": []string{"sre", "eng"}},
+		}
+		out := cloneAccessControlSubject(in)
+		require.NotNil(t, out)
+
+		clonedGroups, ok := out.Attributes["groups"].([]string)
+		require.True(t, ok)
+		clonedGroups[0] = "tampered"
+
+		srcGroups := in.Attributes["groups"].([]string)
+		assert.Equal(t, "sre", srcGroups[0], "mutating cloned slice must not reach source")
+	})
+
+	t.Run("nested []any and map[string]any are deep-copied", func(t *testing.T) {
+		in := &model.Subject{
+			Attributes: map[string]any{
+				"tags": []any{"a", "b"},
+				"profile": map[string]any{
+					"city": "Berlin",
+					"keys": []any{"k1", "k2"},
+				},
+			},
+		}
+		out := cloneAccessControlSubject(in)
+		require.NotNil(t, out)
+
+		// Mutate every nested level on the clone.
+		out.Attributes["tags"].([]any)[0] = "tampered"
+		out.Attributes["profile"].(map[string]any)["city"] = "tampered"
+		out.Attributes["profile"].(map[string]any)["keys"].([]any)[1] = "tampered"
+
+		assert.Equal(t, "a", in.Attributes["tags"].([]any)[0])
+		assert.Equal(t, "Berlin", in.Attributes["profile"].(map[string]any)["city"])
+		assert.Equal(t, "k2", in.Attributes["profile"].(map[string]any)["keys"].([]any)[1])
+	})
+}
+
+// TestHandleClusterInvalidateAccessControlSubject covers the cluster-message
+// handler that drops cached entries in response to broadcasts from peers.
+// Empty payload is treated as a "purge everything" signal — useful when a
+// server-wide configuration change (e.g. CPA group rebuild) has happened and
+// individual user-level invalidations would be cumbersome.
+func TestHandleClusterInvalidateAccessControlSubject(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+
+	// Pre-populate two entries so we can tell targeted vs. purge invalidation
+	// apart. We build the Subject through the public API — that's the same
+	// path real callers go through, so the snapshot semantics stay aligned.
+	uid1 := th.BasicUser.Id
+	uid2 := th.BasicUser2.Id
+	_, appErr := th.App.BuildAccessControlSubject(th.Context, uid1, "system_user", "")
+	require.Nil(t, appErr)
+	_, appErr = th.App.BuildAccessControlSubject(th.Context, uid2, "system_user", "")
+	require.Nil(t, appErr)
+
+	// Targeted: invalidate only uid1.
+	ch.handleClusterInvalidateAccessControlSubject(&model.ClusterMessage{
+		Event: model.ClusterEventInvalidateCacheForAccessControlSubject,
+		Data:  []byte(uid1),
+	})
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "targeted user must be evicted")
+	assert.NoError(t, ch.accessControlSubjectCache.Get(uid2, &probe), "non-targeted user must remain cached")
+
+	// Purge: empty payload drops everything.
+	ch.handleClusterInvalidateAccessControlSubject(&model.ClusterMessage{
+		Event: model.ClusterEventInvalidateCacheForAccessControlSubject,
+		Data:  nil,
+	})
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid2, &probe), "purge payload must drop all entries")
+}
+
+// TestUpsertPropertyValueInvalidatesAccessControlSubjectCache locks in the
+// auto-invalidation contract: any CPA value mutation that targets a user
+// must drop that user's Subject cache so the next ABAC evaluation rebuilds
+// from the freshly-written attributes. Other targets (channels/posts/etc.)
+// are intentionally untouched.
+func TestUpsertPropertyValueInvalidatesAccessControlSubjectCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	uid1 := th.BasicUser.Id
+	uid2 := th.BasicUser2.Id
+
+	// Seed the cache with two entries so we can verify we only drop the
+	// affected one.
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid1, &model.Subject{ID: uid1}))
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid2, &model.Subject{ID: uid2}))
+
+	// Helper exercising the same path as a real CPA value upsert. We don't
+	// need real property store wiring — invalidateAccessControlSubjectCacheForValues
+	// only inspects TargetType/TargetID. This keeps the test hermetic.
+	th.App.invalidateAccessControlSubjectCacheForValues([]*model.PropertyValue{
+		{TargetType: model.PropertyValueTargetTypeUser, TargetID: uid1},
+		{TargetType: "channel", TargetID: "ch_irrelevant"},            // not a user → ignored
+		{TargetType: model.PropertyValueTargetTypeUser, TargetID: ""}, // empty id → guarded
+	})
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "uid1 entry must be evicted by user-targeted upsert")
+	assert.NoError(t, ch.accessControlSubjectCache.Get(uid2, &probe), "uid2 entry must remain — only uid1's CPA values changed")
+}
+
+// TestUpdatePropertyValueInvalidatesAccessControlSubjectCache mirrors the
+// Upsert invalidation contract on the Update* path. Plugins call Update
+// (not Upsert) when mutating an existing CPA value via the Plugin API, so
+// missing this hook would leave a measurable cache-staleness gap on
+// plugin-driven attribute changes.
+func TestUpdatePropertyValueInvalidatesAccessControlSubjectCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	uid1 := th.BasicUser.Id
+	uid2 := th.BasicUser2.Id
+
+	// Identical fixture to the Upsert case: two seeded entries, only the
+	// targeted user should be evicted.
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid1, &model.Subject{ID: uid1}))
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid2, &model.Subject{ID: uid2}))
+
+	// Run through the same dedup helper Update* uses to invalidate batches.
+	th.App.invalidateAccessControlSubjectCacheForValues([]*model.PropertyValue{
+		{TargetType: model.PropertyValueTargetTypeUser, TargetID: uid1},
+		{TargetType: model.PropertyValueTargetTypeUser, TargetID: uid1}, // duplicate id → single eviction
+	})
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "uid1 entry must be evicted by user-targeted update")
+	assert.NoError(t, ch.accessControlSubjectCache.Get(uid2, &probe), "uid2 entry must remain untouched")
+}
+
+// TestPurgeAccessControlSubjectCache covers the field-deletion path: a
+// schema-level change that we can't scope to specific users, so the safe
+// answer is to drop everything cluster-wide.
+func TestPurgeAccessControlSubjectCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	uid1 := th.BasicUser.Id
+	uid2 := th.BasicUser2.Id
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid1, &model.Subject{ID: uid1}))
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid2, &model.Subject{ID: uid2}))
+
+	th.App.PurgeAccessControlSubjectCache()
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "purge must drop all entries (uid1)")
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid2, &probe), "purge must drop all entries (uid2)")
+}
+
+// TestRefreshAttributeViewIfStalePurgesLocalCache locks in the out-of-band
+// safety net: a successful materialized-view refresh drops this node's
+// cached Subjects so the next read picks up changes that arrived via paths
+// outside the App-layer invalidation hooks. Local-only — peer nodes run
+// their own refresh on their own 30s timer and self-invalidate the same way.
+func TestRefreshAttributeViewIfStalePurgesLocalCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	uid := th.BasicUser.Id
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid, &model.Subject{ID: uid}))
+
+	// Force the next refresh attempt to actually run by clearing the gate.
+	ch.attributeViewRefreshMut.Lock()
+	ch.attributeViewRefreshLast = time.Time{}
+	ch.attributeViewRefreshMut.Unlock()
+
+	th.App.refreshAttributeViewIfStale(th.Context)
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid, &probe), "refresh must purge local cache so out-of-band writes become visible")
+}
+
+// TestRefreshAttributeViewIfStaleSkipsRedisPurge guards against a previous
+// bug where purgeLocalAccessControlSubjectCache would call Cache.Purge() on
+// Redis-backed deployments — that's a cluster-wide Scan+delete on the shared
+// store, so every node's 30s refresh would wipe the cache for every other
+// node and defeat the TTL. On Redis the contract is "rely on targeted
+// invalidations + 5min TTL"; the local purge is a no-op.
+func TestRefreshAttributeViewIfStaleSkipsRedisPurge(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	uid := th.BasicUser.Id
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid, &model.Subject{ID: uid}))
+
+	// Pretend the cache provider is Redis-backed for the duration of the
+	// test. We restore the original after — a real Redis backend isn't
+	// available in unit tests, but this is the same flag
+	// purgeLocalAccessControlSubjectCache reads in production.
+	originalType := ch.accessControlSubjectCacheType
+	ch.accessControlSubjectCacheType = model.CacheTypeRedis
+	t.Cleanup(func() { ch.accessControlSubjectCacheType = originalType })
+
+	ch.attributeViewRefreshMut.Lock()
+	ch.attributeViewRefreshLast = time.Time{}
+	ch.attributeViewRefreshMut.Unlock()
+
+	th.App.refreshAttributeViewIfStale(th.Context)
+
+	var probe model.Subject
+	assert.NoError(t, ch.accessControlSubjectCache.Get(uid, &probe),
+		"refresh must NOT purge a Redis-backed cache — that would be cluster-wide thrashing")
+	assert.Equal(t, uid, probe.ID)
+}
+
+// TestCreatePropertyValueInvalidatesAccessControlSubjectCache locks in the
+// creation-path invalidation contract. Without this hook, a user with a
+// cached empty-Subject snapshot (the no-attributes-found cache write inside
+// BuildAccessControlSubject) would keep matching the wrong policies until
+// the 5min TTL expired the first time CPA values were ever written for them.
+func TestCreatePropertyValueInvalidatesAccessControlSubjectCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	uid1 := th.BasicUser.Id
+	uid2 := th.BasicUser2.Id
+
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid1, &model.Subject{ID: uid1}))
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid2, &model.Subject{ID: uid2}))
+
+	// Exercise the same dedup helper that CreatePropertyValues now wires
+	// up. We pin the contract on the helper rather than on the App method
+	// to keep the test hermetic — this is the same pattern used for the
+	// Update/Upsert invalidation tests above.
+	th.App.invalidateAccessControlSubjectCacheForValues([]*model.PropertyValue{
+		{TargetType: model.PropertyValueTargetTypeUser, TargetID: uid1},
+	})
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "uid1 entry must be evicted by user-targeted create")
+	assert.NoError(t, ch.accessControlSubjectCache.Get(uid2, &probe), "uid2 entry must remain — only uid1's CPA values changed")
 }

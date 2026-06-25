@@ -23,8 +23,31 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+)
+
+const (
+	// accessControlSubjectCacheName is the metrics-friendly name for the
+	// per-user ABAC Subject cache. Reused as the cluster-cache key prefix
+	// when running with Redis-backed caches.
+	accessControlSubjectCacheName = "AccessControlSubject"
+
+	// accessControlSubjectCacheSize is the maximum number of users we keep
+	// hot Subject snapshots for. Tuned to fit typical concurrent active-user
+	// counts on busy servers without bloating memory; ABAC evaluation only
+	// touches users who actually browse/join policy-enforced channels.
+	accessControlSubjectCacheSize = 20000
+
+	// accessControlSubjectCacheTTL is how long a cached Subject is considered
+	// fresh. Subjects are also actively invalidated when a user's CPA values
+	// change (see invalidateAccessControlSubjectCacheForUser), so this TTL is
+	// only a safety net. Aligned conservatively with the existing materialized
+	// view refresh cadence (attributeViewRefreshInterval = 30s) by being long
+	// enough to amortize repeated reads but short enough that any missed
+	// invalidation self-heals quickly.
+	accessControlSubjectCacheTTL = 5 * time.Minute
 )
 
 type configService interface {
@@ -84,6 +107,19 @@ type Channels struct {
 
 	attributeViewRefreshMut  sync.Mutex
 	attributeViewRefreshLast time.Time
+
+	// accessControlSubjectCache stores model.Subject snapshots keyed by
+	// userID. Reads from BuildAccessControlSubject hit this cache before
+	// falling through to the Attributes store. Cluster-wide consistency is
+	// achieved via the InvalidateClusterEvent on the underlying cache.
+	accessControlSubjectCache cache.Cache
+
+	// accessControlSubjectCacheType records the cache backend kind
+	// (model.CacheTypeLRU or model.CacheTypeRedis). It is read by
+	// purgeLocalAccessControlSubjectCache so we don't accidentally call
+	// cluster-wide Purge() on a Redis-backed cache (which is shared across
+	// nodes) when the caller wants a node-local invalidation.
+	accessControlSubjectCacheType string
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -214,6 +250,29 @@ func NewChannels(s *Server) (*Channels, error) {
 				}
 			}
 		})
+	}
+
+	// Subject cache holds *model.Subject snapshots keyed by userID. It is
+	// populated lazily by BuildAccessControlSubject and invalidated when a
+	// user's CPA values change or when the user is deleted. We always create
+	// it (even when AccessControl is nil) so callers don't need a nil check —
+	// reads from a server without ABAC enabled are simply cache misses that
+	// the existing fallback path satisfies cheaply.
+	var cacheErr error
+	if ch.accessControlSubjectCache, cacheErr = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:                   accessControlSubjectCacheName,
+		Size:                   accessControlSubjectCacheSize,
+		DefaultExpiry:          accessControlSubjectCacheTTL,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForAccessControlSubject,
+	}); cacheErr != nil {
+		return nil, errors.Wrap(cacheErr, "Unable to create access control subject cache")
+	}
+	ch.accessControlSubjectCacheType = s.platform.CacheProvider().Type()
+	if cluster := s.platform.Cluster(); cluster != nil {
+		cluster.RegisterClusterMessageHandler(
+			model.ClusterEventInvalidateCacheForAccessControlSubject,
+			ch.handleClusterInvalidateAccessControlSubject,
+		)
 	}
 
 	var imgErr error

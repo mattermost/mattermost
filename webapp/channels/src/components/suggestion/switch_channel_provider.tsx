@@ -28,6 +28,7 @@ import {
     getChannelsInAllTeams,
     getSortedAllTeamsUnreadChannels,
     getAllTeamsUnreadChannelIds,
+    isChannelRecommendedForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -58,6 +59,7 @@ import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
+import AlertTag from 'components/widgets/tag/alert_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
@@ -125,6 +127,14 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
+
+    /**
+     * True when the current user matches the membership policy for this
+     * channel and is not already a member. Drives the inline "Recommended"
+     * AlertTag rendering — see mapStateToPropsForSwitchChannelSuggestion
+     * for the gating logic.
+     */
+    isRecommendedRow: boolean;
 };
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
@@ -137,6 +147,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     isPartOfOnlyOneTeam,
     status,
     team,
+    isRecommendedRow,
     ...otherProps
 }, ref) => {
     const {formatMessage} = useIntl();
@@ -279,6 +290,33 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
 
     let tag = null;
     let customStatus = null;
+    if (isRecommendedRow) {
+        // Spec (PR #36275 review mockup
+        // https://github.com/user-attachments/assets/384ced48-2493-445a-a947-a708c681f75e):
+        // pill-style tag with light blue background and --button-bg blue
+        // text, positioned at the end of the row's primary column. The
+        // AlertTag `primary` variant is exactly that visual treatment, so
+        // we reuse it rather than rolling a one-off span. Tooltip carries
+        // the longer-form explanation that doesn't fit in the pill.
+        // Recommended-row rendering can only fire on public channels
+        // (gated in the connect mapper) and BotTag/GuestTag only fire on
+        // DM rows, so the two paths are mutually exclusive.
+        tag = (
+            <AlertTag
+                className='switch-channel-suggestion__recommended-tag'
+                testId={`recommendedTag-${channel.name}`}
+                variant='primary'
+                text={formatMessage({
+                    id: 'quick_switch_modal.recommended',
+                    defaultMessage: 'Recommended',
+                })}
+                tooltipTitle={formatMessage({
+                    id: 'quick_switch_modal.recommended_indicator',
+                    defaultMessage: 'Recommended for membership',
+                })}
+            />
+        );
+    }
     if (channel.type === Constants.DM_CHANNEL && teammate) {
         if (teammate && teammate.is_bot) {
             tag = <BotTag/>;
@@ -431,6 +469,24 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
 
     const isPartOfOnlyOneTeam = getMyTeams(state).length === 1;
 
+    // Recommended-row signal: only meaningful for real public channels that
+    // the current user is NOT already a member of. Inviting the badge on
+    // joined / private / DM / GM rows would conflate "you can join this"
+    // with "this channel matches a policy you fit", which is a different
+    // claim. The recommendation set is also team-scoped — see the MM-68683
+    // design note: cross-team rows render without the badge intentionally,
+    // because we only fetch recommendations for the currently active team.
+    let isRecommendedRow = false;
+    if (
+        isRealChannel(channel) &&
+        channel.type === Constants.OPEN_CHANNEL &&
+        channel.delete_at === 0 &&
+        !getMyChannelMemberships(state)[channelId] &&
+        channel.team_id
+    ) {
+        isRecommendedRow = isChannelRecommendedForTeam(state, channel.team_id, channelId);
+    }
+
     return {
         channelMember: getMyChannelMemberships(state)[channelId],
         hasDraft: draft && Boolean(draft.message.trim() || draft.fileInfos.length || draft.uploadsInProgress.length),
@@ -439,6 +495,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
         collapsedThreads,
         team,
         isPartOfOnlyOneTeam,
+        isRecommendedRow,
     };
 }
 

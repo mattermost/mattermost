@@ -242,10 +242,11 @@ type MetricsInterfaceImpl struct {
 
 	PluginWebappPerf *prometheus.HistogramVec
 
-	AccessControlExpressionCompileDuration prometheus.Histogram
-	AccessControlEvaluateDuration          prometheus.Histogram
-	AccessControlSearchQueryDuration       prometheus.Histogram
-	AccessControlCacheInvalidation         prometheus.Counter
+	AccessControlExpressionCompileDuration   prometheus.Histogram
+	AccessControlEvaluateDuration            prometheus.Histogram
+	AccessControlSearchQueryDuration         prometheus.Histogram
+	AccessControlRecommendedChannelsDuration prometheus.Histogram
+	AccessControlCacheInvalidation           prometheus.Counter
 
 	// Auto-translation metrics
 	AutoTranslateTranslateDuration       *prometheus.HistogramVec
@@ -556,6 +557,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventRemovePlugin,
 		model.ClusterEventPluginEvent,
 		model.ClusterEventInvalidateCacheForTermsOfService,
+		model.ClusterEventInvalidateCacheForAccessControlSubject,
 		model.ClusterEventBusyStateChanged,
 	} {
 		m.ClusterEventMap[event] = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(event)})
@@ -1669,6 +1671,15 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
 
+	m.AccessControlRecommendedChannelsDuration = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAccessControl,
+			Name:      "recommended_channels_duration_seconds",
+			Help:      "Duration of computing recommended public channels for a user, including ABAC evaluation across the candidate channel set (seconds)",
+		}))
+	m.Registry.MustRegister(m.AccessControlRecommendedChannelsDuration)
+
 	// Auto-translation Subsystem
 	m.AutoTranslateTranslateDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
@@ -2369,6 +2380,10 @@ func (mi *MetricsInterfaceImpl) ObserveAccessControlExpressionCompileDuration(va
 
 func (mi *MetricsInterfaceImpl) ObserveAccessControlEvaluateDuration(value float64) {
 	mi.AccessControlEvaluateDuration.Observe(value)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAccessControlRecommendedChannelsDuration(value float64) {
+	mi.AccessControlRecommendedChannelsDuration.Observe(value)
 }
 
 func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
