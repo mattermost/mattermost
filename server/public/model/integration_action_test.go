@@ -2416,3 +2416,73 @@ func TestStripMmBlocksActionSecrets(t *testing.T) {
 		assert.Equal(t, "true", p.GetProp(PostPropsFromBot))
 	})
 }
+
+// TestDialogElement_Collapsible_IsValid covers the "collapsible" element type and
+// the recursive depth/child validation added in validateCollapsible.
+func TestDialogElement_Collapsible_IsValid(t *testing.T) {
+	// validText returns a minimal valid leaf element usable as a collapsible child.
+	validText := func(name string) DialogElement {
+		return DialogElement{
+			DisplayName: "Text " + name,
+			Name:        name,
+			Type:        "text",
+		}
+	}
+
+	// collapsible builds a collapsible element wrapping the given children.
+	collapsible := func(name string, children ...DialogElement) DialogElement {
+		return DialogElement{
+			DisplayName: "Section " + name,
+			Name:        name,
+			Type:        "collapsible",
+			Elements:    children,
+		}
+	}
+
+	// Discard helpers until the stub bodies below use them (Go fails on unused locals).
+	_, _ = validText, collapsible
+
+	t.Run("valid collapsible with one child passes", func(t *testing.T) {
+		oneChildEx := collapsible("s1", validText("a"))
+		assert.NoError(t, oneChildEx.IsValid(), "collapsible with one child should be valid")
+	})
+
+	t.Run("collapsible with no children fails", func(t *testing.T) {
+		noElementsEx := collapsible("s1")
+		err := noElementsEx.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "at least one child element")
+	})
+
+	t.Run("nesting at max depth (3) passes", func(t *testing.T) {
+		threeLevels := collapsible("d1", collapsible("d2", collapsible("d3", validText("a"))))
+		assert.NoError(t, threeLevels.IsValid(), "collapsible at max depth should be valid")
+	})
+
+	t.Run("nesting beyond max depth (4) fails", func(t *testing.T) {
+		exceedDepth := collapsible("d1", collapsible("d2", collapsible("d3", collapsible("d4", validText("a")))))
+		err := exceedDepth.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "d4")
+	})
+
+	t.Run("invalid child propagates wrapped error", func(t *testing.T) {
+		invalidChild := collapsible("s1", collapsible("s2", DialogElement{DisplayName: "Bogus", Name: "b1", Type: "bogus"}))
+		err := invalidChild.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "child element is not valid")
+	})
+
+	t.Run("is_expanded nil/true/false all validate", func(t *testing.T) {
+		isExpandedNil := collapsible("s1", validText("a"))
+		assert.NoError(t, isExpandedNil.IsValid(), "collapsible with nil IsExpanded should be valid")
+
+		isExpandedTrue := collapsible("s2", validText("b"))
+		isExpandedTrue.IsExpanded = NewPointer(true)
+		assert.NoError(t, isExpandedTrue.IsValid(), "collapsible with IsExpanded=true should be valid")
+
+		isExpandedFalse := collapsible("s3", validText("c"))
+		isExpandedFalse.IsExpanded = NewPointer(false)
+		assert.NoError(t, isExpandedFalse.IsValid(), "collapsible with IsExpanded=false should be valid")
+	})
+}
