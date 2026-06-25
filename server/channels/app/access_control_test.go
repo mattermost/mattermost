@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -5355,14 +5354,6 @@ func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
 // reads, which is the only externally observable proxy for cache hits.
 func TestBuildAccessControlSubjectCache(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-
-	// Replace the Attributes store with a counting mock so we can detect
-	// whether subsequent BuildAccessControlSubject calls go through to the
-	// store or are satisfied by the cache. We want to swap a single store
-	// method, so we wrap the existing store rather than replace the whole
-	// store layer (which would lose all the other store wiring InitBasic set
-	// up). The simplest way to do that is to clear the cache and inspect
-	// how many times a fresh fetch resolves to the same Subject value.
 	a := th.App
 	userID := th.BasicUser.Id
 
@@ -5376,111 +5367,34 @@ func TestBuildAccessControlSubjectCache(t *testing.T) {
 	require.NotNil(t, subject1)
 	assert.Equal(t, "system_user", subject1.Role)
 
-	// Warm cache → second call must come from the cache. We can't directly
-	// observe that without instrumenting the store, but we *can* verify that
-	// the cached entry exists and that mutating it does not bleed into the
-	// next read (storeCachedAccessControlSubject must persist a Role-less
-	// snapshot, and reads must apply the per-call Role on a copy).
+	// Warm cache → per-call Role is overlaid on the cached snapshot.
 	subject2, appErr := a.BuildAccessControlSubject(th.Context, userID, "system_admin", "")
 	require.Nil(t, appErr)
 	require.NotNil(t, subject2)
 	assert.Equal(t, "system_admin", subject2.Role,
 		"per-call roles must overlay the cached role-less Subject")
 
-	// Mutating the second result must not affect the cached snapshot.
+	// Mutating a returned Subject must not bleed into the next read. This
+	// is guaranteed by the serializing cache: Get decodes into a fresh
+	// struct every time, so each caller owns its copy.
 	subject2.Role = "tampered"
+	if subject2.Attributes != nil {
+		subject2.Attributes["tampered"] = true
+	}
 	subject3, appErr := a.BuildAccessControlSubject(th.Context, userID, "system_user", "")
 	require.Nil(t, appErr)
 	assert.Equal(t, "system_user", subject3.Role,
-		"cached Subject must be immutable across callers (returned a copy with overlaid role)")
+		"cached Subject must be isolated across callers")
+	assert.NotContains(t, subject3.Attributes, "tampered",
+		"mutating a returned Subject's Attributes must not reach the cached snapshot")
 
-	// InvalidateAccessControlSubjectCacheForUser drops the entry — verified
-	// via the underlying cache.Get returning ErrKeyNotFound. (Direct cache
-	// access here is intentional: we're testing the cache contract, not the
-	// public API surface.)
+	// InvalidateAccessControlSubjectCacheForUser drops the entry.
 	a.InvalidateAccessControlSubjectCacheForUser(userID)
 	var probe model.Subject
-	err := cache.Get(userID, &probe)
-	assert.Error(t, err, "cache must drop invalidated entries")
+	assert.Error(t, cache.Get(userID, &probe), "cache must drop invalidated entries")
 
-	// And calling Invalidate with an empty userID must be a no-op (defensive
-	// guard so callers can pass through fields without nil-checking).
+	// Empty userID is a no-op (defensive guard).
 	a.InvalidateAccessControlSubjectCacheForUser("")
-}
-
-// TestCloneAccessControlSubject locks in the deep-copy contract on the
-// helper used by BuildAccessControlSubject. The cache backends serialize
-// today (msgpack on LRU, network roundtrip on Redis), so a shallow copy
-// happens to be safe — but the helper exists so callers that mutate
-// Subject.Attributes can never silently corrupt a cached snapshot if the
-// cache layer ever switches to reference storage. The test exercises the
-// shapes the access control engine actually emits: scalars, []string,
-// []any and nested map[string]any.
-func TestCloneAccessControlSubject(t *testing.T) {
-	t.Run("nil input returns nil", func(t *testing.T) {
-		assert.Nil(t, cloneAccessControlSubject(nil))
-	})
-
-	t.Run("nil Attributes map is preserved", func(t *testing.T) {
-		in := &model.Subject{ID: "u", Type: "user"}
-		out := cloneAccessControlSubject(in)
-		require.NotNil(t, out)
-		assert.Nil(t, out.Attributes, "nil map must stay nil — making it non-nil would change downstream behaviour")
-		assert.Equal(t, "u", out.ID)
-		assert.NotSame(t, in, out, "the helper must return a different *Subject")
-	})
-
-	t.Run("scalar Attributes are independent across clones", func(t *testing.T) {
-		in := &model.Subject{
-			Attributes: map[string]any{"dept": "eng", "level": 7, "active": true},
-		}
-		out := cloneAccessControlSubject(in)
-		require.NotNil(t, out)
-
-		out.Attributes["dept"] = "tampered"
-		assert.Equal(t, "eng", in.Attributes["dept"], "mutating clone must not reach source")
-
-		in.Attributes["level"] = 99
-		assert.Equal(t, 7, out.Attributes["level"], "mutating source must not reach clone")
-	})
-
-	t.Run("nested []string is deep-copied", func(t *testing.T) {
-		in := &model.Subject{
-			Attributes: map[string]any{"groups": []string{"sre", "eng"}},
-		}
-		out := cloneAccessControlSubject(in)
-		require.NotNil(t, out)
-
-		clonedGroups, ok := out.Attributes["groups"].([]string)
-		require.True(t, ok)
-		clonedGroups[0] = "tampered"
-
-		srcGroups := in.Attributes["groups"].([]string)
-		assert.Equal(t, "sre", srcGroups[0], "mutating cloned slice must not reach source")
-	})
-
-	t.Run("nested []any and map[string]any are deep-copied", func(t *testing.T) {
-		in := &model.Subject{
-			Attributes: map[string]any{
-				"tags": []any{"a", "b"},
-				"profile": map[string]any{
-					"city": "Berlin",
-					"keys": []any{"k1", "k2"},
-				},
-			},
-		}
-		out := cloneAccessControlSubject(in)
-		require.NotNil(t, out)
-
-		// Mutate every nested level on the clone.
-		out.Attributes["tags"].([]any)[0] = "tampered"
-		out.Attributes["profile"].(map[string]any)["city"] = "tampered"
-		out.Attributes["profile"].(map[string]any)["keys"].([]any)[1] = "tampered"
-
-		assert.Equal(t, "a", in.Attributes["tags"].([]any)[0])
-		assert.Equal(t, "Berlin", in.Attributes["profile"].(map[string]any)["city"])
-		assert.Equal(t, "k2", in.Attributes["profile"].(map[string]any)["keys"].([]any)[1])
-	})
 }
 
 // TestHandleClusterInvalidateAccessControlSubject covers the cluster-message
@@ -5604,66 +5518,6 @@ func TestPurgeAccessControlSubjectCache(t *testing.T) {
 	var probe model.Subject
 	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "purge must drop all entries (uid1)")
 	assert.Error(t, ch.accessControlSubjectCache.Get(uid2, &probe), "purge must drop all entries (uid2)")
-}
-
-// TestRefreshAttributeViewIfStalePurgesLocalCache locks in the out-of-band
-// safety net: a successful materialized-view refresh drops this node's
-// cached Subjects so the next read picks up changes that arrived via paths
-// outside the App-layer invalidation hooks. Local-only — peer nodes run
-// their own refresh on their own 30s timer and self-invalidate the same way.
-func TestRefreshAttributeViewIfStalePurgesLocalCache(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	ch := th.App.Srv().ch
-	require.NotNil(t, ch.accessControlSubjectCache)
-
-	uid := th.BasicUser.Id
-	require.NoError(t, ch.accessControlSubjectCache.Purge())
-	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid, &model.Subject{ID: uid}))
-
-	// Force the next refresh attempt to actually run by clearing the gate.
-	ch.attributeViewRefreshMut.Lock()
-	ch.attributeViewRefreshLast = time.Time{}
-	ch.attributeViewRefreshMut.Unlock()
-
-	th.App.refreshAttributeViewIfStale(th.Context)
-
-	var probe model.Subject
-	assert.Error(t, ch.accessControlSubjectCache.Get(uid, &probe), "refresh must purge local cache so out-of-band writes become visible")
-}
-
-// TestRefreshAttributeViewIfStaleSkipsRedisPurge guards against a previous
-// bug where purgeLocalAccessControlSubjectCache would call Cache.Purge() on
-// Redis-backed deployments — that's a cluster-wide Scan+delete on the shared
-// store, so every node's 30s refresh would wipe the cache for every other
-// node and defeat the TTL. On Redis the contract is "rely on targeted
-// invalidations + 5min TTL"; the local purge is a no-op.
-func TestRefreshAttributeViewIfStaleSkipsRedisPurge(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	ch := th.App.Srv().ch
-	require.NotNil(t, ch.accessControlSubjectCache)
-
-	uid := th.BasicUser.Id
-	require.NoError(t, ch.accessControlSubjectCache.Purge())
-	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid, &model.Subject{ID: uid}))
-
-	// Pretend the cache provider is Redis-backed for the duration of the
-	// test. We restore the original after — a real Redis backend isn't
-	// available in unit tests, but this is the same flag
-	// purgeLocalAccessControlSubjectCache reads in production.
-	originalType := ch.accessControlSubjectCacheType
-	ch.accessControlSubjectCacheType = model.CacheTypeRedis
-	t.Cleanup(func() { ch.accessControlSubjectCacheType = originalType })
-
-	ch.attributeViewRefreshMut.Lock()
-	ch.attributeViewRefreshLast = time.Time{}
-	ch.attributeViewRefreshMut.Unlock()
-
-	th.App.refreshAttributeViewIfStale(th.Context)
-
-	var probe model.Subject
-	assert.NoError(t, ch.accessControlSubjectCache.Get(uid, &probe),
-		"refresh must NOT purge a Redis-backed cache — that would be cluster-wide thrashing")
-	assert.Equal(t, uid, probe.ID)
 }
 
 // TestCreatePropertyValueInvalidatesAccessControlSubjectCache locks in the

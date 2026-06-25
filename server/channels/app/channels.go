@@ -29,24 +29,18 @@ import (
 )
 
 const (
-	// accessControlSubjectCacheName is the metrics-friendly name for the
-	// per-user ABAC Subject cache. Reused as the cluster-cache key prefix
-	// when running with Redis-backed caches.
+	// accessControlSubjectCacheName is the metrics name for the per-user
+	// ABAC Subject cache, surfaced under cache_name="AccessControlSubject".
 	accessControlSubjectCacheName = "AccessControlSubject"
 
-	// accessControlSubjectCacheSize is the maximum number of users we keep
-	// hot Subject snapshots for. Tuned to fit typical concurrent active-user
-	// counts on busy servers without bloating memory; ABAC evaluation only
-	// touches users who actually browse/join policy-enforced channels.
+	// accessControlSubjectCacheSize bounds how many users we keep hot Subject
+	// snapshots for. ABAC evaluation only touches users who browse/join
+	// policy-enforced channels, so this comfortably covers active users.
 	accessControlSubjectCacheSize = 20000
 
-	// accessControlSubjectCacheTTL is how long a cached Subject is considered
-	// fresh. Subjects are also actively invalidated when a user's CPA values
-	// change (see invalidateAccessControlSubjectCacheForUser), so this TTL is
-	// only a safety net. Aligned conservatively with the existing materialized
-	// view refresh cadence (attributeViewRefreshInterval = 30s) by being long
-	// enough to amortize repeated reads but short enough that any missed
-	// invalidation self-heals quickly.
+	// accessControlSubjectCacheTTL backstops the targeted invalidations: App-layer
+	// CPA-value mutations evict immediately, so the TTL only bounds staleness from
+	// out-of-band writes (LDAP/SAML sync, direct SQL) that skip those hooks.
 	accessControlSubjectCacheTTL = 5 * time.Minute
 )
 
@@ -113,13 +107,6 @@ type Channels struct {
 	// falling through to the Attributes store. Cluster-wide consistency is
 	// achieved via the InvalidateClusterEvent on the underlying cache.
 	accessControlSubjectCache cache.Cache
-
-	// accessControlSubjectCacheType records the cache backend kind
-	// (model.CacheTypeLRU or model.CacheTypeRedis). It is read by
-	// purgeLocalAccessControlSubjectCache so we don't accidentally call
-	// cluster-wide Purge() on a Redis-backed cache (which is shared across
-	// nodes) when the caller wants a node-local invalidation.
-	accessControlSubjectCacheType string
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -267,7 +254,6 @@ func NewChannels(s *Server) (*Channels, error) {
 	}); cacheErr != nil {
 		return nil, errors.Wrap(cacheErr, "Unable to create access control subject cache")
 	}
-	ch.accessControlSubjectCacheType = s.platform.CacheProvider().Type()
 	if cluster := s.platform.Cluster(); cluster != nil {
 		cluster.RegisterClusterMessageHandler(
 			model.ClusterEventInvalidateCacheForAccessControlSubject,

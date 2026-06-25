@@ -2327,33 +2327,18 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 //
 // Team join evaluations pass channelID="" — no channel role exists at join time.
 //
-// The per-user Subject snapshot (Attributes, Email/Verified/IsBot/CreateAt) is cached
-// cluster-wide in Channels.accessControlSubjectCache; per-call Role, ScopedRoles, and
-// Session are overlaid on a deep-clone of the cached snapshot. This matches the
-// "per-user cached Subject reused across many channels" pattern explicitly called out
-// by attachChannelScopedRole — channel-scoped role is resolved per call, the rest is
-// cached.
+// The per-user Subject snapshot (Attributes + native user fields) is cached cluster-wide
+// in Channels.accessControlSubjectCache; Role, ScopedRoles, and Session are per-call and
+// overlaid after the cache read. The cache is a serializing store (encode on Set, decode
+// on Get), so every read returns a private copy that can be mutated in place.
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
-	// Refresh the materialized view BEFORE the cache lookup so the existing
-	// 30s cadence is preserved on cache-hit paths. A successful refresh also
-	// purges the local Subject cache (see refreshAttributeViewIfStale): that
-	// is the safety net that catches CPA value mutations from any path that
-	// bypasses the App-layer invalidation hooks (LDAP/SAML attribute syncs,
-	// direct SQL imports, enterprise jobs we don't see here). The refresh
-	// itself is gated to at most once per attributeViewRefreshInterval, so
-	// the cache stays warm for the bulk of calls inside that window.
 	a.refreshAttributeViewIfStale(rctx)
 
 	if cached, ok := a.lookupCachedAccessControlSubject(rctx, userID); ok {
-		// Deep-clone the cached snapshot before applying per-call Role +
-		// ScopedRoles. The cached value never carries Role / ScopedRoles /
-		// Session — those are per-call — and the deep clone guards against
-		// any caller that mutates Subject.Attributes during evaluation.
-		out := cloneAccessControlSubject(cached)
-		if appErr := a.applyAccessControlSubjectScopedRoles(rctx, out, userID, roles, channelID); appErr != nil {
+		if appErr := a.applyAccessControlSubjectScopedRoles(rctx, cached, userID, roles, channelID); appErr != nil {
 			return nil, appErr
 		}
-		return out, nil
+		return cached, nil
 	}
 
 	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
@@ -2401,16 +2386,15 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	subject.IsBot = user.IsBot
 	subject.CreateAt = user.CreateAt
 
-	// Persist a role-less / scope-less snapshot. Role, ScopedRoles, and
-	// Session are per-call and must NOT bleed across callers that share the
-	// cached entry — see applyAccessControlSubjectScopedRoles for the
-	// per-call overlay. Deep-clone defensively so any downstream mutation
-	// on the returned subject can't reach back into the cached snapshot.
-	cacheCopy := cloneAccessControlSubject(subject)
-	cacheCopy.Role = ""
-	cacheCopy.ScopedRoles = nil
-	cacheCopy.Session = nil
-	a.storeCachedAccessControlSubject(rctx, userID, cacheCopy)
+	// Cache a snapshot without the per-call Role / ScopedRoles / Session.
+	// Set encodes immediately, so a shallow copy with those fields zeroed
+	// is enough — the shared Attributes map is never mutated after this
+	// point (applyAccessControlSubjectScopedRoles only touches roles).
+	cacheEntry := *subject
+	cacheEntry.Role = ""
+	cacheEntry.ScopedRoles = nil
+	cacheEntry.Session = nil
+	a.storeCachedAccessControlSubject(rctx, userID, &cacheEntry)
 
 	if appErr := a.applyAccessControlSubjectScopedRoles(rctx, subject, userID, roles, channelID); appErr != nil {
 		return nil, appErr
@@ -2580,59 +2564,6 @@ func (a *App) applyAccessControlSubjectScopedRoles(rctx request.CTX, subject *mo
 	return nil
 }
 
-// cloneAccessControlSubject returns a deep copy of the Subject. The
-// `Attributes` map and any nested map/slice values are cloned so callers
-// can mutate the returned subject without leaking changes back into the
-// cache or shared evaluation paths. Returns nil if the input is nil.
-//
-// Today's cache implementations serialize on Set / deserialize on Get,
-// which makes shallow copies safe in practice — this helper is the
-// belt-and-braces guard for that being implementation-specific behavior
-// rather than an interface guarantee.
-func cloneAccessControlSubject(in *model.Subject) *model.Subject {
-	if in == nil {
-		return nil
-	}
-	out := *in
-	if in.Attributes != nil {
-		out.Attributes = make(map[string]any, len(in.Attributes))
-		for k, v := range in.Attributes {
-			out.Attributes[k] = cloneAccessControlSubjectValue(v)
-		}
-	}
-	return &out
-}
-
-// cloneAccessControlSubjectValue copies a single attribute value. Strings,
-// numbers and booleans are scalars and copy by value; maps and slices are
-// recursively cloned so a mutation on the returned subject's attributes
-// never reaches the cached snapshot. Anything outside those known shapes
-// (e.g. a custom struct from a future evaluator) is returned as-is — the
-// Subject is encoded to msgpack/JSON on the cache boundary, so non-clonable
-// types would not have round-tripped through the cache anyway.
-func cloneAccessControlSubjectValue(v any) any {
-	switch t := v.(type) {
-	case map[string]any:
-		out := make(map[string]any, len(t))
-		for k, vv := range t {
-			out[k] = cloneAccessControlSubjectValue(vv)
-		}
-		return out
-	case []any:
-		out := make([]any, len(t))
-		for i, vv := range t {
-			out[i] = cloneAccessControlSubjectValue(vv)
-		}
-		return out
-	case []string:
-		out := make([]string, len(t))
-		copy(out, t)
-		return out
-	default:
-		return v
-	}
-}
-
 // lookupCachedAccessControlSubject returns a previously cached Subject for
 // the given user, or (nil, false) on miss. Cache hit/miss telemetry is
 // emitted through the standard MemCache counters so the entry shows up
@@ -2702,44 +2633,6 @@ func (a *App) PurgeAccessControlSubjectCache() {
 			SendType: model.ClusterSendBestEffort,
 			Data:     nil,
 		})
-	}
-}
-
-// purgeLocalAccessControlSubjectCache drops every cached Subject on THIS
-// node only when the underlying cache is per-node (LRU). Used by
-// refreshAttributeViewIfStale: each node runs its own 30s refresh
-// independently and self-invalidates its local snapshot — a cluster
-// broadcast would cause redundant cross-node purges (one per node per
-// refresh cycle).
-//
-// On Redis-backed deployments the cache is genuinely shared across all
-// nodes (single store, single key namespace), so calling Cache.Purge()
-// would Scan-and-delete cluster-wide and produce N purges every 30s where
-// N = node count, defeating the TTL and thrashing the cache. We
-// deliberately skip the purge for Redis: out-of-band attribute mutations
-// fall back on the standard 5-minute TTL safety net plus the targeted
-// App-layer invalidations at every CPA-value mutation site, which are
-// already correct on Redis (a single Remove/broadcast is visible to
-// every node). Operators trading 30s vs 5min staleness for Redis
-// deployments still get the targeted-invalidation upper bound on every
-// path that goes through the App layer.
-func (a *App) purgeLocalAccessControlSubjectCache() {
-	ch := a.Srv().ch
-	c := ch.accessControlSubjectCache
-	if c == nil {
-		return
-	}
-	if ch.accessControlSubjectCacheType == model.CacheTypeRedis {
-		// Skip: Cache.Purge() on a Redis-backed cache is cluster-wide
-		// because the underlying store is shared. See the function
-		// comment above for the staleness contract on Redis.
-		return
-	}
-	if err := c.Purge(); err != nil {
-		mlog.Warn("Failed to purge local access control subject cache", mlog.Err(err))
-	}
-	if metrics := a.Srv().GetMetrics(); metrics != nil {
-		metrics.IncrementMemCacheInvalidationCounter(c.Name())
 	}
 }
 
@@ -2818,13 +2711,4 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	}
 
 	ch.attributeViewRefreshLast = time.Now()
-
-	// The materialized view we just refreshed is the single source of truth
-	// that BuildAccessControlSubject reads from on cache misses. Anything
-	// that mutated property_value rows via paths that don't go through the
-	// App-layer invalidation hooks (LDAP/SAML sync jobs, direct SQL imports,
-	// enterprise CPA jobs) will now be visible. Drop this node's cached
-	// Subjects so the next read picks up those changes. Local-only on
-	// purpose — see purgeLocalAccessControlSubjectCache for the rationale.
-	a.purgeLocalAccessControlSubjectCache()
 }
