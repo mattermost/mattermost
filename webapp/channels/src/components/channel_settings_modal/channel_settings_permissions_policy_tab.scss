@@ -194,10 +194,6 @@
     }
 
     /* ── Editor view ────────────────────────────────────────────────── */
-    /* No bottom padding here: unlike the list view, the editor has no fixed
-     * SaveChangesPanel to clear — its Cancel / Add rule buttons render inline
-     * at the end of the form, so reserving space below them only leaves an
-     * empty gap at the bottom of the modal. */
     &__permissionsPolicyEditor {
         display: flex;
         max-height: 100%;
