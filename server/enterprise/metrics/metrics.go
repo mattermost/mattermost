@@ -74,8 +74,9 @@ type MetricsInterfaceImpl struct {
 	HTTPErrorsCounter   prometheus.Counter
 	HTTPWebsocketsGauge *prometheus.GaugeVec
 
-	ClusterRequestsDuration prometheus.Histogram
-	ClusterRequestsCounter  prometheus.Counter
+	ClusterRequestsDuration       prometheus.Histogram
+	ClusterRequestsCounter        prometheus.Counter
+	ClusterReliableFallbackLength *prometheus.HistogramVec
 
 	ClusterHealthGauge prometheus.GaugeFunc
 
@@ -546,6 +547,23 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		m.ClusterEventMap[event] = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(event)})
 	}
 	m.ClusterEventMap[model.ClusterEvent("other")] = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": "other"})
+
+	m.ClusterReliableFallbackLength = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemCluster,
+			Name:        "reliable_fallback_tcp",
+			Help:        "The total length in bytes of the SendBestEffort calls (UDP) that had to fallback to SendReliable (TCP) because of the message length.",
+			ConstLabels: additionalLabels,
+			// The data here will start at maxUDPDataLen = (1<<16 - 1) - 8 - 20 - 35 = 65472,
+			// so we start the first bucket at 32KiB, which will always be zero, and add 8
+			// steps exponentially until 4MiB:
+			// 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304
+			Buckets: prometheus.ExponentialBuckets(32768, 2, 8),
+		},
+		[]string{"event"},
+	)
+	m.Registry.MustRegister(m.ClusterReliableFallbackLength)
 
 	// Login Subsystem
 
@@ -1860,6 +1878,10 @@ func (mi *MetricsInterfaceImpl) IncrementHTTPError() {
 
 func (mi *MetricsInterfaceImpl) IncrementClusterRequest() {
 	mi.ClusterRequestsCounter.Inc()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClusterReliableFallbackLength(event model.ClusterEvent, length int) {
+	mi.ClusterReliableFallbackLength.With(prometheus.Labels{"event": string(event)}).Observe(float64(length))
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClusterRequestDuration(elapsed float64) {
