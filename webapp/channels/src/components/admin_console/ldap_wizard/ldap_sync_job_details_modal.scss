@@ -1,0 +1,129 @@
+#ldap-sync-job-details-modal {
+    .modal-header-with-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+
+        &.status-warning { background-color: var(--away-indicator); }
+        &.status-error { background-color: var(--error-text); }
+    }
+
+    .LdapSyncJobDetailsModal__body {
+        display: flex;
+        flex-direction: column;
+        padding: 0 32px 24px;
+        gap: 16px;
+    }
+
+    .LdapSyncJobDetailsModal__empty {
+        padding: 16px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .LdapSyncJobDetailsModal__summary {
+        .LdapSyncJobDetailsModal__summary-title {
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .LdapSyncJobDetailsModal__summary-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+
+            li {
+                display: flex;
+                justify-content: space-between;
+                padding: 4px 0;
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            .LdapSyncJobDetailsModal__summary-count {
+                font-weight: 600;
+            }
+        }
+
+        .LdapSyncJobDetailsModal__capped-note {
+            margin-top: 8px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 12px;
+        }
+    }
+
+    .LdapSyncJobDetailsModal__search {
+        .form-control {
+            height: 40px;
+        }
+    }
+
+    .LdapSyncJobDetailsModal__table {
+        width: 100%;
+        table-layout: fixed;
+
+        th,
+        td {
+            padding: 8px;
+            overflow-wrap: anywhere;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        td {
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        .LdapSyncJobDetailsModal__subject {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 2px;
+            font-size: 12px;
+            gap: 2px;
+
+            // The reused profile/group popover triggers render as buttons/links;
+            // keep them inline with the smaller sub-line text and styled as
+            // @-mentions (the profile popover button is otherwise body-colored).
+            .user-popover,
+            .group-mention-link {
+                color: var(--link-color);
+                font-size: 12px;
+            }
+
+            .LdapSyncJobDetailsModal__subject-separator {
+                color: rgba(var(--center-channel-color-rgb), 0.4);
+            }
+        }
+
+        .LdapSyncJobDetailsModal__reason {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        .LdapSyncJobDetailsModal__no-results {
+            display: block;
+            padding: 16px 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            text-align: center;
+        }
+    }
+
+    .LdapSyncJobDetailsModal__footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+    }
+}

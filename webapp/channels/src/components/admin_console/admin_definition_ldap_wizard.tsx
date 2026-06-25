@@ -689,8 +689,11 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                     let groupDeleteCount = 0;
                     let groupMemberDeleteCount = 0;
                     let groupMemberAddCount = 0;
+                    let warningCount = 0;
 
                     if (job && job.data) {
+                        warningCount = parseInt(job.data.warning_count, 10) || 0;
+
                         if (job.data.ldap_users_count && job.data.ldap_users_count.length > 0) {
                             ldapUsers = job.data.ldap_users_count;
                         }
@@ -729,6 +732,16 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
 
                     return (
                         <span>
+                            {warningCount > 0 &&
+                                <span className='ldap-sync-warning-badge'>
+                                    <i className='icon icon-alert-outline'/>
+                                    <FormattedMessage
+                                        id='admin.ldap.jobExtraInfo.warnings'
+                                        defaultMessage='{warningCount, number} {warningCount, plural, one {warning} other {warnings}}'
+                                        values={{warningCount}}
+                                    />
+                                </span>
+                            }
                             <FormattedMessage
                                 id={linkedLdapGroupsCount ? 'admin.ldap.jobExtraInfo' : 'admin.ldap.jobExtraInfoTotal'}
                                 defaultMessage={linkedLdapGroupsCount ? 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} linked groups.' : 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} groups.'}

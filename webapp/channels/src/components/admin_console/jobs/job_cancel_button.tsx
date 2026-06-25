@@ -23,6 +23,10 @@ const JobCancelButton = (props: Props): JSX.Element | null => {
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
+
+        // Prevent the click from bubbling up to a clickable row (e.g. the LDAP
+        // sync job table opens a details modal on row click).
+        e.stopPropagation();
         onClick(job.id);
     }, [onClick, job.id]);
 

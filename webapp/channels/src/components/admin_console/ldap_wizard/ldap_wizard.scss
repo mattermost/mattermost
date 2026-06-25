@@ -1,3 +1,16 @@
+.ldap-sync-warning-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 8px;
+    color: rgba(var(--semantic-color-warning), 1);
+    font-weight: 600;
+    gap: 4px;
+
+    .icon {
+        font-size: 14px;
+    }
+}
+
 .ldap-wizard-wrapper {
     background-color: rgba(var(--center-channel-color-rgb), 0.04);
 
