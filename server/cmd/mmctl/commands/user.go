@@ -167,16 +167,6 @@ Permanently deletes one or multiple users along with all related information inc
 	RunE:    withClient(deleteUsersCmdF),
 }
 
-var DeleteAllUsersCmd = &cobra.Command{
-	Use:     "deleteall",
-	Short:   "Delete all users and all posts. Local command only.",
-	Long:    "Permanently delete all users and all related information including posts. This command can only be run in local mode.",
-	Example: "  user deleteall",
-	Args:    cobra.NoArgs,
-	PreRun:  localOnlyPrecheck,
-	RunE:    withClient(deleteAllUsersCmdF),
-}
-
 var SearchUserCmd = &cobra.Command{
 	Use:     "search [users]",
 	Short:   "Search for users",
@@ -359,7 +349,6 @@ func init() {
 	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
-	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
@@ -427,7 +416,6 @@ Global Flags:
 		ResetUserMfaCmd,
 		UserEditCmd,
 		DeleteUsersCmd,
-		DeleteAllUsersCmd,
 		SearchUserCmd,
 		ListUsersCmd,
 		VerifyUserEmailWithoutTokenCmd,
@@ -718,23 +706,6 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	return errs.ErrorOrNil()
-}
-
-func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	confirmFlag, _ := cmd.Flags().GetBool("confirm")
-	if !confirmFlag {
-		if err := getConfirmation("Are you sure you want to permanently delete all user accounts?", true); err != nil {
-			return err
-		}
-	}
-
-	if _, err := c.PermanentDeleteAllUsers(context.TODO()); err != nil {
-		return err
-	}
-
-	defer printer.Print("All users successfully deleted")
-
-	return nil
 }
 
 // userOut is the output format for users.
