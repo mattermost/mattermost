@@ -396,11 +396,7 @@
         flex-direction: column;
         gap: 8px;
 
-        /* Match the gray hover used by the System Console and Membership
-         * Policy editors. Without this the TableEditor's selector buttons
-         * fall back to the global primary-button hover (blue background,
-         * white label) while the operator's hard-coded glyph colour stays
-         * gray — leaving the "≥" symbol mismatched against the white text. */
+        // Match the neutral gray hover used by the other policy editors
         .table-editor__cell {
             button {
                 color: var(--center-channel-color) !important;
@@ -411,11 +407,7 @@
             }
         }
 
-        /* Vertically centre the help text and the test-access-rule button —
-         * the TableEditor's default rule sets justify-content: space-between
-         * but no align-items, so the help text (which can wrap to two lines)
-         * leaves the button hanging at the top. Centering keeps both anchored
-         * to the row's mid-line. */
+        // Vertically center the help text with the test-access-rule button
         .table-editor__actions-row {
             align-items: center;
             gap: 16px;
