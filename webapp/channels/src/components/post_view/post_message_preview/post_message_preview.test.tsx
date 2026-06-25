@@ -10,6 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -317,39 +318,99 @@ describe('PostMessagePreview', () => {
     });
 
     describe('direct and group messages', () => {
-        const channelTypes = [General.DM_CHANNEL, General.GM_CHANNEL] as ChannelType[];
+        const teammate = TestHelper.getUserMock({
+            id: 'teammate_id',
+            username: 'teammate_username',
+        });
 
-        test.each(channelTypes)('should render preview for %s message', (type) => {
-            const metadata = {
-                ...baseProps.metadata,
-                team_name: '',
-                channel_type: type,
-                channel_id: 'channel_id',
-            };
+        test("should use the teammate's display name for a fully loaded DM channel", () => {
+            const dmChannel = TestHelper.getChannelMock({
+                id: 'dm_channel_id',
+                type: General.DM_CHANNEL,
+                name: `${user.id}__${teammate.id}`,
+                display_name: '',
+            });
 
-            const props = {
-                ...baseProps,
-                metadata,
-            };
+            const testState = mergeObjects(baseState, {
+                entities: {
+                    users: {
+                        profiles: {
+                            [teammate.id]: teammate,
+                        },
+                    },
+                    channels: {
+                        channels: {
+                            [dmChannel.id]: dmChannel,
+                        },
+                    },
+                },
+            });
 
-            const {container} = renderWithContext(
-                <PostMessagePreview
-                    {...props}
+            renderWithContext(
+                <ConnectedPostMessagePreview
+                    metadata={{
+                        post_id: previewPost.id,
+
+                        // The server sends a blank channel_display_name for DM channels
+                        channel_display_name: '',
+                        team_name: '',
+                        channel_type: General.DM_CHANNEL,
+                        channel_id: dmChannel.id,
+                    }}
                 />,
-                baseState,
+                state,
             );
 
-            expect(container).toMatchSnapshot();
+            expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent(`Only visible to users in ~${teammate.username}`);
+        });
+
+        test('should use the channel display name for a fully loaded GM channel', () => {
+            const gmChannel = TestHelper.getChannelMock({
+                id: 'gm_channel_id',
+                type: General.GM_CHANNEL,
+                name: 'gm_channel',
+                display_name: 'username1, teammate_username',
+            });
+
+            const testState = mergeObjects(baseState, {
+                entities: {
+                    users: {
+                        profiles: {
+                            [teammate.id]: teammate,
+                        },
+                    },
+                    channels: {
+                        channels: {
+                            [gmChannel.id]: gmChannel,
+                        },
+                    },
+                },
+            });
+
+            renderWithContext(
+                <ConnectedPostMessagePreview
+                    metadata={{
+                        post_id: previewPost.id,
+
+                        // The server sends channel.display_name for GM channels
+                        channel_display_name: 'username1, teammate_username',
+                        team_name: '',
+                        channel_type: General.GM_CHANNEL,
+                        channel_id: gmChannel.id,
+                    }}
+                />,
+                state,
+            );
+
+            expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent('Only visible to users in ~username1, teammate_username');
         });
 
         test('should fall back to "Someone" as the channel display name when the DM teammate is not loaded', () => {
             const teammateId = 'teammate_id';
             const dmChannelId = 'dm_channel_id';
 
-            const state = {
-                ...baseState,
+            const testState = mergeObjects(baseState, {
                 entities: {
-                    ...baseState.entities,
                     channels: {
                         channels: {
                             [dmChannelId]: TestHelper.getChannelMock({
@@ -361,7 +422,7 @@ describe('PostMessagePreview', () => {
                         },
                     },
                 },
-            };
+            });
 
             renderWithContext(
                 <ConnectedPostMessagePreview
