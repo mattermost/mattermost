@@ -754,8 +754,8 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]stru
 	}
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		ObjectTypes: []string{model.PropertyFieldObjectTypeUser},
-		PerPage:     model.AccessControlGroupFieldLimit + 5,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		PerPage:    model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		return nil, appErr
