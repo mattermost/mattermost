@@ -181,7 +181,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 			return nil, model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &nameErr):
 			errbody := fmt.Sprintf("team with name %s already exists", nameErr.Name)
-			return nil, model.NewAppError("RenameTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError("UpdateTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -192,19 +192,6 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	}
 
 	return updatedTeam, nil
-}
-
-// RenameTeam is used to rename the team Name and the DisplayName fields
-func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
-	if newTeamName != "-" {
-		team.Name = newTeamName
-	}
-
-	if newDisplayName != "" {
-		team.DisplayName = newDisplayName
-	}
-
-	return a.UpdateTeam(team)
 }
 
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
