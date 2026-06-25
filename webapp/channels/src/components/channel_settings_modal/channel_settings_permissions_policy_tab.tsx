@@ -923,12 +923,10 @@ function PermissionRuleEditor({
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
 
-    // Seed once on mount. The parent gives this editor a stable `key`
-    // (the rule key / '__new__'), so switching rules remounts the
-    // component and re-seeds via this initializer. Re-seeding from an
-    // effect keyed on `initial` would wipe in-progress edits whenever
-    // the parent re-renders with a fresh `initial` object — e.g. when a
-    // validation error is surfaced on save.
+    // Seed once on mount. The parent passes a stable `key` so switching
+    // rules remounts and re-seeds here. Re-seeding from an effect keyed on
+    // `initial` instead would wipe in-progress edits on any parent re-render
+    // that rebuilds `initial` (e.g. surfacing a validation error on save).
     const [draft, setDraft] = useState<EditableRule>(initial);
     const [showTest, setShowTest] = useState(false);
 
