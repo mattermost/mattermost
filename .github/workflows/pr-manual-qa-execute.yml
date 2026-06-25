@@ -66,7 +66,7 @@ jobs:
 
       - name: Agent verification plan (Claude)
         id: claude
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' && vars.AMQA_DRY_RUN != 'true' }}
+        if: vars.AMQA_DRY_RUN != 'true'
         uses: anthropics/claude-code-action@26ec041249acb0a944c0a47b6c0c13f05dbc5b44 # v1.0.70
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -85,7 +85,7 @@ jobs:
 
             Cloud Agents should use computerUse for browser steps and upload evidence to S3 per playbook.
 
-      - name: Mark execution success
+      - name: Update execution status
         id: success
         working-directory: .github/scripts/amqa
         env:
@@ -94,25 +94,26 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_SHA: ${{ steps.meta.outputs.head_sha }}
           STATUS_CONTEXT: QA/execution
-          STATUS_STATE: success
-          STATUS_DESCRIPTION: Agent verification complete — see plan comment for Cloud Agent steps
-          OVERALL: pass
+          STATUS_STATE: pending
+          STATUS_DESCRIPTION: Complete verification via Cloud Agent computerUse — see plan comment
+          OVERALL: pending
           STAGE: execution
           AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
           EVIDENCE_URLS: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ ! -f /tmp/amqa/qa-result.json ]; then
             mkdir -p /tmp/amqa
-            echo '{"schema_version":"1.0","pr_number":'${{ inputs.pr_number }}',"head_sha":"'${{ steps.meta.outputs.head_sha }}'","overall":"pass","verified_at_pr":true}' > /tmp/amqa/qa-result.json
+            echo '{"schema_version":"1.0","pr_number":'${{ inputs.pr_number }}',"head_sha":"'${{ steps.meta.outputs.head_sha }}'","overall":"pending","verified_at_pr":false}' > /tmp/amqa/qa-result.json
           fi
           python3 -c "
           import json
           from pathlib import Path
           p = Path('/tmp/amqa/qa-result.json')
           d = json.loads(p.read_text())
-          d['verified_at_pr'] = True
-          d['overall'] = 'pass'
-          d['executor'] = 'github-actions-claude'
+          d['verified_at_pr'] = False
+          d['overall'] = 'pending'
+          d['executor'] = 'github-actions-orchestrator'
+          d['next_step'] = 'cursor-cloud-agent-computerUse'
           p.write_text(json.dumps(d, indent=2) + '\n')
           "
           python3 amqa_update_result.py

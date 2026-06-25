@@ -9,7 +9,7 @@ Explicitly import subdirectory instruction files that must always be in context:
 - 🟢 Low + "no manual QA required" → no verification work; respect `QA/skipped`.
 - Execute CodeRabbit **QA Recommendation** steps for 🔴 High PRs; evidence in PR comment.
 - Release confidence uses merge-time `qa-result` artifacts — see `.github/amqa/BASELINE.md`.
-- Browser verification: follow `.cursor/qa-playbook.md` and `.cursor/cursor.md` AMQA section.
+- Manual UI verification: use Cloud Agent `computerUse` per `.cursor/qa-playbook.md` and `.cursor/cursor.md` AMQA section.
 
 ## Pull Requests
 

@@ -23,11 +23,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           PR="${{ github.event.pull_request.number }}"
+          SHA="${{ github.event.pull_request.head.sha }}"
           mkdir -p /tmp/amqa/release-artifacts
-          RUNS=$(gh run list --repo "${{ github.repository }}" --workflow pr-manual-qa-plan.yml --json databaseId -q '.[].databaseId' | head -5)
-          for RUN in $RUNS; do
-            gh run download "$RUN" --repo "${{ github.repository }}" --name "qa-result-pr-${PR}" -D /tmp/amqa/dl 2>/dev/null && break || true
-          done
+          RUN=$(gh run list --repo "${{ github.repository }}" --commit "$SHA" --workflow pr-manual-qa-plan.yml --json databaseId -q '.[0].databaseId')
+          if [ -n "$RUN" ]; then
+            gh run download "$RUN" --repo "${{ github.repository }}" --name "qa-result-pr-${PR}" -D /tmp/amqa/dl 2>/dev/null || true
+          fi
           if [ -f /tmp/amqa/dl/qa-result.json ]; then
             cp /tmp/amqa/dl/qa-result.json "/tmp/amqa/release-artifacts/qa-result-pr-${PR}.json"
           else

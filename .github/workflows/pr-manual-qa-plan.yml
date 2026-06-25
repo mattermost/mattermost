@@ -182,6 +182,7 @@ jobs:
 
       - name: Update automation status
         id: result
+        if: success()
         working-directory: .github/scripts/amqa
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
@@ -189,7 +190,7 @@ jobs:
           PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
           HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
           STATUS_CONTEXT: QA/automation
-          STATUS_STATE: ${{ steps.specs.outputs.empty == 'true' && 'success' || 'success' }}
+          STATUS_STATE: success
           STATUS_DESCRIPTION: ${{ steps.specs.outputs.empty == 'true' && 'No mapped specs — smoke only' || 'Scoped specs validated' }}
           OVERALL: automation_only
           STAGE: automation
@@ -198,6 +199,22 @@ jobs:
         run: |
           python3 amqa_update_result.py
           echo "passed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Mark automation failure
+        if: failure()
+        working-directory: .github/scripts/amqa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
+          HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
+          STATUS_CONTEXT: QA/automation
+          STATUS_STATE: failure
+          STATUS_DESCRIPTION: Scoped automation failed — fix before agent execution
+          OVERALL: fail
+          STAGE: automation
+          AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
+        run: python3 amqa_update_result.py
 
       - name: Upload updated qa-result
         uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0

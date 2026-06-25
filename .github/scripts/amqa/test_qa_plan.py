@@ -47,10 +47,20 @@ def test_tpa_fail_adds_gap():
     assert any(s.get("source") == "tpa_fail" for s in plan["scenarios"])
 
 
+def test_spec_map_from_ci_working_dir():
+    from spec_mapper import DEFAULT_SPEC_MAP, map_changed_files, smoke_specs
+
+    assert DEFAULT_SPEC_MAP.is_file(), f"missing spec map at {DEFAULT_SPEC_MAP}"
+    mapped = map_changed_files(["webapp/channels/src/components/post/foo.tsx"])
+    assert mapped, "expected post component prefix to map specs"
+    assert smoke_specs(), "expected sev1 smoke specs"
+
+
 if __name__ == "__main__":
     test_cis_webapp_paths()
     test_cis_test_only_lower()
     test_blast_radius_abac()
     test_build_plan_from_coderabbit()
     test_tpa_fail_adds_gap()
+    test_spec_map_from_ci_working_dir()
     print("All qa plan tests passed")

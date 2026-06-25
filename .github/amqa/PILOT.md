@@ -12,7 +12,7 @@
 
 ## Exit criteria
 
-- ≥ 50 PRs processed by `agentic-qa-pr` workflow
+- ≥ 50 PRs processed by `pr-manual-qa-plan` workflow
 - < 15% override rate due to agent error (policy waivers excluded)
 - ≥ 1 release RC with published Release Confidence Report
 - Playbook Sev-1 paths with < 5% agent inconclusive rate
