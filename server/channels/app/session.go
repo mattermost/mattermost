@@ -198,7 +198,7 @@ func (a *App) sendMobileWipeSignal(rctx request.CTX, sessions ...*model.Session)
 	}
 
 	for _, session := range sessions {
-		if session.DeviceId == "" {
+		if session.DeviceId == "" || session.DeviceId == session.Props[model.SessionPropLastRemovedDeviceId] {
 			continue
 		}
 

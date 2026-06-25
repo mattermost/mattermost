@@ -561,6 +561,16 @@ func TestSendMobileWipeSignal(t *testing.T) {
 		require.Equal(t, 0, handler.numReqs())
 	})
 
+	t.Run("do not send push when device was already removed by the push proxy", func(t *testing.T) {
+		handler := setupPushServer(t, th)
+
+		session := &model.Session{UserId: th.BasicUser.Id, DeviceId: "android:testdevice", ExpiresAt: model.GetMillis() + 100000}
+		session.AddProp(model.SessionPropLastRemovedDeviceId, "android:testdevice")
+		th.App.sendMobileWipeSignal(th.Context, session)
+
+		require.Equal(t, 0, handler.numReqs())
+	})
+
 	t.Run("send silent wipe push for mobile sessions", func(t *testing.T) {
 		handler := setupPushServer(t, th)
 
