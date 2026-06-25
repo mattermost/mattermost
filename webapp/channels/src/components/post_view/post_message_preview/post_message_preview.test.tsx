@@ -358,7 +358,7 @@ describe('PostMessagePreview', () => {
                         channel_id: dmChannel.id,
                     }}
                 />,
-                state,
+                testState,
             );
 
             expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent(`Only visible to users in ~${teammate.username}`);
@@ -399,7 +399,7 @@ describe('PostMessagePreview', () => {
                         channel_id: gmChannel.id,
                     }}
                 />,
-                state,
+                testState,
             );
 
             expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent('Only visible to users in ~username1, teammate_username');
@@ -434,7 +434,7 @@ describe('PostMessagePreview', () => {
                         channel_id: dmChannelId,
                     }}
                 />,
-                state,
+                testState,
             );
 
             expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent('Only visible to users in ~Someone');
