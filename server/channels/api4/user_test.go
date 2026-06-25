@@ -6301,7 +6301,7 @@ func TestRevokeUserAccessTokenDeniesOAuthSession(t *testing.T) {
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
 
-	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
 	require.NoError(t, err)
 	assertToken(t, th, token, th.BasicUser.Id)
 
@@ -6323,7 +6323,7 @@ func TestDisableUserAccessTokenDeniesOAuthSession(t *testing.T) {
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
 
-	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
 	require.NoError(t, err)
 	assertToken(t, th, token, th.BasicUser.Id)
 
@@ -6345,7 +6345,7 @@ func TestEnableUserAccessTokenDeniesOAuthSession(t *testing.T) {
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
 
-	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token")
 	require.NoError(t, err)
 	assertToken(t, th, token, th.BasicUser.Id)
 
