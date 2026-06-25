@@ -181,6 +181,10 @@ type SubjectSearchOptions struct {
 	// This is particularly useful for validation queries where we only need to check
 	// if a specific user matches an expression, rather than fetching all matching users
 	SubjectID string `json:"subject_id"`
+	// ExcludeNativeAttributes strips native user-attribute predicates (user.email,
+	// user.verified, user.isbot, user.createat[.youngerThanDays]) from the expression
+	// before building SQL, so self-inclusion validation checks only the CPA parts.
+	ExcludeNativeAttributes bool `json:"exclude_native_attributes,omitempty"`
 }
 
 type SubjectCursor struct {

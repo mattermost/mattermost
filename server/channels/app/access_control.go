@@ -2301,6 +2301,10 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 	users, _, appErr := acs.QueryUsersForExpression(rctx, expression, model.SubjectSearchOptions{
 		SubjectID: requesterID, // Only check this specific user
 		Limit:     1,           // Maximum 1 result expected
+		// Native attributes (user.email/verified/isbot/createat) describe the
+		// requester themselves, not who they can include; strip them so the
+		// self-inclusion check validates only the CPA-attribute parts.
+		ExcludeNativeAttributes: true,
 	})
 	if appErr != nil {
 		return false, appErr
