@@ -2826,6 +2826,12 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	c.LogAudit("")
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
 		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
 		return
@@ -2869,6 +2875,12 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("")
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
@@ -2914,6 +2926,12 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	c.LogAudit("")
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateUserAccessToken) {
