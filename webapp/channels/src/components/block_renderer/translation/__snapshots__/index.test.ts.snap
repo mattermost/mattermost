@@ -540,6 +540,11 @@ Array [
     "text": "Valid block",
     "type": "text",
   },
+  Object {
+    "action_id": "valid_btn",
+    "text": "Good",
+    "type": "button",
+  },
 ]
 `;
 
