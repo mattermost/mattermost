@@ -4123,7 +4123,7 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 	const channelAdmin = "channel_user channel_admin"
 	const channelMember = "channel_user"
 
-	channel := th.CreatePublicChannel(t)
+	channel := th.CreatePublicChannel()
 
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
 	require.Nil(t, appErr)
