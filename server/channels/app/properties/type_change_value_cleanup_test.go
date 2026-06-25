@@ -168,12 +168,6 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 	t.Run("select<->rank transition preserves values", func(t *testing.T) {
 		optionAID := model.NewId()
 		optionBID := model.NewId()
-		opts := model.StringInterface{
-			model.PropertyFieldAttributeOptions: []map[string]any{
-				{"id": optionAID, "name": "Option A"},
-				{"id": optionBID, "name": "Option B"},
-			},
-		}
 
 		for _, tc := range []struct {
 			name     string
@@ -190,7 +184,12 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 					Type:       tc.fromType,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
-					Attrs:      opts,
+					Attrs: model.StringInterface{
+						model.PropertyFieldAttributeOptions: []map[string]any{
+							{"id": optionAID, "name": "Option A"},
+							{"id": optionBID, "name": "Option B"},
+						},
+					},
 				}
 				created, err := th.service.CreatePropertyField(th.Context, field)
 				require.NoError(t, err)
