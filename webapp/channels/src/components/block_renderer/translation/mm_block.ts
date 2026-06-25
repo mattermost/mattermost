@@ -26,44 +26,16 @@ import {ensureString} from '@mattermost/types/utilities';
 
 import {parseMmButtonStyle} from '../utils/button';
 
-const TEXT_KEYS = new Set(['type', 'text', 'is_subtle', 'size']);
-const DIVIDER_KEYS = new Set(['type']);
-const BUTTON_KEYS = new Set(['type', 'text', 'action_id', 'style', 'tooltip', 'disabled', 'query', 'cookie']);
-const STATIC_SELECT_KEYS = new Set([
-    'type',
-    'action_id',
-    'query',
-    'placeholder',
-    'options',
-    'initial_option',
-    'disabled',
-    'data_source',
-    'cookie',
-]);
-const IMAGE_KEYS = new Set([
-    'type',
-    'url',
-    'alt_text',
-    'title',
-    'size',
-    'max_width',
-    'max_height',
-    'image_style',
-    'horizontal_alignment',
-]);
-const COLUMN_KEYS = new Set(['type', 'items', 'width', 'gap']);
-const COLUMN_SET_KEYS = new Set(['type', 'columns', 'gap']);
-const CONTAINER_KEYS = new Set([
-    'type',
-    'content',
-    'border',
-    'accent_color',
-    'flow',
-    'gap',
-    'background',
-    'max_height',
-]);
-const COLLAPSIBLE_KEYS = new Set(['type', 'header', 'content', 'collapsed']);
+const TEXT_REQUIRED_KEYS = ['type', 'text'];
+const DIVIDER_REQUIRED_KEYS = ['type'];
+const BUTTON_REQUIRED_KEYS = ['type', 'text', 'action_id'];
+const STATIC_SELECT_REQUIRED_KEYS = ['type', 'action_id', 'placeholder'];
+const IMAGE_REQUIRED_KEYS = ['type', 'url'];
+const COLUMN_REQUIRED_KEYS = ['type', 'items'];
+const COLUMN_SET_REQUIRED_KEYS = ['type', 'columns'];
+const CONTAINER_REQUIRED_KEYS = ['type', 'content'];
+const COLLAPSIBLE_REQUIRED_KEYS = ['type', 'header', 'content'];
+const STATIC_SELECT_OPTION_REQUIRED_KEYS = ['text', 'value'];
 
 const MM_IMAGE_SIZES = new Set<MmImageSize>(['auto', 'xsmall', 'small', 'medium', 'large', 'stretch']);
 const MM_CONTAINER_GAPS = new Set<MmContainerGap>(['none', 'small', 'medium', 'large', 'xlarge']);
@@ -81,18 +53,14 @@ function isRecord(v: unknown): v is Record<string, unknown> {
     return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-function keysAreSubset(record: Record<string, unknown>, allowed: Set<string>): boolean {
-    for (const k of Object.keys(record)) {
-        if (!allowed.has(k)) {
-            return false;
-        }
-    }
-    return true;
+function hasRequiredKeys(record: Record<string, unknown>, required: string[]): boolean {
+    const keySet = new Set(Object.keys(record));
+    return required.every((k) => keySet.has(k));
 }
 
 function asBoolean(v: unknown): boolean | undefined {
     if (v === undefined) {
-        return undefined;
+        return false;
     }
     if (typeof v !== 'boolean') {
         return undefined;
@@ -153,7 +121,7 @@ function translateStaticSelectOptions(raw: unknown): MmStaticSelectOption[] | un
         if (!isRecord(el)) {
             return null;
         }
-        if (!keysAreSubset(el, new Set(['text', 'value']))) {
+        if (!hasRequiredKeys(el, STATIC_SELECT_OPTION_REQUIRED_KEYS)) {
             return null;
         }
         if (typeof el.text !== 'string' || typeof el.value !== 'string') {
@@ -165,7 +133,7 @@ function translateStaticSelectOptions(raw: unknown): MmStaticSelectOption[] | un
 }
 
 function translateTextBlock(raw: Record<string, unknown>): MmTextBlock | null {
-    if (!keysAreSubset(raw, TEXT_KEYS)) {
+    if (!hasRequiredKeys(raw, TEXT_REQUIRED_KEYS)) {
         return null;
     }
     if (typeof raw.text !== 'string') {
@@ -192,14 +160,14 @@ function translateTextBlock(raw: Record<string, unknown>): MmTextBlock | null {
 }
 
 function translateDividerBlock(raw: Record<string, unknown>): MmDividerBlock | null {
-    if (!keysAreSubset(raw, DIVIDER_KEYS)) {
+    if (!hasRequiredKeys(raw, DIVIDER_REQUIRED_KEYS)) {
         return null;
     }
     return {type: 'divider'};
 }
 
 function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | null {
-    if (!keysAreSubset(raw, BUTTON_KEYS)) {
+    if (!hasRequiredKeys(raw, BUTTON_REQUIRED_KEYS)) {
         return null;
     }
     const text = ensureString(raw.text);
@@ -268,7 +236,7 @@ function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | nul
 }
 
 function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelectBlock | null {
-    if (!keysAreSubset(raw, STATIC_SELECT_KEYS)) {
+    if (!hasRequiredKeys(raw, STATIC_SELECT_REQUIRED_KEYS)) {
         return null;
     }
     const actionId = ensureString(raw.action_id);
@@ -276,6 +244,13 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
     if (!actionId.trim() || !placeholder.trim()) {
         return null;
     }
+
+    const out: MmStaticSelectBlock = {
+        type: 'static_select',
+        action_id: actionId,
+        placeholder,
+    };
+
     let options: MmStaticSelectOption[] | undefined;
     if (raw.options !== undefined) {
         const o = translateStaticSelectOptions(raw.options);
@@ -284,6 +259,10 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
         }
         options = o;
     }
+    if (options) {
+        out.options = options;
+    }
+
     let initialOption: string | undefined;
     if (raw.initial_option === undefined) {
         initialOption = undefined;
@@ -292,10 +271,19 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
     } else {
         return null;
     }
+
+    if (initialOption !== undefined) {
+        out.initial_option = initialOption;
+    }
+
     const disabled = asBoolean(raw.disabled);
     if (raw.disabled !== undefined && disabled === undefined) {
         return null;
     }
+    if (disabled === true) {
+        out.disabled = true;
+    }
+
     let dataSource: string | undefined;
     if (raw.data_source === undefined) {
         dataSource = undefined;
@@ -304,6 +292,10 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
     } else {
         return null;
     }
+    if (dataSource !== undefined) {
+        out.data_source = dataSource;
+    }
+
     let query: Record<string, string> | undefined;
     if (raw.query !== undefined) {
         const q = asStringRecord(raw.query);
@@ -312,6 +304,10 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
         }
         query = q;
     }
+    if (query) {
+        out.query = query;
+    }
+
     let cookie: string | undefined;
     if (raw.cookie === undefined) {
         cookie = undefined;
@@ -320,34 +316,15 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
     } else {
         return null;
     }
-    const out: MmStaticSelectBlock = {
-        type: 'static_select',
-        action_id: actionId,
-        placeholder,
-    };
-    if (options) {
-        out.options = options;
-    }
-    if (initialOption !== undefined) {
-        out.initial_option = initialOption;
-    }
-    if (disabled === true) {
-        out.disabled = true;
-    }
-    if (dataSource !== undefined) {
-        out.data_source = dataSource;
-    }
-    if (query) {
-        out.query = query;
-    }
     if (cookie !== undefined) {
         out.cookie = cookie;
     }
+
     return out;
 }
 
 function translateImageBlock(raw: Record<string, unknown>): MmImageBlock | null {
-    if (!keysAreSubset(raw, IMAGE_KEYS)) {
+    if (!hasRequiredKeys(raw, IMAGE_REQUIRED_KEYS)) {
         return null;
     }
     if (typeof raw.url !== 'string' || typeof raw.alt_text !== 'string') {
@@ -430,7 +407,7 @@ function translateImageBlock(raw: Record<string, unknown>): MmImageBlock | null 
 }
 
 function translateColumnBlock(raw: Record<string, unknown>): MmColumnBlock | null {
-    if (!keysAreSubset(raw, COLUMN_KEYS)) {
+    if (!hasRequiredKeys(raw, COLUMN_REQUIRED_KEYS)) {
         return null;
     }
     if (!Array.isArray(raw.items)) {
@@ -476,7 +453,7 @@ function translateColumnBlock(raw: Record<string, unknown>): MmColumnBlock | nul
 }
 
 function translateColumnSetBlock(raw: Record<string, unknown>): MmColumnSetBlock | null {
-    if (!keysAreSubset(raw, COLUMN_SET_KEYS)) {
+    if (!hasRequiredKeys(raw, COLUMN_SET_REQUIRED_KEYS)) {
         return null;
     }
     if (!Array.isArray(raw.columns)) {
@@ -512,7 +489,7 @@ function translateColumnSetBlock(raw: Record<string, unknown>): MmColumnSetBlock
 }
 
 function translateContainerBlock(raw: Record<string, unknown>): MmContainerBlock | null {
-    if (!keysAreSubset(raw, CONTAINER_KEYS)) {
+    if (!hasRequiredKeys(raw, CONTAINER_REQUIRED_KEYS)) {
         return null;
     }
     if (!Array.isArray(raw.content)) {
@@ -599,7 +576,7 @@ function translateContainerBlock(raw: Record<string, unknown>): MmContainerBlock
 }
 
 function translateCollapsibleBlock(raw: Record<string, unknown>): MmCollapsibleBlock | null {
-    if (!keysAreSubset(raw, COLLAPSIBLE_KEYS)) {
+    if (!hasRequiredKeys(raw, COLLAPSIBLE_REQUIRED_KEYS)) {
         return null;
     }
     if (!Array.isArray(raw.header) || !Array.isArray(raw.content)) {

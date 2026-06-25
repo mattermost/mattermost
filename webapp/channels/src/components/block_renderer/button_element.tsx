@@ -12,9 +12,9 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import Markdown from 'components/markdown';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {mmBlocksButtonClassName, mmBlocksButtonInlineStyle} from './button_utils';
 import {MmBlocksInteractionsDisabledContext} from './context';
 import type {ActionHandler} from './types';
+import {mmBlocksButtonClassName, mmBlocksButtonInlineStyle} from './utils/button';
 
 const buttonMarkdownOptions = {
     mentionHighlight: false,
@@ -64,11 +64,12 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
         </button>
     );
 
+    if (!element.tooltip) {
+        return button;
+    }
+
     return (
-        <WithTooltip
-            title={element.tooltip ?? ''}
-            disabled={!element.tooltip}
-        >
+        <WithTooltip title={element.tooltip}>
             {button}
         </WithTooltip>
     );

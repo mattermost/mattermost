@@ -19,7 +19,7 @@ import SizeAwareImage from 'components/size_aware_image';
 import {ModalIdentifiers} from 'utils/constants';
 
 import {MmBlocksImagesMetadataContext} from './context';
-import {MM_IMAGE_ALIGN_JUSTIFY, resolveMmImageCaps} from './image_utils';
+import {MM_IMAGE_ALIGN_JUSTIFY, resolveMmImageCaps} from './utils/image';
 
 type ImageBlockProps = {
     block: MmImageBlock;

@@ -3,7 +3,7 @@
 
 import type {MmImageBlock} from '@mattermost/types/mm_blocks';
 
-import {MM_IMAGE_ALIGN_JUSTIFY, MM_IMAGE_SIZE_CAPS, resolveMmImageCaps} from './image_utils';
+import {MM_IMAGE_ALIGN_JUSTIFY, MM_IMAGE_SIZE_CAPS, resolveMmImageCaps} from './image';
 
 describe('resolveMmImageCaps', () => {
     it('returns empty caps for auto size without explicit dimensions', () => {

@@ -207,26 +207,22 @@ function mmContainerClassName(block: MmContainerBlock): string {
     const isSemanticAccent = Boolean(accent && isMmContainerSemanticAccent(accent));
     const gapKey = mmBlocksGapKey(block.gap);
     const maxHeightKey = mmContainerMaxHeightKey(block.max_height);
+    const flowKey = block.flow === 'horizontal' ? 'horizontal' : 'vertical';
 
-    return classNames('mm-blocks-container', {
-        'mm-blocks-container--accent': accent,
-        [`mm-blocks-container--accent-${accent}`]: isSemanticAccent,
-        'mm-blocks-container--accent-custom': Boolean(accent && !isSemanticAccent),
-        'mm-blocks-container--border': !accent && block.border,
-        'mm-blocks-container--accent-border': Boolean(accent && block.border),
-        'mm-blocks-container--flow-horizontal': block.flow === 'horizontal',
-        'mm-blocks-container--flow-vertical': block.flow !== 'horizontal',
-        'mm-blocks-container--gap-none': gapKey === 'none',
-        'mm-blocks-container--gap-small': gapKey === 'small',
-        'mm-blocks-container--gap-medium': gapKey === 'medium',
-        'mm-blocks-container--gap-large': gapKey === 'large',
-        'mm-blocks-container--gap-xlarge': gapKey === 'xlarge',
-        'mm-blocks-container--max-height-none': maxHeightKey === 'none',
-        'mm-blocks-container--max-height-small': maxHeightKey === 'small',
-        'mm-blocks-container--max-height-medium': maxHeightKey === 'medium',
-        'mm-blocks-container--max-height-large': maxHeightKey === 'large',
-        'mm-blocks-container--bg-gray': block.background === 'gray',
-    });
+    return classNames(
+        'mm-blocks-container',
+        `mm-blocks-container--flow-${flowKey}`,
+        `mm-blocks-container--gap-${gapKey}`,
+        `mm-blocks-container--max-height-${maxHeightKey}`,
+        {
+            'mm-blocks-container--accent': accent,
+            [`mm-blocks-container--accent-${accent}`]: isSemanticAccent,
+            'mm-blocks-container--accent-custom': Boolean(accent && !isSemanticAccent),
+            'mm-blocks-container--border': !accent && block.border,
+            'mm-blocks-container--accent-border': Boolean(accent && block.border),
+            'mm-blocks-container--bg-gray': block.background === 'gray',
+        },
+    );
 }
 
 function mmContainerStyle(block: MmContainerBlock): CSSProperties | undefined {
