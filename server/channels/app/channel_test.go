@@ -1690,7 +1690,10 @@ func TestUpdateChannelMemberRolesRejectsOutOfScopeBuiltInRoles(t *testing.T) {
 	_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
 	require.Nil(t, appErr)
 
-	for _, roleName := range []string{model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId} {
+	// CustomGroupUserRoleId is a built-in role whose role.BuiltIn flag is false, so it must
+	// be rejected via the shared model.IsBuiltInRole predicate rather than the BuiltIn flag.
+	// This guards the app-layer path used by plugins and bulk import, which bypass the API check.
+	for _, roleName := range []string{model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId, model.CustomGroupUserRoleId} {
 		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, model.ChannelUserRoleId+" "+roleName)
 		require.NotNilf(t, appErr, "expected rejection for role %s", roleName)
 		require.Equal(t, "api.channel.update_channel_member_roles.scheme_role.app_error", appErr.Id)

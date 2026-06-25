@@ -879,10 +879,19 @@ func IsValidRoleName(roleName string) bool {
 }
 
 // builtInRoleSet is the O(1) lookup set for BuiltInSchemeManagedRoleIDs, built in init().
-// Using BuiltInSchemeManagedRoleIDs as the discriminant covers all scheme-managed
-// built-in roles including those (e.g. custom_group_user) whose role.BuiltIn flag
-// is false for unrelated reasons (e.g. WebSocket broadcast scope).
+// Despite its name, BuiltInSchemeManagedRoleIDs is the canonical list of built-in role
+// IDs and not all of its entries are scheme-managed (roughly half have SchemeManaged: false,
+// e.g. custom_group_user). It is used as the single source of truth for "is this a built-in
+// role", independent of the per-role BuiltIn/SchemeManaged flags.
 var builtInRoleSet map[string]bool
+
+// IsBuiltInRole reports whether roleName is a built-in role, using
+// BuiltInSchemeManagedRoleIDs as the source of truth. This is the predicate shared by
+// IsValidChannelMemberRoles and the app-layer channel member role validation so both
+// layers agree on which roles are built-in.
+func IsBuiltInRole(roleName string) bool {
+	return builtInRoleSet[roleName]
+}
 
 // IsChannelScopedBuiltInRole returns true for the three built-in roles that are
 // valid inside a channel-member role list.
@@ -891,16 +900,15 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 }
 
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
-// IsValidUserRoles is format validation only; this additionally rejects any
-// scheme-managed built-in role (present in BuiltInSchemeManagedRoleIDs) that is
-// not channel-scoped.
+// IsValidUserRoles is format validation only; this additionally rejects any built-in
+// role (per IsBuiltInRole) that is not channel-scoped.
 func IsValidChannelMemberRoles(channelMemberRoles string) bool {
 	if !IsValidUserRoles(channelMemberRoles) {
 		return false
 	}
 
 	for roleName := range strings.FieldsSeq(channelMemberRoles) {
-		if builtInRoleSet[roleName] && !IsChannelScopedBuiltInRole(roleName) {
+		if IsBuiltInRole(roleName) && !IsChannelScopedBuiltInRole(roleName) {
 			return false
 		}
 	}

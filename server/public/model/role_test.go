@@ -566,6 +566,29 @@ func TestIsValidChannelMemberRoles(t *testing.T) {
 	}
 }
 
+func TestIsBuiltInRole(t *testing.T) {
+	tests := []struct {
+		name     string
+		roleName string
+		builtIn  bool
+	}{
+		{name: "channel user", roleName: ChannelUserRoleId, builtIn: true},
+		{name: "system manager", roleName: SystemManagerRoleId, builtIn: true},
+		{name: "system custom group admin", roleName: SystemCustomGroupAdminRoleId, builtIn: true},
+		// custom_group_user is built-in even though its role.BuiltIn flag is false.
+		{name: "custom group user", roleName: CustomGroupUserRoleId, builtIn: true},
+		{name: "custom role", roleName: "custom_role", builtIn: false},
+		{name: "prefixed custom system role", roleName: "system_custom", builtIn: false},
+		{name: "empty", roleName: "", builtIn: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.builtIn, IsBuiltInRole(tc.roleName))
+		})
+	}
+}
+
 func TestManageAgentPermissionsDefaultRoles(t *testing.T) {
 	roles := MakeDefaultRoles()
 
