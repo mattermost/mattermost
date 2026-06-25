@@ -110,7 +110,7 @@ export default class FilePreview extends React.PureComponent<Props> {
                 }
 
                 let thumbnailUrl = getFileThumbnailUrl(info.id);
-                if (Utils.isGIFImage(info.extension) && !info.has_preview_image) {
+                if ((Utils.isGIFImage(info.extension) || info.extension?.toLowerCase() === 'webp') && !info.has_preview_image) {
                     thumbnailUrl = getFileUrl(info.id);
                 }
 
