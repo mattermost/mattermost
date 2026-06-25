@@ -10,7 +10,7 @@ from pathlib import Path
 
 import requests
 
-from github_api import _headers, env_token
+from github_api import _headers, count_open_defects, env_token, fetch_merge_artifacts
 
 SEV1_SMOKE_SPECS = [
     "e2e-tests/playwright/specs/functional/channels/search/find_channels.spec.ts",
@@ -43,7 +43,7 @@ def load_artifact_results(artifact_dir: Path) -> dict[int, dict]:
     results: dict[int, dict] = {}
     if not artifact_dir.is_dir():
         return results
-    for path in artifact_dir.glob("qa-result-pr-*.json"):
+    for path in artifact_dir.rglob("qa-result-pr-*.json"):
         data = json.loads(path.read_text())
         results[int(data["pr_number"])] = data
     return results
@@ -86,7 +86,10 @@ def recommendation(score: float, open_defects: int) -> str:
 def post_webhook(url: str, text: str) -> None:
     if not url:
         return
-    requests.post(url, json={"text": text}, timeout=30)
+    try:
+        requests.post(url, json={"text": text}, timeout=30)
+    except requests.RequestException as exc:
+        print(f"warning: webhook post failed: {exc}", file=sys.stderr)
 
 
 def main() -> int:
@@ -102,8 +105,14 @@ def main() -> int:
     stored = load_artifact_results(artifact_dir)
     migration_in_release = has_migrations(token, repo, base_ref, head_sha) if token else False
 
+    pr_numbers: list[int] = []
     if token:
-        for n in merged_prs(token, repo, base_ref, head_sha):
+        pr_numbers = merged_prs(token, repo, base_ref, head_sha)
+        if not stored:
+            fetch_merge_artifacts(token, repo, pr_numbers, artifact_dir)
+            stored = load_artifact_results(artifact_dir)
+
+        for n in pr_numbers:
             result = stored.get(n, {})
             cr = result.get("coderabbit", {})
             impact = cr.get("change_impact", "unknown")
@@ -116,7 +125,9 @@ def main() -> int:
             })
 
     score = confidence_score(entries)
-    open_defects = 0
+    open_defects = count_open_defects(token, repo) if token else 0
+    failed_results = sum(1 for n in pr_numbers if stored.get(n, {}).get("overall") in ("fail", "failure"))
+    open_defects = max(open_defects, failed_results)
     rec = recommendation(score, open_defects)
 
     report = {

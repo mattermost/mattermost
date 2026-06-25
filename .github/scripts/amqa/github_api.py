@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any, Optional
 
 import requests
@@ -50,14 +51,22 @@ def get_pr_files(token: str, repo: str, pr_number: int) -> list[str]:
 
 
 def get_issue_comments(token: str, repo: str, issue_number: int) -> list[dict[str, Any]]:
-    r = requests.get(
-        f"{BASE_URL}/repos/{repo}/issues/{issue_number}/comments",
-        headers=_headers(token),
-        params={"per_page": 100},
-        timeout=_TIMEOUT,
-    )
-    r.raise_for_status()
-    return r.json()
+    comments: list[dict[str, Any]] = []
+    page = 1
+    while True:
+        r = requests.get(
+            f"{BASE_URL}/repos/{repo}/issues/{issue_number}/comments",
+            headers=_headers(token),
+            params={"per_page": 100, "page": page},
+            timeout=_TIMEOUT,
+        )
+        r.raise_for_status()
+        batch = r.json()
+        if not batch:
+            break
+        comments.extend(batch)
+        page += 1
+    return comments
 
 
 def get_coderabbit_walkthrough(token: str, repo: str, pr_number: int) -> str:
@@ -132,6 +141,46 @@ def upsert_pr_comment(token: str, repo: str, pr_number: int, marker: str, body: 
             timeout=_TIMEOUT,
         )
     r.raise_for_status()
+
+
+def count_open_defects(token: str, repo: str) -> int:
+    r = requests.get(
+        f"{BASE_URL}/search/issues",
+        headers=_headers(token),
+        params={"q": f"repo:{repo} label:agentic-qa state:open"},
+        timeout=_TIMEOUT,
+    )
+    r.raise_for_status()
+    return int(r.json().get("total_count", 0))
+
+
+def fetch_merge_artifacts(token: str, repo: str, pr_numbers: list[int], dest: Path) -> None:
+    import io
+    import zipfile
+
+    dest.mkdir(parents=True, exist_ok=True)
+    for pr_number in pr_numbers:
+        artifact_name = f"amqa-merge-{pr_number}"
+        r = requests.get(
+            f"{BASE_URL}/repos/{repo}/actions/artifacts",
+            headers=_headers(token),
+            params={"name": artifact_name, "per_page": 5},
+            timeout=_TIMEOUT,
+        )
+        r.raise_for_status()
+        artifacts = [a for a in r.json().get("artifacts", []) if not a.get("expired")]
+        if not artifacts:
+            continue
+        artifact_id = artifacts[0]["id"]
+        dl = requests.get(
+            f"{BASE_URL}/repos/{repo}/actions/artifacts/{artifact_id}/zip",
+            headers=_headers(token),
+            allow_redirects=True,
+            timeout=(5, 120),
+        )
+        dl.raise_for_status()
+        with zipfile.ZipFile(io.BytesIO(dl.content)) as archive:
+            archive.extractall(dest)
 
 
 def env_token() -> str:

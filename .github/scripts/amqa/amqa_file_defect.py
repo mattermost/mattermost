@@ -10,17 +10,41 @@ from pathlib import Path
 
 import requests
 
+from github_api import _headers
+
 TIMEOUT = (5, 60)
+
+
+def find_existing_issue(token: str, repo: str, title: str) -> int | None:
+    r = requests.get(
+        "https://api.github.com/search/issues",
+        headers=_headers(token),
+        params={"q": f'repo:{repo} is:issue is:open label:agentic-qa "{title}" in:title'},
+        timeout=TIMEOUT,
+    )
+    r.raise_for_status()
+    items = r.json().get("items", [])
+    return int(items[0]["number"]) if items else None
 
 
 def file_defect(
     token: str,
     repo: str,
-    pr_number: int,
     title: str,
     body: str,
     labels: list[str] | None = None,
 ) -> int:
+    existing = find_existing_issue(token, repo, title)
+    if existing:
+        r = requests.patch(
+            f"https://api.github.com/repos/{repo}/issues/{existing}",
+            headers=_headers(token),
+            json={"body": body},
+            timeout=TIMEOUT,
+        )
+        r.raise_for_status()
+        return existing
+
     payload = {
         "title": title,
         "body": body,
@@ -28,11 +52,7 @@ def file_defect(
     }
     r = requests.post(
         f"https://api.github.com/repos/{repo}/issues",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
+        headers=_headers(token),
         json=payload,
         timeout=TIMEOUT,
     )
@@ -54,6 +74,7 @@ def main() -> int:
         data = json.loads(result_path.read_text())
         evidence = json.dumps(data.get("execution", {}), indent=2)
 
+    title = f"[AMQA] PR #{pr_number} verification failure"
     body = f"""## Agentic QA failure
 
 **PR:** #{pr_number}
@@ -72,14 +93,8 @@ def main() -> int:
 See PR comment `<!-- agentic-qa-result -->` and workflow run logs.
 """
     if int(severity) <= 2 and token:
-        issue = file_defect(
-            token,
-            repo,
-            pr_number,
-            f"[AMQA] PR #{pr_number} verification failure",
-            body,
-        )
-        print(f"Created issue #{issue}")
+        issue = file_defect(token, repo, title, body)
+        print(f"Updated or created issue #{issue}")
     return 0
 
 

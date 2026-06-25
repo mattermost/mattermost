@@ -49,6 +49,7 @@ def test_high_impact():
     assert signals.change_impact == ChangeImpactLevel.HIGH
     assert len(signals.parsed_scenarios) >= 1
     assert not signals.suggests_no_manual_qa
+    assert not any(s["title"].lower().startswith("if ") for s in signals.parsed_scenarios)
 
 
 def test_low_skip():

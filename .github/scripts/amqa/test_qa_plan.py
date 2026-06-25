@@ -16,6 +16,11 @@ def test_cis_webapp_paths():
     assert score >= 30
 
 
+def test_cis_case_insensitive_keywords():
+    score = score_paths(["webapp/channels/src/components/Login/Login.tsx"])
+    assert score >= 25
+
+
 def test_cis_test_only_lower():
     score = score_paths(["server/channels/app/server_test.go"])
     assert score <= 30
@@ -58,6 +63,7 @@ def test_spec_map_from_ci_working_dir():
 
 if __name__ == "__main__":
     test_cis_webapp_paths()
+    test_cis_case_insensitive_keywords()
     test_cis_test_only_lower()
     test_blast_radius_abac()
     test_build_plan_from_coderabbit()

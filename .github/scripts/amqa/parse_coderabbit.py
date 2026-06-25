@@ -146,6 +146,8 @@ def scenarios_from_recommendation(qa_text: str) -> list[dict]:
     scenarios: list[dict] = []
     for part in re.split(r"[;,]|\band\b", qa_text):
         chunk = part.strip(" ,.")
+        if re.match(r"(?i)^if\s+", chunk):
+            continue
         chunk = re.sub(
             r"^(?:Run targeted manual smoke tests for:|Manual QA should verify|Spot-check that|Verify that)\s*",
             "",

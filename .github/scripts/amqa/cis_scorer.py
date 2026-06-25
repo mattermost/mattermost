@@ -57,7 +57,7 @@ def score_paths(changed_files: Iterable[str], config: dict | None = None) -> int
         lower = filepath.lower()
         for category, pats in patterns.items():
             for pat in pats:
-                if re.search(pat, lower if pat.startswith("^") else filepath):
+                if re.search(pat, lower):
                     matched_categories.add(category)
                     break
 

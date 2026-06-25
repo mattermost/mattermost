@@ -67,7 +67,7 @@ Use `CODEOWNERS` for the changed path. Tag area owners on Sev-1/2 `agentic-qa` i
 
 ## Defect filing template
 
-```
+```text
 Title: [AMQA] <short description>
 Labels: agentic-qa
 Body:

@@ -45,12 +45,15 @@ jobs:
         id: meta
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          INPUT_HEAD_SHA: ${{ inputs.head_sha }}
+          REPO: ${{ github.repository }}
         run: |
-          PR="${{ inputs.pr_number }}"
-          if [ -n "${{ inputs.head_sha }}" ]; then
-            SHA="${{ inputs.head_sha }}"
+          PR="$PR_NUMBER"
+          if [ -n "$INPUT_HEAD_SHA" ]; then
+            SHA="$INPUT_HEAD_SHA"
           else
-            SHA=$(gh pr view "$PR" --repo "${{ github.repository }}" --json headRefOid -q .headRefOid)
+            SHA=$(gh pr view "$PR" --repo "$REPO" --json headRefOid -q .headRefOid)
           fi
           echo "head_sha=$SHA" >> "$GITHUB_OUTPUT"
 
@@ -67,6 +70,7 @@ jobs:
       - name: Agent verification plan (Claude)
         id: claude
         if: vars.AMQA_DRY_RUN != 'true'
+        continue-on-error: true
         uses: anthropics/claude-code-action@26ec041249acb0a944c0a47b6c0c13f05dbc5b44 # v1.0.70
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -87,37 +91,74 @@ jobs:
 
       - name: Update execution status
         id: success
+        if: always()
         working-directory: .github/scripts/amqa
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_SHA: ${{ steps.meta.outputs.head_sha }}
-          STATUS_CONTEXT: QA/execution
-          STATUS_STATE: pending
-          STATUS_DESCRIPTION: Complete verification via Cloud Agent computerUse — see plan comment
-          OVERALL: pending
-          STAGE: execution
-          AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
-          EVIDENCE_URLS: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ ! -f /tmp/amqa/qa-result.json ]; then
-            mkdir -p /tmp/amqa
-            echo '{"schema_version":"1.0","pr_number":'${{ inputs.pr_number }}',"head_sha":"'${{ steps.meta.outputs.head_sha }}'","overall":"pending","verified_at_pr":false}' > /tmp/amqa/qa-result.json
-          fi
-          python3 -c "
+          python3 <<'PY'
           import json
+          import os
+          import subprocess
           from pathlib import Path
-          p = Path('/tmp/amqa/qa-result.json')
-          d = json.loads(p.read_text())
-          d['verified_at_pr'] = False
-          d['overall'] = 'pending'
-          d['executor'] = 'github-actions-orchestrator'
-          d['next_step'] = 'cursor-cloud-agent-computerUse'
-          p.write_text(json.dumps(d, indent=2) + '\n')
-          "
-          python3 amqa_update_result.py
-          echo "failed=false" >> "$GITHUB_OUTPUT"
+
+          pr = int(os.environ["PR_NUMBER"])
+          sha = os.environ["HEAD_SHA"]
+          failed = os.environ.get("CLAUDE_OUTCOME") == "failure"
+          result_path = Path("/tmp/amqa/qa-result.json")
+          result_path.parent.mkdir(parents=True, exist_ok=True)
+
+          if result_path.is_file():
+              data = json.loads(result_path.read_text())
+          else:
+              data = {
+                  "schema_version": "1.0",
+                  "pr_number": pr,
+                  "head_sha": sha,
+                  "overall": "pending",
+                  "verified_at_pr": False,
+              }
+
+          if failed:
+              data["overall"] = "fail"
+              data["verified_at_pr"] = False
+              data["executor"] = "github-actions-claude"
+              status_state = "failure"
+              status_description = "Agent verification failed — see workflow logs"
+              overall = "fail"
+          else:
+              data["overall"] = "pending"
+              data["verified_at_pr"] = False
+              data["executor"] = "github-actions-orchestrator"
+              data["next_step"] = "cursor-cloud-agent-computerUse"
+              status_state = "pending"
+              status_description = "Complete verification via Cloud Agent computerUse — see plan comment"
+              overall = "pending"
+
+          result_path.write_text(json.dumps(data, indent=2) + "\n")
+
+          env = os.environ.copy()
+          env.update({
+              "STATUS_CONTEXT": "QA/execution",
+              "STATUS_STATE": status_state,
+              "STATUS_DESCRIPTION": status_description,
+              "OVERALL": overall,
+              "STAGE": "execution",
+              "AMQA_RESULT_PATH": str(result_path),
+              "EVIDENCE_URLS": os.environ.get("RUN_URL", ""),
+          })
+          subprocess.run(["python3", "amqa_update_result.py"], check=True, env=env)
+          PY
+          if [ "${{ steps.claude.outcome }}" = "failure" ]; then
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "failed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: File defect on failure
         if: steps.success.outputs.failed == 'true'

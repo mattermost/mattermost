@@ -50,13 +50,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Download merge artifacts
-        continue-on-error: true
-        uses: actions/download-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
-        with:
-          pattern: amqa-merge-*
-          path: /tmp/amqa/release-artifacts
-          merge-multiple: true
+      - name: Prepare artifact directory
+        run: mkdir -p /tmp/amqa/release-artifacts
 
       - name: Install Python dependencies
         run: pip install requests pyyaml

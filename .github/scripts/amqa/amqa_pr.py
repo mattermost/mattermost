@@ -70,7 +70,10 @@ def post_webhook(webhook_url: str, payload: dict) -> None:
     if not webhook_url:
         return
     import requests
-    requests.post(webhook_url, json=payload, timeout=30)
+    try:
+        requests.post(webhook_url, json=payload, timeout=30)
+    except requests.RequestException as exc:
+        print(f"warning: webhook post failed: {exc}", file=sys.stderr)
 
 
 def main() -> int:

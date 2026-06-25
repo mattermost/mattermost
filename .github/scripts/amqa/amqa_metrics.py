@@ -19,8 +19,8 @@ def main() -> int:
     lines = [
         "## AMQA Metrics",
         "",
-        f"| Metric | Value |",
-        f"|--------|-------|",
+        "| Metric | Value |",
+        "|--------|-------|",
         f"| CIS score | {plan.get('cis_score', 'n/a')} |",
         f"| Risk tier | {plan.get('risk_tier', 'n/a')} |",
         f"| Action | {result.get('action', 'n/a')} |",

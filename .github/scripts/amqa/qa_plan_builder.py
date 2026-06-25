@@ -98,13 +98,15 @@ def build_qa_plan(
     coderabbit_dict: dict,
 ) -> dict[str, Any]:
     fallback_cis = score_paths(changed_files)
-    cis = signals.cis_score() if signals.change_impact != ChangeImpactLevel.UNKNOWN else fallback_cis
+    signal_cis = signals.cis_score()
     if signals.change_impact != ChangeImpactLevel.UNKNOWN:
-        cis = max(cis, signals.cis_score())
-        risk_source = "coderabbit"
+        cis = max(fallback_cis, signal_cis)
+        risk_source = "blended" if fallback_cis > signal_cis else "coderabbit"
     elif fallback_cis > 0:
+        cis = fallback_cis
         risk_source = "cis_fallback"
     else:
+        cis = signal_cis
         risk_source = "blended"
 
     if tpa_status == "failure" and cis < 70:

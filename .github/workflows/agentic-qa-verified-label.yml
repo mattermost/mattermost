@@ -19,8 +19,10 @@ jobs:
       - name: Check write permission
         env:
           GH_TOKEN: ${{ github.token }}
+          SENDER: ${{ github.event.sender.login }}
+          REPO: ${{ github.repository }}
         run: |
-          PERM=$(gh api "repos/${{ github.repository }}/collaborators/${{ github.event.sender.login }}/permission" --jq '.permission')
+          PERM=$(gh api "repos/${REPO}/collaborators/${SENDER}/permission" --jq '.permission')
           if [[ "$PERM" != "admin" && "$PERM" != "write" ]]; then
             echo "User lacks write permission"
             exit 1
@@ -30,10 +32,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
         run: |
-          STATE=$(gh api "repos/${{ github.repository }}/commits/${SHA}/status" --jq '.statuses[] | select(.context=="QA/execution") | .state' | head -1)
+          STATE=$(gh api "repos/${REPO}/commits/${SHA}/status" --jq '.statuses[] | select(.context=="QA/execution") | .state' | head -1)
           if [ "$STATE" = "failure" ] || [ "$STATE" = "error" ]; then
-            gh api "repos/${{ github.repository }}/statuses/${SHA}" \
+            gh api "repos/${REPO}/statuses/${SHA}" \
               -f state=success \
               -f context=QA/execution \
               -f description="(verified) Human attestation via QA/Verified label"
