@@ -23,8 +23,25 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+)
+
+const (
+	// accessControlSubjectCacheName is the metrics name for the per-user
+	// ABAC Subject cache, surfaced under cache_name="AccessControlSubject".
+	accessControlSubjectCacheName = "AccessControlSubject"
+
+	// accessControlSubjectCacheSize bounds how many users we keep hot Subject
+	// snapshots for. ABAC evaluation only touches users who browse/join
+	// policy-enforced channels, so this comfortably covers active users.
+	accessControlSubjectCacheSize = 20000
+
+	// accessControlSubjectCacheTTL backstops the targeted invalidations: App-layer
+	// CPA-value mutations evict immediately, so the TTL only bounds staleness from
+	// out-of-band writes (LDAP/SAML sync, direct SQL) that skip those hooks.
+	accessControlSubjectCacheTTL = 5 * time.Minute
 )
 
 type configService interface {
@@ -84,6 +101,12 @@ type Channels struct {
 
 	attributeViewRefreshMut  sync.Mutex
 	attributeViewRefreshLast time.Time
+
+	// accessControlSubjectCache stores model.Subject snapshots keyed by
+	// userID. Reads from BuildAccessControlSubject hit this cache before
+	// falling through to the Attributes store. Cluster-wide consistency is
+	// achieved via the InvalidateClusterEvent on the underlying cache.
+	accessControlSubjectCache cache.Cache
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -214,6 +237,28 @@ func NewChannels(s *Server) (*Channels, error) {
 				}
 			}
 		})
+	}
+
+	// Subject cache holds *model.Subject snapshots keyed by userID. It is
+	// populated lazily by BuildAccessControlSubject and invalidated when a
+	// user's CPA values change or when the user is deleted. We always create
+	// it (even when AccessControl is nil) so callers don't need a nil check —
+	// reads from a server without ABAC enabled are simply cache misses that
+	// the existing fallback path satisfies cheaply.
+	var cacheErr error
+	if ch.accessControlSubjectCache, cacheErr = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:                   accessControlSubjectCacheName,
+		Size:                   accessControlSubjectCacheSize,
+		DefaultExpiry:          accessControlSubjectCacheTTL,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForAccessControlSubject,
+	}); cacheErr != nil {
+		return nil, errors.Wrap(cacheErr, "Unable to create access control subject cache")
+	}
+	if cluster := s.platform.Cluster(); cluster != nil {
+		cluster.RegisterClusterMessageHandler(
+			model.ClusterEventInvalidateCacheForAccessControlSubject,
+			ch.handleClusterInvalidateAccessControlSubject,
+		)
 	}
 
 	var imgErr error

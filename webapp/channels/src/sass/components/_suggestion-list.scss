@@ -292,6 +292,21 @@
             white-space: nowrap;
         }
 
+        // Recommended indicator: lightbulb + label in --button-bg blue,
+        // matching the Browse Channels indicator. Pinned to the end of the
+        // row's primary column.
+        .switch-channel-suggestion__recommended {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            margin-left: 8px;
+            color: var(--button-bg);
+            font-size: 12px;
+            font-weight: 600;
+            gap: 2px;
+            white-space: nowrap;
+        }
+
         .badge {
             position: unset;
             display: flex;

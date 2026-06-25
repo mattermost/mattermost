@@ -226,6 +226,15 @@ export type ChannelsState = {
     channelMemberCountsByGroup: RelationOneToOne<Channel, ChannelMemberCountsByGroup>;
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
     channelsMemberCount: Record<string, number>;
+
+    /**
+     * Channel ids the current user matches the ABAC membership policy for,
+     * keyed by team id. Populated by getRecommendedChannelsForUser; used to
+     * render the "Recommended" tag in browse-channels and the quick channel
+     * switcher.
+     */
+    recommendedChannelIdsByTeam: Record<string, string[]>;
+
     restrictedDMs: RelationOneToOne<Channel, boolean>;
 };
 

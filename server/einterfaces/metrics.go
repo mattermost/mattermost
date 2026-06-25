@@ -140,6 +140,7 @@ type MetricsInterface interface {
 	ObserveAccessControlSearchQueryDuration(value float64)
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
+	ObserveAccessControlRecommendedChannelsDuration(value float64)
 	IncrementAccessControlCacheInvalidation()
 
 	// Auto-translation metrics

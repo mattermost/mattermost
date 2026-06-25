@@ -327,6 +327,11 @@ func (_m *MetricsInterface) ObserveAccessControlExpressionCompileDuration(value 
 	_m.Called(value)
 }
 
+// ObserveAccessControlRecommendedChannelsDuration provides a mock function with given fields: value
+func (_m *MetricsInterface) ObserveAccessControlRecommendedChannelsDuration(value float64) {
+	_m.Called(value)
+}
+
 // ObserveAccessControlSearchQueryDuration provides a mock function with given fields: value
 func (_m *MetricsInterface) ObserveAccessControlSearchQueryDuration(value float64) {
 	_m.Called(value)

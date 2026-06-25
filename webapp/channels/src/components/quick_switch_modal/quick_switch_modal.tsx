@@ -36,10 +36,18 @@ export type Props = WrappedComponentProps & {
     rhsState?: RhsState;
     rhsOpen?: boolean;
 
+    // Gates the recommendation fetch on mount; skip it when ABAC is off.
+    accessControlEnabled: boolean;
+
+    // Recommendations are fetched for the active team only. Cross-team rows
+    // render without the indicator (we haven't fetched their team's set yet).
+    currentTeamId: string;
+
     actions: {
         joinChannelById: (channelId: string) => Promise<ActionResult>;
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
+        getRecommendedChannelsForUser: (teamId: string) => Promise<ActionResult>;
     };
     focusOriginElement: string;
 };
@@ -69,6 +77,17 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
             shouldShowLoadingSpinner: true,
             pretext: '',
         };
+    }
+
+    public componentDidMount(): void {
+        // Fetch the active team's recommendation set so matching rows get the
+        // indicator. Best-effort: the indicator is additive, so swallow any
+        // transport-level rejection rather than letting it escape unhandled.
+        if (this.props.accessControlEnabled && this.props.currentTeamId) {
+            this.props.actions.
+                getRecommendedChannelsForUser(this.props.currentTeamId).
+                catch(() => undefined);
+        }
     }
 
     private focusTextbox = (): void => {

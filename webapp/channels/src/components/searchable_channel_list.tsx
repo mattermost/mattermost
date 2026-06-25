@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -45,6 +45,14 @@ interface Props extends WrappedComponentProps {
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
     showRecommendedFilter?: boolean;
+
+    /**
+     * Set of channel ids the current user matches the membership policy for.
+     * Rows in this set render a "Recommended" tag in the All / Public views;
+     * the tag is suppressed in the Recommended-filter view because every row
+     * there is already a recommendation, which would make the tag noise.
+     */
+    recommendedChannelIds?: Set<string>;
 }
 
 type State = {
@@ -133,22 +141,57 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             memberCount = this.props.channelsMemberCount[channel.id];
         }
 
-        const membershipIndicator = this.isMemberOfChannel(channel.id) ? (
-            <div
-                id='membershipIndicatorContainer'
-                aria-label={this.props.intl.formatMessage({id: 'more_channels.membership_indicator', defaultMessage: 'Membership Indicator: Joined'})}
-            >
-                <CheckIcon size={14}/>
-                <FormattedMessage
-                    id={'more_channels.joined'}
-                    defaultMessage={'Joined'}
-                />
-            </div>
-        ) : null;
+        // "Joined" and "Recommended" share one slot and are mutually
+        // exclusive: a member doesn't need a recommendation. The indicator
+        // is also hidden inside the Recommended filter, where every row is
+        // already recommended.
+        const isMember = Boolean(this.isMemberOfChannel(channel.id));
+        const isRecommendedRow = Boolean(
+            this.props.recommendedChannelIds?.has(channel.id) &&
+            this.props.filter !== Filter.Recommended &&
+            !isMember,
+        );
 
+        let statusIndicator: JSX.Element | null = null;
+        if (isMember) {
+            statusIndicator = (
+                <div
+                    id='membershipIndicatorContainer'
+                    aria-label={this.props.intl.formatMessage({id: 'more_channels.membership_indicator', defaultMessage: 'Membership Indicator: Joined'})}
+                >
+                    <CheckIcon size={14}/>
+                    <FormattedMessage
+                        id={'more_channels.joined'}
+                        defaultMessage={'Joined'}
+                    />
+                </div>
+            );
+        } else if (isRecommendedRow) {
+            statusIndicator = (
+                <div
+                    id='recommendedIndicatorContainer'
+                    data-testid={`recommendedTag-${channel.name}`}
+                    aria-label={this.props.intl.formatMessage({id: 'more_channels.recommended_indicator', defaultMessage: 'Recommended for membership'})}
+                >
+                    <LightbulbOutlineIcon size={14}/>
+                    <FormattedMessage
+                        id={'more_channels.recommended'}
+                        defaultMessage={'Recommended'}
+                    />
+                </div>
+            );
+        }
+
+        // Match the spoken status to the visible indicator.
+        let channelStatus = 'none';
+        if (isMember) {
+            channelStatus = 'joined';
+        } else if (isRecommendedRow) {
+            channelStatus = 'recommended';
+        }
         const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
             messages.channelPurpose,
-            {memberCount, channelPurpose: channel.purpose || ''},
+            {memberCount, channelPurpose: channel.purpose || '', status: channelStatus},
         );
 
         const channelPurposeContainer = (
@@ -156,8 +199,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id='channelPurposeContainer'
                 aria-label={channelPurposeContainerAriaLabel}
             >
-                {membershipIndicator}
-                {membershipIndicator ? <span className='dot'/> : null}
+                {statusIndicator}
+                {statusIndicator ? <span className='dot'/> : null}
                 <AccountOutlineIcon size={14}/>
                 <span data-testid={`channelMemberCount-${channel.name}`} >{memberCount}</span>
                 {channel.purpose.length > 0 ? <span className='dot'/> : null}
@@ -673,7 +716,7 @@ const messages = defineMessages({
     },
     channelPurpose: {
         id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+        defaultMessage: 'Channel Information: {status, select, joined {Membership Indicator: Joined, } recommended {Recommended for membership, } other {}}Member count {memberCount}, Purpose: {channelPurpose}',
     },
     joiningButton: {
         id: 'joinChannel.joiningButton',

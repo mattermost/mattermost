@@ -4514,6 +4514,16 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		return model.ChannelList{}, nil
 	}
 
+	// Time the full computation (subject build + paged channel scan + ABAC
+	// evaluation per channel) so operators can see how the cluster Subject
+	// cache and the per-page scan cap interact under load.
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		start := time.Now()
+		defer func() {
+			metrics.ObserveAccessControlRecommendedChannelsDuration(time.Since(start).Seconds())
+		}()
+	}
+
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
 		return nil, appErr

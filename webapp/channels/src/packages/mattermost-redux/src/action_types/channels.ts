@@ -80,6 +80,8 @@ export default keyMirror({
 
     RECEIVED_TOTAL_CHANNEL_COUNT: null,
 
+    RECEIVED_RECOMMENDED_CHANNEL_IDS_FOR_TEAM: null,
+
     POST_UNREAD_SUCCESS: null,
 
     ADD_MANUALLY_UNREAD: null,

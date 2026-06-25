@@ -6,6 +6,7 @@ import React, {useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
+import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -28,6 +29,7 @@ import {
     getChannelsInAllTeams,
     getSortedAllTeamsUnreadChannels,
     getAllTeamsUnreadChannelIds,
+    isChannelRecommendedForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -125,6 +127,11 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
+
+    // True when the user matches the channel's membership policy and isn't
+    // already a member; drives the inline Recommended indicator. Gating lives
+    // in mapStateToPropsForSwitchChannelSuggestion.
+    isRecommendedRow: boolean;
 };
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
@@ -137,6 +144,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     isPartOfOnlyOneTeam,
     status,
     team,
+    isRecommendedRow,
     ...otherProps
 }, ref) => {
     const {formatMessage} = useIntl();
@@ -279,6 +287,22 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
 
     let tag = null;
     let customStatus = null;
+    if (isRecommendedRow) {
+        // Inline lightbulb + "Recommended" in --button-bg blue, matching the
+        // Browse Channels indicator so the signal looks the same on both
+        // surfaces. Only fires on public channels (gated in the connect
+        // mapper); BotTag/GuestTag only fire on DM rows, so they never collide.
+        tag = (
+            <span
+                className='switch-channel-suggestion__recommended'
+                data-testid={`recommendedTag-${channel.name}`}
+                aria-label={formatMessage({id: 'quick_switch_modal.recommended_indicator', defaultMessage: 'Recommended for membership'})}
+            >
+                <LightbulbOutlineIcon size={14}/>
+                {formatMessage({id: 'quick_switch_modal.recommended', defaultMessage: 'Recommended'})}
+            </span>
+        );
+    }
     if (channel.type === Constants.DM_CHANNEL && teammate) {
         if (teammate && teammate.is_bot) {
             tag = <BotTag/>;
@@ -431,6 +455,24 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
 
     const isPartOfOnlyOneTeam = getMyTeams(state).length === 1;
 
+    // Recommended-row signal: only meaningful for real public channels that
+    // the current user is NOT already a member of. Inviting the badge on
+    // joined / private / DM / GM rows would conflate "you can join this"
+    // with "this channel matches a policy you fit", which is a different
+    // claim. The recommendation set is also team-scoped — see the MM-68683
+    // design note: cross-team rows render without the badge intentionally,
+    // because we only fetch recommendations for the currently active team.
+    let isRecommendedRow = false;
+    if (
+        isRealChannel(channel) &&
+        channel.type === Constants.OPEN_CHANNEL &&
+        channel.delete_at === 0 &&
+        !getMyChannelMemberships(state)[channelId] &&
+        channel.team_id
+    ) {
+        isRecommendedRow = isChannelRecommendedForTeam(state, channel.team_id, channelId);
+    }
+
     return {
         channelMember: getMyChannelMemberships(state)[channelId],
         hasDraft: draft && Boolean(draft.message.trim() || draft.fileInfos.length || draft.uploadsInProgress.length),
@@ -439,6 +481,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
         collapsedThreads,
         team,
         isPartOfOnlyOneTeam,
+        isRecommendedRow,
     };
 }
 

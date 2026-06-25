@@ -46,6 +46,10 @@ func (a *App) invalidateCacheForTemporaryPost(id string) {
 
 func (a *App) InvalidateCacheForUser(userID string) {
 	a.Srv().Platform().InvalidateCacheForUser(userID)
+	// User-bound caches outside the platform service must also drop their
+	// entries on the same trigger; otherwise stale Subjects could survive
+	// role changes / deletions on multi-node deployments.
+	a.InvalidateAccessControlSubjectCacheForUser(userID)
 }
 
 func (a *App) invalidateCacheForUserTeams(userID string) {

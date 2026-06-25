@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
@@ -2325,8 +2326,20 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 // only the system-scoped role is populated.
 //
 // Team join evaluations pass channelID="" — no channel role exists at join time.
+//
+// The per-user Subject snapshot (Attributes + native user fields) is cached cluster-wide
+// in Channels.accessControlSubjectCache; Role, ScopedRoles, and Session are per-call and
+// overlaid after the cache read. The cache is a serializing store (encode on Set, decode
+// on Get), so every read returns a private copy that can be mutated in place.
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
+
+	if cached, ok := a.lookupCachedAccessControlSubject(rctx, userID); ok {
+		if appErr := a.applyAccessControlSubjectScopedRoles(rctx, cached, userID, roles, channelID); appErr != nil {
+			return nil, appErr
+		}
+		return cached, nil
+	}
 
 	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if err != nil {
@@ -2373,29 +2386,19 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	subject.IsBot = user.IsBot
 	subject.CreateAt = user.CreateAt
 
-	subject.Role = roles
-	subject.SetScopedRole(model.AccessControlSubjectScopeSystem, ResolveSystemRole(roles))
-	if channelID != "" {
-		channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
-		if appErr != nil {
-			// Fail closed: a transient channel-member lookup failure must
-			// not silently produce a subject without a channel-scoped
-			// role — the resource lane evaluator would then evaluate
-			// against an empty role and let the user through any
-			// channel-role-targeted rules. Propagate the error so the
-			// caller treats the build as a denial.
-			rctx.Logger().Warn("Failed to resolve channel-scoped role for ABAC subject; aborting subject build",
-				mlog.String("user_id", userID),
-				mlog.String("channel_id", channelID),
-				mlog.Err(appErr),
-			)
-			return nil, appErr
-		}
-		if channelRole != "" {
-			subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
-		}
-	}
+	// Cache a snapshot without the per-call Role / ScopedRoles / Session.
+	// Set encodes immediately, so a shallow copy with those fields zeroed
+	// is enough — the shared Attributes map is never mutated after this
+	// point (applyAccessControlSubjectScopedRoles only touches roles).
+	cacheEntry := *subject
+	cacheEntry.Role = ""
+	cacheEntry.ScopedRoles = nil
+	cacheEntry.Session = nil
+	a.storeCachedAccessControlSubject(rctx, userID, &cacheEntry)
 
+	if appErr := a.applyAccessControlSubjectScopedRoles(rctx, subject, userID, roles, channelID); appErr != nil {
+		return nil, appErr
+	}
 	return subject, nil
 }
 
@@ -2527,6 +2530,164 @@ func ResolveSystemRole(roles string) string {
 		return model.SystemUserRoleId
 	}
 	return model.SystemUserRoleId
+}
+
+// applyAccessControlSubjectScopedRoles overlays the per-call Role and
+// ScopedRoles onto the Subject. Factored out so the cache-hit and cache-miss
+// paths in BuildAccessControlSubject apply identical role resolution, and
+// the legacy Role field stays in sync with the system-scoped ScopedRole
+// entry. Returns an *AppError so callers can treat channel-member lookup
+// failures as a denial (mirrors the rest of BuildAccessControlSubject's
+// fail-closed behaviour).
+func (a *App) applyAccessControlSubjectScopedRoles(rctx request.CTX, subject *model.Subject, userID, roles, channelID string) *model.AppError {
+	subject.Role = roles
+	subject.SetScopedRole(model.AccessControlSubjectScopeSystem, ResolveSystemRole(roles))
+	if channelID == "" {
+		return nil
+	}
+	channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
+	if appErr != nil {
+		// Fail closed: a transient channel-member lookup failure must not
+		// silently produce a subject without a channel-scoped role — the
+		// resource lane evaluator would then evaluate against an empty
+		// role and let the user through any channel-role-targeted rules.
+		rctx.Logger().Warn("Failed to resolve channel-scoped role for ABAC subject; aborting subject build",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+		return appErr
+	}
+	if channelRole != "" {
+		subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
+	}
+	return nil
+}
+
+// lookupCachedAccessControlSubject returns a previously cached Subject for
+// the given user, or (nil, false) on miss. Cache hit/miss telemetry is
+// emitted through the standard MemCache counters so the entry shows up
+// alongside other caches in operator dashboards under cache_name="AccessControlSubject".
+func (a *App) lookupCachedAccessControlSubject(rctx request.CTX, userID string) (*model.Subject, bool) {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil {
+		return nil, false
+	}
+	var subject model.Subject
+	err := c.Get(userID, &subject)
+	if err == nil {
+		if metrics := a.Srv().GetMetrics(); metrics != nil {
+			metrics.IncrementMemCacheHitCounter(c.Name())
+		}
+		return &subject, true
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheMissCounter(c.Name())
+	}
+	if err != cache.ErrKeyNotFound {
+		rctx.Logger().Warn("Failed to read access control subject cache",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
+	return nil, false
+}
+
+// storeCachedAccessControlSubject writes a Subject snapshot to the cluster
+// cache. Failures are logged at warn level and otherwise tolerated — a
+// cache-write failure must never fail a user-visible request, so callers
+// continue with the freshly-built Subject from the store.
+func (a *App) storeCachedAccessControlSubject(rctx request.CTX, userID string, subject *model.Subject) {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil || subject == nil {
+		return
+	}
+	if err := c.SetWithDefaultExpiry(userID, subject); err != nil {
+		rctx.Logger().Warn("Failed to write access control subject cache",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
+}
+
+// PurgeAccessControlSubjectCache drops every cached Subject locally and
+// broadcasts a cluster-wide purge so all nodes flush their copies. Used for
+// schema-level changes whose blast radius is unbounded by user id, e.g.
+// CPA field deletion (every Subject that referenced the field is now stale).
+// The cluster broadcast carries an empty payload, which the handler treats
+// as a "purge all" signal.
+func (a *App) PurgeAccessControlSubjectCache() {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil {
+		return
+	}
+	if err := c.Purge(); err != nil {
+		mlog.Warn("Failed to purge access control subject cache", mlog.Err(err))
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheInvalidationCounter(c.Name())
+	}
+	if cluster := a.Srv().Platform().Cluster(); cluster != nil && c.GetInvalidateClusterEvent() != model.ClusterEventNone {
+		cluster.SendClusterMessage(&model.ClusterMessage{
+			Event:    c.GetInvalidateClusterEvent(),
+			SendType: model.ClusterSendBestEffort,
+			Data:     nil,
+		})
+	}
+}
+
+// InvalidateAccessControlSubjectCacheForUser removes a single user's cached
+// Subject and broadcasts the invalidation cluster-wide so other nodes drop
+// their copy too. Safe to call on a server with no cache configured.
+//
+// Callers are everything that mutates a user's CPA values (UpsertPropertyValue,
+// UpsertPropertyValues, UpdatePropertyValue, UpdatePropertyValues,
+// DeletePropertyValue, DeletePropertyValuesForTarget) or removes the user
+// (PermanentDeleteUser).
+func (a *App) InvalidateAccessControlSubjectCacheForUser(userID string) {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil || userID == "" {
+		return
+	}
+	if err := c.Remove(userID); err != nil {
+		mlog.Warn("Failed to invalidate access control subject cache",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheInvalidationCounter(c.Name())
+	}
+	if cluster := a.Srv().Platform().Cluster(); cluster != nil && c.GetInvalidateClusterEvent() != model.ClusterEventNone {
+		cluster.SendClusterMessage(&model.ClusterMessage{
+			Event:    c.GetInvalidateClusterEvent(),
+			SendType: model.ClusterSendBestEffort,
+			Data:     []byte(userID),
+		})
+	}
+}
+
+// handleClusterInvalidateAccessControlSubject drops a single user's cached
+// Subject in response to a cluster invalidation message broadcast from
+// another node. An empty payload is treated as a "purge all" signal so that
+// administrative operations can flush the entire cache cluster-wide if needed.
+func (ch *Channels) handleClusterInvalidateAccessControlSubject(msg *model.ClusterMessage) {
+	if ch.accessControlSubjectCache == nil {
+		return
+	}
+	userID := string(msg.Data)
+	if userID == "" {
+		if err := ch.accessControlSubjectCache.Purge(); err != nil {
+			ch.srv.Log().Warn("Failed to purge access control subject cache from cluster message", mlog.Err(err))
+		}
+		return
+	}
+	if err := ch.accessControlSubjectCache.Remove(userID); err != nil {
+		ch.srv.Log().Warn("Failed to invalidate access control subject cache from cluster message",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
 }
 
 // refreshAttributeViewIfStale refreshes the materialized AttributeView if the last
