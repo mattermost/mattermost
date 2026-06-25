@@ -66,7 +66,6 @@ func ConfigureLogrus(logger *logrus.Logger, client *Client) {
 	logger.AddHook(hook)
 	logger.SetOutput(io.Discard)
 
-	// Configure the given logger, not the global standard logger.
 	logger.SetReportCaller(true)
 
 	// By default, log everything to the server, and let it decide what gets through.
