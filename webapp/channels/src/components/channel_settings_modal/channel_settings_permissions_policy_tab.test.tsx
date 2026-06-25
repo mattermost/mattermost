@@ -133,11 +133,33 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
 
         await userEvent.click(await screen.findByTestId('permissions-policy-editor-add-permission'));
 
-        expect(await screen.findByText('Upload files')).toBeInTheDocument();
-        expect(screen.getByText('Download files')).toBeInTheDocument();
+        // Assert on the option descriptions, which only render inside the
+        // "Add permission" dropdown (the selected-permission table rows show
+        // the label alone). This keeps the assertion a true guard: if upload
+        // were pre-selected again, it would drop out of the dropdown here.
+        expect(await screen.findByText('Allow users to attach files to messages in this channel')).toBeInTheDocument();
+        expect(screen.getByText('Allow users to download attached files from this channel')).toBeInTheDocument();
     });
 
-    test('adding then the upload permission shows it in the rule', async () => {
+    test('a new rule with no permissions selected fails validation on save', async () => {
+        renderWithContext(
+            <ChannelSettingsPermissionsPolicyTab {...baseProps}/>,
+            initialState,
+        );
+
+        const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+        await waitFor(() => expect(addRuleButton).toBeEnabled());
+        await userEvent.click(addRuleButton);
+
+        await userEvent.type(await screen.findByTestId('permissions-policy-editor-name'), 'My rule');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        // The empty default now makes the "at least one permission" rule
+        // reachable for brand-new rules; saving without one is rejected.
+        expect(await screen.findByTestId('permissions-policy-editor-error')).toHaveTextContent('Select at least one permission action for each rule.');
+    });
+
+    test('adding the upload permission shows it in the rule', async () => {
         renderWithContext(
             <ChannelSettingsPermissionsPolicyTab {...baseProps}/>,
             initialState,
