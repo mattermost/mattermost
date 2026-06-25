@@ -4188,6 +4188,220 @@ func TestGetChannelHydratesPolicyActions(t *testing.T) {
 	})
 }
 
+func TestGetChannelsForTeamForUserHydratesPolicyActions(t *testing.T) {
+	// App.GetChannelsForTeamForUser feeds the webapp's team channel list
+	// (GET /users/me/teams/{team_id}/channels), which is the source for the
+	// guest-invite channel picker. The picker reads policy_actions.membership
+	// and falls back to the bare policy_enforced flag when policy_actions is
+	// absent, so this seam must hydrate the action map — otherwise a
+	// permission-only channel is wrongly hidden from the picker.
+	t.Run("Permission-only channel is hydrated so it is not mistaken for membership-gated", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		teamID := model.NewId()
+		userID := model.NewId()
+		permChannelID := model.NewId()
+		plainChannelID := model.NewId()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("GetChannels", teamID, userID, mock.AnythingOfType("*model.ChannelSearchOpts")).
+			Return(model.ChannelList{
+				{Id: permChannelID, TeamId: teamID, PolicyEnforced: true},
+				{Id: plainChannelID, TeamId: teamID, PolicyEnforced: false},
+			}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{permChannelID}).
+			Return(map[string]map[string]bool{
+				permChannelID: {model.AccessControlPolicyActionUploadFileAttachment: true},
+			}, nil).Once()
+
+		channels, appErr := thMock.App.GetChannelsForTeamForUser(thMock.Context, teamID, userID, &model.ChannelSearchOpts{})
+		require.Nil(t, appErr)
+		require.Len(t, channels, 2)
+
+		var permChannel, plainChannel *model.Channel
+		for _, ch := range channels {
+			switch ch.Id {
+			case permChannelID:
+				permChannel = ch
+			case plainChannelID:
+				plainChannel = ch
+			}
+		}
+		require.NotNil(t, permChannel)
+		require.NotNil(t, plainChannel)
+
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}, permChannel.PolicyActions,
+			"permission-only channel must carry its hydrated action map so the guest picker does not fall back to policy_enforced")
+		require.False(t, permChannel.HasMembershipPolicyAction(),
+			"permission-only channel must NOT report membership — this is the guest-picker bug fix invariant")
+		require.Nil(t, plainChannel.PolicyActions, "channels without a policy must not be touched")
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("Membership-gated channel keeps reporting membership after hydration", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		teamID := model.NewId()
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("GetChannels", teamID, userID, mock.AnythingOfType("*model.ChannelSearchOpts")).
+			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
+			Return(map[string]map[string]bool{
+				channelID: {model.AccessControlPolicyActionMembership: true},
+			}, nil).Once()
+
+		channels, appErr := thMock.App.GetChannelsForTeamForUser(thMock.Context, teamID, userID, &model.ChannelSearchOpts{})
+		require.Nil(t, appErr)
+		require.Len(t, channels, 1)
+		require.True(t, channels[0].HasMembershipPolicyAction(),
+			"membership-gated channels must still resolve as membership-controlled")
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("Hydration failure degrades to the channel list without failing the request", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		teamID := model.NewId()
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("GetChannels", teamID, userID, mock.AnythingOfType("*model.ChannelSearchOpts")).
+			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
+			Return(nil, errors.New("boom")).Once()
+
+		channels, appErr := thMock.App.GetChannelsForTeamForUser(thMock.Context, teamID, userID, &model.ChannelSearchOpts{})
+		require.Nil(t, appErr, "a hydration error must not fail the channel list; the seam degrades to legacy behavior")
+		require.Len(t, channels, 1)
+		require.Nil(t, channels[0].PolicyActions, "on hydration failure the channel is returned unhydrated, not partially populated")
+		mockACPStore.AssertExpectations(t)
+	})
+}
+
+func TestSearchChannelsHydratePolicyActions(t *testing.T) {
+	// The guest-invite picker searches channels via SearchChannels /
+	// SearchChannelsForUser. Search results merge into the webapp channel
+	// store, so they must carry the same hydrated action map as the bootstrap
+	// list; otherwise a search would overwrite a hydrated channel with an
+	// unhydrated copy and re-hide a permission-only channel.
+	t.Run("SearchChannels hydrates permission-only results", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		teamID := model.NewId()
+		channelID := model.NewId()
+		plainChannelID := model.NewId()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("SearchInTeam", teamID, "perm", true).
+			Return(model.ChannelList{
+				{Id: channelID, TeamId: teamID, PolicyEnforced: true},
+				{Id: plainChannelID, TeamId: teamID, PolicyEnforced: false},
+			}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
+			Return(map[string]map[string]bool{
+				channelID: {model.AccessControlPolicyActionUploadFileAttachment: true},
+			}, nil).Once()
+
+		channels, appErr := thMock.App.SearchChannels(thMock.Context, teamID, "perm")
+		require.Nil(t, appErr)
+		require.Len(t, channels, 2)
+
+		var permChannel, plainChannel *model.Channel
+		for _, ch := range channels {
+			switch ch.Id {
+			case channelID:
+				permChannel = ch
+			case plainChannelID:
+				plainChannel = ch
+			}
+		}
+		require.NotNil(t, permChannel)
+		require.NotNil(t, plainChannel)
+		require.False(t, permChannel.HasMembershipPolicyAction(),
+			"permission-only search result must not report membership")
+		require.True(t, permChannel.HasPolicyAction(model.AccessControlPolicyActionUploadFileAttachment))
+		require.Nil(t, plainChannel.PolicyActions, "channels without a policy must not be touched")
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("SearchChannelsForUser hydrates permission-only results", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		teamID := model.NewId()
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("SearchForUserInTeam", userID, teamID, "perm", true).
+			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
+			Return(map[string]map[string]bool{
+				channelID: {model.AccessControlPolicyActionUploadFileAttachment: true},
+			}, nil).Once()
+
+		channels, appErr := thMock.App.SearchChannelsForUser(thMock.Context, userID, teamID, "perm")
+		require.Nil(t, appErr)
+		require.Len(t, channels, 1)
+		require.False(t, channels[0].HasMembershipPolicyAction(),
+			"permission-only search result must not report membership")
+		require.True(t, channels[0].HasPolicyAction(model.AccessControlPolicyActionUploadFileAttachment))
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("Hydration failure degrades to the search results without failing the request", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		teamID := model.NewId()
+		channelID := model.NewId()
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("SearchInTeam", teamID, "perm", true).
+			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
+			Return(nil, errors.New("boom")).Once()
+
+		channels, appErr := thMock.App.SearchChannels(thMock.Context, teamID, "perm")
+		require.Nil(t, appErr, "a hydration error must not fail the search; the seam degrades to legacy behavior")
+		require.Len(t, channels, 1)
+		require.Nil(t, channels[0].PolicyActions, "on hydration failure the channel is returned unhydrated, not partially populated")
+		mockACPStore.AssertExpectations(t)
+	})
+}
+
 func TestChannelAccessControlled(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
