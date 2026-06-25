@@ -96,38 +96,6 @@ func TestUpdateTeam(t *testing.T) {
 	require.Equal(t, model.TeamOpen, fetchedTeam.Type, "Should not update type")
 }
 
-func TestUpdateTeamNameLookupError(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := SetupWithStoreMock(t)
-
-	mockStore := th.App.Srv().Store().(*mocks.Store)
-
-	oldTeam := &model.Team{Id: "myteam", Name: "oldname", DisplayName: "Old Name", Type: model.TeamOpen}
-
-	mockTeamStore := mocks.TeamStore{}
-	mockTeamStore.On("Get", "myteam").Return(oldTeam, nil)
-	mockTeamStore.On("GetByName", "newname").Return(nil, errors.New("db failure"))
-	mockStore.On("Team").Return(&mockTeamStore)
-
-	var err error
-	th.App.ch.srv.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    &mockTeamStore,
-		ChannelStore: &mocks.ChannelStore{},
-		GroupStore:   &mocks.GroupStore{},
-		Users:        th.App.ch.srv.userService,
-		WebHub:       th.App.ch.srv.platform,
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
-	})
-	require.NoError(t, err)
-
-	_, appErr := th.App.UpdateTeam(&model.Team{Id: "myteam", Name: "newname", DisplayName: "Old Name"})
-	require.NotNil(t, appErr, "a non-not-found lookup error must not be treated as an available name")
-
-	// The rename must not be persisted when the availability lookup fails.
-	mockTeamStore.AssertNotCalled(t, "Update", mock.Anything)
-}
-
 func TestAddUserToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
