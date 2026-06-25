@@ -105,6 +105,12 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventDeauthorizeOAuthApp, model.AuditStatusFail)
 	auditRec.AddMeta("client_id", clientId)
 	defer c.LogAuditRec(auditRec)
