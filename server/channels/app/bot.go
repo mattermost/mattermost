@@ -263,35 +263,6 @@ func (a *App) GetOrCreateSystemOwnedBot(rctx request.CTX, botUsername, botDispla
 	return bot, nil
 }
 
-// reactivateUser re-enables a user without running the active-user/license
-// admission checks performed by UpdateActive. It is used to recover protected
-// system-owned bots whose backing user was deactivated, so recovery is always
-// possible even when the instance is at the user cap.
-func (a *App) reactivateUser(rctx request.CTX, user *model.User) *model.AppError {
-	if user.DeleteAt == 0 {
-		return nil
-	}
-
-	user.UpdateAt = model.GetMillis()
-	user.DeleteAt = 0
-	userUpdate, nErr := a.ch.srv.userService.UpdateUser(rctx, user, true)
-	if nErr != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(nErr, &appErr):
-			return appErr
-		case errors.As(nErr, &invErr):
-			return model.NewAppError("reactivateUser", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		default:
-			return model.NewAppError("reactivateUser", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-		}
-	}
-	a.InvalidateCacheForUser(user.Id)
-	a.sendUpdatedUserEvent(userUpdate.New)
-	return nil
-}
-
 // PatchBot applies the given patch to the bot and corresponding user.
 func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	bot, err := a.GetBot(rctx, botUserId, true)
@@ -459,7 +430,7 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 	if protected && active {
 		// Re-enabling a protected bot bypasses the active-user/license admission
 		// checks so recovery is always possible, even at the user cap.
-		if err := a.reactivateUser(rctx, user); err != nil {
+		if _, err := a.updateActive(rctx, user, true); err != nil {
 			return nil, err
 		}
 	} else if _, err := a.UpdateActive(rctx, user, active); err != nil {
