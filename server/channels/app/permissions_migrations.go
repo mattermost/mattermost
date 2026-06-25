@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -236,7 +237,10 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := s.Store().Role().Save(role); err != nil {
+		// Use SavePreservingUnknownPermissions so a server that was downgraded from a
+		// newer release (which wrote permissions this binary doesn't recognize) does
+		// not fail fatally here. Unknown permissions are logged and preserved (MM-68830).
+		if _, err := s.Store().Role().SavePreservingUnknownPermissions(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -1325,6 +1329,22 @@ func (a *App) getAddEditFileAttachmentPermissionMigration() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManagePrivateChannelDiscoverability.Id,
+				model.PermissionManageChannelJoinRequests.Id,
+			},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1387,6 +1407,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
+		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
@@ -1400,6 +1421,7 @@ func (s *Server) doPermissionsMigrations() error {
 			return err
 		}
 		if err := s.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
+			mlog.Error("Failed to run permissions migration", mlog.String("key", migration.Key), mlog.Err(err))
 			return err
 		}
 	}

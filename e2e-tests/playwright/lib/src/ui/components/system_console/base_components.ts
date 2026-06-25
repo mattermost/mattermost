@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * Radio Setting - represents a true/false radio button group
@@ -74,6 +75,40 @@ export class TextInputSetting {
         this.container = container;
         this.label = container.getByText(labelText);
         this.input = container.locator('input.form-control').first();
+        this.helpText = container.locator('.help-text');
+    }
+
+    async fill(value: string) {
+        await this.input.fill(value);
+    }
+
+    async getValue(): Promise<string> {
+        return (await this.input.inputValue()) ?? '';
+    }
+
+    async clear() {
+        await this.input.clear();
+    }
+
+    async toBeVisible() {
+        await expect(this.container).toBeVisible();
+    }
+}
+
+/**
+ * Number Input Setting - represents a number input field
+ * Uses getByRole('spinbutton') since <input type="number"> has ARIA role spinbutton
+ */
+export class NumberInputSetting {
+    readonly container: Locator;
+    readonly label: Locator;
+    readonly input: Locator;
+    readonly helpText: Locator;
+
+    constructor(container: Locator, labelText: string) {
+        this.container = container;
+        this.label = container.getByText(labelText);
+        this.input = container.getByRole('spinbutton');
         this.helpText = container.locator('.help-text');
     }
 

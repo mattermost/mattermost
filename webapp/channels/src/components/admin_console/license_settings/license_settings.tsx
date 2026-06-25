@@ -55,7 +55,6 @@ type Props = {
         isAllowedToUpgradeToEnterprise: () => Promise<ActionResult>;
         restartServer: () => Promise<StatusOK>;
         ping: () => Promise<{status: string}>;
-        requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
         getServerLimits: () => Promise<ActionResult<ServerLimits, ServerError>>;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
@@ -63,7 +62,7 @@ type Props = {
             error?: ServerError;
         }>;
     };
-}
+};
 
 const messages = defineMessages({
     title: {id: 'admin.license.title', defaultMessage: 'Edition and License'},
@@ -167,6 +166,9 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         const element = this.fileInputRef.current;
         if (element?.files?.length) {
             this.setState({fileSelected: true, file: element.files[0]});
+
+            // Reset the input value so re-selecting the same file re-fires onChange.
+            element.value = '';
         }
     };
 

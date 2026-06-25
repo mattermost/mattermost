@@ -34,8 +34,6 @@ type FeatureFlags struct {
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
-	PermalinkPreviews bool
-
 	NormalizeLdapDNs bool
 
 	// Enable WYSIWYG text editor
@@ -43,18 +41,12 @@ type FeatureFlags struct {
 
 	OnboardingTourTips bool
 
-	DeprecateCloudFree bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
 
 	StreamlinedMarketplace bool
 
-	CloudIPFiltering bool
-	ConsumePostHook  bool
-
-	CloudAnnualRenewals    bool
 	CloudDedicatedExportUI bool
 
 	ChannelBookmarks bool
@@ -75,12 +67,31 @@ type FeatureFlags struct {
 
 	// Enable permission policies (file upload/download ABAC policies).
 	// Requires AttributeBasedAccessControl to also be enabled.
+	//
+	// This is the umbrella flag: when off, both ChannelPermissionPolicies
+	// and PolicySimulation are also off regardless of their individual
+	// settings. Use the IsChannelPermissionPoliciesEnabled() and
+	// IsPolicySimulationEnabled() helpers below rather than checking
+	// PermissionPolicies + the sub-flag manually at every call site —
+	// they encapsulate the dependency so a future renaming /
+	// consolidation only has to update one place.
 	PermissionPolicies bool
 
-	ContentFlagging bool
+	// Enable permission-rule actions (upload_file_attachment,
+	// download_file_attachment) on channel-scope policies — and, on the
+	// frontend, the Channel Settings → Permissions Policy tab that lets
+	// channel admins configure them. Requires PermissionPolicies. Read
+	// via FeatureFlags.IsChannelPermissionPoliciesEnabled() so the
+	// PermissionPolicies dependency is enforced at every call site.
+	ChannelPermissionPolicies bool
 
-	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
-	InteractiveDialogAppsForm bool
+	// Enable the "Simulate access" preview UX and its backing
+	// /cel/simulate_users endpoint. Requires PermissionPolicies. Read
+	// via FeatureFlags.IsPolicySimulationEnabled() so the
+	// PermissionPolicies dependency is enforced at every call site.
+	PolicySimulation bool
+
+	ContentFlagging bool
 
 	EnableMattermostEntry bool
 
@@ -88,6 +99,9 @@ type FeatureFlags struct {
 	// This feature is deprecated and will be removed in a future release.
 	// Mobile clients should use the direct SSO callback flow with srv parameter verification.
 	MobileSSOCodeExchange bool
+
+	// Enable the SHIFT+ESC combo to mark _all_ chats, messages, and channels as read
+	EnableShiftEscapeToMarkAllRead bool
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
@@ -117,6 +131,26 @@ type FeatureFlags struct {
 
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
+
+	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
+	SessionAttributes bool
+
+	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
+	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
+	// non-members find a private channel in Browse Channels and request to join it.
+	DiscoverableChannels bool
+
+	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
+	MobileEphemeralMode bool
+
+	// FEATURE_FLAG_REMOVAL: PropertyFieldRank - Remove this when the feature is GA.
+	// Gates the "rank" custom profile attribute type: when off, the app layer
+	// rejects creating a rank property field or converting an existing field to
+	// rank, and the admin console hides the rank type option.
+	PropertyFieldRank bool
+
+	// Requires AttributeBasedAccessControl to also be enabled.
+	TeamMembershipAccessControl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -129,15 +163,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
-	f.CloudIPFiltering = false
-	f.ConsumePostHook = false
-	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
 	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
@@ -147,16 +177,19 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = false
 	f.PermissionPolicies = false
+	f.TeamMembershipAccessControl = false
+	f.ChannelPermissionPolicies = false
+	f.PolicySimulation = false
 	f.ContentFlagging = true
-	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
 	// DEPRECATED: Disabled by default - mobile clients use direct SSO callback flow
 	f.MobileSSOCodeExchange = false
+	f.EnableShiftEscapeToMarkAllRead = false
 
 	f.AutoTranslation = true
 
-	f.ClassificationMarkings = false
+	f.ClassificationMarkings = true
 
 	f.BurnOnRead = true
 
@@ -167,11 +200,40 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
-	f.CJKSearch = false
+	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
 
 	f.ManagedChannelCategories = false
+
+	f.SessionAttributes = false
+
+	f.DiscoverableChannels = false
+
+	f.MobileEphemeralMode = false
+
+	f.PropertyFieldRank = false
+}
+
+// IsChannelPermissionPoliciesEnabled reports whether channel-scope
+// policies may carry permission-rule actions (file upload/download)
+// and whether the Channel Settings → Permissions Policy tab should
+// be exposed. Both the sub-flag AND the PermissionPolicies umbrella
+// must be on — turning the umbrella off implicitly disables the
+// sub-feature even if its own flag is on. Centralizing the
+// dependency check here keeps every call site honest.
+func (f *FeatureFlags) IsChannelPermissionPoliciesEnabled() bool {
+	return f.PermissionPolicies && f.ChannelPermissionPolicies
+}
+
+// IsPolicySimulationEnabled reports whether the "Simulate access"
+// preview UX and its backing /cel/simulate_users endpoint are
+// available. Both the sub-flag AND the PermissionPolicies umbrella
+// must be on — turning the umbrella off implicitly disables the
+// sub-feature even if its own flag is on. Centralizing the
+// dependency check here keeps every call site honest.
+func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
+	return f.PermissionPolicies && f.PolicySimulation
 }
 
 // ToMap returns the feature flags as a map[string]string

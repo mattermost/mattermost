@@ -1311,13 +1311,13 @@ describe('Actions.Posts', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await dispatch(createCustomEmoji(
+        const created = (await dispatch(createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getEmojisRoute()).
             get(`/name/${created.name}`).

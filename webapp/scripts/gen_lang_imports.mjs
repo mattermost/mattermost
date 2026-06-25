@@ -1,7 +1,8 @@
 #!/bin/node
 
 import * as fs from 'fs';
-import langmap from '../channels/src/i18n/langmap.js';
+
+import langmap from './langmap.mjs';
 
 let lines = '';
 const langIDs = [];
@@ -16,7 +17,7 @@ fs.readdirSync('./channels/src/i18n').forEach(file => {
     if (langID === 'en') {
       return
     }
-    
+
     langIDs.push(langID);
     lines += `import ${langID.replace('-', '')} from './${file}';\n`;
     langFiles[langID] = langID.replace('-', '');
@@ -38,24 +39,34 @@ fs.readdirSync('./channels/src/i18n').forEach(file => {
 });
 
 lines += `
-type TranslationsMap = {
-    [id: string]: string,
-};
+export const langIDs = ${JSON.stringify(langIDs)};
+
+export const langLabels = ${JSON.stringify(langLabels)};
 `;
-lines += `\nexport const langIDs = ${JSON.stringify(langIDs)};\n`
-lines += `\nexport const langLabels = ${JSON.stringify(langLabels)};\n`
 
 // To generate the file exports we need to do a bit more work to handle ids with dashes and also output a map of literals rather than strings.
-lines += '\nexport const langFiles: {[langID: string]: TranslationsMap} = {' + Object.keys(langFiles).reduce((out, id, idx) => {
+lines += `
+// TypeScript thinks it's importing these language files' contents directly, but Webpack rewrites the above imports
+// to the URL the file for lazy loading. That's the reason for the ugly type assertions below.
+export const langFiles: {
+    [langID: string]: string;
+} = {
+` + Object.keys(langFiles).reduce((out, id, idx) => {
+  out += '    ';
+
   if (id.includes('-')) {
-    out += `'${id}':${langFiles[id]}`;
+    out += `'${id}': ${langFiles[id]}`;
   } else {
-    out += `${langFiles[id]}`;
+    out += `${id}: ${langFiles[id]}`;
   }
+
+  out += ' as unknown as string';
 
   if (idx !== (langIDs.length - 1)) {
     out += ',';
   }
+
+  out += '\n';
 
   return out;
 }, '') + '};';

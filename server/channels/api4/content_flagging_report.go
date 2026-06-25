@@ -41,6 +41,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 	model.AddEventParameterToAuditRec(auditRec, "flaggedPostId", postId)
 	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
 	model.AddEventParameterToAuditRec(auditRec, "comment", actionRequest.Comment)
+	model.AddEventParameterToAuditRec(auditRec, "action", actionRequest.Action)
 
 	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
 	if appErr != nil {
@@ -65,7 +66,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment)
+	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment, actionRequest.Action)
 	if appErr != nil {
 		c.Err = appErr
 		return

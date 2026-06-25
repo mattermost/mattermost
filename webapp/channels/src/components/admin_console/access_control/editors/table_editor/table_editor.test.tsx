@@ -27,6 +27,38 @@ describe('parseExpression', () => {
                 operator: 'is',
                 values: ['Engineering'],
                 attribute_type: 'text',
+                hasMaskedValues: false,
+            },
+        ]);
+    });
+
+    test.each([
+        ['==', 'is exactly'],
+        ['>=', 'is at least'],
+        ['>', 'is greater than'],
+        ['<=', 'is at most'],
+        ['<', 'is less than'],
+        ['!=', 'is not'],
+    ])('maps ranked operator %s to "%s"', (celOp, label) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.clearance',
+                    operator: celOp,
+                    value: 'Secret',
+                    value_type: 0,
+                    attribute_type: 'rank',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'clearance',
+                operator: label,
+                values: ['Secret'],
+                attribute_type: 'rank',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -50,6 +82,7 @@ describe('parseExpression', () => {
                 operator: 'in',
                 values: ['US', 'CA'],
                 attribute_type: 'text',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -73,6 +106,7 @@ describe('parseExpression', () => {
                 operator: 'is not',
                 values: ['guest'],
                 attribute_type: 'text',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -96,6 +130,7 @@ describe('parseExpression', () => {
                 operator: 'starts with',
                 values: ['admin'],
                 attribute_type: 'text',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -126,12 +161,14 @@ describe('parseExpression', () => {
                 operator: 'starts with',
                 values: ['admin'],
                 attribute_type: 'text',
+                hasMaskedValues: false,
             },
             {
                 attribute: 'department',
                 operator: 'is',
                 values: ['Engineering'],
                 attribute_type: 'text',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -155,6 +192,7 @@ describe('parseExpression', () => {
                 operator: 'is',
                 values: ['foo'],
                 attribute_type: 'text',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -163,6 +201,44 @@ describe('parseExpression', () => {
         expect(parseExpression(null as any)).toEqual([]);
         expect(parseExpression(undefined as any)).toEqual([]);
         expect(parseExpression({conditions: []})).toEqual([]);
+    });
+
+    test('sets hasMaskedValues=true when condition has has_masked_values flag', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.program',
+                    operator: 'in',
+                    value: ['Alpha'],
+                    value_type: 0,
+                    attribute_type: 'text',
+                    has_masked_values: true,
+                },
+                {
+                    attribute: 'user.attributes.clearance',
+                    operator: 'in',
+                    value: [],
+                    value_type: 0,
+                    attribute_type: 'text',
+                    has_masked_values: true,
+                },
+                {
+                    attribute: 'user.attributes.department',
+                    operator: '==',
+                    value: 'Engineering',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows[0].hasMaskedValues).toBe(true); // partial: caller holds Alpha
+        expect(rows[0].values).toEqual(['Alpha']);
+        expect(rows[1].hasMaskedValues).toBe(true); // fully masked: caller holds nothing
+        expect(rows[1].values).toEqual([]);
+        expect(rows[2].hasMaskedValues).toBe(false); // no masking
+        expect(rows[2].values).toEqual(['Engineering']);
     });
 });
 
@@ -186,6 +262,7 @@ describe('parseExpression with multiselect attributes', () => {
                 operator: 'has all of',
                 values: ['JavaScript', 'Python'],
                 attribute_type: 'multiselect',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -209,6 +286,7 @@ describe('parseExpression with multiselect attributes', () => {
                 operator: 'has any of',
                 values: ['Dragon', 'Phoenix'],
                 attribute_type: 'multiselect',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -232,6 +310,7 @@ describe('parseExpression with multiselect attributes', () => {
                 operator: 'has all of',
                 values: ['JavaScript'],
                 attribute_type: 'multiselect',
+                hasMaskedValues: false,
             },
         ]);
     });
@@ -348,6 +427,7 @@ describe('rowToCEL', () => {
             operator: 'has any of',
             values: ['Dragon', 'Phoenix'],
             attribute_type: 'multiselect',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('("Dragon" in user.attributes.programs || "Phoenix" in user.attributes.programs)');
     });
@@ -358,6 +438,7 @@ describe('rowToCEL', () => {
             operator: 'has all of',
             values: ['Dragon', 'Phoenix'],
             attribute_type: 'multiselect',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('"Dragon" in user.attributes.programs && "Phoenix" in user.attributes.programs');
     });
@@ -368,6 +449,7 @@ describe('rowToCEL', () => {
             operator: 'has any of',
             values: ['Dragon'],
             attribute_type: 'multiselect',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('"Dragon" in user.attributes.programs');
     });
@@ -378,6 +460,7 @@ describe('rowToCEL', () => {
             operator: 'has all of',
             values: ['admin'],
             attribute_type: 'multiselect',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('"admin" in user.attributes.tags');
     });
@@ -388,6 +471,7 @@ describe('rowToCEL', () => {
             operator: 'in',
             values: ['Eng', 'Ops'],
             attribute_type: 'select',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('user.attributes.department in ["Eng", "Ops"]');
     });
@@ -398,6 +482,7 @@ describe('rowToCEL', () => {
             operator: 'is',
             values: ['TopSecret'],
             attribute_type: 'text',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('user.attributes.clearance == "TopSecret"');
     });
@@ -408,6 +493,7 @@ describe('rowToCEL', () => {
             operator: 'contains',
             values: ['@example.com'],
             attribute_type: 'text',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('user.attributes.email.contains("@example.com")');
     });
@@ -418,8 +504,71 @@ describe('rowToCEL', () => {
             operator: 'is',
             values: ['O\'Brien\'s "Team"'],
             attribute_type: 'text',
+            hasMaskedValues: false,
         });
         expect(cel).toBe('user.attributes.team == "O\'Brien\'s \\"Team\\""');
+    });
+
+    // --- Ranked attribute comparison operators ---
+
+    test.each([
+        ['is exactly', '=='],
+        ['is at least', '>='],
+        ['is greater than', '>'],
+        ['is at most', '<='],
+        ['is less than', '<'],
+    ])('ranked operator %s produces "attr %s value" comparison', (operator, celOp) => {
+        const cel = rowToCEL({
+            attribute: 'clearance',
+            operator,
+            values: ['Secret'],
+            attribute_type: 'rank',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe(`user.attributes.clearance ${celOp} "Secret"`);
+    });
+
+    test('ranked "is not" produces inequality comparison', () => {
+        const cel = rowToCEL({
+            attribute: 'clearance',
+            operator: 'is not',
+            values: ['Secret'],
+            attribute_type: 'rank',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.clearance != "Secret"');
+    });
+
+    // --- Masking-related tests ---
+
+    test('fully-masked row (hasMaskedValues=true, values=[]) emits "in []" placeholder regardless of operator', () => {
+        // The placeholder is needed so the backend merge can locate this condition
+        // by attribute and re-inject the hidden values.  The operator is irrelevant
+        // because the backend always overrides it from the stored expression.
+        const operators = ['in', 'is', 'has all of', 'has any of', 'contains', 'starts with'];
+        for (const operator of operators) {
+            const cel = rowToCEL({
+                attribute: 'program',
+                operator,
+                values: [],
+                attribute_type: 'text',
+                hasMaskedValues: true,
+            });
+            expect(cel).toBe('user.attributes.program in []');
+        }
+    });
+
+    test('partially-masked row (hasMaskedValues=true, values non-empty) uses normal CEL path', () => {
+        // The caller holds "Alpha"; "Bravo" and "Charlie" are hidden.
+        // The row should emit the visible value normally — backend merge appends the rest.
+        const cel = rowToCEL({
+            attribute: 'program',
+            operator: 'in',
+            values: ['Alpha'],
+            attribute_type: 'text',
+            hasMaskedValues: true,
+        });
+        expect(cel).toBe('user.attributes.program in ["Alpha"]');
     });
 });
 
@@ -508,7 +657,17 @@ describe('isSimpleCondition', () => {
         expect(isSimpleCondition('user.attributes.desc.contains("important")')).toBe(true);
     });
 
+    test.each(['>=', '>', '<=', '<'])('ranked comparison %s against a quoted value is simple', (op) => {
+        expect(isSimpleCondition(`user.attributes.clearance ${op} "Secret"`)).toBe(true);
+    });
+
     test('rejects function calls', () => {
         expect(isSimpleCondition('size(user.attributes.roles) > 0')).toBe(false);
+    });
+
+    test('rejects comparison against an unquoted numeric value', () => {
+        // Guards the ranked-operator regex change: `size(...) > 0` style
+        // numeric comparisons must still fall through to advanced mode.
+        expect(isSimpleCondition('user.attributes.count > 0')).toBe(false);
     });
 });

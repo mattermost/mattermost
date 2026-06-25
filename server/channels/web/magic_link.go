@@ -63,7 +63,9 @@ func loginWithMagicLinkToken(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	// Create session and log user in
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", false, false, true)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		IsSaml: true,
+	})
 	if err != nil {
 		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 		return

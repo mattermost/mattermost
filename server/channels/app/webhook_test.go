@@ -98,6 +98,36 @@ func TestHandleIncomingWebhookRootId(t *testing.T) {
 	})
 }
 
+func TestHandleIncomingWebhookDirectMessage(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: false})
+	require.Nil(t, appErr)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	t.Run("rejects DM to a user the owner shares no team with", func(t *testing.T) {
+		stranger := th.CreateUser(t)
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        "out of team dm",
+			ChannelName: "@" + stranger.Username,
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("allows DM to a user the owner shares a team with", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        "team dm",
+			ChannelName: "@" + th.BasicUser2.Username,
+		})
+		require.Nil(t, err)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -592,19 +622,19 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 
 	testConditions := []model.PostPriority{
 		{
-			Priority:                model.NewPointer("high"),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new("high"),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 		{
-			Priority:                model.NewPointer(""),
-			RequestedAck:            model.NewPointer(true),
-			PersistentNotifications: model.NewPointer(false),
+			Priority:                new(""),
+			RequestedAck:            new(true),
+			PersistentNotifications: new(false),
 		},
 		{
-			Priority:                model.NewPointer("urgent"),
-			RequestedAck:            model.NewPointer(false),
-			PersistentNotifications: model.NewPointer(true),
+			Priority:                new("urgent"),
+			RequestedAck:            new(false),
+			PersistentNotifications: new(true),
 		},
 	}
 
@@ -1119,7 +1149,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	th := Setup(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
 		*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	})
 
@@ -1187,7 +1217,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer close(releaseHandler)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
@@ -1205,7 +1235,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(2))
 		})
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)

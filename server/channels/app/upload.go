@@ -75,6 +75,7 @@ func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Rea
 			if rejStr != "" {
 				rejErr = model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected",
 					map[string]any{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
+				a.sendFileUploadRejectedEvent(info, info.CreatorId, rctx.ConnectionId(), rejStr)
 				return false
 			}
 			if newInfo != nil {
@@ -302,7 +303,7 @@ func (a *App) UploadData(rctx request.CTX, us *model.UploadSession, rd io.Reader
 	info.CreatorId = us.UserId
 	info.ChannelId = us.ChannelId
 	info.Path = us.Path
-	info.RemoteId = model.NewPointer(us.RemoteId)
+	info.RemoteId = new(us.RemoteId)
 	if us.ReqFileId != "" {
 		info.Id = us.ReqFileId
 	}
@@ -348,12 +349,14 @@ func (a *App) UploadData(rctx request.CTX, us *model.UploadSession, rd io.Reader
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		a.Srv().Go(func() {
+		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
 				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
-		})
+		}) {
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+		}
 	}
 
 	// delete upload session

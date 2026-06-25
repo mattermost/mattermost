@@ -19,6 +19,7 @@ import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
 
@@ -51,7 +52,7 @@ export interface Props {
         closeRightHandSide: () => void;
         goBack: () => void;
         setChannelMembersRhsSearchTerm: (terms: string) => void;
-        loadProfilesAndReloadChannelMembers: (page: number, perParge: number, channelId: string, sort: string) => void;
+        loadProfilesAndReloadChannelMembers: (page: number, perParge: number, channelId: string, sort: string, options?: Record<string, unknown>, reconcile?: boolean) => void;
         loadMyChannelMemberAndRole: (channelId: string) => void;
         setEditChannelMembers: (active: boolean) => void;
         searchProfilesAndChannelMembers: (term: string, options: any) => Promise<{data: UserProfile[]}>;
@@ -79,10 +80,14 @@ export default function ChannelMembersRHS({
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
 
+    // Only channels whose policy controls membership surface attribute
+    // tags in the RHS — a permission-only policy (e.g. file upload) has
+    // no bearing on who can be a member.
+    const isMembershipPolicy = isMembershipPolicyEnforced(channel);
     const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
         channel.id,
-        channel.policy_enforced,
+        isMembershipPolicy,
     );
 
     // Memoise the rendered access-control tags so they don't re-render on
@@ -184,7 +189,7 @@ export default function ChannelMembersRHS({
         setPage(0);
         setIsNextPageLoading(false);
         actions.setChannelMembersRhsSearchTerm('');
-        actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
+        actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin, {}, true);
         actions.loadMyChannelMemberAndRole(channel.id);
     }, [channel.id, channel.type]);
 
@@ -192,9 +197,9 @@ export default function ChannelMembersRHS({
         actions.setChannelMembersRhsSearchTerm(terms);
     };
 
-    const doSearch = useCallback(debounce(async (terms: string) => {
+    const doSearch = useMemo(() => debounce(async (terms: string) => {
         await actions.searchProfilesAndChannelMembers(terms, {in_team_id: channel.team_id, in_channel_id: channel.id});
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers]);
+    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers, channel]);
 
     useEffect(() => {
         if (searchTerms) {
@@ -250,8 +255,8 @@ export default function ChannelMembersRHS({
                 onClose={actions.closeRightHandSide}
                 goBack={actions.goBack}
             />
-            {/* Show banner for policy-enforced channels */}
-            {channel.policy_enforced && (
+            {/* Show banner only for channels whose policy gates membership. */}
+            {isMembershipPolicy && (
                 <div className='channel-members-rhs__alert-container policy-enforced'>
                     <AlertBanner
                         mode='info'

@@ -6,7 +6,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import {
+    getMembershipRule,
+    buildRulesWithMembership,
+} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -134,7 +137,7 @@ function ChannelSettingsAccessRulesTab({
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
                 }
-            } catch (error) {
+            } catch {
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');
@@ -470,7 +473,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             setIsProcessingSave(false);
         }
-    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
+    }, [channel.id, channel.display_name, expression, existingRules, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<SaveResult> => {

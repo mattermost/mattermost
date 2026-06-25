@@ -26,22 +26,29 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"license"`
 
 	Server struct {
-		OS                     string    `yaml:"os"`
-		Architecture           string    `yaml:"architecture"`
-		CPUCores               int       `yaml:"cpu_cores"`
-		TotalMemoryMB          uint64    `yaml:"total_memory_mb"`
-		ContainerCPULimit      float64   `yaml:"container_cpu_limit,omitempty"`
-		ContainerMemoryLimitMB uint64    `yaml:"container_memory_limit_mb,omitempty"`
-		OpenFileDescriptors    int64     `yaml:"open_file_descriptors"`
-		MaxFileDescriptors     int64     `yaml:"max_file_descriptors"`
-		Hostname               string    `yaml:"hostname"`
-		ProcessID              int       `yaml:"process_id"`
-		StartedAt              time.Time `yaml:"started_at"`
-		HostStartedAt          time.Time `yaml:"host_started_at,omitempty"`
-		Version                string    `yaml:"version"`
-		BuildHash              string    `yaml:"build_hash"`
-		GoVersion              string    `yaml:"go_version"`
-		InstallationType       string    `yaml:"installation_type"`
+		// Machine
+		OS               string `yaml:"os"`
+		Architecture     string `yaml:"architecture"`
+		Hostname         string `yaml:"hostname"`
+		InstallationType string `yaml:"installation_type"`
+
+		// Capacity
+		CPUCores               int     `yaml:"cpu_cores"`
+		TotalMemoryMB          uint64  `yaml:"total_memory_mb"`
+		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
+
+		// Process lifecycle
+		ProcessID           int       `yaml:"process_id"`
+		StartedAt           time.Time `yaml:"started_at"`
+		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
+		OpenFileDescriptors int64     `yaml:"open_file_descriptors"`
+		MaxFileDescriptors  int64     `yaml:"max_file_descriptors"`
+
+		// Software
+		Version   string `yaml:"version"`
+		BuildHash string `yaml:"build_hash"`
+		GoVersion string `yaml:"go_version"`
 	} `yaml:"server"`
 
 	Config struct {
@@ -49,17 +56,39 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"config"`
 
 	Database struct {
-		Type              string `yaml:"type"`
-		Version           string `yaml:"version"`
-		SchemaVersion     string `yaml:"schema_version"`
-		MasterConnectios  int    `yaml:"master_connections"`
-		ReplicaConnectios int    `yaml:"replica_connections"`
-		SearchConnections int    `yaml:"search_connections"`
+		Type                                string     `yaml:"type"`
+		Version                             string     `yaml:"version"`
+		SchemaVersion                       string     `yaml:"schema_version"`
+		MasterConnections                   int        `yaml:"master_connections"`
+		ReplicaConnections                  int        `yaml:"replica_connections"`
+		SearchConnections                   int        `yaml:"search_connections"`
+		MasterConnectionsInUse              int        `yaml:"master_connections_in_use"`
+		MasterConnectionsIdle               int        `yaml:"master_connections_idle"`
+		MasterPoolWaitCount                 int64      `yaml:"master_pool_wait_count"`
+		MasterPoolWaitDurationMs            int64      `yaml:"master_pool_wait_duration_ms"`
+		MasterConnectionsClosedMaxIdle      int64      `yaml:"master_connections_closed_max_idle"`
+		MasterConnectionsClosedMaxLifetime  int64      `yaml:"master_connections_closed_max_lifetime"`
+		ReplicaConnectionsInUse             int        `yaml:"replica_connections_in_use"`
+		ReplicaConnectionsIdle              int        `yaml:"replica_connections_idle"`
+		ReplicaPoolWaitCount                int64      `yaml:"replica_pool_wait_count"`
+		ReplicaPoolWaitDurationMs           int64      `yaml:"replica_pool_wait_duration_ms"`
+		ReplicaConnectionsClosedMaxIdle     int64      `yaml:"replica_connections_closed_max_idle"`
+		ReplicaConnectionsClosedMaxLifetime int64      `yaml:"replica_connections_closed_max_lifetime"`
+		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
+		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
+		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
+		TempBytesMB                         *float64   `yaml:"temp_bytes_mb,omitempty"`
+		Rollbacks                           *int64     `yaml:"rollbacks,omitempty"`
+		IdleInTransactionCount              *int64     `yaml:"idle_in_transaction_count,omitempty"`
+		LongestQueryDurationSeconds         *float64   `yaml:"longest_query_duration_seconds,omitempty"`
+		WaitingForLockCount                 *int64     `yaml:"waiting_for_lock_count,omitempty"`
+		PostsDeadTuples                     *int64     `yaml:"posts_dead_tuples,omitempty"`
+		PostsLastAutovacuum                 *time.Time `yaml:"posts_last_autovacuum,omitempty"`
 	} `yaml:"database"`
 
 	FileStore struct {
 		Status         string `yaml:"file_status"`
-		Error          string `yaml:"erorr,omitempty"`
+		Error          string `yaml:"error,omitempty"`
 		Driver         string `yaml:"file_driver"`
 		FilesystemType string `yaml:"filesystem_type,omitempty"`
 		TotalMB        uint64 `yaml:"total_mb,omitempty"`
@@ -95,6 +124,8 @@ type SupportPacketDiagnostics struct {
 
 	SAML struct {
 		ProviderType string `yaml:"provider_type,omitempty"`
+		Status       string `yaml:"status,omitempty"`
+		Error        string `yaml:"error,omitempty"`
 	} `yaml:"saml"`
 
 	ElasticSearch struct {
@@ -104,6 +135,22 @@ type SupportPacketDiagnostics struct {
 		ServerPlugins []string `yaml:"server_plugins,omitempty"`
 		Error         string   `yaml:"error,omitempty"`
 	} `yaml:"elastic"`
+
+	OAuthProviders OAuthProviders `yaml:"oauth_providers,omitempty"`
+}
+
+// OAuthProviderStatus reports the connectivity status of a single OAuth2/OpenID Connect provider.
+type OAuthProviderStatus struct {
+	Status string `yaml:"status,omitempty"` // ok / fail / disabled
+	Error  string `yaml:"error,omitempty"`
+}
+
+// OAuthProviders aggregates the connectivity status for the configured OAuth2/OpenID Connect providers.
+type OAuthProviders struct {
+	GitLab    OAuthProviderStatus `yaml:"gitlab,omitempty"`
+	Google    OAuthProviderStatus `yaml:"google,omitempty"`
+	Office365 OAuthProviderStatus `yaml:"office365,omitempty"`
+	OpenID    OAuthProviderStatus `yaml:"openid,omitempty"`
 }
 
 type SupportPacketStats struct {

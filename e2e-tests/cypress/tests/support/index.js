@@ -5,8 +5,6 @@
 // Read more at: https://on.cypress.io/configuration
 // ***********************************************************
 
-
-
 import dayjs from 'dayjs';
 import localforage from 'localforage';
 import '@testing-library/cypress/add-commands';
@@ -254,6 +252,7 @@ function sysadminSetup(user) {
 
 function resetUserPreference(userId) {
     cy.apiSaveTeammateNameDisplayPreference('username');
+    cy.apiSaveMessageDisplayPreference('clean');
     cy.apiSaveLinkPreviewsPreference('true');
     cy.apiSaveCollapsePreviewsPreference('false');
     cy.apiSaveClockDisplayModeTo24HourPreference(false);

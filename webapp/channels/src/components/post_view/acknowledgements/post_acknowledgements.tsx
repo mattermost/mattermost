@@ -37,7 +37,7 @@ type Props = {
     list?: Array<{user: UserProfile; acknowledgedAt: PostAcknowledgement['acknowledged_at']}>;
     postId: Post['id'];
     showDivider?: boolean;
-}
+};
 
 function moreThan5minAgo(time: number) {
     const now = new Date().getTime();

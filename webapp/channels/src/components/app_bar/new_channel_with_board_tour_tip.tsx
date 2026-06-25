@@ -14,9 +14,9 @@ import {Preferences} from 'mattermost-redux/constants';
 import {showNewChannelWithBoardPulsatingDot} from 'selectors/plugins';
 
 type Props = {
-    pulsatingDotPlacement?: Omit<Placement, 'auto'| 'auto-end'>;
+    pulsatingDotPlacement?: Omit<Placement, 'auto' | 'auto-end'>;
     pulsatingDotTranslate?: {x: number; y: number};
-}
+};
 
 const NewChannelWithBoardTourTip = ({
     pulsatingDotPlacement = 'left',

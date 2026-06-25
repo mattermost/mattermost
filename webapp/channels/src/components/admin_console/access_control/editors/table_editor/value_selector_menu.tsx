@@ -15,6 +15,7 @@ export interface TableRow {
     operator: string;
     values: string[];
     attribute_type: string;
+    hasMaskedValues: boolean;
 }
 
 export interface ValueSelectorMenuProps {
@@ -26,7 +27,6 @@ export interface ValueSelectorMenuProps {
     placeholder?: string;
 }
 
-// Main ValueSelectorMenu component that delegates to the appropriate selector
 const ValueSelectorMenu = ({
     row,
     disabled,
@@ -46,11 +46,11 @@ const ValueSelectorMenu = ({
                 options={options}
                 allowCreateValue={allowCreateValue}
                 placeholder={placeholder}
+                hasMaskedValues={row.hasMaskedValues}
             />
         );
     }
 
-    // For single-value operators
     return (
         <SingleValueSelector
             value={row.values[0] || ''}
@@ -59,6 +59,7 @@ const ValueSelectorMenu = ({
             options={options}
             allowCreateValue={allowCreateValue}
             placeholder={placeholder}
+            hasMaskedValues={row.hasMaskedValues}
         />
     );
 };

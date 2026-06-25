@@ -6292,10 +6292,6 @@
     "translation": "Nie można uzyskać kanałów według identyfikatorów."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nie można uzyskać liczby kanałów."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Napotkaliśmy błąd aktualizując zespół."
   },
@@ -6942,14 +6938,6 @@
   {
     "id": "api.file.write_file.app_error",
     "translation": "Nie można zapisać pliku."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Upewnij się, że twoje Amazon S3 jest dostępne oraz sprawdź uprawnienia do niego."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nie można połączyć się z S3. Sprawdź parametry autoryzacji połączenia Amazon S3 i ustawienia uwierzytelniania."
   },
   {
     "id": "api.file.test_connection.app_error",
@@ -8218,10 +8206,6 @@
   {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Parametry OnlyThreads i OnlyTotals funkcji getThreadsForUser wzajemnie się wykluczają"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Ustawienia przechowywania plików nie mają ustawionych wartości."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
@@ -10016,38 +10000,6 @@
     "translation": "Nie można utworzyć katalogu dla niestandardowych obrazów emoji"
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Nie można pobrać grupy właściwości Atrybuty użytkownika."
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Osiągnięto limit pola Atrybuty użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Nie można uzyskać pola Atrybut użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Nie można uzyskać wartości Atrybutu użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Nie można usunąć pola Atrybut użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Nie można zaktualizować pola Atrybut użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Nie znaleziono pola Atrybut użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Nie można szukać pól Atrybutów użytkownika"
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Nie udało się usunąć żądanych plików z bazy danych"
   },
@@ -10108,10 +10060,6 @@
     "translation": "Nieprawidłowa wartość właściwości: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Twoja licencja nie obsługuje Atrybutów użytkownika."
-  },
-  {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Nie można pobrać czytnika plików zip."
   },
@@ -10146,14 +10094,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Nie znaleziono sesji."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Nie można policzyć liczby pól dla grupy Atrybuty użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Nie można wstawić pól Atrybutów użytkownika"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10224,10 +10164,6 @@
     "translation": "Nie można przekonwertować pola właściwości na pole atrybutu użytkownika"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Nieprawidłowe atrybuty wartości właściwości: {{.AttributeName}} ({{.Reason}})."
-  },
-  {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "Nieprawidłowa poprawka pola Atrybut użytkownika"
   },
@@ -10270,14 +10206,6 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} powinien być prefiksem IndexPrefix {{.IndexPrefix}}."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Nie można usunąć wartości Atrybutu użytkownika dla użytkownika"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Nie udało się zweryfikować wartości właściwości"
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
@@ -10366,10 +10294,6 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "Wymagane jest zgłoszenie problemu pocztą."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola Atrybut użytkownika"
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
@@ -10684,10 +10608,6 @@
     "translation": "Ukrywanie archiwizowanych kanałów nie jest już obsługiwane. Zamiast tego ustaw te kanały jako prywatne i usuń ich członków."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Nie można zaktualizować wartości pola Atrybut użytkownika zarządzanego przez administratora"
-  },
-  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Napotkano błąd dekodowania odpowiedzi JSON z interaktywnego wyszukiwania okna dialogowego."
   },
@@ -10938,10 +10858,6 @@
   {
     "id": "api.user.send_password_reset.guest_magic_link.app_error",
     "translation": "Nie można zresetować hasła dla kont gości magic link."
-  },
-  {
-    "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Nie można załatać pola Atrybut użytkownika"
   },
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
@@ -12036,10 +11952,6 @@
     "translation": "Nie masz uprawnień do usunięcia tego pola właściwości."
   },
   {
-    "id": "api.property_field.delete.protected_via_api.app_error",
-    "translation": "Nie można usunąć chronionego pola właściwości za pośrednictwem interfejsu API."
-  },
-  {
     "id": "api.property_field.get.invalid_target_type.app_error",
     "translation": "Wymagany jest prawidłowy target_type (system, zespół lub kanał)."
   },
@@ -12068,10 +11980,6 @@
     "translation": "Nie masz uprawnień do zarządzania opcjami dla tego pola właściwości."
   },
   {
-    "id": "api.property_field.update.protected_via_api.app_error",
-    "translation": "Nie można zaktualizować chronionego pola właściwości za pośrednictwem interfejsu API."
-  },
-  {
     "id": "api.property_value.invalid_object_type.app_error",
     "translation": "Podany typ obiektu jest nieprawidłowy."
   },
@@ -12094,10 +12002,6 @@
   {
     "id": "api.property_value.patch.too_many_items.request_error",
     "translation": "Nie można zaktualizować tak wielu wartości właściwości. Tylko {{.Max}} wartości właściwości mogą być aktualizowane jednocześnie."
-  },
-  {
-    "id": "api.property_value.target_user.forbidden.app_error",
-    "translation": "Nie masz uprawnień dostępu do wartości właściwości innego użytkownika."
   },
   {
     "id": "api.templates.license_need_help.info",
@@ -12180,10 +12084,6 @@
     "translation": "Archiwum Kanałów odrzucone przez Wtyczkę: {{.Reason}}"
   },
   {
-    "id": "app.custom_profile_attributes.get_property_value.app_error",
-    "translation": "Nie można uzyskać wartości Atrybutu użytkownika"
-  },
-  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "Polityka o tej Nazwie już istnieje. Wybierz inną nazwę."
   },
@@ -12238,10 +12138,6 @@
   {
     "id": "app.property_field.get_many.app_error",
     "translation": "Nie można uzyskać pola właściwości."
-  },
-  {
-    "id": "app.property_field.get_many.fields_not_found.app_error",
-    "translation": "Co najmniej jeden identyfikator pola właściwości nie został znaleziony w określonej grupie."
   },
   {
     "id": "app.property_field.invalid_input.app_error",
@@ -12540,10 +12436,6 @@
     "translation": "Nie masz wymaganego dostępu do przesyłania plików na ten kanał."
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Zarządzane kategorie kanałów nie są dostępne."
-  },
-  {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
     "translation": "FileInfo.CreatorId jest wymagany."
   },
@@ -12668,22 +12560,6 @@
     "translation": "Określona grupa właściwości nie została znaleziona."
   },
   {
-    "id": "api.property_field.patch.cannot_link_existing.app_error",
-    "translation": "Nie można ustawić linked_field_id na istniejącym polu. Można go ustawić tylko w czasie tworzenia."
-  },
-  {
-    "id": "api.property_field.patch.linked_field_change.app_error",
-    "translation": "Nie można zmienić celu linku. Najpierw usuń link, a następnie utwórz nowe połączone pole."
-  },
-  {
-    "id": "api.property_field.patch.linked_options_change.app_error",
-    "translation": "Nie można modyfikować opcji pola Link. Opcje są dziedziczone ze źródła."
-  },
-  {
-    "id": "api.property_field.patch.linked_type_change.app_error",
-    "translation": "Nie można zmodyfikować typu pola Link. Typ jest dziedziczony ze źródła."
-  },
-  {
     "id": "api.property_value.template_no_values.app_error",
     "translation": "Pola szablonu nie mogą mieć wartości."
   },
@@ -12786,5 +12662,9 @@
   {
     "id": "model.property_group.is_valid.app_error",
     "translation": "Nieprawidłowa grupa właściwości: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Kanał ten nie jest już udostępniany innej przestrzeni roboczej."
   }
 ]

@@ -3,28 +3,21 @@
 
 import React from 'react';
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import ChannelTypeIcon from 'components/channel_type_icon';
 
 import Constants from 'utils/constants';
 
 type Props = {
-    channelType: ChannelType;
-}
+    channel: Channel;
+};
 
-const SidebarBaseChannelIcon = ({
-    channelType,
-}: Props) => {
-    if (channelType === Constants.OPEN_CHANNEL) {
-        return (
-            <i className='icon icon-globe'/>
-        );
+const SidebarBaseChannelIcon = ({channel}: Props) => {
+    if (channel.type !== Constants.OPEN_CHANNEL && channel.type !== Constants.PRIVATE_CHANNEL) {
+        return null;
     }
-    if (channelType === Constants.PRIVATE_CHANNEL) {
-        return (
-            <i className='icon icon-lock-outline'/>
-        );
-    }
-    return null;
+    return <ChannelTypeIcon channel={channel}/>;
 };
 
 export default SidebarBaseChannelIcon;

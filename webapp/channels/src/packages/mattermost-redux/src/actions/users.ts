@@ -102,7 +102,7 @@ export function logout(): ActionFuncAsync {
 
         try {
             await Client4.logout();
-        } catch (error) {
+        } catch {
             // nothing to do here
         }
 
@@ -352,17 +352,17 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
     };
 }
 
-export function batchGetProfilesInChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
+export function batchGetProfilesInGroupChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
     return async (dispatch, getState, {loaders}: any) => {
-        if (!loaders.profilesInChannelLoader) {
-            loaders.profilesInChannelLoader = new DelayedDataLoader<Channel['id']>({
-                fetchBatch: (channelIds) => dispatch(getProfilesInChannel(channelIds[0], 0)),
-                maxBatchSize: 1,
+        if (!loaders.profilesInGroupChannelLoader) {
+            loaders.profilesInGroupChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIds) => dispatch(getProfilesInGroupChannels(channelIds)),
+                maxBatchSize: General.MAX_GROUP_CHANNELS_FOR_PROFILES,
                 wait: missingProfilesWait,
             });
         }
 
-        await loaders.profilesInChannelLoader.queueAndWait([channelId]);
+        await loaders.profilesInGroupChannelLoader.queueAndWait([channelId]);
         return {};
     };
 }
@@ -1054,7 +1054,7 @@ export function updateUserRoles(userId: string, roles: string): ActionFuncAsync 
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
@@ -1247,12 +1247,12 @@ export function switchLdapToEmail(ldapPassword: string, email: string, emailPass
     });
 }
 
-export function createUserAccessToken(userId: string, description: string): ActionFuncAsync<UserAccessToken> {
+export function createUserAccessToken(userId: string, description: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {
     return async (dispatch, getState) => {
         let data;
 
         try {
-            data = await Client4.createUserAccessToken(userId, description);
+            data = await Client4.createUserAccessToken(userId, description, expiresAt);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

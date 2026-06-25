@@ -18,7 +18,7 @@ export type HeaderProps = {
     alternateLink?: React.ReactElement;
     backButtonURL?: string;
     onBackButtonClick?: React.EventHandler<React.MouseEvent>;
-}
+};
 
 const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) => {
     const {SiteName} = useSelector(getConfig);

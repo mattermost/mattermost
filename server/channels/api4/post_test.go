@@ -38,8 +38,89 @@ import (
 func enableBurnOnReadFeature(th *TestHelper) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		cfg.ServiceSettings.EnableBurnOnRead = new(true)
 	})
+}
+
+// isolatedTeamChannelWithTeamScheme creates a fresh team (with its own team scheme) and a channel on that team.
+// Permission edits target scheme-specific role names so parallel api4 tests do not mutate built-in channel_user,
+// and upload_file is revoked on the team scheme's channel user role so MergeChannelHigherScopedPermissions does not
+// reintroduce it from the higher scope (model.Role.MergeChannelHigherScopedPermissions).
+func isolatedTeamChannelWithTeamScheme(t *testing.T, th *TestHelper) (*model.Channel, *model.Scheme) {
+	t.Helper()
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	th.LinkUserToTeam(t, th.BasicUser, team)
+
+	scheme := th.SetupTeamScheme(t)
+	team.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateTeamScheme(team)
+	require.Nil(t, appErr)
+
+	ch := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team.Id)
+	return ch, scheme
+}
+
+// isolatedNoSchemeChannelWithoutUploadFile creates a fresh channel inside th.BasicTeam (which has no team scheme)
+// and gives th.BasicUser an isolated channel-member role on it that does not grant upload_file. This exercises the
+// no-scheme permission-resolution path (i.e. the configuration the original test in PR #34538 was validating)
+// without mutating the process-shared channel_user role, so the subtest is safe under ENABLE_FULLY_PARALLEL_TESTS.
+//
+// The returned channel has neither a team scheme nor a channel scheme. The user's channel membership is configured
+// with SchemeUser/SchemeAdmin/SchemeGuest all false and ExplicitRoles set to a unique custom role that mirrors
+// channel_user's default permissions minus upload_file. Because no scheme role is injected into the effective
+// role set for that membership, the only way upload_file could be granted is via the higher-scoped team or system
+// roles, and upload_file is PermissionScopeChannel — it is not granted by team_user, team_admin, system_user, etc.
+//
+// Returns the channel and a cleanup function that removes the test role.
+func isolatedNoSchemeChannelWithoutUploadFile(t *testing.T, th *TestHelper) (*model.Channel, func()) {
+	t.Helper()
+
+	ch := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, ch, false)
+	require.Nil(t, appErr)
+
+	channelUserRole, appErr := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
+	require.Nil(t, appErr)
+	perms := make([]string, 0, len(channelUserRole.Permissions))
+	for _, p := range channelUserRole.Permissions {
+		if p == model.PermissionUploadFile.Id {
+			continue
+		}
+		perms = append(perms, p)
+	}
+
+	roleName := "test_" + model.NewId()
+	role, appErr := th.App.CreateRole(&model.Role{
+		Name:        roleName,
+		DisplayName: roleName,
+		Description: "isolated no-scheme channel-member role for TestCreatePost/TestUpdatePost",
+		Permissions: perms,
+	})
+	require.Nil(t, appErr)
+
+	// Replace the membership's role flags via the store so the built-in channel_user role is not injected.
+	// App.UpdateChannelMemberRoles refuses to leave a member with SchemeUser=false; the store accepts it.
+	member, appErr := th.App.GetChannelMember(th.Context, ch.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	member.SchemeUser = false
+	member.SchemeAdmin = false
+	member.SchemeGuest = false
+	member.ExplicitRoles = roleName
+	_, sErr := th.App.Srv().Store().Channel().UpdateMember(th.Context, member)
+	require.NoError(t, sErr)
+
+	// SessionHasPermissionToChannel reads through the cached GetAllChannelMembersForUser lookup.
+	// Store().Channel().UpdateMember does not invalidate that cache, so do it explicitly.
+	th.App.Srv().Platform().InvalidateChannelCacheForUser(th.BasicUser.Id)
+
+	cleanup := func() {
+		if _, err := th.App.DeleteRole(role.Id); err != nil {
+			t.Logf("failed to delete test role %s: %v", roleName, err)
+		}
+	}
+	return ch, cleanup
 }
 
 func TestCreatePost(t *testing.T) {
@@ -287,19 +368,46 @@ func TestCreatePost(t *testing.T) {
 		assert.Nil(t, rpost)
 	})
 
-	t.Run("should prevent creating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
+	t.Run("should prevent creating post with files when user lacks upload_file permission in target channel (team scheme)", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		ch, scheme := isolatedTeamChannelWithTeamScheme(t, th)
+		require.NotEmpty(t, scheme.DefaultChannelUserRole)
+
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		defer func() {
-			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		}()
 
 		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: ch.Id,
+			Message:   "Test post with file",
+			FileIds:   model.StringArray{fileId},
+		}
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
+
+	t.Run("should prevent creating post with files when user lacks upload_file permission in target channel (no scheme)", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		ch, cleanup := isolatedNoSchemeChannelWithoutUploadFile(t, th)
+		defer cleanup()
+
+		fileResp, resp, err := th.SystemAdminClient.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		fileId := fileResp.FileInfos[0].Id
+
+		post := &model.Post{
+			ChannelId: ch.Id,
 			Message:   "Test post with file",
 			FileIds:   model.StringArray{fileId},
 		}
@@ -310,13 +418,17 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("should allow creating post with files when user has upload_file permission", func(t *testing.T) {
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
+		th.LoginBasic(t)
+
+		ch, _ := isolatedTeamChannelWithTeamScheme(t, th)
+
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
 		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: ch.Id,
 			Message:   "Test post with file",
 			FileIds:   model.StringArray{fileId},
 		}
@@ -338,7 +450,7 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Should not be able to define the RemoteId of a post from the API", func(t *testing.T) {
 		newPost := &model.Post{
-			RemoteId:  model.NewPointer(model.NewId()),
+			RemoteId:  new(model.NewId()),
 			ChannelId: th.BasicChannel.Id,
 			Message:   "post content " + model.NewId(),
 			DeleteAt:  0,
@@ -390,7 +502,7 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewPointer("urgent"),
+				Priority: new("urgent"),
 			},
 		}}
 
@@ -408,7 +520,7 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		replyPost := &model.Post{RootId: post.Id, ChannelId: th.BasicChannel.Id, Message: "reply", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewPointer("urgent"),
+				Priority: new("urgent"),
 			},
 		}}
 		_, resp, err = client.CreatePost(context.Background(), replyPost)
@@ -423,8 +535,8 @@ func TestCreatePostForPriority(t *testing.T) {
 		//  for Acknowledment
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:     model.NewPointer("urgent"),
-				RequestedAck: model.NewPointer(true),
+				Priority:     new("urgent"),
+				RequestedAck: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -434,8 +546,8 @@ func TestCreatePostForPriority(t *testing.T) {
 		//  for Persistent Notification
 		p2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err = client.CreatePost(context.Background(), p2)
@@ -455,8 +567,8 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -467,8 +579,8 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should return badRequest when post is not urgent for persistent notification", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("important"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("important"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -494,8 +606,8 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -506,7 +618,7 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create priority post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewPointer("important"),
+				Priority: new("important"),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -517,8 +629,8 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create acknowledge post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:     model.NewPointer(""),
-				RequestedAck: model.NewPointer(true),
+				Priority:     new(""),
+				RequestedAck: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -529,9 +641,9 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create persistent notification post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				RequestedAck:            model.NewPointer(false),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				RequestedAck:            new(false),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -739,7 +851,7 @@ func testCreatePostWithOutgoingHook(
 		}
 
 		outGoingHookResponse := &model.OutgoingWebhookResponse{
-			Text:         model.NewPointer("some test text"),
+			Text:         new("some test text"),
 			Username:     "TestCommandServer",
 			IconURL:      "https://mattermost.com/wp-content/uploads/2022/02/icon.png",
 			Type:         "custom_as",
@@ -1734,27 +1846,58 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {
+	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel (team scheme)", func(t *testing.T) {
+		ch, scheme := isolatedTeamChannelWithTeamScheme(t, th)
+		require.NotEmpty(t, scheme.DefaultChannelUserRole)
+
 		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
 			Message:   "Post without files",
-		}, channel, model.CreatePostFlags{SetOnline: true})
+		}, ch, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), channel.Id, "test-file.txt")
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		defer func() {
-			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		}()
 
 		updatePost := &model.Post{
 			Id:        postWithoutFiles.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
+			Message:   "Updated post with file",
+			FileIds:   model.StringArray{fileId},
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, updatePost)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, updatedPost)
+	})
+
+	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel (no scheme)", func(t *testing.T) {
+		ch, cleanup := isolatedNoSchemeChannelWithoutUploadFile(t, th)
+		defer cleanup()
+
+		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: ch.Id,
+			Message:   "Post without files",
+		}, ch, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		fileResp, resp, err := th.SystemAdminClient.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		fileId := fileResp.FileInfos[0].Id
+
+		updatePost := &model.Post{
+			Id:        postWithoutFiles.Id,
+			ChannelId: ch.Id,
 			Message:   "Updated post with file",
 			FileIds:   model.StringArray{fileId},
 		}
@@ -1765,21 +1908,23 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should allow updating post with files when user has upload_file permission", func(t *testing.T) {
+		ch, _ := isolatedTeamChannelWithTeamScheme(t, th)
+
 		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
 			Message:   "Post without files",
-		}, channel, model.CreatePostFlags{SetOnline: true})
+		}, ch, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), channel.Id, "test-file.txt")
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
 		updatePost := &model.Post{
 			Id:        postWithoutFiles.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
 			Message:   "Updated post with file",
 			FileIds:   model.StringArray{fileId},
 		}
@@ -2051,6 +2196,14 @@ func TestUpdatePost(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedPost)
 		assert.Equal(t, "Updated message only", updatedPost.Message)
+
+		// Lock in the "unchanged files are preserved" contract — the
+		// caller revoked PermissionEditFileAttachment and re-submitted
+		// the same FileIds, so the response must carry them back. A
+		// silent "files dropped" regression here would still pass the
+		// message assertion above.
+		require.NotNil(t, updatedPost.FileIds)
+		assert.ElementsMatch(t, postWithFiles.FileIds, updatedPost.FileIds)
 	})
 
 	t.Run("should allow changing files when edit_file_attachment permission is present", func(t *testing.T) {
@@ -2077,6 +2230,13 @@ func TestUpdatePost(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, updatedPost)
+
+		// Lock in the "files CAN be added when the caller has
+		// PermissionEditFileAttachment" contract — without this
+		// assertion a regression that silently drops the new
+		// attachment would still pass the NotNil check above.
+		require.NotNil(t, updatedPost.FileIds)
+		assert.ElementsMatch(t, updatePost.FileIds, updatedPost.FileIds)
 	})
 
 	t.Run("should be able to add and remove files simultaneously", func(t *testing.T) {
@@ -2203,12 +2363,12 @@ func TestPatchPost(t *testing.T) {
 	t.Run("new message, props, files, HasReactions bit", func(t *testing.T) {
 		patch := &model.PostPatch{}
 
-		patch.IsPinned = model.NewPointer(false)
-		patch.Message = model.NewPointer("#otherhashtag other message")
+		patch.IsPinned = new(false)
+		patch.Message = new("#otherhashtag other message")
 		patch.Props = &model.StringInterface{"channel_header": "new_header"}
 		patchFileIds := model.StringArray(fileIDs) // one extra file
 		patch.FileIds = &patchFileIds
-		patch.HasReactions = model.NewPointer(false)
+		patch.HasReactions = new(false)
 
 		rpost, _, err = client.PatchPost(context.Background(), post.Id, patch)
 		require.NoError(t, err)
@@ -2329,7 +2489,7 @@ func TestPatchPost(t *testing.T) {
 		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		patch := &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 		}
 		_, resp, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
 		require.Error(t, err)
@@ -2476,7 +2636,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch2 := &model.PostPatch{
-			Message: model.NewPointer("new message"),
+			Message: new("new message"),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), post2.Id, patch2)
 		require.Error(t, err)
@@ -2555,7 +2715,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.PostPatch{
-			IsPinned: model.NewPointer(true),
+			IsPinned: new(true),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
 		require.Error(t, err)
@@ -2580,7 +2740,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.PostPatch{
-			HasReactions: model.NewPointer(true),
+			HasReactions: new(true),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
 		require.Error(t, err)
@@ -5270,7 +5430,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message
 	patch := &model.PostPatch{
-		Message: model.NewPointer("new message edited"),
+		Message: new("new message edited"),
 	}
 
 	// Patch the post
@@ -5280,7 +5440,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message again
 	patch = &model.PostPatch{
-		Message: model.NewPointer("new message edited again"),
+		Message: new("new message edited again"),
 	}
 
 	_, response2, err2 := client.PatchPost(context.Background(), rpost.Id, patch)
@@ -5333,21 +5493,21 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		require.Contains(t, createdPost.FileIds, fileInfo2.Id)
 
 		patch = &model.PostPatch{
-			Message: model.NewPointer("new message 1"),
+			Message: new("new message 1"),
 		}
 		_, response, err := client.PatchPost(context.Background(), createdPost.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		patch = &model.PostPatch{
-			Message: model.NewPointer("new message 2"),
+			Message: new("new message 2"),
 		}
 		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		patch = &model.PostPatch{
-			Message: model.NewPointer("new message 3"),
+			Message: new("new message 3"),
 		}
 		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
 		require.NoError(t, err)
@@ -5369,12 +5529,13 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-	rpost := th.CreatePost(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
+
+	rpost := th.CreatePost(t)
 
 	testCases := []struct {
 		name        string
@@ -5481,7 +5642,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			require.NoError(t, err)
 
 			// post a reply on the thread
-			_, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
+			reply, _, appErr := th.App.CreatePostAsUser(th.Context, tc.post, th.Context.Session().Id, false)
 			require.Nil(t, appErr)
 
 			var caught bool
@@ -5489,23 +5650,34 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 				for {
 					select {
 					case ev := <-userWSClient.EventChannel:
-						if ev.EventType() == model.WebsocketEventPosted {
-							caught = true
-							data := ev.GetData()
-
-							users, ok := data["mentions"]
-							require.Equal(t, tc.mentions, ok)
-							if ok {
-								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
-							}
-
-							users, ok = data["followers"]
-							require.Equal(t, tc.followers, ok)
-
-							if ok {
-								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
-							}
+						if ev.EventType() != model.WebsocketEventPosted {
+							continue
 						}
+						data := ev.GetData()
+						post, ok := data["post"]
+						if !ok {
+							continue
+						}
+						var evPost model.Post
+						require.NoError(t, json.Unmarshal([]byte(post.(string)), &evPost))
+						if evPost.Id != reply.Id {
+							continue
+						}
+						caught = true
+
+						users, ok := data["mentions"]
+						require.Equal(t, tc.mentions, ok)
+						if ok {
+							require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+						}
+
+						users, ok = data["followers"]
+						require.Equal(t, tc.followers, ok)
+
+						if ok {
+							require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
+						}
+						return
 					case <-time.After(5 * time.Second):
 						return
 					}
@@ -6201,14 +6373,14 @@ func TestRestorePostVersion(t *testing.T) {
 		CheckCreatedStatus(t, response)
 
 		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 		require.Equal(t, "edited message 1", patch.Message)
 
 		patch, response, err = client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 2"),
+			Message: new("edited message 2"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -6263,7 +6435,7 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Equal(t, 1, len(createdPost.FileIds))
 
 		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 			FileIds: &model.StringArray{},
 		})
 		require.NoError(t, err)
@@ -6355,7 +6527,7 @@ func TestRestorePostVersion(t *testing.T) {
 		CheckCreatedStatus(t, response)
 
 		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -6389,7 +6561,7 @@ func TestRestorePostVersion(t *testing.T) {
 		CheckCreatedStatus(t, response)
 
 		patch, response, err := th.Client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -6429,7 +6601,7 @@ func TestRestorePostVersion(t *testing.T) {
 
 		// Patch via app layer to create edit history (bypasses API time limit check)
 		_, _, appErr = th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 		}, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
@@ -6472,7 +6644,7 @@ func TestRestorePostVersion(t *testing.T) {
 		// Remove file via app layer to create history entry that has the file
 		emptyFiles := model.StringArray{}
 		_, _, appErr = th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 			FileIds: &emptyFiles,
 		}, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
@@ -6922,7 +7094,7 @@ func TestBurnPost(t *testing.T) {
 		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(false)
+			cfg.ServiceSettings.EnableBurnOnRead = new(false)
 		})
 
 		_, resp, err := th.Client.RevealPost(context.Background(), post.Id)
@@ -7154,7 +7326,7 @@ func TestPatchCardPostByNonOwner(t *testing.T) {
 	// User 2 (non-owner, but channel member) patches the card
 	th.LoginBasic2(t)
 	patch := &model.PostPatch{
-		Message: model.NewPointer("patched by user2"),
+		Message: new("patched by user2"),
 	}
 	rpost, _, err := client.PatchPost(context.Background(), cardPost.Id, patch)
 	require.NoError(t, err)
@@ -7168,7 +7340,7 @@ func TestPatchCardPostByNonOwner(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.PostPatch{
-			Message: model.NewPointer("should fail"),
+			Message: new("should fail"),
 		}
 		_, resp, err := cli.PatchPost(context.Background(), cardPost.Id, patch)
 		require.Error(t, err)

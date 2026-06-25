@@ -8,6 +8,7 @@ import (
 	"hash/fnv"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -595,6 +596,35 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	return nil, fmt.Errorf("plugin not found: %v", id)
 }
 
+// HooksForPluginWithRPCErr returns the full *WithRPCErr hook surface for the named plugin.
+// Returns an error if the plugin is not found or not active.
+func (env *Environment) HooksForPluginWithRPCErr(id string) (HooksWithRPCErr, error) {
+	if p, ok := env.registeredPlugins.Load(id); ok {
+		rp := p.(registeredPlugin)
+		if rp.supervisor != nil && env.IsActive(id) {
+			return rp.supervisor.HooksWithRPCErr(), nil
+		}
+	}
+
+	return nil, fmt.Errorf("plugin not found: %v", id)
+}
+
+// HasPluginImplementing reports whether any active plugin implements hookId. Use this to avoid
+// expensive setup when no plugin will actually be called by RunMultiPluginHook.
+func (env *Environment) HasPluginImplementing(hookId int) bool {
+	found := false
+	env.registeredPlugins.Range(func(_, value any) bool {
+		rp := value.(registeredPlugin)
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+			return true
+		}
+		found = true
+		return false // stop on first match
+	})
+
+	return found
+}
+
 // RunMultiPluginHook invokes hookRunnerFunc for each active plugin that implements the given hookId.
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
@@ -626,9 +656,47 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks, mani
 	}
 }
 
+// RunMultiPluginHookExcluding is like RunMultiPluginHook but skips plugins whose IDs appear in
+// excludePluginIDs, otherwise the semantics are the same as RunMultiPluginHook. The exclusion check
+// is a linear scan.
+func (env *Environment) RunMultiPluginHookExcluding(
+	excludePluginIDs []string,
+	hookRunnerFunc func(hooks Hooks, manifest *model.Manifest) bool,
+	hookId int,
+) {
+	startTime := time.Now()
+
+	env.registeredPlugins.Range(func(key, value any) bool {
+		rp := value.(registeredPlugin)
+		id := rp.BundleInfo.Manifest.Id
+		if slices.Contains(excludePluginIDs, id) {
+			return true
+		}
+
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(id) {
+			return true
+		}
+
+		hookStartTime := time.Now()
+		cont := hookRunnerFunc(rp.supervisor.Hooks(), rp.BundleInfo.Manifest)
+
+		if env.metrics != nil {
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+			env.metrics.ObservePluginMultiHookIterationDuration(id, elapsedTime)
+		}
+
+		return cont
+	})
+
+	if env.metrics != nil {
+		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+		env.metrics.ObservePluginMultiHookDuration(elapsedTime)
+	}
+}
+
 // RunMultiPluginHookWithRPCErr is like RunMultiPluginHook but surfaces RPC transport errors. The
-// closure receives a HooksWithRPCErr so it can call *WithRPCErr variants. Iteration stops on the first
-// non-nil error returned by the closure.
+// closure receives a HooksWithRPCErr so it can call any *WithRPCErr variant. Iteration stops on the
+// first non-nil error returned by the closure.
 func (env *Environment) RunMultiPluginHookWithRPCErr(hookRunnerFunc func(hooks HooksWithRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
 	startTime := time.Now()
 	var retErr error

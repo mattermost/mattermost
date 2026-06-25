@@ -19,12 +19,12 @@ import (
 
 func genRateLimitSettings(useAuth, useIP bool, header string) *model.RateLimitSettings {
 	return &model.RateLimitSettings{
-		Enable:           model.NewPointer(true),
-		PerSec:           model.NewPointer(10),
-		MaxBurst:         model.NewPointer(100),
-		MemoryStoreSize:  model.NewPointer(10000),
-		VaryByRemoteAddr: model.NewPointer(useIP),
-		VaryByUser:       model.NewPointer(useAuth),
+		Enable:           new(true),
+		PerSec:           new(10),
+		MaxBurst:         new(100),
+		MemoryStoreSize:  new(10000),
+		VaryByRemoteAddr: new(useIP),
+		VaryByUser:       new(useAuth),
 		VaryByHeader:     header,
 	}
 }
@@ -44,7 +44,7 @@ func TestNewRateLimiterSuccess(t *testing.T) {
 func TestNewRateLimiterFailure(t *testing.T) {
 	mainHelper.Parallel(t)
 	invalidSettings := genRateLimitSettings(false, false, "")
-	invalidSettings.MaxBurst = model.NewPointer(-100)
+	invalidSettings.MaxBurst = new(-100)
 	rateLimiter, err := NewRateLimiter(invalidSettings, nil)
 	require.Nil(t, rateLimiter)
 	require.Error(t, err)
@@ -113,12 +113,12 @@ func TestGenerateKey_TrustedHeader(t *testing.T) {
 
 func genRateLimitSettingsWithBurst(useAuth, useIP bool, header string, perSec, maxBurst int) *model.RateLimitSettings {
 	return &model.RateLimitSettings{
-		Enable:           model.NewPointer(true),
-		PerSec:           model.NewPointer(perSec),
-		MaxBurst:         model.NewPointer(maxBurst),
-		MemoryStoreSize:  model.NewPointer(10000),
-		VaryByRemoteAddr: model.NewPointer(useIP),
-		VaryByUser:       model.NewPointer(useAuth),
+		Enable:           new(true),
+		PerSec:           new(perSec),
+		MaxBurst:         new(maxBurst),
+		MemoryStoreSize:  new(10000),
+		VaryByRemoteAddr: new(useIP),
+		VaryByUser:       new(useAuth),
 		VaryByHeader:     header,
 	}
 }

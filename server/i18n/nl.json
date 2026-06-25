@@ -6311,10 +6311,6 @@
     "translation": "CWS login is verboden."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Kan het aantal kanalen niet tellen."
-  },
-  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "We kunnen de kanalen typen niet tellen."
   },
@@ -7799,14 +7795,6 @@
     "translation": "Het functietype van de job die je probeert aan te maken is ongeldig"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Zorg ervoor dat jouw Amazon S3 bucket beschikbaar is, en controleer jouw bucketpermissies."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Kan geen verbinding maken met S3. Controleer je Amazon S3 verbindingsautorisatieparameters en authenticatie-instellingen."
-  },
-  {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Fout bij het resetten van AuthData veld naar e-mail."
   },
@@ -8212,10 +8200,6 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "E-mail instellingen heeft niet-ingestelde waarden."
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Instellingen voor bestandsopslag heeft niet-ingestelde waarden."
   },
   {
     "id": "model.member.is_valid.emails.app_error",
@@ -10024,38 +10008,6 @@
     "translation": "Kan geen map maken voor aangepaste emoji-afbeeldingen"
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Kan de eigenschapgroep Gebruikersattributen niet ophalen."
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Kan gebruikersattribuutveld niet krijgen"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Gebruikersattributen veldlimiet bereikt"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Kan gebruikersattribuutveld niet verwijderen"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Kan de waarden van gebruikersattributen niet ophalen"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Gebruikersattribuutveld niet gevonden"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Kan gebruikersattribuutveld niet bijwerken"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Niet in velden met gebruikersattributen kunnen zoeken"
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Het is niet gelukt de gevraagde bestanden uit de database te verwijderen"
   },
@@ -10124,10 +10076,6 @@
     "translation": "Kon geen zip-bestandslezer vinden."
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Je licentie ondersteunt geen gebruikersattributen."
-  },
-  {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
     "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
   },
@@ -10154,14 +10102,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Sessie niet gevonden."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Kan het aantal velden voor de groep Gebruikersattributen niet tellen"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Kan gebruikersattribuutvelden niet upsertten"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10232,10 +10172,6 @@
     "translation": "Kan het eigenschapveld niet converteren naar een gebruikersattribuutveld"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Ongeldige eigenschap waarde attributen : {{.AttributeName}} ({{.Reason}})."
-  },
-  {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "ongeldige patch van gebruikersattribuutveld"
   },
@@ -10278,14 +10214,6 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} moet een prefix zijn van IndexPrefix {{.IndexPrefix}}."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Kan waarden van gebruikersattributen voor gebruiker niet verwijderen"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Fout bij het valideren van de waarde van de eigenschap"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
@@ -10374,10 +10302,6 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "Een probleem melden mail is vereist."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Kan waarde voor een gesynchroniseerd veld van gebruikersattributen niet bijwerken"
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -10692,10 +10616,6 @@
     "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Kan de waarde van een door de beheerder beheerd veld met gebruikersattributen niet bijwerken"
-  },
-  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Er is een fout opgetreden bij het decoderen van de JSON respons van het interactief dialoogvenster voor opzoeken."
   },
@@ -10882,10 +10802,6 @@
   {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "De AI-gegenereerde gebruiker moet de maker van het bericht of een bot zijn."
-  },
-  {
-    "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Kan gebruikersattribuutveld niet patchen"
   },
   {
     "id": "app.post.rewrite.agent_call_failed",
@@ -12044,10 +11960,6 @@
     "translation": "Je hebt geen toestemming om dit eigenschapveld te verwijderen."
   },
   {
-    "id": "api.property_field.delete.protected_via_api.app_error",
-    "translation": "Kan een beschermd eigenschapveld niet verwijderen via API."
-  },
-  {
     "id": "api.property_field.get.invalid_target_type.app_error",
     "translation": "Een geldig target_type (systeem, team of kanaal) is vereist."
   },
@@ -12076,10 +11988,6 @@
     "translation": "Je hebt geen rechten om opties voor dit eigenschapveld te beheren."
   },
   {
-    "id": "api.property_field.update.protected_via_api.app_error",
-    "translation": "Kan een beschermd eigenschapveld niet bijwerken via API."
-  },
-  {
     "id": "api.property_value.invalid_object_type.app_error",
     "translation": "Het opgegeven objecttype is ongeldig."
   },
@@ -12102,10 +12010,6 @@
   {
     "id": "api.property_value.patch.too_many_items.request_error",
     "translation": "Zoveel waarden van eigenschappen kunnen niet worden bijgewerkt. Alleen {{.Max}} waarden van eigenschappen kunnen in één keer worden bijgewerkt."
-  },
-  {
-    "id": "api.property_value.target_user.forbidden.app_error",
-    "translation": "Je hebt geen toegang tot de waarden van eigenschappen van een andere gebruiker."
   },
   {
     "id": "api.templates.license_need_help.info",
@@ -12188,10 +12092,6 @@
     "translation": "Kanaalarchief afgekeurd door plugin: {{.Reason}}"
   },
   {
-    "id": "app.custom_profile_attributes.get_property_value.app_error",
-    "translation": "Kan waarde van gebruikersattribuut niet krijgen"
-  },
-  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "Er bestaat al een beleid met deze naam. Kies een andere naam."
   },
@@ -12246,10 +12146,6 @@
   {
     "id": "app.property_field.get_many.app_error",
     "translation": "Kan eigenschap veld niet krijgen."
-  },
-  {
-    "id": "app.property_field.get_many.fields_not_found.app_error",
-    "translation": "Een of meer veld-ID's van de eigenschap zijn niet gevonden in de opgegeven groep."
   },
   {
     "id": "app.property_field.invalid_input.app_error",
@@ -12548,10 +12444,6 @@
     "translation": "Je hebt niet de vereiste toegang om bestanden te uploaden naar dit kanaal."
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Beheerde kanaalcategorieën zijn niet beschikbaar."
-  },
-  {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
     "translation": "FileInfo.CreatorId is vereist."
   },
@@ -12670,5 +12562,17 @@
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
     "translation": "Scope ID kan niet worden ingesteld zonder scope."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "De functie voor machtigingsbeleid op kanaalniveau is niet ingeschakeld."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Functie voor beleidsimulatie is niet ingeschakeld."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Alle gebruikers in de simulatie moeten lid zijn van het team of het kanaal in het verzoek."
   }
 ]

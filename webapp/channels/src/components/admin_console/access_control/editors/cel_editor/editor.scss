@@ -1,6 +1,24 @@
 .cel-editor {
     margin-bottom: 24px;
 
+    &__masked-banner {
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+        gap: 8px;
+        line-height: 20px;
+
+        .icon {
+            color: var(--dnd-indicator);
+            font-size: 18px;
+        }
+    }
+
     &__container {
         position: relative;
         display: flex;

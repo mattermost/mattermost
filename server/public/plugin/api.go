@@ -510,6 +510,26 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
+	// RegisterChannelGuard claims the channel for this plugin, signaling to the server that the
+	// channel has plugin-managed semantics and that the server's default behaviors are unsafe
+	// without plugin involvement.
+	//
+	// The calling plugin's ID is implicit. Multiple plugins may co-guard the same channel; each
+	// claim is an independent row. Subsequent calls from the same plugin are idempotent; calls from
+	// a different plugin add a new claim.
+	//
+	// @tag Channel
+	// Minimum server version: 11.9
+	RegisterChannelGuard(channelID string) *model.AppError
+
+	// UnregisterChannelGuard releases this plugin's claim on the channel. Only the registering
+	// plugin can unregister its own claim; other plugins' claims on the same channel are
+	// unaffected.
+	//
+	// @tag Channel
+	// Minimum server version: 11.9
+	UnregisterChannelGuard(channelID string) *model.AppError
+
 	// SearchChannels returns the channels on a team matching the provided search term.
 	//
 	// @tag Channel

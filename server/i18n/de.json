@@ -6287,10 +6287,6 @@
     "translation": "Konnte die Kanäle nicht nach IDs abrufen."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Konnte die Anzahl der Kanäle nicht laden."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Es trat ein Fehler beim Aktualisieren des Teams auf."
   },
@@ -6845,14 +6841,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Bevor- und Danach-Parameter für getThreadsForUser schließen sich gegenseitig aus"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Stelle sicher, dass dein Amazon S3 Bucket verfügbar ist und prüfe deine Bucket Berechtigungen."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Kann nicht zu S3 verbinden. Prüfe deine Amazon S3 Autorisierungsparameter und Authentifizierungseinstellungen."
   },
   {
     "id": "api.file.file_reader.app_error",
@@ -8208,10 +8196,6 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Kann die Dateianzahl für den Kanal nicht holen"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Dateispeicher-Einstellungen haben ungesetzte Werte."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
@@ -10012,38 +9996,6 @@
     "translation": "Verzeichnis für benutzerdefinierte Emoji-Bilder kann nicht erstellt werden"
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Die Eigenschaftsgruppe der benutzerdefinierten Profilattribute kann nicht abgerufen werden."
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht abgerufen werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Feldgrenze für benutzerdefinierte Profilattribute erreicht"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Benutzerdefinierte Profilattributwerte können nicht abgerufen werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht gelöscht werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld nicht gefunden"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Benutzerdefinierte Profilattributfelder können nicht durchsucht werden"
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Die angeforderten Dateien konnten nicht aus der Datenbank entfernt werden"
   },
@@ -10104,10 +10056,6 @@
     "translation": "Ungültiger Eigenschaftswert: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Deine Lizenz unterstützt keine benutzerdefinierten Profilattribute."
-  },
-  {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Es ist nicht möglich, einen Zip-Datei-Leser zu bekommen."
   },
@@ -10142,14 +10090,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Sitzung nicht gefunden."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Benutzerdefinierte Profilattributfelder können nicht hochgeladen werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Die Anzahl der Felder für die Attributgruppe des benutzerdefinierten Profils kann nicht gezählt werden"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10220,10 +10160,6 @@
     "translation": "Das Eigenschaftsfeld kann nicht in ein benutzerdefiniertes Profilattributfeld umgewandelt werden"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Ungültige Eigenschaftswertattribute : {{.AttributeName}} ({{.Reason}})."
-  },
-  {
     "id": "model.access_policy.is_valid.name.app_error",
     "translation": "Ungültiger Name für die Richtlinie."
   },
@@ -10268,16 +10204,8 @@
     "translation": "IndexPrefix kann nicht leer sein, wenn GlobalSearchPrefix gesetzt ist."
   },
   {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Validierung des Eigenschaftswertes fehlgeschlagen"
-  },
-  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "CPA-Felder konnten nicht abgerufen werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Benutzerdefinierte Profilattributwerte für den Benutzer können nicht gelöscht werden"
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
@@ -10362,10 +10290,6 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "\"Melde ein Problem\"-Mail ist erforderlich."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Wert für ein synchronisiertes benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -10680,10 +10604,6 @@
     "translation": "Das Verstecken von archivierten Kanälen wird nicht mehr unterstützt. Mache diese Kanäle stattdessen privat und entferne Mitglieder."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Wert für ein vom Administrator verwaltetes benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
-  },
-  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Bei der Dekodierung der JSON-Antwort von der interaktiven Dialogsuche ist ein Fehler aufgetreten."
   },
@@ -10870,10 +10790,6 @@
   {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "Der KI-generierte Nutzer muss entweder der Ersteller des Beitrags oder ein Bot sein."
-  },
-  {
-    "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht gepatcht werden"
   },
   {
     "id": "app.post.rewrite.agent_call_failed",
