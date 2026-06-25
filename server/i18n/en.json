@@ -2057,6 +2057,10 @@
     "translation": "Unable to seek to file start."
   },
   {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Unable to create emoji. Animated GIF must have at most {{.MaxFrames}} frames."
+  },
+  {
     "id": "api.error_get_first_admin_complete_setup",
     "translation": "Error trying to retrieve first admin complete setup from the store."
   },
