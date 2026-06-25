@@ -45,8 +45,6 @@ Other install guides:
 - [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
 - [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
 - [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
-- [Debian Buster](https://docs.mattermost.com/install/install-debian.html)
-- [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
 - [More server install guides](https://docs.mattermost.com/guides/deployment.html)
 
 ## Native mobile and desktop apps
