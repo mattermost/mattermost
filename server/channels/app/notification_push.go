@@ -87,6 +87,10 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 		return appErr
 	}
 
+	if a.shouldTrackDelivery(channel, post) {
+		a.RecordPostDelivery(user.Id, post.Id, model.DeliveryTargetUser, model.DeliveryMechPush)
+	}
+
 	return a.sendPushNotificationToAllSessions(rctx, msg, user.Id, "")
 }
 

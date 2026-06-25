@@ -301,6 +301,13 @@ func NewServer(options ...Option) (*Server, error) {
 	// After channel is initialized set it to the App object
 	app := New(ServerConnector(channels))
 
+	// Wire post-delivery recording so the websocket hub (platform layer, which
+	// has no audit access) can record deliveries through the app's audit logger.
+	// The hub no-ops recording until this is set, so wiring it after Start is safe.
+	s.platform.SetPostDeliveryRecorder(func(postID string, userIDs []string) {
+		app.RecordPostDeliveryFanOut(postID, userIDs, model.DeliveryTargetUser, model.DeliveryMechProduct)
+	})
+
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
 	// s.ch for plugin-status and permission lookups; registering them

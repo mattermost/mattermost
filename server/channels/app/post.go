@@ -397,11 +397,21 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// Skip plugin hooks for burn-on-read posts
 	if rpost.Type != model.PostTypeBurnOnRead {
 		pluginPost := rpost.ForPlugin()
+		trackPluginDelivery := a.shouldTrackDelivery(channel, rpost)
 		a.Srv().Go(func() {
-			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			var pluginIDs []string
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
+				if trackPluginDelivery && manifest != nil {
+					pluginIDs = append(pluginIDs, manifest.Id)
+				}
 				return true
 			}, plugin.MessageHasBeenPostedID)
+			// One fan-out record: the post was delivered to each plugin that
+			// received the hook. The target is the plugin (its id), not a user.
+			if len(pluginIDs) > 0 {
+				a.RecordPostDeliveryFanOut(pluginPost.Id, pluginIDs, model.DeliveryTargetPlugin, model.DeliveryMechPlugin)
+			}
 		})
 	}
 

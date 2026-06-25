@@ -98,6 +98,12 @@ type Hub struct {
 
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
+
+	// deliveryRecorded is a reusable dedup set for post-delivery tracking,
+	// cleared and refilled per tracked broadcast. Safe to reuse without
+	// synchronization because Start() processes broadcasts on a single
+	// goroutine. Only the slice handed to the recorder is freshly allocated.
+	deliveryRecorded map[string]struct{}
 }
 
 // newWebHub creates a new Hub.
@@ -535,6 +541,97 @@ func (h *Hub) Stop() {
 }
 
 // Start starts the hub.
+// processBroadcast fans a single broadcast out to the connections this hub owns.
+// It also records post deliveries when the broadcast carries a
+// RecordPostDeliveryID: each user actually enqueued to (passing ShouldSendEvent
+// and accepted by the send queue) is collected and recorded once after fan-out.
+// Recording the served set — not the channel membership — keeps offline and
+// filtered users out of the delivery data.
+func (h *Hub) processBroadcast(connIndex *hubConnectionIndex, msg *model.WebSocketEvent) {
+	// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
+	msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
+
+	msg = msg.PrecomputeJSON()
+
+	var recorded map[string]struct{}
+	if postID := msg.GetBroadcast().RecordPostDeliveryID; postID != "" && h.platform.postDeliveryRecorder != nil {
+		if h.deliveryRecorded == nil {
+			h.deliveryRecorded = make(map[string]struct{})
+		}
+		recorded = h.deliveryRecorded
+		clear(recorded)
+		defer h.flushPostDeliveries(postID, recorded)
+	}
+
+	broadcast := func(webConn *WebConn) {
+		if !connIndex.Has(webConn) {
+			return
+		}
+		if webConn.ShouldSendEvent(msg) {
+			select {
+			case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
+				if recorded != nil && webConn.UserId != "" {
+					recorded[webConn.UserId] = struct{}{}
+				}
+			default:
+				// Don't log the warning if it's an inactive connection.
+				if webConn.Active.Load() {
+					mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+						mlog.String("user_id", webConn.UserId),
+						mlog.String("conn_id", webConn.GetConnectionID()))
+				}
+				closeAndRemoveConn(connIndex, webConn)
+			}
+		}
+	}
+
+	// Quick return for a single connection.
+	if webConn := connIndex.ForConnection(msg.GetBroadcast().ConnectionId); webConn != nil {
+		broadcast(webConn)
+		return
+	}
+
+	fastIteration := *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration
+	var targetConns iter.Seq[*WebConn]
+	if userID := msg.GetBroadcast().UserId; userID != "" {
+		targetConns = connIndex.ForUser(userID)
+	} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
+		targetConns = connIndex.ForChannel(channelID)
+	}
+	if targetConns != nil {
+		for webConn := range targetConns {
+			broadcast(webConn)
+		}
+		return
+	}
+
+	// There are multiple hubs in a system. So while supporting both channel based iteration and the old
+	// method, there would be events scoped to a channel being sent to multiple hubs. And only one hub would
+	// have the targetConns. Therefore, we need to stop here if channel based iteration is enabled, and it's a
+	// channel-scoped event.
+	if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
+		return
+	}
+
+	for webConn := range connIndex.All() {
+		broadcast(webConn)
+	}
+}
+
+// flushPostDeliveries hands the served user set to the recorder as a freshly
+// allocated slice. The slice must be owned by the record (not the reusable
+// dedup map) because the audit target reads it on another goroutine.
+func (h *Hub) flushPostDeliveries(postID string, recorded map[string]struct{}) {
+	if len(recorded) == 0 {
+		return
+	}
+	userIDs := make([]string, 0, len(recorded))
+	for uid := range recorded {
+		userIDs = append(userIDs, uid)
+	}
+	h.platform.postDeliveryRecorder(postID, userIDs)
+}
+
 func (h *Hub) Start() {
 	var doStart func()
 	var doRecoverableStart func()
@@ -716,62 +813,7 @@ func (h *Hub) Start() {
 				if metrics := h.platform.metricsIFace; metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
-
-				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
-				msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
-
-				msg = msg.PrecomputeJSON()
-
-				broadcast := func(webConn *WebConn) {
-					if !connIndex.Has(webConn) {
-						return
-					}
-					if webConn.ShouldSendEvent(msg) {
-						select {
-						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
-						default:
-							// Don't log the warning if it's an inactive connection.
-							if webConn.Active.Load() {
-								mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
-									mlog.String("user_id", webConn.UserId),
-									mlog.String("conn_id", webConn.GetConnectionID()))
-							}
-							closeAndRemoveConn(connIndex, webConn)
-						}
-					}
-				}
-
-				// Quick return for a single connection.
-				if webConn := connIndex.ForConnection(msg.GetBroadcast().ConnectionId); webConn != nil {
-					broadcast(webConn)
-					continue
-				}
-
-				fastIteration := *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration
-				var targetConns iter.Seq[*WebConn]
-				if userID := msg.GetBroadcast().UserId; userID != "" {
-					targetConns = connIndex.ForUser(userID)
-				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
-					targetConns = connIndex.ForChannel(channelID)
-				}
-				if targetConns != nil {
-					for webConn := range targetConns {
-						broadcast(webConn)
-					}
-					continue
-				}
-
-				// There are multiple hubs in a system. So while supporting both channel based iteration and the old
-				// method, there would be events scoped to a channel being sent to multiple hubs. And only one hub would
-				// have the targetConns. Therefore, we need to stop here if channel based iteration is enabled, and it's a
-				// channel-scoped event.
-				if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
-					continue
-				}
-
-				for webConn := range connIndex.All() {
-					broadcast(webConn)
-				}
+				h.processBroadcast(connIndex, msg)
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()

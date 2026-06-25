@@ -340,6 +340,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -420,6 +422,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		c.Err = err
 		return
 	}
+
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
 
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
@@ -523,6 +527,8 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+
 	auditRec := c.MakeAuditRecord(model.AuditEventGetFlaggedPosts, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
@@ -569,6 +575,10 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if !post.IsSystemMessage() {
+		c.App.RecordPostDelivery(c.AppContext.Session().UserId, post.Id, model.DeliveryTargetUser, model.DeliveryMechProduct)
 	}
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
@@ -650,6 +660,8 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
+
+	c.App.RecordPostsDelivery(c.AppContext.Session().UserId, posts, model.DeliveryMechProduct)
 
 	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
@@ -899,6 +911,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
@@ -1006,6 +1020,8 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
 		}
 	}
+
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "search_results", results)

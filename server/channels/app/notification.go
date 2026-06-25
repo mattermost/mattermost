@@ -695,6 +695,14 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	message.Add("team_id", team.Id)
 	message.Add("set_online", setOnline)
 
+	// Tag this broadcast so the hub records a Product-mechanism delivery for each
+	// user it actually sends to (see WebsocketBroadcast.RecordPostDeliveryID).
+	// We record the served set rather than the channel membership, so offline and
+	// filtered-out users are never counted.
+	if a.shouldTrackDelivery(channel, post) {
+		message.GetBroadcast().RecordPostDeliveryID = post.Id
+	}
+
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
 
