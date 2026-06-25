@@ -178,6 +178,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(await screen.findByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
 
         // ...and the editor stays open with every previously entered value intact.
+        expect(screen.getByTestId('permissions-policy-editor')).toBeInTheDocument();
         expect(screen.getByTestId('table-editor-value')).toHaveTextContent(EXPRESSION);
         expect(within(screen.getByTestId('permissions-policy-editor-role')).getByText('Channel admin')).toBeInTheDocument();
         expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
@@ -197,5 +198,56 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(await screen.findByText('Block uploads')).toBeInTheDocument();
         expect(screen.getByText('2 permissions')).toBeInTheDocument();
         expect(screen.queryByTestId('permissions-policy-editor')).not.toBeInTheDocument();
+    });
+
+    test('reseeds defaults when the new-rule editor is reopened after cancel', async () => {
+        await openNewRuleEditorWithFields();
+
+        // Abandon the half-filled draft.
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-cancel'));
+
+        // Reopen the new-rule editor.
+        await userEvent.click(await screen.findByTestId('permissions-policy-add-rule'));
+        await screen.findByTestId('table-editor');
+
+        // A fresh editor shows defaults, not the abandoned draft.
+        expect(screen.getByTestId('table-editor-value')).toBeEmptyDOMElement();
+        expect(within(screen.getByTestId('permissions-policy-editor-role')).getByText('Channel member')).toBeInTheDocument();
+        expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+        expect(screen.queryByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`)).not.toBeInTheDocument();
+    });
+
+    test('preserves in-progress edits to an existing rule when validation fails', async () => {
+        // Seed an existing permission rule so the non-404 load branch and the
+        // edit path are exercised.
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                rules: [{
+                    name: 'Existing rule',
+                    role: 'channel_user',
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.team == "eng"',
+                }],
+            },
+        });
+
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+        // Open the existing rule from the list.
+        await userEvent.click(await screen.findByText('Existing rule'));
+        await screen.findByTestId('table-editor');
+
+        // Make an in-progress edit, then clear the name to fail validation.
+        const newExpression = 'user.attributes.team == "ops"';
+        act(() => {
+            latestTableEditorProps().onChange(newExpression);
+        });
+        await userEvent.clear(screen.getByTestId('permissions-policy-editor-name'));
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        // Error surfaces, editor stays open, and the in-progress edit survives.
+        expect(await screen.findByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
+        expect(screen.getByTestId('permissions-policy-editor')).toBeInTheDocument();
+        expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
     });
 });
