@@ -39,6 +39,7 @@ SEE ALSO
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl system clearbusy <mmctl_system_clearbusy.rst>`_ 	 - Clears the busy state
 * `mmctl system getbusy <mmctl_system_getbusy.rst>`_ 	 - Get the current busy state
+* `mmctl system nuke <mmctl_system_nuke.rst>`_ 	 - Destructive operations that permanently delete data
 * `mmctl system setbusy <mmctl_system_setbusy.rst>`_ 	 - Set the busy state to true
 * `mmctl system status <mmctl_system_status.rst>`_ 	 - Prints the status of the server
 * `mmctl system supportpacket <mmctl_system_supportpacket.rst>`_ 	 - Download a Support Packet

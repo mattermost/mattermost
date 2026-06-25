@@ -5217,7 +5217,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Ліцензію Mattermost Enterprise вимкнено."
+    "translation": "Термін дії вашої ліцензії на {{.SkuName}} закінчився"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7400,10 +7400,6 @@
     "translation": "Не вдалося завантажити файл. Неправильний ідентифікатор каналу: {{.channelId}}"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Налаштування файлового сховища містять незаповнені значення."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "Канал, вказаний у запиті, не належить користувачеві"
   },
@@ -7713,7 +7709,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Ваша ліцензія підлягає продовженню"
+    "translation": "Термін дії вашої ліцензії на {{.SkuName}} добігає кінця"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.title",
@@ -7805,7 +7801,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, термін дії вашої підписки закінчується через {{.Days}} днів. Ми сподіваємося, що ви насолоджуєтесь гнучкою та безпечною командною співпрацею, яку забезпечує Mattermost. Поновіть свою підписку якнайшвидше, щоб ваша команда могла продовжувати користуватися цими перевагами."
+    "translation": "Термін дії вашої ліцензії {{.SkuName}} для <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> закінчується через {{.Days}} днів. Сподіваємося, вам подобається безпечна та надзвичайно важлива для роботи співпраця, яку забезпечує Mattermost."
   },
   {
     "id": "api.templates.license_up_for_renewal_title",

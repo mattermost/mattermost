@@ -1383,8 +1383,8 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
-			if nErr = a.Srv().Store().Channel().RemoveMember(rctx, channel.Id, user.Id); nErr != nil {
-				return model.NewAppError("LeaveTeam", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
+				return appErr
 			}
 		}
 	}

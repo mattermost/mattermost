@@ -8208,10 +8208,6 @@
     "translation": "Parametry OnlyThreads i OnlyTotals funkcji getThreadsForUser wzajemnie się wykluczają"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Ustawienia przechowywania plików nie mają ustawionych wartości."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "W ustawieniach poczty e-mail nie ustawiono wartości."
   },

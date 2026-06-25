@@ -32,6 +32,37 @@ describe('parseExpression', () => {
         ]);
     });
 
+    test.each([
+        ['==', 'is exactly'],
+        ['>=', 'is at least'],
+        ['>', 'is greater than'],
+        ['<=', 'is at most'],
+        ['<', 'is less than'],
+        ['!=', 'is not'],
+    ])('maps ranked operator %s to "%s"', (celOp, label) => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.clearance',
+                    operator: celOp,
+                    value: 'Secret',
+                    value_type: 0,
+                    attribute_type: 'rank',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'clearance',
+                operator: label,
+                values: ['Secret'],
+                attribute_type: 'rank',
+                hasMaskedValues: false,
+            },
+        ]);
+    });
+
     test('handles "in" operator with multiple values', () => {
         const ast: AccessControlVisualAST = {
             conditions: [
@@ -478,6 +509,36 @@ describe('rowToCEL', () => {
         expect(cel).toBe('user.attributes.team == "O\'Brien\'s \\"Team\\""');
     });
 
+    // --- Ranked attribute comparison operators ---
+
+    test.each([
+        ['is exactly', '=='],
+        ['is at least', '>='],
+        ['is greater than', '>'],
+        ['is at most', '<='],
+        ['is less than', '<'],
+    ])('ranked operator %s produces "attr %s value" comparison', (operator, celOp) => {
+        const cel = rowToCEL({
+            attribute: 'clearance',
+            operator,
+            values: ['Secret'],
+            attribute_type: 'rank',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe(`user.attributes.clearance ${celOp} "Secret"`);
+    });
+
+    test('ranked "is not" produces inequality comparison', () => {
+        const cel = rowToCEL({
+            attribute: 'clearance',
+            operator: 'is not',
+            values: ['Secret'],
+            attribute_type: 'rank',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.attributes.clearance != "Secret"');
+    });
+
     // --- Masking-related tests ---
 
     test('fully-masked row (hasMaskedValues=true, values=[]) emits "in []" placeholder regardless of operator', () => {
@@ -596,7 +657,17 @@ describe('isSimpleCondition', () => {
         expect(isSimpleCondition('user.attributes.desc.contains("important")')).toBe(true);
     });
 
+    test.each(['>=', '>', '<=', '<'])('ranked comparison %s against a quoted value is simple', (op) => {
+        expect(isSimpleCondition(`user.attributes.clearance ${op} "Secret"`)).toBe(true);
+    });
+
     test('rejects function calls', () => {
         expect(isSimpleCondition('size(user.attributes.roles) > 0')).toBe(false);
+    });
+
+    test('rejects comparison against an unquoted numeric value', () => {
+        // Guards the ranked-operator regex change: `size(...) > 0` style
+        // numeric comparisons must still fall through to advanced mode.
+        expect(isSimpleCondition('user.attributes.count > 0')).toBe(false);
     });
 });
