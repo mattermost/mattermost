@@ -73,6 +73,56 @@ describe('translateMMBlocks interactive blocks', () => {
         }]);
     });
 
+    it('omits collapsed on collapsible blocks when the field is absent', () => {
+        expect(translateMMBlocks([
+            {
+                type: 'collapsible',
+                header: [{type: 'text', text: 'Header'}],
+                content: [{type: 'text', text: 'Body'}],
+            },
+        ])).toEqual([{
+            type: 'collapsible',
+            header: [{type: 'text', text: 'Header'}],
+            content: [{type: 'text', text: 'Body'}],
+        }]);
+    });
+
+    it('preserves explicit collapsed values on collapsible blocks', () => {
+        expect(translateMMBlocks([
+            {
+                type: 'collapsible',
+                collapsed: true,
+                header: [{type: 'text', text: 'Header'}],
+                content: [{type: 'text', text: 'Body'}],
+            },
+            {
+                type: 'collapsible',
+                collapsed: false,
+                header: [{type: 'text', text: 'Open header'}],
+                content: [{type: 'text', text: 'Open body'}],
+            },
+            {
+                type: 'collapsible',
+                collapsed: 'not-a-boolean',
+                header: [{type: 'text', text: 'Bad header'}],
+                content: [{type: 'text', text: 'Bad body'}],
+            },
+        ])).toEqual([
+            {
+                type: 'collapsible',
+                collapsed: true,
+                header: [{type: 'text', text: 'Header'}],
+                content: [{type: 'text', text: 'Body'}],
+            },
+            {
+                type: 'collapsible',
+                collapsed: false,
+                header: [{type: 'text', text: 'Open header'}],
+                content: [{type: 'text', text: 'Open body'}],
+            },
+        ]);
+    });
+
     it('accepts column_set gap and rejects invalid gap values', () => {
         expect(translateMMBlocks([
             {

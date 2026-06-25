@@ -599,16 +599,16 @@ function translateCollapsibleBlock(raw: Record<string, unknown>): MmCollapsibleB
     if (header.length === 0 || content.length === 0) {
         return null;
     }
-    const collapsed = asBoolean(raw.collapsed);
-    if (raw.collapsed !== undefined && collapsed === undefined) {
-        return null;
-    }
     const out: MmCollapsibleBlock = {
         type: 'collapsible',
         header,
         content,
     };
-    if (collapsed !== undefined) {
+    if (raw.collapsed !== undefined) {
+        const collapsed = asBoolean(raw.collapsed);
+        if (collapsed === undefined) {
+            return null;
+        }
         out.collapsed = collapsed;
     }
     return out;

@@ -109,6 +109,23 @@ describe('BlockSwitch', () => {
         expect(container.querySelector('.mm-blocks-column-set--gap-medium')).not.toBeInTheDocument();
     });
 
+    it('defaults collapsible to collapsed when collapsed is omitted', () => {
+        renderWithContext(
+            <BlockSwitch
+                block={{
+                    type: 'collapsible',
+                    header: [{type: 'text', text: 'Header line'}],
+                    content: [{type: 'text', text: 'Hidden body'}],
+                }}
+                postId='post-collapse-default'
+                onAction={onAction}
+            />,
+        );
+
+        expect(screen.getByRole('button', {expanded: false})).toBeInTheDocument();
+        expect(document.getElementById('mm-blocks-collapsible-content-post-collapse-default')).toHaveAttribute('aria-hidden', 'true');
+    });
+
     it('toggles collapsible content on header click', async () => {
         const user = userEvent.setup();
         renderWithContext(
