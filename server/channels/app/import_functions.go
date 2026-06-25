@@ -2180,8 +2180,15 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	newChannelMembers := make([]*model.ChannelMember, 0)
 	for _, member := range data.Participants {
+		u := userMap[strings.ToLower(*member.Username)]
+		// Default scheme flags so that imports omitting them still produce a
+		// usable role on the resulting channel member, matching the regular
+		// user-channel import path. Explicit values in the import data still
+		// override these defaults below.
 		m := &model.ChannelMember{
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: u.IsGuest(),
+			SchemeUser:  !u.IsGuest(),
 		}
 		if member.LastViewedAt != nil {
 			m.LastViewedAt = *member.LastViewedAt
@@ -2249,7 +2256,6 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 			}
 		}
 
-		u := userMap[strings.ToLower(*member.Username)]
 		if existing, ok := existingMembers[u.Id]; ok {
 			// Decide which membership is newer. We have LastViewedAt in the import data, which should
 			// give us a good idea of which membership is newer.

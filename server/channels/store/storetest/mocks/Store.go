@@ -516,6 +516,36 @@ func (_m *Store) GetDbVersion(numerical bool) (string, error) {
 	return r0, r1
 }
 
+// GetDiagnostics provides a mock function with given fields: ctx
+func (_m *Store) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDiagnostics")
+	}
+
+	var r0 *store.DatabaseDiagnostics
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (*store.DatabaseDiagnostics, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) *store.DatabaseDiagnostics); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.DatabaseDiagnostics)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetInternalMasterDB provides a mock function with no fields
 func (_m *Store) GetInternalMasterDB() *sql.DB {
 	ret := _m.Called()
@@ -607,36 +637,6 @@ func (_m *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, erro
 
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetDiagnostics provides a mock function with given fields: ctx
-func (_m *Store) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
-	ret := _m.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetDiagnostics")
-	}
-
-	var r0 *store.DatabaseDiagnostics
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*store.DatabaseDiagnostics, error)); ok {
-		return rf(ctx)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context) *store.DatabaseDiagnostics); ok {
-		r0 = rf(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.DatabaseDiagnostics)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1229,6 +1229,26 @@ func (_m *Store) Session() store.SessionStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.SessionStore)
+		}
+	}
+
+	return r0
+}
+
+// SessionAttribute provides a mock function with no fields
+func (_m *Store) SessionAttribute() store.SessionAttributeStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionAttribute")
+	}
+
+	var r0 store.SessionAttributeStore
+	if rf, ok := ret.Get(0).(func() store.SessionAttributeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SessionAttributeStore)
 		}
 	}
 

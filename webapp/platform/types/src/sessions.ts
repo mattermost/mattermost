@@ -16,4 +16,4 @@ export type Session = {
     props: Record<string, any>;
     team_members: TeamMembership[];
     local: boolean;
-}
+};

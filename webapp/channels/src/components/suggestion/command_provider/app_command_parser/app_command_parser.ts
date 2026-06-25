@@ -867,7 +867,7 @@ export class AppCommandParser {
     private rootPostID?: string;
     private intl: IntlShape;
 
-    constructor(store: Store|null, intl: IntlShape, channelID: string, teamID = '', rootPostID = '') {
+    constructor(store: Store | null, intl: IntlShape, channelID: string, teamID = '', rootPostID = '') {
         this.store = store || getStore();
         this.channelID = channelID;
         this.rootPostID = rootPostID;

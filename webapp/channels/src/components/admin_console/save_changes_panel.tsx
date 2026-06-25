@@ -18,9 +18,9 @@ type Props = {
     isDisabled?: boolean;
     savingMessage?: string;
 } & (
-    | {cancelLink: string; onCancel?: never}
-    | {cancelLink?: never; onCancel: () => void}
-    | {cancelLink?: never; onCancel?: never}
+    {cancelLink: string; onCancel?: never} |
+    {cancelLink?: never; onCancel: () => void} |
+    {cancelLink?: never; onCancel?: never}
 ); // allow a cancelLink or an onCancel handler, or neither
 
 const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {

@@ -826,6 +826,87 @@ func TestS3TestConnection(t *testing.T) {
 	})
 }
 
+func TestFileStoreTestConnection(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CloudDedicatedExportUI = true
+		cfg.FileSettings.DedicatedExportStore = model.NewPointer(true)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+	baseSettings := func(primary, export string) model.FileSettings {
+		fs := model.FileSettings{}
+		fs.SetDefaults(false)
+		fs.DriverName = model.NewPointer(primary)
+		fs.ExportDriverName = model.NewPointer(export)
+		return fs
+	}
+
+	t.Run("primary=local, export=azure: missing ExportAzureContainer surfaces azure error", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverLocal, model.ImageDriverAzure)
+		fs.ExportAzureStorageAccount = model.NewPointer("acmemattermost")
+		fs.ExportAzureAccessKey = model.NewPointer("secret")
+		fs.ExportAzureContainer = model.NewPointer("")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("primary=s3, export=azure: missing ExportAzureStorageAccount surfaces azure error", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverS3, model.ImageDriverAzure)
+		fs.ExportAzureStorageAccount = model.NewPointer("")
+		fs.ExportAzureContainer = model.NewPointer("mattermost")
+		fs.ExportAzureAccessKey = model.NewPointer("secret")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("primary=local, export=s3: missing ExportAmazonS3Bucket surfaces s3 error", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverLocal, model.ImageDriverS3)
+		fs.ExportAmazonS3Bucket = model.NewPointer("")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_s3.missing_s3_bucket")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("unsupported export driver", func(t *testing.T) {
+		fs := baseSettings(model.ImageDriverS3, "bogus")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("no license - primary dispatch", func(t *testing.T) {
+		// No license is set, so UseExportFileStore() must return false. Set an
+		// ExportDriverName that, if it were honored, would change the dispatch
+		// outcome -- this asserts that the primary path is taken.
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		fs := baseSettings(model.ImageDriverAzure, model.ImageDriverS3)
+
+		// fs.AzureStorageAccount = model.NewPointer("")
+		// fs.AzureContainer = model.NewPointer("mattermost")
+		// fs.AzureAccessKey = model.NewPointer("secret")
+		// fs.ExportAmazonS3Bucket = model.NewPointer("export-bucket")
+
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestSupportedTimezones(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

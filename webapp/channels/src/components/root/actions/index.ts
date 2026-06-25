@@ -3,6 +3,7 @@
 
 import type {History} from 'history';
 
+import {LogLevel} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -25,10 +26,10 @@ import {reloadPage} from 'utils/browser_utils';
 import {StoragePrefixes} from 'utils/constants';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
-import type {ThunkActionFunc} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
-export type TranslationPluginFunction = (locale: string) => Translations
+export type TranslationPluginFunction = (locale: string) => Translations;
 
 /**
  * This function meant to be used in root.tsx component loads config, license and if user is logged in, it loads user and its related data.
@@ -154,5 +155,21 @@ export function handleLoginLogoutSignal(e: StorageEvent): ThunkActionFunc<void> 
             }
             window.addEventListener('focus', reloadOnFocus);
         }
+    };
+}
+
+export function logIfConcurrentReactEnabled(): ActionFuncAsync<boolean> {
+    return async () => {
+        const concurrentReactEnabled = localStorage.getItem('enable_concurrent_react_experimental') === 'true';
+
+        if (concurrentReactEnabled) {
+            Client4.logClientError(
+                "This user's session is using experimental concurrent React which may cause visual bugs. It can be " +
+                    'disabled from Settings > Advanced or by clearing their browser storage.',
+                LogLevel.Debug,
+            );
+        }
+
+        return {data: concurrentReactEnabled};
     };
 }

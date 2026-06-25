@@ -31,7 +31,7 @@ type Props = {
      */
     requestAction: (
         success: () => void,
-        error: (error: {message: string; detailed_error?: string}) => void
+        error: (error: {message: string; detailed_error?: string}) => void,
     ) => void;
 
     /**
@@ -126,7 +126,7 @@ type State = {
     busy: boolean;
     fail: string;
     success: boolean;
-}
+};
 
 export default class RequestButton extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {

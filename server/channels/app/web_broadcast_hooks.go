@@ -297,15 +297,14 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 			continue
 		}
 
-		// Check if the recipient has permission to read this channel
+		// Resolve the mention if the recipient may see the channel's name/link.
 		channel, appErr := webConn.Platform.Store.Channel().Get(channelID, true)
 		if appErr != nil {
 			// If we can't get the channel, don't include the mention
 			continue
 		}
 
-		hasPermission, _ := webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, channel)
-		if hasPermission {
+		if webConn.Suite.HasPermissionToResolveChannelMention(rctx, webConn.UserId, channel) {
 			filteredMentions[channelName] = channelInfo
 		}
 	}

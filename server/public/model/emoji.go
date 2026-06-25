@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strings"
 )
 
 const (
@@ -104,6 +105,7 @@ func (emoji *Emoji) PreSave() {
 		emoji.Id = NewId()
 	}
 
+	emoji.Name = strings.ToLower(emoji.Name)
 	emoji.CreateAt = GetMillis()
 	emoji.UpdateAt = emoji.CreateAt
 }

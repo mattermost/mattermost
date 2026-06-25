@@ -71,22 +71,12 @@ export type OwnProps = {
     emojiMap?: EmojiMap;
 
     /**
-     * Some components processed by messageHtmlToComponent e.g. AtSumOfMembersMention require to have a list of userIds
-     */
-    userIds?: string[];
-
-    /**
-     * Some additional data to pass down to rendered component to aid in rendering decisions
-     */
-    messageMetadata?: Record<string, string>;
-
-    /**
      * Whether or not to render mmaction:// links as inline action buttons.
      * Set per-post by the caller (e.g. enabled for bot/webhook/plugin posts).
      * Defaults to false.
      */
     allowInlineActions?: boolean;
-}
+};
 
 function Markdown({
     options = {},
@@ -102,8 +92,6 @@ function Markdown({
     hasPluginTooltips,
     postType,
     emojiMap,
-    userIds,
-    messageMetadata,
     allowInlineActions,
     enableFormatting,
     siteURL,
@@ -143,15 +131,11 @@ function Markdown({
         imagesMetadata,
         hasPluginTooltips,
         postId,
-        userIds,
-        messageMetadata,
         channelId,
         postType,
         mentionHighlight: options?.mentionHighlight,
         disableGroupHighlight: options?.disableGroupHighlight,
         editedAt,
-        atSumOfMembersMentions: options?.atSumOfMembersMentions,
-        atPlanMentions: options?.atPlanMentions,
         allowInlineActions,
     });
 }

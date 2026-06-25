@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-import {
+import type {
     AdminConfig,
     ClusterSettings,
-    CollapsedThreads,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -14,6 +13,7 @@ import {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 
@@ -133,6 +133,7 @@ const defaultServerConfig: AdminConfig = {
         EnableMultifactorAuthentication: false,
         EnforceMultifactorAuthentication: false,
         EnableUserAccessTokens: false,
+        MaximumPersonalAccessTokenLifetimeDays: 0,
         AllowCorsFrom: '',
         CorsExposedHeaders: '',
         CorsAllowCredentials: false,
@@ -306,6 +307,7 @@ const defaultServerConfig: AdminConfig = {
         Directory: './data/',
         EnablePublicLink: false,
         ExtractContent: true,
+        ExtractContentTimeout: 10,
         ArchiveRecursion: false,
         PublicLinkSalt: '',
         InitialFont: 'nunito-bold.ttf',
@@ -759,17 +761,12 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannelsMemberSync: false,
         EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
-        PermalinkPreviews: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
         OnboardingTourTips: true,
-        DeprecateCloudFree: false,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
-        CloudIPFiltering: false,
-        ConsumePostHook: false,
-        CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
         ChannelBookmarks: true,
         WebSocketEventScope: true,
@@ -786,8 +783,9 @@ const defaultServerConfig: AdminConfig = {
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
         ClassificationMarkings: true,
+        PropertyFieldRank: true,
         IntegratedBoards: false,
-        CJKSearch: false,
+        CJKSearch: true,
         ManagedChannelCategories: false,
         MobileEphemeralMode: true,
     },
@@ -820,6 +818,8 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: true,
         EnableUserManagedAttributes: true,
+        TrustProxyDeviceIdentityHeader: false,
+        EnforceDeviceIDConsistency: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: true,

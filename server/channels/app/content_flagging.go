@@ -253,7 +253,9 @@ func (a *App) GetPostContentFlaggingPropertyValue(postId, propertyFieldName stri
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	statusPropertyField, appErr := a.GetPropertyFieldByName(nil, groupId, "", propertyFieldName)
+	// Content flagging fields carry no object type, so the empty object type is
+	// their exact scope.
+	statusPropertyField, appErr := a.GetPropertyFieldByNameForObjectType(nil, groupId, "", "", propertyFieldName)
 	if appErr != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.data_spillage.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
@@ -908,6 +910,9 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		if rErr := a.Srv().Store().Post().RestoreContentFlaggedPost(flaggedPost, statusField.ID, contentFlaggingManagedField.ID); rErr != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.data_spillage.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(rErr)
 		}
+
+		// Undelete the value for broadcasting in WebSocket events
+		flaggedPost.DeleteAt = 0
 	}
 
 	commentBytes, marshalErr := json.Marshal(actionRequest.Comment)

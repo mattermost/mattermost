@@ -9,11 +9,11 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -81,8 +81,11 @@ const SearchableSyncJobChannelList = (props: Props) => {
     const createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
 
-        const ChannelIcon = getChannelIconComponent(channel);
-        const channelTypeIcon = <ChannelIcon size={18}/>;
+        const channelTypeIcon = (
+            <ChannelIcon
+                channel={channel}
+                size={18}
+            />);
 
         const team = props.teams[channel.team_id];
 

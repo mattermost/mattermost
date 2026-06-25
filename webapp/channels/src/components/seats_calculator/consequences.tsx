@@ -15,7 +15,7 @@ import {
 type Props = {
     isCloud: boolean;
     licenseAgreementBtnText: string;
-}
+};
 
 export default function Consequences(props: Props) {
     let text = (

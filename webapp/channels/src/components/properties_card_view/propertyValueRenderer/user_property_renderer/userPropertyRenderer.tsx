@@ -21,7 +21,7 @@ type Props = {
     field: PropertyField;
     value?: PropertyValue<unknown>;
     metadata?: UserPropertyMetadata;
-}
+};
 
 export default function UserPropertyRenderer({field, value, metadata}: Props) {
     const userId = value ? value.value as string : '';

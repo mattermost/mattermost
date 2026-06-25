@@ -65,12 +65,12 @@ type Props = {
     userDetailCallback: (teamsId: TeamMembership[]) => void;
     refreshTeams: boolean;
     readOnly?: boolean;
-}
+};
 
 type State = {
     teamsWithMemberships: TeamWithMembership[];
     serverError: string | null;
-}
+};
 
 export default class TeamList extends React.PureComponent<Props, State> {
     public static defaultProps = {

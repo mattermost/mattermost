@@ -80,7 +80,7 @@ export function logError(error: ServerError, options: LogErrorOptions = {}): Act
             try {
                 const stringifiedSerializedError = JSON.stringify(serializedError).toString();
                 await Client4.logClientError(stringifiedSerializedError, LogLevel.Debug);
-            } catch (err) {
+            } catch {
                 // avoid crashing the app if an error sending "the error" occurs.
             }
         }

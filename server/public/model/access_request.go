@@ -70,6 +70,16 @@ type Subject struct {
 	// in the enterprise repo) so authors cannot ship a control whose
 	// production behaviour silently diverges from the simulator preview.
 	Session map[string]any `json:"session,omitempty"`
+	// Email is the subject's email address (model.User.Email), exposed to
+	// CEL policies as user.email. Populated by BuildAccessControlSubject.
+	Email string `json:"email,omitempty"`
+	// EmailVerified mirrors model.User.EmailVerified, exposed as user.verified.
+	EmailVerified bool `json:"email_verified,omitempty"`
+	// IsBot mirrors model.User.IsBot (derived from the Bots table on the
+	// cached user read), exposed as user.isbot.
+	IsBot bool `json:"is_bot,omitempty"`
+	// CreateAt mirrors model.User.CreateAt (epoch ms), exposed as user.createat.
+	CreateAt int64 `json:"create_at,omitempty"`
 }
 
 // RoleForScope returns the role assigned to this subject within the given
@@ -171,6 +181,10 @@ type SubjectSearchOptions struct {
 	// This is particularly useful for validation queries where we only need to check
 	// if a specific user matches an expression, rather than fetching all matching users
 	SubjectID string `json:"subject_id"`
+	// ExcludeNativeAttributes strips native user-attribute predicates (user.email,
+	// user.verified, user.isbot, user.createat[.youngerThanDays]) from the expression
+	// before building SQL, so self-inclusion validation checks only the CPA parts.
+	ExcludeNativeAttributes bool `json:"exclude_native_attributes,omitempty"`
 }
 
 type SubjectCursor struct {
@@ -499,16 +513,18 @@ type PolicySimulationResponse struct {
 // PolicySimulationUserOverride captures the per-user inputs the picker UI
 // sends to /access_control_policies/cel/simulate_users. The simulator
 // resolves each user's profile attributes from CPA storage and then layers
-// session context on top: first the active-session snapshot (when
-// UseActiveSession is set), then the explicit SessionOverrides map.
+// session context on top: the requesting admin's resolved session
+// attributes (the same user_agent_* / ip_address bag the live PDP reads
+// via App.GetSessionAttributes) are applied as a baseline, then the
+// explicit SessionOverrides map overrides individual keys.
 type PolicySimulationUserOverride struct {
 	// UserID identifies the user to simulate against.
 	UserID string `json:"user_id"`
-	// UseActiveSession injects the requesting admin's session.* attributes
-	// (network_status, client_type, device_managed, ip_range, platform,
-	// device_id) into this user's evaluation context. When the live PDP
-	// does not yet populate session.* on the request context this is a
-	// no-op; the API surface is forward-compatible.
+	// UseActiveSession is retained for API backward compatibility. The
+	// simulator now always layers the requesting admin's resolved session
+	// snapshot under SessionOverrides — leaving overrides empty means
+	// "evaluate against the session as the server resolves it" — so this
+	// flag is effectively a no-op. New clients should leave it unset.
 	UseActiveSession bool `json:"use_active_session,omitempty"`
 	// SessionOverrides replaces individual session.* attributes for this
 	// user only. Applied on top of the active-session snapshot when both

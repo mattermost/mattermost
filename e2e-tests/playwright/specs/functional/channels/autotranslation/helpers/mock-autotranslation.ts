@@ -26,7 +26,9 @@ let mockSourceLanguage = 'es';
  * Simulates how real LibreTranslate detects language from actual message text
  */
 function detectLanguageFromText(text: string): string {
-    if (!text) return mockSourceLanguage;
+    if (!text) {
+        return mockSourceLanguage;
+    }
 
     const lowerText = text.toLowerCase();
 
@@ -86,9 +88,15 @@ function detectLanguageFromText(text: string): string {
     const frenchMatches = frenchIndicators.filter((indicator) => lowerText.includes(indicator)).length;
 
     // Return the language with most matches
-    if (spanishMatches > englishMatches && spanishMatches > frenchMatches) return 'es';
-    if (englishMatches > frenchMatches) return 'en';
-    if (frenchMatches > 0) return 'fr';
+    if (spanishMatches > englishMatches && spanishMatches > frenchMatches) {
+        return 'es';
+    }
+    if (englishMatches > frenchMatches) {
+        return 'en';
+    }
+    if (frenchMatches > 0) {
+        return 'fr';
+    }
 
     // Default to configured mock language
     return mockSourceLanguage;

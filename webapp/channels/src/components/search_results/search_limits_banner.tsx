@@ -19,7 +19,7 @@ import './search_limits_banner.scss';
 
 type Props = {
     searchType: string;
-}
+};
 
 function SearchLimitsBanner(props: Props) {
     const [serverLimits] = useGetServerLimits();

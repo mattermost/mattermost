@@ -13,7 +13,7 @@ export type HorizontallyWithinOptions = {
      * See Floating UI's documentation on detectOverflow for more details.
      */
     boundary?: Boundary | null;
-}
+};
 
 /**
  * horizontallyWithin is a middleware for useFloating which shifts the floating element left or right to try to keep

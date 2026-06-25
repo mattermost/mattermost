@@ -38,6 +38,20 @@ const (
 	ImageDriverS3    = "amazons3"
 	ImageDriverAzure = "azureblob"
 
+	AzureAuthModeSharedKey         = "shared_key"
+	AzureAuthModeDefaultCredential = "default_credential"
+
+	// AzureCloudCommercial / AzureCloudGovernment select hardcoded Azure
+	// service endpoints so admins do not have to spell out the suffix
+	// for the well-known clouds. AzureCloudCustom hands control to the
+	// admin: FileSettings.AzureEndpoint becomes the full service URL,
+	// scheme and storage account included, and Mattermost passes it to
+	// the SDK unchanged. Use this for Azurite, reverse proxies, or any
+	// other non-default deployment topology.
+	AzureCloudCommercial = "commercial"
+	AzureCloudGovernment = "government"
+	AzureCloudCustom     = "custom"
+
 	DatabaseDriverPostgres = "postgres"
 
 	SearchengineElasticsearch = "elasticsearch"
@@ -305,6 +319,12 @@ const (
 	StorageClassGlacierIR          = "GLACIER_IR"
 	StorageClassSnow               = "SNOW"
 	StorageClassExpressOnezone     = "EXPRESS_ONEZONE"
+
+	// MaxPersonalAccessTokenLifetimeDays is the upper bound accepted for
+	// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays. 100 years is well
+	// past any realistic operational use and leaves ample headroom against
+	// int64 overflow when computing token expiry millis.
+	MaxPersonalAccessTokenLifetimeDays = 36500
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -347,48 +367,49 @@ type ServiceSettings struct {
 	TLSMinVer           *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSStrictTransport  *bool   `access:"write_restrictable,cloud_restrictable"`
 	// In seconds.
-	TLSStrictTransportMaxAge            *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	TLSOverwriteCiphers                 []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	UseLetsEncrypt                      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	LetsEncryptCertificateCacheFile     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
-	Forward80To443                      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TrustedProxyIPHeader                []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	ReadTimeout                         *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	WriteTimeout                        *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	IdleTimeout                         *int     `access:"write_restrictable,cloud_restrictable"`
-	MaximumLoginAttempts                *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
-	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
-	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
-	DCRRedirectURIAllowlist             []string `access:"integrations_integration_management"`
-	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
-	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
-	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
-	EnableCommands                      *bool    `access:"integrations_integration_management"`
-	OutgoingIntegrationRequestsTimeout  *int64   `access:"integrations_integration_management"` // In seconds.
-	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
-	EnablePostIconOverride              *bool    `access:"integrations_integration_management"`
-	GoogleDeveloperKey                  *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
-	EnableLinkPreviews                  *bool    `access:"site_posts"`
-	EnablePermalinkPreviews             *bool    `access:"site_posts"`
-	RestrictLinkPreviews                *string  `access:"site_posts"`
-	EnableTesting                       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableDeveloper                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	DeveloperFlags                      *string  `access:"environment_developer,cloud_restrictable"`
-	EnableClientPerformanceDebugging    *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableSecurityFixAlert              *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
-	EnableInsecureOutgoingConnections   *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	AllowedUntrustedInternalConnections *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableMultifactorAuthentication     *bool    `access:"authentication_mfa"`
-	EnforceMultifactorAuthentication    *bool    `access:"authentication_mfa"`
-	EnableUserAccessTokens              *bool    `access:"integrations_integration_management"`
-	AllowCorsFrom                       *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsExposedHeaders                  *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsAllowCredentials                *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsDebug                           *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	AllowCookiesForSubdomains           *bool    `access:"write_restrictable,cloud_restrictable"`
-	ExtendSessionLengthWithActivity     *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	TerminateSessionsOnPasswordChange   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	TLSStrictTransportMaxAge               *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSOverwriteCiphers                    []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	UseLetsEncrypt                         *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	LetsEncryptCertificateCacheFile        *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
+	Forward80To443                         *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TrustedProxyIPHeader                   []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	ReadTimeout                            *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	WriteTimeout                           *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	IdleTimeout                            *int     `access:"write_restrictable,cloud_restrictable"`
+	MaximumLoginAttempts                   *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
+	GoroutineHealthThreshold               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableOAuthServiceProvider             *bool    `access:"integrations_integration_management"`
+	EnableDynamicClientRegistration        *bool    `access:"integrations_integration_management"`
+	DCRRedirectURIAllowlist                []string `access:"integrations_integration_management"`
+	EnableIncomingWebhooks                 *bool    `access:"integrations_integration_management"`
+	EnableOutgoingWebhooks                 *bool    `access:"integrations_integration_management"`
+	EnableOutgoingOAuthConnections         *bool    `access:"integrations_integration_management"`
+	EnableCommands                         *bool    `access:"integrations_integration_management"`
+	OutgoingIntegrationRequestsTimeout     *int64   `access:"integrations_integration_management"` // In seconds.
+	EnablePostUsernameOverride             *bool    `access:"integrations_integration_management"`
+	EnablePostIconOverride                 *bool    `access:"integrations_integration_management"`
+	GoogleDeveloperKey                     *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
+	EnableLinkPreviews                     *bool    `access:"site_posts"`
+	EnablePermalinkPreviews                *bool    `access:"site_posts"`
+	RestrictLinkPreviews                   *string  `access:"site_posts"`
+	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableDeveloper                        *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	DeveloperFlags                         *string  `access:"environment_developer,cloud_restrictable"`
+	EnableClientPerformanceDebugging       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableSecurityFixAlert                 *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	EnableInsecureOutgoingConnections      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
+	EnforceMultifactorAuthentication       *bool    `access:"authentication_mfa"`
+	EnableUserAccessTokens                 *bool    `access:"integrations_integration_management"`
+	MaximumPersonalAccessTokenLifetimeDays *int     `access:"integrations_integration_management"`
+	AllowCorsFrom                          *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsExposedHeaders                     *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsAllowCredentials                   *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsDebug                              *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	AllowCookiesForSubdomains              *bool    `access:"write_restrictable,cloud_restrictable"`
+	ExtendSessionLengthWithActivity        *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	TerminateSessionsOnPasswordChange      *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 
 	// Deprecated
 	SessionLengthWebInDays  *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -553,6 +574,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableUserAccessTokens == nil {
 		s.EnableUserAccessTokens = new(false)
+	}
+
+	if s.MaximumPersonalAccessTokenLifetimeDays == nil {
+		s.MaximumPersonalAccessTokenLifetimeDays = new(0)
 	}
 
 	if s.GoroutineHealthThreshold == nil {
@@ -1786,6 +1811,7 @@ type FileSettings struct {
 	Directory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	EnablePublicLink                   *bool   `access:"site_public_links,cloud_restrictable"`
 	ExtractContent                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ExtractContentTimeout              *int    `access:"environment_file_storage,write_restrictable"` // In seconds. 0 disables the timeout.
 	ArchiveRecursion                   *bool   `access:"environment_file_storage,write_restrictable"`
 	PublicLinkSalt                     *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
 	InitialFont                        *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
@@ -1803,9 +1829,11 @@ type FileSettings struct {
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureStorageAccount                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureAuthMode                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureAccessKey                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureContainer                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureCloud                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AzureEndpoint                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureSSL                           *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1828,12 +1856,15 @@ type FileSettings struct {
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureStorageAccount                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureAuthMode                      *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureAccessKey                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureContainer                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureCloud                         *string `access:"environment_file_storage,write_restrictable"`
 	ExportAzureEndpoint                      *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureSSL                           *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportAzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzurePresignExpiresSeconds         *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1875,6 +1906,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExtractContent == nil {
 		s.ExtractContent = new(true)
+	}
+
+	if s.ExtractContentTimeout == nil {
+		s.ExtractContentTimeout = new(10)
 	}
 
 	if s.ArchiveRecursion == nil {
@@ -1954,6 +1989,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AzureStorageAccount = NewPointer("")
 	}
 
+	if s.AzureAuthMode == nil {
+		s.AzureAuthMode = NewPointer(AzureAuthModeSharedKey)
+	}
+
 	if s.AzureAccessKey == nil {
 		s.AzureAccessKey = NewPointer("")
 	}
@@ -1964,6 +2003,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AzurePathPrefix == nil {
 		s.AzurePathPrefix = NewPointer("")
+	}
+
+	if s.AzureCloud == nil {
+		s.AzureCloud = NewPointer(AzureCloudCommercial)
 	}
 
 	if s.AzureEndpoint == nil {
@@ -2052,6 +2095,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.ExportAzureStorageAccount = NewPointer("")
 	}
 
+	if s.ExportAzureAuthMode == nil {
+		s.ExportAzureAuthMode = NewPointer(AzureAuthModeSharedKey)
+	}
+
 	if s.ExportAzureAccessKey == nil {
 		s.ExportAzureAccessKey = NewPointer("")
 	}
@@ -2064,6 +2111,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.ExportAzurePathPrefix = NewPointer("")
 	}
 
+	if s.ExportAzureCloud == nil {
+		s.ExportAzureCloud = NewPointer(AzureCloudCommercial)
+	}
+
 	if s.ExportAzureEndpoint == nil {
 		s.ExportAzureEndpoint = NewPointer("")
 	}
@@ -2074,6 +2125,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAzureRequestTimeoutMilliseconds == nil {
 		s.ExportAzureRequestTimeoutMilliseconds = NewPointer(int64(30000))
+	}
+
+	if s.ExportAzurePresignExpiresSeconds == nil {
+		s.ExportAzurePresignExpiresSeconds = NewPointer(int64(21600)) // 6h
 	}
 }
 
@@ -4043,6 +4098,8 @@ func (s *ExportSettings) SetDefaults() {
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
+	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
+	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4052,6 +4109,14 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.EnableUserManagedAttributes == nil {
 		s.EnableUserManagedAttributes = new(false)
+	}
+
+	if s.TrustProxyDeviceIdentityHeader == nil {
+		s.TrustProxyDeviceIdentityHeader = new(false)
+	}
+
+	if s.EnforceDeviceIDConsistency == nil {
+		s.EnforceDeviceIDConsistency = new(false)
 	}
 }
 
@@ -4529,9 +4594,22 @@ func (s *SqlSettings) isValid() *AppError {
 	return nil
 }
 
+// See https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview#storage-account-name
+var azureStorageAccountNameRegex = regexp.MustCompile(`^[a-z0-9]{3,24}$`)
+
+// IsValidAzureStorageAccountName reports whether name matches Azure's storage
+// account name format: 3 to 24 lowercase letters and digits.
+func IsValidAzureStorageAccountName(name string) bool {
+	return azureStorageAccountNameRegex.MatchString(name)
+}
+
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.ExtractContentTimeout < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.extract_content_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3 || *s.DriverName == ImageDriverAzure) {
@@ -4563,6 +4641,28 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_timeout.app_error", map[string]any{"Value": *s.AzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
 	}
 
+	if !(*s.AzureAuthMode == AzureAuthModeSharedKey || *s.AzureAuthMode == AzureAuthModeDefaultCredential) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_auth_mode.app_error", map[string]any{"Value": *s.AzureAuthMode}, "", http.StatusBadRequest)
+	}
+
+	// Empty cloud is treated as commercial for configs that pre-date the field,
+	// matching buildAzureServiceURL.
+	switch *s.AzureCloud {
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom, "":
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.AzureCloud", "Value": *s.AzureCloud}, "", http.StatusBadRequest)
+	}
+
+	if *s.AzureCloud == AzureCloudCustom && *s.AzureEndpoint == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.AzureEndpoint"}, "", http.StatusBadRequest)
+	}
+
+	// For managed clouds the account name forms the service hostname and must
+	// match Azure's format; custom mode uses AzureEndpoint instead.
+	if *s.DriverName == ImageDriverAzure && *s.AzureCloud != AzureCloudCustom && !IsValidAzureStorageAccountName(*s.AzureStorageAccount) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_storage_account.app_error", map[string]any{"Setting": "FileSettings.AzureStorageAccount", "Value": *s.AzureStorageAccount}, "", http.StatusBadRequest)
+	}
+
 	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
@@ -4585,6 +4685,24 @@ func (s *FileSettings) isValid() *AppError {
 
 	if *s.ExportAzureRequestTimeoutMilliseconds <= 0 || *s.ExportAzureRequestTimeoutMilliseconds > maxAzureRequestTimeoutMilliseconds {
 		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_timeout.app_error", map[string]any{"Value": *s.ExportAzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
+	}
+
+	if !(*s.ExportAzureAuthMode == AzureAuthModeSharedKey || *s.ExportAzureAuthMode == AzureAuthModeDefaultCredential) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_auth_mode.app_error", map[string]any{"Value": *s.ExportAzureAuthMode}, "", http.StatusBadRequest)
+	}
+
+	switch *s.ExportAzureCloud {
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom, "":
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.ExportAzureCloud", "Value": *s.ExportAzureCloud}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportAzureCloud == AzureCloudCustom && *s.ExportAzureEndpoint == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.ExportAzureEndpoint"}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportDriverName == ImageDriverAzure && *s.ExportAzureCloud != AzureCloudCustom && !IsValidAzureStorageAccountName(*s.ExportAzureStorageAccount) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_storage_account.app_error", map[string]any{"Setting": "FileSettings.ExportAzureStorageAccount", "Value": *s.ExportAzureStorageAccount}, "", http.StatusBadRequest)
 	}
 
 	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {
@@ -4915,6 +5033,14 @@ func (s *ServiceSettings) isValid() *AppError {
 		if err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 		}
+	}
+
+	// MaximumPersonalAccessTokenLifetimeDays: 0 means unlimited; negative is
+	// nonsensical; an upper bound of MaxPersonalAccessTokenLifetimeDays guards
+	// against int64 overflow when computing now + days*86_400_000 millis at
+	// token-creation time.
+	if *s.MaximumPersonalAccessTokenLifetimeDays < 0 || *s.MaximumPersonalAccessTokenLifetimeDays > MaxPersonalAccessTokenLifetimeDays {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_personal_access_token_lifetime_days.app_error", map[string]any{"Max": MaxPersonalAccessTokenLifetimeDays}, "", http.StatusBadRequest)
 	}
 
 	return nil
