@@ -32,8 +32,8 @@ export async function resolveSvgWithViewBox(src: string): Promise<string | null>
         return null;
     }
 
-    // Anything with a viewBox or absolute width and height already scales correctly.
-    if (svg.getAttribute('viewBox') ||
+    // Anything with a usable viewBox or absolute width and height already scales correctly.
+    if (hasUsableViewBox(svg.getAttribute('viewBox')) ||
         (hasAbsoluteLength(svg.getAttribute('width')) && hasAbsoluteLength(svg.getAttribute('height')))) {
         return null;
     }
@@ -108,6 +108,17 @@ function removeEventHandlers(element: Element) {
     for (const child of Array.from(element.children)) {
         removeEventHandlers(child);
     }
+}
+
+// hasUsableViewBox reports whether a viewBox attribute defines a positive,
+// finite drawing area. A present but invalid or zero-area viewBox still needs
+// resolution, so it must not short-circuit the fixing path.
+function hasUsableViewBox(value: string | null): boolean {
+    if (!value) {
+        return false;
+    }
+    const parts = value.trim().split(/[\s,]+/).map(Number);
+    return parts.length === 4 && parts.every(Number.isFinite) && parts[2] > 0 && parts[3] > 0;
 }
 
 function hasAbsoluteLength(value: string | null): boolean {

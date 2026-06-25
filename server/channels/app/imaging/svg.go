@@ -113,7 +113,7 @@ func parseAbsoluteLength(value string) (int, bool) {
 // parseDimension rounds a numeric SVG dimension to the nearest integer.
 func parseDimension(value string) (int, bool) {
 	parsed, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
-	if err != nil {
+	if err != nil || math.IsNaN(parsed) || math.IsInf(parsed, 0) {
 		return 0, false
 	}
 

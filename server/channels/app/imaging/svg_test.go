@@ -149,6 +149,16 @@ func TestParseSVGDimensionSources(t *testing.T) {
 			expectedWidth:  101,
 			expectedHeight: 200,
 		},
+		{
+			name:      "non-finite viewBox dimensions are rejected",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 NaN Inf"></svg>`,
+			expectErr: true,
+		},
+		{
+			name:      "non-finite width and height are rejected",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" width="Inf" height="NaN"></svg>`,
+			expectErr: true,
+		},
 	}
 
 	for _, tc := range testCases {

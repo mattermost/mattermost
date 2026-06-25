@@ -30,6 +30,14 @@ describe('utils/svg_preview', () => {
         expect(await resolveSvgWithViewBox('http://localhost/a.svg')).toBeNull();
     });
 
+    test('treats a zero-area viewBox as unusable and proceeds to measure', async () => {
+        mockFetch('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0"><rect width="10" height="10"/></svg>');
+        const appendChild = jest.spyOn(document.body, 'appendChild');
+
+        expect(await resolveSvgWithViewBox('http://localhost/a.svg')).toBeNull();
+        expect(appendChild).toHaveBeenCalled();
+    });
+
     test('returns null when the response is not ok', async () => {
         mockFetch('<svg xmlns="http://www.w3.org/2000/svg"></svg>', false);
 
@@ -47,7 +55,9 @@ describe('utils/svg_preview', () => {
         // the function returns null without throwing. This documents that
         // width="100%"/height="100%" SVGs are not short-circuited as already-sized.
         mockFetch('<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="10" height="10"/></svg>');
+        const appendChild = jest.spyOn(document.body, 'appendChild');
 
         expect(await resolveSvgWithViewBox('http://localhost/a.svg')).toBeNull();
+        expect(appendChild).toHaveBeenCalled();
     });
 });
