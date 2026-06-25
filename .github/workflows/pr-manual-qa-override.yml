@@ -22,13 +22,40 @@ jobs:
       - name: Apply QA override statuses
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          PR="${{ github.event.issue.number }}"
-          SHA=$(gh pr view "$PR" --repo "${{ github.repository }}" --json headRefOid -q .headRefOid)
-          REASON="${{ github.event.comment.body }}"
-          for CTX in QA/plan QA/skipped QA/automation QA/execution; do
-            gh api "repos/${{ github.repository }}/statuses/${SHA}" \
-              -f state=success \
-              -f context="$CTX" \
-              -f description="(override) ${REASON:0:100}"
-          done
+          python3 <<'PY'
+          import os
+          import re
+          import subprocess
+
+          body = os.environ.get("COMMENT_BODY", "")
+          reason = re.sub(r"^/qa-override\s*", "", body, flags=re.I)
+          reason = re.sub(r"[^\w\s.,!?_-]", "", reason)[:100]
+          desc = f"(override) {reason}" if reason.strip() else "(override)"
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          pr = os.environ["PR_NUMBER"]
+          sha = subprocess.check_output(
+              ["gh", "pr", "view", pr, "--repo", repo, "--json", "headRefOid", "-q", ".headRefOid"],
+              text=True,
+          ).strip()
+
+          for ctx in ("QA/plan", "QA/skipped", "QA/automation", "QA/execution"):
+              subprocess.run(
+                  [
+                      "gh",
+                      "api",
+                      f"repos/{repo}/statuses/{sha}",
+                      "-f",
+                      "state=success",
+                      "-f",
+                      f"context={ctx}",
+                      "-f",
+                      f"description={desc}",
+                  ],
+                  check=True,
+              )
+          PY

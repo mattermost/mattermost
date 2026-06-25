@@ -72,6 +72,8 @@ jobs:
 
       - name: Resolve force flags
         id: forces
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           FORCE_EXECUTE=false
           FORCE_SKIP=false
@@ -80,7 +82,9 @@ jobs:
             [ "${{ github.event.label.name }}" = "QA/Skip" ] && FORCE_SKIP=true
           fi
           if [ "${{ github.event_name }}" = "issue_comment" ]; then
-            echo "${{ github.event.comment.body }}" | grep -q '^/qa-verify' && FORCE_EXECUTE=true
+            if python3 -c 'import os, sys; sys.exit(0 if os.environ.get("COMMENT_BODY", "").startswith("/qa-verify") else 1)'; then
+              FORCE_EXECUTE=true
+            fi
           fi
           echo "force_execute=$FORCE_EXECUTE" >> "$GITHUB_OUTPUT"
           echo "force_skip=$FORCE_SKIP" >> "$GITHUB_OUTPUT"
