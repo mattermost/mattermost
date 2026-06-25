@@ -674,6 +674,10 @@ export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): b
         return false;
     }
 
+    if (hasAiGeneratedMetadata(post)) {
+        return false;
+    }
+
     const sameUser = post.user_id === previousPost.user_id;
     const withinTimeWindow = post.create_at - previousPost.create_at <= Posts.POST_COLLAPSE_TIMEOUT;
     const notFromWebhook = !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook);

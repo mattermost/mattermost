@@ -30,12 +30,12 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "boards property group not found", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	assigneeField, appErr := a.GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldAssignee)
+	assigneeField, appErr := a.GetPropertyFieldByNameForObjectType(rctx, boardsGroup.ID, "", model.PropertyFieldObjectTypePost, model.BoardsPropertyFieldAssignee)
 	if appErr != nil {
 		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "assignee property field not found", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	statusField, appErr := a.GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldStatus)
+	statusField, appErr := a.GetPropertyFieldByNameForObjectType(rctx, boardsGroup.ID, "", model.PropertyFieldObjectTypePost, model.BoardsPropertyFieldStatus)
 	if appErr != nil {
 		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "status property field not found", http.StatusInternalServerError).Wrap(appErr)
 	}
