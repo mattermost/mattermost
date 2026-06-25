@@ -290,7 +290,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Cache layer
 			opts := append(ps.storeOptions, sqlstore.WithFeatureFlags(func() *model.FeatureFlags {
 				return ps.Config().FeatureFlags
-			}))
+			}), sqlstore.WithDeliveryTrackingSettings(ps.Config().DeliveryTrackingSettings))
 			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, opts...)
 			if err != nil {
 				return nil, err

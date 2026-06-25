@@ -11631,6 +11631,30 @@
     "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
   },
   {
+    "id": "model.config.is_valid.delivery_tracking_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Invalid connection maximum idle time for delivery tracking settings. Must be a non-negative number."
+  },
+  {
+    "id": "model.config.is_valid.delivery_tracking_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Invalid connection maximum lifetime for delivery tracking settings. Must be a non-negative number."
+  },
+  {
+    "id": "model.config.is_valid.delivery_tracking_driver.app_error",
+    "translation": "Invalid driver name for delivery tracking settings. Must be set to 'postgres'."
+  },
+  {
+    "id": "model.config.is_valid.delivery_tracking_idle.app_error",
+    "translation": "Invalid maximum idle connection for delivery tracking settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.delivery_tracking_max_conn.app_error",
+    "translation": "Invalid maximum open connection for delivery tracking settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.delivery_tracking_query_timeout.app_error",
+    "translation": "Invalid query timeout for delivery tracking settings. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
   },

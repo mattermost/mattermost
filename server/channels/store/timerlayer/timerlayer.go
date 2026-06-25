@@ -76,6 +76,7 @@ type TimerLayer struct {
 	UploadSessionStore              store.UploadSessionStore
 	UserStore                       store.UserStore
 	UserAccessTokenStore            store.UserAccessTokenStore
+	UserPostDeliveryStore           store.UserPostDeliveryStore
 	UserTermsOfServiceStore         store.UserTermsOfServiceStore
 	ViewStore                       store.ViewStore
 	WebhookStore                    store.WebhookStore
@@ -307,6 +308,10 @@ func (s *TimerLayer) User() store.UserStore {
 
 func (s *TimerLayer) UserAccessToken() store.UserAccessTokenStore {
 	return s.UserAccessTokenStore
+}
+
+func (s *TimerLayer) UserPostDelivery() store.UserPostDeliveryStore {
+	return s.UserPostDeliveryStore
 }
 
 func (s *TimerLayer) UserTermsOfService() store.UserTermsOfServiceStore {
@@ -603,6 +608,11 @@ type TimerLayerUserStore struct {
 
 type TimerLayerUserAccessTokenStore struct {
 	store.UserAccessTokenStore
+	Root *TimerLayer
+}
+
+type TimerLayerUserPostDeliveryStore struct {
+	store.UserPostDeliveryStore
 	Root *TimerLayer
 }
 
@@ -14401,6 +14411,38 @@ func (s *TimerLayerUserAccessTokenStore) UpdateTokenEnable(tokenID string) error
 	return err
 }
 
+func (s *TimerLayerUserPostDeliveryStore) DeleteByPost(ctx context.Context, postID string) error {
+	start := time.Now()
+
+	err := s.UserPostDeliveryStore.DeleteByPost(ctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserPostDeliveryStore.DeleteByPost", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerUserPostDeliveryStore) MarkBulk(ctx context.Context, records []model.UserPostDelivery) error {
+	start := time.Now()
+
+	err := s.UserPostDeliveryStore.MarkBulk(ctx, records)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserPostDeliveryStore.MarkBulk", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerUserTermsOfServiceStore) Delete(userID string, termsOfServiceID string) error {
 	start := time.Now()
 
@@ -15102,6 +15144,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.UploadSessionStore = &TimerLayerUploadSessionStore{UploadSessionStore: childStore.UploadSession(), Root: &newStore}
 	newStore.UserStore = &TimerLayerUserStore{UserStore: childStore.User(), Root: &newStore}
 	newStore.UserAccessTokenStore = &TimerLayerUserAccessTokenStore{UserAccessTokenStore: childStore.UserAccessToken(), Root: &newStore}
+	newStore.UserPostDeliveryStore = &TimerLayerUserPostDeliveryStore{UserPostDeliveryStore: childStore.UserPostDelivery(), Root: &newStore}
 	newStore.UserTermsOfServiceStore = &TimerLayerUserTermsOfServiceStore{UserTermsOfServiceStore: childStore.UserTermsOfService(), Root: &newStore}
 	newStore.ViewStore = &TimerLayerViewStore{ViewStore: childStore.View(), Root: &newStore}
 	newStore.WebhookStore = &TimerLayerWebhookStore{WebhookStore: childStore.Webhook(), Root: &newStore}

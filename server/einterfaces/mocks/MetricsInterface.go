@@ -282,6 +282,11 @@ func (_m *MetricsInterface) IncrementUserIndexCounter() {
 	_m.Called()
 }
 
+// IncrementUserPostDeliveryRecordsPersisted provides a mock function with given fields: count
+func (_m *MetricsInterface) IncrementUserPostDeliveryRecordsPersisted(count int) {
+	_m.Called(count)
+}
+
 // IncrementWebSocketBroadcast provides a mock function with given fields: eventType
 func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType model.WebsocketEventType) {
 	_m.Called(eventType)

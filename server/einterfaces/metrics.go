@@ -21,6 +21,7 @@ type MetricsInterface interface {
 	IncrementPostSentPush()
 	IncrementPostBroadcast()
 	IncrementPostFileAttachment(count int)
+	IncrementUserPostDeliveryRecordsPersisted(count int)
 
 	IncrementHTTPRequest()
 	IncrementHTTPError()

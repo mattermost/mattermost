@@ -58,12 +58,17 @@ var (
 
 	// LvlAuditCLI is intended for auditing command-line interface operations. This level was
 	// originally designed for the legacy CLI. It's mostly unused now.
-	LvlAuditCLI  = Level{ID: 103, Name: "audit-cli"}
+	LvlAuditCLI = Level{ID: 103, Name: "audit-cli"}
+
+	// LvlAuditPostDelivery is used for auditing post-delivery events\
+	LvlAuditPostDelivery = Level{ID: 104, Name: "post-delivery"}
+
 	MLvlAuditAll = []Level{
 		LvlAuditAPI,
 		LvlAuditContent,
 		LvlAuditPerms,
 		LvlAuditCLI,
+		LvlAuditPostDelivery,
 	}
 
 	LvlRemoteClusterServiceDebug = Level{ID: 130, Name: "RemoteClusterServiceDebug"}

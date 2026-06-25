@@ -9,6 +9,16 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: postgres
+  postgres-userpostdelivery:
+    restart: 'no'
+    container_name: mattermost-postgres-userpostdelivery
+    ports:
+      - "5433:5432"
+    volumes:
+     - "postgres-userpostdelivery-data:/var/lib/postgresql/data"
+    extends:
+        file: build/docker-compose.common.yml
+        service: postgres-userpostdelivery
   minio:
     restart: 'no'
     container_name: mattermost-minio
@@ -126,3 +136,4 @@ networks:
 
 volumes:
   postgres-14-data:
+  postgres-userpostdelivery-data:

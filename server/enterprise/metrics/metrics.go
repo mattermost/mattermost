@@ -71,6 +71,8 @@ type MetricsInterfaceImpl struct {
 	PostBroadcastCounter  prometheus.Counter
 	PostFileAttachCounter prometheus.Counter
 
+	UserPostDeliveryRecordsPersistedCounter prometheus.Counter
+
 	HTTPRequestsCounter prometheus.Counter
 	HTTPErrorsCounter   prometheus.Counter
 	HTTPWebsocketsGauge *prometheus.GaugeVec
@@ -369,6 +371,15 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.Registry.MustRegister(m.PostFileAttachCounter)
 
 	// Database Subsystem
+
+	m.UserPostDeliveryRecordsPersistedCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemDB,
+		Name:        "user_post_delivery_records_persisted_total",
+		Help:        "The total number of post-delivery-tracking rows persisted to Postgres (RowsAffected, post ON CONFLICT dedup).",
+		ConstLabels: additionalLabels,
+	})
+	m.Registry.MustRegister(m.UserPostDeliveryRecordsPersistedCounter)
 
 	m.DbMasterConnectionsGauge = prometheus.NewGaugeFunc(prometheus.GaugeOpts{
 		Namespace:   MetricsNamespace,
@@ -1895,6 +1906,10 @@ func (mi *MetricsInterfaceImpl) IncrementWebSocketBroadcast(eventType model.Webs
 
 func (mi *MetricsInterfaceImpl) IncrementPostFileAttachment(count int) {
 	mi.PostFileAttachCounter.Add(float64(count))
+}
+
+func (mi *MetricsInterfaceImpl) IncrementUserPostDeliveryRecordsPersisted(count int) {
+	mi.UserPostDeliveryRecordsPersistedCounter.Add(float64(count))
 }
 
 func (mi *MetricsInterfaceImpl) IncrementHTTPRequest() {

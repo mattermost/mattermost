@@ -1,0 +1,11 @@
+{
+    "user_post_delivery_db": {
+        "type": "user_post_delivery_db",
+        "format": "noop",
+        "levels": [
+            {"id": 104, "name": "post-delivery"}
+        ],
+        "options": {},
+        "maxqueuesize": 10000
+    }
+}
